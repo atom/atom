@@ -1,6 +1,7 @@
 {find} = require 'underscore-plus'
 Grim = require 'grim'
 {Disposable} = require 'event-kit'
+_ = require 'underscore-plus'
 
 # Essential: `ViewRegistry` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
@@ -42,11 +43,11 @@ Grim = require 'grim'
 # ```
 module.exports =
 class ViewRegistry
-  documentPollingInterval: 200
   documentUpdateRequested: false
   documentReadInProgress: false
   performDocumentPollAfterUpdate: false
-  pollIntervalHandle: null
+  debouncedPerformDocumentPoll: null
+  minimumPollInterval: 200
 
   constructor: ->
     @views = new WeakMap
@@ -54,6 +55,9 @@ class ViewRegistry
     @documentWriters = []
     @documentReaders = []
     @documentPollers = []
+
+    @observer = new MutationObserver(@requestDocumentPoll)
+    @debouncedPerformDocumentPoll = _.throttle(@performDocumentPoll, @minimumPollInterval).bind(this)
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -208,14 +212,19 @@ class ViewRegistry
     writer() while writer = @documentWriters.shift()
 
   startPollingDocument: ->
-    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+    window.addEventListener('resize', @requestDocumentPoll)
+    @observer.observe(document, {subtree: true, childList: true, attributes: true})
 
   stopPollingDocument: ->
-    window.clearInterval(@pollIntervalHandle)
+    window.removeEventListener('resize', @requestDocumentPoll)
+    @observer.disconnect()
 
-  performDocumentPoll: =>
+  requestDocumentPoll: =>
     if @documentUpdateRequested
       @performDocumentPollAfterUpdate = true
     else
-      poller() for poller in @documentPollers
-      return
+      @debouncedPerformDocumentPoll()
+
+  performDocumentPoll: ->
+    poller() for poller in @documentPollers
+    return

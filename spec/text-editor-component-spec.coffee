@@ -280,6 +280,7 @@ describe "TextEditorComponent", ->
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
+      atom.views.performDocumentPoll()
 
       advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
@@ -701,7 +702,8 @@ describe "TextEditorComponent", ->
 
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
-      advanceClock(atom.views.documentPollingInterval)
+      atom.views.performDocumentPoll()
+
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
       for tileNode in lineNumbersNode.querySelectorAll(".tile")
@@ -800,6 +802,7 @@ describe "TextEditorComponent", ->
 
         describe "when the component is destroyed", ->
           it "stops listening for folding events", ->
+            nextAnimationFrame()
             component.destroy()
 
             lineNumber = component.lineNumberNodeForScreenRow(1)
@@ -824,6 +827,8 @@ describe "TextEditorComponent", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
         it "does not fold when the line number componentNode is clicked", ->
+          nextAnimationFrame() # clear pending frame request
+
           lineNumber = component.lineNumberNodeForScreenRow(1)
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
           expect(nextAnimationFrame).toBe noAnimationFrame
@@ -2600,7 +2605,7 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
         hiddenParent.style.display = 'block'
-        advanceClock(atom.views.documentPollingInterval)
+        atom.views.performDocumentPoll()
 
         expect(componentNode.querySelectorAll('.line').length).toBeGreaterThan 0
 
@@ -2710,13 +2715,13 @@ describe "TextEditorComponent", ->
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
-      advanceClock(atom.views.documentPollingInterval)
+      atom.views.performDocumentPoll()
       nextAnimationFrame()
       expect(componentNode.querySelectorAll('.line')).toHaveLength(6)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
-      advanceClock(atom.views.documentPollingInterval)
+      atom.views.performDocumentPoll()
       nextAnimationFrame()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
 
@@ -2725,7 +2730,7 @@ describe "TextEditorComponent", ->
       scrollViewNode.style.paddingLeft = 20 + 'px'
       componentNode.style.width = 30 * charWidth + 'px'
 
-      advanceClock(atom.views.documentPollingInterval)
+      atom.views.performDocumentPoll()
       nextAnimationFrame()
 
       expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "

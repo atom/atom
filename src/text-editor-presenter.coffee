@@ -1386,12 +1386,15 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   startBlinkingCursors: ->
-    unless @toggleCursorBlinkHandle
+    unless @isCursorBlinking()
       @state.content.cursorsVisible = true
       @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
 
+  isCursorBlinking: ->
+    @toggleCursorBlinkHandle?
+
   stopBlinkingCursors: (visible) ->
-    if @toggleCursorBlinkHandle
+    if @isCursorBlinking()
       @state.content.cursorsVisible = visible
       clearInterval(@toggleCursorBlinkHandle)
       @toggleCursorBlinkHandle = null
@@ -1401,7 +1404,8 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   pauseCursorBlinking: ->
-    @stopBlinkingCursors(true)
-    @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
-    @startBlinkingCursorsAfterDelay()
-    @emitDidUpdateState()
+    if @isCursorBlinking()
+      @stopBlinkingCursors(true)
+      @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
+      @startBlinkingCursorsAfterDelay()
+      @emitDidUpdateState()
