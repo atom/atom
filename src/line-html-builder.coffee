@@ -134,16 +134,19 @@ class LineHtmlBuilder
       if firstTrailingWhitespaceIndex?
         tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
         trailingWhitespace = tokenText.substring(firstTrailingWhitespaceIndex)
-        trailingWhitespaceEndIndex = tokenStart + firstTrailingWhitespaceIndex + trailingWhitespace.length
 
-        classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
-        classes += ' invisible-character' if hasInvisibleCharacters
+        unless trailingWhitespace is ""
+          trailingWhitespaceStartIndex = tokenStart + firstTrailingWhitespaceIndex
+          trailingWhitespaceEndIndex = trailingWhitespaceStartIndex + trailingWhitespace.length
+
+          classes = 'trailing-whitespace'
+          classes += ' indent-guide' if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
+          classes += ' invisible-character' if hasInvisibleCharacters
 
 
-        trailingHtml = "<span data-start='#{tokenStart + firstTrailingWhitespaceIndex}' data-end='#{trailingWhitespaceEndIndex}' class='token #{classes}'>#{trailingWhitespace}</span>"
+          trailingHtml = "<span data-start='#{trailingWhitespaceStartIndex}' data-end='#{trailingWhitespaceEndIndex}' class='token #{classes}'>#{trailingWhitespace}</span>"
 
-        endIndex = firstTrailingWhitespaceIndex
+          endIndex = firstTrailingWhitespaceIndex
 
       html = leadingHtml
       if tokenText.length > MaxTokenLength
