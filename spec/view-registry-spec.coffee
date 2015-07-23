@@ -201,9 +201,10 @@ describe "ViewRegistry", ->
       disposable2 = registry.pollDocument -> events.push('poll 2')
 
     it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
+      jasmine.useRealClock()
       expect(events).toEqual []
 
-      testElement.style.height = '400px'
+      testElement.style.width = '400px'
 
       waitsFor "events to occur in response to DOM mutation", -> events.length > 0
 
@@ -213,7 +214,7 @@ describe "ViewRegistry", ->
 
         testStyleSheet.textContent = 'body {color: #333;}'
 
-      waitsFor "events to occur in reponse to style mutation", -> events.length > 0
+      waitsFor "events to occur in reponse to style sheet mutation", -> events.length > 0
 
       runs ->
         expect(events).toEqual ['poll 1', 'poll 2']
