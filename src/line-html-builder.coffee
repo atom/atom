@@ -159,7 +159,9 @@ class LineHtmlBuilder
       else
         text = @escapeTokenText(tokenText, startIndex, endIndex)
         if text.length isnt 0
-          html += "<span data-start='#{tokenStart + startIndex}' data-end='#{tokenStart + endIndex}' class='token'>#{text}</span>"
+          html += "<span data-start='#{tokenStart + startIndex}' data-end='#{tokenStart + endIndex}' class='token'>" if @fastVersion
+          html += "#{text}"
+          html += "</span>" if @fastVersion
 
       html += trailingHtml
     html
