@@ -115,6 +115,8 @@ class LineHtmlBuilder
       classes += ' invisible-character' if hasInvisibleCharacters
       return "<span data-start='#{tokenStart}' data-end='#{tokenEnd}' class='token #{classes}'>#{@escapeTokenText(tokenText)}</span>"
     else
+      tokenText = tokenText.replace("\0", "")
+
       startIndex = 0
       endIndex = tokenText.length
 
