@@ -1,7 +1,7 @@
 ViewRegistry = require '../src/view-registry'
 {View} = require '../src/space-pen-extensions'
 
-fdescribe "ViewRegistry", ->
+describe "ViewRegistry", ->
   registry = null
 
   beforeEach ->
