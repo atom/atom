@@ -2272,6 +2272,17 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(1)).toBe 1
             expect(editor.indentationForBufferRow(2)).toBe 0
 
+        it "indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified", ->
+          runs ->
+            atom.config.set("editor.autoIndent", true)
+            editor.setGrammar(atom.grammars.selectGrammar("file"))
+            editor.setText('  if true')
+            editor.setCursorBufferPosition([0, 8])
+            editor.insertNewline()
+            expect(editor.getGrammar()).toBe atom.grammars.nullGrammar
+            expect(editor.indentationForBufferRow(0)).toBe 1
+            expect(editor.indentationForBufferRow(1)).toBe 1
+
         it "indents the new line to the correct level when editor.autoIndent is true and using a off-side rule language", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-coffee-script')
