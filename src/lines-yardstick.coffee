@@ -60,7 +60,7 @@ class LinesYardstick
       cssClasses = scope.split(".")
       for fontSelector in @fontSelectors
         for cssClass in cssClasses
-          if fontSelector.indexOf(".#{cssClass}")
+          if fontSelector.indexOf(".#{cssClass}") isnt -1
             @scopesCache[scope] = true
             return true
 
