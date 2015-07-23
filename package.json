@@ -88,7 +88,7 @@
     "bookmarks": "0.35.0",
     "bracket-matcher": "0.76.0",
     "command-palette": "0.36.0",
-    "deprecation-cop": "0.53.0",
+    "deprecation-cop": "0.53.1",
     "dev-live-reload": "0.46.0",
     "encoding-selector": "0.21.0",
     "exception-reporting": "0.36.0",
