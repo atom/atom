@@ -106,8 +106,8 @@ describe "Project", ->
       atom.packages.serviceHub.provide(
         "atom.repository-provider", "0.1.0", repositoryProvider)
 
-      expect(atom.project.repositoryProviders.length).toBe 2
-      expect(atom.project.getRepositories()).toEqual [dummyRepository]
+      waitsFor -> atom.project.repositoryProviders.length is 2
+      runs -> expect(atom.project.getRepositories()).toEqual [dummyRepository]
 
     it "does not update @repositories if every path has a Repository", ->
       repositories = atom.project.getRepositories()
