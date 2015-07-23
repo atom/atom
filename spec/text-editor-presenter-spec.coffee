@@ -940,10 +940,10 @@ describe "TextEditorPresenter", ->
 
           describe ".decorationClasses", ->
             it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
-              marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+              marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
               decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
               presenter = buildPresenter()
-              marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+              marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
               decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
 
               expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
@@ -1637,7 +1637,7 @@ describe "TextEditorPresenter", ->
           presenter.getState().content.overlays[decoration.id]
 
         it "contains state for overlay decorations both initially and when their markers move", ->
-          marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
+          marker = editor.markBufferPosition([2, 13], invalidate: 'touch', maintainHistory: true)
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
 
@@ -2093,10 +2093,10 @@ describe "TextEditorPresenter", ->
 
             describe ".decorationClasses", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
-                marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+                marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
                 decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
                 presenter = buildPresenter()
-                marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+                marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
                 decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
 
                 expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()

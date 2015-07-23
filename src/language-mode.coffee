@@ -262,14 +262,15 @@ class LanguageMode
       return currentIndentLevel if precedingRow < 0
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    return desiredIndentLevel if @buffer.isRowBlank(precedingRow)
 
     unless @editor.isBufferRowCommented(precedingRow)
       precedingLine = @buffer.lineForRow(precedingRow)
       desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
       desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
 
-    desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
+    unless @buffer.isRowBlank(precedingRow)
+      desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
+      
     Math.max(desiredIndentLevel, 0)
 
   # Calculate a minimum indent level for a range of lines excluding empty lines.

@@ -48,6 +48,8 @@ class Gutter
   #   * `class` (optional)
   #   * `item` (optional) A model {Object} with a corresponding view registered,
   #     or an {HTMLElement}.
+  #
+  # Returns a {Decoration} object.
   decorateMarker: (marker, options) ->
     @gutterContainer.addGutterDecoration(this, marker, options)
 

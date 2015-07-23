@@ -442,8 +442,8 @@ class Workspace extends Model
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
           return Q()
-        when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN'
-          atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
+        when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL'
+          atom.notifications.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
           return Q()
         else
           throw error
