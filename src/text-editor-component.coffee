@@ -111,7 +111,6 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     @gutterContainerComponent?.destroy()
-    window.removeEventListener 'resize', @requestHeightAndWidthMeasurement
 
   getDomNode: ->
     @domNode
@@ -230,7 +229,6 @@ class TextEditorComponent
     @domNode.addEventListener 'textInput', @onTextInput
     @scrollViewNode.addEventListener 'mousedown', @onMouseDown
     @scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
-    window.addEventListener 'resize', @requestHeightAndWidthMeasurement
 
     @listenForIMEEvents()
     @trackSelectionClipboard() if process.platform is 'linux'
@@ -594,15 +592,6 @@ class TextEditorComponent
         @wasVisible = true
     else
       @wasVisible = false
-
-  requestHeightAndWidthMeasurement: =>
-    return if @heightAndWidthMeasurementRequested
-
-    @heightAndWidthMeasurementRequested = true
-    requestAnimationFrame =>
-      @heightAndWidthMeasurementRequested = false
-      @measureDimensions()
-      @measureWindowSize()
 
   # Measure explicitly-styled height and width and relay them to the model. If
   # these values aren't explicitly styled, we assume the editor is unconstrained
