@@ -76,6 +76,10 @@ class HighlightsComponent
       unless oldHighlightState.regions[i]?
         oldHighlightState.regions[i] = {}
         regionNode = document.createElement('div')
+        # This prevents highlights at the tiles boundaries to be hidden by the
+        # subsequent tile. When this happens, subpixel anti-aliasing gets
+        # disabled.
+        regionNode.style.boxSizing = "border-box"
         regionNode.classList.add('region')
         regionNode.classList.add(newHighlightState.deprecatedRegionClass) if newHighlightState.deprecatedRegionClass?
         @regionNodesByHighlightId[id][i] = regionNode
