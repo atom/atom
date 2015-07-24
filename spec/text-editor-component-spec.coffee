@@ -1475,6 +1475,17 @@ describe "TextEditorComponent", ->
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
         expect(overlay).toBe null
 
+      it "renders the overlay element with the CSS class specified by the decoration", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', class: 'my-overlay', item})
+        nextAnimationFrame()
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay.my-overlay')
+        expect(overlay).not.toBe null
+
+        child = overlay.querySelector('.overlay-test')
+        expect(child).toBe item
+
     describe "when the marker is not empty", ->
       it "renders at the head of the marker by default", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
