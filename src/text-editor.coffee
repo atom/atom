@@ -1316,7 +1316,7 @@ class TextEditor extends Model
   #       head or tail of the given marker, depending on the `position`
   #       property.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, or highlight.
+  #     line, highlight, or overlay.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
   #     the head of the marker. Only applicable to the `line` and `gutter`
   #     types.
