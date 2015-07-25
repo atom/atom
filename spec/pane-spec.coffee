@@ -680,6 +680,13 @@ describe "Pane", ->
       pane1.addItems([new Item("A"), new Item("B")])
       pane2 = pane1.splitRight()
 
+    it "invokes ::onWillDestroy observers before destroying items", ->
+      itemsDestroyed = null
+      pane1.onWillDestroy ->
+        itemsDestroyed = (item.isDestroyed() for item in pane1.getItems())
+      pane1.destroy()
+      expect(itemsDestroyed).toEqual([false, false])
+
     it "destroys the pane's destroyable items", ->
       [item1, item2] = pane1.getItems()
       pane1.destroy()
