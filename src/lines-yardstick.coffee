@@ -1,13 +1,9 @@
-LineHtmlBuilder = require './line-html-builder'
-AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
-rangeForMeasurement = document.createRange()
 {Emitter} = require 'event-kit'
-{last} = require 'underscore-plus'
 TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@editor, @presenter, hostElement, @syntaxStyleElement) ->
+  constructor: (@editor, hostElement, @syntaxStyleElement) ->
     @context = document.createElement("canvas").getContext("2d")
     @tokenIterator = new TokenIterator
     @initialized = false
