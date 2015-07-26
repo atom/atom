@@ -66,10 +66,10 @@ class LineHtmlBuilder
     @tokenIterator.reset(lineState)
 
     while @tokenIterator.next()
-      for scope in @tokenIterator.getScopeEnds() when @scopeFilterFn(scope)
+      for scope in @tokenIterator.getScopeEnds()
         innerHTML += "</span>"
 
-      for scope in @tokenIterator.getScopeStarts() when @scopeFilterFn(scope)
+      for scope in @tokenIterator.getScopeStarts()
         innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
       tokenStart = @tokenIterator.getScreenStart()
@@ -97,10 +97,10 @@ class LineHtmlBuilder
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, tokenStart, tokenEnd)
 
-    for scope in @tokenIterator.getScopeEnds() when @scopeFilterFn(scope)
+    for scope in @tokenIterator.getScopeEnds()
       innerHTML += "</span>"
 
-    for scope in @tokenIterator.getScopes() when @scopeFilterFn(scope)
+    for scope in @tokenIterator.getScopes()
       innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(lineState)
