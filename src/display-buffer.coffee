@@ -1173,6 +1173,7 @@ class DisplayBuffer extends Model
     return
 
   destroyed: ->
+    fold.destroy() for markerId, fold of @foldsByMarkerId
     marker.disposables.dispose() for id, marker of @markers
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
