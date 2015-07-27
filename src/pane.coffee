@@ -543,6 +543,8 @@ class Pane extends Model
 
   # Public: Activate the first item that matches the given URI.
   #
+  # * `uri` {String} containing a URI.
+  #
   # Returns a {Boolean} indicating whether an item matching the URI was found.
   activateItemForURI: (uri) ->
     if item = @itemForURI(uri)
