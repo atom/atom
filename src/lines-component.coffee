@@ -13,6 +13,9 @@ class LinesComponent extends TiledComponent
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
+    @tilesNode = document.createElement("div")
+    @tilesNode.style.zIndex = 0
+    @domNode.appendChild(@tilesNode)
 
     @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
@@ -62,7 +65,7 @@ class LinesComponent extends TiledComponent
   getNewState: (state) ->
     state.content
 
-  getTilesNode: -> @domNode
+  getTilesNode: -> @tilesNode
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)
