@@ -37,6 +37,7 @@ class AutoUpdater
 
   stdout = ChildProcess.execSync('cat /etc/issue').toString().replace(/\\./g, "");
 
+  # Detect distro.  Some may call my methods hackish.  I call them engineered
   if distros.ubuntu.test(stdout) | distros.debian.test(stdout)
     @pkg = 'atom-amd64.deb'
     @pkgType = 'deb'
@@ -54,13 +55,10 @@ class AutoUpdater
   setFeedUrl: (@updateUrl) ->
 
   quitAndInstall: ->
-    if @supportsUpdates()
-      app.once 'will-quit', -> spawn 'sudo', [installCmd, @pkg, '&&',
-        'rm', '-rf', @pkg, '&&', 'atom']
-      app.quit()
-    else
-      # What am I supposed to do with this?
-      require('auto-updater').quitAndInstall()
+    # I'll admit this is just hackish
+    app.once 'will-quit', -> spawn 'sudo', [installCmd, @pkg, '&&',
+      'rm', '-rf', @pkg, '&&', 'atom']
+    app.quit()
 
   downloadUpdate: (callback) ->
     spawn 'curl', ['-L', @updateUrl], (error, stdout) ->
@@ -113,6 +111,7 @@ class AutoUpdater
           @emit 'update-not-available'
           return
 
+        console.log 'will update'
         @emit 'update-downloaded', {}, update.notes, update.name, new Date(), 'https://atom.io', => @quitAndInstall()
 
 module.exports = new AutoUpdater()

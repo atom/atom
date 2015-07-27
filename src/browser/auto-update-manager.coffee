@@ -23,15 +23,17 @@ class AutoUpdateManager
       @feedUrl = 'https://atom.io/api/updates'
     else
       @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
-      @feedUrl = 'https://atom.io/api/updates'
+      @feedUrl = "https://atom.io/api/updates?version=#{@version}"
 
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
     if process.platform is 'win32'
       autoUpdater = require './auto-updater-win32'
-    else
+    else if process.platform is 'linux'
       autoUpdater = require './auto-updater-linux'
+    else
+      autoUpdater = require 'auto-updater'
 
     autoUpdater.on 'error', (event, message) =>
       @setState(ErrorState)
@@ -41,8 +43,8 @@ class AutoUpdateManager
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
-
     autoUpdater.on 'update-not-available', =>
+
       @setState(NoUpdateAvailableState)
 
     autoUpdater.on 'update-available', =>
@@ -53,7 +55,7 @@ class AutoUpdateManager
       @emitUpdateAvailableEvent(@getWindows()...)
 
     # Only released versions should check for updates.
-    @scheduleUpdateCheck()# unless /\w{7}/.test(@version)
+    @scheduleUpdateCheck() unless /\w{7}/.test(@version)
 
     switch process.platform
       when 'win32'
