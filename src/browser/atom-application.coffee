@@ -192,7 +192,6 @@ class AtomApplication
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
-      @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
       @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
       @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
       @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
@@ -203,6 +202,7 @@ class AtomApplication
       @on 'application:minimize', -> @focusedWindow()?.minimize()
       @on 'application:zoom', -> @focusedWindow()?.maximize()
 
+    @openPathOnEvent('application:about', 'atom://about')
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
     @openPathOnEvent('application:open-your-init-script', 'atom://.atom/init-script')
