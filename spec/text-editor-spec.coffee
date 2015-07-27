@@ -3010,12 +3010,7 @@ describe "TextEditor", ->
           """
 
         describe "when no text is selected", ->
-          it "copies the line on which the cursor is at the begginning of the line", ->
-            editor.setCursorBufferPosition([1, 0])
-            editor.copyOnlySelectedText()
-            expect(atom.clipboard.read()).toEqual "  var sort = function(items) {\n"
-
-          it "does not copy anything if the cursor is not at the beginning of the line", ->
+          it "does not copy anything", ->
             editor.setCursorBufferPosition([1, 5])
             editor.copyOnlySelectedText()
             expect(atom.clipboard.read()).toEqual "initial clipboard content"

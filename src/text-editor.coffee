@@ -2594,8 +2594,6 @@ class TextEditor extends Model
     for selection in @getSelectionsOrderedByBufferPosition()
       if not selection.isEmpty()
         selection.copy(maintainClipboard, true)
-      else if selection.isEmpty() and selection.cursor.isAtBeginningOfLine()
-        @copySelectedText()
       maintainClipboard = true
     return
 
