@@ -29,8 +29,10 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Arch
 
-* `sudo pacman -S gconf base-devel git nodejs npm libgnome-keyring python2`
-* `export PYTHON=/usr/bin/python2` before building Atom.
+* To automatically build Atom from source, install the atom-editor package from the [Arch User Repository (AUR)](https://wiki.archlinux.org/index.php/Arch_User_Repository)
+* Alternatively run
+  * `sudo pacman -S gconf base-devel git nodejs npm libgnome-keyring python2`
+  * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
 
