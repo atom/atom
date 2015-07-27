@@ -7,6 +7,9 @@ describe "ViewRegistry", ->
   beforeEach ->
     registry = new ViewRegistry
 
+  afterEach ->
+    registry.clearDocumentRequests()
+
   describe "::getView(object)", ->
     describe "when passed a DOM node", ->
       it "returns the given DOM node", ->
@@ -158,13 +161,13 @@ describe "ViewRegistry", ->
       registry.updateDocument -> events.push('write')
       registry.readDocument -> events.push('read')
 
-      advanceClock(registry.documentPollingInterval)
+      window.dispatchEvent(new UIEvent('resize'))
       expect(events).toEqual []
 
       frameRequests[0]()
       expect(events).toEqual ['write', 'read', 'poll']
 
-      advanceClock(registry.documentPollingInterval)
+      window.dispatchEvent(new UIEvent('resize'))
       expect(events).toEqual ['write', 'read', 'poll', 'poll']
 
     it "polls the document after updating when ::pollAfterNextUpdate() has been called", ->
@@ -183,25 +186,51 @@ describe "ViewRegistry", ->
       expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
-    it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->
-      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+    [testElement, testStyleSheet, disposable1, disposable2, events] = []
+
+    beforeEach ->
+      testElement = document.createElement('div')
+      testStyleSheet = document.createElement('style')
+      testStyleSheet.textContent = 'body {}'
+      jasmineContent = document.getElementById('jasmine-content')
+      jasmineContent.appendChild(testElement)
+      jasmineContent.appendChild(testStyleSheet)
 
       events = []
       disposable1 = registry.pollDocument -> events.push('poll 1')
       disposable2 = registry.pollDocument -> events.push('poll 2')
 
+    it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
+      jasmine.useRealClock()
       expect(events).toEqual []
 
-      advanceClock(registry.documentPollingInterval)
+      testElement.style.width = '400px'
+
+      waitsFor "events to occur in response to DOM mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 1', 'poll 2']
+        events.length = 0
+
+        testStyleSheet.textContent = 'body {color: #333;}'
+
+      waitsFor "events to occur in reponse to style sheet mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 1', 'poll 2']
+        events.length = 0
+
+        disposable1.dispose()
+        testElement.style.color = '#fff'
+
+      waitsFor "more events to occur in response to DOM mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 2']
+
+    it "calls all registered polling functions when the window resizes", ->
+      expect(events).toEqual []
+
+      window.dispatchEvent(new UIEvent('resize'))
+
       expect(events).toEqual ['poll 1', 'poll 2']
-
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2']
-
-      disposable1.dispose()
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']
-
-      disposable2.dispose()
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']

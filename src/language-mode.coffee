@@ -251,17 +251,15 @@ class LanguageMode
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
 
-    currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    return currentIndentLevel unless increaseIndentRegex
-
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
     else
       precedingRow = bufferRow - 1
-      return currentIndentLevel if precedingRow < 0
+      return 0 if precedingRow < 0
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
+    return desiredIndentLevel unless increaseIndentRegex
 
     unless @editor.isBufferRowCommented(precedingRow)
       precedingLine = @buffer.lineForRow(precedingRow)
@@ -270,7 +268,7 @@ class LanguageMode
 
     unless @buffer.isRowBlank(precedingRow)
       desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
-      
+
     Math.max(desiredIndentLevel, 0)
 
   # Calculate a minimum indent level for a range of lines excluding empty lines.

@@ -62,6 +62,9 @@ class PaneContainer extends Model
   onDidDestroyPane: (fn) ->
     @emitter.on 'did-destroy-pane', fn
 
+  onWillDestroyPane: (fn) ->
+    @emitter.on 'will-destroy-pane', fn
+
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
 
@@ -177,6 +180,9 @@ class PaneContainer extends Model
 
   didAddPane: (event) ->
     @emitter.emit 'did-add-pane', event
+
+  willDestroyPane: (event) ->
+    @emitter.emit 'will-destroy-pane', event
 
   didDestroyPane: (event) ->
     @emitter.emit 'did-destroy-pane', event
