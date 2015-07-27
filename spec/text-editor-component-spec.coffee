@@ -827,7 +827,7 @@ describe "TextEditorComponent", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
         it "does not fold when the line number componentNode is clicked", ->
-          nextAnimationFrame() # clear pending frame request
+          nextAnimationFrame() unless nextAnimationFrame is noAnimationFrame # clear pending frame request if needed
 
           lineNumber = component.lineNumberNodeForScreenRow(1)
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
