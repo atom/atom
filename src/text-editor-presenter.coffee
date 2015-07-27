@@ -424,7 +424,7 @@ class TextEditorPresenter
     for decoration in @model.getOverlayDecorations()
       continue unless decoration.getMarker().isValid()
 
-      {item, position} = decoration.getProperties()
+      {item, position, class: klass} = decoration.getProperties()
       if position is 'tail'
         screenPosition = decoration.getMarker().getTailScreenPosition()
       else
@@ -450,8 +450,9 @@ class TextEditorPresenter
       pixelPosition.top = top
       pixelPosition.left = left
 
-      @state.content.overlays[decoration.id] ?= {item}
-      @state.content.overlays[decoration.id].pixelPosition = pixelPosition
+      overlayState = @state.content.overlays[decoration.id] ?= {item}
+      overlayState.pixelPosition = pixelPosition
+      overlayState.class = klass if klass?
       visibleDecorationIds[decoration.id] = true
 
     for id of @state.content.overlays
