@@ -322,10 +322,16 @@ class TextEditorPresenter
       @tileForRow(@model.getScreenLineCount()), @tileForRow(@endRow)
     )
 
+  getTilesCount: ->
+    Math.ceil(
+      (@getEndTileRow() - @getStartTileRow() + 1) / @tileSize
+    )
+
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
     visibleTiles = {}
+    zIndex = @getTilesCount() - 1
     for startRow in [@getStartTileRow()..@getEndTileRow()] by @tileSize
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
@@ -334,6 +340,7 @@ class TextEditorPresenter
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
+      tile.zIndex = zIndex--
       tile.highlights ?= {}
 
       gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
