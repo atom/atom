@@ -22,5 +22,6 @@
 # * https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 #
 # This file uses CoffeeScript Object Notation (CSON).
-# If you are unfamiliar with CSON, you can read more about it here:
-# https://github.com/bevry/cson#what-is-cson
+# If you are unfamiliar with CSON, you can read more about it in the 
+# Atom Flight Manual:
+# https://atom.io/docs/latest/using-atom-basic-customization#cson
