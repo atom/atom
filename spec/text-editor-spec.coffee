@@ -4013,6 +4013,7 @@ describe "TextEditor", ->
 
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
+      editor.foldAll()
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
       editor.destroy()
       expect(buffer.getMarkerCount()).toBe 0

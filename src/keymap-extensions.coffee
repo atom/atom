@@ -19,7 +19,6 @@ KeymapManager::loadBundledKeymaps = ->
   else
     @loadKeymap(keymapsPath)
 
-  @emit 'bundled-keymaps-loaded' if Grim.includeDeprecatedAPIs
   @emitter.emit 'did-load-bundled-keymaps'
 
 KeymapManager::getUserKeymapPath = ->
