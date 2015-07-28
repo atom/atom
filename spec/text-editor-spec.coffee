@@ -3015,6 +3015,16 @@ describe "TextEditor", ->
 
           expect(insertedStrings).toEqual ["hello"]
 
+        it "notifies ::onDidInsertText observers", ->
+          insertedStrings = []
+          editor.onDidInsertText ({text, range}) ->
+            insertedStrings.push(text)
+
+          atom.clipboard.write("hello")
+          editor.pasteText()
+
+          expect(insertedStrings).toEqual ["hello"]
+
         describe "when `autoIndentOnPaste` is true", ->
           beforeEach ->
             atom.config.set("editor.autoIndentOnPaste", true)
