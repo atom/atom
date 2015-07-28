@@ -32,6 +32,10 @@ This project adheres to the [Open Code of Conduct][code-of-conduct]. By particip
   to see if a similar issue has already been submitted.
 * Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
   to make yourself recognizable and so we can all get to know each other better.
+* Issue comments should help move the issue closer to resolution. Comments that
+  consist only of `+1` or similar should be avoided - they make it hard to scan
+  the conversation to date and send notifications to everyone already on the
+  thread.
 
 ### Package Repositories
 
