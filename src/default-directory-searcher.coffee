@@ -10,7 +10,7 @@ class DirectorySearch
       inclusions: options.inclusions
       includeHidden: options.includeHidden
       excludeVcsIgnores: options.excludeVcsIgnores
-      exclusions: options.exclusions
+      globalExclusions: options.exclusions
       follow: options.follow
     @task = new Task(require.resolve('./scan-handler'))
     @task.on 'scan:result-found', options.didMatch
