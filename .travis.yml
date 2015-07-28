@@ -12,3 +12,7 @@ before_install: sudo apt-get install libgnome-keyring-dev
 
 git:
   depth: 10
+
+branches:
+  only:
+    - master
