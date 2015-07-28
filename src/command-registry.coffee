@@ -220,6 +220,7 @@ class CommandRegistry
     syntheticEvent = Object.create {},
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
+      target: value: currentTarget # TODO: Find a better way to solve this.
       preventDefault: value: ->
         originalEvent.preventDefault()
       stopPropagation: value: ->
@@ -232,6 +233,7 @@ class CommandRegistry
       abortKeyBinding: value: ->
         originalEvent.abortKeyBinding?()
     # In Chrome 43, Object.create doesn't work well with CustomEvent.
+    # NOTE: We should "properly" shadow the prototype chain (CustomEvent + Event) here.
     for k, v of originalEvent when k not in syntheticEvent
       syntheticEvent[k] = v
 
