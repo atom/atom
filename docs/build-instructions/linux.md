@@ -29,7 +29,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Arch
 
-* `sudo pacman -S gconf base-devel git nodejs libgnome-keyring python2`
+* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
