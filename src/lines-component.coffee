@@ -14,6 +14,9 @@ class LinesComponent extends TiledComponent
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
+    # Create a new stacking context, so that tiles z-index does not interfere
+    # with other visual elements.
+    @tilesNode.style.isolation = "isolate"
     @tilesNode.style.zIndex = 0
     @domNode.appendChild(@tilesNode)
 
