@@ -51,6 +51,8 @@
   'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-pageup': 'pane:show-previous-item'
   'ctrl-pagedown': 'pane:show-next-item'
+  'ctrl-up': 'core:move-up'
+  'ctrl-down': 'core:move-down'
   'ctrl-shift-up': 'core:move-up'
   'ctrl-shift-down': 'core:move-down'
   'ctrl-=': 'window:increase-font-size'
