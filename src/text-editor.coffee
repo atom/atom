@@ -2627,14 +2627,19 @@ class TextEditor extends Model
         if containsNewlines or not cursor.hasPrecedingCharactersOnLine()
           options.indentBasis ?= indentBasis
 
+      range = null
       if fullLine and selection.isEmpty()
         oldPosition = selection.getBufferRange().start
         selection.setBufferRange([[oldPosition.row, 0], [oldPosition.row, 0]])
-        selection.insertText(text, options)
+        range = selection.insertText(text, options)
         newPosition = oldPosition.translate([1, 0])
         selection.setBufferRange([newPosition, newPosition])
       else
-        selection.insertText(text, options)
+        range = selection.insertText(text, options)
+
+      didInsertEvent = {text, range}
+      @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
+      @emitter.emit 'did-insert-text', didInsertEvent
 
   # Public: For each selection, if the selection is empty, cut all characters
   # of the containing line following the cursor. Otherwise cut the selected
