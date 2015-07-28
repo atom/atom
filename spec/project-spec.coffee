@@ -13,6 +13,9 @@ describe "Project", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
 
+    # Wait for project's service consumers to be asynchronously added
+    waits(1)
+
   describe "constructor", ->
     it "enables a custom DirectoryProvider to supersede the DefaultDirectoryProvider", ->
       remotePath = "ssh://foreign-directory:8080/"

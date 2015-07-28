@@ -790,6 +790,7 @@ describe "PackageManager", ->
       package2 = atom.packages.loadPackage('package-with-index')
       package3 = atom.packages.loadPackage('package-with-activation-commands')
       spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2, package3])
+      spyOn(atom.themes, 'activatePackages')
       activateSpy = jasmine.createSpy('activateSpy')
       atom.packages.onDidActivateInitialPackages(activateSpy)
 
