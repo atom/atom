@@ -18,7 +18,9 @@ class DirectorySearch
     @task.on 'scan:paths-searched', options.didSearchPaths
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
-      @task.start(rootPaths, regex.source, scanHandlerOptions, resolve)
+      @task.start rootPaths, regex.source, scanHandlerOptions, =>
+        @task.terminate()
+        resolve()
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -89,6 +91,8 @@ class DefaultDirectorySearcher
           reject()
     return {
       then: promise.then.bind(promise)
+      catch: promise.catch.bind(promise)
+      directorySearch: directorySearch
       cancel: ->
         isCancelled = true
         directorySearch.cancel()
