@@ -9,7 +9,7 @@ class LinesYardstick
     @tokenIterator = new TokenIterator
     @initialized = false
     @emitter = new Emitter
-    @scopesStylesCache = {}
+    @fontsByTokenScopes = {}
     @defaultStyleNode = document.createElement("style")
     @skinnyStyleNode = document.createElement("style")
     @iframe = document.createElement("iframe")
@@ -20,7 +20,7 @@ class LinesYardstick
     hostElement.appendChild(@iframe)
 
   setFontInformation: (fontFamily, fontSize, lineHeight) ->
-    @scopesStylesCache = {}
+    @fontsByTokenScopes = {}
     @processedLines = {}
     @defaultStyleNode.innerHTML = """
     body {
@@ -54,7 +54,7 @@ class LinesYardstick
 
   rebuildSkinnyStyleNode: ->
     skinnyCss = ""
-    @scopesStylesCache = {}
+    @fontsByTokenScopes = {}
 
     for style in @syntaxStyleElement.children
       for cssRule in style.sheet.cssRules when @hasFontStyling(cssRule)
@@ -69,11 +69,12 @@ class LinesYardstick
     return false
 
   buildLineHTML: (line) ->
+    @newTokenScopesByLineId[line.id] = []
     @tokenIterator.reset(line)
     html = "<div>"
     while @tokenIterator.next()
-      scopes = @tokenIterator.getScopes()
-      continue if @scopesStylesCache.hasOwnProperty(scopes.join())
+      tokenScopes = @tokenIterator.getScopes().join()
+      continue if @fontsByTokenScopes.hasOwnProperty(tokenScopes)
 
       for scope in @tokenIterator.getScopes()
         html += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
@@ -81,12 +82,15 @@ class LinesYardstick
       for scope in @tokenIterator.getScopes()
         html += "</span>"
 
+      @newTokenScopesByLineId[line.id].push(tokenScopes)
+
     html += "</div>"
     html
 
   buildDomNodesForScreenRows: (screenRows) ->
     @ensureInitialized()
 
+    @newTokenScopesByLineId = {}
     newLines = []
     html = ""
     screenRows.forEach (screenRow) =>
@@ -104,23 +108,20 @@ class LinesYardstick
     @domNode.innerHTML = html if html isnt ""
     @collectStylingInformationForLines(newLines)
 
+  getLeafNode: (node) ->
+    if node.firstChild?
+      @getLeafNode(node.firstChild)
+    else
+      node
+
   collectStylingInformationForLines: (lines) ->
-    nodeIndex = 0
-    for line in lines
-      lineNode = @domNode.children[nodeIndex++]
+    for line, lineIndex in lines
+      lineNode = @domNode.children[lineIndex]
+      for tokenScope, nodeIndex in @newTokenScopesByLineId[line.id]
+        continue if @fontsByTokenScopes.hasOwnProperty(tokenScope)
 
-      @tokenIterator.reset(line)
-      while @tokenIterator.next()
-        scopes = @tokenIterator.getScopes()
-
-        continue if @scopesStylesCache.hasOwnProperty(scopes.join())
-
-        currentNode = lineNode
-
-        for scope in scopes
-          currentNode = currentNode.firstChild if currentNode.firstChild?
-
-        @scopesStylesCache[scopes.join()] = getComputedStyle(currentNode).font
+        tokenScopeNode = @getLeafNode(lineNode.children[nodeIndex])
+        @fontsByTokenScopes[tokenScope] = getComputedStyle(tokenScopeNode).font
 
   leftPixelPositionForScreenPosition: (position) ->
     @ensureInitialized()
@@ -131,11 +132,10 @@ class LinesYardstick
     text = ""
     width = 0
     while @tokenIterator.next()
-      scopes = @tokenIterator.getScopes().join()
-      if @currentFont isnt @scopesStylesCache[scopes]
-        @context.font = @scopesStylesCache[scopes]
-        @currentFont = @scopesStylesCache[scopes]
+      tokenScopes = @tokenIterator.getScopes().join()
+      if @currentFont isnt @fontsByTokenScopes[tokenScopes]
         width += @context.measureText(text).width
+        @context.font = @currentFont = @fontsByTokenScopes[tokenScopes]
         text = ""
 
       screenStart = @tokenIterator.getScreenStart()
