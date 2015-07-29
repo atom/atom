@@ -32,8 +32,10 @@ git clone https://github.com/atom/atom/
 cd atom
 script/build # Creates application in the `Program Files` directory
 ```
+Note: If you use cmd or Powershell instead of the Git shell, use a backslash instead: i.e. `script\build`.
+We will assume the git shell for these instructions.
 
-### `script\build` Options
+### `script/build` Options
   * `--install-dir` - Creates the final built application in this directory.
   * `--build-dir` - Build the application in this directory.
   * `--verbose` - Verbose mode. A lot more information output.
@@ -58,7 +60,7 @@ If none of this works, do install Github for Windows and use its Git shell. Make
   available on your Path.
 
 
-* `script\build` outputs only the Node and Python versions before returning
+* `script/build` outputs only the Node and Python versions before returning
 
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
     See [issue #2200](https://github.com/atom/atom/issues/2200).
@@ -71,14 +73,14 @@ If none of this works, do install Github for Windows and use its Git shell. Make
     * https://github.com/TooTallNate/node-gyp/issues/297
     * https://code.google.com/p/gyp/issues/detail?id=393
 
-* `script\build` stops at installing runas with 'Failed at the runas@0.5.4 install script.'
+* `script/build` stops at installing runas with 'Failed at the runas@0.5.4 install script.'
 
   See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 2010 (Platform Toolset = 'v100') cannot be found.`
 
   * If you're building atom with Visual Studio 2013 try executing the following
-    command in your Git shell and then re-run `script\build`:
+    command in your Git shell and then re-run `script/build`:
 
     ```
     $env:GYP_MSVS_VERSION=2013
