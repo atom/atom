@@ -11,7 +11,6 @@ describe "DefaultDirectorySearcher", ->
     searcher = new DefaultDirectorySearcher
 
   it "terminates the task after running a search", ->
-    console.log searcher
     options =
       ignoreCase: false
       includeHidden: false
