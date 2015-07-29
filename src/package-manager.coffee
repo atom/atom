@@ -247,7 +247,7 @@ class PackageManager
   Section: Accessing available packages
   ###
 
-  # Public: Get an {Array} of {String}s of all the available package paths.
+  # Public: Returns an {Array} of {String}s of all the available package paths.
   getAvailablePackagePaths: ->
     packagePaths = []
 
@@ -262,11 +262,11 @@ class PackageManager
 
     _.uniq(packagePaths)
 
-  # Public: Get an {Array} of {String}s of all the available package names.
+  # Public: Returns an {Array} of {String}s of all the available package names.
   getAvailablePackageNames: ->
     _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
 
-  # Public: Get an {Array} of {String}s of all the available package metadata.
+  # Public: Returns an {Array} of {String}s of all the available package metadata.
   getAvailablePackageMetadata: ->
     packages = []
     for packagePath in @getAvailablePackagePaths()
