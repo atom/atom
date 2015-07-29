@@ -10,6 +10,8 @@ env:
     - ATOM_ACCESS_TOKEN=da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4
     - NODE_VERSION=0.12
 
+compiler: clang
+
 matrix:
   include:
     - os: linux
@@ -35,11 +37,7 @@ notifications:
 
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
-    - gcc-4.8
-    - g++-4.8
     - build-essential
     - git
     - libgnome-keyring-dev
