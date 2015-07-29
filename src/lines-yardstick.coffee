@@ -5,6 +5,7 @@ module.exports =
 class LinesYardstick
   constructor: (@editor, hostElement, @syntaxStyleElement) ->
     @context = document.createElement("canvas").getContext("2d")
+    @currentFont = ""
     @tokenIterator = new TokenIterator
     @initialized = false
     @emitter = new Emitter
@@ -124,13 +125,13 @@ class LinesYardstick
     line = @editor.tokenizedLineForScreenRow(position.row)
     @tokenIterator.reset(line)
 
-    font = @context.font
     text = ""
     width = 0
     while @tokenIterator.next()
       scopes = @tokenIterator.getScopes().join()
-      if font isnt @scopesStylesCache[scopes]
-        font = @context.font = @scopesStylesCache[scopes]
+      if @currentFont isnt @scopesStylesCache[scopes]
+        @context.font = @scopesStylesCache[scopes]
+        @currentFont = @scopesStylesCache[scopes]
         width += @context.measureText(text).width
         text = ""
 
