@@ -201,12 +201,11 @@ class Package
   activateResources: ->
     @activationDisposables = new CompositeDisposable
 
-    @activationDisposables.add atom.config.observe "core.disabledKeymaps", {}, (map) =>
-      value = not _.include(map ? [], @name)
-      if value
-        @activateKeymaps()
-      else if not value
-        @deactivateKeymaps()
+    value = not _.include(atom.config.get("core.disabledKeymaps") ? [], @name)
+    if value
+      @activateKeymaps()
+    else if not value
+      @deactivateKeymaps()
 
     for [menuPath, map] in @menus when map['context-menu']?
       try
@@ -260,7 +259,7 @@ class Package
     for [path, map] in @keymaps
       if map.length > 0
         return true
-        
+
     false
 
   activateServices: ->

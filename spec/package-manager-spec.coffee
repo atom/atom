@@ -455,6 +455,7 @@ describe "PackageManager", ->
       describe "when the package's keymaps are disabled and re-enabled after it is activated", ->
         it "removes and re-adds the keymaps", ->
           element1 = $$ -> @div class: 'test-1'
+          atom.packages.observeDisabledKeymaps()
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
