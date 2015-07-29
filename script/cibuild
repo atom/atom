@@ -22,11 +22,16 @@ function loadEnvironmentVariables(filePath) {
 }
 
 function readEnvironmentVariables() {
-  if (process.platform === 'win32')
+  if (process.platform === 'win32') {
     loadEnvironmentVariables(path.resolve('/jenkins/config/atomcredentials'));
-  else if (process.platform === 'darwin') {
+  } else if (process.platform === 'darwin') {
     loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
     loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
+  } else if (process.platform === 'linux') {
+    // Use clang for building native code, the GCC on precise is too old.
+    process.env['CC'] = 'clang';
+    process.env['CXX'] = 'clang++';
+    process.env['npm_config_clang'] = '1';
   }
 }
 
