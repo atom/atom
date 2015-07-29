@@ -1221,6 +1221,15 @@ describe "TextEditor", ->
         expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
         expect(selection2.getScreenRange()).toEqual [[5, 6], [6, 2]]
 
+      describe "when selecting with an initial screen range", ->
+        it "switches the direction of the selection when selecting to positions before/after the start of the initial range", ->
+          editor.setCursorScreenPosition([5, 10])
+          editor.selectWordsContainingCursors()
+          editor.selectToScreenPosition([3, 0])
+          expect(editor.getLastSelection().isReversed()).toBe true
+          editor.selectToScreenPosition([9, 0])
+          expect(editor.getLastSelection().isReversed()).toBe false
+
     describe ".selectToBeginningOfNextParagraph()", ->
       it "selects from the cursor to first line of the next paragraph", ->
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
