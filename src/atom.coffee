@@ -368,15 +368,15 @@ class Atom extends Model
   Section: Atom Details
   ###
 
-  # Public: Is the current window in development mode?
+  # Public: Returns a {Boolean} that is `true` if the current window is in development mode.
   inDevMode: ->
     @devMode ?= @getLoadSettings().devMode
 
-  # Public: Is the current window in safe mode?
+  # Public: Returns a {Boolean} that is `true` if the current window is in safe mode.
   inSafeMode: ->
     @safeMode ?= @getLoadSettings().safeMode
 
-  # Public: Is the current window running specs?
+  # Public: Returns a {Boolean} that is `true` if the current window is running specs.
   inSpecMode: ->
     @specMode ?= @getLoadSettings().isSpec
 
@@ -386,7 +386,7 @@ class Atom extends Model
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
-  # Public: Determine whether the current version is an official release.
+  # Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
@@ -502,7 +502,7 @@ class Atom extends Model
   reload: ->
     ipc.send('call-window-method', 'restart')
 
-  # Extended: Returns a {Boolean} true when the current window is maximized.
+  # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
     @getCurrentWindow().isMaximized()
 
@@ -513,7 +513,7 @@ class Atom extends Model
   maximize: ->
     ipc.send('call-window-method', 'maximize')
 
-  # Extended: Is the current window in full screen mode?
+  # Extended: Returns a {Boolean} that is `true` if the current window is in full screen mode.
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
