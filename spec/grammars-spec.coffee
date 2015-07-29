@@ -138,10 +138,22 @@ describe "the `grammars` global", ->
         expect(-> atom.grammars.selectGrammar(null, '')).not.toThrow()
         expect(-> atom.grammars.selectGrammar(null, null)).not.toThrow()
 
-    describe "when the user has custom grammar filetypes", ->
-      it "considers the custom filetypes as well as those defined in the grammar", ->
+    describe "when the user has custom grammar file types", ->
+      it "considers the custom file types as well as those defined in the grammar", ->
         atom.config.set('core.fileTypesByScope', 'source.ruby': ['Cheffile'])
         expect(atom.grammars.selectGrammar('build/Cheffile', 'cookbook "postgres"').scopeName).toBe 'source.ruby'
+
+      it "favors user-defined file types over built-in ones of equal length", ->
+        atom.config.set('core.fileTypesByScope',
+          'source.coffee': ['Rakefile'],
+          'source.ruby': ['Cakefile']
+        )
+        expect(atom.grammars.selectGrammar('Rakefile', '').scopeName).toBe 'source.coffee'
+        expect(atom.grammars.selectGrammar('Cakefile', '').scopeName).toBe 'source.ruby'
+
+      it "favors grammars with matching first-line-regexps even if custom file types match the file", ->
+        atom.config.set('core.fileTypesByScope', 'source.ruby': ['bootstrap'])
+        expect(atom.grammars.selectGrammar('bootstrap', '#!/usr/bin/env node').scopeName).toBe 'source.js'
 
   describe ".removeGrammar(grammar)", ->
     it "removes the grammar, so it won't be returned by selectGrammar", ->

@@ -74,11 +74,14 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     if customFileTypes = atom.config.get('core.fileTypesByScope')?[grammar.scopeName]
       fileTypes = fileTypes.concat(customFileTypes)
 
-    for fileType in fileTypes
+    for fileType, i in fileTypes
       fileTypeComponents = fileType.toLowerCase().split(PathSplitRegex)
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
       if _.isEqual(pathSuffix, fileTypeComponents)
         pathScore = Math.max(pathScore, fileType.length)
+        if i >= grammar.fileTypes.length
+          pathScore += 0.5
+
     pathScore
 
   grammarMatchesContents: (grammar, contents) ->
