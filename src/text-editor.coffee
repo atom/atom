@@ -621,14 +621,14 @@ class TextEditor extends Model
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save()
+  save: -> @buffer.save(backup: atom.config.get('editor.backUpBeforeSaving'))
 
   # Public: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath)
+  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: atom.config.get('editor.backUpBeforeSaving'))
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
