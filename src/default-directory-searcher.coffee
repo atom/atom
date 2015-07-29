@@ -92,7 +92,6 @@ class DefaultDirectorySearcher
     return {
       then: promise.then.bind(promise)
       catch: promise.catch.bind(promise)
-      directorySearch: directorySearch
       cancel: ->
         isCancelled = true
         directorySearch.cancel()

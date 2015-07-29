@@ -1,7 +1,6 @@
 DefaultDirectorySearcher = require "../src/default-directory-searcher"
+Task = require "../src/task"
 path = require "path"
-fs = require 'fs-plus'
-temp = require "temp"
 
 describe "DefaultDirectorySearcher", ->
   [searcher, dirPath] = []
@@ -21,10 +20,9 @@ describe "DefaultDirectorySearcher", ->
       didError: ->
       didSearchPaths: ->
     searchPromise = searcher.search([{getPath: -> dirPath}], /abcdefg/, options)
-    spyOn(searchPromise.directorySearch.task, 'terminate').andCallThrough()
+    spyOn(Task::, 'terminate').andCallThrough()
 
     waitsForPromise -> searchPromise
 
     runs ->
-      expect(searchPromise.directorySearch.task.terminate).toHaveBeenCalled()
-      expect(searchPromise.directorySearch.task.childProcess).toBe null
+      expect(Task::terminate).toHaveBeenCalled()
