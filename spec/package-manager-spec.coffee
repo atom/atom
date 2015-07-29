@@ -449,7 +449,6 @@ describe "PackageManager", ->
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
-
           runs ->
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
 
@@ -467,8 +466,6 @@ describe "PackageManager", ->
           runs ->
             atom.config.set("core.disabledKeymaps", [])
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
-
-
 
     describe "menu loading", ->
       beforeEach ->
