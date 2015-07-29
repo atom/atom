@@ -212,13 +212,14 @@ module.exports = (grunt) ->
       token: process.env.ATOM_ACCESS_TOKEN
 
     'create-windows-installer':
-      appDirectory: shellAppDir
-      outputDirectory: path.join(buildDir, 'installer')
-      authors: 'GitHub Inc.'
-      loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
-      iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
-      setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
-      remoteReleases: 'https://atom.io/api/updates'
+      config:
+        appDirectory: shellAppDir
+        outputDirectory: path.join(buildDir, 'installer')
+        authors: 'GitHub Inc.'
+        loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
+        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
+        setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
+        remoteReleases: 'https://atom.io/api/updates'
 
     shell:
       'kill-atom':
