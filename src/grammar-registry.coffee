@@ -92,7 +92,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     for character in grammar.firstLineRegex.source
       switch character
         when '\\'
-          escaped = !escaped
+          escaped = not escaped
         when 'n'
           numberOfNewlinesInRegex++ if escaped
           escaped = false
