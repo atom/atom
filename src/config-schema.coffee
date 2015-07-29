@@ -26,6 +26,9 @@ module.exports =
         default: []
         items:
           type: 'string'
+      fileTypesByScope:
+        type: 'object'
+        default: {}
       themes:
         type: 'array'
         default: ['one-dark-ui', 'one-dark-syntax']
