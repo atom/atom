@@ -70,7 +70,7 @@ class LinesYardstick
 
   buildLineHTML: (line) ->
     @tokenIterator.reset(line)
-    html = ""
+    html = "<div>"
     while @tokenIterator.next()
       scopes = @tokenIterator.getScopes()
       continue if @scopesStylesCache.hasOwnProperty(scopes.join())
@@ -81,6 +81,7 @@ class LinesYardstick
       for scope in @tokenIterator.getScopes()
         html += "</span>"
 
+    html += "</div>"
     html
 
   buildDomNodesForScreenRows: (screenRows) ->
@@ -94,8 +95,10 @@ class LinesYardstick
       return if @processedLines.hasOwnProperty(line.id)
 
       lineHTML = @buildLineHTML(line)
-      html += lineHTML
-      newLines.push(line) unless lineHTML is ""
+      if lineHTML isnt "<div></div>"
+        html += lineHTML
+        newLines.push(line)
+
       @processedLines[line.id] = true
 
     @domNode.innerHTML = html if html isnt ""
