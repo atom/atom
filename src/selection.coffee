@@ -198,7 +198,7 @@ class Selection extends Model
         if position.isLessThan(@initialScreenRange.start)
           @marker.setScreenRange([position, @initialScreenRange.end], reversed: true)
         else
-          @marker.setScreenRange([@initialScreenRange.start, position])
+          @marker.setScreenRange([@initialScreenRange.start, position], reversed: false)
       else
         @cursor.setScreenPosition(position)
 
