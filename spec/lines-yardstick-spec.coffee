@@ -1,6 +1,6 @@
 LinesYardstick = require '../src/lines-yardstick'
 
-describe "LinesYardstick", ->
+fdescribe "LinesYardstick", ->
   [editor, linesYardstick, lineHeightInPixels] = []
 
   beforeEach ->
@@ -33,10 +33,10 @@ describe "LinesYardstick", ->
   it "measures lines using stored fonts for scopes (falling back to the default font when missing)", ->
     linesYardstick.setDefaultFont("Helvetica", "36px")
     linesYardstick.setFontForScopes(
-      ["source.js", "keyword.control.js"], "Arial", "12px"
+      ["source.js", "keyword.control.js"], "12px Arial"
     )
     linesYardstick.setFontForScopes(
-      ["source.js", "meta.brace.round.js"], "Tahoma", "24px"
+      ["source.js", "meta.brace.round.js"], "24px Tahoma"
     )
 
     conversionTable = [
@@ -54,10 +54,10 @@ describe "LinesYardstick", ->
   it "clears stored fonts for scopes when fonts are invalidated", ->
     linesYardstick.setDefaultFont("Helvetica", "36px")
     linesYardstick.setFontForScopes(
-      ["source.js", "keyword.control.js"], "Arial", "12px"
+      ["source.js", "keyword.control.js"], "12px Arial"
     )
     linesYardstick.setFontForScopes(
-      ["source.js", "meta.brace.round.js"], "Tahoma", "24px"
+      ["source.js", "meta.brace.round.js"], "24px Tahoma"
     )
 
     linesYardstick.invalidateFonts()
