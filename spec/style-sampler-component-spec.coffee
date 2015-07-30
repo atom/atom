@@ -44,8 +44,7 @@ fdescribe "StyleSamplerComponent", ->
       styleElementWithSelectorAndFont(".parameters", "Helvetica", "32px")
     ]
     styleSamplerComponent.setDefaultFont("Times", "12px")
-    for styleElement in styleElements
-      styleSamplerComponent.addStyleElement(styleElement)
+    styleSamplerComponent.addStyleElements(styleElements)
 
     styleSamplerComponent.sampleScreenRows([0])
 

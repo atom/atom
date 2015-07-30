@@ -24,6 +24,10 @@ class StyleSamplerComponent
     skinnyStyleElement = @extractFontStyles(styleElement)
     @headNode.appendChild(skinnyStyleElement)
 
+  addStyleElements: (styleElements) ->
+    @addStyleElement(styleElement) for styleElement in styleElements
+    return
+
   extractFontStyles: (styleElement) ->
     fontStylesElement = document.createElement("style")
     fontCss = ""
