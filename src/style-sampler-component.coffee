@@ -8,6 +8,7 @@ class StyleSamplerComponent
     @initialized = false
     @emitter = new Emitter
     @defaultStyleNode = document.createElement("style")
+    @styleNodes = []
     @iframe = document.createElement("iframe")
     @iframe.style.display = "none"
     @iframe.onload = @setupIframe
@@ -22,19 +23,29 @@ class StyleSamplerComponent
 
     @emitter.emit "did-invalidate-styles"
 
-  addStyleElement: (styleElement) ->
-    skinnyStyleElement = @extractFontStyles(styleElement)
-    @headNode.appendChild(skinnyStyleElement)
+  addStyle: (styleNode) ->
+    skinnyStyleNode = @extractFontStyles(styleNode)
+    @styleNodes.push(skinnyStyleNode)
+    @headNode.appendChild(skinnyStyleNode)
 
-  addStyleElements: (styleElements) ->
-    @addStyleElement(styleElement) for styleElement in styleElements
+    @emitter.emit "did-invalidate-styles"
+
+  addStyles: (styleNodes) ->
+    @addStyle(styleNode) for styleNode in styleNodes
     return
 
-  extractFontStyles: (styleElement) ->
+  clearStyles: ->
+    for styleNode in @styleNodes
+      styleNode.remove()
+    @styleNodes.length = 0
+
+    @emitter.emit "did-invalidate-styles"
+
+  extractFontStyles: (styleNode) ->
     fontStylesElement = document.createElement("style")
     fontCss = ""
 
-    for cssRule in styleElement.sheet.cssRules when @hasFontStyling(cssRule)
+    for cssRule in styleNode.sheet.cssRules when @hasFontStyling(cssRule)
       fontCss += cssRule.cssText
 
     fontStylesElement.innerHTML = fontCss

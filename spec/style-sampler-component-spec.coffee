@@ -41,9 +41,9 @@ fdescribe "StyleSamplerComponent", ->
           defaultFonts.push(font)
 
       styleSamplerComponent.setDefaultFont("Times", "12px")
-      styleSamplerComponent.addStyleElements([
-        styleElementWithSelectorAndFont(".entity.name.function", "Arial", "20px")
-        styleElementWithSelectorAndFont(".parameters", "Helvetica", "32px")
+      styleSamplerComponent.addStyles([
+        styleWithSelectorAndFont(".entity.name.function", "Arial", "20px")
+        styleWithSelectorAndFont(".parameters", "Helvetica", "32px")
       ])
 
   afterEach ->
@@ -57,11 +57,11 @@ fdescribe "StyleSamplerComponent", ->
     expect(parametersFonts.length).toBeGreaterThan(0)
     expect(defaultFonts.length).toBeGreaterThan(0)
 
-    for functionFont in functionsFonts
-      expect(functionFont).toEqual("normal normal normal normal 20px/normal Arial")
+    for functionsFont in functionsFonts
+      expect(functionsFont).toEqual("normal normal normal normal 20px/normal Arial")
 
-    for parameterFont in parametersFonts
-      expect(parameterFont).toEqual("normal normal normal normal 32px/normal Helvetica")
+    for parametersFont in parametersFonts
+      expect(parametersFont).toEqual("normal normal normal normal 32px/normal Helvetica")
 
     for defaultFont in defaultFonts
       expect(defaultFont).toEqual("normal normal normal normal 12px/normal Times")
@@ -91,11 +91,65 @@ fdescribe "StyleSamplerComponent", ->
     for defaultFont in defaultFonts
       expect(defaultFont).toEqual("normal normal normal normal 12px/normal Arial")
 
+  it "invalidates samplings when a style gets added", ->
+    styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts.length).toBeGreaterThan(0)
+    expect(parametersFonts.length).toBeGreaterThan(0)
+    expect(defaultFonts.length).toBeGreaterThan(0)
+
+    oldFunctionFonts = functionsFonts.slice()
+    oldDefaultFonts = defaultFonts.slice()
+
+    styleSamplerComponent.addStyle(
+      styleWithSelectorAndFont(".parameters", "Tahoma", "24px")
+    )
+
+    expect(functionsFonts.length).toBe(0)
+    expect(parametersFonts.length).toBe(0)
+    expect(defaultFonts.length).toBe(0)
+
+    styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts).toEqual(oldFunctionFonts)
+    expect(defaultFonts).toEqual(oldDefaultFonts)
+    expect(parametersFonts.length).toBeGreaterThan(0)
+
+    for parametersFont in parametersFonts
+      expect(parametersFont).toEqual("normal normal normal normal 24px/normal Tahoma")
+
+  it "invalidates samplings when all styles get cleared", ->
+    styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts.length).toBeGreaterThan(0)
+    expect(parametersFonts.length).toBeGreaterThan(0)
+    expect(defaultFonts.length).toBeGreaterThan(0)
+
+    styleSamplerComponent.clearStyles()
+
+    expect(functionsFonts.length).toBe(0)
+    expect(parametersFonts.length).toBe(0)
+    expect(defaultFonts.length).toBe(0)
+
+    styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts.length).toBeGreaterThan(0)
+    expect(parametersFonts.length).toBeGreaterThan(0)
+    expect(defaultFonts.length).toBeGreaterThan(0)
+
+    for functionsFont in functionsFonts
+      expect(functionsFont).toEqual("normal normal normal normal 12px/normal Times")
+
+    for parametersFont in parametersFonts
+      expect(parametersFont).toEqual("normal normal normal normal 12px/normal Times")
+
+    for defaultFont in defaultFonts
+      expect(defaultFont).toEqual("normal normal normal normal 12px/normal Times")
+
   # it "samples a screen row twice only if the row has changed", ->
   # it "does not sample the same scopes twice", ->
-  # it "invalidates samples when styles change", ->
 
-  styleElementWithSelectorAndFont = (selector, fontFamily, fontSize) ->
+  styleWithSelectorAndFont = (selector, fontFamily, fontSize) ->
     style = document.createElement("style")
     style.innerHTML = """
     #{selector} {
