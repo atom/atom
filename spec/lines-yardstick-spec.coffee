@@ -1,6 +1,6 @@
 LinesYardstick = require '../src/lines-yardstick'
 
-fdescribe "LinesYardstick", ->
+describe "LinesYardstick", ->
   [editor, linesYardstick, lineHeightInPixels] = []
 
   beforeEach ->

@@ -1,6 +1,6 @@
 StyleSamplerComponent = require '../src/style-sampler-component'
 
-fdescribe "StyleSamplerComponent", ->
+describe "StyleSamplerComponent", ->
   [editor, styleSamplerComponent, stylesContainerNode, functionsFonts, parametersFonts, defaultFonts] = []
 
   beforeEach ->
