@@ -24,9 +24,9 @@ class StyleSamplerComponent
     @emitter.emit "did-invalidate-styles"
 
   addStyle: (styleNode) ->
-    skinnyStyleNode = @extractFontStyles(styleNode)
-    @styleNodes.push(skinnyStyleNode)
-    @headNode.appendChild(skinnyStyleNode)
+    fontStyleNode = @extractFontStyleNode(styleNode)
+    @styleNodes.push(fontStyleNode)
+    @headNode.appendChild(fontStyleNode)
 
     @emitter.emit "did-invalidate-styles"
 
@@ -41,7 +41,7 @@ class StyleSamplerComponent
 
     @emitter.emit "did-invalidate-styles"
 
-  extractFontStyles: (styleNode) ->
+  extractFontStyleNode: (styleNode) ->
     fontStylesElement = document.createElement("style")
     fontCss = ""
 
