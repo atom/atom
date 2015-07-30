@@ -13,6 +13,13 @@ class StyleSamplerComponent
     @iframe.style.display = "none"
     @iframe.onload = @setupIframe
 
+    @scopesToSample = []
+    @sampledScopes = {}
+
+  invalidateStyles: ->
+    @sampledScopes = {}
+    @emitter.emit "did-invalidate-styles"
+
   setDefaultFont: (fontFamily, fontSize) ->
     @defaultStyleNode.innerHTML = """
     body {
@@ -21,14 +28,14 @@ class StyleSamplerComponent
     }
     """
 
-    @emitter.emit "did-invalidate-styles"
+    @invalidateStyles()
 
   addStyle: (styleNode) ->
     fontStyleNode = @extractFontStyleNode(styleNode)
     @styleNodes.push(fontStyleNode)
     @headNode.appendChild(fontStyleNode)
 
-    @emitter.emit "did-invalidate-styles"
+    @invalidateStyles()
 
   addStyles: (styleNodes) ->
     @addStyle(styleNode) for styleNode in styleNodes
@@ -39,7 +46,7 @@ class StyleSamplerComponent
       styleNode.remove()
     @styleNodes.length = 0
 
-    @emitter.emit "did-invalidate-styles"
+    @invalidateStyles()
 
   extractFontStyleNode: (styleNode) ->
     fontStylesElement = document.createElement("style")
@@ -76,6 +83,8 @@ class StyleSamplerComponent
     @emitter.emit "did-initialize"
 
   sampleScreenRows: (screenRows) ->
+    @scopesToSample = []
+
     html = ""
     newLines = []
     screenRows.forEach (screenRow) =>
@@ -89,17 +98,13 @@ class StyleSamplerComponent
     @domNode.innerHTML = html if html isnt ""
 
     for line, lineIndex in newLines
-      @tokenIterator.reset(line)
       lineNode = @domNode.children[lineIndex]
-      nodeIndex = 0
-      while @tokenIterator.next()
-        tokenScopeNode = @getLeafNode(lineNode.children[nodeIndex])
+      for tokenNode in lineNode.children
+        tokenLeafNode = @getLeafNode(tokenNode)
         samplingEvent =
-          scopes: @tokenIterator.getScopes()
-          font: getComputedStyle(tokenScopeNode).font
+          scopes: @scopesToSample.shift()
+          font: getComputedStyle(tokenLeafNode).font
         @emitter.emit "did-sample-scopes-style", samplingEvent
-
-        nodeIndex++
 
   onDidSampleScopesStyle: (callback) ->
     @emitter.on "did-sample-scopes-style", callback
@@ -112,11 +117,17 @@ class StyleSamplerComponent
 
     @tokenIterator.reset(line)
     while @tokenIterator.next()
-      for scope in @tokenIterator.getScopes()
+      tokenScopes = @tokenIterator.getScopes()
+      continue if @sampledScopes[tokenScopes]
+
+      for scope in tokenScopes
         html += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
-      for scope in @tokenIterator.getScopes()
+      for scope in tokenScopes
         html += "</span>"
+
+      @scopesToSample.push(tokenScopes.slice())
+      @sampledScopes[tokenScopes] = true
 
     html += "</div>"
     html

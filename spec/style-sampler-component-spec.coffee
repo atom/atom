@@ -146,8 +146,20 @@ fdescribe "StyleSamplerComponent", ->
     for defaultFont in defaultFonts
       expect(defaultFont).toEqual("normal normal normal normal 12px/normal Times")
 
+  it "samples the same scopes exactly once", ->
+    fontsByScopesIdentifier = {}
+    styleSamplerComponent.onDidSampleScopesStyle ({scopes, font}) ->
+      scopesIdentifier = scopes.join()
+      fontsByScopesIdentifier[scopesIdentifier] ?= []
+      fontsByScopesIdentifier[scopesIdentifier].push(font)
+
+    styleSamplerComponent.sampleScreenRows([0..5])
+
+    expect(Object.keys(fontsByScopesIdentifier).length).toBeGreaterThan(0)
+    for scopesIdentifier, fonts of fontsByScopesIdentifier
+      expect(fonts.length).toBe(1)
+
   # it "samples a screen row twice only if the row has changed", ->
-  # it "does not sample the same scopes twice", ->
 
   styleWithSelectorAndFont = (selector, fontFamily, fontSize) ->
     style = document.createElement("style")
