@@ -228,7 +228,7 @@ class TextEditorComponent
       @styleSamplerComponent.addStyles(@stylesElement.children)
 
     @disposables.add @styleSamplerComponent.onDidInvalidateStyles =>
-      @presenter.invalidateMeasurements()
+      @presenter.clearFontForScopes()
 
     @disposables.add @styleSamplerComponent.onDidSampleScopesStyle ({scopes, font})=>
       @presenter.setFontForScopes(scopes, font)

@@ -1020,13 +1020,17 @@ class TextEditorPresenter
 
   setFontForScopes: (scopes, font) ->
     @linesYardstick.setFontForScopes(scopes, font)
+    @invalidateMeasurements()
 
   setDefaultFont: (fontFamily, fontSize) ->
     @linesYardstick.setDefaultFont(fontFamily, fontSize)
+    @invalidateMeasurements()
+
+  clearFontForScopes: ->
+    @linesYardstick.clearFontsForScopes()
+    @invalidateMeasurements()
 
   invalidateMeasurements: ->
-    @linesYardstick.clearFontsForScopes()
-
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true
