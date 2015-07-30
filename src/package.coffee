@@ -200,7 +200,12 @@ class Package
 
   activateResources: ->
     @activationDisposables = new CompositeDisposable
-    @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+
+    keymapIsDisabled = _.include(atom.config.get("core.disabledKeymaps") ? [], @name)
+    if keymapIsDisabled
+      @deactivateKeymaps()
+    else
+      @activateKeymaps()
 
     for [menuPath, map] in @menus when map['context-menu']?
       try
@@ -231,6 +236,30 @@ class Package
 
     settings.activate() for settings in @settings
     @settingsActivated = true
+
+  activateKeymaps: ->
+    return if @keymapActivated
+
+    @keymapDisposables = new CompositeDisposable()
+
+    @keymapDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    atom.menu.update()
+
+    @keymapActivated = true
+
+  deactivateKeymaps: ->
+    return if not @keymapActivated
+
+    @keymapDisposables?.dispose()
+    atom.menu.update()
+
+    @keymapActivated = false
+
+  hasKeymaps: ->
+    for [path, map] in @keymaps
+      if map.length > 0
+        return true
+    false
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices
@@ -399,6 +428,7 @@ class Package
     settings.deactivate() for settings in @settings
     @stylesheetDisposables?.dispose()
     @activationDisposables?.dispose()
+    @keymapDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
     @settingsActivated = false
