@@ -410,6 +410,7 @@ class Package
     @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
+    @deactivateKeymaps()
     if @mainActivated
       try
         @mainModule?.deactivate?()
