@@ -1,7 +1,7 @@
 StyleSamplerComponent = require '../src/style-sampler-component'
 
 fdescribe "StyleSamplerComponent", ->
-  [editor, styleSamplerComponent, stylesContainerNode] = []
+  [editor, styleSamplerComponent, stylesContainerNode, functionsFonts, parametersFonts, defaultFonts] = []
 
   beforeEach ->
     waitsForPromise ->
@@ -20,6 +20,20 @@ fdescribe "StyleSamplerComponent", ->
     waitsFor "iframe initialization", ->
       styleSamplerComponent.canMeasure()
 
+    runs ->
+      functionsFonts = []
+      parametersFonts = []
+      defaultFonts = []
+      styleSamplerComponent.onScopesStyleSampled ({scopes, font}) ->
+        scopeIdentifier = scopes.join()
+
+        if scopeIdentifier.indexOf("entity.name.function") isnt -1
+          functionsFonts.push(font)
+        else if scopeIdentifier.indexOf("parameters") isnt -1
+          parametersFonts.push(font)
+        else
+          defaultFonts.push(font)
+
   afterEach ->
     styleSamplerComponent.getDomNode().remove()
     stylesContainerNode.remove()
@@ -32,19 +46,6 @@ fdescribe "StyleSamplerComponent", ->
     styleSamplerComponent.setDefaultFont("Times", "12px")
     for styleElement in styleElements
       styleSamplerComponent.addStyleElement(styleElement)
-
-    functionsFonts = []
-    parametersFonts = []
-    defaultFonts = []
-    styleSamplerComponent.onScopesStyleSampled ({scopes, font}) ->
-      scopeIdentifier = scopes.join()
-
-      if scopeIdentifier.indexOf("entity.name.function") isnt -1
-        functionsFonts.push(font)
-      else if scopeIdentifier.indexOf("parameters") isnt -1
-        parametersFonts.push(font)
-      else
-        defaultFonts.push(font)
 
     styleSamplerComponent.sampleScreenRows([0])
 
