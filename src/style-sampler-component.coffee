@@ -1,3 +1,5 @@
+# TODO: Rename callback to be consistent with `onDid...` naming
+
 {Emitter} = require 'event-kit'
 TokenIterator = require '../src/token-iterator'
 
@@ -19,6 +21,8 @@ class StyleSamplerComponent
       font-family: #{fontFamily};
     }
     """
+
+    @emitter.emit "did-invalidate-styles"
 
   addStyleElement: (styleElement) ->
     skinnyStyleElement = @extractFontStyles(styleElement)
@@ -90,6 +94,9 @@ class StyleSamplerComponent
 
   onScopesStyleSampled: (callback) ->
     @emitter.on "scopes-style-sampled", callback
+
+  onDidInvalidateStyles: (callback) ->
+    @emitter.on "did-invalidate-styles", callback
 
   buildLineHTML: (line) ->
     html = "<div>"

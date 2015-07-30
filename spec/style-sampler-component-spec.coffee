@@ -24,6 +24,12 @@ fdescribe "StyleSamplerComponent", ->
       functionsFonts = []
       parametersFonts = []
       defaultFonts = []
+
+      styleSamplerComponent.onDidInvalidateStyles ->
+        functionsFonts.length = 0
+        parametersFonts.length = 0
+        defaultFonts.length = 0
+
       styleSamplerComponent.onScopesStyleSampled ({scopes, font}) ->
         scopeIdentifier = scopes.join()
 
@@ -34,17 +40,17 @@ fdescribe "StyleSamplerComponent", ->
         else
           defaultFonts.push(font)
 
+      styleSamplerComponent.setDefaultFont("Times", "12px")
+      styleSamplerComponent.addStyleElements([
+        styleElementWithSelectorAndFont(".entity.name.function", "Arial", "20px")
+        styleElementWithSelectorAndFont(".parameters", "Helvetica", "32px")
+      ])
+
   afterEach ->
     styleSamplerComponent.getDomNode().remove()
     stylesContainerNode.remove()
 
   it "samples font styles for the desired screen rows", ->
-    styleSamplerComponent.setDefaultFont("Times", "12px")
-    styleSamplerComponent.addStyleElements([
-      styleElementWithSelectorAndFont(".entity.name.function", "Arial", "20px")
-      styleElementWithSelectorAndFont(".parameters", "Helvetica", "32px")
-    ])
-
     styleSamplerComponent.sampleScreenRows([0])
 
     expect(functionsFonts.length).toBeGreaterThan(0)
@@ -59,6 +65,31 @@ fdescribe "StyleSamplerComponent", ->
 
     for defaultFont in defaultFonts
       expect(defaultFont).toEqual("normal normal normal normal 12px/normal Times")
+
+  it "invalidates samplings when the default font changes", ->
+    styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts.length).toBeGreaterThan(0)
+    expect(parametersFonts.length).toBeGreaterThan(0)
+    expect(defaultFonts.length).toBeGreaterThan(0)
+
+    oldFunctionFonts = functionsFonts.slice()
+    oldParametersFonts = parametersFonts.slice()
+
+    styleSamplerComponent.setDefaultFont("Arial", "12px")
+
+    expect(functionsFonts.length).toBe(0)
+    expect(parametersFonts.length).toBe(0)
+    expect(defaultFonts.length).toBe(0)
+
+    styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts).toEqual(oldFunctionFonts)
+    expect(parametersFonts).toEqual(oldParametersFonts)
+    expect(defaultFonts.length).toBeGreaterThan(0)
+
+    for defaultFont in defaultFonts
+      expect(defaultFont).toEqual("normal normal normal normal 12px/normal Arial")
 
   # it "samples a screen row twice only if the row has changed", ->
   # it "does not sample the same scopes twice", ->
