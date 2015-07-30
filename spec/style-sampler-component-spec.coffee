@@ -39,14 +39,17 @@ fdescribe "StyleSamplerComponent", ->
     stylesContainerNode.remove()
 
   it "samples font styles for the desired screen rows", ->
-    styleElements = [
+    styleSamplerComponent.setDefaultFont("Times", "12px")
+    styleSamplerComponent.addStyleElements([
       styleElementWithSelectorAndFont(".entity.name.function", "Arial", "20px")
       styleElementWithSelectorAndFont(".parameters", "Helvetica", "32px")
-    ]
-    styleSamplerComponent.setDefaultFont("Times", "12px")
-    styleSamplerComponent.addStyleElements(styleElements)
+    ])
 
     styleSamplerComponent.sampleScreenRows([0])
+
+    expect(functionsFonts.length).toBeGreaterThan(0)
+    expect(parametersFonts.length).toBeGreaterThan(0)
+    expect(defaultFonts.length).toBeGreaterThan(0)
 
     for functionFont in functionsFonts
       expect(functionFont).toEqual("normal normal normal normal 20px/normal Arial")
