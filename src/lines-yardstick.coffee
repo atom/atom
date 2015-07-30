@@ -5,16 +5,26 @@ TokenIterator = require './token-iterator'
 module.exports =
 class Something
   constructor: (@editor) ->
+    @fontsByScopesIdentifier = {}
     @measuringContext = document.createElement("canvas").getContext("2d")
     @tokenIterator = new TokenIterator
+
+  invalidateFonts: ->
+    @fontsByScopesIdentifier = {}
 
   setDefaultFont: (fontFamily, fontSize) ->
     @defaultFont = "#{fontSize} #{fontFamily}"
 
+  setFontForScopes: (scopes, fontFamily, fontSize) ->
+    scopesIdentifier = @identifierForScopes(scopes)
+    @fontsByScopesIdentifier[scopesIdentifier] = "#{fontSize} #{fontFamily}"
+
+  identifierForScopes: (scopes) ->
+    scopes.join()
+
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @editor.clipScreenPosition(screenPosition) if clip
-
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
@@ -24,15 +34,23 @@ class Something
 
     {top, left}
 
-  leftPixelPositionForScreenPosition: (screenPosition) ->
-    @measuringContext.font = @defaultFont
+  currentFontForTokenIterator: ->
+    scopesIdentifier = @identifierForScopes(@tokenIterator.getScopes())
+    @fontsByScopesIdentifier[scopesIdentifier] or @defaultFont
 
+  leftPixelPositionForScreenPosition: (screenPosition) ->
     line = @editor.tokenizedLineForScreenRow(screenPosition.row)
     text = ""
     width = 0
 
     @tokenIterator.reset(line)
     while @tokenIterator.next()
+      newFont = @currentFontForTokenIterator()
+      if newFont isnt @measuringContextFont
+        width += @measuringContext.measureText(text).width
+        @measuringContext.font = @measuringContextFont = newFont
+        text = ""
+
       screenStart = @tokenIterator.getScreenStart()
       screenEnd = @tokenIterator.getScreenEnd()
       if screenStart <= screenPosition.column < screenEnd
@@ -44,7 +62,8 @@ class Something
       else
         text += @tokenIterator.getText()
 
-    @measuringContext.measureText(text).width
+    width += @measuringContext.measureText(text).width if text isnt ""
+    width
 
 class LinesYardstick
   constructor: (@editor, hostElement, @syntaxStyleElement) ->

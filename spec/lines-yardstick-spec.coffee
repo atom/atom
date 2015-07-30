@@ -1,6 +1,6 @@
 LinesYardstick = require '../src/lines-yardstick'
 
-fdescribe "LinesYardstick", ->
+describe "LinesYardstick", ->
   [editor, linesYardstick, lineHeightInPixels] = []
 
   beforeEach ->
@@ -17,6 +17,50 @@ fdescribe "LinesYardstick", ->
 
   it "measures lines using the default font", ->
     linesYardstick.setDefaultFont("Helvetica", "36px")
+
+    conversionTable = [
+      [[2, 8], {left: 80, top: 2 * lineHeightInPixels}]
+      [[3, 0], {left: 0, top: 3 * lineHeightInPixels}]
+      [[4, 4], {left: 40, top: 4 * lineHeightInPixels}]
+      [[8, 10], {left: 134, top: 8 * lineHeightInPixels}]
+    ]
+
+    for [screenPosition, pixelPosition] in conversionTable
+      expect(
+        linesYardstick.pixelPositionForScreenPosition(screenPosition)
+      ).toEqual(pixelPosition)
+
+  it "measures lines using stored fonts for scopes (falling back to the default font when missing)", ->
+    linesYardstick.setDefaultFont("Helvetica", "36px")
+    linesYardstick.setFontForScopes(
+      ["source.js", "keyword.control.js"], "Arial", "12px"
+    )
+    linesYardstick.setFontForScopes(
+      ["source.js", "meta.brace.round.js"], "Tahoma", "24px"
+    )
+
+    conversionTable = [
+      [[2, 8], {left: 65, top: 2 * lineHeightInPixels}]
+      [[3, 0], {left: 0, top: 3 * lineHeightInPixels}]
+      [[4, 4], {left: 40, top: 4 * lineHeightInPixels}]
+      [[8, 10], {left: 72, top: 8 * lineHeightInPixels}]
+    ]
+
+    for [screenPosition, pixelPosition] in conversionTable
+      expect(
+        linesYardstick.pixelPositionForScreenPosition(screenPosition)
+      ).toEqual(pixelPosition)
+
+  it "clears stored fonts for scopes when fonts are invalidated", ->
+    linesYardstick.setDefaultFont("Helvetica", "36px")
+    linesYardstick.setFontForScopes(
+      ["source.js", "keyword.control.js"], "Arial", "12px"
+    )
+    linesYardstick.setFontForScopes(
+      ["source.js", "meta.brace.round.js"], "Tahoma", "24px"
+    )
+
+    linesYardstick.invalidateFonts()
 
     conversionTable = [
       [[2, 8], {left: 80, top: 2 * lineHeightInPixels}]
