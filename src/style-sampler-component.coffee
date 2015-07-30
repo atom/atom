@@ -1,5 +1,6 @@
 {Emitter} = require 'event-kit'
 TokenIterator = require '../src/token-iterator'
+EmptyLineHTML = "<div></div>"
 
 module.exports=
 class StyleSamplerComponent
@@ -15,9 +16,11 @@ class StyleSamplerComponent
 
     @scopesToSample = []
     @sampledScopes = {}
+    @sampledLines = {}
 
   invalidateStyles: ->
     @sampledScopes = {}
+    @sampledLines = {}
     @emitter.emit "did-invalidate-styles"
 
   setDefaultFont: (fontFamily, fontSize) ->
@@ -90,10 +93,14 @@ class StyleSamplerComponent
     screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
       return if not line?
+      return if @sampledLines.hasOwnProperty(line.id)
 
       lineHTML = @buildLineHTML(line)
-      html += lineHTML
-      newLines.push(line)
+      if lineHTML isnt EmptyLineHTML
+        html += lineHTML
+        newLines.push(line)
+
+      @sampledLines[line.id] = true
 
     @domNode.innerHTML = html if html isnt ""
 
