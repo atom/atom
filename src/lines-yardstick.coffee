@@ -1,4 +1,3 @@
-{Emitter} = require 'event-kit'
 TokenIterator = require './token-iterator'
 {Point} = require 'text-buffer'
 
