@@ -1807,6 +1807,58 @@ describe "TextEditorComponent", ->
           expect(window.removeEventListener).toHaveBeenCalledWith('mouseup')
           expect(window.removeEventListener).toHaveBeenCalledWith('mousemove')
 
+    describe "when the mouse is double-clicked and dragged", ->
+      it "expands the selection over the nearest word as the cursor moves", ->
+        jasmine.attachToDOM(wrapperNode)
+        wrapperNode.style.height =  6 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [5, 13]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([11, 11]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [11, 13]]
+
+        maximalScrollTop = editor.getScrollTop()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([9, 3]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [9, 4]]
+        expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
+
+        linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
+
+    describe "when the mouse is triple-clicked and dragged", ->
+      it "expands the selection over the nearest line as the cursor moves", ->
+        jasmine.attachToDOM(wrapperNode)
+        wrapperNode.style.height =  6 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 3))
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [6, 0]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([11, 11]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [12, 0]]
+
+        maximalScrollTop = editor.getScrollTop()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 4]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [9, 0]]
+        expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
+
+        linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
+
     describe "when a line is folded", ->
       beforeEach ->
         editor.foldBufferRow 4
