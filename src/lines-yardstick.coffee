@@ -1,7 +1,51 @@
 {Emitter} = require 'event-kit'
 TokenIterator = require './token-iterator'
+{Point} = require 'text-buffer'
 
 module.exports =
+class Something
+  constructor: (@editor) ->
+    @measuringContext = document.createElement("canvas").getContext("2d")
+    @tokenIterator = new TokenIterator
+
+  setDefaultFont: (fontFamily, fontSize) ->
+    @defaultFont = "#{fontSize} #{fontFamily}"
+
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+
+    top = targetRow * @editor.getLineHeightInPixels()
+    left = @leftPixelPositionForScreenPosition(screenPosition)
+
+    {top, left}
+
+  leftPixelPositionForScreenPosition: (screenPosition) ->
+    @measuringContext.font = @defaultFont
+
+    line = @editor.tokenizedLineForScreenRow(screenPosition.row)
+    text = ""
+    width = 0
+
+    @tokenIterator.reset(line)
+    while @tokenIterator.next()
+      screenStart = @tokenIterator.getScreenStart()
+      screenEnd = @tokenIterator.getScreenEnd()
+      if screenStart <= screenPosition.column < screenEnd
+        text += @tokenIterator.getText().substring(
+          0,
+          screenPosition.column - screenStart
+        )
+        break
+      else
+        text += @tokenIterator.getText()
+
+    @measuringContext.measureText(text).width
+
 class LinesYardstick
   constructor: (@editor, hostElement, @syntaxStyleElement) ->
     @context = document.createElement("canvas").getContext("2d")
