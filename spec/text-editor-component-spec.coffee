@@ -824,7 +824,6 @@ describe "TextEditorComponent", ->
 
         describe "when the component is destroyed", ->
           it "stops listening for folding events", ->
-            nextAnimationFrame()
             component.destroy()
 
             lineNumber = component.lineNumberNodeForScreenRow(1)
@@ -1029,6 +1028,8 @@ describe "TextEditorComponent", ->
       expect(cursorNode.style['-webkit-transform']).toBe "translate(#{10 * editor.getDefaultCharWidth()}px, #{editor.getLineHeightInPixels()}px)"
 
     it "updates cursor positions when the font family changes", ->
+      # IDEA: spec here fails because it relies on `TextEditorElement` measurements. Once we will adapt the model to use the new measurement mechanism it will work right away.
+
       editor.setCursorBufferPosition([1, 10])
       component.setFontFamily('sans-serif')
       nextAnimationFrame()
@@ -1150,6 +1151,7 @@ describe "TextEditorComponent", ->
       expect(selectionNode.offsetLeft).toBe 6 * editor.getDefaultCharWidth()
 
     it "updates selections when the font family changes", ->
+      # IDEA: spec here fails because it relies on `TextEditorElement` measurements. Once we will adapt the model to use the new measurement mechanism it will work right away.
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontFamily('sans-serif')
       nextAnimationFrame()

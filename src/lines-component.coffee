@@ -78,22 +78,3 @@ class LinesComponent extends TiledComponent
 
     @presenter.setLineHeight(lineHeightInPixels)
     @presenter.setBaseCharacterWidth(charWidth)
-
-  remeasureCharacterWidths: ->
-    return unless @presenter.baseCharacterWidth
-
-    @clearScopedCharWidths()
-    @measureCharactersInNewLines()
-
-  measureCharactersInNewLines: ->
-    @presenter.batchCharacterMeasurement =>
-      for id, component of @componentsByTileId
-        component.measureCharactersInNewLines()
-
-      return
-
-  clearScopedCharWidths: ->
-    for id, component of @componentsByTileId
-      component.clearMeasurements()
-
-    @presenter.clearScopedCharacterWidths()

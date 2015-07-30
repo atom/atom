@@ -32,7 +32,6 @@ class TextEditorComponent
   inputEnabled: true
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
-  remeasureCharacterWidthsWhenShown: false
   stylingChangeAnimationFrameRequested: false
   gutterComponent: null
   mounted: true
@@ -183,7 +182,6 @@ class TextEditorComponent
     @measureWindowSize()
     @measureDimensions()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
-    @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @editor.setVisible(true)
     @performedInitialMeasurement = true
     @updatesPaused = false
@@ -519,7 +517,6 @@ class TextEditorComponent
     @styleSamplerComponent.addStyles(@stylesElement.children)
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @remeasureCharacterWidths()
 
   onSelectionAdded: (selection) =>
     selectionDisposables = new CompositeDisposable
@@ -654,9 +651,6 @@ class TextEditorComponent
       @presenter.setDefaultFont(@fontFamily, @fontSize)
       @styleSamplerComponent.setDefaultFont(@fontFamily, @fontSize)
 
-    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
-      @remeasureCharacterWidths()
-
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
 
@@ -673,13 +667,6 @@ class TextEditorComponent
       @linesComponent.measureLineHeightAndDefaultCharWidth()
     else
       @measureLineHeightAndDefaultCharWidthWhenShown = true
-
-  remeasureCharacterWidths: ->
-    if @isVisible()
-      @remeasureCharacterWidthsWhenShown = false
-      @linesComponent.remeasureCharacterWidths()
-    else
-      @remeasureCharacterWidthsWhenShown = true
 
   measureScrollbars: ->
     @measureScrollbarsWhenShown = false
