@@ -1,5 +1,3 @@
-# TODO: Rename callback to be consistent with `onDid...` naming
-
 {Emitter} = require 'event-kit'
 TokenIterator = require '../src/token-iterator'
 
@@ -88,12 +86,12 @@ class StyleSamplerComponent
         samplingEvent =
           scopes: @tokenIterator.getScopes()
           font: getComputedStyle(tokenScopeNode).font
-        @emitter.emit "scopes-style-sampled", samplingEvent
+        @emitter.emit "did-sample-scopes-style", samplingEvent
 
         nodeIndex++
 
-  onScopesStyleSampled: (callback) ->
-    @emitter.on "scopes-style-sampled", callback
+  onDidSampleScopesStyle: (callback) ->
+    @emitter.on "did-sample-scopes-style", callback
 
   onDidInvalidateStyles: (callback) ->
     @emitter.on "did-invalidate-styles", callback

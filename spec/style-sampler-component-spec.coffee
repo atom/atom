@@ -30,7 +30,7 @@ fdescribe "StyleSamplerComponent", ->
         parametersFonts.length = 0
         defaultFonts.length = 0
 
-      styleSamplerComponent.onScopesStyleSampled ({scopes, font}) ->
+      styleSamplerComponent.onDidSampleScopesStyle ({scopes, font}) ->
         scopeIdentifier = scopes.join()
 
         if scopeIdentifier.indexOf("entity.name.function") isnt -1
