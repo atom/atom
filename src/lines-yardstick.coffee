@@ -8,7 +8,7 @@ class LinesYardstick
     @measuringContext = document.createElement("canvas").getContext("2d")
     @tokenIterator = new TokenIterator
 
-  invalidateFonts: ->
+  clearFontsForScopes: ->
     @fontsByScopesIdentifier = {}
 
   setDefaultFont: (fontFamily, fontSize) ->

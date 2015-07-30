@@ -73,7 +73,7 @@ class StyleSamplerComponent
   onDidInitialize: (callback) ->
     @emitter.on "did-initialize", callback
 
-  canMeasure: ->
+  hasLoaded: ->
     @initialized
 
   setupIframe: =>

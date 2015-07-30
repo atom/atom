@@ -18,7 +18,7 @@ fdescribe "StyleSamplerComponent", ->
       document.body.appendChild(stylesContainerNode)
 
     waitsFor "iframe initialization", ->
-      styleSamplerComponent.canMeasure()
+      styleSamplerComponent.hasLoaded()
 
     runs ->
       functionsFonts = []

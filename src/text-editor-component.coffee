@@ -12,7 +12,7 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
-LinesYardstick = require './lines-yardstick'
+StyleSamplerComponent = require './style-sampler-component'
 
 module.exports =
 class TextEditorComponent
@@ -44,6 +44,7 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    @styleSamplerComponent = new StyleSamplerComponent(@editor)
     @presenter = new TextEditorPresenter
       model: @editor
       scrollTop: @editor.getScrollTop()
@@ -53,6 +54,10 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
     @presenter.onDidUpdateState(@requestUpdate)
+    @presenter.onWillMeasureScreenRows (screenRows) =>
+      return unless @styleSamplerComponent.hasLoaded()
+
+      @styleSamplerComponent.sampleScreenRows(screenRows)
 
     @domNode = document.createElement('div')
     if @useShadowDOM
@@ -87,8 +92,11 @@ class TextEditorComponent
     @scrollbarCornerComponent = new ScrollbarCornerComponent
     @domNode.appendChild(@scrollbarCornerComponent.getDomNode())
 
+    @domNode.appendChild(@styleSamplerComponent.getDomNode())
+
     @observeEditor()
     @listenForDOMEvents()
+    @listenForSamplingEvents()
 
     @disposables.add @stylesElement.onDidAddStyleElement @onStylesheetsChanged
     @disposables.add @stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
@@ -99,12 +107,8 @@ class TextEditorComponent
 
     @disposables.add atom.views.pollDocument(@pollDOM)
 
-    @linesYardstick = new LinesYardstick(@editor, @domNode, @stylesElement)
-
-    @disposables.add @linesYardstick.onDidInitialize =>
-      @presenter.setComponent(this)
-      @updateSync()
-      @checkForVisibilityChange()
+    @updateSync()
+    @checkForVisibilityChange()
 
   destroy: ->
     @mounted = false
@@ -116,8 +120,6 @@ class TextEditorComponent
     @domNode
 
   updateSync: ->
-    return unless @linesYardstick.canMeasure()
-
     @oldState ?= {}
     @newState = @presenter.getState()
 
@@ -167,7 +169,6 @@ class TextEditorComponent
         @hostElement.__spacePenView.trigger 'editor:display-updated'
 
   readAfterUpdateSync: =>
-    @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
     @overlayManager?.measureOverlays()
 
   mountGutterContainerComponent: ->
@@ -223,6 +224,16 @@ class TextEditorComponent
     @disposables.add @editor.observeGrammar(@onGrammarChanged)
     @disposables.add @editor.observeCursors(@onCursorAdded)
     @disposables.add @editor.observeSelections(@onSelectionAdded)
+
+  listenForSamplingEvents: ->
+    @disposables.add @styleSamplerComponent.onDidInitialize =>
+      @styleSamplerComponent.addStyles(@stylesElement.children)
+
+    @disposables.add @styleSamplerComponent.onDidInvalidateStyles =>
+      @presenter.invalidateMeasurements()
+
+    @disposables.add @styleSamplerComponent.onDidSampleScopesStyle ({scopes, font})=>
+      @presenter.setFontForScopes(scopes, font)
 
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
@@ -504,6 +515,8 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
+    @styleSamplerComponent.clearStyles()
+    @styleSamplerComponent.addStyles(@stylesElement.children)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
@@ -638,7 +651,8 @@ class TextEditorComponent
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
-      @linesYardstick.setFontInformation(@fontFamily, @fontSize, @lineHeight)
+      @presenter.setDefaultFont(@fontFamily, @fontSize)
+      @styleSamplerComponent.setDefaultFont(@fontFamily, @fontSize)
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
       @remeasureCharacterWidths()
@@ -780,21 +794,6 @@ class TextEditorComponent
     linesClientRect = @linesComponent.getDomNode().getBoundingClientRect()
     top = clientY - linesClientRect.top + @presenter.scrollTop
     left = clientX - linesClientRect.left + @presenter.scrollLeft
-    {top, left}
-
-  prepareScreenRowsForMeasurement: (screenRows) ->
-    @linesYardstick.buildDomNodesForScreenRows(screenRows)
-
-  pixelPositionForScreenPosition: (screenPosition, clip = true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
-
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-
-    top = targetRow * @editor.getLineHeightInPixels()
-    left = @linesYardstick.leftPixelPositionForScreenPosition(screenPosition)
-
     {top, left}
 
   getModel: ->

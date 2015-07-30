@@ -2,6 +2,7 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
+LinesYardstick = require './lines-yardstick'
 
 module.exports =
 class TextEditorPresenter
@@ -22,6 +23,7 @@ class TextEditorPresenter
     @gutterWidth ?= 0
     @tileSize ?= 12
 
+    @linesYardstick = new LinesYardstick(@model)
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @visibleHighlights = {}
@@ -45,6 +47,9 @@ class TextEditorPresenter
   # Calls your `callback` when some changes in the model occurred and the current state has been updated.
   onDidUpdateState: (callback) ->
     @emitter.on 'did-update-state', callback
+
+  onWillMeasureScreenRows: (callback) ->
+    @emitter.on "will-measure-screen-rows", callback
 
   emitDidUpdateState: ->
     @emitter.emit "did-update-state" if @isBatching()
@@ -87,7 +92,7 @@ class TextEditorPresenter
     @updateVerticalDimensions()
     @updateStartRow()
     @updateEndRow()
-    @component?.prepareScreenRowsForMeasurement(@getMeasurableScreenRows())
+    @emitter.emit "will-measure-screen-rows", @getMeasurableScreenRows()
 
     @updateHorizontalDimensions()
     @updateScrollbarDimensions()
@@ -1038,6 +1043,27 @@ class TextEditorPresenter
     @scopedCharacterWidthsChangeCount++
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
+  setFontForScopes: (scopes, font) ->
+    @linesYardstick.setFontForScopes(scopes, font)
+
+  setDefaultFont: (fontFamily, fontSize) ->
+    @linesYardstick.setDefaultFont(fontFamily, fontSize)
+
+  invalidateMeasurements: ->
+    @linesYardstick.clearFontsForScopes()
+
+    @shouldUpdateHorizontalScrollState = true
+    @shouldUpdateVerticalScrollState = true
+    @shouldUpdateScrollbarsState = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateContentState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateLinesState = true
+    @shouldUpdateCursorsState = true
+    @shouldUpdateOverlaysState = true
+
+    @emitDidUpdateState()
+
   characterWidthsChanged: ->
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
@@ -1059,13 +1085,10 @@ class TextEditorPresenter
     @lineHeight? and @baseCharacterWidth?
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    return {left: 0, top: 0} unless @component?
-
-    position = @component.pixelPositionForScreenPosition(screenPosition, clip)
+    position = @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
     position.top -= @scrollTop
     position.left -= @scrollLeft
-
-    return position
+    position
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?

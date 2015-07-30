@@ -60,7 +60,7 @@ fdescribe "LinesYardstick", ->
       ["source.js", "meta.brace.round.js"], "24px Tahoma"
     )
 
-    linesYardstick.invalidateFonts()
+    linesYardstick.clearFontsForScopes()
 
     conversionTable = [
       [[2, 8], {left: 80, top: 2 * lineHeightInPixels}]
