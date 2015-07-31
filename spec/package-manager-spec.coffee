@@ -444,7 +444,7 @@ describe "PackageManager", ->
 
           expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
 
-          atom.config.set("core.disabledKeymaps", ["package-with-keymaps-manifest"])
+          atom.config.set("core.packagesWithKeymapsDisabled", ["package-with-keymaps-manifest"])
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
@@ -455,16 +455,16 @@ describe "PackageManager", ->
       describe "when the package's keymaps are disabled and re-enabled after it is activated", ->
         it "removes and re-adds the keymaps", ->
           element1 = $$ -> @div class: 'test-1'
-          atom.packages.observeDisabledKeymaps()
+          atom.packages.observePackagesWithKeymapsDisabled()
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
           runs ->
-            atom.config.set("core.disabledKeymaps", ['package-with-keymaps-manifest'])
+            atom.config.set("core.packagesWithKeymapsDisabled", ['package-with-keymaps-manifest'])
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
 
-            atom.config.set("core.disabledKeymaps", [])
+            atom.config.set("core.packagesWithKeymapsDisabled", [])
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
 
     describe "menu loading", ->

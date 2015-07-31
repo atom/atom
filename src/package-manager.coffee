@@ -310,12 +310,12 @@ class PackageManager
       @activatePackage(packageName) for packageName in packagesToEnable
       null
 
-  unobserveDisabledKeymaps: ->
-    @disabledKeymapsSubscription?.dispose()
-    @disabledKeymapsSubscription = null
+  unobservePackagesWithKeymapsDisabled: ->
+    @packagesWithKeymapsDisabledSubscription?.dispose()
+    @packagesWithKeymapsDisabledSubscription = null
 
-  observeDisabledKeymaps: ->
-    @disabledKeymapsSubscription ?= atom.config.onDidChange 'core.disabledKeymaps', ({newValue, oldValue}) =>
+  observePackagesWithKeymapsDisabled: ->
+    @packagesWithKeymapsDisabledSubscription ?= atom.config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
@@ -409,7 +409,7 @@ class PackageManager
         promises.push(promise) unless pack.hasActivationCommands()
       return
     @observeDisabledPackages()
-    @observeDisabledKeymaps()
+    @observePackagesWithKeymapsDisabled()
     promises
 
   # Activate a single package by name
@@ -438,7 +438,7 @@ class PackageManager
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
-    @unobserveDisabledKeymaps()
+    @unobservePackagesWithKeymapsDisabled()
 
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
