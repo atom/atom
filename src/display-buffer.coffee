@@ -23,7 +23,7 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  scopedCharacterWidthsChangeCount: 0
+  characterWidthsChangedCount: 0
   changeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
@@ -303,6 +303,10 @@ class DisplayBuffer extends Model
 
   setFontForScopes: (scopes, font) ->
     @linesYardstick.setFontForScopes(scopes, font)
+    @characterWidthsChangedCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
+
+  clearFontsForScopes: ->
     @characterWidthsChangedCount++
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 

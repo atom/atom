@@ -2940,6 +2940,15 @@ class TextEditor extends Model
   getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
   setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)
 
+  setDefaultFont: (fontFamily, fontSize) ->
+    @displayBuffer.setDefaultFont(fontFamily, fontSize)
+
+  setFontForScopes: (scopes, font) ->
+    @displayBuffer.setFontForScopes(scopes, font)
+
+  clearFontsForScopes: ->
+    @displayBuffer.clearFontsForScopes()
+
   getScopedCharWidths: (scopeNames) -> @displayBuffer.getScopedCharWidths(scopeNames)
 
   clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()

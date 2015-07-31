@@ -39,6 +39,8 @@ describe "TextEditorPresenter", ->
         verticalScrollbarWidth: 10
         scrollTop: 0
         scrollLeft: 0
+        fontFamily: "Menlo"
+        fontSize: "17px"
 
       new TextEditorPresenter(params)
 
@@ -294,7 +296,7 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+          expectStateUpdate presenter, -> presenter.setDefaultFont("Menlo", "25px")
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 15 * maxLineLength + 1
 
         it "updates when the scoped character widths change", ->
@@ -305,8 +307,8 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
-            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+            expectStateUpdate presenter, -> presenter.setFontForScopes(['source.js', 'support.function.js'], "34px Menlo")
+            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 8)) + (20 * 8) + 1 # 8 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)

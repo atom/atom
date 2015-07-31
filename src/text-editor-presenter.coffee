@@ -11,18 +11,21 @@ class TextEditorPresenter
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
   overlayDimensions: {}
+  characterWidthsChangedCount: 0
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused, fontFamily, fontSize} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
     @tileSize ?= 12
 
     @linesYardstick = new LinesYardstick(@model)
+    @setDefaultFont(fontFamily, fontSize)
+
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @visibleHighlights = {}
@@ -91,7 +94,8 @@ class TextEditorPresenter
     @updateVerticalDimensions()
     @updateStartRow()
     @updateEndRow()
-    @emitter.emit "will-measure-screen-rows", @getMeasurableScreenRows()
+    @batchCharacterMeasurement =>
+      @emitter.emit "will-measure-screen-rows", @getMeasurableScreenRows()
 
     @updateHorizontalDimensions()
     @updateScrollbarDimensions()
@@ -1020,28 +1024,28 @@ class TextEditorPresenter
 
   setFontForScopes: (scopes, font) ->
     @linesYardstick.setFontForScopes(scopes, font)
-    @invalidateMeasurements()
+    @model.setFontForScopes(scopes, font)
+    @characterWidthsChangedCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
+
+  batchCharacterMeasurement: (fn) ->
+    oldChangeCount = @characterWidthsChangedCount
+    @batchingCharacterMeasurement = true
+    @model.batchCharacterMeasurement(fn)
+    @batchingCharacterMeasurement = false
+    @characterWidthsChanged() if oldChangeCount isnt @characterWidthsChangedCount
 
   setDefaultFont: (fontFamily, fontSize) ->
     @linesYardstick.setDefaultFont(fontFamily, fontSize)
-    @invalidateMeasurements()
+    @model.setDefaultFont(fontFamily, fontSize)
+    @characterWidthsChangedCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   clearFontForScopes: ->
     @linesYardstick.clearFontsForScopes()
-    @invalidateMeasurements()
-
-  invalidateMeasurements: ->
-    @shouldUpdateHorizontalScrollState = true
-    @shouldUpdateVerticalScrollState = true
-    @shouldUpdateScrollbarsState = true
-    @shouldUpdateHiddenInputState = true
-    @shouldUpdateContentState = true
-    @shouldUpdateDecorations = true
-    @shouldUpdateLinesState = true
-    @shouldUpdateCursorsState = true
-    @shouldUpdateOverlaysState = true
-
-    @emitDidUpdateState()
+    @model.clearFontsForScopes()
+    @characterWidthsChangedCount++
+    @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
     @shouldUpdateHorizontalScrollState = true
