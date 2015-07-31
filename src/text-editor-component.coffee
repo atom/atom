@@ -54,8 +54,6 @@ class TextEditorComponent
       stoppedScrollingDelay: 200
     @presenter.onDidUpdateState(@requestUpdate)
     @presenter.onWillMeasureScreenRows (screenRows) =>
-      return unless @styleSamplerComponent.hasLoaded()
-
       @styleSamplerComponent.sampleScreenRows(screenRows)
 
     @domNode = document.createElement('div')
@@ -224,9 +222,6 @@ class TextEditorComponent
     @disposables.add @editor.observeSelections(@onSelectionAdded)
 
   listenForSamplingEvents: ->
-    @disposables.add @styleSamplerComponent.onDidInitialize =>
-      @styleSamplerComponent.addStyles(@stylesElement.children)
-
     @disposables.add @styleSamplerComponent.onDidInvalidateStyles =>
       @presenter.clearFontForScopes()
 
@@ -513,8 +508,8 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
-    @styleSamplerComponent.clearStyles()
-    @styleSamplerComponent.addStyles(@stylesElement.children)
+    @presenter.clearFontForScopes()
+    @styleSamplerComponent.invalidateStyles()
     @sampleFontStyling()
     @sampleBackgroundColors()
 
@@ -648,8 +643,9 @@ class TextEditorComponent
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
+      @styleSamplerComponent.invalidateStyles()
+      @presenter.clearFontForScopes()
       @presenter.setDefaultFont(@fontFamily, @fontSize)
-      @styleSamplerComponent.setDefaultFont(@fontFamily, @fontSize)
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
