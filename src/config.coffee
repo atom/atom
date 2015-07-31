@@ -665,12 +665,18 @@ class Config
   #
   # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
   # Returns `null` when the keyPath has no schema specified.
+  # Returns `false` when the key-path is not accessible from the root schema.
   getSchema: (keyPath) ->
     keys = splitKeyPath(keyPath)
     schema = @schema
     for key in keys
-      break unless schema?
-      schema = schema.properties?[key]
+      if schema.type is 'object'
+        childSchema = schema.properties?[key]
+        unless childSchema?
+          return null
+      else
+        return false
+      schema = childSchema
     schema
 
   # Extended: Get the {String} path to the config file being used.
@@ -948,7 +954,9 @@ class Config
       catch e
         undefined
     else
-      value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
+      if (schema = @getSchema(keyPath))?
+        throw new Error("Illegal key path #{keyPath}") if schema is false
+        value = @constructor.executeSchemaEnforcers(keyPath, value, schema)
       value
 
   # When the schema is changed / added, there may be values set in the config

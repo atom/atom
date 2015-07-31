@@ -1142,8 +1142,8 @@ describe "Config", ->
           type: 'integer'
           default: 12
 
-        expect(atom.config.getSchema('foo.baz')).toBeUndefined()
-        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBeUndefined()
+        expect(atom.config.getSchema('foo.baz')).toBe(null)
+        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBe(false)
 
       it "respects the schema for scoped settings", ->
         schema =
@@ -1380,6 +1380,10 @@ describe "Config", ->
           expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBe false
           expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
+        it 'does not allow setting children of that key-path', ->
+          expect(atom.config.set('foo.bar.aString.something', 123)).toBe false
+          expect(atom.config.get('foo.bar.aString')).toBe 'ok'
+
         describe 'when the schema has a "maximumLength" key', ->
           it "trims the string to be no longer than the specified maximum", ->
             schema =
@@ -1437,6 +1441,11 @@ describe "Config", ->
         it 'converts an array of strings to an array of ints', ->
           atom.config.set 'foo.bar', ['2', '3', '4']
           expect(atom.config.get('foo.bar')).toEqual  [2, 3, 4]
+
+        it 'does not allow setting children of that key-path', ->
+          expect(atom.config.set('foo.bar.child', 123)).toBe false
+          expect(atom.config.set('foo.bar.child.grandchild', 123)).toBe false
+          expect(atom.config.get('foo.bar')).toEqual [1, 2, 3]
 
       describe 'when the value has a "color" type', ->
         beforeEach ->
