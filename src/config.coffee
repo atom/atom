@@ -673,7 +673,12 @@ class Config
       if schema.type is 'object'
         childSchema = schema.properties?[key]
         unless childSchema?
-          return null
+          if isPlainObject(schema.additionalProperties)
+            childSchema = schema.additionalProperties
+          else if schema.additionalProperties is false
+            return false
+          else
+            return null
       else
         return false
       schema = childSchema
@@ -1085,17 +1090,26 @@ Config.addSchemaEnforcers
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
 
+      defaultChildSchema = null
+      allowsAdditionalProperties = true
+      if isPlainObject(schema.additionalProperties)
+        defaultChildSchema = schema.additionalProperties
+      if schema.additionalProperties is false
+        allowsAdditionalProperties = false
+
       newValue = {}
       for prop, propValue of value
-        childSchema = schema.properties[prop]
+        childSchema = schema.properties[prop] ? defaultChildSchema
         if childSchema?
           try
             newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
           catch error
             console.warn "Error setting item in object: #{error.message}"
-        else
+        else if allowsAdditionalProperties
           # Just pass through un-schema'd values
           newValue[prop] = propValue
+        else
+          console.warn "Illegal object key: #{keyPath}.#{prop}"
 
       newValue
 

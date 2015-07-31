@@ -1429,6 +1429,47 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.anInt')).toEqual 12
           expect(atom.config.get('foo.bar.nestedObject.nestedBool')).toEqual true
 
+        describe "when the value has additionalProperties set to false", ->
+          it 'does not allow other properties to be set on the object', ->
+            atom.config.setSchema('foo.bar',
+              type: 'object'
+              properties:
+                anInt:
+                  type: 'integer'
+                  default: 12
+              additionalProperties: false
+            )
+
+            expect(atom.config.set('foo.bar', {anInt: 5, somethingElse: 'ok'})).toBe true
+            expect(atom.config.get('foo.bar.anInt')).toBe 5
+            expect(atom.config.get('foo.bar.somethingElse')).toBeUndefined()
+
+            expect(atom.config.set('foo.bar.somethingElse', {anInt: 5})).toBe false
+            expect(atom.config.get('foo.bar.somethingElse')).toBeUndefined()
+
+        describe 'when the value has an additionalProperties schema', ->
+          it 'validates properties of the object against that schema', ->
+            atom.config.setSchema('foo.bar',
+              type: 'object'
+              properties:
+                anInt:
+                  type: 'integer'
+                  default: 12
+              additionalProperties:
+                type: 'string'
+            )
+
+            expect(atom.config.set('foo.bar', {anInt: 5, somethingElse: 'ok'})).toBe true
+            expect(atom.config.get('foo.bar.anInt')).toBe 5
+            expect(atom.config.get('foo.bar.somethingElse')).toBe 'ok'
+
+            expect(atom.config.set('foo.bar.somethingElse', 7)).toBe false
+            expect(atom.config.get('foo.bar.somethingElse')).toBe 'ok'
+
+            expect(atom.config.set('foo.bar', {anInt: 6, somethingElse: 7})).toBe true
+            expect(atom.config.get('foo.bar.anInt')).toBe 6
+            expect(atom.config.get('foo.bar.somethingElse')).toBe undefined
+
       describe 'when the value has an "array" type', ->
         beforeEach ->
           schema =
