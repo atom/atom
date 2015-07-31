@@ -93,7 +93,7 @@ class StyleSamplerComponent
     screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
       return if not line?
-      return if @sampledLines.hasOwnProperty(line.id)
+      return if @sampledLines[line.id]
 
       lineHTML = @buildLineHTML(line)
       if lineHTML isnt EmptyLineHTML
