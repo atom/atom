@@ -6,13 +6,14 @@ module.exports=
 class StyleSamplerComponent
   constructor: (@editor) ->
     @tokenIterator = new TokenIterator
-    @initialized = false
     @emitter = new Emitter
-    @defaultStyleNode = document.createElement("style")
-    @styleNodes = []
-    @iframe = document.createElement("iframe")
-    @iframe.style.display = "none"
-    @iframe.onload = @setupIframe
+    # Assign a bunch of properties to make this node a relayout boundary.
+    @layoutBoundary = document.createElement("div")
+    @layoutBoundary.style.visibility = "hidden"
+    @layoutBoundary.style.width = "100px"
+    @layoutBoundary.style.height = "100px"
+    @layoutBoundary.style.overflow = "hidden"
+    @layoutBoundary.style.position = "absolute"
 
     @scopesToSample = []
     @sampledScopes = {}
@@ -23,67 +24,8 @@ class StyleSamplerComponent
     @sampledLines = {}
     @emitter.emit "did-invalidate-styles"
 
-  setDefaultFont: (fontFamily, fontSize) ->
-    @defaultStyleNode.innerHTML = """
-    body {
-      font-size: #{fontSize};
-      font-family: #{fontFamily};
-    }
-    """
-
-    @invalidateStyles()
-
-  addStyle: (styleNode) ->
-    fontStyleNode = @extractFontStyleNode(styleNode)
-    @styleNodes.push(fontStyleNode)
-    @headNode.appendChild(fontStyleNode)
-
-    @invalidateStyles()
-
-  addStyles: (styleNodes) ->
-    @addStyle(styleNode) for styleNode in styleNodes
-    return
-
-  clearStyles: ->
-    for styleNode in @styleNodes
-      styleNode.remove()
-    @styleNodes.length = 0
-
-    @invalidateStyles()
-
-  extractFontStyleNode: (styleNode) ->
-    fontStylesElement = document.createElement("style")
-    fontCss = ""
-
-    for cssRule in styleNode.sheet.cssRules when @hasFontStyling(cssRule)
-      fontCss += cssRule.cssText
-
-    fontStylesElement.innerHTML = fontCss
-    fontStylesElement
-
-  hasFontStyling: (cssRule) ->
-    for styleProperty in cssRule.style
-      return true if styleProperty.indexOf("font") isnt -1
-
-    return false
-
   getDomNode: ->
-    @iframe
-
-  onDidInitialize: (callback) ->
-    @emitter.on "did-initialize", callback
-
-  hasLoaded: ->
-    @initialized
-
-  setupIframe: =>
-    @initialized = true
-    @domNode = @iframe.contentDocument.body
-    @headNode = @iframe.contentDocument.head
-
-    @headNode.appendChild(@defaultStyleNode)
-
-    @emitter.emit "did-initialize"
+    @layoutBoundary
 
   sampleScreenRows: (screenRows) ->
     @scopesToSample = []
@@ -102,10 +44,10 @@ class StyleSamplerComponent
 
       @sampledLines[line.id] = true
 
-    @domNode.innerHTML = html if html isnt ""
+    @layoutBoundary.innerHTML = html if html isnt ""
 
     for line, lineIndex in newLines
-      lineNode = @domNode.children[lineIndex]
+      lineNode = @layoutBoundary.children[lineIndex]
       for tokenNode in lineNode.children
         tokenLeafNode = @getLeafNode(tokenNode)
         samplingEvent =
