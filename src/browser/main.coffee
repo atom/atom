@@ -23,6 +23,9 @@ start = ->
     squirrelCommand = process.argv[1]
     return if SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
+    # NB: This prevents Win10 from showing dupe items in the taskbar
+    app.setAppUserModelId('com.squirrel.atom.atom')
+
   args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
