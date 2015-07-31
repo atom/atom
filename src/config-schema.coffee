@@ -29,6 +29,10 @@ module.exports =
       fileTypesByScope:
         type: 'object'
         default: {}
+        additionalProperties:
+          type: 'array'
+          items:
+            type: 'string'
       themes:
         type: 'array'
         default: ['one-dark-ui', 'one-dark-syntax']
