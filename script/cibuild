@@ -28,10 +28,10 @@ function readEnvironmentVariables() {
     loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
     loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
   } else if (process.platform === 'linux') {
-    // Use clang for building native code, the GCC on precise is too old.
-    process.env['CC'] = 'clang';
-    process.env['CXX'] = 'clang++';
-    process.env['npm_config_clang'] = '1';
+    // Use Clang for building native code, the GCC on Precise is too old.
+    process.env.CC = 'clang';
+    process.env.CXX = 'clang++';
+    process.env.npm_config_clang = '1';
   }
 }
 
