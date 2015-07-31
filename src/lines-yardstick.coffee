@@ -34,8 +34,8 @@ class LinesYardstick
     {top, left}
 
   screenPositionForPixelPosition: (pixelPosition) ->
-    targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
+    targetTop = Math.ceil(pixelPosition.top)
+    targetLeft = Math.ceil(pixelPosition.left)
 
     row = Math.floor(targetTop / @model.getLineHeightInPixels())
     targetLeft = 0 if row < 0
@@ -119,4 +119,7 @@ class LinesYardstick
     column
 
   getLastScreenRow: ->
-    @model.getLastRow?() or @model.getLastScreenRow?()
+    if @model.getLastRow?
+      @model.getLastRow()
+    else
+      @model.getLastScreenRow()
