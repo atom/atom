@@ -17,7 +17,7 @@
     "async": "0.2.6",
     "atom-keymap": "^5.1.8",
     "atom-space-pen-views": "^2.0.4",
-    "babel-core": "^5.8.3",
+    "babel-core": "^5.8.20",
     "bootstrap": "^3.3.4",
     "clear-cut": "^2.0.1",
     "coffee-cash": "0.8.0",
