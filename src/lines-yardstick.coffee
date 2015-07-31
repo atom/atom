@@ -3,7 +3,7 @@ TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@editor) ->
+  constructor: (@model) ->
     @fontsByScopesIdentifier = {}
     @measuringContext = document.createElement("canvas").getContext("2d")
     @tokenIterator = new TokenIterator
@@ -23,12 +23,12 @@ class LinesYardstick
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+    screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
-    top = targetRow * @editor.getLineHeightInPixels()
+    top = targetRow * @model.getLineHeightInPixels()
     left = @leftPixelPositionForScreenPosition(screenPosition)
 
     {top, left}
@@ -37,12 +37,12 @@ class LinesYardstick
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
 
-    row = Math.floor(targetTop / @editor.getLineHeightInPixels())
+    row = Math.floor(targetTop / @model.getLineHeightInPixels())
     targetLeft = 0 if row < 0
-    targetLeft = Infinity if row > @editor.getLastScreenRow()
-    row = Math.min(row, @editor.getLastScreenRow())
+    targetLeft = Infinity if row > @getLastScreenRow()
+    row = Math.min(row, @getLastScreenRow())
     row = Math.max(0, row)
-    line = @editor.tokenizedLineForScreenRow(row)
+    line = @model.tokenizedLineForScreenRow(row)
 
     column = @screenColumnForLeftPixelPosition(row, targetLeft)
 
@@ -53,7 +53,7 @@ class LinesYardstick
     @fontsByScopesIdentifier[scopesIdentifier] or @defaultFont
 
   leftPixelPositionForScreenPosition: (screenPosition) ->
-    line = @editor.tokenizedLineForScreenRow(screenPosition.row)
+    line = @model.tokenizedLineForScreenRow(screenPosition.row)
     text = ""
     width = 0
 
@@ -80,10 +80,11 @@ class LinesYardstick
     width
 
   screenColumnForLeftPixelPosition: (row, targetLeft) ->
-    line = @editor.tokenizedLineForScreenRow(row)
+    line = @model.tokenizedLineForScreenRow(row)
     left = 0
     column = 0
 
+    indexWithinToken = null
     tokenText = null
     @tokenIterator.reset(line)
     while @tokenIterator.next()
@@ -93,12 +94,14 @@ class LinesYardstick
 
       tokenText = @tokenIterator.getText()
       tokenWidth = @measuringContext.measureText(tokenText).width
-      break if left + tokenWidth >= targetLeft
+      if left + tokenWidth >= targetLeft
+        indexWithinToken = 0
+        break
 
+      indexWithinToken = tokenText.length
       left += tokenWidth
       column += tokenText.length
 
-    indexWithinToken = 0
     while indexWithinToken < tokenText.length
       if @tokenIterator.isPairedCharacter()
         charLength = 2
@@ -114,3 +117,6 @@ class LinesYardstick
       column += charLength
 
     column
+
+  getLastScreenRow: ->
+    @model.getLastRow?() or @model.getLastScreenRow?()

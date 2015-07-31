@@ -8,6 +8,7 @@ describe "DisplayBuffer", ->
 
     buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
+    displayBuffer.setDefaultFont("Menlo", "17px")
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.onDidChange changeHandler
 
@@ -1186,10 +1187,9 @@ describe "DisplayBuffer", ->
         marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
 
         displayBuffer.setLineHeightInPixels(20)
-        displayBuffer.setDefaultCharWidth(10)
 
         for char in ['r', 'e', 't', 'u', 'r', 'n']
-          displayBuffer.setScopedCharWidth(["source.js", "keyword.control.js"], char, 11)
+          displayBuffer.setFontForScopes(["source.js", "keyword.control.js"], "18px Menlo")
 
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
@@ -1345,10 +1345,10 @@ describe "DisplayBuffer", ->
     beforeEach ->
       displayBuffer.setDefaultCharWidth(10)
 
-    it "recomputes the scroll width when the default character width changes", ->
+    it "recomputes the scroll width when the default font changes", ->
       expect(displayBuffer.getScrollWidth()).toBe 10 * 65 + cursorWidth
 
-      displayBuffer.setDefaultCharWidth(12)
+      displayBuffer.setDefaultFont("Menlo", "20px")
       expect(displayBuffer.getScrollWidth()).toBe 12 * 65 + cursorWidth
 
     it "recomputes the scroll width when the max line length changes", ->
@@ -1358,21 +1358,21 @@ describe "DisplayBuffer", ->
       buffer.delete([[6, 10], [6, 12]], ' ')
       expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + cursorWidth
 
-    it "recomputes the scroll width when the scoped character widths change", ->
+    it "recomputes the scroll width when the font for scopes changes", ->
       operatorWidth = 20
-      displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + operatorWidth + cursorWidth
+      displayBuffer.setFontForScopes(['source.js', 'keyword.operator.js'], "33px Menlo")
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 62 + operatorWidth * 3 + cursorWidth
 
-    it "recomputes the scroll width when the scoped character widths change in a batch", ->
+    it "recomputes the scroll width when the font for scopes changes in a batch", ->
       operatorWidth = 20
 
       displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
 
       displayBuffer.batchCharacterMeasurement ->
-        displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)
-        displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '?', operatorWidth)
+        displayBuffer.setFontForScopes(['source.js', 'keyword.operator.js'], "33px Menlo")
+        displayBuffer.setFontForScopes(['source.js', 'punctuation.terminator.statement.js'], "33px Menlo")
 
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + operatorWidth * 2 + cursorWidth
+      expect(displayBuffer.getScrollWidth()).toBe 10 * 61 + operatorWidth * 4 + cursorWidth
       expect(changedSpy.callCount).toBe 1
 
   describe "::getVisibleRowRange()", ->

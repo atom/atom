@@ -24,6 +24,7 @@ describe "LinesYardstick", ->
       [[3, 0], {left: 0, top: 3 * lineHeightInPixels}]
       [[4, 4], {left: 40, top: 4 * lineHeightInPixels}]
       [[8, 10], {left: 134, top: 8 * lineHeightInPixels}]
+      [[9, 4], {left: 42, top: 9 * lineHeightInPixels}]
     ]
 
     for [screenPosition, pixelPosition] in conversionTable
@@ -48,6 +49,7 @@ describe "LinesYardstick", ->
       [[3, 0], {left: 0, top: 3 * lineHeightInPixels}]
       [[4, 4], {left: 40, top: 4 * lineHeightInPixels}]
       [[8, 10], {left: 72, top: 8 * lineHeightInPixels}]
+      [[9, 4], {left: 42, top: 9 * lineHeightInPixels}]
     ]
 
     for [screenPosition, pixelPosition] in conversionTable
@@ -74,6 +76,7 @@ describe "LinesYardstick", ->
       [[3, 0], {left: 0, top: 3 * lineHeightInPixels}]
       [[4, 4], {left: 40, top: 4 * lineHeightInPixels}]
       [[8, 10], {left: 134, top: 8 * lineHeightInPixels}]
+      [[9, 4], {left: 42, top: 9 * lineHeightInPixels}]
     ]
 
     for [screenPosition, pixelPosition] in conversionTable
