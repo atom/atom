@@ -1,4 +1,5 @@
 LinesYardstick = require '../src/lines-yardstick'
+{Point} = require 'text-buffer'
 
 describe "LinesYardstick", ->
   [editor, linesYardstick, lineHeightInPixels] = []
@@ -29,6 +30,9 @@ describe "LinesYardstick", ->
       expect(
         linesYardstick.pixelPositionForScreenPosition(screenPosition)
       ).toEqual(pixelPosition)
+      expect(
+        linesYardstick.screenPositionForPixelPosition(pixelPosition)
+      ).toEqual(Point.fromObject(screenPosition))
 
   it "measures lines using stored fonts for scopes (falling back to the default font when missing)", ->
     linesYardstick.setDefaultFont("Helvetica", "36px")
@@ -50,6 +54,9 @@ describe "LinesYardstick", ->
       expect(
         linesYardstick.pixelPositionForScreenPosition(screenPosition)
       ).toEqual(pixelPosition)
+      expect(
+        linesYardstick.screenPositionForPixelPosition(pixelPosition)
+      ).toEqual(Point.fromObject(screenPosition))
 
   it "clears stored fonts for scopes when fonts are invalidated", ->
     linesYardstick.setDefaultFont("Helvetica", "36px")
@@ -73,3 +80,6 @@ describe "LinesYardstick", ->
       expect(
         linesYardstick.pixelPositionForScreenPosition(screenPosition)
       ).toEqual(pixelPosition)
+      expect(
+        linesYardstick.screenPositionForPixelPosition(pixelPosition)
+      ).toEqual(Point.fromObject(screenPosition))

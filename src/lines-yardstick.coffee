@@ -33,6 +33,21 @@ class LinesYardstick
 
     {top, left}
 
+  screenPositionForPixelPosition: (pixelPosition) ->
+    targetTop = pixelPosition.top
+    targetLeft = pixelPosition.left
+
+    row = Math.floor(targetTop / @editor.getLineHeightInPixels())
+    targetLeft = 0 if row < 0
+    targetLeft = Infinity if row > @editor.getLastScreenRow()
+    row = Math.min(row, @editor.getLastScreenRow())
+    row = Math.max(0, row)
+    line = @editor.tokenizedLineForScreenRow(row)
+
+    column = @screenColumnForLeftPixelPosition(row, targetLeft)
+
+    new Point(row, column)
+
   currentFontForTokenIterator: ->
     scopesIdentifier = @identifierForScopes(@tokenIterator.getScopes())
     @fontsByScopesIdentifier[scopesIdentifier] or @defaultFont
@@ -63,3 +78,39 @@ class LinesYardstick
 
     width += @measuringContext.measureText(text).width if text isnt ""
     width
+
+  screenColumnForLeftPixelPosition: (row, targetLeft) ->
+    line = @editor.tokenizedLineForScreenRow(row)
+    left = 0
+    column = 0
+
+    tokenText = null
+    @tokenIterator.reset(line)
+    while @tokenIterator.next()
+      newFont = @currentFontForTokenIterator()
+      if newFont isnt @measuringContextFont
+        @measuringContext.font = @measuringContextFont = newFont
+
+      tokenText = @tokenIterator.getText()
+      tokenWidth = @measuringContext.measureText(tokenText).width
+      break if left + tokenWidth >= targetLeft
+
+      left += tokenWidth
+      column += tokenText.length
+
+    indexWithinToken = 0
+    while indexWithinToken < tokenText.length
+      if @tokenIterator.isPairedCharacter()
+        charLength = 2
+        indexWithinToken += 2
+      else
+        charLength = 1
+        indexWithinToken++
+
+      currentRunText = tokenText.substring(0, indexWithinToken)
+      currentRunWidth = @measuringContext.measureText(currentRunText).width
+      break if left + currentRunWidth > targetLeft
+
+      column += charLength
+
+    column
