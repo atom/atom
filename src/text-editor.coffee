@@ -2335,14 +2335,37 @@ class TextEditor extends Model
   Section: Tab Behavior
   ###
 
+  # Essential: Set tabType in current editor.
+  #
+  # * `userTabTypeOverride` A {String}, one of undefined, 'soft', 'hard', and 'auto'
+  setTabType: (@userTabTypeOverride) -> @userTabTypeOverride
+
+  # Essential: Returns a {String} indicating what kind of tabs are enabled for this
+  # editor, see {TextEditor::setTabType} for possible value.
+  getTabType: (scopeDescriptor) ->
+    if atom.config.get('editor.softTabs', scope: scopeDescriptor)
+      softTabs = 'soft'
+    @userTabTypeOverride or atom.config.get('editor.tabType', scope: scopeDescriptor) or softTabs or 'soft'
+
   # Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
-  getSoftTabs: -> @softTabs
+  getSoftTabs: (scopeDescriptor) ->
+    tabType = @getTabType(scopeDescriptor)
+    if tabType is 'soft'
+      return true
+    else if tabType is 'auto'
+      return usesSoftTabs()
+    return false
 
   # Essential: Enable or disable soft tabs for this editor.
+  # If disabling, hard tabs will be enabled.
   #
   # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @softTabs
+  setSoftTabs: (@softTabs) ->
+    if @softTabs
+      setTabType('soft')
+    else
+      setTabType('hard')
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
