@@ -2351,10 +2351,8 @@ class TextEditor extends Model
   # editor.
   getSoftTabs: (scopeDescriptor) ->
     tabType = @getTabType(scopeDescriptor)
-    if tabType is 'soft'
-      return true
-    else if tabType is 'auto'
-      return usesSoftTabs()
+    return @usesSoftTabs() if tabType is 'auto'
+    return true if tabType is 'soft'
     return false
 
   # Essential: Enable or disable soft tabs for this editor.
