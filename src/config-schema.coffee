@@ -143,6 +143,10 @@ module.exports =
       softTabs:
         type: 'boolean'
         default: true
+      tabType:
+        type: 'string'
+        default: 'auto'
+        enum: ['auto', 'soft', 'hard']
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
