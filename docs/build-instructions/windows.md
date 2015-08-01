@@ -9,7 +9,7 @@
     * For 64-bit builds of node and native modules you **must** have the
     [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279).
     You may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
-  * [Python](https://www.python.org/downloads/) v2.7.
+  * [Python](https://www.python.org/downloads/) v2.7.x
     * The python.exe must be available at `%SystemDrive%\Python27\python.exe`.
       If it is installed elsewhere, you can create a symbolic link to the
       directory containing the python.exe using:
@@ -24,14 +24,26 @@
 
 ## Instructions
 
-```bash
-# Use the `Git Shell` program which was installed by GitHub for Windows.
-# Also make sure that you are logged into GitHub for Windows.
-cd C:\
-git clone https://github.com/atom/atom/
-cd atom
-script/build # Creates application in the `Program Files` directory
-```
+  Use the `Git Shell` program which was installed by GitHub for Windows.
+
+  Also make sure that you are logged into GitHub for Windows.
+
+  1. Clone the Atom repository:
+
+    ```sh
+    cd C:\
+    git clone https://github.com/atom/atom/
+    cd atom
+    ```
+
+  3. Build Atom:
+
+    ```sh
+    script/build
+    ```
+
+    Creates application in the `Program Files` directory.
+
 Note: If you use cmd or Powershell instead of the Git shell, use a backslash instead: i.e. `script\build`.
 We will assume the git shell for these instructions.
 
