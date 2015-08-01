@@ -27,7 +27,7 @@ FreeBSD -RELEASE 64-bit is the recommended platform.
 
   This will create the atom application at `$TMPDIR/atom-build/Atom`.
 
-4. Install the `atom` command to `/usr/local/bin/atom` by executing:
+3. Install the `atom` command to `/usr/local/bin/atom` by executing:
 
   ```sh
   sudo script/grunt install

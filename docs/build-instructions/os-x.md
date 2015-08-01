@@ -17,7 +17,7 @@
     cd atom
     ```
 
-  3. Build Atom:
+  2. Build Atom:
 
     ```sh
     script/build
