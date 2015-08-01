@@ -2361,9 +2361,9 @@ class TextEditor extends Model
   # * `softTabs` A {Boolean}
   setSoftTabs: (@softTabs) ->
     if @softTabs
-      setTabType('soft')
+      @setTabType('soft')
     else
-      setTabType('hard')
+      @setTabType('hard')
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
