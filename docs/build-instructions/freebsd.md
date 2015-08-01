@@ -12,8 +12,6 @@ FreeBSD -RELEASE 64-bit is the recommended platform.
 
 ## Instructions
 
-If you have problems with permissions don't forget to prefix with `sudo`
-
 1. Clone the Atom repository:
 
   ```sh
