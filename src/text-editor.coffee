@@ -2374,11 +2374,11 @@ class TextEditor extends Model
   # If disabling, hard tabs will be enabled.
   #
   # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) ->
+  setSoftTabs: (@softTabs, scopeDescriptor) ->
     if @softTabs
-      @setTabType('soft')
+      @setTabType('soft', scopeDescriptor)
     else
-      @setTabType('hard')
+      @setTabType('hard', scopeDescriptor)
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
