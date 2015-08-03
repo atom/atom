@@ -2339,7 +2339,6 @@ class TextEditor extends Model
   #
   # * `tabType` A {String}, one of 'soft', 'hard', and 'auto'
   setTabType: (tabType, scopeDescriptor) ->
-    @userTabTypeOverride = tabType
     @softTabs = tabType is 'soft'
     atom.config.set('editor.softTabs', @softTabs, scope: scopeDescriptor)
     atom.config.set('editor.tabType', tabType, scope: scopeDescriptor)
