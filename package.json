@@ -35,7 +35,7 @@
     "keytar": ">=2.1 <3",
     "mv": "2.0.0",
     "ncp": "~0.5.1",
-    "npm": "2.11.2",
+    "npm": "2.13.3",
     "open": "0.0.4",
     "plist": "git+https://github.com/nathansobo/node-plist.git",
     "q": "~0.9.7",
