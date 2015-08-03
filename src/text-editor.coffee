@@ -2365,10 +2365,7 @@ class TextEditor extends Model
   # Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
   getSoftTabs: (scopeDescriptor) ->
-    tabType = @getTabType(scopeDescriptor)
-    return @usesSoftTabs() if tabType is 'auto'
-    return true if tabType is 'soft'
-    return false
+    @softTabs ? atom.config.get('editor.softTabs', scope: scopeDescriptor)
 
   # Essential: Enable or disable soft tabs for this editor.
   # If disabling, hard tabs will be enabled.
