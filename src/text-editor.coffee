@@ -2351,17 +2351,6 @@ class TextEditor extends Model
     tabType = atom.config.get('editor.tabType', scope: scopeDescriptor)
     return tabType ? softTabs ? 'soft'
 
-  # Essential: Set preferred tabType in current editor which temporarily override
-  # tabType config.
-  #
-  # * `userTabTypeOverride` A {String}, one of undefined, 'soft', 'hard', and 'auto'
-  setPreferredTabType: (@userTabTypeOverride) -> @userTabTypeOverride
-
-  # Essential: Returns a {String} indicating what kind of tabs are enabled for this
-  # editor, see {TextEditor::setTabType} for possible value.
-  getPreferredTabType: (scopeDescriptor) ->
-    @userTabTypeOverride ? getTabType(scopeDescriptor)
-
   # Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
   getSoftTabs: (scopeDescriptor) ->
