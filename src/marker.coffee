@@ -67,10 +67,20 @@ class Marker
     @bufferMarker.destroy()
     @disposables.dispose()
 
-  # Essential: Creates and returns a new {Marker} with the same properties as this
-  # marker.
+  # Essential: Creates and returns a new {Marker} with the same properties as
+  # this marker.
   #
-  # * `properties` {Object}
+  # {Selection} markers (markers with a custom property `type: "selection"`)
+  # should be copied with a different `type` value, for example with
+  # `marker.copy({type: null})`. Otherwise, the new marker's selection will
+  # be merged with this marker's selection, and a `null` value will be
+  # returned.
+  #
+  # * `properties` (optional) {Object} properties to associate with the new
+  # marker. The new marker's properties are computed by extending this marker's
+  # properties with `properties`.
+  #
+  # Returns a {Marker}.
   copy: (properties) ->
     @displayBuffer.getMarker(@bufferMarker.copy(properties).id)
 
