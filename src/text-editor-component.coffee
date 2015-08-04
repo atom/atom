@@ -404,7 +404,7 @@ class TextEditorComponent
         @editor.getLastSelection().selectLine()
 
     @handleDragUntilMouseUp event, (screenPosition) =>
-      @editor.selectToScreenPosition(screenPosition)
+      @editor.selectToScreenPosition(screenPosition, true)
 
   onLineNumberGutterMouseDown: (event) =>
     return unless event.button is 0 # only handle the left mouse button
@@ -552,6 +552,7 @@ class TextEditorComponent
     onMouseUp = (event) =>
       stopDragging()
       @editor.finalizeSelections()
+      @editor.mergeIntersectingSelections()
       pasteSelectionClipboard(event)
 
     stopDragging = ->
