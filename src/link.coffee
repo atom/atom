@@ -29,7 +29,9 @@ class Link extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    linkPath = path.resolve(process.cwd(), options.argv._[0] ? '.')
+    packagePath = options.argv._[0]?.toString() ? '.'
+    linkPath = path.resolve(process.cwd(), packagePath)
+
     try
       packageName = CSON.readFileSync(CSON.resolve(path.join(linkPath, 'package'))).name
     packageName = path.basename(linkPath) unless packageName

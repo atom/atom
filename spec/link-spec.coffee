@@ -25,9 +25,8 @@ describe 'apm link/unlink', ->
       runs ->
         expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBeTruthy()
         expect(fs.realpathSync(path.join(atomHome, 'packages', path.basename(packageToLink)))).toBe fs.realpathSync(packageToLink)
-        callback.reset()
 
-      runs ->
+        callback.reset()
         apm.run(['unlink'], callback)
 
       waitsFor 'waiting for unlink to complete', ->
@@ -53,9 +52,8 @@ describe 'apm link/unlink', ->
       runs ->
         expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBeTruthy()
         expect(fs.realpathSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink)))).toBe fs.realpathSync(packageToLink)
-        callback.reset()
 
-      runs ->
+        callback.reset()
         apm.run(['unlink', '--dev'], callback)
 
       waitsFor 'waiting for unlink to complete', ->
@@ -131,3 +129,29 @@ describe 'apm link/unlink', ->
         expect(fs.existsSync(path.join(atomHome, 'dev', 'packages', path.basename(packageToLink1)))).toBeFalsy()
         expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink2)))).toBeFalsy()
         expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(packageToLink3)))).toBeFalsy()
+
+  describe "when the package name is numeric", ->
+    it "still links and unlinks normally", ->
+      atomHome = temp.mkdirSync('apm-home-dir-')
+      process.env.ATOM_HOME = atomHome
+      numericPackageName = temp.mkdirSync('42')
+      callback = jasmine.createSpy('callback')
+
+      runs ->
+        apm.run(['link', numericPackageName], callback)
+
+      waitsFor 'link to complete', ->
+        callback.callCount is 1
+
+      runs ->
+        expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(numericPackageName)))).toBeTruthy()
+        expect(fs.realpathSync(path.join(atomHome, 'packages', path.basename(numericPackageName)))).toBe fs.realpathSync(numericPackageName)
+
+        callback.reset()
+        apm.run(['unlink', numericPackageName], callback)
+
+      waitsFor 'unlink to complete', ->
+        callback.callCount is 1
+
+      runs ->
+        expect(fs.existsSync(path.join(atomHome, 'packages', path.basename(numericPackageName)))).toBeFalsy()
