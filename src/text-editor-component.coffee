@@ -448,9 +448,6 @@ class TextEditorComponent
       else
         rowSelection.setBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], preserveFolds: true)
 
-      # After updating the selected screen range, merge overlapping selections
-      @editor.mergeIntersectingSelections(preserveFolds: true)
-
       # The merge process will possibly destroy the current selection because
       # it will be merged into another one. Therefore, we need to obtain a
       # reference to the new selection that contains the originally selected row
