@@ -1791,6 +1791,22 @@ describe "TextEditorComponent", ->
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
+      describe "when the command key is held down", ->
+        it "adds a new selection and selects to the nearest screen position, then merges intersecting selections when the mouse button is released", ->
+          editor.setSelectedScreenRange([[4, 4], [4, 9]])
+
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
+          nextAnimationFrame()
+          expect(editor.getSelectedScreenRanges()).toEqual [[[4, 4], [4, 9]], [[2, 4], [6, 8]]]
+
+          linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([4, 6]), which: 1))
+          nextAnimationFrame()
+          expect(editor.getSelectedScreenRanges()).toEqual [[[4, 4], [4, 9]], [[2, 4], [4, 6]]]
+
+          linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([4, 6]), which: 1))
+          expect(editor.getSelectedScreenRanges()).toEqual [[[2, 4], [4, 9]]]
+
       describe "when the editor is destroyed while dragging", ->
         it "cleans up the handlers for window.mouseup and window.mousemove", ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
@@ -1948,10 +1964,12 @@ describe "TextEditorComponent", ->
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 0], [3, 2]], [[4, 0], [7, 0]]]
 
-        it "merges overlapping selections", ->
+        it "merges overlapping selections when the mouse button is released", ->
           gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2), metaKey: true))
           gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6), metaKey: true))
           nextAnimationFrame()
+          expect(editor.getSelectedScreenRanges()).toEqual [[[3, 0], [3, 2]], [[2, 0], [7, 0]]]
+
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[2, 0], [7, 0]]]
 

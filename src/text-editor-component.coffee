@@ -404,7 +404,7 @@ class TextEditorComponent
         @editor.getLastSelection().selectLine()
 
     @handleDragUntilMouseUp event, (screenPosition) =>
-      @editor.selectToScreenPosition(screenPosition)
+      @editor.selectToScreenPosition(screenPosition, true)
 
   onLineNumberGutterMouseDown: (event) =>
     return unless event.button is 0 # only handle the left mouse button
@@ -447,9 +447,6 @@ class TextEditorComponent
         rowSelection.setBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
       else
         rowSelection.setBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], preserveFolds: true)
-
-      # After updating the selected screen range, merge overlapping selections
-      @editor.mergeIntersectingSelections(preserveFolds: true)
 
       # The merge process will possibly destroy the current selection because
       # it will be merged into another one. Therefore, we need to obtain a
@@ -552,6 +549,7 @@ class TextEditorComponent
     onMouseUp = (event) =>
       stopDragging()
       @editor.finalizeSelections()
+      @editor.mergeIntersectingSelections()
       pasteSelectionClipboard(event)
 
     stopDragging = ->
