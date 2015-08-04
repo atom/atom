@@ -225,6 +225,40 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
 
+      describe "when the 'split' option is 'up'", ->
+        it "opens the new item in the upmost pane of the current pane axis", ->
+          editor = null
+          pane1 = workspace.getActivePane()
+          pane2 = pane1.splitDown()
+          pane2.activate()
+          expect(workspace.getActivePane()).toBe pane2
+          pane3 = null
+
+          waitsForPromise ->
+            workspace.open('a', split: 'up').then (o) -> editor = o
+
+          runs ->
+            pane3 = workspace.getPanes().filter((p) ->
+              p isnt pane1)[1]
+            expect(workspace.getActivePane()).toBe pane1
+
+        describe "when the 'split' option is 'down'", ->
+          it "opens the new item in the downmost pane of the current pane axis", ->
+            editor = null
+            pane1 = workspace.getActivePane()
+            pane2 = pane1.splitDown()
+            pane1.activate()
+            expect(workspace.getActivePane()).toBe pane1
+            pane3 = null
+
+            waitsForPromise ->
+              workspace.open('a', split: 'down').then (o) -> editor = o
+
+            runs ->
+              pane3 = workspace.getPanes().filter((p) ->
+                p isnt pane1)[0]
+              expect(workspace.getActivePane()).toBe pane2
+
     describe "when the file is over 2MB", ->
       it "opens the editor with largeFileMode: true", ->
         spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
