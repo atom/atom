@@ -818,10 +818,14 @@ class TextEditor extends Model
       @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
 
-  # Move lines intersection the most recent selection up by one row in screen
+  # Move lines intersection the most recent selection or multiple selections up by one row in screen
   # coordinates.
   moveLineUp: ->
-    selection = @getSelectedBufferRange()
+    newSelectionBufferRanges = []
+    selections = @getSelectedBufferRanges()
+    selections.sort (a, b) ->
+      return a.compare(b)
+    for selection in selections
     return if selection.start.row is 0
     lastRow = @buffer.getLastRow()
     return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
@@ -869,9 +873,9 @@ class TextEditor extends Model
       for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
         @foldBufferRow(foldedRow)
 
-      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true, autoscroll: true)
+        newSelectionBufferRanges.push(selection.translate([-insertDelta]))
 
-  # Move lines intersecting the most recent selection down by one row in screen
+    @setSelectedBufferRanges(newSelectionBufferRanges, preserveFolds: true, autoscroll: true)
   # coordinates.
   moveLineDown: ->
     selection = @getSelectedBufferRange()
