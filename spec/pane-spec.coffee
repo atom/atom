@@ -539,7 +539,7 @@ describe "Pane", ->
           expect(pane2.isDestroyed()).toBe true
           expect(item4.isDestroyed()).toBe false
 
-  fdescribe "split methods", ->
+  describe "split methods", ->
     [pane1, container, editor, scrollTop, textPane] = []
 
     setEditorEnvironment = (editor) ->
