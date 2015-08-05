@@ -180,9 +180,11 @@ class CommandRegistry
       preventDefault: value: ->
       stopPropagation: value: ->
       stopImmediatePropagation: value: ->
-    # In Chrome 43, Object.create doesn't work well with CustomEvent.
-    for k, v of event when k not in eventWithTarget
-      eventWithTarget[k] = v
+    # NOTE: In Chrome 43, Object.create doesn't work well with CustomEvent;
+    # However utilizing _.defaults here doesn't really do anything since all properties have been
+    # moved from "own" to the prototype, so we should update this to fully shadowing the properties
+    # from Event.prototype (+ detail property from CustomEvent).
+    eventWithTarget = _.defaults(eventWithTarget, event)
     @handleCommandEvent(eventWithTarget)
 
   # Public: Invoke the given callback before dispatching a command event.
@@ -220,7 +222,7 @@ class CommandRegistry
     syntheticEvent = Object.create {},
       eventPhase: value: Event.BUBBLING_PHASE
       currentTarget: get: -> currentTarget
-      target: value: currentTarget # TODO: Find a better way to solve this.
+      target: value: currentTarget
       preventDefault: value: ->
         originalEvent.preventDefault()
       stopPropagation: value: ->
@@ -232,10 +234,8 @@ class CommandRegistry
         immediatePropagationStopped = true
       abortKeyBinding: value: ->
         originalEvent.abortKeyBinding?()
-    # In Chrome 43, Object.create doesn't work well with CustomEvent.
-    # NOTE: We should "properly" shadow the prototype chain (CustomEvent + Event) here.
-    for k, v of originalEvent when k not in syntheticEvent
-      syntheticEvent[k] = v
+    # NOTE: See similar scenario in ::dispatch.
+    syntheticEvent = _.defaults(syntheticEvent, originalEvent)
 
     @emitter.emit 'will-dispatch', syntheticEvent
 
