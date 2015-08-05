@@ -682,7 +682,7 @@ class Pane extends Model
       pane.getActiveEditor().setScrollTop(scrollTop)
 
     else if orientation is 'vertical'
-      scrolloff = 2
+      scrollMargin = editor.getVerticalScrollMargin()
       lineHeightPixel = editor.getLineHeightInPixels()
 
       point = editor.getCursorScreenPosition()
@@ -692,8 +692,8 @@ class Pane extends Model
       newEditor = pane.getActiveEditor()
       newHeight = newEditor.getHeight()
 
-      offsetTop = lineHeightPixel * scrolloff
-      offsetBottom = newHeight - lineHeightPixel * (scrolloff+1)
+      offsetTop = lineHeightPixel * scrollMargin
+      offsetBottom = newHeight - lineHeightPixel * (scrollMargin+1)
       offsetCursor = newHeight * scrollRatio
       scrollTop = cursorPixel - Math.min(Math.max(offsetCursor, offsetTop), offsetBottom)
       editor.setScrollTop(scrollTop)
