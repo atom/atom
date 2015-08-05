@@ -604,6 +604,7 @@ class Pane extends Model
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
   #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
+  #   * `activate` (optional) {Boolean} true will activate newly created pane. true by default.
   #
   # Returns the new {Pane}.
   splitLeft: (params) ->
@@ -614,6 +615,7 @@ class Pane extends Model
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
   #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
+  #   * `activate` (optional) {Boolean} true will activate newly created pane. true by default.
   #
   # Returns the new {Pane}.
   splitRight: (params) ->
@@ -624,6 +626,7 @@ class Pane extends Model
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
   #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
+  #   * `activate` (optional) {Boolean} true will activate newly created pane. true by default.
   #
   # Returns the new {Pane}.
   splitUp: (params) ->
@@ -634,12 +637,16 @@ class Pane extends Model
   # * `params` (optional) {Object} with the following keys:
   #   * `items` (optional) {Array} of items to add to the new pane.
   #   * `copyActiveItem` (optional) {Boolean} true will copy the active item into the new split pane
+  #   * `activate` (optional) {Boolean} true will activate newly created pane. true by default.
   #
   # Returns the new {Pane}.
   splitDown: (params) ->
     @split('vertical', 'after', params)
 
   split: (orientation, side, params) ->
+    activateNewPane = params?.activate ? true
+    syncScrollRatio = params?.copyActiveItem and (params?.syncScrollRatio ? true)
+
     if params?.copyActiveItem
       params.items ?= []
       params.items.push(@copyActiveItem())
@@ -649,12 +656,48 @@ class Pane extends Model
       @setFlexScale(1)
 
     newPane = new @constructor(params)
+
+    if syncScrollRatio
+      if editor = @getActiveEditor()
+        # Need to save original height before split.
+        height = editor.getHeight()
+
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
 
-    newPane.activate()
+    if syncScrollRatio and editor
+      @syncScrollRatioToPane(newPane, {height})
+
+    if activateNewPane
+      newPane.activate()
     newPane
+
+  syncScrollRatioToPane: (pane, {height}) ->
+    editor = @getActiveEditor()
+    scrollTop = editor.getScrollTop()
+
+    orientation = @parent.orientation
+    if orientation is 'horizontal'
+      pane.getActiveEditor().setScrollTop(scrollTop)
+
+    else if orientation is 'vertical'
+      scrolloff = 2
+      lineHeightPixel = editor.getLineHeightInPixels()
+
+      point = editor.getCursorScreenPosition()
+      cursorPixel = atom.views.getView(editor).pixelPositionForScreenPosition(point).top
+      scrollRatio = (cursorPixel - scrollTop) / height
+
+      newEditor = pane.getActiveEditor()
+      newHeight = newEditor.getHeight()
+
+      offsetTop = lineHeightPixel * scrolloff
+      offsetBottom = newHeight - lineHeightPixel * (scrolloff+1)
+      offsetCursor = newHeight * scrollRatio
+      scrollTop = cursorPixel - Math.min(Math.max(offsetCursor, offsetTop), offsetBottom)
+      editor.setScrollTop(scrollTop)
+      newEditor.setScrollTop(scrollTop)
 
   # If the parent is a horizontal axis, returns its first child if it is a pane;
   # otherwise returns this pane.
