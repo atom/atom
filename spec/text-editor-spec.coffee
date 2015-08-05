@@ -1986,6 +1986,82 @@ describe "TextEditor", ->
         expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
 
   describe "buffer manipulation", ->
+    describe ".moveLineUp", ->
+      describe "when there is only one line selected", ->
+        it "moves the line up by one row", ->
+          editor.setSelectedBufferRange([[3, 2], [3, 9]])
+          expect(editor.getSelectedBufferRange()).toEqual {start: {row: 3, column: 2}, end: {row: 3, column: 9}}
+
+          editor.moveLineUp()
+
+          expect(editor.getSelectedBufferRange()).toEqual {start: {row: 2, column: 2}, end: {row: 2, column: 9}}
+
+      describe "when there is multiple selections", ->
+
+        it "moves the selected lines up by one row", ->
+          editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
+          expect(editor.getSelectedBufferRanges()).toEqual [[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]]
+
+          editor.moveLineUp()
+
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            {start: {row: 0, column: 2}, end: {row: 0, column: 9}},
+            {start: {row: 2, column: 2}, end: {row: 2, column: 9}},
+            {start: {row: 4, column: 2}, end: {row: 4, column: 9}} ]
+
+        describe "when there is multiple lines selected and moved upward until the top-most line is at row 0", ->
+          it "moves all the lines upward until the top-most is at row 0, then no more lines are moved upward", ->
+            editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
+            expect(editor.getSelectedBufferRanges()).toEqual [[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]]
+
+            editor.moveLineUp()
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              {start: {row: 0, column: 2}, end: {row: 0, column: 9}},
+              {start: {row: 2, column: 2}, end: {row: 2, column: 9}},
+              {start: {row: 4, column: 2}, end: {row: 4, column: 9}} ]
+
+    describe ".moveLineDown", ->
+      describe "when there is only one line selected", ->
+        it "moves the line down by one row", ->
+          editor.setSelectedBufferRange([[3, 2], [3, 9]])
+          expect(editor.getSelectedBufferRange()).toEqual {start: {row: 3, column: 2}, end: {row: 3, column: 9}}
+
+          editor.moveLineDown()
+
+          expect(editor.getSelectedBufferRange()).toEqual {start: {row: 4, column: 2}, end: {row: 4, column: 9}}
+
+      describe "when there is multiple selections", ->
+        it "moves the selected lines down by one row", ->
+          editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
+
+          expect(editor.getSelectedBufferRanges()).toEqual [[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]]
+
+          editor.moveLineDown()
+
+          expect(editor.getSelectedBufferRanges()).toEqual [
+            {start: {row: 6, column: 2}, end: {row: 6, column: 9}},
+            {start: {row: 4, column: 2}, end: {row: 4, column: 9}},
+            {start: {row: 2, column: 2}, end: {row: 2, column: 9}}]
+
+        describe "when there is multiple lines selected and moved downward until the bottom-most line is at the last row", ->
+          it "moves all the lines downward until the bottom-most is at bottom row, then no lines are moved downward", ->
+            editor.setSelectedBufferRanges([[[7, 2], [7, 5]], [[8, 2], [8, 9]], [[11, 2], [11, 5]]])
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              {start: {row: 7, column: 2}, end: {row: 7, column: 5}},
+              {start: {row: 8, column: 2}, end: {row: 8, column: 9}},
+              {start: {row: 11, column: 2}, end: {row: 11, column: 5}}]
+
+            editor.moveLineDown()
+            editor.moveLineDown()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [
+              {start: {row: 12, column: 2}, end: {row: 12, column: 5}},
+              {start: {row: 9, column: 2}, end: {row: 9, column: 9}},
+              {start: {row: 8, column: 2}, end: {row: 8, column: 5}}]
+
     describe ".insertText(text)", ->
       describe "when there is a single selection", ->
         beforeEach ->
