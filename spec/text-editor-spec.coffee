@@ -4044,6 +4044,14 @@ describe "TextEditor", ->
       editor.destroy()
       expect(destroyObserverCalled).toBe true
 
+    it "notifies ::onDidDestroy observers of Markers created for this editor", ->
+      gutterMarker = editor.markBufferPosition([0, 0])
+      onDidDestroyObserver = jasmine.createSpy('onDidDestroy')
+      gutterMarker.onDidDestroy(onDidDestroyObserver)
+
+      editor.destroy()
+      expect(onDidDestroyObserver.callCount).toBe 1
+
   describe ".joinLines()", ->
     describe "when no text is selected", ->
       describe "when the line below isn't empty", ->
