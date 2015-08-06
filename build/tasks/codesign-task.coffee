@@ -17,8 +17,8 @@ module.exports = (grunt) ->
   grunt.registerTask 'codesign:installer', 'Codesign AtomSetup.exe', ->
     done = @async()
     cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
-    args = [path.resolve(grunt.config.get('atom.buildDir'), 'installer', 'AtomSetup.exe')]
-    spawn {cmd, args}, (error) -> done(error)
+    atomSetupExePath = path.resolve(grunt.config.get('atom.buildDir'), 'installer', 'AtomSetup.exe')
+    spawn {cmd, args: [atomSetupExePath]}, (error) -> done(error)
 
   grunt.registerTask 'codesign:app', 'Codesign Atom.app', ->
     done = @async()
