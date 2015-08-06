@@ -11,7 +11,7 @@ module.exports = (grunt) ->
       spawn {cmd, args: [atomExePath]}, (error) ->
         return done(error) if error?
 
-        updateExePath = path.resolve(__dirname, '..', 'node_modules', 'grunt-electron-installer' 'vendor', 'Update.exe')
+        updateExePath = path.resolve(__dirname, '..', 'node_modules', 'grunt-electron-installer', 'vendor', 'Update.exe')
         spawn {cmd, args: [updateExePath]}, (error) -> done(error)
 
   grunt.registerTask 'codesign:installer', 'Codesign AtomSetup.exe', ->
