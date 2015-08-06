@@ -213,11 +213,15 @@ describe "PackageManager", ->
           mainModule = null
 
         it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
-          expect(promise.isFulfilled()).not.toBeTruthy()
+          expect(Package.prototype.requireMainModule.callCount).toBe 0
+
           workspaceElement.dispatchEvent(new CustomEvent('activation-command', bubbles: true))
 
           waitsForPromise ->
             promise
+
+          runs ->
+            expect(Package.prototype.requireMainModule.callCount).toBe 1
 
         it "triggers the activation event on all handlers registered during activation", ->
           waitsForPromise ->
@@ -299,8 +303,8 @@ describe "PackageManager", ->
         promise = atom.packages.activatePackage('package-with-activation-hooks')
 
       it "defers requiring/activating the main module until an triggering of an activation hook occurs", ->
-        expect(promise.isFulfilled()).not.toBeTruthy()
         expect(Package.prototype.requireMainModule.callCount).toBe 0
+
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
 
         waitsForPromise ->
@@ -889,7 +893,7 @@ describe "PackageManager", ->
         # enabling of theme
         pack = atom.packages.enablePackage(packageName)
 
-        waitsFor ->
+        waitsFor 'theme to enable', 500, ->
           pack in atom.packages.getActivePackages()
 
         runs ->
@@ -902,7 +906,7 @@ describe "PackageManager", ->
 
           pack = atom.packages.disablePackage(packageName)
 
-        waitsFor ->
+        waitsFor 'did-change-active-themes event to fire', 500, ->
           didChangeActiveThemesHandler.callCount is 1
 
         runs ->
