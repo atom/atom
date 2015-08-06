@@ -7,7 +7,7 @@ module.exports = (grunt) ->
     done = @async()
     spawn {cmd: 'taskkill', args: ['/F', '/IM', 'atom.exe']}, ->
       cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
-
+      atomExePath = path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')
       spawn {cmd, args: [atomExePath]}, (error) ->
         return done(error) if error?
 
