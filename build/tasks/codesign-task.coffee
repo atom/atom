@@ -1,5 +1,4 @@
 path = require 'path'
-fs = require 'fs-plus'
 
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
