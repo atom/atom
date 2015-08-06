@@ -20,22 +20,17 @@ module.exports = (grunt) ->
   grunt.registerTask 'codesign:app', 'Codesign Atom.app', ->
     done = @async()
 
-    if process.env.XCODE_KEYCHAIN
-      unlockKeychain (error) ->
-        if error?
-          done(error)
-        else
-          signApp(done)
-    else
-      signApp(done)
+    unlockKeychain (error) ->
+      return done(error) if error?
+
+      cmd = 'codesign'
+      args = ['--deep', '--force', '--verbose', '--sign', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
+      spawn {cmd, args}, (error) -> done(error)
 
   unlockKeychain = (callback) ->
+    return callback() unless process.env.XCODE_KEYCHAIN
+
     cmd = 'security'
     {XCODE_KEYCHAIN_PASSWORD, XCODE_KEYCHAIN} = process.env
     args = ['unlock-keychain', '-p', XCODE_KEYCHAIN_PASSWORD, XCODE_KEYCHAIN]
-    spawn {cmd, args}, (error) -> callback(error)
-
-  signApp = (callback) ->
-    cmd = 'codesign'
-    args = ['--deep', '--force', '--verbose', '--sign', 'Developer ID Application: GitHub', grunt.config.get('atom.shellAppDir')]
     spawn {cmd, args}, (error) -> callback(error)
