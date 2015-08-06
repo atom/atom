@@ -9,7 +9,7 @@ module.exports = (grunt) ->
       cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
 
       spawn {cmd, args: [atomExePath]}, (error) ->
-        return done(error) if error
+        return done(error) if error?
 
         updateExePath = path.resolve(__dirname, '..', 'node_modules', 'grunt-electron-installer' 'vendor', 'Update.exe')
         spawn {cmd, args: [updateExePath]}, (error) -> done(error)
