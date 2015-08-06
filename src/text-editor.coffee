@@ -824,7 +824,7 @@ class TextEditor extends Model
     newSelectionBufferRanges = []
     selections = @getSelectedBufferRanges()
     selections.sort (a, b) ->
-      return a.compare(b)
+      a.compare(b)
     for selection in selections
       return if selection.start.row is 0
       lastRow = @buffer.getLastRow()
