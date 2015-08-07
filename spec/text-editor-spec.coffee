@@ -3753,16 +3753,38 @@ describe "TextEditor", ->
   describe "soft-tabs detection", ->
     it "assigns soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
       waitsForPromise ->
-        atom.workspace.open('sample.js', softTabs: false).then (editor) ->
+        atom.workspace.open('sample.js').then (editor) ->
           expect(editor.getSoftTabs()).toBeTruthy()
 
       waitsForPromise ->
-        atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
+        atom.workspace.open('sample-with-tabs.coffee').then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
       waitsForPromise ->
-        atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
+        atom.workspace.open('sample-with-tabs-and-initial-comment.js').then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
+
+      # Use default
+      waitsForPromise ->
+        atom.workspace.open(null).then (editor) ->
+          expect(editor.getSoftTabs()).toBeTruthy()
+
+    it "regards softTabs value supplied to options and turns off autodetection", ->
+      waitsForPromise ->
+        atom.workspace.open('sample.js', softTabs: false).then (editor) ->
+          expect(editor.getSoftTabs()).toBeFalsy()
+
+      waitsForPromise ->
+        atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
+          expect(editor.getSoftTabs()).toBeTruthy()
+
+      waitsForPromise ->
+        atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
+          expect(editor.getSoftTabs()).toBeTruthy()
+
+      waitsForPromise ->
+        atom.workspace.open(null, softTabs: true).then (editor) ->
+          expect(editor.getSoftTabs()).toBeTruthy()
 
       waitsForPromise ->
         atom.workspace.open(null, softTabs: false).then (editor) ->

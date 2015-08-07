@@ -90,10 +90,7 @@ class TextEditor extends Model
     @tabType = atom.config.get('editor.tabType', @getRootScopeDescriptor())
     # Autodetection flags, enabled once language config say so
     @tabTypeIsAutodetect = (not softTabs?) or (@tabType is 'auto')
-    # TODO: Simplify (make it intuitive) softTabs priority
-    # FIXME: Directly supplied @softTabs is disregarded than 'auto' config
-    @softTabs = (@usesSoftTabs() if @tabTypeIsAutodetect) ? @softTabs ?
-      @convertToSoftTabBool @tabType ? atom.config.get('editor.softTabs') ? true
+    @softTabs = @softTabs ? @convertToSoftTabBool @tabType ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
