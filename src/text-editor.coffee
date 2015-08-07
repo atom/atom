@@ -86,7 +86,14 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+
+    @tabType = atom.config.get('editor.tabType', @getRootScopeDescriptor())
+    # Autodetection flags, enabled once language config say so
+    @tabTypeIsAutodetect = (not softTabs?) or (@tabType is 'auto')
+    # TODO: Simplify (make it intuitive) softTabs priority
+    # FIXME: Directly supplied @softTabs is disregarded than 'auto' config
+    @softTabs = (@usesSoftTabs() if @tabTypeIsAutodetect) ? @softTabs ?
+      @convertToSoftTabBool @tabType ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -2904,7 +2911,12 @@ class TextEditor extends Model
   ###
 
   handleTokenization: ->
-    @softTabs = @usesSoftTabs() ? @softTabs
+    tabTypeDetected = (@usesSoftTabs() if @tabTypeIsAutodetect)
+    @tabType = atom.config.get('editor.tabType', @getRootScopeDescriptor())
+    softTabTyped = @convertToSoftTabBool @tabType
+
+    @softTabs = tabTypeDetected ? @softTabs ? softTabTyped ? atom.config.get('editor.softTabs')
+    @tabType = @convertToTabTypeString @softTabs
 
   handleGrammarChange: ->
     @unfoldAll()
