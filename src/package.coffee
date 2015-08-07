@@ -142,17 +142,24 @@ class Package
 
     unless @activationDeferred?
       @activationDeferred = Q.defer()
-      @measure 'activateTime', =>
-        try
-          @activateResources()
-          if @activationShouldBeDeferred()
-            @subscribeToDeferredActivation()
-          else
-            @activateNow()
-        catch error
-          @handleError("Failed to activate the #{@name} package", error)
+      if @isCompatible()
+        @measure 'activateTime', =>
+          try
+            @activateResources()
+            if @activationShouldBeDeferred()
+              @subscribeToDeferredActivation()
+            else
+              @activateNow()
+          catch error
+            @handleError("Failed to activate the #{@name} package", error)
 
-    Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
+    promises = [@grammarsPromise, @settingsPromise, @activationDeferred.promise]
+
+    unless @isCompatible()
+      @rebuildPromise ?= @rebuild()
+      promises.unshift(@rebuildPromise)
+
+    Q.all(promise)
 
   activateNow: ->
     try
@@ -682,6 +689,7 @@ class Package
         exit: (code) =>
           if code is 0
             @compatible = null
+            @activate() if @isCompatible()
             resolve()
           else
             reject(new Error("apm rebuild failed with a #{code} for package #{@name}: #{output}"))
