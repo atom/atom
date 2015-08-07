@@ -680,6 +680,25 @@ class Pane extends Model
     else
       @splitRight()
 
+  # If the parent is a vertical axis, returns either first child if `up` or last child if `down` if the
+  # child is a pane; otherwise returns a new pane created by splitting this pane according to the `direction` given
+  #
+  # * `direction` {String} of either `up` or `down` to indicate which direction to split the pane
+  findOrCreateFurthestVerticalSibling: (direction) ->
+    @splitDirection = switch direction
+      when 'up' then @splitUp
+      when 'down' then @splitDown
+    if @parent.orientation is 'vertical'
+      farthestSibling = switch direction
+        when 'up' then @parent.children[0]
+        when 'down'then last(@parent.children)
+      if farthestSibling instanceof PaneAxis
+        @splitDirection()
+      else
+        farthestSibling
+    else
+      @splitDirection()
+
   close: ->
     @destroy() if @confirmClose()
 
