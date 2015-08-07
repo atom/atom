@@ -2350,6 +2350,17 @@ class TextEditor extends Model
     tabType = atom.config.get('editor.tabType', scope: scopeDescriptor)
     return tabType ? softTabs ? 'soft'
 
+  # TODO: Remove this once softTabs-related stuff removed
+  convertToTabTypeString: (softTabs) ->
+    return 'soft' if softTabs is true
+    return 'hard' if softTabs is false
+    return 'auto'
+
+  convertToSoftTabBool: (tabType) ->
+    return true if tabType is 'soft'
+    return false if tabType is 'hard'
+    return @usesSoftTabs() if tabType is 'auto'
+
   # Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
   getSoftTabs: (scopeDescriptor) ->
