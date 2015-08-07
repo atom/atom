@@ -5,6 +5,7 @@ _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
+BufferedProcess = require './buffered-process'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
@@ -449,12 +450,7 @@ class Package
 
   requireMainModule: ->
     return @mainModule if @mainModuleRequired
-    unless @isCompatible()
-      console.warn """
-        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
-        Run `apm rebuild` in the package directory to resolve.
-      """
-      return
+    return unless @isCompatible()
     mainModulePath = @getMainModulePath()
     if fs.isFileSync(mainModulePath)
       @mainModuleRequired = true
