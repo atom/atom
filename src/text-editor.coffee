@@ -2911,11 +2911,11 @@ class TextEditor extends Model
   ###
 
   handleTokenization: ->
-    tabTypeDetected = (@usesSoftTabs() if @tabTypeIsAutodetect)
     @tabType = atom.config.get('editor.tabType', @getRootScopeDescriptor())
-    softTabTyped = @convertToSoftTabBool @tabType
+    isSoftTabTyped = @convertToSoftTabBool @tabType
+    tabTypeDetected = (@usesSoftTabs() if @tabTypeIsAutodetect)
 
-    @softTabs = tabTypeDetected ? @softTabs ? softTabTyped ? atom.config.get('editor.softTabs')
+    @softTabs = tabTypeDetected ? @softTabs ? isSoftTabTyped ? atom.config.get('editor.softTabs')
     @tabType = @convertToTabTypeString @softTabs
 
   handleGrammarChange: ->
