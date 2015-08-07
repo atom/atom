@@ -147,6 +147,7 @@ module.exports =
         type: 'string'
         default: 'auto'
         enum: ['auto', 'soft', 'hard']
+        description: 'Determine character inserted during Tab keypress.'
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
