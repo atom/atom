@@ -159,7 +159,7 @@ class Package
       @rebuildPromise ?= @rebuild()
       promises.unshift(@rebuildPromise)
 
-    Q.all(promise)
+    Q.all(promises)
 
   activateNow: ->
     try
