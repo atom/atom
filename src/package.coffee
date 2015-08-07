@@ -669,6 +669,28 @@ class Package
 
     atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
 
+  rebuild: ->
+    new Promise (resolve, reject) =>
+      output = ''
+      rebuildOptions =
+        command: atom.packages.getApmPath()
+        args: ['rebuild']
+        options:
+          cwd: @path
+        stderr: (lines) -> output += lines
+        stdout: (lines) -> output += lines
+        exit: (code) =>
+          if code is 0
+            @compatible = null
+            resolve()
+          else
+            reject(new Error("apm rebuild failed with a #{code} for package #{@name}: #{output}"))
+
+      rebuildProcess = new BufferedProcess(rebuildOptions)
+      rebuildProcess.onWillThrowError (error, handle) ->
+        handle()
+        reject(error)
+
 if includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(Package)
