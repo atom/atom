@@ -472,7 +472,7 @@ class Workspace extends Model
           initialLine = options.initialLine
         if Number.isFinite(options.initialColumn)
           initialColumn = options.initialColumn
-        if initialLine > 0 or initialColumn > 0
+        if initialLine > 0 or initialColumn > 0 or options.initialLine? or options.initialColumn?
           item.setCursorBufferPosition?([initialLine, initialColumn])
 
         index = pane.getActiveItemIndex()
