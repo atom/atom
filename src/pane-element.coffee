@@ -152,8 +152,6 @@ atom.commands.add 'atom-workspace',
 
 atom.commands.add 'atom-pane',
   'pane:save-items': -> @getModel().saveItems()
-  'pane:move-item-right': -> @getModel().moveItemRight()
-  'pane:move-item-left': -> @getModel().moveItemLeft()
   'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
   'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
   'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
