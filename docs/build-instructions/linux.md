@@ -11,25 +11,29 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * [npm](https://www.npmjs.com/) v1.4.x (bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
-      * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+      * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
 
 ### Ubuntu / Debian
 
-* `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
-* Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+* `sudo apt-get install -y build-essential git libgnome-keyring-dev fakeroot`
+* Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
   * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
   * Use `which node` to check if it is available.
   * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
 ### Fedora / CentOS / RHEL
 
-* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
-* Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
+* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora). On Fedora 22 [installing Node.js from source code](https://github.com/joyent/node/wiki/Installation#building-on-linux) may be necessary.
+
+### Mageia
+* `sudo urpmi make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* Instructions for installing [Node.js](https://github.com/joyent/node/wiki/Installation#building-on-linux) from source code.
 
 ### Arch
 
-* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2`
+* `sudo pacman -S --needed --noconfirm gconf base-devel git nodejs npm libgnome-keyring python2`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
@@ -38,7 +42,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### openSUSE
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo zypper install -y nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 
 ## Instructions
 
@@ -128,13 +132,15 @@ See also [#2082](https://github.com/atom/atom/issues/2082).
 ### /usr/bin/env: node: No such file or directory
 
 If you get this notice when attempting to `script/build`, you either do not
-have Node.js installed, or node isn't identified as Node.js on your machine.
-If it's the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
+have Node.js installed, or node is not identified as Node.js on your machine.
+If it is the latter, entering `sudo ln -s /usr/bin/nodejs /usr/bin/node` into
 your terminal may fix the issue.
+
+If you encounter this while running `sudo script/grunt install` and `sudo which node` yields `which: no node in (/sbin:/bin:/usr/sbin:/usr/bin)`, while `which node` yields `/usr/local/bin/node` then amending `sudo script/grunt install` to `sudo env "PATH=$PATH" script/grunt install` may be required. See also [#8283](https://github.com/atom/atom/issues/8283).
 
 #### You can also use Alternatives
 
-On some variants (mostly Debian based distros) it's preferable for you to use
+On some variants (mostly Debian based distros) it is preferable for you to use
 Alternatives so that changes to the binary paths can be fixed or altered easily:
 
 ```sh
