@@ -490,7 +490,7 @@ class TokenizedBuffer extends Model
           scopes.pop()
       else
         endColumn = startColumn + tag
-        if endColumn > position.column
+        if endColumn >= position.column
           break
         else
           startColumn = endColumn
