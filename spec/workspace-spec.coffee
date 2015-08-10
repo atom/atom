@@ -245,6 +245,24 @@ describe "Workspace", ->
         runs ->
           expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [0, 0]
 
+        waitsForPromise ->
+          workspace.open('a', initialLine: NaN, initialColumn: 4)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [0, 4]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: 2, initialColumn: NaN)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [2, 0]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: Infinity, initialColumn: Infinity)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [2, 11]
+
     describe "when the file is over 2MB", ->
       it "opens the editor with largeFileMode: true", ->
         spyOn(fs, 'getSizeSync').andReturn 2 * 1048577 # 2MB
