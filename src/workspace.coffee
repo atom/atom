@@ -468,11 +468,11 @@ class Workspace extends Model
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
-        if Number.isFinite(options.initialLine)
+        unless Number.isNaN(options.initialLine)
           initialLine = options.initialLine
-        if Number.isFinite(options.initialColumn)
+        unless Number.isNaN(options.initialColumn)
           initialColumn = options.initialColumn
-        if initialLine > 0 or initialColumn > 0
+        if initialLine >= 0 or initialColumn >= 0
           item.setCursorBufferPosition?([initialLine, initialColumn])
 
         index = pane.getActiveItemIndex()
