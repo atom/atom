@@ -822,26 +822,27 @@ class TextEditor extends Model
   # coordinates.
   moveLineUp: ->
     newSelectionBufferRanges = []
-    selections = @getSelectedBufferRanges()
-    selections.sort (a, b) -> a.compare(b)
+    selections = @getSelectionsOrderedByBufferPosition()
 
-    if selections[0].start.row is 0
+    if selections[0].getBufferRange().start.row is 0
       return
 
-    if selections[selections.length - 1].start.row is @getLastBufferRow() and @buffer.getLastLine() is ''
+    if selections[selections.length - 1].getBufferRange().start.row is @getLastBufferRow() and @buffer.getLastLine() is ''
       return
 
     @transact =>
       for selection in selections
-        foldedRows = []
-        rows = [selection.start.row..selection.end.row]
-        if selection.start.row isnt selection.end.row and selection.end.column is 0
-          rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
+        selectionRange = selection.getBufferRange()
 
-        # Move line around the fold that is directly above the selection
-        precedingScreenRow = @screenRowForBufferRow(selection.start.row) - 1
+        foldedRows = []
+        rows = [selectionRange.start.row..selectionRange.end.row]
+        if selectionRange.start.row isnt selectionRange.end.row and selectionRange.end.column is 0
+          rows.pop() unless @isFoldedAtBufferRow(selectionRange.end.row)
+
+        # Move line around the fold that is directly above the selectionRange
+        precedingScreenRow = @screenRowForBufferRow(selectionRange.start.row) - 1
         precedingBufferRow = @bufferRowForScreenRow(precedingScreenRow)
-        insertDelta = selection.start.row - precedingBufferRow
+        insertDelta = selectionRange.start.row - precedingBufferRow
 
         for row in rows
           if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
@@ -871,7 +872,7 @@ class TextEditor extends Model
         for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
           @foldBufferRow(foldedRow)
 
-        newSelectionBufferRanges.push(selection.translate([-insertDelta]))
+        newSelectionBufferRanges.push(selectionRange.translate([-insertDelta]))
 
       @setSelectedBufferRanges(newSelectionBufferRanges, preserveFolds: true, autoscroll: true)
 
