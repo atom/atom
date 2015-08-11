@@ -839,10 +839,7 @@ class TextEditor extends Model
         # Move line around the fold that is directly above the selection
         precedingScreenRow = @screenRowForBufferRow(selection.start.row) - 1
         precedingBufferRow = @bufferRowForScreenRow(precedingScreenRow)
-        if fold = @largestFoldContainingBufferRow(precedingBufferRow)
-          insertDelta = fold.getBufferRange().getRowCount()
-        else
-          insertDelta = 1
+        insertDelta = selection.start.row - precedingBufferRow
 
         for row in rows
           if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
