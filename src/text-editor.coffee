@@ -837,8 +837,8 @@ class TextEditor extends Model
           rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
 
         # Move line around the fold that is directly above the selection
-        precedingScreenRow = @screenPositionForBufferPosition([selection.start.row]).translate([-1])
-        precedingBufferRow = @bufferPositionForScreenPosition(precedingScreenRow).row
+        precedingScreenRow = @screenRowForBufferRow(selection.start.row) - 1
+        precedingBufferRow = @bufferRowForScreenRow(precedingScreenRow)
         if fold = @largestFoldContainingBufferRow(precedingBufferRow)
           insertDelta = fold.getBufferRange().getRowCount()
         else
