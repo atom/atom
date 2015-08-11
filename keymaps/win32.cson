@@ -147,10 +147,12 @@
   'ctrl-k ctrl-8': 'editor:fold-at-indent-level-8'
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
 
-# allow standard input fields to work correctly
+# allow standard input fields and menu keys to work as expected on Windows
 'body .native-key-bindings':
   'ctrl-z': 'native!'
   'ctrl-Z': 'native!'
   'ctrl-x': 'native!'
   'ctrl-c': 'native!'
   'ctrl-v': 'native!'
+  'alt-f': 'native!'
+
