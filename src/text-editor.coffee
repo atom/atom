@@ -825,12 +825,14 @@ class TextEditor extends Model
     selections = @getSelectedBufferRanges()
     selections.sort (a, b) -> a.compare(b)
 
+    if selections[0].start.row is 0
+      return
+
+    if selections[selections.length - 1].start.row is @getLastBufferRow() and @buffer.getLastLine() is ''
+      return
+
     @transact =>
       for selection in selections
-        continue if selection.start.row is 0
-        lastRow = @buffer.getLastRow()
-        continue if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
-
         foldedRows = []
         rows = [selection.start.row..selection.end.row]
         if selection.start.row isnt selection.end.row and selection.end.column is 0
