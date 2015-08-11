@@ -823,14 +823,14 @@ class TextEditor extends Model
   moveLineUp: ->
     newSelectionBufferRanges = []
     selections = @getSelectedBufferRanges()
-    selections.sort (a, b) ->
-      a.compare(b)
-    for selection in selections
-      return if selection.start.row is 0
-      lastRow = @buffer.getLastRow()
-      return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
+    selections.sort (a, b) -> a.compare(b)
 
-      @transact =>
+    @transact =>
+      for selection in selections
+        continue if selection.start.row is 0
+        lastRow = @buffer.getLastRow()
+        continue if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
+
         foldedRows = []
         rows = [selection.start.row..selection.end.row]
         if selection.start.row isnt selection.end.row and selection.end.column is 0
@@ -875,7 +875,7 @@ class TextEditor extends Model
 
         newSelectionBufferRanges.push(selection.translate([-insertDelta]))
 
-    @setSelectedBufferRanges(newSelectionBufferRanges, preserveFolds: true, autoscroll: true)
+      @setSelectedBufferRanges(newSelectionBufferRanges, preserveFolds: true, autoscroll: true)
 
   # Move lines intersecting the most recent selection or muiltiple selections down by one row in screen
   # coordinates.
