@@ -856,8 +856,7 @@ class TextEditor extends Model
           insertPosition = Point.fromObject([startRow - insertDelta])
           endPosition = Point.min([endRow + 1], @buffer.getEndPosition())
           lines = @buffer.getTextInRange([[startRow], endPosition])
-          if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
-            lines = "#{lines}\n"
+          lines += @buffer.lineEndingForRow(endPosition.row - 1) unless lines[lines.length - 1] is '\n'
 
           @buffer.deleteRows(startRow, endRow)
 
