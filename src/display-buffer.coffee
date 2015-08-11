@@ -32,6 +32,8 @@ class DisplayBuffer extends Model
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
+    # Initialize a default yardstick to make sure we can update screen lines
+    # before having information about tokens styles.
     @linesYardstick = new LinesYardstick(this)
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles, @largeFileMode})
     @buffer = @tokenizedBuffer.buffer
@@ -49,6 +51,8 @@ class DisplayBuffer extends Model
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
     @updateAllScreenLines()
     @decorateFold(fold) for fold in folds
+
+  setLinesYardstick: (@linesYardstick) ->
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()

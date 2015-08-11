@@ -13,6 +13,7 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 StyleSamplerComponent = require './style-sampler-component'
+LinesYardstick = require './lines-yardstick'
 
 module.exports =
 class TextEditorComponent
@@ -43,6 +44,7 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    @linesYardstick = new LinesYardstick(@editor)
     @styleSamplerComponent = new StyleSamplerComponent(@editor)
     @presenter = new TextEditorPresenter
       model: @editor
@@ -52,6 +54,7 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
+      linesYardstick: @linesYardstick
     @presenter.onDidUpdateState(@requestUpdate)
     @presenter.onWillMeasureScreenRows (screenRows) =>
       @styleSamplerComponent.sampleScreenRows(screenRows)
@@ -505,7 +508,6 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
-    @presenter.clearFontForScopes()
     @styleSamplerComponent.invalidateStyles()
     @sampleFontStyling()
     @sampleBackgroundColors()
@@ -642,8 +644,6 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
       @styleSamplerComponent.invalidateStyles()
-      @presenter.clearFontForScopes()
-      @presenter.setDefaultFont(@fontFamily, @fontSize)
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)

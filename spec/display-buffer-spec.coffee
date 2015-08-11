@@ -1,4 +1,5 @@
 DisplayBuffer = require '../src/display-buffer'
+LinesYardstick = require '../src/lines-yardstick'
 _ = require 'underscore-plus'
 
 describe "DisplayBuffer", ->
@@ -8,7 +9,10 @@ describe "DisplayBuffer", ->
 
     buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
-    displayBuffer.setDefaultFont("Menlo", "17px")
+    linesYardstick = new LinesYardstick(displayBuffer)
+    linesYardstick.setDefaultFont("Menlo", "17px")
+    displayBuffer.setLinesYardstick(linesYardstick)
+
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.onDidChange changeHandler
 
