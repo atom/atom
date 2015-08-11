@@ -1987,33 +1987,78 @@ describe "TextEditor", ->
 
   describe "buffer manipulation", ->
     describe ".moveLineUp", ->
-      describe "when there is only one line selected", ->
-        it "moves the line up by one row", ->
-          editor.setSelectedBufferRange([[3, 2], [3, 9]])
-          expect(editor.getSelectedBufferRange()).toEqual [[3, 2], [3, 9]]
+      describe "when there is a single selection", ->
+        describe "when the selection spans a single line", ->
+          it "moves the line to the preceding row", ->
+            expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
+            expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
 
-          editor.moveLineUp()
-
-          expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [2, 9]]
-
-      describe "when there is multiple selections", ->
-        it "moves the selected lines up by one row", ->
-          editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
-          expect(editor.getSelectedBufferRanges()).toEqual [[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]]
-
-          editor.moveLineUp()
-
-          expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [0, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]]
-
-        describe "when there is multiple lines selected and moved upward until the top-most line is at row 0", ->
-          it "moves all the lines upward until the top-most is at row 0, then no more lines are moved upward", ->
-            editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
-            expect(editor.getSelectedBufferRanges()).toEqual [[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]]
-
+            editor.setSelectedBufferRange([[3, 2], [3, 9]])
             editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [2, 9]]
+            expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
+
+        describe "when the selection spans multiple lines", ->
+          it "moves the lines spanned by the selection to the preceding row", ->
+            expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
+            expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.setSelectedBufferRange([[3, 2], [4, 9]])
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [3, 9]]
+            expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+            expect(editor.lineTextForBufferRow(4)).toBe "    if (items.length <= 1) return items;"
+
+        describe "when the selection spans multiple lines, but ends at column 0", ->
+          it "does not move the last line of the selection", ->
+            expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
+            expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.setSelectedBufferRange([[3, 2], [4, 0]])
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [3, 0]]
+            expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+      describe "when there are multiple selections", ->
+        describe "when all the selections span different lines", ->
+          it "moves all lines that are spanned by a selection to the preceding row", ->
+            editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
             editor.moveLineUp()
 
             expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [0, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]]
+            expect(editor.lineTextForBufferRow(0)).toBe "  var sort = function(items) {"
+            expect(editor.lineTextForBufferRow(1)).toBe "var quicksort = function () {"
+            expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
+            expect(editor.lineTextForBufferRow(4)).toBe "      current = items.shift();"
+            expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+
+        describe "when one of the selections spans line 0", ->
+          it "doesn't move any lines, since line 0 can't move", ->
+            editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]])
+
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]]
+            expect(buffer.isModified()).toBe false
+
+        describe "when one of the selections spans the last line, and it is empty", ->
+          it "doesn't move any lines, since the last line can't move", ->
+            buffer.append('\n')
+            editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]])
+
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]]
 
     describe ".moveLineDown", ->
       describe "when there is only one line selected", ->
