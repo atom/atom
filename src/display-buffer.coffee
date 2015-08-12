@@ -23,7 +23,6 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  characterWidthsChangedCount: 0
   changeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
@@ -301,32 +300,12 @@ class DisplayBuffer extends Model
       @computeScrollWidth()
     defaultCharWidth
 
-  setDefaultFont: (fontFamily, fontSize) ->
-    @linesYardstick.setDefaultFont(fontFamily, fontSize)
-    @computeScrollWidth()
-
-  setFontForScopes: (scopes, font) ->
-    @linesYardstick.setFontForScopes(scopes, font)
-    @characterWidthsChangedCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
-  clearFontsForScopes: ->
-    @characterWidthsChangedCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
   getCursorWidth: -> 1
-
-  batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @characterWidthsChangedCount
-    @batchingCharacterMeasurement = true
-    fn()
-    @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @characterWidthsChangedCount
 
   characterWidthsChanged: ->
     @computeScrollWidth()
-    @emit 'character-widths-changed', @characterWidthsChangedCount if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-character-widths', @characterWidthsChangedCount
+    @emit 'character-widths-changed' if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change-character-widths'
 
   getScrollHeight: ->
     lineHeight = @getLineHeightInPixels()

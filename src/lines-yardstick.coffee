@@ -3,23 +3,12 @@ TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@model) ->
-    @fontsByScopesIdentifier = {}
+  constructor: (@model, @fontProviderFn) ->
     @measuringContext = document.createElement("canvas").getContext("2d")
     @tokenIterator = new TokenIterator
+    @fontProviderFn ?= -> ""
 
-  clearFontsForScopes: ->
-    @fontsByScopesIdentifier = {}
-
-  setDefaultFont: (fontFamily, fontSize) ->
-    @defaultFont = "#{fontSize} #{fontFamily}"
-
-  setFontForScopes: (scopes, font) ->
-    scopesIdentifier = @identifierForScopes(scopes)
-    @fontsByScopesIdentifier[scopesIdentifier] = font
-
-  identifierForScopes: (scopes) ->
-    scopes.join()
+  setFontProvider: (@fontProviderFn) ->
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
@@ -49,8 +38,7 @@ class LinesYardstick
     new Point(row, column)
 
   currentFontForTokenIterator: ->
-    scopesIdentifier = @identifierForScopes(@tokenIterator.getScopes())
-    @fontsByScopesIdentifier[scopesIdentifier] or @defaultFont
+    @fontProviderFn(@tokenIterator.getScopes())
 
   leftPixelPositionForScreenPosition: (screenPosition) ->
     line = @model.tokenizedLineForScreenRow(screenPosition.row)

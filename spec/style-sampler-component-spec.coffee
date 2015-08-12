@@ -37,25 +37,6 @@ describe "StyleSamplerComponent", ->
 
       document.body.appendChild(styleSamplerComponent.getDomNode())
 
-      functionsFonts = []
-      parametersFonts = []
-      defaultFonts = []
-
-      styleSamplerComponent.onDidInvalidateStyles ->
-        functionsFonts.length = 0
-        parametersFonts.length = 0
-        defaultFonts.length = 0
-
-      styleSamplerComponent.onDidSampleScopesStyle ({scopes, font}) ->
-        scopeIdentifier = scopes.join()
-
-        if scopeIdentifier.indexOf("entity.name.function") isnt -1
-          functionsFonts.push(font)
-        else if scopeIdentifier.indexOf("parameters") isnt -1
-          parametersFonts.push(font)
-        else
-          defaultFonts.push(font)
-
       appendStyleSheets(
         styleWithSelectorAndFont("body", "Times", "12px"),
         styleWithSelectorAndFont(".entity.name.function", "Arial", "20px"),
@@ -70,48 +51,24 @@ describe "StyleSamplerComponent", ->
     it "samples font styles for the desired screen rows", ->
       styleSamplerComponent.sampleScreenRows([0])
 
-      expect(functionsFonts.length).toBeGreaterThan(0)
-      expect(parametersFonts.length).toBeGreaterThan(0)
-      expect(defaultFonts.length).toBeGreaterThan(0)
-
-      for functionsFont in functionsFonts
-        expect(functionsFont).toEqual("normal normal normal normal 20px/normal Arial")
-
-      for parametersFont in parametersFonts
-        expect(parametersFont).toEqual("normal normal normal normal 32px/normal Helvetica")
-
-      for defaultFont in defaultFonts
-        expect(defaultFont).toEqual("normal normal normal normal 12px/normal Times")
-
-    it "samples the same scopes exactly once", ->
-      fontsByScopesIdentifier = {}
-      styleSamplerComponent.onDidSampleScopesStyle ({scopes, font}) ->
-        scopesIdentifier = scopes.join()
-        fontsByScopesIdentifier[scopesIdentifier] ?= []
-        fontsByScopesIdentifier[scopesIdentifier].push(font)
-
-      styleSamplerComponent.sampleScreenRows([0..5])
-
-      expect(Object.keys(fontsByScopesIdentifier).length).toBeGreaterThan(0)
-      for scopesIdentifier, fonts of fontsByScopesIdentifier
-        expect(fonts.length).toBe(1)
+      expect(styleSamplerComponent.fontForScopes(["source.js"])).toBe("normal normal normal normal 12px/normal Times")
+      expect(styleSamplerComponent.fontForScopes(["source.js", "meta.function.js", "entity.name.function.js"])).toBe("normal normal normal normal 20px/normal Arial")
+      expect(styleSamplerComponent.fontForScopes(["source.js", "meta.function.js", "punctuation.definition.parameters.begin.js"])).toBe("normal normal normal normal 32px/normal Helvetica")
 
   describe "::invalidateStyles()", ->
     it "clears cached styles", ->
+      samplesCount = 0
+      styleSamplerComponent.onDidSampleScopes -> samplesCount++
+
       styleSamplerComponent.sampleScreenRows([0])
-
-      expect(functionsFonts.length).toBeGreaterThan(0)
-      expect(parametersFonts.length).toBeGreaterThan(0)
-      expect(defaultFonts.length).toBeGreaterThan(0)
-
       appendStyleSheets(styleWithSelectorAndFont("body", "Arial", "12px"))
       styleSamplerComponent.sampleScreenRows([0])
-      for defaultFont in defaultFonts
-        expect(defaultFont).toEqual("normal normal normal normal 12px/normal Times")
+
+      expect(samplesCount).toBe(1)
+      expect(styleSamplerComponent.fontForScopes(["source.js"])).toBe("normal normal normal normal 12px/normal Times")
 
       styleSamplerComponent.invalidateStyles()
       styleSamplerComponent.sampleScreenRows([0])
 
-      expect(defaultFonts.length).toBeGreaterThan(0)
-      for defaultFont in defaultFonts
-        expect(defaultFont).toEqual("normal normal normal normal 12px/normal Arial")
+      expect(samplesCount).toBe(2)
+      expect(styleSamplerComponent.fontForScopes(["source.js"])).toBe("normal normal normal normal 12px/normal Arial")

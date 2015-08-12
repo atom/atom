@@ -18,11 +18,18 @@ class StyleSamplerComponent
     @scopesToSample = []
     @sampledScopes = {}
     @sampledLines = {}
+    @fontsByScopes = {}
+
+  onDidSampleScopes: (callback) ->
+    @emitter.on "did-sample-scopes", callback
+
+  fontForScopes: (scopes) ->
+    @fontsByScopes[scopes]
 
   invalidateStyles: ->
     @sampledScopes = {}
     @sampledLines = {}
-    @emitter.emit "did-invalidate-styles"
+    @fontsByScopes = {}
 
   getDomNode: ->
     @layoutBoundary
@@ -46,20 +53,16 @@ class StyleSamplerComponent
 
     @layoutBoundary.innerHTML = html if html isnt ""
 
+    hasNewSamples = @scopesToSample.length > 0
+
     for line, lineIndex in newLines
       lineNode = @layoutBoundary.children[lineIndex]
       for tokenNode in lineNode.children
         tokenLeafNode = @getLeafNode(tokenNode)
-        samplingEvent =
-          scopes: @scopesToSample.shift()
-          font: getComputedStyle(tokenLeafNode).font
-        @emitter.emit "did-sample-scopes-style", samplingEvent
+        scopes = @scopesToSample.shift()
+        @fontsByScopes[scopes] = getComputedStyle(tokenLeafNode).font
 
-  onDidSampleScopesStyle: (callback) ->
-    @emitter.on "did-sample-scopes-style", callback
-
-  onDidInvalidateStyles: (callback) ->
-    @emitter.on "did-invalidate-styles", callback
+    @emitter.emit "did-sample-scopes" if hasNewSamples
 
   buildLineHTML: (line) ->
     html = "<div>"

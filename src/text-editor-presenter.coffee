@@ -11,7 +11,6 @@ class TextEditorPresenter
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
   overlayDimensions: {}
-  characterWidthsChangedCount: 0
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
@@ -24,12 +23,10 @@ class TextEditorPresenter
     @tileSize ?= 12
 
     @model.setLinesYardstick(@linesYardstick)
-    @setDefaultFont(fontFamily, fontSize)
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @visibleHighlights = {}
-    @characterWidthsByScope = {}
     @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
@@ -94,8 +91,7 @@ class TextEditorPresenter
     @updateVerticalDimensions()
     @updateStartRow()
     @updateEndRow()
-    @batchCharacterMeasurement =>
-      @emitter.emit "will-measure-screen-rows", @getMeasurableScreenRows()
+    @emitter.emit "will-measure-screen-rows", @getMeasurableScreenRows()
 
     @updateHorizontalDimensions()
     @updateScrollbarDimensions()
@@ -1022,32 +1018,9 @@ class TextEditorPresenter
       @model.setDefaultCharWidth(baseCharacterWidth)
       @characterWidthsChanged()
 
-  setFontForScopes: (scopes, font) ->
-    @linesYardstick.setFontForScopes(scopes, font)
-    @model.setFontForScopes(scopes, font)
-    @characterWidthsChangedCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
-  batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @characterWidthsChangedCount
-    @batchingCharacterMeasurement = true
-    @model.batchCharacterMeasurement(fn)
-    @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @characterWidthsChangedCount
-
-  setDefaultFont: (fontFamily, fontSize) ->
-    @linesYardstick.setDefaultFont(fontFamily, fontSize)
-    @model.setDefaultFont(fontFamily, fontSize)
-    @characterWidthsChangedCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
-  clearFontForScopes: ->
-    @linesYardstick.clearFontsForScopes()
-    @model.clearFontsForScopes()
-    @characterWidthsChangedCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
   characterWidthsChanged: ->
+    @model.characterWidthsChanged()
+
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true

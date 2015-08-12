@@ -44,8 +44,10 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
-    @linesYardstick = new LinesYardstick(@editor)
     @styleSamplerComponent = new StyleSamplerComponent(@editor)
+    @linesYardstick = new LinesYardstick @editor, (scopes) =>
+      @styleSamplerComponent.fontForScopes(scopes) or @font
+
     @presenter = new TextEditorPresenter
       model: @editor
       scrollTop: @editor.getScrollTop()
@@ -96,7 +98,9 @@ class TextEditorComponent
 
     @observeEditor()
     @listenForDOMEvents()
-    @listenForSamplingEvents()
+
+    @disposables.add @styleSamplerComponent.onDidSampleScopes =>
+      @presenter.characterWidthsChanged()
 
     @disposables.add @stylesElement.onDidAddStyleElement @onStylesheetsChanged
     @disposables.add @stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
@@ -223,13 +227,6 @@ class TextEditorComponent
     @disposables.add @editor.observeGrammar(@onGrammarChanged)
     @disposables.add @editor.observeCursors(@onCursorAdded)
     @disposables.add @editor.observeSelections(@onSelectionAdded)
-
-  listenForSamplingEvents: ->
-    @disposables.add @styleSamplerComponent.onDidInvalidateStyles =>
-      @presenter.clearFontForScopes()
-
-    @disposables.add @styleSamplerComponent.onDidSampleScopesStyle ({scopes, font})=>
-      @presenter.setFontForScopes(scopes, font)
 
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
@@ -639,7 +636,7 @@ class TextEditorComponent
     oldFontFamily = @fontFamily
     oldLineHeight = @lineHeight
 
-    {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
+    {@font, @fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()

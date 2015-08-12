@@ -3,14 +3,13 @@ LinesYardstick = require '../src/lines-yardstick'
 _ = require 'underscore-plus'
 
 describe "DisplayBuffer", ->
-  [displayBuffer, buffer, changeHandler, tabLength] = []
+  [displayBuffer, linesYardstick, buffer, changeHandler, tabLength] = []
   beforeEach ->
     tabLength = 2
 
     buffer = atom.project.bufferForPathSync('sample.js')
     displayBuffer = new DisplayBuffer({buffer, tabLength})
-    linesYardstick = new LinesYardstick(displayBuffer)
-    linesYardstick.setDefaultFont("Menlo", "17px")
+    linesYardstick = new LinesYardstick displayBuffer, -> "17px Menlo"
     displayBuffer.setLinesYardstick(linesYardstick)
 
     changeHandler = jasmine.createSpy 'changeHandler'
@@ -1191,9 +1190,11 @@ describe "DisplayBuffer", ->
         marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
 
         displayBuffer.setLineHeightInPixels(20)
-
-        for char in ['r', 'e', 't', 'u', 'r', 'n']
-          displayBuffer.setFontForScopes(["source.js", "keyword.control.js"], "18px Menlo")
+        linesYardstick.setFontProvider (scopes) ->
+          if _.isEqual(scopes, ["source.js", "keyword.control.js"])
+            "18px Menlo"
+          else
+            "17px Menlo"
 
         {start, end} = marker.getPixelRange()
         expect(start.top).toBe 5 * 20
@@ -1349,12 +1350,6 @@ describe "DisplayBuffer", ->
     beforeEach ->
       displayBuffer.setDefaultCharWidth(10)
 
-    it "recomputes the scroll width when the default font changes", ->
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 65 + cursorWidth
-
-      displayBuffer.setDefaultFont("Menlo", "20px")
-      expect(displayBuffer.getScrollWidth()).toBe 12 * 65 + cursorWidth
-
     it "recomputes the scroll width when the max line length changes", ->
       buffer.insert([6, 12], ' ')
       expect(displayBuffer.getScrollWidth()).toBe 10 * 66 + cursorWidth
@@ -1362,19 +1357,19 @@ describe "DisplayBuffer", ->
       buffer.delete([[6, 10], [6, 12]], ' ')
       expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + cursorWidth
 
-    it "recomputes the scroll width when the font for scopes changes", ->
+    it "recomputes the scroll width when character widths change", ->
       operatorWidth = 20
-      displayBuffer.setFontForScopes(['source.js', 'keyword.operator.js'], "33px Menlo")
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 62 + operatorWidth * 3 + cursorWidth
 
-    it "recomputes the scroll width when the font for scopes changes in a batch", ->
-      operatorWidth = 20
+      linesYardstick.setFontProvider (scopes) ->
+        if _.isEqual(scopes, ['source.js', 'keyword.operator.js'])
+          "33px Menlo"
+        else if _.isEqual(scopes, ['source.js', 'punctuation.terminator.statement.js'])
+          "33px Menlo"
+        else
+          "17px Menlo"
 
       displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
-
-      displayBuffer.batchCharacterMeasurement ->
-        displayBuffer.setFontForScopes(['source.js', 'keyword.operator.js'], "33px Menlo")
-        displayBuffer.setFontForScopes(['source.js', 'punctuation.terminator.statement.js'], "33px Menlo")
+      displayBuffer.characterWidthsChanged()
 
       expect(displayBuffer.getScrollWidth()).toBe 10 * 61 + operatorWidth * 4 + cursorWidth
       expect(changedSpy.callCount).toBe 1

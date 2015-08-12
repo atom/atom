@@ -3,6 +3,7 @@ path = require 'path'
 temp = require 'temp'
 clipboard = require '../src/safe-clipboard'
 TextEditor = require '../src/text-editor'
+LinesYardstick = require '../src/lines-yardstick'
 
 describe "TextEditor", ->
   [buffer, editor, lineLengths] = []
@@ -20,6 +21,10 @@ describe "TextEditor", ->
 
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
+
+    runs ->
+      linesYardstick = new LinesYardstick editor, -> "17px Menlo"
+      editor.setLinesYardstick(linesYardstick)
 
   describe "when the editor is deserialized", ->
     it "returns undefined when the path cannot be read", ->
