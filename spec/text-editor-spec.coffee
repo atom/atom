@@ -2246,7 +2246,6 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(1)).toBe 1
             expect(editor.indentationForBufferRow(2)).toBe 0
 
-
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null
@@ -3676,55 +3675,67 @@ describe "TextEditor", ->
         expect(editor.lineTextForBufferRow(0)).toBe 'abC'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
 
-  describe "soft-tabs detection", ->
-    it "assigns soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-      waitsForPromise ->
-        atom.workspace.open('sample.js', softTabs: false).then (editor) ->
-          expect(editor.getSoftTabs()).toBeTruthy()
-
-      waitsForPromise ->
-        atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
-          expect(editor.getSoftTabs()).toBeFalsy()
-
-      waitsForPromise ->
-        atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
-          expect(editor.getSoftTabs()).toBeFalsy()
-
-      waitsForPromise ->
-        atom.workspace.open(null, softTabs: false).then (editor) ->
-          expect(editor.getSoftTabs()).toBeFalsy()
-
+  describe "soft and hard tabs", ->
     afterEach ->
       atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
 
-    it "resets the tab style when tokenization is complete", ->
-      editor.destroy()
+    describe "when editor.tabType is 'auto'", ->
+      beforeEach ->
+        atom.config.set('editor.tabType', 'auto')
 
-      waitsForPromise ->
-        atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+      it "auto-detects soft / hard tabs based on the contents of the buffer, or uses the default if unknown, and setSoftTabs() overrides", ->
+        waitsForPromise ->
+          atom.workspace.open('sample.js', softTabs: false).then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            editor.setSoftTabs(false)
+            expect(editor.getSoftTabs()).toBe false
 
-      runs ->
-        expect(editor.softTabs).toBe true
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
 
-      waitsForPromise ->
-        atom.packages.activatePackage('language-coffee-script')
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
 
-      runs ->
-        expect(editor.softTabs).toBe false
+        waitsForPromise ->
+          atom.workspace.open(null, softTabs: false).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
 
-    it "uses hard tabs in Makefile files", ->
-      # FIXME remove once this is handled by a scoped setting in the
-      # language-make package
+      it "resets the tab style when tokenization is complete", ->
+        editor.destroy()
 
-      waitsForPromise ->
-        atom.packages.activatePackage('language-make')
+        waitsForPromise ->
+          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
-      waitsForPromise ->
-        atom.project.open('Makefile').then (o) -> editor = o
+        runs ->
+          expect(editor.softTabs).toBe true
 
-      runs ->
-        expect(editor.softTabs).toBe false
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+        runs ->
+          expect(editor.softTabs).toBe false
+
+      it "uses hard tabs in Makefile files", ->
+        # FIXME remove once this is handled by a scoped setting in the
+        # language-make package
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-make')
+
+        waitsForPromise ->
+          atom.project.open('Makefile').then (o) -> editor = o
+
+        runs ->
+          expect(editor.softTabs).toBe false
 
   describe '.getTabLength()', ->
     describe 'when scoped settings are used', ->
