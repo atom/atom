@@ -428,9 +428,10 @@ class TextEditorComponent
       dragRow = screenPosition.row
       dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
       if dragBufferRow < clickedBufferRow # dragging up
-        @editor.setSelectedBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
+        @editor.setSelectedBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], reversed: true, preserveFolds: true, autoscroll: false)
       else
-        @editor.setSelectedBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], preserveFolds: true)
+        @editor.setSelectedBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], reversed: false, preserveFolds: true, autoscroll: false)
+      @editor.getLastCursor().autoscroll()
 
   onGutterMetaClick: (event) =>
     clickedRow = @screenPositionForMouseEvent(event).row

@@ -1953,6 +1953,32 @@ describe "TextEditorComponent", ->
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(2)))
           expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 0]]
 
+      it "orients the selection appropriately when the mouse moves above or below the initially-clicked row", ->
+        gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(4)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(2)))
+        nextAnimationFrame()
+        expect(editor.getLastSelection().isReversed()).toBe true
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+        nextAnimationFrame()
+        expect(editor.getLastSelection().isReversed()).toBe false
+
+      it "autoscrolls to the cursor position, but not the entire selected range", ->
+        wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+
+        expect(editor.getScrollTop()).toBe 0
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+        nextAnimationFrame()
+
+        expect(editor.getScrollTop()).toBeGreaterThan 0
+        maxScrollTop = editor.getScrollTop()
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
+        nextAnimationFrame()
+        expect(editor.getScrollTop()).toBe maxScrollTop
+
     describe "when the gutter is meta-clicked and dragged", ->
       beforeEach ->
         editor.setSelectedScreenRange([[3, 0], [3, 2]])
