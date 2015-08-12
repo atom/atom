@@ -3694,6 +3694,38 @@ describe "TextEditor", ->
         atom.workspace.open(null, softTabs: false).then (editor) ->
           expect(editor.getSoftTabs()).toBeFalsy()
 
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
+    it "resets the tab style when tokenization is complete", ->
+      editor.destroy()
+
+      waitsForPromise ->
+        atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+
+      runs ->
+        expect(editor.softTabs).toBe true
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        expect(editor.softTabs).toBe false
+
+    it "uses hard tabs in Makefile files", ->
+      # FIXME remove once this is handled by a scoped setting in the
+      # language-make package
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-make')
+
+      waitsForPromise ->
+        atom.project.open('Makefile').then (o) -> editor = o
+
+      runs ->
+        expect(editor.softTabs).toBe false
+
   describe '.getTabLength()', ->
     describe 'when scoped settings are used', ->
       coffeeEditor = null
@@ -3922,39 +3954,6 @@ describe "TextEditor", ->
         coffeeEditor.setCursorBufferPosition([1, 18])
         coffeeEditor.insertText("\n")
         expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
-
-  describe "soft and hard tabs", ->
-    afterEach ->
-      atom.packages.deactivatePackages()
-      atom.packages.unloadPackages()
-
-    it "resets the tab style when tokenization is complete", ->
-      editor.destroy()
-
-      waitsForPromise ->
-        atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
-
-      runs ->
-        expect(editor.softTabs).toBe true
-
-      waitsForPromise ->
-        atom.packages.activatePackage('language-coffee-script')
-
-      runs ->
-        expect(editor.softTabs).toBe false
-
-    it "uses hard tabs in Makefile files", ->
-      # FIXME remove once this is handled by a scoped setting in the
-      # language-make package
-
-      waitsForPromise ->
-        atom.packages.activatePackage('language-make')
-
-      waitsForPromise ->
-        atom.project.open('Makefile').then (o) -> editor = o
-
-      runs ->
-        expect(editor.softTabs).toBe false
 
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
