@@ -276,7 +276,9 @@ class Package
     return
 
   loadKeymaps: ->
-    if @bundledPackage and packagesCache[@name]?
+    if _.contains(atom.config.get("core.packagesWithKeymapsDisabled") ? [], @name)
+      @keymaps = []
+    else if @bundledPackage and packagesCache[@name]?
       @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
