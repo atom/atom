@@ -2042,6 +2042,14 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(4)).toBe "      current = items.shift();"
             expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
 
+        describe "when some of the selections span the same lines", ->
+          it "moves lines that contain multiple selections correctly", ->
+            editor.setSelectedBufferRanges([[[3, 2], [3, 9]], [[3, 12], [3, 13]]])
+            editor.moveLineUp()
+
+            expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [2, 9]], [[2, 12], [2, 13]]]
+            expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
         describe "when one of the selections spans line 0", ->
           it "doesn't move any lines, since line 0 can't move", ->
             editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]])
