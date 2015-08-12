@@ -824,7 +824,8 @@ describe "TextEditorComponent", ->
 
         describe "when the component is destroyed", ->
           it "stops listening for folding events", ->
-            nextAnimationFrame()
+            nextAnimationFrame() unless nextAnimationFrame is noAnimationFrame # clear pending frame request if needed
+
             component.destroy()
 
             lineNumber = component.lineNumberNodeForScreenRow(1)
