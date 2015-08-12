@@ -664,8 +664,8 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
-  # Returns `null` when the keyPath has no schema specified.
-  # Returns `false` when the key-path is not accessible from the root schema.
+  # Returns `null` when the keyPath has no schema specified, but is accessible
+  # from the root schema.
   getSchema: (keyPath) ->
     keys = splitKeyPath(keyPath)
     schema = @schema
@@ -676,11 +676,11 @@ class Config
           if isPlainObject(schema.additionalProperties)
             childSchema = schema.additionalProperties
           else if schema.additionalProperties is false
-            return false
-          else
             return null
+          else
+            return {type: 'any'}
       else
-        return false
+        return null
       schema = childSchema
     schema
 
@@ -959,10 +959,9 @@ class Config
       catch e
         undefined
     else
-      if (schema = @getSchema(keyPath))?
+      unless (schema = @getSchema(keyPath))?
         throw new Error("Illegal key path #{keyPath}") if schema is false
-        value = @constructor.executeSchemaEnforcers(keyPath, value, schema)
-      value
+      @constructor.executeSchemaEnforcers(keyPath, value, schema)
 
   # When the schema is changed / added, there may be values set in the config
   # that do not conform to the schema. This will reset make them conform.
@@ -1040,6 +1039,10 @@ class Config
 # order of specification. Then the `*` enforcers will be run, in order of
 # specification.
 Config.addSchemaEnforcers
+  'any':
+    coerce: (keyPath, value, schema) ->
+      value
+
   'integer':
     coerce: (keyPath, value, schema) ->
       value = parseInt(value)

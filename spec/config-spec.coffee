@@ -1142,8 +1142,8 @@ describe "Config", ->
           type: 'integer'
           default: 12
 
-        expect(atom.config.getSchema('foo.baz')).toBe(null)
-        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBe(false)
+        expect(atom.config.getSchema('foo.baz')).toEqual {type: 'any'}
+        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBe(null)
 
       it "respects the schema for scoped settings", ->
         schema =
