@@ -94,6 +94,7 @@ class TextEditor extends Model
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
+    @subscribeToTabTypeConfig()
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
 
@@ -178,9 +179,15 @@ class TextEditor extends Model
       @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
       @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
+  subscribeToTabTypeConfig: ->
+    @tabTypeSubscription?.dispose()
+    @tabTypeSubscription = atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
+      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
+
   destroyed: ->
     @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
+    @tabTypeSubscription.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
@@ -2895,6 +2902,7 @@ class TextEditor extends Model
 
   handleGrammarChange: ->
     @unfoldAll()
+    @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   handleMarkerCreated: (marker) =>

@@ -3833,6 +3833,23 @@ describe "TextEditor", ->
             atom.config.set('editor.tabType', 'auto')
             expect(editor.getSoftTabs()).toBe false
 
+    describe "when the grammar changes", ->
+      coffeeEditor = null
+      beforeEach ->
+        atom.config.set('editor.tabType', 'hard', scopeSelector: '.source.js')
+        atom.config.set('editor.tabType', 'soft', scopeSelector: '.source.coffee')
+
+        waitsForPromise ->
+          Promise.all [
+            atom.packages.activatePackage('language-coffee-script')
+            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          ]
+
+      it "updates based on the value chosen", ->
+        expect(editor.getSoftTabs()).toBe false
+        editor.setGrammar(coffeeEditor.getGrammar())
+        expect(editor.getSoftTabs()).toBe true
+
   describe '.getTabLength()', ->
     describe 'when scoped settings are used', ->
       coffeeEditor = null
