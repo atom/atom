@@ -73,6 +73,11 @@ class Pane extends Model
     @flexScale
 
   getFlexScale: -> @flexScale
+
+  increaseSize: -> @setFlexScale(@getFlexScale() * 1.1)
+
+  decreaseSize: -> @setFlexScale(@getFlexScale() / 1.1)
+
   ###
   Section: Event Subscription
   ###
