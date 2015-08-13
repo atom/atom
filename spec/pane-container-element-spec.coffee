@@ -160,3 +160,37 @@ describe "PaneContainerElement", ->
       element = getResizeElement(0)
       element.remove()
       expect(-> element.resizeToFitContent()).not.toThrow()
+
+  describe "pane resizing", ->
+    [leftPane, rightPane] = []
+
+    beforeEach ->
+      container = new PaneContainer
+      leftPane = container.getActivePane()
+      rightPane = leftPane.splitRight()
+
+    describe "when pane:increase-size is triggered", ->
+      it "increases the size of the pane", ->
+        expect(leftPane.getFlexScale()).toBe 1
+        expect(rightPane.getFlexScale()).toBe 1
+
+        atom.commands.dispatch(atom.views.getView(leftPane), 'pane:increase-size')
+        expect(leftPane.getFlexScale()).toBe 1.1
+        expect(rightPane.getFlexScale()).toBe 1
+
+        atom.commands.dispatch(atom.views.getView(rightPane), 'pane:increase-size')
+        expect(leftPane.getFlexScale()).toBe 1.1
+        expect(rightPane.getFlexScale()).toBe 1.1
+
+    describe "when pane:decrease-size is triggered", ->
+      it "decreases the size of the pane", ->
+        expect(leftPane.getFlexScale()).toBe 1
+        expect(rightPane.getFlexScale()).toBe 1
+
+        atom.commands.dispatch(atom.views.getView(leftPane), 'pane:decrease-size')
+        expect(leftPane.getFlexScale()).toBe 1/1.1
+        expect(rightPane.getFlexScale()).toBe 1
+
+        atom.commands.dispatch(atom.views.getView(rightPane), 'pane:decrease-size')
+        expect(leftPane.getFlexScale()).toBe 1/1.1
+        expect(rightPane.getFlexScale()).toBe 1/1.1
