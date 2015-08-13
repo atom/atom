@@ -86,7 +86,14 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+
+    @tabType = atom.config.get('editor.tabType', @getRootScopeDescriptor())
+    # Autodetection flags, enabled once language config say so
+    @tabTypeIsAutodetect = (not softTabs?) or (@tabType is 'auto')
+    # TODO: Simplify (make it intuitive) softTabs priority
+    # FIXME: Directly supplied @softTabs is disregarded than 'auto' config
+    @softTabs = (@usesSoftTabs() if @tabTypeIsAutodetect) ? @softTabs ?
+      @convertToSoftTabBool @tabType ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -2336,14 +2343,44 @@ class TextEditor extends Model
   Section: Tab Behavior
   ###
 
+  # Essential: Set tabType in current editor.
+  #
+  # * `tabType` A {String}, one of 'soft', 'hard', and 'auto'
+  setTabType: (@tabType, scopeDescriptor) ->
+    @softTabs = @convertToSoftTabBool @tabType
+    atom.config.set('editor.softTabs', @softTabs, scope: scopeDescriptor)
+    atom.config.set('editor.tabType', @tabType, scope: scopeDescriptor)
+
+  # Essential: Returns a {String} indicating what kind of tabs are enabled for this
+  # editor, see {TextEditor::setTabType} for possible value.
+  getTabType: (scopeDescriptor) ->
+    softTabs = @convertToTabTypeString atom.config.get('editor.softTabs', scope: scopeDescriptor)
+    tabType = atom.config.get('editor.tabType', scope: scopeDescriptor)
+    return tabType ? softTabs ? 'soft'
+
+  # TODO: Remove this once softTabs-related stuff removed
+  convertToTabTypeString: (softTabs) ->
+    return 'soft' if softTabs is true
+    return 'hard' if softTabs is false
+    return 'auto'
+
+  convertToSoftTabBool: (tabType) ->
+    return true if tabType is 'soft'
+    return false if tabType is 'hard'
+    return @usesSoftTabs() if tabType is 'auto'
+
   # Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   # editor.
-  getSoftTabs: -> @softTabs
+  getSoftTabs: (scopeDescriptor) ->
+    @softTabs ? atom.config.get('editor.softTabs', scope: scopeDescriptor)
 
   # Essential: Enable or disable soft tabs for this editor.
+  # If disabling, hard tabs will be enabled.
   #
-  # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @softTabs
+  # * `softTabs` A {Boolean}, other value led to softTabs autodetection
+  setSoftTabs: (@softTabs, scopeDescriptor) ->
+    tabType = @convertToTabTypeString @softTabs
+    @setTabType(tabType, scopeDescriptor)
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
@@ -2875,7 +2912,12 @@ class TextEditor extends Model
   ###
 
   handleTokenization: ->
-    @softTabs = @usesSoftTabs() ? @softTabs
+    tabTypeDetected = (@usesSoftTabs() if @tabTypeIsAutodetect)
+    @tabType = atom.config.get('editor.tabType', @getRootScopeDescriptor())
+    softTabTyped = @convertToSoftTabBool @tabType
+
+    @softTabs = tabTypeDetected ? @softTabs ? softTabTyped ? atom.config.get('editor.softTabs')
+    @tabType = @convertToTabTypeString @softTabs
 
   handleGrammarChange: ->
     @unfoldAll()
