@@ -403,7 +403,7 @@ class TextEditorComponent
       when 3
         @editor.getLastSelection().selectLine()
 
-    @handleDragUntilMouseUp event, (screenPosition) =>
+    @handleDragUntilMouseUp (screenPosition) =>
       @editor.selectToScreenPosition(screenPosition, true)
 
   onLineNumberGutterMouseDown: (event) =>
@@ -424,7 +424,7 @@ class TextEditorComponent
 
     @editor.setSelectedBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
 
-    @handleDragUntilMouseUp event, (screenPosition) =>
+    @handleDragUntilMouseUp (screenPosition) =>
       dragRow = screenPosition.row
       dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
       if dragBufferRow < clickedBufferRow # dragging up
@@ -440,7 +440,7 @@ class TextEditorComponent
     bufferRange = new Range([clickedBufferRow, 0], [clickedBufferRow + 1, 0])
     rowSelection = @editor.addSelectionForBufferRange(bufferRange, preserveFolds: true)
 
-    @handleDragUntilMouseUp event, (screenPosition) =>
+    @handleDragUntilMouseUp (screenPosition) =>
       dragRow = screenPosition.row
       dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
 
@@ -466,7 +466,7 @@ class TextEditorComponent
     else
       @editor.selectToBufferPosition([clickedBufferRow + 1, 0])
 
-    @handleDragUntilMouseUp event, (screenPosition) =>
+    @handleDragUntilMouseUp (screenPosition) =>
       dragRow = screenPosition.row
       dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
       if dragRow < tailPosition.row # dragging up
@@ -523,7 +523,7 @@ class TextEditorComponent
   onCursorMoved: =>
     @cursorMoved = true
 
-  handleDragUntilMouseUp: (event, dragHandler) =>
+  handleDragUntilMouseUp: (dragHandler) =>
     dragging = false
     lastMousePosition = {}
     animationLoop = =>
