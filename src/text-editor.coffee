@@ -75,7 +75,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
+  constructor: ({softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
@@ -86,7 +86,7 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
+    @softTabs = @shouldUseSoftTabs(defaultValue: softTabs)
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
@@ -2395,6 +2395,20 @@ class TextEditor extends Model
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
 
+  # Private: Computes whether or not this editor should use softTabs based on
+  # the `editor.tabType` setting.
+  #
+  # Returns a {Boolean}
+  shouldUseSoftTabs: ({defaultValue}) ->
+    tabType = atom.config.get('editor.tabType', scope: @getRootScopeDescriptor())
+    switch tabType
+      when 'auto'
+        @usesSoftTabs() ? defaultValue ? atom.config.get('editor.softTabs') ? true
+      when 'hard'
+        false
+      when 'soft'
+        true
+
   ###
   Section: Soft Wrap Behavior
   ###
@@ -2875,7 +2889,7 @@ class TextEditor extends Model
   ###
 
   handleTokenization: ->
-    @softTabs = @usesSoftTabs() ? @softTabs
+    @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   handleGrammarChange: ->
     @unfoldAll()
