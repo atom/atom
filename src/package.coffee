@@ -201,7 +201,7 @@ class Package
   activateResources: ->
     @activationDisposables = new CompositeDisposable
 
-    keymapIsDisabled = _.include(atom.config.get("core.disabledKeymaps") ? [], @name)
+    keymapIsDisabled = _.include(atom.config.get("core.packagesWithKeymapsDisabled") ? [], @name)
     if keymapIsDisabled
       @deactivateKeymaps()
     else

@@ -237,9 +237,11 @@ module.exports = (grunt) ->
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
+  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.TRAVIS
   ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
-  ciTasks.push('codesign') unless process.env.TRAVIS
+  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.TRAVIS
+  ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.TRAVIS
   ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
 
