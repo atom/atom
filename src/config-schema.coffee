@@ -26,6 +26,14 @@ module.exports =
         default: []
         items:
           type: 'string'
+      customFileTypes:
+        type: 'object'
+        default: {}
+        description: 'Associates scope names (e.g. "source.js") with arrays of file extensions and file names (e.g. ["Somefile", ".js2"])'
+        additionalProperties:
+          type: 'array'
+          items:
+            type: 'string'
       themes:
         type: 'array'
         default: ['one-dark-ui', 'one-dark-syntax']

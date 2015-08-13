@@ -664,13 +664,24 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
-  # Returns `null` when the keyPath has no schema specified.
+  # Returns `null` when the keyPath has no schema specified, but is accessible
+  # from the root schema.
   getSchema: (keyPath) ->
     keys = splitKeyPath(keyPath)
     schema = @schema
     for key in keys
-      break unless schema?
-      schema = schema.properties?[key]
+      if schema.type is 'object'
+        childSchema = schema.properties?[key]
+        unless childSchema?
+          if isPlainObject(schema.additionalProperties)
+            childSchema = schema.additionalProperties
+          else if schema.additionalProperties is false
+            return null
+          else
+            return {type: 'any'}
+      else
+        return null
+      schema = childSchema
     schema
 
   # Extended: Get the {String} path to the config file being used.
@@ -948,8 +959,9 @@ class Config
       catch e
         undefined
     else
-      value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
-      value
+      unless (schema = @getSchema(keyPath))?
+        throw new Error("Illegal key path #{keyPath}") if schema is false
+      @constructor.executeSchemaEnforcers(keyPath, value, schema)
 
   # When the schema is changed / added, there may be values set in the config
   # that do not conform to the schema. This will reset make them conform.
@@ -1027,6 +1039,10 @@ class Config
 # order of specification. Then the `*` enforcers will be run, in order of
 # specification.
 Config.addSchemaEnforcers
+  'any':
+    coerce: (keyPath, value, schema) ->
+      value
+
   'integer':
     coerce: (keyPath, value, schema) ->
       value = parseInt(value)
@@ -1077,17 +1093,26 @@ Config.addSchemaEnforcers
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
 
+      defaultChildSchema = null
+      allowsAdditionalProperties = true
+      if isPlainObject(schema.additionalProperties)
+        defaultChildSchema = schema.additionalProperties
+      if schema.additionalProperties is false
+        allowsAdditionalProperties = false
+
       newValue = {}
       for prop, propValue of value
-        childSchema = schema.properties[prop]
+        childSchema = schema.properties[prop] ? defaultChildSchema
         if childSchema?
           try
             newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
           catch error
             console.warn "Error setting item in object: #{error.message}"
-        else
+        else if allowsAdditionalProperties
           # Just pass through un-schema'd values
           newValue[prop] = propValue
+        else
+          console.warn "Illegal object key: #{keyPath}.#{prop}"
 
       newValue
 
