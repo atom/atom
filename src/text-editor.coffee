@@ -86,12 +86,12 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
+    @subscribeToTabTypeConfig()
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
 
@@ -176,9 +176,15 @@ class TextEditor extends Model
       @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
       @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
+  subscribeToTabTypeConfig: ->
+    @tabTypeSubscription?.dispose()
+    @tabTypeSubscription = atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
+      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
+
   destroyed: ->
     @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
+    @tabTypeSubscription.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
@@ -2370,7 +2376,7 @@ class TextEditor extends Model
   usesSoftTabs: ->
     # FIXME Remove once this can be specified as a scoped setting in the
     # language-make package
-    return false if @getGrammar().scopeName is 'source.makefile'
+    return false if @getGrammar()?.scopeName is 'source.makefile'
 
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
@@ -2394,6 +2400,20 @@ class TextEditor extends Model
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
+
+  # Private: Computes whether or not this editor should use softTabs based on
+  # the `editor.tabType` setting.
+  #
+  # Returns a {Boolean}
+  shouldUseSoftTabs: ({defaultValue}) ->
+    tabType = atom.config.get('editor.tabType', scope: @getRootScopeDescriptor())
+    switch tabType
+      when 'auto'
+        @usesSoftTabs() ? defaultValue ? atom.config.get('editor.softTabs') ? true
+      when 'hard'
+        false
+      when 'soft'
+        true
 
   ###
   Section: Soft Wrap Behavior
@@ -2875,10 +2895,11 @@ class TextEditor extends Model
   ###
 
   handleTokenization: ->
-    @softTabs = @usesSoftTabs() ? @softTabs
+    @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   handleGrammarChange: ->
     @unfoldAll()
+    @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   handleMarkerCreated: (marker) =>
