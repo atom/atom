@@ -3810,6 +3810,27 @@ describe "TextEditor", ->
         runs ->
           expect(editor.softTabs).toBe true
 
+    describe "when editor.tabType changes", ->
+      beforeEach ->
+        atom.config.set('editor.tabType', 'auto')
+
+      it "updates based on the value chosen", ->
+        waitsForPromise ->
+          atom.workspace.open('sample.js').then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            atom.config.set('editor.tabType', 'hard')
+            expect(editor.getSoftTabs()).toBe false
+            atom.config.set('editor.tabType', 'auto')
+            expect(editor.getSoftTabs()).toBe true
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs.coffee').then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            atom.config.set('editor.tabType', 'soft')
+            expect(editor.getSoftTabs()).toBe true
+            atom.config.set('editor.tabType', 'auto')
+            expect(editor.getSoftTabs()).toBe false
+
   describe '.getTabLength()', ->
     describe 'when scoped settings are used', ->
       coffeeEditor = null

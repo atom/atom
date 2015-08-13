@@ -75,7 +75,7 @@ class TextEditor extends Model
     'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
     toProperty: 'languageMode'
 
-  constructor: ({softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
+  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
@@ -86,7 +86,9 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @shouldUseSoftTabs(defaultValue: softTabs)
+
+    @disposables.add atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
+      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
