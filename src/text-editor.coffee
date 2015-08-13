@@ -87,9 +87,6 @@ class TextEditor extends Model
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
 
-    @disposables.add atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
-      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
-
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
