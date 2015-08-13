@@ -419,61 +419,36 @@ class TextEditorComponent
       @onGutterClick(event)
 
   onGutterClick: (event) =>
-    clickedRow = @screenPositionForMouseEvent(event).row
-    clickedBufferRow = @editor.bufferRowForScreenRow(clickedRow)
-
+    clickedBufferRow = @editor.bufferRowForScreenRow(@screenPositionForMouseEvent(event).row)
     @editor.setSelectedBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
-
-    @handleDragUntilMouseUp (screenPosition) =>
-      dragRow = screenPosition.row
-      dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
-      if dragBufferRow < clickedBufferRow # dragging up
-        @editor.setSelectedBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], reversed: true, preserveFolds: true, autoscroll: false)
-      else
-        @editor.setSelectedBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], reversed: false, preserveFolds: true, autoscroll: false)
-      @editor.getLastCursor().autoscroll()
+    @handleGutterDrag(clickedBufferRow)
 
   onGutterMetaClick: (event) =>
-    clickedRow = @screenPositionForMouseEvent(event).row
-    clickedBufferRow = @editor.bufferRowForScreenRow(clickedRow)
-
-    bufferRange = new Range([clickedBufferRow, 0], [clickedBufferRow + 1, 0])
-    rowSelection = @editor.addSelectionForBufferRange(bufferRange, preserveFolds: true)
-
-    @handleDragUntilMouseUp (screenPosition) =>
-      dragRow = screenPosition.row
-      dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
-
-      if dragBufferRow < clickedBufferRow # dragging up
-        rowSelection.setBufferRange([[dragBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
-      else
-        rowSelection.setBufferRange([[clickedBufferRow, 0], [dragBufferRow + 1, 0]], preserveFolds: true)
-
-      # The merge process will possibly destroy the current selection because
-      # it will be merged into another one. Therefore, we need to obtain a
-      # reference to the new selection that contains the originally selected row
-      rowSelection = _.find @editor.getSelections(), (selection) ->
-        selection.intersectsBufferRange(bufferRange)
+    clickedBufferRow = @editor.bufferRowForScreenRow(@screenPositionForMouseEvent(event).row)
+    @editor.addSelectionForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]], preserveFolds: true)
+    @handleGutterDrag(clickedBufferRow)
 
   onGutterShiftClick: (event) =>
-    clickedRow = @screenPositionForMouseEvent(event).row
-    clickedBufferRow = @editor.bufferRowForScreenRow(clickedRow)
-    tailPosition = @editor.getLastSelection().getTailScreenPosition()
-    tailBufferPosition = @editor.bufferPositionForScreenPosition(tailPosition)
+    clickedBufferRow = @editor.bufferRowForScreenRow(@screenPositionForMouseEvent(event).row)
+    tailBufferPosition = @editor.getLastSelection().getTailBufferPosition()
 
-    if clickedRow < tailPosition.row
-      @editor.selectToBufferPosition([clickedBufferRow, 0])
+    if clickedBufferRow < tailBufferPosition.row
+      @editor.selectToBufferPosition([clickedBufferRow, 0], true)
     else
-      @editor.selectToBufferPosition([clickedBufferRow + 1, 0])
+      @editor.selectToBufferPosition([clickedBufferRow + 1, 0], true)
+
+    @handleGutterDrag(tailBufferPosition.row, tailBufferPosition.column)
+
+  handleGutterDrag: (tailRow, tailColumn) ->
+    tailPosition = [tailRow, tailColumn] if tailColumn?
 
     @handleDragUntilMouseUp (screenPosition) =>
-      dragRow = screenPosition.row
-      dragBufferRow = @editor.bufferRowForScreenRow(dragRow)
-      if dragRow < tailPosition.row # dragging up
-        @editor.setSelectedBufferRange([[dragBufferRow, 0], tailBufferPosition], preserveFolds: true)
+      dragRow = @editor.bufferPositionForScreenPosition(screenPosition).row
+      if dragRow < tailRow
+        @editor.getLastSelection().setBufferRange([[dragRow, 0], tailPosition ? [tailRow + 1, 0]], reversed: true, autoscroll: false, preserveFolds: true)
       else
-        @editor.setSelectedBufferRange([tailBufferPosition, [dragBufferRow + 1, 0]], preserveFolds: true)
-
+        @editor.getLastSelection().setBufferRange([tailPosition ? [tailRow, 0], [dragRow + 1, 0]], reversed: false, autoscroll: false, preserveFolds: true)
+      @editor.getLastCursor().autoscroll()
 
   onStylesheetsChanged: (styleElement) =>
     return unless @performedInitialMeasurement
