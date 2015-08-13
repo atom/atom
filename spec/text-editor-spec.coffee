@@ -3822,6 +3822,8 @@ describe "TextEditor", ->
             expect(editor.getSoftTabs()).toBe false
             atom.config.set('editor.tabType', 'auto')
             expect(editor.getSoftTabs()).toBe true
+            atom.config.set('editor.tabType', 'hard', scopeSelector: '.source.js')
+            expect(editor.getSoftTabs()).toBe false
 
         waitsForPromise ->
           atom.workspace.open('sample-with-tabs.coffee').then (editor) ->
