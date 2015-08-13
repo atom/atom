@@ -26,7 +26,7 @@ module.exports =
         default: []
         items:
           type: 'string'
-      fileTypesByScope:
+      customFileTypes:
         type: 'object'
         default: {}
         additionalProperties:

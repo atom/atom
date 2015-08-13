@@ -71,7 +71,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     pathScore = -1
 
     fileTypes = grammar.fileTypes
-    if customFileTypes = atom.config.get('core.fileTypesByScope')?[grammar.scopeName]
+    if customFileTypes = atom.config.get('core.customFileTypes')?[grammar.scopeName]
       fileTypes = fileTypes.concat(customFileTypes)
 
     for fileType, i in fileTypes
