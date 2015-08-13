@@ -2376,7 +2376,7 @@ class TextEditor extends Model
   usesSoftTabs: ->
     # FIXME Remove once this can be specified as a scoped setting in the
     # language-make package
-    return false if @getGrammar().scopeName is 'source.makefile'
+    return false if @getGrammar()?.scopeName is 'source.makefile'
 
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
