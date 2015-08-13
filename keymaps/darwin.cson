@@ -182,8 +182,8 @@
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
 
 'atom-workspace atom-pane':
-  'cmd-alt-=': 'pane:enlarge'
-  'cmd-alt--': 'pane:shrink'
+  'cmd-alt-=': 'pane:increase-size'
+  'cmd-alt--': 'pane:decrease-size'
 
 # allow standard input fields to work correctly
 'body .native-key-bindings':
