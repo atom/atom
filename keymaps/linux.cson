@@ -143,6 +143,10 @@
   'ctrl-k ctrl-8': 'editor:fold-at-indent-level-8'
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
 
+'atom-workspace atom-pane':
+  'ctrl-alt-=': 'pane:increase-size'
+  'ctrl-alt--': 'pane:decrease-size'
+
 # allow standard input fields to work correctly
 'body .native-key-bindings':
   'ctrl-z': 'native!'
