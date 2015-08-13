@@ -158,5 +158,7 @@ atom.commands.add 'atom-pane',
   'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
   'pane:close': -> @getModel().close()
   'pane:close-other-items': -> @getModel().destroyInactiveItems()
+  'pane:enlarge': -> @getModel().setFlexScale(@getModel().getFlexScale() * 1.1)
+  'pane:shrink': -> @getModel().setFlexScale(@getModel().getFlexScale() / 1.1)
 
 module.exports = PaneElement = document.registerElement 'atom-pane', prototype: PaneElement.prototype
