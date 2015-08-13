@@ -124,6 +124,28 @@ fdescribe "TextEditorComponent", ->
       else
         expect(lineNode.textContent).toBe(tokenizedLine.text)
 
+    it "renders tiles upper in the stack in front of the ones below", ->
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+
+      expect(tilesNodes[0].style.zIndex).toBe("2")
+      expect(tilesNodes[1].style.zIndex).toBe("1")
+      expect(tilesNodes[2].style.zIndex).toBe("0")
+
+      verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
+
+      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+
+      expect(tilesNodes[0].style.zIndex).toBe("3")
+      expect(tilesNodes[1].style.zIndex).toBe("2")
+      expect(tilesNodes[2].style.zIndex).toBe("1")
+      expect(tilesNodes[3].style.zIndex).toBe("0")
+
     it "renders the currently-visible lines in a tiled fashion", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
@@ -838,7 +860,8 @@ fdescribe "TextEditorComponent", ->
 
         describe "when the component is destroyed", ->
           it "stops listening for folding events", ->
-            nextAnimationFrame()
+            nextAnimationFrame() unless nextAnimationFrame is noAnimationFrame # clear pending frame request if needed
+
             component.destroy()
 
             lineNumber = component.lineNumberNodeForScreenRow(1)
@@ -863,7 +886,7 @@ fdescribe "TextEditorComponent", ->
           expect(lineNumberHasClass(1, 'folded')).toBe false
 
         it "does not fold when the line number componentNode is clicked", ->
-          nextAnimationFrame() # clear pending frame request
+          nextAnimationFrame() unless nextAnimationFrame is noAnimationFrame # clear pending frame request if needed
 
           lineNumber = component.lineNumberNodeForScreenRow(1)
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
@@ -1511,6 +1534,17 @@ fdescribe "TextEditorComponent", ->
         overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
         expect(overlay).toBe null
 
+      it "renders the overlay element with the CSS class specified by the decoration", ->
+        marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
+        decoration = editor.decorateMarker(marker, {type: 'overlay', class: 'my-overlay', item})
+        nextAnimationFrame()
+
+        overlay = component.getTopmostDOMNode().querySelector('atom-overlay.my-overlay')
+        expect(overlay).not.toBe null
+
+        child = overlay.querySelector('.overlay-test')
+        expect(child).toBe item
+
     describe "when the marker is not empty", ->
       it "renders at the head of the marker by default", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
@@ -1794,6 +1828,22 @@ fdescribe "TextEditorComponent", ->
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
+      describe "when the command key is held down", ->
+        it "adds a new selection and selects to the nearest screen position, then merges intersecting selections when the mouse button is released", ->
+          editor.setSelectedScreenRange([[4, 4], [4, 9]])
+
+          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1, metaKey: true))
+          linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
+          nextAnimationFrame()
+          expect(editor.getSelectedScreenRanges()).toEqual [[[4, 4], [4, 9]], [[2, 4], [6, 8]]]
+
+          linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([4, 6]), which: 1))
+          nextAnimationFrame()
+          expect(editor.getSelectedScreenRanges()).toEqual [[[4, 4], [4, 9]], [[2, 4], [4, 6]]]
+
+          linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([4, 6]), which: 1))
+          expect(editor.getSelectedScreenRanges()).toEqual [[[2, 4], [4, 9]]]
+
       describe "when the editor is destroyed while dragging", ->
         it "cleans up the handlers for window.mouseup and window.mousemove", ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
@@ -1809,6 +1859,58 @@ fdescribe "TextEditorComponent", ->
           call.args.pop() for call in window.removeEventListener.calls
           expect(window.removeEventListener).toHaveBeenCalledWith('mouseup')
           expect(window.removeEventListener).toHaveBeenCalledWith('mousemove')
+
+    describe "when the mouse is double-clicked and dragged", ->
+      it "expands the selection over the nearest word as the cursor moves", ->
+        jasmine.attachToDOM(wrapperNode)
+        wrapperNode.style.height =  6 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [5, 13]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([11, 11]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [11, 13]]
+
+        maximalScrollTop = editor.getScrollTop()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([9, 3]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [9, 4]]
+        expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
+
+        linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
+
+    describe "when the mouse is triple-clicked and dragged", ->
+      it "expands the selection over the nearest line as the cursor moves", ->
+        jasmine.attachToDOM(wrapperNode)
+        wrapperNode.style.height =  6 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 2))
+        linesNode.dispatchEvent(buildMouseEvent('mouseup'))
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 3))
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [6, 0]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([11, 11]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [12, 0]]
+
+        maximalScrollTop = editor.getScrollTop()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 4]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [9, 0]]
+        expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
+
+        linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
 
     describe "when a line is folded", ->
       beforeEach ->
@@ -1887,6 +1989,32 @@ fdescribe "TextEditorComponent", ->
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(2)))
           expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 0]]
 
+      it "orients the selection appropriately when the mouse moves above or below the initially-clicked row", ->
+        gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(4)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(2)))
+        nextAnimationFrame()
+        expect(editor.getLastSelection().isReversed()).toBe true
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+        nextAnimationFrame()
+        expect(editor.getLastSelection().isReversed()).toBe false
+
+      it "autoscrolls to the cursor position, but not the entire selected range", ->
+        wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
+        component.measureDimensions()
+
+        expect(editor.getScrollTop()).toBe 0
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+        nextAnimationFrame()
+
+        expect(editor.getScrollTop()).toBeGreaterThan 0
+        maxScrollTop = editor.getScrollTop()
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
+        nextAnimationFrame()
+        expect(editor.getScrollTop()).toBe maxScrollTop
+
     describe "when the gutter is meta-clicked and dragged", ->
       beforeEach ->
         editor.setSelectedScreenRange([[3, 0], [3, 2]])
@@ -1899,10 +2027,12 @@ fdescribe "TextEditorComponent", ->
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[3, 0], [3, 2]], [[4, 0], [7, 0]]]
 
-        it "merges overlapping selections", ->
+        it "merges overlapping selections when the mouse button is released", ->
           gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2), metaKey: true))
           gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6), metaKey: true))
           nextAnimationFrame()
+          expect(editor.getSelectedScreenRanges()).toEqual [[[3, 0], [3, 2]], [[2, 0], [7, 0]]]
+
           gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6), metaKey: true))
           expect(editor.getSelectedScreenRanges()).toEqual [[[2, 0], [7, 0]]]
 

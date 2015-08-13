@@ -112,6 +112,13 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe 'uvwxyz'
             expect(displayBuffer.tokenizedLineForScreenRow(2).bufferDelta).toBe 'uvwxyz'.length
 
+          it "closes all scopes at the wrap boundary", ->
+            displayBuffer.setEditorWidthInChars(10)
+            buffer.setText("`aaa${1+2}aaa`")
+            iterator = displayBuffer.tokenizedLineForScreenRow(1).getTokenIterator()
+            scopes = iterator.getScopes()
+            expect(scopes[scopes.length - 1]).not.toBe 'punctuation.section.embedded.js'
+
       describe "when there is a whitespace character at the max length boundary", ->
         it "wraps the line at the first non-whitespace character following the boundary", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '

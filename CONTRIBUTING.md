@@ -7,8 +7,8 @@ which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
 These are just guidelines, not rules, use your best judgment and feel free to
 propose changes to this document in a pull request.
 
-This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to uphold this code.
-[code-of-conduct]: http://todogroup.org/opencodeofconduct/#Atom/opensource@github.com
+This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
+By participating, you are expected to uphold this code. Please report unacceptable behavior to atom@github.com.
 
 ## Submitting Issues
 

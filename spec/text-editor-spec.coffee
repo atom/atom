@@ -85,80 +85,6 @@ describe "TextEditor", ->
         expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
         expect(editor.tokenizedLineForScreenRow(1).tokens.length).toBe 2 # sof tab
 
-  describe "when the editor is constructed with an initialLine option", ->
-    it "positions the cursor on the specified line", ->
-      editor = null
-
-      waitsForPromise ->
-        atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
-
-      runs ->
-        expect(editor.getLastCursor().getBufferPosition().row).toEqual 5
-        expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
-
-  describe "when the editor is constructed with an initialColumn option", ->
-    it "positions the cursor on the specified column", ->
-      editor = null
-
-      waitsForPromise ->
-        atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
-
-      runs ->
-        expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
-        expect(editor.getLastCursor().getBufferPosition().column).toEqual 8
-
-  describe "when the editor is reopened with an initialLine option", ->
-    it "positions the cursor on the specified line", ->
-      editor = null
-
-      waitsForPromise ->
-        atom.workspace.open('sample.less', initialLine: 5).then (o) -> editor = o
-
-      waitsForPromise ->
-        atom.workspace.open('sample.less', initialLine: 4).then (o) -> editor = o
-
-      runs ->
-        expect(editor.getLastCursor().getBufferPosition().row).toEqual 4
-        expect(editor.getLastCursor().getBufferPosition().column).toEqual 0
-
-  describe "when the editor is reopened with an initialColumn option", ->
-    it "positions the cursor on the specified column", ->
-      editor = null
-
-      waitsForPromise ->
-        atom.workspace.open('sample.less', initialColumn: 8).then (o) -> editor = o
-
-      waitsForPromise ->
-        atom.workspace.open('sample.less', initialColumn: 7).then (o) -> editor = o
-
-      runs ->
-        expect(editor.getLastCursor().getBufferPosition().row).toEqual 0
-        expect(editor.getLastCursor().getBufferPosition().column).toEqual 7
-
-  it "ignores non-numeric initialLine and initialColumn options", ->
-    [editor1, editor2, editor3] = []
-
-    waitsForPromise ->
-      atom.workspace.open('sample.less', initialColumn: 8, initialLine: NaN).then (o) -> editor1 = o
-
-    runs ->
-      expect(editor1.getLastCursor().getBufferPosition().row).toEqual 0
-      expect(editor1.getLastCursor().getBufferPosition().column).toEqual 8
-
-    waitsForPromise ->
-      atom.workspace.open('sample.less', initialColumn: NaN, initialLine: 3).then (o) -> editor2 = o
-
-    runs ->
-      expect(editor2.getLastCursor().getBufferPosition().row).toEqual 3
-      expect(editor2.getLastCursor().getBufferPosition().column).toEqual 0
-
-    waitsForPromise ->
-      atom.workspace.open('sample.less', initialColumn: NaN, initialLine: NaN).then (o) -> editor3 = o
-
-    runs ->
-      expect(editor3.getLastCursor().getBufferPosition().row).toEqual 3
-      expect(editor3.getLastCursor().getBufferPosition().column).toEqual 0
-
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -1220,6 +1146,15 @@ describe "TextEditor", ->
         [selection1, selection2] = selections
         expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
         expect(selection2.getScreenRange()).toEqual [[5, 6], [6, 2]]
+
+      describe "when selecting with an initial screen range", ->
+        it "switches the direction of the selection when selecting to positions before/after the start of the initial range", ->
+          editor.setCursorScreenPosition([5, 10])
+          editor.selectWordsContainingCursors()
+          editor.selectToScreenPosition([3, 0])
+          expect(editor.getLastSelection().isReversed()).toBe true
+          editor.selectToScreenPosition([9, 0])
+          expect(editor.getLastSelection().isReversed()).toBe false
 
     describe ".selectToBeginningOfNextParagraph()", ->
       it "selects from the cursor to first line of the next paragraph", ->
@@ -3015,6 +2950,16 @@ describe "TextEditor", ->
 
           expect(insertedStrings).toEqual ["hello"]
 
+        it "notifies ::onDidInsertText observers", ->
+          insertedStrings = []
+          editor.onDidInsertText ({text, range}) ->
+            insertedStrings.push(text)
+
+          atom.clipboard.write("hello")
+          editor.pasteText()
+
+          expect(insertedStrings).toEqual ["hello"]
+
         describe "when `autoIndentOnPaste` is true", ->
           beforeEach ->
             atom.config.set("editor.autoIndentOnPaste", true)
@@ -4013,6 +3958,7 @@ describe "TextEditor", ->
 
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
+      editor.foldAll()
       expect(buffer.getMarkerCount()).toBeGreaterThan 0
       editor.destroy()
       expect(buffer.getMarkerCount()).toBe 0

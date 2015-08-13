@@ -536,9 +536,13 @@ class Cursor extends Model
 
     endOfWordPosition = null
     @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if range.start.isLessThanOrEqual(currentBufferPosition) or allowNext
-        endOfWordPosition = range.end
-      if not endOfWordPosition?.isEqual(currentBufferPosition)
+      if allowNext
+        if range.end.isGreaterThan(currentBufferPosition)
+          endOfWordPosition = range.end
+          stop()
+      else
+        if range.start.isLessThanOrEqual(currentBufferPosition)
+          endOfWordPosition = range.end
         stop()
 
     endOfWordPosition ? currentBufferPosition

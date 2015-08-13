@@ -44,6 +44,10 @@ class LinesTileComponent
       @domNode.style.backgroundColor = @newState.backgroundColor
       @oldState.backgroundColor = @newState.backgroundColor
 
+    if @newTileState.zIndex isnt @oldTileState.zIndex
+      @domNode.style.zIndex = @newTileState.zIndex
+      @oldTileState.zIndex = @newTileState.zIndex
+
     if @newTileState.display isnt @oldTileState.display
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display

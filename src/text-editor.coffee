@@ -621,14 +621,14 @@ class TextEditor extends Model
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save()
+  save: -> @buffer.save(backup: atom.config.get('editor.backUpBeforeSaving'))
 
   # Public: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath)
+  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: atom.config.get('editor.backUpBeforeSaving'))
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
@@ -1316,7 +1316,7 @@ class TextEditor extends Model
   #       head or tail of the given marker, depending on the `position`
   #       property.
   #   * `class` This CSS class will be applied to the decorated line number,
-  #     line, or highlight.
+  #     line, highlight, or overlay.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
   #     the head of the marker. Only applicable to the `line` and `gutter`
   #     types.
@@ -1948,10 +1948,11 @@ class TextEditor extends Model
   # This method may merge selections that end up intesecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
-  selectToScreenPosition: (position) ->
+  selectToScreenPosition: (position, suppressMerge) ->
     lastSelection = @getLastSelection()
     lastSelection.selectToScreenPosition(position)
-    @mergeIntersectingSelections(reversed: lastSelection.isReversed())
+    unless suppressMerge
+      @mergeIntersectingSelections(reversed: lastSelection.isReversed())
 
   # Essential: Move the cursor of each selection one character upward while
   # preserving the selection's tail position.
@@ -2627,14 +2628,19 @@ class TextEditor extends Model
         if containsNewlines or not cursor.hasPrecedingCharactersOnLine()
           options.indentBasis ?= indentBasis
 
+      range = null
       if fullLine and selection.isEmpty()
         oldPosition = selection.getBufferRange().start
         selection.setBufferRange([[oldPosition.row, 0], [oldPosition.row, 0]])
-        selection.insertText(text, options)
+        range = selection.insertText(text, options)
         newPosition = oldPosition.translate([1, 0])
         selection.setBufferRange([newPosition, newPosition])
       else
-        selection.insertText(text, options)
+        range = selection.insertText(text, options)
+
+      didInsertEvent = {text, range}
+      @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
+      @emitter.emit 'did-insert-text', didInsertEvent
 
   # Public: For each selection, if the selection is empty, cut all characters
   # of the containing line following the cursor. Otherwise cut the selected

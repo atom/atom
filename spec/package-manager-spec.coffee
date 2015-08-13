@@ -438,6 +438,35 @@ describe "PackageManager", ->
           runs ->
             expect(atom.packages.isPackageActive("package-with-empty-keymap")).toBe true
 
+      describe "when the package's keymaps have been disabled", ->
+        it "does not add the keymaps", ->
+          element1 = $$ -> @div class: 'test-1'
+
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+
+          atom.config.set("core.packagesWithKeymapsDisabled", ["package-with-keymaps-manifest"])
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps-manifest")
+
+          runs ->
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+
+      describe "when the package's keymaps are disabled and re-enabled after it is activated", ->
+        it "removes and re-adds the keymaps", ->
+          element1 = $$ -> @div class: 'test-1'
+          atom.packages.observePackagesWithKeymapsDisabled()
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps-manifest")
+
+          runs ->
+            atom.config.set("core.packagesWithKeymapsDisabled", ['package-with-keymaps-manifest'])
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+
+            atom.config.set("core.packagesWithKeymapsDisabled", [])
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
+
     describe "menu loading", ->
       beforeEach ->
         atom.contextMenu.definitions = []
@@ -790,6 +819,7 @@ describe "PackageManager", ->
       package2 = atom.packages.loadPackage('package-with-index')
       package3 = atom.packages.loadPackage('package-with-activation-commands')
       spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2, package3])
+      spyOn(atom.themes, 'activatePackages')
       activateSpy = jasmine.createSpy('activateSpy')
       atom.packages.onDidActivateInitialPackages(activateSpy)
 

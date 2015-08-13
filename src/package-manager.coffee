@@ -247,7 +247,7 @@ class PackageManager
   Section: Accessing available packages
   ###
 
-  # Public: Get an {Array} of {String}s of all the available package paths.
+  # Public: Returns an {Array} of {String}s of all the available package paths.
   getAvailablePackagePaths: ->
     packagePaths = []
 
@@ -262,11 +262,11 @@ class PackageManager
 
     _.uniq(packagePaths)
 
-  # Public: Get an {Array} of {String}s of all the available package names.
+  # Public: Returns an {Array} of {String}s of all the available package names.
   getAvailablePackageNames: ->
     _.uniq _.map @getAvailablePackagePaths(), (packagePath) -> path.basename(packagePath)
 
-  # Public: Get an {Array} of {String}s of all the available package metadata.
+  # Public: Returns an {Array} of {String}s of all the available package metadata.
   getAvailablePackageMetadata: ->
     packages = []
     for packagePath in @getAvailablePackagePaths()
@@ -308,6 +308,19 @@ class PackageManager
 
       @deactivatePackage(packageName) for packageName in packagesToDisable when @getActivePackage(packageName)
       @activatePackage(packageName) for packageName in packagesToEnable
+      null
+
+  unobservePackagesWithKeymapsDisabled: ->
+    @packagesWithKeymapsDisabledSubscription?.dispose()
+    @packagesWithKeymapsDisabledSubscription = null
+
+  observePackagesWithKeymapsDisabled: ->
+    @packagesWithKeymapsDisabledSubscription ?= atom.config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
+      keymapsToEnable = _.difference(oldValue, newValue)
+      keymapsToDisable = _.difference(newValue, oldValue)
+
+      @getLoadedPackage(packageName).deactivateKeymaps() for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
+      @getLoadedPackage(packageName).activateKeymaps() for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
       null
 
   loadPackages: ->
@@ -396,6 +409,7 @@ class PackageManager
         promises.push(promise) unless pack.hasActivationCommands()
       return
     @observeDisabledPackages()
+    @observePackagesWithKeymapsDisabled()
     promises
 
   # Activate a single package by name
@@ -424,6 +438,7 @@ class PackageManager
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
+    @unobservePackagesWithKeymapsDisabled()
 
   # Deactivate the package with the given name
   deactivatePackage: (name) ->

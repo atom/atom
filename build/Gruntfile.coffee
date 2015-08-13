@@ -23,7 +23,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-shell')
   grunt.loadNpmTasks('grunt-download-atom-shell')
-  grunt.loadNpmTasks('grunt-atom-shell-installer')
+  grunt.loadNpmTasks('grunt-electron-installer')
   grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
 
@@ -212,13 +212,14 @@ module.exports = (grunt) ->
       token: process.env.ATOM_ACCESS_TOKEN
 
     'create-windows-installer':
-      appDirectory: shellAppDir
-      outputDirectory: path.join(buildDir, 'installer')
-      authors: 'GitHub Inc.'
-      loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
-      iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
-      setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
-      remoteReleases: 'https://atom.io/api/updates'
+      installer:
+        appDirectory: shellAppDir
+        outputDirectory: path.join(buildDir, 'installer')
+        authors: 'GitHub Inc.'
+        loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
+        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
+        setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
+        remoteReleases: 'https://atom.io/api/updates'
 
     shell:
       'kill-atom':
@@ -236,9 +237,11 @@ module.exports = (grunt) ->
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
-  ciTasks.push('create-windows-installer') if process.platform is 'win32'
+  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.TRAVIS
+  ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
-  ciTasks.push('codesign') unless process.env.TRAVIS
+  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.TRAVIS
+  ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.TRAVIS
   ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
 

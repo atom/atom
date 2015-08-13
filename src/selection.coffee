@@ -198,7 +198,7 @@ class Selection extends Model
         if position.isLessThan(@initialScreenRange.start)
           @marker.setScreenRange([position, @initialScreenRange.end], reversed: true)
         else
-          @marker.setScreenRange([@initialScreenRange.start, position])
+          @marker.setScreenRange([@initialScreenRange.start, position], reversed: false)
       else
         @cursor.setScreenPosition(position)
 
@@ -324,7 +324,8 @@ class Selection extends Model
   # Public: Expands the newest selection to include the entire word on which
   # the cursors rests.
   expandOverWord: ->
-    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()), autoscroll: false)
+    @cursor.autoscroll()
 
   # Public: Selects an entire line in the buffer.
   #
@@ -342,7 +343,8 @@ class Selection extends Model
   # It also includes the newline character.
   expandOverLine: ->
     range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
-    @setBufferRange(range)
+    @setBufferRange(range, autoscroll: false)
+    @cursor.autoscroll()
 
   ###
   Section: Modifying the selected text

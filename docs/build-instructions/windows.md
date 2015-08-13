@@ -32,6 +32,8 @@ git clone https://github.com/atom/atom/
 cd atom
 script/build # Creates application in the `Program Files` directory
 ```
+Note: If you use cmd or Powershell instead of the Git shell, use a backslash instead: i.e. `script\build`.
+We will assume the git shell for these instructions.
 
 ### `script/build` Options
   * `--install-dir` - Creates the final built application in this directory.

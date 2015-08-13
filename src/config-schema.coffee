@@ -173,6 +173,10 @@ module.exports =
         type: 'boolean'
         default: true
         title: 'Confirm Checkout HEAD Revision'
+      backUpBeforeSaving:
+        type: 'boolean'
+        default: false
+        description: 'Ensure file contents aren\'t lost if there is an I/O error during save by making a temporary backup copy.'
       invisibles:
         type: 'object'
         properties:
