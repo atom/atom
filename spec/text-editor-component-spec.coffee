@@ -2972,7 +2972,7 @@ describe "TextEditorComponent", ->
       editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
       nextAnimationFrame()
 
-      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated', 'editor:display-updated']
+      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated']
 
     it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
       setEditorHeightInLines(wrapperView, 7)

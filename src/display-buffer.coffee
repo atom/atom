@@ -10,6 +10,7 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 Marker = require './marker'
+LinesYardstick = require './lines-yardstick'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -22,7 +23,6 @@ class DisplayBuffer extends Model
 
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  scopedCharacterWidthsChangeCount: 0
   changeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
@@ -31,6 +31,9 @@ class DisplayBuffer extends Model
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
+    # Initialize a default yardstick to make sure we can update screen lines
+    # before having information about tokens styles.
+    @linesYardstick = new LinesYardstick(this)
     @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles, @largeFileMode})
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -47,6 +50,8 @@ class DisplayBuffer extends Model
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
     @updateAllScreenLines()
     @decorateFold(fold) for fold in folds
+
+  setLinesYardstick: (@linesYardstick) ->
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()
@@ -297,36 +302,10 @@ class DisplayBuffer extends Model
 
   getCursorWidth: -> 1
 
-  getScopedCharWidth: (scopeNames, char) ->
-    @getScopedCharWidths(scopeNames)[char]
-
-  getScopedCharWidths: (scopeNames) ->
-    scope = @charWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.charWidths ?= {}
-    scope.charWidths
-
-  batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
-    @batchingCharacterMeasurement = true
-    fn()
-    @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
-
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
-    @scopedCharacterWidthsChangeCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
   characterWidthsChanged: ->
     @computeScrollWidth()
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
-
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
+    @emit 'character-widths-changed' if Grim.includeDeprecatedAPIs
+    @emitter.emit 'did-change-character-widths'
 
   getScrollHeight: ->
     lineHeight = @getLineHeightInPixels()
@@ -682,71 +661,10 @@ class DisplayBuffer extends Model
     {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @clipScreenPosition(screenPosition) if clip
-
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-    defaultCharWidth = @defaultCharWidth
-
-    top = targetRow * @lineHeightInPixels
-    left = 0
-    column = 0
-
-    iterator = @tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharWidths(iterator.getScopes())
-      valueIndex = 0
-      value = iterator.getText()
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        return {top, left} if column is targetColumn
-        left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column += charLength
-    {top, left}
+    @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
 
   screenPositionForPixelPosition: (pixelPosition) ->
-    targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    defaultCharWidth = @defaultCharWidth
-    row = Math.floor(targetTop / @getLineHeightInPixels())
-    targetLeft = 0 if row < 0
-    targetLeft = Infinity if row > @getLastRow()
-    row = Math.min(row, @getLastRow())
-    row = Math.max(0, row)
-
-    left = 0
-    column = 0
-
-    iterator = @tokenizedLineForScreenRow(row).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharWidths(iterator.getScopes())
-      value = iterator.getText()
-      valueIndex = 0
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        charWidth = charWidths[char] ? defaultCharWidth
-        break if targetLeft <= left + (charWidth / 2)
-        left += charWidth
-        column += charLength
-
-    new Point(row, column)
+    @linesYardstick.screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     @pixelPositionForScreenPosition(@screenPositionForBufferPosition(bufferPosition))

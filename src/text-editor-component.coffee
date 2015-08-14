@@ -12,6 +12,8 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
+StyleSamplerComponent = require './style-sampler-component'
+LinesYardstick = require './lines-yardstick'
 
 module.exports =
 class TextEditorComponent
@@ -31,7 +33,6 @@ class TextEditorComponent
   inputEnabled: true
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
-  remeasureCharacterWidthsWhenShown: false
   stylingChangeAnimationFrameRequested: false
   gutterComponent: null
   mounted: true
@@ -43,6 +44,10 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    @styleSamplerComponent = new StyleSamplerComponent(@editor)
+    @linesYardstick = new LinesYardstick @editor, (scopes) =>
+      @styleSamplerComponent.fontForScopes(scopes) or @font
+
     @presenter = new TextEditorPresenter
       model: @editor
       scrollTop: @editor.getScrollTop()
@@ -51,8 +56,10 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
-
+      linesYardstick: @linesYardstick
     @presenter.onDidUpdateState(@requestUpdate)
+    @presenter.onWillMeasureScreenRows (screenRows) =>
+      @styleSamplerComponent.sampleScreenRows(screenRows)
 
     @domNode = document.createElement('div')
     if @useShadowDOM
@@ -87,8 +94,13 @@ class TextEditorComponent
     @scrollbarCornerComponent = new ScrollbarCornerComponent
     @domNode.appendChild(@scrollbarCornerComponent.getDomNode())
 
+    @domNode.appendChild(@styleSamplerComponent.getDomNode())
+
     @observeEditor()
     @listenForDOMEvents()
+
+    @disposables.add @styleSamplerComponent.onDidSampleScopes =>
+      @presenter.characterWidthsChanged()
 
     @disposables.add @stylesElement.onDidAddStyleElement @onStylesheetsChanged
     @disposables.add @stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
@@ -161,7 +173,6 @@ class TextEditorComponent
         @hostElement.__spacePenView.trigger 'editor:display-updated'
 
   readAfterUpdateSync: =>
-    @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
     @overlayManager?.measureOverlays()
 
   mountGutterContainerComponent: ->
@@ -176,7 +187,6 @@ class TextEditorComponent
     @measureWindowSize()
     @measureDimensions()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
-    @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @editor.setVisible(true)
     @performedInitialMeasurement = true
     @updatesPaused = false
@@ -471,9 +481,9 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
+    @styleSamplerComponent.invalidateStyles()
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @remeasureCharacterWidths()
 
   onSelectionAdded: (selection) =>
     selectionDisposables = new CompositeDisposable
@@ -602,13 +612,11 @@ class TextEditorComponent
     oldFontFamily = @fontFamily
     oldLineHeight = @lineHeight
 
-    {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
+    {@font, @fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
-
-    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
-      @remeasureCharacterWidths()
+      @styleSamplerComponent.invalidateStyles()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
@@ -626,13 +634,6 @@ class TextEditorComponent
       @linesComponent.measureLineHeightAndDefaultCharWidth()
     else
       @measureLineHeightAndDefaultCharWidthWhenShown = true
-
-  remeasureCharacterWidths: ->
-    if @isVisible()
-      @remeasureCharacterWidthsWhenShown = false
-      @linesComponent.remeasureCharacterWidths()
-    else
-      @remeasureCharacterWidthsWhenShown = true
 
   measureScrollbars: ->
     @measureScrollbarsWhenShown = false
