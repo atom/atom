@@ -497,6 +497,16 @@ class PackageManager
       if not isSymLink and isDir
         fs.remove directory, ->
 
+  rebuildPackages: ->
+    rebuildAndLoadPackage = (pack) =>
+      pack.rebuild().then =>
+        @loadPackage(pack.path) if pack.isCompatible()
+        return
+
+    rebuildPromise = Promise.resolve()
+    @incompatiblePackages.forEach (pack) ->
+      rebuildPromise = rebuildPromise.then -> rebuildAndLoadPackage(pack)
+
 if Grim.includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
   EmitterMixin.includeInto(PackageManager)

@@ -5,6 +5,7 @@ _ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
+BufferedProcess = require './buffered-process'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Q = require 'q'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
@@ -141,17 +142,24 @@ class Package
 
     unless @activationDeferred?
       @activationDeferred = Q.defer()
-      @measure 'activateTime', =>
-        try
-          @activateResources()
-          if @activationShouldBeDeferred()
-            @subscribeToDeferredActivation()
-          else
-            @activateNow()
-        catch error
-          @handleError("Failed to activate the #{@name} package", error)
+      if @isCompatible()
+        @measure 'activateTime', =>
+          try
+            @activateResources()
+            if @activationShouldBeDeferred()
+              @subscribeToDeferredActivation()
+            else
+              @activateNow()
+          catch error
+            @handleError("Failed to activate the #{@name} package", error)
 
-    Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
+    promises = [@grammarsPromise, @settingsPromise, @activationDeferred.promise]
+
+    unless @isCompatible()
+      @rebuildPromise ?= @rebuild()
+      promises.unshift(@rebuildPromise)
+
+    Q.all(promises)
 
   activateNow: ->
     try
@@ -449,12 +457,7 @@ class Package
 
   requireMainModule: ->
     return @mainModule if @mainModuleRequired
-    unless @isCompatible()
-      console.warn """
-        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
-        Run `apm rebuild` in the package directory to resolve.
-      """
-      return
+    return unless @isCompatible()
     mainModulePath = @getMainModulePath()
     if fs.isFileSync(mainModulePath)
       @mainModuleRequired = true
@@ -672,6 +675,29 @@ class Package
       stack = error.stack ? error
 
     atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+
+  rebuild: ->
+    new Promise (resolve, reject) =>
+      output = ''
+      rebuildOptions =
+        command: atom.packages.getApmPath()
+        args: ['rebuild']
+        options:
+          cwd: @path
+        stderr: (lines) -> output += lines
+        stdout: (lines) -> output += lines
+        exit: (code) =>
+          if code is 0
+            @compatible = null
+            @activate() if @isCompatible()
+            resolve()
+          else
+            reject(new Error("apm rebuild failed with a #{code} for package #{@name}: #{output}"))
+
+      rebuildProcess = new BufferedProcess(rebuildOptions)
+      rebuildProcess.onWillThrowError (error, handle) ->
+        handle()
+        reject(error)
 
 if includeDeprecatedAPIs
   EmitterMixin = require('emissary').Emitter
