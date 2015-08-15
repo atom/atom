@@ -884,64 +884,65 @@ class TextEditor extends Model
   # Move lines intersecting the most recent selection or muiltiple selections down by one row in screen
   # coordinates.
   moveLineDown: ->
-    newSelectionBufferRanges = []
     selections = @getSelectedBufferRanges()
-    selections.sort (a, b) ->
-      return a.compare(b)
-    for selection in selections.reverse()
-      lastRow = @buffer.getLastRow()
-      return if selection.end.row is lastRow
-      return if selection.end.row is lastRow - 1 and @buffer.getLastLine() is ''
+    selections.sort (a, b) -> a.compare(b)
+    if selections[selections.length - 1].start.row is @buffer.getLastRow()
+      return
 
-      @transact =>
-        foldedRows = []
-        rows = [selection.end.row..selection.start.row]
-        if selection.start.row isnt selection.end.row and selection.end.column is 0
-          rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
+    if selections[selections.length - 1].start.row is @getLastBufferRow() and @buffer.getLastLine() is ''
+      return
 
-        # Move line around the fold that is directly below the selection
-        followingScreenRow = @screenPositionForBufferPosition([selection.end.row]).translate([1])
-        followingBufferRow = @bufferPositionForScreenPosition(followingScreenRow).row
-        if fold = @largestFoldContainingBufferRow(followingBufferRow)
-          insertDelta = fold.getBufferRange().getRowCount()
+    @transact =>
+      newSelectionRanges = []
+
+      while selections.length > 0
+        # Find selections spanning a contiguous set of lines
+        selection = selections.shift()
+        selectionsToMove = [selection]
+
+        while selection.end.row is selections[0]?.start.row
+          selection = selections.shift()
+          selectionsToMove.push(selection)
+
+        # Compute the range spanned by all these selections...
+        linesRangeStart = [selection.start.row, 0]
+        if selection.end.row > selection.start.row and selection.end.column is 0
+          # Don't move the last line of a multi-line selection if the selection ends at column 0
+          linesRange = new Range(linesRangeStart, selection.end)
         else
-          insertDelta = 1
+          linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
-        for row in rows
-          if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
-            bufferRange = fold.getBufferRange()
-            startRow = bufferRange.start.row
-            endRow = bufferRange.end.row
-            foldedRows.push(endRow + insertDelta)
-          else
-            startRow = row
-            endRow = row
+        # If selected line range is preceded by a fold, one line above on screen
+        # could be multiple lines in the buffer.
+        followingScreenRow = @screenRowForBufferRow(linesRange.end.row) + 1
+        followingBufferRow = @bufferRowForScreenRow(followingScreenRow)
+        insertDelta = followingBufferRow - linesRange.end.row
 
-          if endRow + 1 is lastRow
-            endPosition = [endRow, @buffer.lineLengthForRow(endRow)]
-          else
-            endPosition = [endRow + 1]
-          lines = @buffer.getTextInRange([[startRow], endPosition])
-          @buffer.deleteRows(startRow, endRow)
+        # Any folds in the text that is moved will need to be re-created.
+        rangesToRefold =
+          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
+            fold.getBufferRange().translate([+insertDelta, 0])
 
-          insertPosition = Point.min([startRow + insertDelta], @buffer.getEndPosition())
-          if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
-            lines = "\n#{lines}"
+        # Make sure the inserted text doesn't go into an existing fold
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow - insertDelta)
+          rangesToRefold.push(fold.getBufferRange().translate([-(linesRange.getRowCount() - 1), 0]))
+          fold.destroy()
 
-          # Make sure the inserted text doesn't go into an existing fold
-          if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
-            @unfoldBufferRow(insertPosition.row)
-            foldedRows.push(insertPosition.row + fold.getBufferRange().getRowCount())
-
-          @buffer.insert(insertPosition, lines)
+        # Delete lines spanned by selection and insert them on the following correct buffer row
+        insertPosition = [selection.translate([insertDelta, 0]).start.row, 0]
+        lines = @buffer.getTextInRange(linesRange)
+        lines += @buffer.lineEndingForRow(linesRange.end.row - 1) unless lines[lines.length - 1] is '\n'
+        @buffer.delete(linesRange)
+        @buffer.insert(insertPosition, lines)
 
         # Restore folds that existed before the lines were moved
-        for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
-          @foldBufferRow(foldedRow)
+        for rangeToRefold in rangesToRefold
+          @displayBuffer.createFold(rangeToRefold.start.row, rangeToRefold.end.row)
 
-        newSelectionBufferRanges.push(selection.translate([insertDelta]))
+        for selection in selectionsToMove
+          newSelectionRanges.push(selection.translate([insertDelta, 0]))
 
-      @setSelectedBufferRanges(newSelectionBufferRanges, preserveFolds: true, autoscroll: true)
+       @setSelectedBufferRanges(newSelectionRanges)
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
