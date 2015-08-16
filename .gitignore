@@ -1,6 +1,6 @@
 node_modules/
 bin/node*
-lib/
+/lib/
 .DS_Store
 npm-debug.log
 *~
