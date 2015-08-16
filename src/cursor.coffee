@@ -641,6 +641,8 @@ class Cursor extends Model
   # * `options` (optional) {Object} with the following keys:
   #   * `includeNonWordCharacters` A {Boolean} indicating whether to include
   #     non-word characters in the regex. (default: true)
+  #   * `includeEol` A {Boolean} indicating whether to include the end of the
+  #     line in the regex. (default: false)
   #
   # Returns a {RegExp}.
   wordRegExp: (options={}) ->
