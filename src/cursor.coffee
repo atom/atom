@@ -643,13 +643,16 @@ class Cursor extends Model
   #     non-word characters in the regex. (default: true)
   #
   # Returns a {RegExp}.
-  wordRegExp: ({includeNonWordCharacters}={}) ->
-    includeNonWordCharacters ?= true
+  wordRegExp: (options={}) ->
+    options.includeNonWordCharacters ?= true
+    options.includeEol ?= false
     nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
     segments = ["^[\t ]*$"]
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
-    if includeNonWordCharacters
+    if options.includeNonWordCharacters
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
+    if options.includeEol
+      segments.push("$")
     new RegExp(segments.join("|"), "g")
 
   # Public: Get the RegExp used by the cursor to determine what a "subword" is.
