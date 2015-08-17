@@ -41,7 +41,7 @@ class Rebuild extends Command
         process.stdout.write 'Rebuilding modules '
 
         rebuildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'rebuild']
-        rebuildArgs.push("--target=#{config.getNodeVersion()}")
+        rebuildArgs.push("--target=#{@electronVersion)}")
         rebuildArgs.push("--arch=#{config.getNodeArch()}")
         rebuildArgs = rebuildArgs.concat(options.argv._)
 

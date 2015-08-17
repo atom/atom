@@ -66,3 +66,19 @@ class Command
       version.replace(/-.*$/, '')
     else
       version
+
+  loadInstalledAtomMetadata: (callback) ->
+    @getResourcePath (resourcePath) =>
+      try
+        {version, electronVersion} = require(path.join(resourcePath, 'package.json')) ? {}
+        version = @normalizeVersion(version)
+        @installedAtomVersion = version if semver.valid(version)
+
+      @electronVersion = process.env.ATOM_NODE_VERSION ? electronVersion ? '0.22.0'
+      callback()
+
+  getResourcePath: (callback) ->
+    if @resourcePath
+      process.nextTick => callback(@resourcePath)
+    else
+      config.getResourcePath (@resourcePath) => callback(@resourcePath)

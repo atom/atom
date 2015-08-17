@@ -55,7 +55,7 @@ class Install extends Command
 
   installNode: (callback) =>
     installNodeArgs = ['install']
-    installNodeArgs.push("--target=#{config.getNodeVersion()}")
+    installNodeArgs.push("--target=#{@electronVersion}")
     installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
     installNodeArgs.push("--arch=#{config.getNodeArch()}")
     installNodeArgs.push("--ensure")
@@ -119,7 +119,7 @@ class Install extends Command
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
-    installArgs.push("--target=#{config.getNodeVersion()}")
+    installArgs.push("--target=#{@electronVersion}")
     installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
@@ -215,7 +215,7 @@ class Install extends Command
 
   forkInstallCommand: (options, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
-    installArgs.push("--target=#{config.getNodeVersion()}")
+    installArgs.push("--target=#{@electronVersion)}")
     installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
@@ -435,7 +435,7 @@ class Install extends Command
 
       buildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'build']
       buildArgs.push(path.resolve(__dirname, '..', 'native-module'))
-      buildArgs.push("--target=#{config.getNodeVersion()}")
+      buildArgs.push("--target=#{@electronVersion)}")
       buildArgs.push("--arch=#{config.getNodeArch()}")
 
       if vsArgs = @getVisualStudioFlags()
@@ -461,12 +461,6 @@ class Install extends Command
 
     packages = fs.readFileSync(filePath, 'utf8')
     @sanitizePackageNames(packages.split(/\s/))
-
-  getResourcePath: (callback) ->
-    if @resourcePath
-      process.nextTick => callback(@resourcePath)
-    else
-      config.getResourcePath (@resourcePath) => callback(@resourcePath)
 
   buildModuleCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
@@ -529,6 +523,7 @@ class Install extends Command
         {version} = require(path.join(resourcePath, 'package.json')) ? {}
         version = @normalizeVersion(version)
         @installedAtomVersion = version if semver.valid(version)
+        @electron
       callback()
 
   run: (options) ->
@@ -576,7 +571,7 @@ class Install extends Command
 
     commands = []
     commands.push (callback) => config.loadNpm (error, @npm) => callback()
-    commands.push (callback) => @loadInstalledAtomVersion(callback)
+    commands.push (callback) => @loadInstalledAtomMetadata(callback)
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
     async.waterfall(commands, callback)
