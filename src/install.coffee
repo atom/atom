@@ -517,15 +517,6 @@ class Install extends Command
 
     latestVersion
 
-  loadInstalledAtomVersion: (callback) ->
-    @getResourcePath (resourcePath) =>
-      try
-        {version} = require(path.join(resourcePath, 'package.json')) ? {}
-        version = @normalizeVersion(version)
-        @installedAtomVersion = version if semver.valid(version)
-        @electron
-      callback()
-
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
