@@ -525,7 +525,9 @@ class Install extends Command
     @createAtomDirectories()
 
     if options.argv.check
-      config.loadNpm (error, @npm) => @checkNativeBuildTools(callback)
+      config.loadNpm (error, @npm) =>
+        @loadInstalledAtomMetadata =>
+          @checkNativeBuildTools(callback)
       return
 
     @verbose = options.argv.verbose
