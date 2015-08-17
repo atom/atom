@@ -1,5 +1,6 @@
 child_process = require 'child_process'
 _ = require 'underscore-plus'
+config = require './apm'
 
 module.exports =
 class Command
