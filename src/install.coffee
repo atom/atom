@@ -215,7 +215,7 @@ class Install extends Command
 
   forkInstallCommand: (options, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
-    installArgs.push("--target=#{@electronVersion)}")
+    installArgs.push("--target=#{@electronVersion}")
     installArgs.push("--arch=#{config.getNodeArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
@@ -435,7 +435,7 @@ class Install extends Command
 
       buildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'build']
       buildArgs.push(path.resolve(__dirname, '..', 'native-module'))
-      buildArgs.push("--target=#{@electronVersion)}")
+      buildArgs.push("--target=#{@electronVersion}")
       buildArgs.push("--arch=#{config.getNodeArch()}")
 
       if vsArgs = @getVisualStudioFlags()
