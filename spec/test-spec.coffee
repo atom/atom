@@ -16,15 +16,12 @@ describe "apm test", ->
     specPath = path.join(currentDir, 'spec')
 
   it "calls atom to test", ->
-    atomSpawn = spyOn(child_process, 'spawn').andReturn({
-      stdout: {
+    atomSpawn = spyOn(child_process, 'spawn').andReturn
+      stdout:
         on: ->
-      },
-      stderr: {
+      stderr:
         on: ->
-      },
       on: ->
-    })
     apm.run(['test'])
 
     waitsFor 'waiting for test to complete', ->
@@ -49,14 +46,12 @@ describe "apm test", ->
     returnWithCode = (type, code) ->
       callback = jasmine.createSpy('callback')
       atomReturnFn = (e, fn) -> fn(code) if e is type
-      spyOn(child_process, 'spawn').andReturn({
-        stdout: {
+      spyOn(child_process, 'spawn').andReturn
+        stdout:
           on: ->
-        },
-        stderr: {
+        stderr:
           on: ->
-        },
-        on: atomReturnFn})
+        on: atomReturnFn
       apm.run(['test'], callback)
 
     describe 'successfully', ->
