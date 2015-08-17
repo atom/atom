@@ -110,7 +110,7 @@ var downloadNode = function(version, done) {
   }
 };
 
-downloadNode('v0.10.35', function(error) {
+downloadNode('v0.10.40', function(error) {
   if (error != null) {
     console.error('Failed to download node', error);
     return process.exit(1);
