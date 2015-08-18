@@ -77,7 +77,7 @@ class Command
         version = @normalizeVersion(version)
         @installedAtomVersion = version if semver.valid(version)
 
-      @electronVersion = process.env.ATOM_NODE_VERSION ? electronVersion ? '0.22.0'
+      @electronVersion = process.env.ATOM_ELECTRON_VERSION ? process.env.ATOM_NODE_VERSION ? electronVersion ? '0.22.0'
       callback()
 
   getResourcePath: (callback) ->
