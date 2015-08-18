@@ -2920,6 +2920,28 @@ describe "TextEditor", ->
               items
             """
 
+      describe ".copyOnlySelectedText()", ->
+        describe "when thee are multiple selections", ->
+          it "copies selected text onto the clipboard", ->
+            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]], [[2, 8], [2, 13]]])
+
+            editor.copyOnlySelectedText()
+            expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+            expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+            expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+            expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
+            expect(atom.clipboard.read()).toEqual """
+              quicksort
+              sort
+              items
+            """
+
+        describe "when no text is selected", ->
+          it "does not copy anything", ->
+            editor.setCursorBufferPosition([1, 5])
+            editor.copyOnlySelectedText()
+            expect(atom.clipboard.read()).toEqual "initial clipboard content"
+
       describe ".pasteText()", ->
         copyText = (text, {startColumn, textEditor}={}) ->
           startColumn ?= 0

@@ -2608,6 +2608,15 @@ class TextEditor extends Model
       maintainClipboard = true
     return
 
+  # Private: For each selection, only copy highlighted text.
+  copyOnlySelectedText: ->
+    maintainClipboard = false
+    for selection in @getSelectionsOrderedByBufferPosition()
+      if not selection.isEmpty()
+        selection.copy(maintainClipboard, true)
+        maintainClipboard = true
+    return
+
   # Essential: For each selection, cut the selected text.
   cutSelectedText: ->
     maintainClipboard = false
