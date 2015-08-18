@@ -138,6 +138,8 @@ class ViewRegistry
   createView: (object) ->
     if object instanceof HTMLElement
       object
+    else if object?.element instanceof HTMLElement
+      object.element
     else if object?.jquery
       object[0]
     else if provider = @findProvider(object)
