@@ -2588,7 +2588,7 @@ class TextEditor extends Model
     return
 
 
-  # Essential: For each selection, only copy hightlighted text. Line is coptied if no selected text and cursor is at the beginning of the line
+  # Private: For each selection, only copy highlighted text.
   copyOnlySelectedText: ->
     maintainClipboard = false
     for selection in @getSelectionsOrderedByBufferPosition()
