@@ -33,6 +33,12 @@ describe "Babel transpiler support", ->
       observedDigest = babel.createBabelVersionAndOptionsDigest(version, defaultOptions)
       expect(observedDigest).toEqual expectedDigest
 
+  describe 'when a .js file starts with /** use babel */;', ->
+    it "transpiles it using babel", ->
+      transpiled = require('./fixtures/babel/babel-comment.js')
+      expect(transpiled(3)).toBe 4
+      expect(grim.getDeprecationsLength()).toBe 0
+
   describe "when a .js file starts with 'use babel';", ->
     it "transpiles it using babel", ->
       transpiled = require('./fixtures/babel/babel-single-quotes.js')

@@ -142,7 +142,7 @@ transpile = (sourceCode, filePath, cachePath) ->
 # either generated on the fly or pulled from cache.
 loadFile = (module, filePath) ->
   sourceCode = fs.readFileSync(filePath, 'utf8')
-  if sourceCode.startsWith('"use babel"') or sourceCode.startsWith("'use babel'")
+  if sourceCode.startsWith('"use babel"') or sourceCode.startsWith("'use babel'") or sourceCode.startsWith('/** use babel */')
     # Continue.
   else if sourceCode.startsWith('"use 6to5"') or sourceCode.startsWith("'use 6to5'")
     # Create a manual deprecation since the stack is too deep to use Grim
