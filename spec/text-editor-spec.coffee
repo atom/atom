@@ -2994,6 +2994,7 @@ describe "TextEditor", ->
               sort
               items
             """
+
       describe ".copyOnlySelectedText()", ->
         describe "when thee are multiple selections", ->
           it "copies selected text onto the clipboard", ->

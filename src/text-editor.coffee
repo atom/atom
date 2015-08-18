@@ -2587,7 +2587,6 @@ class TextEditor extends Model
       maintainClipboard = true
     return
 
-
   # Private: For each selection, only copy highlighted text.
   copyOnlySelectedText: ->
     maintainClipboard = false
