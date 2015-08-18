@@ -153,7 +153,7 @@ module.exports = (grunt) ->
         if usesBabel(jsFile)
           babelConfig.dist.files.push({
             src: [jsFile]
-            dest: jsFile
+            dest: path.join(appDir, jsFile)
           })
 
   grunt.initConfig
