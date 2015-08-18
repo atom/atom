@@ -4,7 +4,7 @@ BABEL_PREFIXES = [
   "'use babel'"
   '"use babel"'
   '/** use babel */'
-].map(Buffer)
+]
 
 PREFIX_LENGTH = Math.max(BABEL_PREFIXES.map((prefix) -> prefix.length)...)
 
@@ -15,4 +15,4 @@ module.exports = (filename) ->
   fs.readSync(file, buffer, 0, PREFIX_LENGTH)
   fs.closeSync(file)
   BABEL_PREFIXES.some (prefix) ->
-    prefix.equals(buffer.slice(0, prefix.length))
+    prefix is buffer.toString('utf8', 0, prefix.length)
