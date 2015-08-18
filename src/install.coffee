@@ -57,7 +57,7 @@ class Install extends Command
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{@electronVersion}")
     installNodeArgs.push("--dist-url=#{config.getElectronUrl()}")
-    installNodeArgs.push("--arch=#{config.getNodeArch()}")
+    installNodeArgs.push("--arch=#{config.getElectronArch()}")
     installNodeArgs.push("--ensure")
     installNodeArgs.push("--verbose") if @verbose
 
@@ -120,7 +120,7 @@ class Install extends Command
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{@electronVersion}")
-    installArgs.push("--arch=#{config.getNodeArch()}")
+    installArgs.push("--arch=#{config.getElectronArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
     installArgs.push('--production') if options.argv.production
@@ -216,7 +216,7 @@ class Install extends Command
   forkInstallCommand: (options, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push("--target=#{@electronVersion}")
-    installArgs.push("--arch=#{config.getNodeArch()}")
+    installArgs.push("--arch=#{config.getElectronArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
     installArgs.push('--production') if options.argv.production
@@ -436,7 +436,7 @@ class Install extends Command
       buildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'build']
       buildArgs.push(path.resolve(__dirname, '..', 'native-module'))
       buildArgs.push("--target=#{@electronVersion}")
-      buildArgs.push("--arch=#{config.getNodeArch()}")
+      buildArgs.push("--arch=#{config.getElectronArch()}")
 
       if vsArgs = @getVisualStudioFlags()
         buildArgs.push(vsArgs)

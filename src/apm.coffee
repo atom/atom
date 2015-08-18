@@ -60,7 +60,7 @@ module.exports =
   getAtomApiUrl: ->
     process.env.ATOM_API_URL ? 'https://atom.io/api'
 
-  getNodeArch: ->
+  getElectronArch: ->
     switch process.platform
       when 'darwin' then 'x64'
       when 'win32' then 'ia32'

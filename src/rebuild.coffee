@@ -44,7 +44,7 @@ class Rebuild extends Command
       config.getUserConfigPath()
       'rebuild'
       "--target=#{@electronVersion}"
-      "--arch=#{config.getNodeArch()}"
+      "--arch=#{config.getElectronArch()}"
     ]
     rebuildArgs = rebuildArgs.concat(options.argv._)
 
