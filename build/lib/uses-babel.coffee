@@ -1,9 +1,9 @@
 fs = require 'fs'
 
 BABEL_PREFIXES = [
-	"'use babel'"
-	'"use babel"'
-	'/** use babel */'
+  "'use babel'"
+  '"use babel"'
+  '/** use babel */'
 ].map(Buffer)
 
 PREFIX_LENGTH = Math.max(BABEL_PREFIXES.map((prefix) -> prefix.length)...)
