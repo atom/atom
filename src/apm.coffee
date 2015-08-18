@@ -52,6 +52,7 @@ module.exports =
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
 
   getElectronUrl: ->
+    # TODO Remove ATOM_NODE_URL env var support after a couple releases
     process.env.ATOM_ELECTRON_URL ? process.env.ATOM_NODE_URL ? 'https://atom.io/download/atom-shell'
 
   getAtomPackagesUrl: ->
