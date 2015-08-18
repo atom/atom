@@ -1,6 +1,8 @@
 fs = require 'fs'
 path = require 'path'
 os = require 'os'
+glob = require 'glob'
+usesBabel = require './lib/uses-babel'
 
 # Add support for obselete APIs of vm module so we can make some third-party
 # modules work under node v0.11.x.
@@ -15,6 +17,7 @@ packageJson = require '../package.json'
 _.extend(global, require('harmony-collections')) unless global.WeakMap?
 
 module.exports = (grunt) ->
+  grunt.loadNpmTasks('grunt-babel')
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
   grunt.loadNpmTasks('grunt-cson')
@@ -76,6 +79,11 @@ module.exports = (grunt) ->
       ]
       dest: appDir
       ext: '.js'
+
+  babelConfig =
+    options: {}
+    dist:
+      files: []
 
   lessConfig =
     options:
@@ -141,12 +149,21 @@ module.exports = (grunt) ->
 
       pegConfig.glob_to_multiple.src.push("#{directory}/lib/*.pegjs")
 
+      for jsFile in glob.sync("#{directory}/lib/**/*.js")
+        if usesBabel(jsFile)
+          babelConfig.dist.files.push({
+            src: [jsFile]
+            dest: jsFile
+          })
+
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
     atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir}
 
     docsOutputDir: 'docs/output'
+
+    babel: babelConfig
 
     coffee: coffeeConfig
 
@@ -229,7 +246,7 @@ module.exports = (grunt) ->
           stderr: false
           failOnError: false
 
-  grunt.registerTask('compile', ['coffee', 'prebuild-less', 'cson', 'peg'])
+  grunt.registerTask('compile', ['babel', 'coffee', 'prebuild-less', 'cson', 'peg'])
   grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
