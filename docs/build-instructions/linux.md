@@ -14,18 +14,54 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
 
+
+### Installing Node.js from source
+
+As a fail-safe in cases where the available package manager installation method (like via APT, DNF, yum, ZYpp, *etc.*) for Node.js fails, a source installation may be necessary. This installation method requires `make` (3.81+), `gcc` (4.2+), `g++` (4.2+), `python` (2.6/2.7) and a reliable internet connection. Simply run the following from a terminal emulator (where 0.12.5 should be replaced with the latest available Node.js version which may be found [here](http://nodejs.org/dist/latest/)):
+```sh
+wget -c http://nodejs.org/dist/v0.12.5/node-v0.12.5.tar.gz
+tar -xzf node*.tar.gz
+cd node*
+./configure
+make
+sudo make install
+```
+
 ### Ubuntu / Debian
 
-* `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
-* Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+1. Install dependencies other than Node, along with cURL (which will be necessary to install Node). To do this run:
+
+ ```sh
+ sudo apt-get install build-essential curl git libgnome-keyring-dev fakeroot
+ ```
+
+2. To install [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions), run:
+
+ ```sh
+ curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+ sudo apt-get install nodejs
+ ```
+ 
+ If errors are encountered at this stage or later during the actual source installation of Atom, a **source installation of Node.js** may be required.
+
+ If this step goes without incident, then:
   * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
   * Use `which node` to check if it is available.
   * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
-### Fedora / CentOS / RHEL
+### Fedora
+```sh
+sudo dnf install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel
+```
+
+Should automatically install most dependencies on Fedora 22+, although on earlier versions of Fedora `dnf` may need to be substituted with `yum`.
+
+After this you need to install the latest stable release of Node.js from source, to do so follow the instructions in the **Installing Node.js from source** section. 
+
+### CentOS / RHEL
 
 * `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
-* Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
+* Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
 
 ### Arch
 
@@ -37,8 +73,15 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 * `sbopkg -k -i node -i atom`
 
 ### openSUSE
+Run:
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+```sh
+sudo zypper install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel
+```
+
+To install most of the required dependencies. Note how `rpmdevtools` is not listed here, even though it was in previous versions of this file, as it is only required if you are intending on running `script/grunt mkrpm` (to make an RPM package) afterwards. However, in order to install rpmdevtools on openSUSE, you will need to install unstable versions of this software package as they are all that are [available](https://software.opensuse.org/package/rpmdevtools) for openSUSE.
+
+After this you need to install the latest stable release of Node.js from source, to do so follow the instructions in the **Installing Node.js from source** section. 
 
 ## Instructions
 
@@ -64,7 +107,11 @@ If you have problems with permissions don't forget to prefix with `sudo`
   script/build
   ```
 
-  This will create the atom application at `$TMPDIR/atom-build/Atom`.
+  This will create the atom application at `$TMPDIR/atom-build/Atom`, it will likely take a few minutes at least. Do not get alarmed if you receive this output in the process: 
+  
+  `child_process: customFds option is deprecated, use stdio instead.`
+  
+  as it is harmless. 
 
 4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
 
@@ -74,7 +121,21 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. Upgrading a source installation of Atom, involves running:
+  To update a source code installation first update the Atom directory (`~/atom`) by running:
+
+  ```sh
+  git checkout --
+  ```
+
+  then re-run the last two lines of the installation code:
+
+  ```sh
+  script/build
+  sudo script/grunt install
+  ```
+
+6. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
