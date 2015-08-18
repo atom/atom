@@ -30,7 +30,7 @@ describe "apm upgrade", ->
     atomApp = temp.mkdirSync('apm-app-dir-')
     packagesDir = path.join(atomHome, 'packages')
     process.env.ATOM_HOME = atomHome
-    process.env.ATOM_NODE_URL = "http://localhost:3000/node"
+    process.env.ATOM_ELECTRON_URL = "http://localhost:3000/node"
     process.env.ATOM_PACKAGES_URL = "http://localhost:3000/packages"
     process.env.ATOM_NODE_VERSION = 'v0.10.3'
     process.env.ATOM_RESOURCE_PATH = atomApp

@@ -56,7 +56,7 @@ class Install extends Command
   installNode: (callback) =>
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{@electronVersion}")
-    installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
+    installNodeArgs.push("--dist-url=#{config.getElectronUrl()}")
     installNodeArgs.push("--arch=#{config.getNodeArch()}")
     installNodeArgs.push("--ensure")
     installNodeArgs.push("--verbose") if @verbose

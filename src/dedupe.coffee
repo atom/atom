@@ -34,7 +34,7 @@ class Dedupe extends Command
   installNode: (callback) ->
     installNodeArgs = ['install']
     installNodeArgs.push("--target=#{@electronVersion}")
-    installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
+    installNodeArgs.push("--dist-url=#{config.getElectronUrl()}")
     installNodeArgs.push('--arch=ia32')
     installNodeArgs.push('--ensure')
 
