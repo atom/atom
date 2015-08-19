@@ -40,6 +40,21 @@
     }
   }
 
+  function isPortableMode() {
+    // No portable mode on non-Windows
+    if (process.platform !== 'win32') return false
+
+    // DevMode? Nope
+    var devMode = loadSettings &&
+      (loadSettings.devMode || !loadSettings.resourcePath.startsWith(process.resourcesPath + path.sep))
+
+    if (devMode) return false
+
+    // Compare our EXE's path to where it would normally be in an installed app
+    var ourPath = process.execPath.toLowerCase()
+    return (ourPath.indexOf(process.env.LOCALAPPDATA.toLowerCase()) === 0)
+  }
+
   function setLoadTime (loadTime) {
     if (global.atom) {
       global.atom.loadTime = loadTime
@@ -95,7 +110,11 @@
       try {
         atomHome = fs.realpathSync(atomHome)
       } catch (error) {
-        // Ignore since the path might just not exist yet.
+        // If we're in portable mode *and* the user doesn't already have a .atom
+        // folder in the normal place, we'll use the portable folder instead
+        if (isPortableMode()) {
+          atomHome = path.join(path.dirname(process.execPath), '.atom')
+        }
       }
       process.env.ATOM_HOME = atomHome
     }
