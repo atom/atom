@@ -127,13 +127,13 @@ class ViewRegistry
   # ## View Resolution Algorithm
   #
   # The view associated with the object is resolved using the following
-  # heuristic sequence
+  # sequence
   #
   #  1. Is the object an instance of `HTMLElement`? If true, return the object.
   #  2. Does the object have a property named `element` with a value which is
   #     an instance of `HTMLElement`? If true, return the property value.
-  #  3. Is the object a SpacePen view, which means it has a `jquery` property?
-  #     If true, return the root DOM node (i.e. `object[0]`).
+  #  3. Is the object a jQuery object, indicated by the presence of a `jquery`
+  #     property? If true, return the root DOM element (i.e. `object[0]`).
   #  4. Has a view provider been registered for the object? If true, use the
   #     provider to create a view associated with the object, and return the
   #     view.
