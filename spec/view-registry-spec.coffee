@@ -26,6 +26,14 @@ describe "ViewRegistry", ->
         expect(node.textContent).toBe "Hello"
         expect(node.spacePenView).toBe view
 
+    describe "when passed an object with an element property", ->
+      it "returns the element property if it's an instance of HTMLElement", ->
+        class TestComponent
+          constructor: -> @element = document.createElement('div')
+
+        component = new TestComponent
+        expect(registry.getView(component)).toBe component.element
+
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
         it "constructs a view element and assigns the model on it", ->
