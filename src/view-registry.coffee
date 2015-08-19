@@ -124,6 +124,24 @@ class ViewRegistry
   # * `object` The object for which you want to retrieve a view. This can be a
   #   pane item, a pane, or the workspace itself.
   #
+  # ## View Resolution Algorithm
+  #
+  # The view associated with the object is resolved using the following
+  # heuristic sequence
+  #
+  #  1. Is the object an instance of `HTMLElement`? If true, return the object.
+  #  2. Does the object have a property named `element` with a value which is
+  #     an instance of `HTMLElement`? If true, return the property value.
+  #  3. Is the object a SpacePen view, which means it has a `jquery` property?
+  #     If true, return the root DOM node (i.e. `object[0]`).
+  #  4. Has a view provider been registered for the object? If true, use the
+  #     provider to create a view associated with the object, and return the
+  #     view.
+  #  5. Does the object have a `getViewClass` method? If true, use the method
+  #     to create a view associated with the object, and return the view.
+  #
+  # If no associated view is returned by the sequence an error is thrown.
+  #
   # Returns a DOM element.
   getView: (object) ->
     return unless object?
