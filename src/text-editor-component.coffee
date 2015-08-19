@@ -523,15 +523,17 @@ class TextEditorComponent
       onMouseUp() if event.which is 0
 
     onMouseUp = (event) =>
-      stopDragging()
-      @editor.finalizeSelections()
-      @editor.mergeIntersectingSelections()
+      if dragging
+        stopDragging()
+        @editor.finalizeSelections()
+        @editor.mergeIntersectingSelections()
       pasteSelectionClipboard(event)
 
     stopDragging = ->
       dragging = false
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
+      willInsertTextSubscription.dispose()
 
     pasteSelectionClipboard = (event) =>
       if event?.which is 2 and process.platform is 'linux'
@@ -540,6 +542,7 @@ class TextEditorComponent
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
+    willInsertTextSubscription = @editor.onWillInsertText(onMouseUp)
 
   isVisible: ->
     @domNode.offsetHeight > 0 or @domNode.offsetWidth > 0
