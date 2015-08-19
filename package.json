@@ -54,6 +54,7 @@
     "semver": "^4.3.3",
     "serializable": "^1",
     "service-hub": "^0.6.2",
+    "source-map-support": "^0.3.2",
     "space-pen": "3.8.2",
     "stacktrace-parser": "0.1.1",
     "temp": "0.8.1",

@@ -41,15 +41,6 @@ window.onload = function() {
   }
 }
 
-var getCacheDirectory = function() {
-  var cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache');
-  // Use separate compile cache when sudo'ing as root to avoid permission issues
-  if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
-    cacheDir = path.join(cacheDir, 'root');
-  }
-  return cacheDir;
-}
-
 var setLoadTime = function(loadTime) {
   if (global.atom) {
     global.atom.loadTime = loadTime;
@@ -67,9 +58,8 @@ var handleSetupError = function(error) {
 }
 
 var setupWindow = function(loadSettings) {
-  var cacheDir = getCacheDirectory();
-
-  setupCoffeeCache(cacheDir);
+  var compileCache = require('../src/compile-cache')
+  compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
   ModuleCache = require('../src/module-cache');
   ModuleCache.register(loadSettings);
@@ -88,19 +78,9 @@ var setupWindow = function(loadSettings) {
   });
 
   setupVmCompatibility();
-  setupCsonCache(cacheDir);
-  setupSourceMapCache(cacheDir);
-  setupBabel(cacheDir);
-  setupTypeScript(cacheDir);
 
   require(loadSettings.bootstrapScript);
   require('ipc').sendChannel('window-command', 'window:loaded');
-}
-
-var setupCoffeeCache = function(cacheDir) {
-  var CoffeeCache = require('coffee-cash');
-  CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'));
-  CoffeeCache.register();
 }
 
 var setupAtomHome = function() {
@@ -119,26 +99,6 @@ var setupAtomHome = function() {
     }
     process.env.ATOM_HOME = atomHome;
   }
-}
-
-var setupBabel = function(cacheDir) {
-  var babel = require('../src/babel');
-  babel.setCacheDirectory(path.join(cacheDir, 'js', 'babel'));
-  babel.register();
-}
-
-var setupTypeScript = function(cacheDir) {
-  var typescript = require('../src/typescript');
-  typescript.setCacheDirectory(path.join(cacheDir, 'typescript'));
-  typescript.register();
-}
-
-var setupCsonCache = function(cacheDir) {
-  require('season').setCacheDir(path.join(cacheDir, 'cson'));
-}
-
-var setupSourceMapCache = function(cacheDir) {
-  require('coffeestack').setCacheDirectory(path.join(cacheDir, 'coffee', 'source-maps'));
 }
 
 var setupVmCompatibility = function() {
