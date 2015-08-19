@@ -137,8 +137,6 @@ class ViewRegistry
   #  4. Has a view provider been registered for the object? If true, use the
   #     provider to create a view associated with the object, and return the
   #     view.
-  #  5. Does the object have a `getViewClass` method? If true, use the method
-  #     to create a view associated with the object, and return the view.
   #
   # If no associated view is returned by the sequence an error is thrown.
   #
