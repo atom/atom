@@ -1,5 +1,8 @@
 child_process = require 'child_process'
+path = require 'path'
 _ = require 'underscore-plus'
+semver = require 'npm/node_modules/semver'
+config = require './apm'
 
 module.exports =
 class Command
@@ -66,3 +69,21 @@ class Command
       version.replace(/-.*$/, '')
     else
       version
+
+  loadInstalledAtomMetadata: (callback) ->
+    @getResourcePath (resourcePath) =>
+      try
+        {version, electronVersion} = require(path.join(resourcePath, 'package.json')) ? {}
+        version = @normalizeVersion(version)
+        @installedAtomVersion = version if semver.valid(version)
+
+      # TODO Remove ATOM_NODE_VERSION env var support after a couple releases
+      @electronVersion = process.env.ATOM_ELECTRON_VERSION ? process.env.ATOM_NODE_VERSION ? electronVersion ? '0.22.0'
+
+      callback()
+
+  getResourcePath: (callback) ->
+    if @resourcePath
+      process.nextTick => callback(@resourcePath)
+    else
+      config.getResourcePath (@resourcePath) => callback(@resourcePath)

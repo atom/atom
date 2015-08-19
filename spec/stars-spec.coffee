@@ -37,9 +37,9 @@ describe 'apm stars', ->
     atomHome = temp.mkdirSync('apm-home-dir-')
     process.env.ATOM_HOME = atomHome
     process.env.ATOM_API_URL = "http://localhost:3000"
-    process.env.ATOM_NODE_URL = "http://localhost:3000/node"
+    process.env.ATOM_ELECTRON_URL = "http://localhost:3000/node"
     process.env.ATOM_PACKAGES_URL = "http://localhost:3000/packages"
-    process.env.ATOM_NODE_VERSION = 'v0.10.3'
+    process.env.ATOM_ELECTRON_VERSION = 'v0.10.3'
 
   afterEach ->
     server.close()

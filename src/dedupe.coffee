@@ -33,8 +33,8 @@ class Dedupe extends Command
 
   installNode: (callback) ->
     installNodeArgs = ['install']
-    installNodeArgs.push("--target=#{config.getNodeVersion()}")
-    installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
+    installNodeArgs.push("--target=#{@electronVersion}")
+    installNodeArgs.push("--dist-url=#{config.getElectronUrl()}")
     installNodeArgs.push('--arch=ia32')
     installNodeArgs.push('--ensure')
 
@@ -71,7 +71,7 @@ class Dedupe extends Command
 
   forkDedupeCommand: (options, callback) ->
     dedupeArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'dedupe']
-    dedupeArgs.push("--target=#{config.getNodeVersion()}")
+    dedupeArgs.push("--target=#{@electronVersion}")
     dedupeArgs.push('--arch=ia32')
     dedupeArgs.push('--silent') if options.argv.silent
     dedupeArgs.push('--quiet') if options.argv.quiet
@@ -100,6 +100,7 @@ class Dedupe extends Command
     @createAtomDirectories()
 
     commands = []
+    commands.push (callback) => @loadInstalledAtomMetadata(callback)
     commands.push (callback) => @installNode(callback)
     commands.push (callback) => @dedupeModules(options, callback)
     async.waterfall commands, callback

@@ -51,8 +51,9 @@ module.exports =
   getReposDirectory: ->
     process.env.ATOM_REPOS_HOME ? path.join(@getHomeDirectory(), 'github')
 
-  getNodeUrl: ->
-    process.env.ATOM_NODE_URL ? 'https://atom.io/download/atom-shell'
+  getElectronUrl: ->
+    # TODO Remove ATOM_NODE_URL env var support after a couple releases
+    process.env.ATOM_ELECTRON_URL ? process.env.ATOM_NODE_URL ? 'https://atom.io/download/atom-shell'
 
   getAtomPackagesUrl: ->
     process.env.ATOM_PACKAGES_URL ? "#{@getAtomApiUrl()}/packages"
@@ -60,10 +61,7 @@ module.exports =
   getAtomApiUrl: ->
     process.env.ATOM_API_URL ? 'https://atom.io/api'
 
-  getNodeVersion: ->
-    process.env.ATOM_NODE_VERSION ? '0.22.0'
-
-  getNodeArch: ->
+  getElectronArch: ->
     switch process.platform
       when 'darwin' then 'x64'
       when 'win32' then 'ia32'

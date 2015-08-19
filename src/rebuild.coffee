@@ -28,27 +28,40 @@ class Rebuild extends Command
     """
     options.alias('h', 'help').describe('help', 'Print this usage message')
 
+  installNode: (callback) ->
+    config.loadNpm (error, npm) ->
+      install = new Install()
+      install.npm = npm
+      install.loadInstalledAtomMetadata -> install.installNode(callback)
+
+  forkNpmRebuild: (options, callback) ->
+    process.stdout.write 'Rebuilding modules '
+
+    rebuildArgs = [
+      '--globalconfig'
+      config.getGlobalConfigPath()
+      '--userconfig'
+      config.getUserConfigPath()
+      'rebuild'
+      "--target=#{@electronVersion}"
+      "--arch=#{config.getElectronArch()}"
+    ]
+    rebuildArgs = rebuildArgs.concat(options.argv._)
+
+    env = _.extend({}, process.env, HOME: @atomNodeDirectory)
+    env.USERPROFILE = env.HOME if config.isWin32()
+
+    @fork(@atomNpmPath, rebuildArgs, {env}, callback)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    config.loadNpm (error, npm) =>
-      install = new Install()
-      install.npm = npm
-      install.installNode (error) =>
+    @loadInstalledAtomMetadata =>
+      @installNode (error) =>
         return callback(error) if error?
 
-        process.stdout.write 'Rebuilding modules '
-
-        rebuildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'rebuild']
-        rebuildArgs.push("--target=#{config.getNodeVersion()}")
-        rebuildArgs.push("--arch=#{config.getNodeArch()}")
-        rebuildArgs = rebuildArgs.concat(options.argv._)
-
-        env = _.extend({}, process.env, HOME: @atomNodeDirectory)
-        env.USERPROFILE = env.HOME if config.isWin32()
-
-        @fork @atomNpmPath, rebuildArgs, {env}, (code, stderr='') =>
+        @forkNpmRebuild options, (code, stderr='') =>
           if code is 0
             @logSuccess()
             callback()

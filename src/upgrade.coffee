@@ -68,12 +68,7 @@ class Upgrade extends Command
         @installedAtomVersion = version if semver.valid(version)
         callback()
     else
-      config.getResourcePath (resourcePath) =>
-        try
-          {version} = require(path.join(resourcePath, 'package.json')) ? {}
-          version = @normalizeVersion(version)
-          @installedAtomVersion = version if semver.valid(version)
-        callback()
+      @loadInstalledAtomMetadata(callback)
 
   getLatestVersion: (pack, callback) ->
     requestSettings =

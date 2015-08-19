@@ -55,9 +55,9 @@ class Install extends Command
 
   installNode: (callback) =>
     installNodeArgs = ['install']
-    installNodeArgs.push("--target=#{config.getNodeVersion()}")
-    installNodeArgs.push("--dist-url=#{config.getNodeUrl()}")
-    installNodeArgs.push("--arch=#{config.getNodeArch()}")
+    installNodeArgs.push("--target=#{@electronVersion}")
+    installNodeArgs.push("--dist-url=#{config.getElectronUrl()}")
+    installNodeArgs.push("--arch=#{config.getElectronArch()}")
     installNodeArgs.push("--ensure")
     installNodeArgs.push("--verbose") if @verbose
 
@@ -119,8 +119,8 @@ class Install extends Command
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
-    installArgs.push("--target=#{config.getNodeVersion()}")
-    installArgs.push("--arch=#{config.getNodeArch()}")
+    installArgs.push("--target=#{@electronVersion}")
+    installArgs.push("--arch=#{config.getElectronArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
     installArgs.push('--production') if options.argv.production
@@ -215,8 +215,8 @@ class Install extends Command
 
   forkInstallCommand: (options, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
-    installArgs.push("--target=#{config.getNodeVersion()}")
-    installArgs.push("--arch=#{config.getNodeArch()}")
+    installArgs.push("--target=#{@electronVersion}")
+    installArgs.push("--arch=#{config.getElectronArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
     installArgs.push('--production') if options.argv.production
@@ -435,8 +435,8 @@ class Install extends Command
 
       buildArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'build']
       buildArgs.push(path.resolve(__dirname, '..', 'native-module'))
-      buildArgs.push("--target=#{config.getNodeVersion()}")
-      buildArgs.push("--arch=#{config.getNodeArch()}")
+      buildArgs.push("--target=#{@electronVersion}")
+      buildArgs.push("--arch=#{config.getElectronArch()}")
 
       if vsArgs = @getVisualStudioFlags()
         buildArgs.push(vsArgs)
@@ -461,12 +461,6 @@ class Install extends Command
 
     packages = fs.readFileSync(filePath, 'utf8')
     @sanitizePackageNames(packages.split(/\s/))
-
-  getResourcePath: (callback) ->
-    if @resourcePath
-      process.nextTick => callback(@resourcePath)
-    else
-      config.getResourcePath (@resourcePath) => callback(@resourcePath)
 
   buildModuleCache: (packageName, callback) ->
     packageDirectory = path.join(@atomPackagesDirectory, packageName)
@@ -523,14 +517,6 @@ class Install extends Command
 
     latestVersion
 
-  loadInstalledAtomVersion: (callback) ->
-    @getResourcePath (resourcePath) =>
-      try
-        {version} = require(path.join(resourcePath, 'package.json')) ? {}
-        version = @normalizeVersion(version)
-        @installedAtomVersion = version if semver.valid(version)
-      callback()
-
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -539,7 +525,9 @@ class Install extends Command
     @createAtomDirectories()
 
     if options.argv.check
-      config.loadNpm (error, @npm) => @checkNativeBuildTools(callback)
+      config.loadNpm (error, @npm) =>
+        @loadInstalledAtomMetadata =>
+          @checkNativeBuildTools(callback)
       return
 
     @verbose = options.argv.verbose
@@ -576,7 +564,7 @@ class Install extends Command
 
     commands = []
     commands.push (callback) => config.loadNpm (error, @npm) => callback()
-    commands.push (callback) => @loadInstalledAtomVersion(callback)
+    commands.push (callback) => @loadInstalledAtomMetadata(callback)
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
     async.waterfall(commands, callback)
