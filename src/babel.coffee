@@ -188,6 +188,7 @@ module.exports =
   setCacheDirectory: setCacheDirectory
   getCacheMisses: -> stats.misses
   getCacheHits: -> stats.hits
+  defaultOptions: defaultOptions
 
   # Visible for testing.
   createBabelVersionAndOptionsDigest: createBabelVersionAndOptionsDigest

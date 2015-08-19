@@ -3,6 +3,7 @@ path = require 'path'
 os = require 'os'
 glob = require 'glob'
 usesBabel = require './lib/uses-babel'
+babelOptions = require('../src/babel').defaultOptions
 
 # Add support for obselete APIs of vm module so we can make some third-party
 # modules work under node v0.11.x.
@@ -81,7 +82,7 @@ module.exports = (grunt) ->
       ext: '.js'
 
   babelConfig =
-    options: {}
+    options: babelOptions
     dist:
       files: []
 
