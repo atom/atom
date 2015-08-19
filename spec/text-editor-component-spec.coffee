@@ -1792,6 +1792,24 @@ describe "TextEditorComponent", ->
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
+      it "stops selecting if a textInput event occurs during the drag", ->
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
+
+        inputEvent = new Event('textInput')
+        inputEvent.data = 'x'
+        Object.defineProperty(inputEvent, 'target', get: -> componentNode.querySelector('.hidden-input'))
+        componentNode.dispatchEvent(inputEvent)
+        nextAnimationFrame()
+
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 5], [2, 5]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
+        expect(nextAnimationFrame).toBe noAnimationFrame
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 5], [2, 5]]
+
       describe "when the command key is held down", ->
         it "adds a new selection and selects to the nearest screen position, then merges intersecting selections when the mouse button is released", ->
           editor.setSelectedScreenRange([[4, 4], [4, 9]])
@@ -1978,6 +1996,24 @@ describe "TextEditorComponent", ->
         gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBe maxScrollTop
+
+      it "stops selecting if a textInput event occurs during the drag", ->
+        gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 0], [7, 0]]
+
+        inputEvent = new Event('textInput')
+        inputEvent.data = 'x'
+        Object.defineProperty(inputEvent, 'target', get: -> componentNode.querySelector('.hidden-input'))
+        componentNode.dispatchEvent(inputEvent)
+        nextAnimationFrame()
+
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 1], [2, 1]]
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(12)))
+        expect(nextAnimationFrame).toBe noAnimationFrame
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 1], [2, 1]]
 
     describe "when the gutter is meta-clicked and dragged", ->
       beforeEach ->
