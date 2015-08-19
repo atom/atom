@@ -82,12 +82,14 @@ class Pane extends Model
   Section: Event Subscription
   ###
 
-  # Public: Invoke the given callback when the pane resize
+  # Public: Invoke the given callback when the pane resizes
   #
   # The callback will be invoked when pane's flexScale property changes.
   # Use {::getFlexScale} to get the current value.
   #
   # * `callback` {Function} to be called when the pane is resized
+  #   * `flexScale` {Number} representing the panes `flex-grow`; ability for a
+  #     flex item to grow if necessary.
   #
   # Returns a {Disposable} on which '.dispose()' can be called to unsubscribe.
   onDidChangeFlexScale: (callback) ->
