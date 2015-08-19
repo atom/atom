@@ -2073,84 +2073,84 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
 
       describe "when the gutter is clicked", ->
-        it "selects the clicked screen row", ->
+        it "selects the clicked buffer row", ->
           gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1)))
-          expect(editor.getSelectedScreenRange()).toEqual [[1, 0], [2, 0]]
+          expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [2, 0]]
 
       describe "when the gutter is meta-clicked", ->
-        it "creates a new selection for the clicked screen row", ->
+        it "creates a new selection for the clicked buffer row", ->
           editor.setSelectedScreenRange([[1, 0], [1, 2]])
 
           gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2), metaKey: true))
-          expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [1, 2]], [[2, 0], [2, 12]]]
+          expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [1, 2]], [[2, 0], [5, 0]]]
 
           gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(7), metaKey: true))
-          expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [1, 2]], [[2, 0], [2, 12]], [[7, 4], [7, 12]]]
+          expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [1, 2]], [[2, 0], [5, 0]], [[5, 0], [10, 0]]]
 
       describe "when the gutter is shift-clicked", ->
         beforeEach ->
           editor.setSelectedScreenRange([[7, 4], [7, 6]])
 
         describe "when the clicked row is before the current selection's tail", ->
-          it "selects to the beginning of the clicked screen row", ->
+          it "selects to the beginning of the clicked buffer row", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), shiftKey: true))
-            expect(editor.getSelectedScreenRange()).toEqual [[1, 0], [7, 4]]
+            expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [7, 4]]
 
         describe "when the clicked row is after the current selection's tail", ->
-          it "selects to the beginning of the screen row following the clicked screen row", ->
+          it "selects to the beginning of the screen row following the clicked buffer row", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(11), shiftKey: true))
-            expect(editor.getSelectedScreenRange()).toEqual [[7, 4], [11, 14]]
+            expect(editor.getSelectedScreenRange()).toEqual [[7, 4], [16, 0]]
 
       describe "when the gutter is clicked and dragged", ->
         describe "when dragging downward", ->
-          it "selects the screen rows between the start and end of the drag", ->
+          it "selects the buffer row containing the click, then screen rows until the end of the drag", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1)))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(6)))
-            expect(editor.getSelectedScreenRange()).toEqual [[1, 0], [6, 14]]
+            expect(editor.getSelectedScreenRange()).toEqual [[0, 0], [6, 14]]
 
         describe "when dragging upward", ->
-          it "selects the screen rows between the start and end of the drag", ->
+          it "selects the buffer row containing the click, then screen rows until the end of the drag", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(6)))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(1)))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(1)))
-            expect(editor.getSelectedScreenRange()).toEqual [[1, 0], [6, 14]]
+            expect(editor.getSelectedScreenRange()).toEqual [[1, 0], [10, 0]]
 
       describe "when the gutter is meta-clicked and dragged", ->
         beforeEach ->
           editor.setSelectedScreenRange([[7, 4], [7, 6]])
 
         describe "when dragging downward", ->
-          it "selects the screen rows between the start and end of the drag", ->
+          it "adds a selection from the buffer row containing the click to the screen row containing the end of the drag", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), metaKey: true))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(3), metaKey: true))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(3), metaKey: true))
-            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[1, 0], [3, 14]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[0, 0], [3, 14]]]
 
-          it "merges overlapping selections", ->
+          it "merges overlapping selections on mouseup", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(1), metaKey: true))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(7), metaKey: true))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(7), metaKey: true))
-            expect(editor.getSelectedScreenRanges()).toEqual [[[1, 0], [7, 12]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[0, 0], [7, 12]]]
 
         describe "when dragging upward", ->
-          it "selects the screen rows between the start and end of the drag", ->
+          it "adds a selection from the buffer row containing the click to the screen row containing the end of the drag", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(17), metaKey: true))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(11), metaKey: true))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(11), metaKey: true))
-            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[11, 4], [17, 13]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[7, 4], [7, 6]], [[11, 4], [19, 0]]]
 
-          it "merges overlapping selections", ->
+          it "merges overlapping selections on mouseup", ->
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(17), metaKey: true))
             gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5), metaKey: true))
             nextAnimationFrame()
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(5), metaKey: true))
-            expect(editor.getSelectedScreenRanges()).toEqual [[[5, 0], [17, 13]]]
+            expect(editor.getSelectedScreenRanges()).toEqual [[[5, 0], [19, 0]]]
 
       describe "when the gutter is shift-clicked and dragged", ->
         describe "when the shift-click is below the existing selection's tail", ->

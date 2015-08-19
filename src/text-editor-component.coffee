@@ -420,41 +420,42 @@ class TextEditorComponent
 
   onGutterClick: (event) =>
     clickedScreenRow = @screenPositionForMouseEvent(event).row
-    startPosition = @editor.clipScreenPosition([clickedScreenRow, 0], skipSoftWrapIndentation: true)
-    endPosition = [clickedScreenRow + 1, 0]
-    @editor.setSelectedScreenRange([startPosition, endPosition], preserveFolds: true)
-    @handleGutterDrag(clickedScreenRow)
+    clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
+    initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
+    @editor.setSelectedScreenRange(initialScreenRange, preserveFolds: true)
+    @handleGutterDrag(initialScreenRange)
 
   onGutterMetaClick: (event) =>
     clickedScreenRow = @screenPositionForMouseEvent(event).row
-    startPosition = @editor.clipScreenPosition([clickedScreenRow, 0], skipSoftWrapIndentation: true)
-    endPosition = [clickedScreenRow + 1, 0]
-    @editor.addSelectionForScreenRange([startPosition, endPosition], preserveFolds: true)
-    @handleGutterDrag(clickedScreenRow)
+    clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
+    initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
+    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true)
+    @handleGutterDrag(initialScreenRange)
 
   onGutterShiftClick: (event) =>
-    clickedScreenRow = @screenPositionForMouseEvent(event).row
     tailScreenPosition = @editor.getLastSelection().getTailScreenPosition()
+    clickedScreenRow = @screenPositionForMouseEvent(event).row
+    clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
+    clickedLineScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
 
     if clickedScreenRow < tailScreenPosition.row
-      selectedPosition = @editor.clipScreenPosition([clickedScreenRow, 0], skipSoftWrapIndentation: true)
-      @editor.selectToScreenPosition(selectedPosition, true)
+      @editor.selectToScreenPosition(clickedLineScreenRange.start, true)
     else
-      @editor.selectToScreenPosition([clickedScreenRow + 1, 0], true)
+      @editor.selectToScreenPosition(clickedLineScreenRange.end, true)
 
-    @handleGutterDrag(tailScreenPosition.row, tailScreenPosition.column)
+    @handleGutterDrag(new Range(tailScreenPosition, tailScreenPosition))
 
-  handleGutterDrag: (tailRow, tailColumn) ->
-    tailPosition = [tailRow, tailColumn] if tailColumn?
-
+  handleGutterDrag: (initialRange) ->
     @handleDragUntilMouseUp (screenPosition) =>
       dragRow = screenPosition.row
-      if dragRow < tailRow
+      if dragRow < initialRange.start.row
         startPosition = @editor.clipScreenPosition([dragRow, 0], skipSoftWrapIndentation: true)
-        @editor.getLastSelection().setScreenRange([startPosition, tailPosition ? [tailRow + 1, 0]], reversed: true, autoscroll: false, preserveFolds: true)
+        screenRange = new Range(startPosition, startPosition).union(initialRange)
+        @editor.getLastSelection().setScreenRange(screenRange, reversed: true, autoscroll: false, preserveFolds: true)
       else
-        startPosition = tailPosition ? @editor.clipScreenPosition([tailRow, 0], skipSoftWrapIndentation: true)
-        @editor.getLastSelection().setScreenRange([startPosition, [dragRow + 1, 0]], reversed: false, autoscroll: false, preserveFolds: true)
+        endPosition = [dragRow + 1, 0]
+        screenRange = new Range(endPosition, endPosition).union(initialRange)
+        @editor.getLastSelection().setScreenRange(screenRange, reversed: false, autoscroll: false, preserveFolds: true)
       @editor.getLastCursor().autoscroll()
 
   onStylesheetsChanged: (styleElement) =>
