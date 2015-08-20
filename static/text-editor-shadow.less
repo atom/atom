@@ -26,6 +26,13 @@
 
 .line-numbers {
   position: relative;
+  * {
+    // Prevents mousewheel events to have line number nodes or tiles as a
+    // target. This is necessary because line numbers/tiles could be deleted
+    // during scrolling, thereby preventing the browser to fire new mousewheel
+    // events.
+    pointer-events: none;
+  }
 }
 
 .line-number {
@@ -97,6 +104,13 @@
   min-width: 100%;
   position: relative;
   z-index: 1;
+
+  * {
+    // Prevents mousewheel events to have line nodes or tiles as a target. This
+    // is necessary because lines/tiles could be deleted during scrolling,
+    // thereby preventing the browser to fire new mousewheel events.
+    pointer-events: none;
+  }
 }
 
 .line {
