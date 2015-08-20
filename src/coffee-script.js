@@ -26,6 +26,7 @@ exports.getCachePath = function(sourceCode) {
 exports.compile = function(sourceCode, filePath) {
   let output = CoffeeScript.compile(sourceCode, {
     filename: filePath,
+    sourceFiles: [filePath],
     sourceMap: true
   })
 
