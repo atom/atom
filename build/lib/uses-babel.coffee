@@ -3,7 +3,7 @@ fs = require 'fs'
 BABEL_PREFIXES = [
   "'use babel'"
   '"use babel"'
-  '/** use babel */'
+  '/** @babel */'
 ]
 
 PREFIX_LENGTH = Math.max(BABEL_PREFIXES.map((prefix) -> prefix.length)...)

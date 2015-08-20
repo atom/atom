@@ -10,7 +10,7 @@ let babelVersionDirectory = null
 const defaultOptions = require('../static/babelrc.json')
 
 exports.shouldCompile = function(sourceCode) {
-  return sourceCode.startsWith('/** use babel */') ||
+  return sourceCode.startsWith('/** @babel */') ||
     sourceCode.startsWith('"use babel"') ||
     sourceCode.startsWith("'use babel'")
 }

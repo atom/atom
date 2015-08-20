@@ -1,5 +1,5 @@
 describe "Babel transpiler support", ->
-  describe 'when a .js file starts with /** use babel */;', ->
+  describe 'when a .js file starts with /** @babel */;', ->
     it "transpiles it using babel", ->
       transpiled = require('./fixtures/babel/babel-comment.js')
       expect(transpiled(3)).toBe 4
