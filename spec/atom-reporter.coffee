@@ -1,11 +1,9 @@
 path = require 'path'
 _ = require 'underscore-plus'
-{convertStackTrace} = require 'coffeestack'
 {View, $, $$} = require '../src/space-pen-extensions'
 grim = require 'grim'
 marked = require 'marked'
 
-sourceMaps = {}
 formatStackTrace = (spec, message='', stackTrace) ->
   return stackTrace unless stackTrace
 
@@ -15,8 +13,8 @@ formatStackTrace = (spec, message='', stackTrace) ->
   for line in stackTrace.split('\n')
     convertedLines.push(line) unless jasminePattern.test(line)
     break if firstJasmineLinePattern.test(line)
+  stackTrace = convertedLines.join('\n')
 
-  stackTrace = convertStackTrace(convertedLines.join('\n'), sourceMaps)
   lines = stackTrace.split('\n')
 
   # Remove first line of stack when it is the same as the error message
