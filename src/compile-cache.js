@@ -82,7 +82,7 @@ function writeCachedJavascript (relativeCachePath, code) {
   fs.writeFileSync(cachePath, code, 'utf8')
 }
 
-const InlineSourceMapRegExp = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/g
+const INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
 
 require('source-map-support').install({
   handleUncaughtExceptions: false,
@@ -103,8 +103,8 @@ require('source-map-support').install({
     }
 
     let match, lastMatch
-    InlineSourceMapRegExp.lastIndex = 0
-    while ((match = InlineSourceMapRegExp.exec(fileData))) {
+    INLINE_SOURCE_MAP_REGEXP.lastIndex = 0
+    while ((match = INLINE_SOURCE_MAP_REGEXP.exec(fileData))) {
       lastMatch = match
     }
     if (lastMatch == null){
