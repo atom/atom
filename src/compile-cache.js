@@ -113,10 +113,10 @@ require('source-map-support').install({
 
     let sourceMappingURL = lastMatch[1]
     let rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
-    let sourceMapData = new Buffer(rawData, 'base64').toString()
+    let sourceMap = JSON.parse(new Buffer(rawData, 'base64').toString())
 
     return {
-      map: JSON.parse(sourceMapData),
+      map: sourceMap,
       url: null
     }
   }
