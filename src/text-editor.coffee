@@ -924,8 +924,8 @@ class TextEditor extends Model
             fold.getBufferRange().translate([+insertDelta, 0])
 
         # Make sure the inserted text doesn't go into an existing fold
-        if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow - insertDelta)
-          rangesToRefold.push(fold.getBufferRange().translate([-(linesRange.getRowCount() - 1), 0]))
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow)
+          rangesToRefold.push(fold.getBufferRange().translate([insertDelta - 1, 0]))
           fold.destroy()
 
         # Delete lines spanned by selection and insert them on the following correct buffer row
