@@ -3,7 +3,7 @@ path = require 'path'
 os = require 'os'
 glob = require 'glob'
 usesBabel = require './lib/uses-babel'
-babelOptions = require('../src/babel').defaultOptions
+babelOptions = require('../static/babelrc.json')
 
 # Add support for obselete APIs of vm module so we can make some third-party
 # modules work under node v0.11.x.
