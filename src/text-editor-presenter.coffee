@@ -410,18 +410,13 @@ class TextEditorPresenter
     @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
     return
 
-  updateCursorState: (cursor, destroyOnly = false) ->
-    delete @state.content.cursors[cursor.id]
-
-    return if destroyOnly
+  updateCursorState: (cursor) ->
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
     return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
 
     pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
     pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
-
-    @emitDidUpdateState()
 
   updateOverlaysState: ->
     return unless @hasOverlayPositionRequirements()
@@ -1365,20 +1360,22 @@ class TextEditorPresenter
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
       @shouldUpdateHiddenInputState = true if cursor.isLastCursor()
+      @shouldUpdateCursorsState = true
       @pauseCursorBlinking()
-      @updateCursorState(cursor)
 
       @emitDidUpdateState()
 
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
-      @updateCursorState(cursor)
+      @shouldUpdateCursorsState = true
+
+      @emitDidUpdateState()
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
       @shouldUpdateHiddenInputState = true
-      @updateCursorState(cursor, true)
+      @shouldUpdateCursorsState = true
 
       @emitDidUpdateState()
 
@@ -1389,8 +1386,9 @@ class TextEditorPresenter
   didAddCursor: (cursor) ->
     @observeCursor(cursor)
     @shouldUpdateHiddenInputState = true
+    @shouldUpdateCursorsState = true
     @pauseCursorBlinking()
-    @updateCursorState(cursor)
+
     @emitDidUpdateState()
 
   startBlinkingCursors: ->
