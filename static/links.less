@@ -1,10 +1,48 @@
 @import "ui-variables";
 
 a {
-  cursor: pointer;
   color: @text-color-highlight;
   &:hover {
     color: @text-color-highlight;
     text-decoration: underline;
+  }
+
+  &[href^="http"],
+  & * {
+    cursor: pointer;
+  }
+}
+
+// For any non-button elements that open external links
+.link-external {
+  cursor: pointer !important;
+}
+
+// For any textual elements that are not styled like buttons but open something
+// "internally" in Atom
+.link-internal {
+  cursor: default !important;
+  text-decoration: none;
+  color: @text-color-info;
+
+  &:active,
+  &:hover,
+  &:focus {
+    border-radius: 2px;
+    text-decoration: none;
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: contrast(@text-color-info, darken(@text-color-info, 26%), lighten(@text-color-info, 26%), 43%);
+  }
+
+  &:hover, &:focus {
+    background-color: @background-color-selected;
+  }
+
+  &:active {
+    background-color: lighten(@background-color-selected, 4%);
   }
 }

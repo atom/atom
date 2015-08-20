@@ -119,6 +119,29 @@ module.exports = (grunt) ->
       dest: appDir
       ext: '.js'
 
+  csslintConfig =
+    'adjoining-classes': false
+    'duplicate-background-images': false
+    'box-model': false
+    'box-sizing': false
+    'bulletproof-font-face': false
+    'compatible-vendor-prefixes': false
+    'display-property-grouping': false
+    'fallback-colors': false
+    'floats': false
+    'font-sizes': false
+    'gradients': false
+    'ids': false
+    'important': false
+    'known-properties': false
+    'outline-none': false
+    'overqualified-elements': false
+    'qualified-headings': false
+    'regex-selectors': false
+    'unique-headings': false
+    'universal-selector': false
+    'vendor-prefix': false
+
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
     metadataPath = path.join(directory, 'package.json')
@@ -175,26 +198,7 @@ module.exports = (grunt) ->
       ]
 
     csslint:
-      options:
-        'adjoining-classes': false
-        'duplicate-background-images': false
-        'box-model': false
-        'box-sizing': false
-        'bulletproof-font-face': false
-        'compatible-vendor-prefixes': false
-        'display-property-grouping': false
-        'fallback-colors': false
-        'font-sizes': false
-        'gradients': false
-        'ids': false
-        'important': false
-        'known-properties': false
-        'outline-none': false
-        'overqualified-elements': false
-        'qualified-headings': false
-        'unique-headings': false
-        'universal-selector': false
-        'vendor-prefix': false
+      options: csslintConfig
       src: [
         'static/**/*.css'
       ]
@@ -203,6 +207,8 @@ module.exports = (grunt) ->
       src: [
         'static/**/*.less'
       ]
+      options:
+        csslint: csslintConfig
 
     'download-atom-shell':
       version: packageJson.atomShellVersion

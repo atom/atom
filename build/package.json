@@ -21,7 +21,7 @@
     "grunt-contrib-less": "~0.8.0",
     "grunt-cson": "0.14.0",
     "grunt-download-atom-shell": "~0.14.0",
-    "grunt-lesslint": "0.17.0",
+    "grunt-lesslint": "~1.1.14",
     "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
     "harmony-collections": "~0.3.8",
