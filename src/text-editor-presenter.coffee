@@ -418,8 +418,6 @@ class TextEditorPresenter
     pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
 
-    @emitDidUpdateState()
-
   updateOverlaysState: ->
     return unless @hasOverlayPositionRequirements()
 
@@ -1369,6 +1367,8 @@ class TextEditorPresenter
 
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
       @shouldUpdateCursorsState = true
+
+      @emitDidUpdateState()
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
