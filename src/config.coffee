@@ -283,6 +283,17 @@ ScopeDescriptor = require './scope-descriptor'
 # __Note__: You should strive to be so clear in your naming of the setting that
 # you do not need to specify a title or description!
 #
+# Descriptions allow a subset of
+# [Markdown formatting](https://help.github.com/articles/github-flavored-markdown/).
+# Specifically, you may use the following in configuration setting descriptions:
+#
+# * **bold** - `**bold**`
+# * *italics* - `*italics*`
+# * [links](https://atom.io) - `[links](https://atom.io)`
+# * `code spans` - `\`code spans\``
+# * line breaks - `line breaks<br/>`
+# * ~~strikethrough~~ - `~~strikethrough~~`
+#
 # ## Best practices
 #
 # * Don't depend on (or write to) configuration keys outside of your keypath.
