@@ -2,12 +2,7 @@
 
 var crypto = require('crypto')
 var path = require('path')
-
-// The coffee-script compiler is required eagerly because:
-// 1. It is always used.
-// 2. It reassigns Error.prepareStackTrace, so we need to make sure that
-//    the 'source-map-support' module is installed *after* it is loaded.
-var CoffeeScript = require('coffee-script')
+var CoffeeScript = null
 
 exports.shouldCompile = function() {
   return true
@@ -24,6 +19,10 @@ exports.getCachePath = function(sourceCode) {
 }
 
 exports.compile = function(sourceCode, filePath) {
+  if (!CoffeeScript) {
+    CoffeeScript = require('coffee-script')
+  }
+
   var output = CoffeeScript.compile(sourceCode, {
     filename: filePath,
     sourceFiles: [filePath],

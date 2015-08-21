@@ -130,3 +130,12 @@ require('source-map-support').install({
     }
   }
 })
+
+// This prevents coffee-script from reassigning `Error.prepareStackTrace` when
+// it is loaded.
+Object.defineProperty(Error, 'prepareStackTrace', {
+  value: Error.prepareStackTrace,
+  configurable: false,
+  enumerable: true,
+  writable: false
+})
