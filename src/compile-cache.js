@@ -10,20 +10,8 @@ var COMPILERS = {
   '.coffee': require('./coffee-script')
 }
 
+var cacheStats = {}
 var cacheDirectory = null
-
-Object.keys(COMPILERS).forEach(function (extension) {
-  var compiler = COMPILERS[extension]
-
-  Object.defineProperty(require.extensions, extension, {
-    enumerable: true,
-    writable: false,
-    value: function (module, filePath) {
-      var code = compileFileAtPath(compiler, filePath, extension)
-      return module._compile(code, filePath)
-    }
-  })
-})
 
 exports.setAtomHomeDirectory = function (atomHome) {
   var cacheDir = path.join(atomHome, 'compile-cache')
@@ -46,7 +34,10 @@ exports.addPathToCache = function (filePath, atomHome) {
   var extension = path.extname(filePath)
 
   if (extension === '.cson') {
-    CSON = CSON || require('season')
+    if (!CSON) {
+      CSON = require('season')
+      CSON.setCacheDir(this.getCacheDirectory())
+    }
     CSON.readFileSync(filePath)
   } else {
     var compiler = COMPILERS[extension]
@@ -56,12 +47,28 @@ exports.addPathToCache = function (filePath, atomHome) {
   }
 }
 
+exports.getCacheStats = function () {
+  return cacheStats
+}
+
+exports.resetCacheStats = function () {
+  Object.keys(COMPILERS).forEach(function (extension) {
+    cacheStats[extension] = {
+      hits: 0,
+      misses: 0
+    }
+  })
+}
+
 function compileFileAtPath (compiler, filePath, extension) {
   var sourceCode = fs.readFileSync(filePath, 'utf8')
   if (compiler.shouldCompile(sourceCode, filePath)) {
     var cachePath = compiler.getCachePath(sourceCode, filePath)
     var compiledCode = readCachedJavascript(cachePath)
-    if (compiledCode == null) {
+    if (compiledCode != null) {
+      cacheStats[extension].hits++
+    } else {
+      cacheStats[extension].misses++
       compiledCode = addSourceURL(compiler.compile(sourceCode, filePath), filePath)
       writeCachedJavascript(cachePath, compiledCode)
     }
@@ -139,3 +146,18 @@ Object.defineProperty(Error, 'prepareStackTrace', {
   enumerable: true,
   writable: false
 })
+
+Object.keys(COMPILERS).forEach(function (extension) {
+  var compiler = COMPILERS[extension]
+
+  Object.defineProperty(require.extensions, extension, {
+    enumerable: true,
+    writable: false,
+    value: function (module, filePath) {
+      var code = compileFileAtPath(compiler, filePath, extension)
+      return module._compile(code, filePath)
+    }
+  })
+})
+
+exports.resetCacheStats()
