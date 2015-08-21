@@ -61,7 +61,7 @@ function compileFileAtPath (compiler, filePath, extension) {
     var cachePath = compiler.getCachePath(sourceCode, filePath)
     var compiledCode = readCachedJavascript(cachePath)
     if (compiledCode == null) {
-      compiledCode = compiler.compile(sourceCode, filePath)
+      compiledCode = addSourceURL(compiler.compile(sourceCode, filePath), filePath)
       writeCachedJavascript(cachePath, compiledCode)
     }
     return compiledCode
@@ -82,6 +82,12 @@ function readCachedJavascript (relativeCachePath) {
 function writeCachedJavascript (relativeCachePath, code) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
   fs.writeFileSync(cachePath, code, 'utf8')
+}
+
+function addSourceURL (jsCode, filePath) {
+  if (process.platform === 'win32')
+    filePath = '/' + path.resolve(filePath).replace(/\\/g, '/')
+  return jsCode + '\n' + '//# sourceURL=' + encodeURI(filePath) + '\n'
 }
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
