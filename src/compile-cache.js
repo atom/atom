@@ -111,9 +111,22 @@ require('source-map-support').install({
       return null
     }
 
-    var sourceCode = fs.readFileSync(filePath, 'utf8')
+    try {
+      var sourceCode = fs.readFileSync(filePath, 'utf8')
+    } catch (error) {
+      console.warn("Error reading source file", error.stack)
+      return null
+    }
+
     var compiler = COMPILERS[path.extname(filePath)]
-    var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
+
+    try {
+      var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
+    } catch (error) {
+      console.warn("Error reading compiled file", error.stack)
+      return null
+    }
+
     if (fileData == null) {
       return null
     }
@@ -129,7 +142,13 @@ require('source-map-support').install({
 
     var sourceMappingURL = lastMatch[1]
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
-    var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
+
+    try {
+      var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
+    } catch (error) {
+      console.warn("Error parsing source map", error.stack)
+      return null
+    }
 
     return {
       map: sourceMap,
