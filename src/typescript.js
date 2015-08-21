@@ -28,7 +28,7 @@ exports.getCachePath = function(sourceCode) {
     crypto
       .createHash('sha1')
       .update(sourceCode, 'utf8')
-      .digest('hex') + ".js"
+      .digest('hex') + '.js'
   )
 }
 

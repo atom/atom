@@ -99,7 +99,7 @@ require('source-map-support').install({
   // source-map-support module, but we've overridden it to read the javascript
   // code from our cache directory.
   retrieveSourceMap: function (filePath) {
-    if (!fs.isFileSync(filePath)){
+    if (!fs.isFileSync(filePath)) {
       return null
     }
 
@@ -115,13 +115,13 @@ require('source-map-support').install({
     while ((match = INLINE_SOURCE_MAP_REGEXP.exec(fileData))) {
       lastMatch = match
     }
-    if (lastMatch == null){
+    if (lastMatch == null) {
       return null
     }
 
     var sourceMappingURL = lastMatch[1]
     var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
-    var sourceMap = JSON.parse(new Buffer(rawData, 'base64').toString())
+    var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
 
     return {
       map: sourceMap,
