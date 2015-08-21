@@ -169,45 +169,6 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[4]).toBeDefined()
         expect(stateFn(presenter).tiles[6]).toBeUndefined()
 
-      it "does not remove out-of-view tiles corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
-        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2, stoppedScrollingDelay: 200)
-
-        expect(stateFn(presenter).tiles[0]).toBeDefined()
-        expect(stateFn(presenter).tiles[6]).toBeDefined()
-        expect(stateFn(presenter).tiles[8]).toBeUndefined()
-
-        presenter.setMouseWheelScreenRow(0)
-        expectStateUpdate presenter, -> presenter.setScrollTop(4)
-
-        expect(stateFn(presenter).tiles[0]).toBeDefined()
-        expect(stateFn(presenter).tiles[2]).toBeUndefined()
-        expect(stateFn(presenter).tiles[4]).toBeDefined()
-        expect(stateFn(presenter).tiles[12]).toBeUndefined()
-
-        expectStateUpdate presenter, -> advanceClock(200)
-
-        expect(stateFn(presenter).tiles[0]).toBeUndefined()
-        expect(stateFn(presenter).tiles[2]).toBeUndefined()
-        expect(stateFn(presenter).tiles[4]).toBeDefined()
-        expect(stateFn(presenter).tiles[12]).toBeUndefined()
-
-
-        # should clear ::mouseWheelScreenRow after stoppedScrollingDelay elapses even if we don't scroll first
-        presenter.setMouseWheelScreenRow(4)
-        advanceClock(200)
-        expectStateUpdate presenter, -> presenter.setScrollTop(6)
-        expect(stateFn(presenter).tiles[4]).toBeUndefined()
-
-      it "does not preserve deleted on-screen tiles even if they correspond to ::mouseWheelScreenRow", ->
-        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2, stoppedScrollingDelay: 200)
-
-        presenter.setMouseWheelScreenRow(2)
-
-        expectStateUpdate presenter, -> editor.setText("")
-
-        expect(stateFn(presenter).tiles[2]).toBeUndefined()
-        expect(stateFn(presenter).tiles[0]).toBeDefined()
-
     describe "during state retrieval", ->
       it "does not trigger onDidUpdateState events", ->
         presenter = buildPresenter()

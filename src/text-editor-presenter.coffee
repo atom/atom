@@ -8,7 +8,6 @@ class TextEditorPresenter
   toggleCursorBlinkHandle: null
   startBlinkingCursorsAfterDelay: null
   stoppedScrollingTimeoutId: null
-  mouseWheelScreenRow: null
   scopedCharacterWidthsChangeCount: 0
   overlayDimensions: {}
 
@@ -352,14 +351,6 @@ class TextEditorPresenter
       @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
 
       visibleTiles[startRow] = true
-
-    if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
-      mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
-
-      unless visibleTiles[mouseWheelTile]?
-        @lineNumberGutter.tiles[mouseWheelTile].display = "none"
-        @state.content.tiles[mouseWheelTile].display = "none"
-        visibleTiles[mouseWheelTile] = true
 
     for id, tile of @state.content.tiles
       continue if visibleTiles.hasOwnProperty(id)
@@ -816,11 +807,6 @@ class TextEditorPresenter
 
   didStopScrolling: ->
     @state.content.scrollingVertically = false
-    if @mouseWheelScreenRow?
-      @mouseWheelScreenRow = null
-      @shouldUpdateLinesState = true
-      @shouldUpdateLineNumbersState = true
-      @shouldUpdateCustomGutterDecorationState = true
 
     @emitDidUpdateState()
 
@@ -975,11 +961,6 @@ class TextEditorPresenter
       @shouldUpdateOverlaysState = true
 
       @emitDidUpdateState()
-
-  setMouseWheelScreenRow: (screenRow) ->
-    if @mouseWheelScreenRow isnt screenRow
-      @mouseWheelScreenRow = screenRow
-      @didStartScrolling()
 
   setBaseCharacterWidth: (baseCharacterWidth) ->
     unless @baseCharacterWidth is baseCharacterWidth
