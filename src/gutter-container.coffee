@@ -13,7 +13,12 @@ class GutterContainer
     @emitter = new Emitter
 
   destroy: ->
-    @gutters = null
+    # Create a copy, because `Gutter::destroy` removes the gutter from
+    # GutterContainer's @gutters.
+    guttersToDestroy = @gutters.slice(0)
+    for gutter in guttersToDestroy
+      gutter.destroy() if gutter.name isnt 'line-number'
+    @gutters = []
     @emitter.dispose()
 
   # Creates and returns a {Gutter}.
