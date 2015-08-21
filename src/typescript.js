@@ -1,17 +1,17 @@
 'use strict'
 
-const _ = require('underscore-plus')
-const crypto = require('crypto')
-const path = require('path')
+var _ = require('underscore-plus')
+var crypto = require('crypto')
+var path = require('path')
 
-let TypeScriptSimple = null
-let typescriptVersionDir = null
-
-const defaultOptions = {
+var defaultOptions = {
   target: 1,
   module: 'commonjs',
   sourceMap: true
 }
+
+var TypeScriptSimple = null
+var typescriptVersionDir = null
 
 exports.shouldCompile = function() {
   return true
@@ -19,7 +19,7 @@ exports.shouldCompile = function() {
 
 exports.getCachePath = function(sourceCode) {
   if (typescriptVersionDir == null) {
-    let version = require('typescript-simple/package.json').version
+    var version = require('typescript-simple/package.json').version
     typescriptVersionDir = path.join('ts', createVersionAndOptionsDigest(version, defaultOptions))
   }
 
@@ -37,7 +37,7 @@ exports.compile = function(sourceCode, filePath) {
     TypeScriptSimple = require('typescript-simple').TypeScriptSimple
   }
 
-  let options = _.defaults({filename: filePath}, defaultOptions)
+  var options = _.defaults({filename: filePath}, defaultOptions)
   return new TypeScriptSimple(options, false).compile(sourceCode, filePath)
 }
 

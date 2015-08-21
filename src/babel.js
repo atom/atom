@@ -1,23 +1,33 @@
 'use strict'
 
-const _ = require('underscore-plus')
-const crypto = require('crypto')
-const path = require('path')
+var _ = require('underscore-plus')
+var crypto = require('crypto')
+var path = require('path')
+var defaultOptions = require('../static/babelrc.json')
 
-let babel = null
-let babelVersionDirectory = null
+var babel = null
+var babelVersionDirectory = null
 
-const defaultOptions = require('../static/babelrc.json')
+var PREFIXES = [
+  '/** @babel */',
+  '"use babel"',
+  '\'use babel\''
+]
+
+var PREFIX_LENGTH = Math.max.apply(Math, PREFIXES.map(function (prefix) {
+  return prefix.length
+}))
 
 exports.shouldCompile = function(sourceCode) {
-  return sourceCode.startsWith('/** @babel */') ||
-    sourceCode.startsWith('"use babel"') ||
-    sourceCode.startsWith("'use babel'")
+  var start = sourceCode.substr(0, PREFIX_LENGTH)
+  return PREFIXES.some(function (prefix) {
+    return start.indexOf(prefix) === 0
+  })
 }
 
 exports.getCachePath = function(sourceCode) {
   if (babelVersionDirectory == null) {
-    let babelVersion = require('babel-core/package.json').version
+    var babelVersion = require('babel-core/package.json').version
     babelVersionDirectory = path.join('js', 'babel', createVersionAndOptionsDigest(babelVersion, defaultOptions))
   }
 
@@ -35,7 +45,7 @@ exports.compile = function(sourceCode, filePath) {
     babel = require('babel-core')
   }
 
-  let options = _.defaults({filename: filePath}, defaultOptions)
+  var options = _.defaults({filename: filePath}, defaultOptions)
   return babel.transform(sourceCode, options).code
 }
 
