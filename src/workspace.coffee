@@ -779,9 +779,9 @@ class Workspace extends Model
   # Essential: Adds a panel item as a modal dialog.
   #
   # * `options` {Object}
-  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #   * `item` Your panel content. It can be a DOM element, a jQuery element, or
   #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     model option. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
