@@ -11,6 +11,7 @@ Q = require 'q'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
+BufferedProcess = require './buffered-process'
 
 packagesCache = require('../package.json')?._atomPackages ? {}
 
@@ -603,6 +604,63 @@ class Package
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
 
+  ###
+  Section: Native Module Compatibility
+  ###
+
+  # Extended: Are all native modules depended on by this package correctly
+  # compiled against the current version of Atom?
+  #
+  # Incompatible packages cannot be activated.
+  #
+  # Returns a {Boolean}, true if compatible, false if incompatible.
+  isCompatible: ->
+    return @compatible if @compatible?
+
+    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+      # Bundled packages are always considered compatible
+      @compatible = true
+    else if @getMainModulePath()
+      @incompatibleModules = @getIncompatibleNativeModules()
+      @compatible = @incompatibleModules.length is 0 and not @getBuildFailureOutput()?
+    else
+      @compatible = true
+
+  # Extended: Rebuild native modules in this package's dependencies for the
+  # current version of Atom.
+  #
+  # Returns a {Promise} that resolves with an object containing `code`,
+  # `stdout`, and `stderr` properties based on the results of running
+  # `apm rebuild` on the package.
+  rebuild: ->
+    new Promise (resolve) =>
+      @runRebuildProcess (result) =>
+        if result.code isnt 0
+          @compatible = false
+          global.localStorage.setItem(@getBuildFailureOutputStorageKey(), result.stderr)
+        resolve(result)
+
+  # Extended: If a previous rebuild failed, get the contents of stderr.
+  #
+  # Returns a {String} or null if no previous build failure occurred.
+  getBuildFailureOutput: ->
+    global.localStorage.getItem(@getBuildFailureOutputStorageKey())
+
+  runRebuildProcess: (callback) ->
+    stderr = ''
+    stdout = ''
+    new BufferedProcess({
+      command: atom.packages.getApmPath()
+      args: ['rebuild']
+      options: {cwd: @path}
+      stderr: (output) -> stderr += output
+      stdout: (output) -> stdout += output
+      exit: (code) -> callback({code, stdout, stderr})
+    })
+
+  getBuildFailureOutputStorageKey: ->
+    "installed-packages:#{@name}:#{@metadata.version}:build-error"
+
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that
   # contain a `.node` file.
@@ -631,25 +689,6 @@ class Package
 
     global.localStorage.setItem(localStorageKey, JSON.stringify({incompatibleNativeModules}))
     incompatibleNativeModules
-
-  # Public: Is this package compatible with this version of Atom?
-  #
-  # Incompatible packages cannot be activated. This will include packages
-  # installed to ~/.atom/packages that were built against node 0.11.10 but
-  # now need to be upgrade to node 0.11.13.
-  #
-  # Returns a {Boolean}, true if compatible, false if incompatible.
-  isCompatible: ->
-    return @compatible if @compatible?
-
-    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
-      # Bundled packages are always considered compatible
-      @compatible = true
-    else if @getMainModulePath()
-      @incompatibleModules = @getIncompatibleNativeModules()
-      @compatible = @incompatibleModules.length is 0
-    else
-      @compatible = true
 
   handleError: (message, error) ->
     if error.filename and error.location and (error instanceof SyntaxError)

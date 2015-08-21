@@ -34,6 +34,45 @@ describe "Package", ->
       expect(global.localStorage.getItem.callCount).toBe 2
       expect(global.localStorage.setItem.callCount).toBe 1
 
+  describe "::rebuild()", ->
+    it "returns a promise resolving to the results of `apm rebuild`", ->
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
+      pack = new Package(packagePath)
+      rebuildCallbacks = []
+      spyOn(pack, 'runRebuildProcess').andCallFake ((callback) -> rebuildCallbacks.push(callback))
+
+      promise = pack.rebuild()
+      rebuildCallbacks[0]({code: 0, stdout: 'stdout output', stderr: 'stderr output'})
+
+      waitsFor (done) ->
+        promise.then (result) ->
+          expect(result).toEqual {code: 0, stdout: 'stdout output', stderr: 'stderr output'}
+          done()
+
+    it "persists build failures in local storage", ->
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
+      pack = new Package(packagePath)
+      global.localStorage.removeItem(pack.getBuildFailureOutputStorageKey())
+
+      expect(pack.isCompatible()).toBe true
+      expect(pack.getBuildFailureOutput()).toBeNull()
+
+      rebuildCallbacks = []
+      spyOn(pack, 'runRebuildProcess').andCallFake ((callback) -> rebuildCallbacks.push(callback))
+
+      pack.rebuild()
+      rebuildCallbacks[0]({code: 13, stderr: 'It is broken'})
+
+      expect(pack.getBuildFailureOutput()).toBe 'It is broken'
+      expect(pack.getIncompatibleNativeModules()).toEqual []
+      expect(pack.isCompatible()).toBe false
+
+      pack2 = new Package(packagePath)
+      expect(pack2.getBuildFailureOutput()).toBe 'It is broken'
+      expect(pack2.isCompatible()).toBe false
+
+      global.localStorage.removeItem(pack.getBuildFailureOutputStorageKey())
+
   describe "theme", ->
     theme = null
 
