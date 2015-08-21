@@ -105,13 +105,13 @@ var setupCoffeeCache = function(cacheDir) {
 
 var setupAtomHome = function() {
   if (!process.env.ATOM_HOME) {
-    var home;
+    var atomHome;
     if (process.platform === 'win32') {
-      home = process.env.USERPROFILE;
-    } else {
-      home = process.env.HOME;
+      atomHome = path.join(process.env.APPDATA, 'atom');
     }
-    var atomHome = path.join(home, '.atom');
+    else {
+      atomHome = path.join(process.env.HOME, '.atom');
+    }
     try {
       atomHome = fs.realpathSync(atomHome);
     } catch (error) {
