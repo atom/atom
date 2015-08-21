@@ -21,6 +21,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-babel')
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
+  grunt.loadNpmTasks('grunt-standard')
   grunt.loadNpmTasks('grunt-cson')
   grunt.loadNpmTasks('grunt-contrib-csslint')
   grunt.loadNpmTasks('grunt-contrib-coffee')
@@ -192,6 +193,12 @@ module.exports = (grunt) ->
         'spec/*.coffee'
       ]
 
+    standard:
+      src: [
+        'src/**/*.js'
+        'static/*.js'
+      ]
+
     csslint:
       options:
         'adjoining-classes': false
@@ -248,7 +255,7 @@ module.exports = (grunt) ->
           failOnError: false
 
   grunt.registerTask('compile', ['babel', 'coffee', 'prebuild-less', 'cson', 'peg'])
-  grunt.registerTask('lint', ['coffeelint', 'csslint', 'lesslint'])
+  grunt.registerTask('lint', ['standard', 'coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
   ciTasks = ['output-disk-space', 'download-atom-shell', 'download-atom-shell-chromedriver', 'build']

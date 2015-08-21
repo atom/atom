@@ -13,11 +13,11 @@ var defaultOptions = {
 var TypeScriptSimple = null
 var typescriptVersionDir = null
 
-exports.shouldCompile = function() {
+exports.shouldCompile = function () {
   return true
 }
 
-exports.getCachePath = function(sourceCode) {
+exports.getCachePath = function (sourceCode) {
   if (typescriptVersionDir == null) {
     var version = require('typescript-simple/package.json').version
     typescriptVersionDir = path.join('ts', createVersionAndOptionsDigest(version, defaultOptions))
@@ -32,7 +32,7 @@ exports.getCachePath = function(sourceCode) {
   )
 }
 
-exports.compile = function(sourceCode, filePath) {
+exports.compile = function (sourceCode, filePath) {
   if (!TypeScriptSimple) {
     TypeScriptSimple = require('typescript-simple').TypeScriptSimple
   }

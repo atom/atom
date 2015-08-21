@@ -93,8 +93,9 @@ function writeCachedJavascript (relativeCachePath, code) {
 }
 
 function addSourceURL (jsCode, filePath) {
-  if (process.platform === 'win32')
+  if (process.platform === 'win32') {
     filePath = '/' + path.resolve(filePath).replace(/\\/g, '/')
+  }
   return jsCode + '\n' + '//# sourceURL=' + encodeURI(filePath) + '\n'
 }
 
@@ -114,7 +115,7 @@ require('source-map-support').install({
     try {
       var sourceCode = fs.readFileSync(filePath, 'utf8')
     } catch (error) {
-      console.warn("Error reading source file", error.stack)
+      console.warn('Error reading source file', error.stack)
       return null
     }
 
@@ -123,7 +124,7 @@ require('source-map-support').install({
     try {
       var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
     } catch (error) {
-      console.warn("Error reading compiled file", error.stack)
+      console.warn('Error reading compiled file', error.stack)
       return null
     }
 
@@ -146,7 +147,7 @@ require('source-map-support').install({
     try {
       var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
     } catch (error) {
-      console.warn("Error parsing source map", error.stack)
+      console.warn('Error parsing source map', error.stack)
       return null
     }
 

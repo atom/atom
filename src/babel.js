@@ -17,14 +17,14 @@ var PREFIX_LENGTH = Math.max.apply(Math, PREFIXES.map(function (prefix) {
   return prefix.length
 }))
 
-exports.shouldCompile = function(sourceCode) {
+exports.shouldCompile = function (sourceCode) {
   var start = sourceCode.substr(0, PREFIX_LENGTH)
   return PREFIXES.some(function (prefix) {
     return start.indexOf(prefix) === 0
   })
 }
 
-exports.getCachePath = function(sourceCode) {
+exports.getCachePath = function (sourceCode) {
   if (babelVersionDirectory == null) {
     var babelVersion = require('babel-core/package.json').version
     babelVersionDirectory = path.join('js', 'babel', createVersionAndOptionsDigest(babelVersion, defaultOptions))
@@ -35,11 +35,11 @@ exports.getCachePath = function(sourceCode) {
     crypto
       .createHash('sha1')
       .update(sourceCode, 'utf8')
-      .digest('hex') + ".js"
+      .digest('hex') + '.js'
   )
 }
 
-exports.compile = function(sourceCode, filePath) {
+exports.compile = function (sourceCode, filePath) {
   if (!babel) {
     babel = require('babel-core')
   }
