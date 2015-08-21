@@ -1,6 +1,5 @@
 'use strict'
 
-var _ = require('underscore-plus')
 var crypto = require('crypto')
 var path = require('path')
 var defaultOptions = require('../static/babelrc.json')
@@ -45,7 +44,10 @@ exports.compile = function(sourceCode, filePath) {
     babel = require('babel-core')
   }
 
-  var options = _.defaults({filename: filePath}, defaultOptions)
+  var options = {filename: filePath}
+  for (var key in defaultOptions) {
+    options[key] = defaultOptions[key]
+  }
   return babel.transform(sourceCode, options).code
 }
 

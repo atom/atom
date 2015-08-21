@@ -1,9 +1,8 @@
 'use strict'
 
 var path = require('path')
-var CSON = require('season')
 var fs = require('fs-plus')
-var _ = require('underscore-plus')
+var CSON = null
 
 var COMPILERS = {
   '.js': require('./babel'),
@@ -13,7 +12,9 @@ var COMPILERS = {
 
 var cacheDirectory = null
 
-_.each(COMPILERS, function (compiler, extension) {
+Object.keys(COMPILERS).forEach(function (extension) {
+  var compiler = COMPILERS[extension]
+
   Object.defineProperty(require.extensions, extension, {
     enumerable: true,
     writable: false,
@@ -34,7 +35,6 @@ exports.setAtomHomeDirectory = function (atomHome) {
 
 exports.setCacheDirectory = function (directory) {
   cacheDirectory = directory
-  CSON.setCacheDir(path.join(cacheDirectory, 'cson'));
 }
 
 exports.getCacheDirectory = function () {
@@ -46,6 +46,7 @@ exports.addPathToCache = function (filePath, atomHome) {
   var extension = path.extname(filePath)
 
   if (extension === '.cson') {
+    CSON = CSON || require('season')
     CSON.readFileSync(filePath)
   } else {
     var compiler = COMPILERS[extension]

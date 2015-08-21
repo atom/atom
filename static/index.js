@@ -78,6 +78,7 @@ var setupWindow = function(loadSettings) {
   });
 
   setupVmCompatibility();
+  setupCsonCache(compileCache.getCacheDirectory())
 
   require(loadSettings.bootstrapScript);
   require('ipc').sendChannel('window-command', 'window:loaded');
@@ -99,6 +100,10 @@ var setupAtomHome = function() {
     }
     process.env.ATOM_HOME = atomHome;
   }
+}
+
+var setupCsonCache = function(cacheDir) {
+  require('season').setCacheDir(path.join(cacheDir, 'cson'));
 }
 
 var setupVmCompatibility = function() {
