@@ -9,13 +9,10 @@ formatStackTrace = (spec, message='', stackTrace) ->
 
   jasminePattern = /^\s*at\s+.*\(?.*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
   firstJasmineLinePattern = /^\s*at [/\\].*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
-  convertedLines = []
+  lines = []
   for line in stackTrace.split('\n')
-    convertedLines.push(line) unless jasminePattern.test(line)
+    lines.push(line) unless jasminePattern.test(line)
     break if firstJasmineLinePattern.test(line)
-  stackTrace = convertedLines.join('\n')
-
-  lines = stackTrace.split('\n')
 
   # Remove first line of stack when it is the same as the error message
   errorMatch = lines[0]?.match(/^Error: (.*)/)
