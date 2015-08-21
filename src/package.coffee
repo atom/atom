@@ -635,9 +635,12 @@ class Package
   rebuild: ->
     new Promise (resolve) =>
       @runRebuildProcess (result) =>
-        if result.code isnt 0
+        if result.code is 0
+          global.localStorage.removeItem(@getBuildFailureOutputStorageKey())
+        else
           @compatible = false
           global.localStorage.setItem(@getBuildFailureOutputStorageKey(), result.stderr)
+        global.localStorage.setItem(@getIncompatibleNativeModulesStorageKey(), '[]')
         resolve(result)
 
   # Extended: If a previous rebuild failed, get the contents of stderr.
@@ -661,6 +664,9 @@ class Package
   getBuildFailureOutputStorageKey: ->
     "installed-packages:#{@name}:#{@metadata.version}:build-error"
 
+  getIncompatibleNativeModulesStorageKey: ->
+    "installed-packages:#{@name}:#{@metadata.version}:incompatible-native-modules"
+
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that
   # contain a `.node` file.
@@ -668,11 +674,10 @@ class Package
   # This information is cached in local storage on a per package/version basis
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
-    localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
     unless atom.inDevMode()
       try
-        {incompatibleNativeModules} = JSON.parse(global.localStorage.getItem(localStorageKey)) ? {}
-      return incompatibleNativeModules if incompatibleNativeModules?
+        if arrayAsString = global.localStorage.getItem(@getIncompatibleNativeModulesStorageKey())
+          return JSON.parse(arrayAsString)
 
     incompatibleNativeModules = []
     for nativeModulePath in @getNativeModuleDependencyPaths()
@@ -687,7 +692,7 @@ class Package
           version: version
           error: error.message
 
-    global.localStorage.setItem(localStorageKey, JSON.stringify({incompatibleNativeModules}))
+    global.localStorage.setItem(@getIncompatibleNativeModulesStorageKey(), JSON.stringify(incompatibleNativeModules))
     incompatibleNativeModules
 
   handleError: (message, error) ->

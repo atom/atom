@@ -7,6 +7,10 @@ describe "Package", ->
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
       spyOn(atom, 'inDevMode').andReturn(false)
+      items = {}
+      spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
+      spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
+      spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
 
     it "does not activate it", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
@@ -17,14 +21,6 @@ describe "Package", ->
 
     it "caches the incompatible native modules in local storage", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
-      cacheKey = null
-      cacheItem = null
-
-      spyOn(global.localStorage, 'setItem').andCallFake (key, item) ->
-        cacheKey = key
-        cacheItem = item
-      spyOn(global.localStorage, 'getItem').andCallFake (key) ->
-        return cacheItem if cacheKey is key
 
       expect(new Package(packagePath).isCompatible()).toBe false
       expect(global.localStorage.getItem.callCount).toBe 1
@@ -35,6 +31,13 @@ describe "Package", ->
       expect(global.localStorage.setItem.callCount).toBe 1
 
   describe "::rebuild()", ->
+    beforeEach ->
+      spyOn(atom, 'inDevMode').andReturn(false)
+      items = {}
+      spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
+      spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
+      spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
+
     it "returns a promise resolving to the results of `apm rebuild`", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
       pack = new Package(packagePath)
@@ -52,7 +55,6 @@ describe "Package", ->
     it "persists build failures in local storage", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
       pack = new Package(packagePath)
-      global.localStorage.removeItem(pack.getBuildFailureOutputStorageKey())
 
       expect(pack.isCompatible()).toBe true
       expect(pack.getBuildFailureOutput()).toBeNull()
@@ -67,11 +69,31 @@ describe "Package", ->
       expect(pack.getIncompatibleNativeModules()).toEqual []
       expect(pack.isCompatible()).toBe false
 
+      # A different package instance has the same failure output (simulates reload)
       pack2 = new Package(packagePath)
       expect(pack2.getBuildFailureOutput()).toBe 'It is broken'
       expect(pack2.isCompatible()).toBe false
 
-      global.localStorage.removeItem(pack.getBuildFailureOutputStorageKey())
+      # Clears the build failure after a successful build
+      pack.rebuild()
+      rebuildCallbacks[1]({code: 0, stdout: 'It worked'})
+
+      expect(pack.getBuildFailureOutput()).toBeNull()
+      expect(pack2.getBuildFailureOutput()).toBeNull()
+
+    it "sets cached incompatible modules to an empty array when the rebuild completes (there may be a build error, but rebuilding *deletes* native modules)", ->
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
+      pack = new Package(packagePath)
+
+      expect(pack.getIncompatibleNativeModules().length).toBeGreaterThan(0)
+
+      rebuildCallbacks = []
+      spyOn(pack, 'runRebuildProcess').andCallFake ((callback) -> rebuildCallbacks.push(callback))
+
+      pack.rebuild()
+      expect(pack.getIncompatibleNativeModules().length).toBeGreaterThan(0)
+      rebuildCallbacks[0]({code: 0, stdout: 'It worked'})
+      expect(pack.getIncompatibleNativeModules().length).toBe(0)
 
   describe "theme", ->
     theme = null
