@@ -654,7 +654,7 @@ class Package
     stdout = ''
     new BufferedProcess({
       command: atom.packages.getApmPath()
-      args: ['rebuild']
+      args: ['rebuild', '--no-color']
       options: {cwd: @path}
       stderr: (output) -> stderr += output
       stdout: (output) -> stdout += output
