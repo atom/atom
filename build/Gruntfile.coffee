@@ -13,10 +13,6 @@ _ = require 'underscore-plus'
 
 packageJson = require '../package.json'
 
-# Shim harmony collections in case grunt was invoked without harmony
-# collections enabled
-_.extend(global, require('harmony-collections')) unless global.WeakMap?
-
 module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-babel')
   grunt.loadNpmTasks('grunt-coffeelint')

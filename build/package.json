@@ -27,7 +27,6 @@
     "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
     "grunt-standard": "^1.0.2",
-    "harmony-collections": "~0.3.8",
     "legal-eagle": "~0.10.0",
     "minidump": "~0.9",
     "npm": "2.13.3",
