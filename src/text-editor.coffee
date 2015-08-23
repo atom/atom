@@ -886,11 +886,6 @@ class TextEditor extends Model
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
     selections.sort (a, b) -> a.compare(b)
-    if selections[selections.length - 1].start.row is @buffer.getLastRow()
-      return
-
-    if selections[selections.length - 1].start.row is @getLastBufferRow() and @buffer.getLastLine() is ''
-      return
 
     @transact =>
       newSelectionRanges = []
@@ -931,6 +926,8 @@ class TextEditor extends Model
         # Delete lines spanned by selection and insert them on the following correct buffer row
         insertPosition = new Point(selection.translate([insertDelta, 0]).start.row, 0)
         lines = @buffer.getTextInRange(linesRange)
+        if linesRange.end.row is @buffer.getLastRow()
+          lines = "\n#{lines}"
 
         @buffer.delete(linesRange)
         @buffer.insert(insertPosition, lines)
