@@ -89,10 +89,10 @@ module.exports =
           'windows1258',
           'windows866'
         ]
-      disableInitialEmptyEditor:
-        description: 'Disable the initial empty editor when atom starts.'
+      openEmptyEditorOnStart:
+        description: 'Automatically opens an empty editor when atom starts.'
         type: 'boolean'
-        default: false
+        default: true
 
   editor:
     type: 'object'
