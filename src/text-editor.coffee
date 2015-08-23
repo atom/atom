@@ -921,7 +921,7 @@ class TextEditor extends Model
         # Any folds in the text that is moved will need to be re-created.
         rangesToRefold =
           @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
-            fold.getBufferRange().translate([+insertDelta, 0])
+            fold.getBufferRange().translate([insertDelta, 0])
 
         # Make sure the inserted text doesn't go into an existing fold
         if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow)
