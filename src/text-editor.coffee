@@ -942,7 +942,7 @@ class TextEditor extends Model
         for selection in selectionsToMove
           newSelectionRanges.push(selection.translate([insertDelta, 0]))
 
-       @setSelectedBufferRanges(newSelectionRanges)
+       @setSelectedBufferRanges(newSelectionRanges, {preserveFolds: true})
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
