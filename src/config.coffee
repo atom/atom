@@ -865,7 +865,7 @@ class Config
 
     if value?
       defaultValue = @deepClone(defaultValue)
-      value = _.deepExtends(defaultValue, value) if isPlainObject(value) and isPlainObject(defaultValue)
+      value = _.deepExtend(defaultValue, value) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       value = @deepClone(defaultValue)
 
