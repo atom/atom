@@ -912,7 +912,7 @@ class TextEditor extends Model
         else
           linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
-        # If selected line range is preceded by a fold, one line above on screen
+        # If selected line range is followed by a fold, one line below on screen
         # could be multiple lines in the buffer.
         followingScreenRow = @screenRowForBufferRow(linesRange.end.row) + 1
         followingBufferRow = @bufferRowForScreenRow(followingScreenRow)
