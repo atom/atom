@@ -929,9 +929,9 @@ class TextEditor extends Model
           fold.destroy()
 
         # Delete lines spanned by selection and insert them on the following correct buffer row
-        insertPosition = [selection.translate([insertDelta, 0]).start.row, 0]
+        insertPosition = new Point(selection.translate([insertDelta, 0]).start.row, 0)
         lines = @buffer.getTextInRange(linesRange)
-        lines += @buffer.lineEndingForRow(linesRange.end.row - 1) unless lines[lines.length - 1] is '\n'
+
         @buffer.delete(linesRange)
         @buffer.insert(insertPosition, lines)
 
