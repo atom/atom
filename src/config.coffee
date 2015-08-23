@@ -864,8 +864,8 @@ class Config
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
-      defaultValue = @deepClone(defaultValue)
-      value = _.deepExtend(defaultValue, value) if isPlainObject(value) and isPlainObject(defaultValue)
+      value = @deepClone(value)
+      @deepDefaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       value = @deepClone(defaultValue)
 
@@ -927,6 +927,19 @@ class Config
       _.mapObject object, (key, value) => [key, @deepClone(value)]
     else
       object
+
+  deepDefaults: (target) ->
+    result = target
+    i = 0
+    while ++i < arguments.length
+      object = arguments[i]
+      if isPlainObject(result) and isPlainObject(object)
+        for key in Object.keys(object)
+          result[key] = @deepDefaults(result[key], object[key])
+      else
+        if not result?
+          result = @deepClone(object)
+    result
 
   # `schema` will look something like this
   #
