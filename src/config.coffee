@@ -864,8 +864,8 @@ class Config
       defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
 
     if value?
-      value = @deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      defaultValue = @deepClone(defaultValue)
+      value = _.deepExtends(defaultValue, value) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       value = @deepClone(defaultValue)
 
