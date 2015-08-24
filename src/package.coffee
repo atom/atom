@@ -665,7 +665,8 @@ class Package
     "installed-packages:#{@name}:#{@metadata.version}:build-error"
 
   getIncompatibleNativeModulesStorageKey: ->
-    "installed-packages:#{@name}:#{@metadata.version}:incompatible-native-modules"
+    electronVersion = process.versions['electron'] ? process.versions['atom-shell']
+    "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
 
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that
