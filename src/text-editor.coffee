@@ -1839,6 +1839,8 @@ class TextEditor extends Model
   # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
+  #   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
+  #     selection is set.
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
@@ -1849,6 +1851,8 @@ class TextEditor extends Model
   # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
+  #   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
+  #     selection is set.
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
 
