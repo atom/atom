@@ -541,7 +541,7 @@ class TextEditorPresenter
         @clearDecorationsForCustomGutterName(gutterName)
       else
         @customGutterDecorations[gutterName] = {}
-      return if not @gutterIsVisible(gutter)
+      continue if not @gutterIsVisible(gutter)
 
       relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
       relevantDecorations.forEach (decoration) =>
