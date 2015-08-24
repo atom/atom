@@ -1110,6 +1110,24 @@ describe "Config", ->
           nestedObject:
             superNestedInt: 36
 
+        expect(atom.config.get("foo")).toEqual {
+          bar:
+            anInt: 12
+            anObject:
+              nestedInt: 24
+              nestedObject:
+                superNestedInt: 36
+        }
+        atom.config.set("foo.bar.anObject.nestedObject.superNestedInt", 37)
+        expect(atom.config.get("foo")).toEqual {
+          bar:
+            anInt: 12
+            anObject:
+              nestedInt: 24
+              nestedObject:
+                superNestedInt: 37
+        }
+
       it 'can set a non-object schema', ->
         schema =
           type: 'integer'
