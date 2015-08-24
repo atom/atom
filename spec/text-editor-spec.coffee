@@ -2210,24 +2210,6 @@ describe "TextEditor", ->
             expect(editor.getSelectedBufferRanges()).toEqual [[[4, 2], [4, 9]], [[4, 12], [4, 13]]]
             expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
 
-        describe "when one of the selections spans the last buffer row ", ->
-          it "doesn't move any lines", ->
-            editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[12, 2], [12, 2]]])
-
-            editor.moveLineDown()
-
-            expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[12, 2], [12, 2]]]
-            expect(buffer.isModified()).toBe false
-
-        describe "when one of the selections spans the last line, and it is empty", ->
-          it "doesn't move any lines, since the last line can't move", ->
-            buffer.append('\n')
-            editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]])
-
-            editor.moveLineDown()
-
-            expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]]
-
     describe ".insertText(text)", ->
       describe "when there is a single selection", ->
         beforeEach ->
