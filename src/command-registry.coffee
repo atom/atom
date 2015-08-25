@@ -248,7 +248,7 @@ class CommandRegistry
       break if propagationStopped
       currentTarget = currentTarget.parentNode ? window
 
-    @emitter.emit 'did-dispatch', syntheticEvent
+    @emitter.emit 'did-dispatch', dispatchedEvent
 
     matched
 
