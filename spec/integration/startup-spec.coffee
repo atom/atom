@@ -10,6 +10,7 @@ fs = require "fs"
 path = require "path"
 temp = require("temp").track()
 runAtom = require "./helpers/start-atom"
+CSON = require "season"
 
 describe "Starting Atom", ->
   [tempDirPath, otherTempDirPath, atomHome] = []
@@ -196,9 +197,13 @@ describe "Starting Atom", ->
           , 5000)
           .waitForExist("atom-workspace")
           .waitForPaneItemCount(1, 5000)
-          
+
     it "doesn't open a new window if openEmptyEditorOnStart is disabled", ->
-      fs.writeFileSync(path.join(atomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config-openEmptyEditorOnStart.cson')))
+      configPath = path.join(atomHome, 'config.cson')
+      config = CSON.readFileSync(configPath)
+      config['*'].core = {openEmptyEditorOnStart: false}
+      CSON.writeFileSync(configPath, config)
+
       runAtom [], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForExist("atom-workspace")
