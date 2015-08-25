@@ -196,6 +196,13 @@ describe "Starting Atom", ->
           , 5000)
           .waitForExist("atom-workspace")
           .waitForPaneItemCount(1, 5000)
+          
+    it "doesn't open a new window if openEmptyEditorOnStart is disabled", ->
+      fs.writeFileSync(path.join(atomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config-openEmptyEditorOnStart.cson')))
+      runAtom [], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForPaneItemCount(0, 5000)
 
     it "reopens any previously opened windows", ->
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
