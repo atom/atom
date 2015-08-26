@@ -559,6 +559,18 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> advanceClock(100)
           expect(presenter.getState().content.scrollingVertically).toBe false
 
+      describe ".maxHeight", ->
+        it "changes based on boundingClientRect", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
+
+          expectStateUpdate presenter, ->
+            presenter.setBoundingClientRect(left: 0, top: 0, height: 20, width: 0)
+          expect(presenter.getState().content.maxHeight).toBe(20)
+
+          expectStateUpdate presenter, ->
+            presenter.setBoundingClientRect(left: 0, top: 0, height: 50, width: 0)
+          expect(presenter.getState().content.maxHeight).toBe(50)
+
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)

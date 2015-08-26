@@ -88,6 +88,21 @@ describe "TextEditorComponent", ->
       else
         expect(lineNode.textContent).toBe(tokenizedLine.text)
 
+    it "gives the lines container the same height as the wrapper node", ->
+      linesNode = componentNode.querySelector(".lines")
+
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
+
+      wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
+
     it "renders tiles upper in the stack in front of the ones below", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
@@ -585,6 +600,21 @@ describe "TextEditorComponent", ->
 
       expect(lineNode.offsetTop).toBe(top)
       expect(lineNode.textContent).toBe(text)
+
+    it "gives the line numbers container the same height as the wrapper node", ->
+      linesNode = componentNode.querySelector(".lines")
+
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
+
+      wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
 
     it "renders the currently-visible line numbers in a tiled fashion", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
