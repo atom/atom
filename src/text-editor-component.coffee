@@ -241,13 +241,13 @@ class TextEditorComponent
     #   4. compositionend fired
     #   5. textInput fired; event.data == the completion string
 
-    selectedText = null
+    checkpoint = null
     @domNode.addEventListener 'compositionstart', =>
-      selectedText = @editor.getSelectedText()
+      checkpoint = @editor.createCheckpoint()
     @domNode.addEventListener 'compositionupdate', (event) =>
-      @editor.insertText(event.data, select: true, undo: 'skip')
+      @editor.insertText(event.data, select: true)
     @domNode.addEventListener 'compositionend', (event) =>
-      @editor.insertText(selectedText, select: true, undo: 'skip')
+      @editor.revertToCheckpoint(checkpoint)
       event.target.value = ''
 
   # Listen for selection changes and store the currently selected text
