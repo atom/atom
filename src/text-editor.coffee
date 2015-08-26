@@ -787,6 +787,7 @@ class TextEditor extends Model
 
     options.autoIndentNewline ?= @shouldAutoIndent()
     options.autoDecreaseIndent ?= @shouldAutoIndent()
+    options.removeTrailingWhitespace ?= @shouldRemoveTrailingWhitespace()
     @mutateSelectedText(
       (selection) =>
         range = selection.insertText(text, options)
@@ -2905,6 +2906,9 @@ class TextEditor extends Model
 
   shouldAutoIndentOnPaste: ->
     atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
+
+  shouldRemoveTrailingWhitespace: ->
+    atom.config.get("editor.removeTrailingWhitespace", scope: @getRootScopeDescriptor())
 
   ###
   Section: Event Handlers
