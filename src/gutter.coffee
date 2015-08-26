@@ -1,19 +1,14 @@
 {Emitter} = require 'event-kit'
 
-# Public: This class represents a gutter within a TextEditor.
-
 DefaultPriority = -100
 
+# Extended: Represents a gutter within a {TextEditor}.
+#
+# ### Gutter Creation
+#
+# See {TextEditor::addGutter} for usage.
 module.exports =
 class Gutter
-  # * `gutterContainer` The {GutterContainer} object to which this gutter belongs.
-  # * `options` An {Object} with the following fields:
-  #   * `name` (required) A unique {String} to identify this gutter.
-  #   * `priority` (optional) A {Number} that determines stacking order between
-  #       gutters. Lower priority items are forced closer to the edges of the
-  #       window. (default: -100)
-  #   * `visible` (optional) {Boolean} specifying whether the gutter is visible
-  #       initially after being created. (default: true)
   constructor: (gutterContainer, options) ->
     @gutterContainer = gutterContainer
     @name = options?.name
