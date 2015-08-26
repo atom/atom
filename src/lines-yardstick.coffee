@@ -1,15 +1,14 @@
-LineHtmlBuilder = require './line-html-builder'
 TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
 {Emitter} = require 'event-kit'
+{Point} = require 'text-buffer'
 
 module.exports =
 class LinesYardstick
-  constructor: (@editor, @presenter, @syntaxStyleElement) ->
+  constructor: (@editor) ->
     @initialized = false
     @emitter = new Emitter
-    @linesBuilder = new LineHtmlBuilder(true)
     @defaultStyleNode = document.createElement("style")
     @skinnyStyleNode = document.createElement("style")
     @iframe = document.createElement("iframe")
@@ -20,8 +19,21 @@ class LinesYardstick
 
   getDomNode: -> @iframe
 
-  setFont: (fontFamily, fontSize) ->
-    @defaultStyleNode.innerHTML = "body { margin: 0; padding: 0; font-size: #{fontSize}; font-family: #{fontFamily}; white-space: pre; }"
+  setLineHtmlProvider: (@htmlProviderFn) ->
+
+  setDefaultFont: (fontFamily, fontSize) ->
+    @defaultStyleNode.innerHTML = """
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-size: #{fontSize};
+      font-family: #{fontFamily};
+      white-space: pre;
+    }
+    """
 
   onDidInitialize: (callback) ->
     @emitter.on "did-initialize", callback
@@ -34,16 +46,15 @@ class LinesYardstick
     @domNode = @iframe.contentDocument.body
     @headNode = @iframe.contentDocument.head
 
-    @rebuildSkinnyStyleNode()
     @headNode.appendChild(@defaultStyleNode)
     @headNode.appendChild(@skinnyStyleNode)
 
     @emitter.emit "did-initialize"
 
-  rebuildSkinnyStyleNode: ->
+  resetStyleSheets: (styleSheets) ->
     skinnyCss = ""
 
-    for style in @syntaxStyleElement.children
+    for style in styleSheets
       for cssRule in style.sheet.cssRules when @hasFontStyling(cssRule)
         skinnyCss += cssRule.cssText
 
@@ -65,8 +76,7 @@ class LinesYardstick
       visibleLines[line.id] = true
 
       unless @lineNodesByLineId.hasOwnProperty(line.id)
-        lineState = @presenter.buildLineState(0, screenRow, line)
-        html += @linesBuilder.buildLineHTML(@indentGuidesVisible, 0, lineState)
+        html += @htmlProviderFn(screenRow, line)
         newLinesIds.push(line.id)
 
     for lineId, lineNode of @lineNodesByLineId
@@ -85,6 +95,18 @@ class LinesYardstick
     line = @editor.tokenizedLineForScreenRow(screenRow)
     lineNode = @lineNodesByLineId[line.id]
     lineNode
+
+  pixelPositionForScreenPosition: (screenPosition, clip = true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+
+    top = targetRow * @editor.getLineHeightInPixels()
+    left = @leftPixelPositionForScreenPosition(screenPosition)
+
+    {top, left}
 
   leftPixelPositionForScreenPosition: ({row, column}) ->
     lineNode = @lineNodeForScreenRow(row)
