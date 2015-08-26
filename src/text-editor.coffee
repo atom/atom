@@ -514,25 +514,6 @@ class TextEditor extends Model
   onDidChangeLineNumberGutterVisible: (callback) ->
     @emitter.on 'did-change-line-number-gutter-visible', callback
 
-  # Public: Creates and returns a {Gutter}.
-  # * `options` An {Object} with the following fields:
-  #   * `name` (required) A unique {String} to identify this gutter.
-  #   * `priority` (optional) A {Number} that determines stacking order between
-  #       gutters. Lower priority items are forced closer to the edges of the
-  #       window. (default: -100)
-  #   * `visible` (optional) {Boolean} specifying whether the gutter is visible
-  #       initially after being created. (default: true)
-  addGutter: (options) ->
-    @gutterContainer.addGutter(options)
-
-  # Public: Returns the {Array} of all gutters on this editor.
-  getGutters: ->
-    @gutterContainer.getGutters()
-
-  # Public: Returns the {Gutter} with the given name, or null if it doesn't exist.
-  gutterWithName: (name) ->
-    @gutterContainer.gutterWithName(name)
-
   # Essential: Calls your `callback` when a {Gutter} is added to the editor.
   # Immediately calls your callback for each existing gutter.
   #
@@ -2839,6 +2820,29 @@ class TextEditor extends Model
   # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
     @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
+
+  ###
+  Section: Gutters
+  ###
+
+  # Public: Creates and returns a {Gutter}.
+  # * `options` An {Object} with the following fields:
+  #   * `name` (required) A unique {String} to identify this gutter.
+  #   * `priority` (optional) A {Number} that determines stacking order between
+  #       gutters. Lower priority items are forced closer to the edges of the
+  #       window. (default: -100)
+  #   * `visible` (optional) {Boolean} specifying whether the gutter is visible
+  #       initially after being created. (default: true)
+  addGutter: (options) ->
+    @gutterContainer.addGutter(options)
+
+  # Public: Returns the {Array} of all gutters on this editor.
+  getGutters: ->
+    @gutterContainer.getGutters()
+
+  # Public: Returns the gutter with the given name, or null if it doesn't exist.
+  gutterWithName: (name) ->
+    @gutterContainer.gutterWithName(name)
 
   ###
   Section: Scrolling the TextEditor
