@@ -2300,6 +2300,15 @@ describe "TextEditorPresenter", ->
 
             expect(decorationState[decoration3.id]).toBeUndefined()
 
+          it "updates when another gutter with higher priority is hidden", ->
+            editor.addGutter({name: 'test-gutter-1', priority: -150, visible: false})
+
+            # This update will scroll decoration1 out of view, and decoration3 into view.
+            expectStateUpdate presenter, -> presenter.setScrollTop(scrollTop + lineHeight * 5)
+
+            decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id]).toBeUndefined()
+
           it "updates when ::scrollTop changes", ->
             # This update will scroll decoration1 out of view, and decoration3 into view.
             expectStateUpdate presenter, -> presenter.setScrollTop(scrollTop + lineHeight * 5)
