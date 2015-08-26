@@ -71,12 +71,22 @@ class Gutter
   isVisible: ->
     @visible
 
-  # * `marker` (required) A Marker object.
-  # * `options` (optional) An object with the following fields:
-  #   * `class` (optional)
-  #   * `item` (optional) A model {Object} with a corresponding view registered,
-  #     or an {HTMLElement}.
+  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # is invalidated, or is destroyed, the decoration will be updated to reflect
+  # the marker's state.
   #
-  # Returns a {Decoration} object.
+  # ## Arguments
+  #
+  # * `marker` A {Marker} you want this decoration to follow.
+  # * `decorationParams` An {Object} representing the decoration
+  #   * `class` This CSS class will be applied to the decorated line number.
+  #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
+  #     the head of the marker.
+  #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
+  #     the associated marker is empty.
+  #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
+  #     if the associated marker is non-empty.
+  #
+  # Returns a {Decoration} object
   decorateMarker: (marker, options) ->
     @gutterContainer.addGutterDecoration(this, marker, options)
