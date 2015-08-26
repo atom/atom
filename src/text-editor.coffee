@@ -1322,8 +1322,6 @@ class TextEditor extends Model
   #   * `position` (optional) Only applicable to decorations of type `overlay`,
   #     controls where the overlay view is positioned relative to the marker.
   #     Values can be `'head'` (the default), or `'tail'`.
-  #   * `gutterName` (optional) Only applicable to the `gutter` type. If provided,
-  #     the decoration will be applied to the gutter with the specified name.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
