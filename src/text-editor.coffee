@@ -515,7 +515,13 @@ class TextEditor extends Model
     @emitter.on 'did-change-line-number-gutter-visible', callback
 
   # Public: Creates and returns a {Gutter}.
-  # See {GutterContainer::addGutter} for more details.
+  # * `options` An {Object} with the following fields:
+  #   * `name` (required) A unique {String} to identify this gutter.
+  #   * `priority` (optional) A {Number} that determines stacking order between
+  #       gutters. Lower priority items are forced closer to the edges of the
+  #       window. (default: -100)
+  #   * `visible` (optional) {Boolean} specifying whether the gutter is visible
+  #       initially after being created. (default: true)
   addGutter: (options) ->
     @gutterContainer.addGutter(options)
 
