@@ -11,7 +11,7 @@ Task = require './task'
 # Extended: Represents the underlying git operations performed by Atom.
 #
 # This class shouldn't be instantiated directly but instead by accessing the
-# `atom.project` global and calling `getRepo()`. Note that this will only be
+# `atom.project` global and calling `getRepositories()`. Note that this will only be
 # available when the project is backed by a Git repository.
 #
 # This class handles submodules automatically by taking a `path` argument to many
@@ -21,7 +21,7 @@ Task = require './task'
 # For a repository with submodules this would have the following outcome:
 #
 # ```coffee
-# repo = atom.project.getRepo()
+# repo = atom.project.getRepositories().shift()
 # repo.getShortHead() # 'master'
 # repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
 # ```
@@ -31,7 +31,7 @@ Task = require './task'
 # ### Logging the URL of the origin remote
 #
 # ```coffee
-# git = atom.project.getRepo()
+# git = atom.project.getRepositories().shift()
 # console.log git.getOriginURL()
 # ```
 #
