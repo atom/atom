@@ -112,7 +112,10 @@ class TextEditorComponent
     @updateSync()
     @checkForVisibilityChange()
 
-    @disposables.add @linesYardstick.onDidInitialize => @presenter.characterWidthsChanged()
+    @disposables.add @linesYardstick.onDidInitialize =>
+      @linesYardstick.setDefaultFont(@fontFamily, @fontSize)
+      @linesYardstick.resetStyleSheets(@stylesElement.children)
+      @presenter.characterWidthsChanged()
 
   destroy: ->
     @mounted = false
