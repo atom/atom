@@ -2716,33 +2716,6 @@ describe "TextEditorComponent", ->
 
       describe "when a string is selected", ->
         beforeEach ->
-          editor.setSelectedBufferRange [[0, 4], [0, 9]] # select 'quick'
-
-        it "inserts the chosen completion", ->
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = function () {'
-
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = function () {'
-
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
-          componentNode.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var 速度sort = function () {'
-
-        it "reverts back to the original text when the completion helper is dismissed", ->
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = function () {'
-
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = function () {'
-
-          componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
-
-      describe "with multiple selections", ->
-        beforeEach ->
           editor.setSelectedBufferRanges [[[0, 4], [0, 9]], [[0, 16], [0, 19]]] # select 'quick' and 'fun'
 
         it "inserts the chosen completion", ->
