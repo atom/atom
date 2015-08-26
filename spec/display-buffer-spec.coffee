@@ -1025,7 +1025,7 @@ describe "DisplayBuffer", ->
         markerChangedHandler.reset()
         marker2ChangedHandler.reset()
 
-        marker3 = displayBuffer.markBufferRange([[8, 1], [8, 2]], maintainHistory: true)
+        marker3 = displayBuffer.markBufferRange([[8, 1], [8, 2]])
         marker3.onDidChange marker3ChangedHandler = jasmine.createSpy("marker3ChangedHandler")
 
         onDisplayBufferChange = ->
@@ -1038,10 +1038,6 @@ describe "DisplayBuffer", ->
           expect(marker.getScreenRange()).toEqual [[5, 4], [5, 10]]
           expect(marker.getHeadScreenPosition()).toEqual [5, 10]
           expect(marker.getTailScreenPosition()).toEqual [5, 4]
-
-          # but marker snapshots are not restored until the end of the undo.
-          expect(marker2.isValid()).toBeFalsy()
-          expect(marker3.isValid()).toBeFalsy()
 
         buffer.undo()
         expect(changeHandler).toHaveBeenCalled()
@@ -1078,8 +1074,6 @@ describe "DisplayBuffer", ->
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(marker2ChangedHandler).toHaveBeenCalled()
         expect(marker3ChangedHandler).toHaveBeenCalled()
-        expect(marker2.isValid()).toBeFalsy()
-        expect(marker3.isValid()).toBeTruthy()
 
       it "updates the position of markers before emitting change events that aren't caused by a buffer change", ->
         displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake ->
