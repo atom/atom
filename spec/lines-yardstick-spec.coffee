@@ -1,7 +1,7 @@
 LinesYardstick = require '../src/lines-yardstick'
 {Point} = require 'text-buffer'
 
-fffdescribe "LinesYardstick", ->
+describe "LinesYardstick", ->
   [linesYardstick, editor, styleNodesToRemove] = []
 
   styleSheetWithSelectorAndFont = (selector, font) ->

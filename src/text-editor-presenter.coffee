@@ -16,7 +16,7 @@ class TextEditorPresenter
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused, @linesYardstick} = params
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
@@ -36,8 +36,6 @@ class TextEditorPresenter
     @buildState()
     @startBlinkingCursors() if @focused
     @updating = false
-
-  setComponent: (@component) ->
 
   destroy: ->
     @disposables.dispose()
@@ -87,7 +85,7 @@ class TextEditorPresenter
     @updateVerticalDimensions()
     @updateStartRow()
     @updateEndRow()
-    @component?.prepareScreenRowsForMeasurement(@getMeasurableScreenRows())
+    @linesYardstick.buildDomNodesForScreenRows(@getMeasurableScreenRows())
 
     @updateHorizontalDimensions()
     @updateScrollbarDimensions()
@@ -251,10 +249,13 @@ class TextEditorPresenter
     @shouldUpdateLinesState = true
     @shouldUpdateLineNumbersState = true
 
-    @updateContentDimensions()
-    @updateScrollbarDimensions()
+    @updateVerticalDimensions()
     @updateStartRow()
     @updateEndRow()
+    @linesYardstick.buildDomNodesForScreenRows(@getMeasurableScreenRows())
+
+    @updateHorizontalDimensions()
+    @updateScrollbarDimensions()
 
     @updateFocusedState()
     @updateHeightState()
@@ -1061,14 +1062,13 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    return {left: 0, top: 0} unless @component?
+  pixelPositionForScreenPosition: (screenPosition, clip) ->
+    {top, left} =
+      @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
 
-    position = @component.pixelPositionForScreenPosition(screenPosition, clip)
-    position.top -= @scrollTop
-    position.left -= @scrollLeft
-
-    return position
+    top -= @scrollTop
+    left -= @scrollLeft
+    {top, left}
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?

@@ -4,12 +4,13 @@ TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
+LinesYardstick = require '../src/lines-yardstick'
 
-describe "TextEditorPresenter", ->
+ffdescribe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
-    [buffer, editor] = []
+    [buffer, editor, linesYardstick] = []
 
     beforeEach ->
       # These *should* be mocked in the spec helper, but changing that now would break packages :-(
@@ -18,11 +19,20 @@ describe "TextEditorPresenter", ->
 
       buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
       editor = new TextEditor({buffer})
+      linesYardstick = new LinesYardstick(editor)
+      linesYardstick.setDefaultFont("monospace", "16px")
+      linesYardstick.setLineHtmlProvider (screenRow, line) ->
+        "<div>#{line.text}</div>"
+      document.body.appendChild(linesYardstick.getDomNode())
+
       waitsForPromise -> buffer.load()
+
+      waitsFor -> linesYardstick.canMeasure()
 
     afterEach ->
       editor.destroy()
       buffer.destroy()
+      linesYardstick.getDomNode().remove()
 
     buildPresenter = (params={}) ->
       _.defaults params,
@@ -39,6 +49,7 @@ describe "TextEditorPresenter", ->
         verticalScrollbarWidth: 10
         scrollTop: 0
         scrollLeft: 0
+        linesYardstick: linesYardstick
 
       new TextEditorPresenter(params)
 
