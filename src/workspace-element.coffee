@@ -127,6 +127,7 @@ atom.commands.add 'atom-workspace',
   'application:unhide-all-applications': -> ipc.send('command', 'application:unhide-all-applications')
   'application:new-window': -> ipc.send('command', 'application:new-window')
   'application:new-file': -> ipc.send('command', 'application:new-file')
+  'application:new-view-for-file': -> @getModel().newViewForActiveTextEditor()
   'application:open': -> ipc.send('command', 'application:open')
   'application:open-file': -> ipc.send('command', 'application:open-file')
   'application:open-folder': -> ipc.send('command', 'application:open-folder')
