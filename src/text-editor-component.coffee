@@ -13,6 +13,7 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 LinesYardstick = require './lines-yardstick'
+LineHtmlBuilder = require './line-html-builder'
 
 module.exports =
 class TextEditorComponent
@@ -44,6 +45,12 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    @lineHtmlBuilder = new LineHtmlBuilder(true)
+    @linesYardstick = new LinesYardstick(@editor)
+    @linesYardstick.setLineHtmlProvider (screenRow, line) =>
+      showIndentGuide = atom.config.get('editor.showIndentGuide')
+      @lineHtmlBuilder.buildLineHTML(showIndentGuide, 0, line)
+
     @presenter = new TextEditorPresenter
       model: @editor
       scrollTop: @editor.getScrollTop()
@@ -52,6 +59,7 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
+      linesYardstick: @linesYardstick
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domNode = document.createElement('div')
@@ -65,6 +73,8 @@ class TextEditorComponent
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode)
+
+    @domNode.appendChild(@linesYardstick.getDomNode())
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -99,13 +109,10 @@ class TextEditorComponent
 
     @disposables.add atom.views.pollDocument(@pollDOM)
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @stylesElement)
-    @domNode.appendChild(@linesYardstick.getDomNode())
+    @updateSync()
+    @checkForVisibilityChange()
 
-    @disposables.add @linesYardstick.onDidInitialize =>
-      @presenter.setComponent(this)
-      @updateSync()
-      @checkForVisibilityChange()
+    @disposables.add @linesYardstick.onDidInitialize => @presenter.characterWidthsChanged()
 
   destroy: ->
     @mounted = false
@@ -117,8 +124,6 @@ class TextEditorComponent
     @domNode
 
   updateSync: ->
-    return unless @linesYardstick.canMeasure()
-
     @oldState ?= {}
     @newState = @presenter.getState()
 
@@ -486,6 +491,7 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
+    @linesYardstick.resetStyleSheets(@stylesElement.children)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
@@ -624,7 +630,7 @@ class TextEditorComponent
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
-      @linesYardstick.setFont(@fontFamily, @fontSize)
+      @linesYardstick.setDefaultFont(@fontFamily, @fontSize)
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
       @remeasureCharacterWidths()

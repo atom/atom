@@ -67,6 +67,8 @@ class LinesYardstick
     return false
 
   buildDomNodesForScreenRows: (screenRows) ->
+    return unless @canMeasure()
+
     visibleLines = {}
     html = ""
     newLinesIds = []
@@ -74,8 +76,9 @@ class LinesYardstick
       line = @editor.tokenizedLineForScreenRow(screenRow)
       return unless line?
       visibleLines[line.id] = true
+      return if @lineNodesByLineId.hasOwnProperty(line.id)
 
-      unless @lineNodesByLineId.hasOwnProperty(line.id)
+      if lineHtml = @htmlProviderFn(screenRow, line)
         html += @htmlProviderFn(screenRow, line)
         newLinesIds.push(line.id)
 

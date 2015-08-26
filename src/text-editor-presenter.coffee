@@ -404,7 +404,8 @@ class TextEditorPresenter
         lineState.top = (row - startRow) * @lineHeight
         lineState.decorationClasses = @lineDecorationClassesForRow(row)
       else
-        tileState.lines[line.id] = @buildLineState(startRow, row, line)
+        lineState = tileState.lines[line.id] = @buildLineState(row, line)
+        lineState.top = (row - startRow) * @lineHeight
 
       row++
 
@@ -412,7 +413,7 @@ class TextEditorPresenter
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
     return
 
-  buildLineState: (startRow, row, line) ->
+  buildLineState: (row, line) ->
     {
       screenRow: row
       text: line.text
@@ -427,7 +428,6 @@ class TextEditorPresenter
       indentLevel: line.indentLevel
       tabLength: line.tabLength
       fold: line.fold
-      top: (row - startRow) * @lineHeight
       decorationClasses: @lineDecorationClassesForRow(row)
     }
 

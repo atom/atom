@@ -8,7 +8,9 @@ class LineHtmlBuilder
     @tokenIterator = new TokenIterator
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
-    {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = lineState
+    {screenRow, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = lineState
+
+    return if text is "" and @fastVersion
 
     classes = ''
     if decorationClasses?
@@ -17,14 +19,14 @@ class LineHtmlBuilder
     classes += 'line'
 
     if @fastVersion
-      lineHTML = "<div class=\"#{classes}\" data-screen-row=\"#{screenRow}\">"
+      lineHTML = "<div class=\"#{classes}\">"
     else
       lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
-    if text isnt ""
-      lineHTML += @buildLineInnerHTML(indentGuidesVisible, lineState)
-    else if not @fastVersion
+    if text is ""
       lineHTML += @buildEmptyLineInnerHTML(indentGuidesVisible, lineState)
+    else
+      lineHTML += @buildLineInnerHTML(indentGuidesVisible, lineState)
 
     lineHTML += '<span class="fold-marker"></span>' if fold and not @fastVersion
 
