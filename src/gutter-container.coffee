@@ -1,12 +1,8 @@
 {Emitter} = require 'event-kit'
 Gutter = require './gutter'
 
-# This class encapsulates the logic for adding and modifying a set of gutters.
-
 module.exports =
 class GutterContainer
-
-  # * `textEditor` The {TextEditor} to which this {GutterContainer} belongs.
   constructor: (textEditor) ->
     @gutters = []
     @textEditor = textEditor
@@ -51,20 +47,13 @@ class GutterContainer
       if gutter.name is name then return gutter
     null
 
-  ###
-  Section: Event Subscription
-  ###
-
-  # See {TextEditor::observeGutters} for details.
   observeGutters: (callback) ->
     callback(gutter) for gutter in @getGutters()
     @onDidAddGutter callback
 
-  # See {TextEditor::onDidAddGutter} for details.
   onDidAddGutter: (callback) ->
     @emitter.on 'did-add-gutter', callback
 
-  # See {TextEditor::onDidRemoveGutter} for details.
   onDidRemoveGutter: (callback) ->
     @emitter.on 'did-remove-gutter', callback
 
