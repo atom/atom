@@ -2741,6 +2741,33 @@ describe "TextEditorComponent", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
 
+      describe "with multiple selections", ->
+        beforeEach ->
+          editor.setSelectedBufferRanges [[[0, 4], [0, 9]], [[0, 16], [0, 19]]] # select 'quick' and 'fun'
+
+        it "inserts the chosen completion", ->
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
+          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = sction () {'
+
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
+          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = sdction () {'
+
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
+          componentNode.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
+          expect(editor.lineTextForBufferRow(0)).toBe 'var 速度sort = 速度ction () {'
+
+        it "reverts back to the original text when the completion helper is dismissed", ->
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
+          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = sction () {'
+
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
+          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = sdction () {'
+
+          componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
+          expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'
+
   describe "commands", ->
     describe "editor:consolidate-selections", ->
       it "consolidates selections on the editor model, aborting the key binding if there is only one selection", ->
