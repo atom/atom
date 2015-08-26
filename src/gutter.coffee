@@ -25,16 +25,20 @@ class Gutter
       @emitter.emit 'did-destroy'
       @emitter.dispose()
 
-  # Calls your `callback` when the {Gutter}'s' visibility changes.
+  ###
+  Section: Event Subscription
+  ###
+
+  # Public: Calls your `callback` when the gutter's visibility changes.
   #
   # * `callback` {Function}
-  #  * `gutter` The {Gutter} whose visibility changed.
+  #  * `gutter` The gutter whose visibility changed.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeVisible: (callback) ->
     @emitter.on 'did-change-visible', callback
 
-  # Calls your `callback` when the {Gutter} is destroyed
+  # Public: Calls your `callback` when the gutter is destroyed.
   #
   # * `callback` {Function}
   #
