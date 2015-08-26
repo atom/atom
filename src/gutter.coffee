@@ -17,6 +17,11 @@ class Gutter
 
     @emitter = new Emitter
 
+  ###
+  Section: Gutter Destruction
+  ###
+
+  # Public: Destroys the gutter.
   destroy: ->
     if @name is 'line-number'
       throw new Error('The line-number gutter cannot be destroyed.')
