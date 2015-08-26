@@ -3,15 +3,12 @@ TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
 {Emitter} = require 'event-kit'
-{last} = require 'underscore-plus'
 
 module.exports =
 class LinesYardstick
-  constructor: (@editor, @presenter, hostElement, @syntaxStyleElement) ->
+  constructor: (@editor, @presenter, @syntaxStyleElement) ->
     @initialized = false
     @emitter = new Emitter
-    @scopesCache = {}
-    @fontSelectors = []
     @linesBuilder = new LineHtmlBuilder(true)
     @defaultStyleNode = document.createElement("style")
     @skinnyStyleNode = document.createElement("style")
@@ -19,11 +16,9 @@ class LinesYardstick
     @iframe.style.display = "none"
     @iframe.onload = @setupIframe
     @lineNodesByLineId = {}
-    @lineNodesByContextIndexAndLineId = {}
-    @activeContextIndex = -1
     @tokenIterator = new TokenIterator
 
-    hostElement.appendChild(@iframe)
+  getDomNode: -> @iframe
 
   setFont: (fontFamily, fontSize) ->
     @defaultStyleNode.innerHTML = "body { margin: 0; padding: 0; font-size: #{fontSize}; font-family: #{fontFamily}; white-space: pre; }"
@@ -34,14 +29,6 @@ class LinesYardstick
   canMeasure: ->
     @initialized
 
-  createMeasurementContext: ->
-    context = document.createElement("div")
-    context.style.overflow = "hidden"
-    context.style.width = "600px"
-    context.style.height = "600px"
-    context.style.display = "block"
-    context
-
   setupIframe: =>
     @initialized = true
     @domNode = @iframe.contentDocument.body
@@ -51,15 +38,10 @@ class LinesYardstick
     @headNode.appendChild(@defaultStyleNode)
     @headNode.appendChild(@skinnyStyleNode)
 
-    @contexts = []
-    @contexts.push(@createMeasurementContext()) for i in [0..8] by 1
-    @domNode.appendChild(context) for context in @contexts
-
     @emitter.emit "did-initialize"
 
   rebuildSkinnyStyleNode: ->
     skinnyCss = ""
-    @scopesCache = {}
 
     for style in @syntaxStyleElement.children
       for cssRule in style.sheet.cssRules when @hasFontStyling(cssRule)
@@ -73,19 +55,9 @@ class LinesYardstick
 
     return false
 
-  getNextContextNode: ->
-    @activeContextIndex = (@activeContextIndex + 1) % @contexts.length
-
-    [@activeContextIndex, @contexts[@activeContextIndex]]
-
-  lineNodesForContextIndex: (contextIndex) ->
-    @lineNodesByContextIndex[contextIndex] ? []
-
   buildDomNodesForScreenRows: (screenRows) ->
     visibleLines = {}
     html = ""
-    [contextIndex, contextNode] = @getNextContextNode()
-
     newLinesIds = []
     screenRows.forEach (screenRow) =>
       line = @editor.tokenizedLineForScreenRow(screenRow)
@@ -94,29 +66,20 @@ class LinesYardstick
 
       unless @lineNodesByLineId.hasOwnProperty(line.id)
         lineState = @presenter.buildLineState(0, screenRow, line)
-        html += @linesBuilder.buildLineHTML(
-          @presenter.indentGuidesVisible,
-          1000,
-          lineState
-        )
+        html += @linesBuilder.buildLineHTML(@indentGuidesVisible, 0, lineState)
         newLinesIds.push(line.id)
 
-    for lineId, lineNode of @lineNodesByContextIndexAndLineId[contextIndex]
+    for lineId, lineNode of @lineNodesByLineId
       continue if visibleLines.hasOwnProperty(lineId)
 
       lineNode.remove()
-
       delete @lineNodesByLineId[lineId]
-      delete @lineNodesByContextIndexAndLineId[contextIndex][lineId]
 
-    contextNode.insertAdjacentHTML("beforeend", html)
-
-    @lineNodesByContextIndexAndLineId[contextIndex] ?= {}
-    index = contextNode.children.length - 1
+    @domNode.insertAdjacentHTML("beforeend", html)
+    index = @domNode.children.length - 1
     while lineId = newLinesIds.pop()
-      lineNode = contextNode.children[index--]
+      lineNode = @domNode.children[index--]
       @lineNodesByLineId[lineId] = lineNode
-      @lineNodesByContextIndexAndLineId[contextIndex][lineId] = lineNode
 
   lineNodeForScreenRow: (screenRow) ->
     line = @editor.tokenizedLineForScreenRow(screenRow)
@@ -128,7 +91,6 @@ class LinesYardstick
     return 0 unless lineNode?
 
     tokenizedLine = @editor.tokenizedLineForScreenRow(row)
-    rangeForMeasurement ?= document.createRange()
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
 

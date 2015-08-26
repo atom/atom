@@ -6,10 +6,6 @@ module.exports =
 class LineHtmlBuilder
   constructor: (@fastVersion) ->
     @tokenIterator = new TokenIterator
-    # By default we want to accept all the tokens
-    @scopeFilterFn = -> true
-
-  setScopeFilterFn: (@scopeFilterFn) ->
 
   buildLineHTML: (indentGuidesVisible, width, lineState) ->
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = lineState
@@ -25,13 +21,12 @@ class LineHtmlBuilder
     else
       lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
 
-    if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(indentGuidesVisible, lineState)
-    else
+    if text isnt ""
       lineHTML += @buildLineInnerHTML(indentGuidesVisible, lineState)
+    else if not @fastVersion
+      lineHTML += @buildEmptyLineInnerHTML(indentGuidesVisible, lineState)
 
-    unless @fastVersion
-      lineHTML += '<span class="fold-marker"></span>' if fold
+    lineHTML += '<span class="fold-marker"></span>' if fold and not @fastVersion
 
     lineHTML += "</div>"
     lineHTML
@@ -103,7 +98,7 @@ class LineHtmlBuilder
     for scope in @tokenIterator.getScopes()
       innerHTML += "</span>"
 
-    innerHTML += @buildEndOfLineHTML(lineState)
+    innerHTML += @buildEndOfLineHTML(lineState) unless @fastVersion
     innerHTML
 
   buildTokenHTML: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, tokenStart, tokenEnd) ->
