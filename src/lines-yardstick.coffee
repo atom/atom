@@ -1,4 +1,5 @@
 LineHtmlBuilder = require './line-html-builder'
+TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 rangeForMeasurement = document.createRange()
 {Emitter} = require 'event-kit'
@@ -20,6 +21,7 @@ class LinesYardstick
     @lineNodesByLineId = {}
     @lineNodesByContextIndexAndLineId = {}
     @activeContextIndex = -1
+    @tokenIterator = new TokenIterator
 
     hostElement.appendChild(@iframe)
 
@@ -31,11 +33,6 @@ class LinesYardstick
 
   canMeasure: ->
     @initialized
-
-  ensureInitialized: ->
-    return if @canMeasure()
-
-    throw new Error("This instance of LinesYardstick hasn't been initialized!")
 
   createMeasurementContext: ->
     context = document.createElement("div")
@@ -54,19 +51,6 @@ class LinesYardstick
     @headNode.appendChild(@defaultStyleNode)
     @headNode.appendChild(@skinnyStyleNode)
 
-    @linesBuilder.setScopeFilterFn (scope) =>
-      return @scopesCache[scope] if @scopesCache.hasOwnProperty(scope)
-
-      cssClasses = scope.split(".")
-      for fontSelector in @fontSelectors
-        for cssClass in cssClasses
-          if fontSelector.indexOf(".#{cssClass}") isnt -1
-            @scopesCache[scope] = true
-            return true
-
-      @scopesCache[scope] = false
-      return false
-
     @contexts = []
     @contexts.push(@createMeasurementContext()) for i in [0..8] by 1
     @domNode.appendChild(context) for context in @contexts
@@ -76,11 +60,9 @@ class LinesYardstick
   rebuildSkinnyStyleNode: ->
     skinnyCss = ""
     @scopesCache = {}
-    @fontSelectors.length = 0
 
     for style in @syntaxStyleElement.children
       for cssRule in style.sheet.cssRules when @hasFontStyling(cssRule)
-        @fontSelectors.push(cssRule.selectorText)
         skinnyCss += cssRule.cssText
 
     @skinnyStyleNode.innerHTML = skinnyCss
@@ -100,8 +82,6 @@ class LinesYardstick
     @lineNodesByContextIndex[contextIndex] ? []
 
   buildDomNodesForScreenRows: (screenRows) ->
-    @ensureInitialized()
-
     visibleLines = {}
     html = ""
     [contextIndex, contextNode] = @getNextContextNode()
@@ -114,7 +94,11 @@ class LinesYardstick
 
       unless @lineNodesByLineId.hasOwnProperty(line.id)
         lineState = @presenter.buildLineState(0, screenRow, line)
-        html += @linesBuilder.buildLineHTML(false, 1000, lineState)
+        html += @linesBuilder.buildLineHTML(
+          @presenter.indentGuidesVisible,
+          1000,
+          lineState
+        )
         newLinesIds.push(line.id)
 
     for lineId, lineNode of @lineNodesByContextIndexAndLineId[contextIndex]
@@ -139,46 +123,56 @@ class LinesYardstick
     lineNode = @lineNodesByLineId[line.id]
     lineNode
 
-  leftPixelPositionForScreenPosition: (position) ->
-    @ensureInitialized()
+  leftPixelPositionForScreenPosition: ({row, column}) ->
+    lineNode = @lineNodeForScreenRow(row)
+    return 0 unless lineNode?
 
-    lineNode = @lineNodeForScreenRow(position.row)
+    tokenizedLine = @editor.tokenizedLineForScreenRow(row)
+    rangeForMeasurement ?= document.createRange()
+    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
+    charIndex = 0
 
-    unless lineNode?
-      # console.log "#{position.row} not found. This wasn't expected."
-      return 0
+    @tokenIterator.reset(tokenizedLine)
+    while @tokenIterator.next()
+      text = @tokenIterator.getText()
 
-    tokens = lineNode.getElementsByClassName("token")
+      textIndex = 0
+      while textIndex < text.length
+        if @tokenIterator.isPairedCharacter()
+          char = text
+          charLength = 2
+          textIndex += 2
+        else
+          char = text[textIndex]
+          charLength = 1
+          textIndex++
 
-    return 0 if tokens.length is 0
+        continue if char is '\0'
 
-    if foundToken = @findTokenByColumn(position.column, tokens)
-      textNode = foundToken.childNodes[0]
-      positionWithinToken = position.column - parseInt(foundToken.dataset.start)
+        unless textNode?
+          textNode = iterator.nextNode()
+          textNodeLength = textNode.textContent.length
+          textNodeIndex = 0
+          nextTextNodeIndex = textNodeLength
+
+        while nextTextNodeIndex <= charIndex
+          textNode = iterator.nextNode()
+          textNodeLength = textNode.textContent.length
+          textNodeIndex = nextTextNodeIndex
+          nextTextNodeIndex = textNodeIndex + textNodeLength
+
+        if charIndex is column
+          indexWithinToken = charIndex - textNodeIndex
+          return @leftPixelPositionForCharInTextNode(textNode, indexWithinToken)
+
+        charIndex += charLength
+
+    if textNode?
+      @leftPixelPositionForCharInTextNode(textNode, textNode.textContent.length)
     else
-      textNode = last(tokens).childNodes[0]
-      positionWithinToken = textNode.textContent.length
+      0
 
-    @leftPixelPositionForCharInTextNode(textNode, positionWithinToken)
-
-  findTokenByColumn: (column, tokens, startIndex = 0, endIndex = tokens.length) ->
-    index = Math.floor((startIndex + endIndex) / 2)
-
-    return if startIndex > endIndex or index is tokens.length
-
-    element = tokens[index]
-
-    rangeStart = parseInt(element.dataset.start)
-    rangeEnd = parseInt(element.dataset.end)
-
-    if rangeStart > column
-      @findTokenByColumn(column, tokens, startIndex, index - 1)
-    else if rangeEnd < column
-      @findTokenByColumn(column, tokens, index + 1, endIndex)
-    else
-      element
-
-  leftPixelPositionForCharInTextNode: (textNode, charIndex = textNode.textContent.length) ->
+  leftPixelPositionForCharInTextNode: (textNode, charIndex) ->
     rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
 
     if charIndex is 0

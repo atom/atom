@@ -66,10 +66,10 @@ class LineHtmlBuilder
     @tokenIterator.reset(lineState)
 
     while @tokenIterator.next()
-      for scope in @tokenIterator.getScopeEnds() when @scopeFilterFn(scope)
+      for scope in @tokenIterator.getScopeEnds()
         innerHTML += "</span>"
 
-      for scope in @tokenIterator.getScopeStarts() when @scopeFilterFn(scope)
+      for scope in @tokenIterator.getScopeStarts()
         innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
 
       tokenStart = @tokenIterator.getScreenStart()
@@ -97,10 +97,10 @@ class LineHtmlBuilder
 
       innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, tokenStart, tokenEnd)
 
-    for scope in @tokenIterator.getScopeEnds() when @scopeFilterFn(scope)
+    for scope in @tokenIterator.getScopeEnds()
       innerHTML += "</span>"
 
-    for scope in @tokenIterator.getScopes() when @scopeFilterFn(scope)
+    for scope in @tokenIterator.getScopes()
       innerHTML += "</span>"
 
     innerHTML += @buildEndOfLineHTML(lineState)
@@ -130,7 +130,7 @@ class LineHtmlBuilder
         classes += ' indent-guide' if hasIndentGuide
         classes += ' invisible-character' if hasInvisibleCharacters
 
-        leadingHtml = "<span data-start='#{tokenStart}' data-end='#{tokenStart + leadingWhitespace.length}' class='token #{classes}'>#{leadingWhitespace}</span>"
+        leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
         startIndex = firstNonWhitespaceIndex
 
       if firstTrailingWhitespaceIndex?
@@ -138,15 +138,11 @@ class LineHtmlBuilder
         trailingWhitespace = tokenText.substring(firstTrailingWhitespaceIndex)
 
         unless trailingWhitespace is ""
-          trailingWhitespaceStartIndex = tokenStart + firstTrailingWhitespaceIndex
-          trailingWhitespaceEndIndex = trailingWhitespaceStartIndex + trailingWhitespace.length
-
           classes = 'trailing-whitespace'
           classes += ' indent-guide' if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
           classes += ' invisible-character' if hasInvisibleCharacters
 
-
-          trailingHtml = "<span data-start='#{trailingWhitespaceStartIndex}' data-end='#{trailingWhitespaceEndIndex}' class='token #{classes}'>#{trailingWhitespace}</span>"
+          trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
 
           endIndex = firstTrailingWhitespaceIndex
 
@@ -154,14 +150,11 @@ class LineHtmlBuilder
       if tokenText.length > MaxTokenLength
         while startIndex < endIndex
           text = @escapeTokenText(tokenText, startIndex, startIndex + MaxTokenLength)
-          html += "<span data-start='#{tokenStart + startIndex}' data-end='#{startIndex + text.length}' class='token'>#{text}</span>"
+          html += "<span>#{text}</span>"
           startIndex += MaxTokenLength
       else
         text = @escapeTokenText(tokenText, startIndex, endIndex)
-        if text.length isnt 0
-          html += "<span data-start='#{tokenStart + startIndex}' data-end='#{tokenStart + endIndex}' class='token'>" if @fastVersion
-          html += "#{text}"
-          html += "</span>" if @fastVersion
+        html += text
 
       html += trailingHtml
     html
