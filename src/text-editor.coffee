@@ -533,7 +533,7 @@ class TextEditor extends Model
   gutterWithName: (name) ->
     @gutterContainer.gutterWithName(name)
 
-  # Calls your `callback` when a {Gutter} is added to the editor.
+  # Essential: Calls your `callback` when a {Gutter} is added to the editor.
   # Immediately calls your callback for each existing gutter.
   #
   # * `callback` {Function}
@@ -543,7 +543,7 @@ class TextEditor extends Model
   observeGutters: (callback) ->
     @gutterContainer.observeGutters callback
 
-  # Calls your `callback` when a {Gutter} is added to the editor.
+  # Essential: Calls your `callback` when a {Gutter} is added to the editor.
   #
   # * `callback` {Function}
   #   * `gutter` {Gutter} that was added.
@@ -552,7 +552,7 @@ class TextEditor extends Model
   onDidAddGutter: (callback) ->
     @gutterContainer.onDidAddGutter callback
 
-  # Calls your `callback` when a {Gutter} is removed from the editor.
+  # Essential: Calls your `callback` when a {Gutter} is removed from the editor.
   #
   # * `callback` {Function}
   #   * `name` The name of the {Gutter} that was removed.
