@@ -46,16 +46,23 @@ class Gutter
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
 
+  ###
+  Section: Visibility
+  ###
+
+  # Public: Hide the gutter.
   hide: ->
     if @visible
       @visible = false
       @emitter.emit 'did-change-visible', this
 
+  # Public: Show the gutter.
   show: ->
     if not @visible
       @visible = true
       @emitter.emit 'did-change-visible', this
 
+  # Public: Returns the visibility of the gutter.
   isVisible: ->
     @visible
 
