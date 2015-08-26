@@ -25,6 +25,23 @@ class Gutter
       @emitter.emit 'did-destroy'
       @emitter.dispose()
 
+  # Calls your `callback` when the {Gutter}'s' visibility changes.
+  #
+  # * `callback` {Function}
+  #  * `gutter` The {Gutter} whose visibility changed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeVisible: (callback) ->
+    @emitter.on 'did-change-visible', callback
+
+  # Calls your `callback` when the {Gutter} is destroyed
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
   hide: ->
     if @visible
       @visible = false
@@ -47,20 +64,3 @@ class Gutter
   # Returns a {Decoration} object.
   decorateMarker: (marker, options) ->
     @gutterContainer.addGutterDecoration(this, marker, options)
-
-  # Calls your `callback` when the {Gutter}'s' visibility changes.
-  #
-  # * `callback` {Function}
-  #  * `gutter` The {Gutter} whose visibility changed.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeVisible: (callback) ->
-    @emitter.on 'did-change-visible', callback
-
-  # Calls your `callback` when the {Gutter} is destroyed
-  #
-  # * `callback` {Function}
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
