@@ -283,6 +283,17 @@ ScopeDescriptor = require './scope-descriptor'
 # __Note__: You should strive to be so clear in your naming of the setting that
 # you do not need to specify a title or description!
 #
+# Descriptions allow a subset of
+# [Markdown formatting](https://help.github.com/articles/github-flavored-markdown/).
+# Specifically, you may use the following in configuration setting descriptions:
+#
+# * **bold** - `**bold**`
+# * *italics* - `*italics*`
+# * [links](https://atom.io) - `[links](https://atom.io)`
+# * `code spans` - `\`code spans\``
+# * line breaks - `line breaks<br/>`
+# * ~~strikethrough~~ - `~~strikethrough~~`
+#
 # ## Best practices
 #
 # * Don't depend on (or write to) configuration keys outside of your keypath.
@@ -664,13 +675,24 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
-  # Returns `null` when the keyPath has no schema specified.
+  # Returns `null` when the keyPath has no schema specified, but is accessible
+  # from the root schema.
   getSchema: (keyPath) ->
     keys = splitKeyPath(keyPath)
     schema = @schema
     for key in keys
-      break unless schema?
-      schema = schema.properties?[key]
+      if schema.type is 'object'
+        childSchema = schema.properties?[key]
+        unless childSchema?
+          if isPlainObject(schema.additionalProperties)
+            childSchema = schema.additionalProperties
+          else if schema.additionalProperties is false
+            return null
+          else
+            return {type: 'any'}
+      else
+        return null
+      schema = childSchema
     schema
 
   # Extended: Get the {String} path to the config file being used.
@@ -843,7 +865,7 @@ class Config
 
     if value?
       value = @deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      @deepDefaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       value = @deepClone(defaultValue)
 
@@ -906,6 +928,19 @@ class Config
     else
       object
 
+  deepDefaults: (target) ->
+    result = target
+    i = 0
+    while ++i < arguments.length
+      object = arguments[i]
+      if isPlainObject(result) and isPlainObject(object)
+        for key in Object.keys(object)
+          result[key] = @deepDefaults(result[key], object[key])
+      else
+        if not result?
+          result = @deepClone(object)
+    result
+
   # `schema` will look something like this
   #
   # ```coffee
@@ -948,8 +983,9 @@ class Config
       catch e
         undefined
     else
-      value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
-      value
+      unless (schema = @getSchema(keyPath))?
+        throw new Error("Illegal key path #{keyPath}") if schema is false
+      @constructor.executeSchemaEnforcers(keyPath, value, schema)
 
   # When the schema is changed / added, there may be values set in the config
   # that do not conform to the schema. This will reset make them conform.
@@ -1027,6 +1063,10 @@ class Config
 # order of specification. Then the `*` enforcers will be run, in order of
 # specification.
 Config.addSchemaEnforcers
+  'any':
+    coerce: (keyPath, value, schema) ->
+      value
+
   'integer':
     coerce: (keyPath, value, schema) ->
       value = parseInt(value)
@@ -1077,17 +1117,26 @@ Config.addSchemaEnforcers
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
 
+      defaultChildSchema = null
+      allowsAdditionalProperties = true
+      if isPlainObject(schema.additionalProperties)
+        defaultChildSchema = schema.additionalProperties
+      if schema.additionalProperties is false
+        allowsAdditionalProperties = false
+
       newValue = {}
       for prop, propValue of value
-        childSchema = schema.properties[prop]
+        childSchema = schema.properties[prop] ? defaultChildSchema
         if childSchema?
           try
             newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
           catch error
             console.warn "Error setting item in object: #{error.message}"
-        else
+        else if allowsAdditionalProperties
           # Just pass through un-schema'd values
           newValue[prop] = propValue
+        else
+          console.warn "Illegal object key: #{keyPath}.#{prop}"
 
       newValue
 

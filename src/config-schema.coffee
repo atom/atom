@@ -26,6 +26,14 @@ module.exports =
         default: []
         items:
           type: 'string'
+      customFileTypes:
+        type: 'object'
+        default: {}
+        description: 'Associates scope names (e.g. "source.js") with arrays of file extensions and file names (e.g. ["Somefile", ".js2"])'
+        additionalProperties:
+          type: 'array'
+          items:
+            type: 'string'
       themes:
         type: 'array'
         default: ['one-dark-ui', 'one-dark-syntax']
@@ -81,6 +89,10 @@ module.exports =
           'windows1258',
           'windows866'
         ]
+      openEmptyEditorOnStart:
+        description: 'Automatically opens an empty editor when atom starts.'
+        type: 'boolean'
+        default: true
 
   editor:
     type: 'object'
@@ -143,6 +155,11 @@ module.exports =
       softTabs:
         type: 'boolean'
         default: true
+      tabType:
+        type: 'string'
+        default: 'auto'
+        enum: ['auto', 'soft', 'hard']
+        description: 'Determine character inserted during Tab keypress.'
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false

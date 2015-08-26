@@ -24,7 +24,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Fedora / CentOS / RHEL
 
-* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 * Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
 
 ### Arch

@@ -86,12 +86,12 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
     @buffer = @displayBuffer.buffer
-    @softTabs = @usesSoftTabs() ? @softTabs ? atom.config.get('editor.softTabs') ? true
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
+    @subscribeToTabTypeConfig()
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
 
@@ -176,9 +176,15 @@ class TextEditor extends Model
       @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
       @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
+  subscribeToTabTypeConfig: ->
+    @tabTypeSubscription?.dispose()
+    @tabTypeSubscription = atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
+      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
+
   destroyed: ->
     @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
+    @tabTypeSubscription.dispose()
     selection.destroy() for selection in @getSelections()
     @buffer.release()
     @displayBuffer.destroy()
@@ -1113,12 +1119,12 @@ class TextEditor extends Model
 
   # Essential: Undo the last change.
   undo: ->
-    @buffer.undo()
+    @avoidMergingSelections => @buffer.undo()
     @getLastSelection().autoscroll()
 
   # Essential: Redo the last change.
   redo: ->
-    @buffer.redo(this)
+    @avoidMergingSelections => @buffer.redo()
     @getLastSelection().autoscroll()
 
   # Extended: Batch multiple operations as a single undo/redo step.
@@ -1833,6 +1839,8 @@ class TextEditor extends Model
   # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
+  #   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
+  #     selection is set.
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
@@ -1843,6 +1851,8 @@ class TextEditor extends Model
   # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
+  #   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
+  #     selection is set.
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
 
@@ -2207,6 +2217,9 @@ class TextEditor extends Model
 
       previousSelection.intersectsScreenRowRange(screenRange.start.row, screenRange.end.row)
 
+  avoidMergingSelections: (args...) ->
+    @mergeSelections args..., -> false
+
   mergeSelections: (args...) ->
     mergePredicate = args.pop()
     fn = args.pop() if _.isFunction(_.last(args))
@@ -2370,7 +2383,7 @@ class TextEditor extends Model
   usesSoftTabs: ->
     # FIXME Remove once this can be specified as a scoped setting in the
     # language-make package
-    return false if @getGrammar().scopeName is 'source.makefile'
+    return false if @getGrammar()?.scopeName is 'source.makefile'
 
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
@@ -2394,6 +2407,20 @@ class TextEditor extends Model
   normalizeTabsInBufferRange: (bufferRange) ->
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
+
+  # Private: Computes whether or not this editor should use softTabs based on
+  # the `editor.tabType` setting.
+  #
+  # Returns a {Boolean}
+  shouldUseSoftTabs: ({defaultValue}) ->
+    tabType = atom.config.get('editor.tabType', scope: @getRootScopeDescriptor())
+    switch tabType
+      when 'auto'
+        @usesSoftTabs() ? defaultValue ? atom.config.get('editor.softTabs') ? true
+      when 'hard'
+        false
+      when 'soft'
+        true
 
   ###
   Section: Soft Wrap Behavior
@@ -2586,6 +2613,15 @@ class TextEditor extends Model
       else
         selection.copy(maintainClipboard, false)
       maintainClipboard = true
+    return
+
+  # Private: For each selection, only copy highlighted text.
+  copyOnlySelectedText: ->
+    maintainClipboard = false
+    for selection in @getSelectionsOrderedByBufferPosition()
+      if not selection.isEmpty()
+        selection.copy(maintainClipboard, true)
+        maintainClipboard = true
     return
 
   # Essential: For each selection, cut the selected text.
@@ -2875,10 +2911,11 @@ class TextEditor extends Model
   ###
 
   handleTokenization: ->
-    @softTabs = @usesSoftTabs() ? @softTabs
+    @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   handleGrammarChange: ->
     @unfoldAll()
+    @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   handleMarkerCreated: (marker) =>

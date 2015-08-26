@@ -182,8 +182,19 @@ class CommandRegistry
       stopImmediatePropagation: value: ->
     @handleCommandEvent(eventWithTarget)
 
+  # Public: Invoke the given callback before dispatching a command event.
+  #
+  # * `callback` {Function} to be called before dispatching each command
+  #   * `event` The Event that will be dispatched
   onWillDispatch: (callback) ->
     @emitter.on 'will-dispatch', callback
+
+  # Public: Invoke the given callback after dispatching a command event.
+  #
+  # * `callback` {Function} to be called after dispatching each command
+  #   * `event` The Event that was dispatched
+  onDidDispatch: (callback) ->
+    @emitter.on 'did-dispatch', callback
 
   getSnapshot: ->
     snapshot = {}
@@ -238,6 +249,8 @@ class CommandRegistry
       break if currentTarget is window
       break if propagationStopped
       currentTarget = currentTarget.parentNode ? window
+
+    @emitter.emit 'did-dispatch', syntheticEvent
 
     matched
 

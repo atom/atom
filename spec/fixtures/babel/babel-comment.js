@@ -1,3 +1,3 @@
-'use 6to5';
+/** @babel */
 
 module.exports = v => v + 1

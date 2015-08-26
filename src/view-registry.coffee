@@ -124,6 +124,22 @@ class ViewRegistry
   # * `object` The object for which you want to retrieve a view. This can be a
   #   pane item, a pane, or the workspace itself.
   #
+  # ## View Resolution Algorithm
+  #
+  # The view associated with the object is resolved using the following
+  # sequence
+  #
+  #  1. Is the object an instance of `HTMLElement`? If true, return the object.
+  #  2. Does the object have a property named `element` with a value which is
+  #     an instance of `HTMLElement`? If true, return the property value.
+  #  3. Is the object a jQuery object, indicated by the presence of a `jquery`
+  #     property? If true, return the root DOM element (i.e. `object[0]`).
+  #  4. Has a view provider been registered for the object? If true, use the
+  #     provider to create a view associated with the object, and return the
+  #     view.
+  #
+  # If no associated view is returned by the sequence an error is thrown.
+  #
   # Returns a DOM element.
   getView: (object) ->
     return unless object?
@@ -138,6 +154,8 @@ class ViewRegistry
   createView: (object) ->
     if object instanceof HTMLElement
       object
+    else if object?.element instanceof HTMLElement
+      object.element
     else if object?.jquery
       object[0]
     else if provider = @findProvider(object)
