@@ -1279,7 +1279,7 @@ class TextEditor extends Model
   #
   # * __line__: Adds your CSS `class` to the line nodes within the range
   #     marked by the marker
-  # * __gutter__: Adds your CSS `class` to the line number nodes within the
+  # * __line-number__: Adds your CSS `class` to the line number nodes within the
   #     range marked by the marker
   # * __highlight__: Adds a new highlight div to the editor surrounding the
   #     range marked by the marker. When the user selects text, the selection is
@@ -1297,9 +1297,9 @@ class TextEditor extends Model
   # * `marker` A {Marker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
   #   `{type: 'line-number', class: 'linter-error'}`
-  #   * `type` There are a few supported decoration types: `gutter`, `line`,
+  #   * `type` There are a few supported decoration types: `line-number`, `line`,
   #     `highlight`, and `overlay`. The behavior of the types are as follows:
-  #     * `gutter` Adds the given `class` to the line numbers overlapping the
+  #     * `line-number` Adds the given `class` to the line numbers overlapping the
   #       rows spanned by the marker.
   #     * `line` Adds the given `class` to the lines overlapping the rows
   #        spanned by the marker.
@@ -1311,14 +1311,14 @@ class TextEditor extends Model
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
-  #     the head of the marker. Only applicable to the `line` and `gutter`
+  #     the head of the marker. Only applicable to the `line` and `line-number`
   #     types.
   #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
   #     the associated marker is empty. Only applicable to the `line` and
-  #     `gutter` types.
+  #     `line-number` types.
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
   #     if the associated marker is non-empty.  Only applicable to the `line`
-  #     and gutter types.
+  #     and `line-number` types.
   #   * `position` (optional) Only applicable to decorations of type `overlay`,
   #     controls where the overlay view is positioned relative to the marker.
   #     Values can be `'head'` (the default), or `'tail'`.
