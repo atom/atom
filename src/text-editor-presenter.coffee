@@ -416,9 +416,10 @@ class TextEditorPresenter
 
   updateCursorState: (cursor) ->
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
-    return unless cursor.isVisible() and @startRow <= cursor.getScreenRow() < @endRow
+    screenRange = cursor.getScreenRange()
+    return unless cursor.isVisible() and @startRow <= screenRange.start.row < @endRow
 
-    pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
+    pixelRect = @pixelRectForScreenRange(screenRange)
     pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
 
@@ -1166,7 +1167,7 @@ class TextEditorPresenter
         if decoration.isType('line') or decoration.isType('gutter')
           @addToLineDecorationCaches(decoration, range)
         else if decoration.isType('highlight')
-          @updateHighlightState(decoration)
+          @updateHighlightState(decoration, range)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights
@@ -1237,12 +1238,11 @@ class TextEditorPresenter
 
     intersectingRange
 
-  updateHighlightState: (decoration) ->
+  updateHighlightState: (decoration, range) ->
     return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
 
     properties = decoration.getProperties()
     marker = decoration.getMarker()
-    range = marker.getScreenRange()
 
     if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
       return
