@@ -601,6 +601,28 @@ describe "TextEditorComponent", ->
       expect(lineNode.offsetTop).toBe(top)
       expect(lineNode.textContent).toBe(text)
 
+    it "renders tiles upper in the stack in front of the ones below", ->
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+
+      expect(tilesNodes[0].style.zIndex).toBe("2")
+      expect(tilesNodes[1].style.zIndex).toBe("1")
+      expect(tilesNodes[2].style.zIndex).toBe("0")
+
+      verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
+
+      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+
+      expect(tilesNodes[0].style.zIndex).toBe("3")
+      expect(tilesNodes[1].style.zIndex).toBe("2")
+      expect(tilesNodes[2].style.zIndex).toBe("1")
+      expect(tilesNodes[3].style.zIndex).toBe("0")
+
     it "gives the line numbers container the same height as the wrapper node", ->
       linesNode = componentNode.querySelector(".line-numbers")
 

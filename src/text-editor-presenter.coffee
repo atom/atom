@@ -344,18 +344,20 @@ class TextEditorPresenter
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
-      tile.zIndex = zIndex--
+      tile.zIndex = zIndex
       tile.highlights ?= {}
 
       gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
       gutterTile.top = startRow * @lineHeight - @scrollTop
       gutterTile.height = @tileSize * @lineHeight
       gutterTile.display = "block"
+      gutterTile.zIndex = zIndex
 
       @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
       @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
 
       visibleTiles[startRow] = true
+      zIndex--
 
     if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)

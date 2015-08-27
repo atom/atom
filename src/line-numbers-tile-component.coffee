@@ -42,6 +42,10 @@ class LineNumbersTileComponent
       @domNode.style['-webkit-transform'] = "translate3d(0, #{@newTileState.top}px, 0px)"
       @oldTileState.top = @newTileState.top
 
+    if @newTileState.zIndex isnt @oldTileState.zIndex
+      @domNode.style.zIndex = @newTileState.zIndex
+      @oldTileState.zIndex = @newTileState.zIndex
+
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       node.remove() for id, node of @lineNumberNodesById
       @oldState.tiles[@id] = {lineNumbers: {}}
