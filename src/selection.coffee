@@ -361,6 +361,8 @@ class Selection extends Model
   #     (for example, when a closing bracket is inserted).
   #   * `normalizeLineEndings` (optional) {Boolean} (default: true)
   #   * `undo` if `skip`, skips the undo stack for this operation.
+  #   * 'removeTrailingWhitespace' if 'true', removes the trailing whitespace
+  #     from the previous line on newline.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editor.unfoldBufferRow(oldBufferRange.end.row)
@@ -398,6 +400,8 @@ class Selection extends Model
 
     if options.autoIndentNewline and text is '\n'
       @editor.autoIndentBufferRow(newBufferRange.end.row, preserveLeadingWhitespace: true, skipBlankLines: false)
+      if options.removeTrailingWhitespace and @editor.isBufferRowBlank(newBufferRange.start.row)
+        @editor.setIndentationForBufferRow(newBufferRange.start.row, 0)
     else if options.autoDecreaseIndent and NonWhitespaceRegExp.test(text)
       @editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row)
 
