@@ -124,6 +124,21 @@ fdescribe "TextEditorComponent", ->
       else
         expect(lineNode.textContent).toBe(tokenizedLine.text)
 
+    it "gives the lines container the same height as the wrapper node", ->
+      linesNode = componentNode.querySelector(".lines")
+
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
+
+      wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
+
     it "renders tiles upper in the stack in front of the ones below", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
@@ -621,6 +636,21 @@ fdescribe "TextEditorComponent", ->
 
       expect(lineNode.offsetTop).toBe(top)
       expect(lineNode.textContent).toBe(text)
+
+    it "gives the line numbers container the same height as the wrapper node", ->
+      linesNode = componentNode.querySelector(".lines")
+
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
+
+      wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
 
     it "renders the currently-visible line numbers in a tiled fashion", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -2752,27 +2782,27 @@ fdescribe "TextEditorComponent", ->
 
       describe "when a string is selected", ->
         beforeEach ->
-          editor.setSelectedBufferRange [[0, 4], [0, 9]] # select 'quick'
+          editor.setSelectedBufferRanges [[[0, 4], [0, 9]], [[0, 16], [0, 19]]] # select 'quick' and 'fun'
 
         it "inserts the chosen completion", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = sction () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = sdction () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           componentNode.dispatchEvent(buildTextInputEvent(data: '速度', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var 速度sort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var 速度sort = 速度ction () {'
 
         it "reverts back to the original text when the completion helper is dismissed", ->
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionstart', target: inputNode))
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 's', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var ssort = sction () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionupdate', data: 'sd', target: inputNode))
-          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = function () {'
+          expect(editor.lineTextForBufferRow(0)).toBe 'var sdsort = sdction () {'
 
           componentNode.dispatchEvent(buildIMECompositionEvent('compositionend', target: inputNode))
           expect(editor.lineTextForBufferRow(0)).toBe 'var quicksort = function () {'

@@ -325,6 +325,10 @@ class TextEditorPresenter
     @state.hiddenInput.width = Math.max(width, 2)
 
   updateContentState: ->
+    if @boundingClientRect?
+      @sharedGutterStyles.maxHeight = @boundingClientRect.height
+      @state.content.maxHeight = @boundingClientRect.height
+
     @state.content.width = Math.max(@contentWidth + @verticalScrollbarWidth, @contentFrameWidth)
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
@@ -949,6 +953,7 @@ class TextEditorPresenter
     unless @clientRectsEqual(@boundingClientRect, boundingClientRect)
       @boundingClientRect = boundingClientRect
       @shouldUpdateOverlaysState = true
+      @shouldUpdateContentState = true
 
       @emitDidUpdateState()
 
