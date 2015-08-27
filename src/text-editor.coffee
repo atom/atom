@@ -95,7 +95,7 @@ class TextEditor extends Model
     @subscribeToBuffer()
     @subscribeToDisplayBuffer()
 
-    if @getCursors().length is 0 and not suppressCursorCreation
+    if @cursors.length is 0 and not suppressCursorCreation
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
@@ -185,7 +185,7 @@ class TextEditor extends Model
     @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
     @tabTypeSubscription.dispose()
-    selection.destroy() for selection in @getSelections()
+    selection.destroy() for selection in @selections.slice()
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
@@ -1744,6 +1744,7 @@ class TextEditor extends Model
 
   # Extended: Returns the most recently added {Cursor}
   getLastCursor: ->
+    @createLastSelectionIfNeeded()
     _.last(@cursors)
 
   # Extended: Returns the word surrounding the most recently added cursor.
@@ -1754,6 +1755,7 @@ class TextEditor extends Model
 
   # Extended: Get an Array of all {Cursor}s.
   getCursors: ->
+    @createLastSelectionIfNeeded()
     @cursors.slice()
 
   # Extended: Get all {Cursors}s, ordered by their position in the buffer
@@ -2133,12 +2135,14 @@ class TextEditor extends Model
   #
   # Returns a {Selection}.
   getLastSelection: ->
+    @createLastSelectionIfNeeded()
     _.last(@selections)
 
   # Extended: Get current {Selection}s.
   #
   # Returns: An {Array} of {Selection}s.
   getSelections: ->
+    @createLastSelectionIfNeeded()
     @selections.slice()
 
   # Extended: Get all {Selection}s, ordered by their position in the buffer
@@ -2294,6 +2298,10 @@ class TextEditor extends Model
   selectionRangeChanged: (event) ->
     @emit 'selection-screen-range-changed', event if includeDeprecatedAPIs
     @emitter.emit 'did-change-selection-range', event
+
+  createLastSelectionIfNeeded: ->
+    if @selections.length is 0
+      @addSelectionForBufferRange([[0, 0], [0, 0]], autoscroll: false, preserveFolds: true)
 
   ###
   Section: Searching and Replacing
