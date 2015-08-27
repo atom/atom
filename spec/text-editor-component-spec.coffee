@@ -638,7 +638,7 @@ fdescribe "TextEditorComponent", ->
       expect(lineNode.textContent).toBe(text)
 
     it "gives the line numbers container the same height as the wrapper node", ->
-      linesNode = componentNode.querySelector(".lines")
+      linesNode = componentNode.querySelector(".line-numbers")
 
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
