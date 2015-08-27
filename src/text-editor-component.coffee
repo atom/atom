@@ -47,9 +47,10 @@ class TextEditorComponent
 
     @lineHtmlBuilder = new LineHtmlBuilder(true)
     @linesYardstick = new LinesYardstick(@editor)
+    @linesYardstick.onWillMeasureScreenRows =>
+      @showIndentGuide = atom.config.get('editor.showIndentGuide')
     @linesYardstick.setLineHtmlProvider (screenRow, line) =>
-      showIndentGuide = atom.config.get('editor.showIndentGuide')
-      @lineHtmlBuilder.buildLineHTML(showIndentGuide, 0, line)
+      @lineHtmlBuilder.buildLineHTML(@showIndentGuide, 0, line)
 
     @presenter = new TextEditorPresenter
       model: @editor

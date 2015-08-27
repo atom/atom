@@ -65,8 +65,31 @@ class TextEditorPresenter
   getMeasurableScreenRows: ->
     measurableRows = new Set
 
-    if @startRow? and @endRow?
-      measurableRows.add(row) for row in [@startRow...@endRow]
+    for decoration in @model.getOverlayDecorations()
+      marker = decoration.getMarker()
+      continue unless marker.isValid()
+
+      if decoration.getProperties().position is 'tail'
+        screenPosition = marker.getTailScreenPosition()
+      else
+        screenPosition = marker.getHeadScreenPosition()
+
+      measurableRows.add(screenPosition.row)
+
+    for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
+      hasHighlights =
+        decorations.some (decoration) -> decoration.isType('highlight')
+      continue unless hasHighlights
+
+      range = @model.getMarker(markerId).getScreenRange()
+      range.start.row = Math.max(@startRow, range.start.row)
+      range.end.row = Math.min(@endRow, range.end.row)
+      measurableRows.add(row) for row in range.getRows() by 1
+
+    for cursor in @model.cursors
+      screenRow = cursor.getScreenRow()
+      continue unless cursor.isVisible() and @startRow <= screenRow < @endRow
+      measurableRows.add(screenRow)
 
     if lastCursorRange = @model.getLastCursor()?.getScreenRange()
       measurableRows.add(lastCursorRange.start.row)

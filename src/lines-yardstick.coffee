@@ -38,6 +38,9 @@ class LinesYardstick
   onDidInitialize: (callback) ->
     @emitter.on "did-initialize", callback
 
+  onWillMeasureScreenRows: (callback) ->
+    @emitter.on "will-measure-screen-rows", callback
+
   canMeasure: ->
     @initialized
 
@@ -69,6 +72,7 @@ class LinesYardstick
   buildDomNodesForScreenRows: (screenRows) ->
     return unless @canMeasure()
 
+    @emitter.emit "will-measure-screen-rows", screenRows
     visibleLines = {}
     html = ""
     newLinesIds = []
