@@ -4,9 +4,7 @@ DefaultPriority = -100
 
 # Extended: Represents a gutter within a {TextEditor}.
 #
-# ### Gutter Creation
-#
-# See {TextEditor::addGutter} for usage.
+# See {TextEditor::addGutter} for information on creating a gutter.
 module.exports =
 class Gutter
   constructor: (gutterContainer, options) ->
