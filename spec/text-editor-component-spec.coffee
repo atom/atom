@@ -1850,6 +1850,40 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [10, 0]]
 
+      it "autoscrolls when the cursor exceeds the boundaries of the editor", ->
+        wrapperNode.style.height = '100px'
+        wrapperNode.style.width = '100px'
+        component.measureDimensions()
+        nextAnimationFrame()
+
+        expect(editor.getScrollTop()).toBe(0)
+        expect(editor.getScrollLeft()).toBe(0)
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', {clientX: 0, clientY: 0}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 150, clientY: 50}, which: 1))
+        nextAnimationFrame()
+
+        expect(editor.getScrollTop()).toBe(0)
+        expect(editor.getScrollLeft()).toBeGreaterThan(0)
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 150, clientY: 150}, which: 1))
+        nextAnimationFrame()
+        expect(editor.getScrollTop()).toBeGreaterThan(0)
+
+        previousScrollTop = editor.getScrollTop()
+        previousScrollLeft = editor.getScrollLeft()
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: -20, clientY: 50}, which: 1))
+        nextAnimationFrame()
+
+        expect(editor.getScrollTop()).toBe(previousScrollTop)
+        expect(editor.getScrollLeft()).toBeLessThan(previousScrollLeft)
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: -20, clientY: -20}, which: 1))
+        nextAnimationFrame()
+
+        expect(editor.getScrollTop()).toBeLessThan(previousScrollTop)
+
       it "stops selecting if the mouse is dragged into the dev tools", ->
         linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
@@ -1928,7 +1962,7 @@ describe "TextEditorComponent", ->
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([11, 11]), which: 1))
         nextAnimationFrame()
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [11, 13]]
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [12, 2]]
 
         maximalScrollTop = editor.getScrollTop()
 
@@ -1955,7 +1989,7 @@ describe "TextEditorComponent", ->
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([11, 11]), which: 1))
         nextAnimationFrame()
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [12, 0]]
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [12, 2]]
 
         maximalScrollTop = editor.getScrollTop()
 
@@ -2052,14 +2086,15 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getLastSelection().isReversed()).toBe false
 
-      it "autoscrolls to the cursor position, but not the entire selected range", ->
+      it "autoscrolls when the cursor exceeds the top or bottom of the editor", ->
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
         component.measureDimensions()
+        nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBe 0
 
         gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
-        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(6)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(8)))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBeGreaterThan 0
@@ -2068,6 +2103,10 @@ describe "TextEditorComponent", ->
         gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBe maxScrollTop
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(2)))
+        nextAnimationFrame()
+        expect(editor.getScrollTop()).toBeLessThan maxScrollTop
 
       it "stops selecting if a textInput event occurs during the drag", ->
         gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
