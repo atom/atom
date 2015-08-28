@@ -73,8 +73,6 @@ class Gutter
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
-  # ## Arguments
-  #
   # * `marker` A {Marker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration
   #   * `class` This CSS class will be applied to the decorated line number.
