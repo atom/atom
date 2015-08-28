@@ -65,11 +65,13 @@ class Gutter
       @visible = true
       @emitter.emit 'did-change-visible', this
 
-  # Essential: Returns the visibility of the gutter.
+  # Essential: Determine whether the gutter is visible.
+  #
+  # Returns a {Boolean}.
   isVisible: ->
     @visible
 
-  # Essential: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # Essential: Add a decoration that tracks a {Marker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
