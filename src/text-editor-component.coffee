@@ -542,7 +542,7 @@ class TextEditorComponent
       dragging = false
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
-      willInsertTextSubscription.dispose()
+      disposables.dispose()
 
     autoscroll = (mouseClientPosition) =>
       editorClientRect = @domNode.getBoundingClientRect()
@@ -577,7 +577,9 @@ class TextEditorComponent
 
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-    willInsertTextSubscription = @editor.onWillInsertText(onMouseUp)
+    disposables = new CompositeDisposable
+    disposables.add(@editor.onWillInsertText(onMouseUp))
+    disposables.add(@editor.onDidDestroy(stopDragging))
 
   isVisible: ->
     @domNode.offsetHeight > 0 or @domNode.offsetWidth > 0
