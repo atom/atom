@@ -409,7 +409,7 @@ describe "TextEditorComponent", ->
       it "displays newlines as their own token outside of the other tokens' scopeDescriptor", ->
         editor.setText "var\n"
         nextAnimationFrame()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage type var js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"

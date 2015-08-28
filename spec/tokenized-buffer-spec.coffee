@@ -194,7 +194,7 @@ describe "TokenizedBuffer", ->
             buffer.setTextInRange([[1, 0], [3, 0]], "foo()")
 
             # previous line 0 remains
-            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.var.js'])
 
             # previous line 3 should be combined with input to form line 1
             expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
@@ -238,7 +238,7 @@ describe "TokenizedBuffer", ->
             buffer.setTextInRange([[1, 0], [2, 0]], "foo()\nbar()\nbaz()\nquux()")
 
             # previous line 0 remains
-            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.var.js'])
 
             # 3 new lines inserted
             expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
@@ -570,7 +570,7 @@ describe "TokenizedBuffer", ->
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1, 2]).scopes).toEqual ["source.js", "storage.modifier.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 2]).scopes).toEqual ["source.js", "storage.type.var.js"]
 
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
@@ -584,8 +584,8 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector matches a single token at the position", ->
       it "returns the range covered by the token", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.modifier.js', [0, 1])).toEqual [[0, 0], [0, 3]]
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.modifier.js', [0, 3])).toEqual [[0, 0], [0, 3]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.type.var.js', [0, 1])).toEqual [[0, 0], [0, 3]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.type.var.js', [0, 3])).toEqual [[0, 0], [0, 3]]
 
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
