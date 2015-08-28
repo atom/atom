@@ -886,6 +886,7 @@ class TextEditor extends Model
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
     selections.sort (a, b) -> a.compare(b)
+    selections = selections.reverse()
 
     @transact =>
       newSelectionRanges = []
