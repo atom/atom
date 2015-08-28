@@ -2171,7 +2171,7 @@ describe "TextEditor", ->
               editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
               editor.moveLineDown()
 
-              expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [2, 9]], [[4, 2], [4, 9]], [[6, 2], [6, 9]]]
+              expect(editor.getSelectedBufferRanges()).toEqual [[[6, 2], [6, 9]], [[4, 2], [4, 9]], [[2, 2], [2, 9]]]
               expect(editor.lineTextForBufferRow(1)).toBe "    if (items.length <= 1) return items;"
               expect(editor.lineTextForBufferRow(2)).toBe "  var sort = function(items) {"
               expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
@@ -2192,7 +2192,7 @@ describe "TextEditor", ->
               editor.setSelectedBufferRanges([[[1, 2], [1, 6]], [[3, 0], [3, 4]], [[8, 0], [8, 3]]])
               editor.moveLineDown()
 
-              expect(editor.getSelectedBufferRanges()).toEqual [[[2, 2], [2, 6]], [[7, 0], [7, 4]], [[9, 0], [9, 3]]]
+              expect(editor.getSelectedBufferRanges()).toEqual [[[9, 0], [9, 3]], [[7, 0], [7, 4]], [[2, 2], [2, 6]]]
               expect(editor.lineTextForBufferRow(2)).toBe "  var sort = function(items) {"
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2207,7 +2207,7 @@ describe "TextEditor", ->
             editor.setSelectedBufferRanges([[[3, 2], [3, 9]], [[3, 12], [3, 13]]])
             editor.moveLineDown()
 
-            expect(editor.getSelectedBufferRanges()).toEqual [[[4, 2], [4, 9]], [[4, 12], [4, 13]]]
+            expect(editor.getSelectedBufferRanges()).toEqual [[[4, 12], [4, 13]], [[4, 2], [4, 9]]]
             expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
 
     describe ".insertText(text)", ->
