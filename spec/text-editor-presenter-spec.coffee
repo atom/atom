@@ -1214,7 +1214,7 @@ describe "TextEditorPresenter", ->
 
           # showing
           expectStateUpdate presenter, -> editor.getSelections()[1].clear()
-          expect(stateForCursor(presenter, 1)).toEqual {top: 5, left: 5 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 1)).toEqual {top: 0, left: 5 * 10, width: 10, height: 10}
 
           # hiding
           expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 5]])
@@ -1226,11 +1226,11 @@ describe "TextEditorPresenter", ->
 
           # adding
           expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([4, 4])
-          expect(stateForCursor(presenter, 2)).toEqual {top: 5, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toEqual {top: 0, left: 4 * 10, width: 10, height: 10}
 
           # moving added cursor
           expectStateUpdate presenter, -> editor.getCursors()[2].setBufferPosition([4, 6])
-          expect(stateForCursor(presenter, 2)).toEqual {top: 5, left: 6 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toEqual {top: 0, left: 6 * 10, width: 10, height: 10}
 
           # destroying
           destroyedCursor = editor.getCursors()[2]
