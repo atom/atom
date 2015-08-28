@@ -103,7 +103,7 @@ describe "TextEditorComponent", ->
 
       expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
 
-    it "renders tiles upper in the stack in front of the ones below", ->
+    it "renders higher tiles in front of lower ones", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
       nextAnimationFrame()
@@ -600,6 +600,48 @@ describe "TextEditorComponent", ->
 
       expect(lineNode.offsetTop).toBe(top)
       expect(lineNode.textContent).toBe(text)
+
+    it "renders higher tiles in front of lower ones", ->
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+
+      expect(tilesNodes[0].style.zIndex).toBe("2")
+      expect(tilesNodes[1].style.zIndex).toBe("1")
+      expect(tilesNodes[2].style.zIndex).toBe("0")
+
+      verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
+      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
+      nextAnimationFrame()
+
+      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+
+      expect(tilesNodes[0].style.zIndex).toBe("3")
+      expect(tilesNodes[1].style.zIndex).toBe("2")
+      expect(tilesNodes[2].style.zIndex).toBe("1")
+      expect(tilesNodes[3].style.zIndex).toBe("0")
+
+    it "renders higher line numbers in front of lower ones", ->
+      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      # Tile 0
+      expect(component.lineNumberNodeForScreenRow(0).style.zIndex).toBe("2")
+      expect(component.lineNumberNodeForScreenRow(1).style.zIndex).toBe("1")
+      expect(component.lineNumberNodeForScreenRow(2).style.zIndex).toBe("0")
+
+      # Tile 1
+      expect(component.lineNumberNodeForScreenRow(3).style.zIndex).toBe("2")
+      expect(component.lineNumberNodeForScreenRow(4).style.zIndex).toBe("1")
+      expect(component.lineNumberNodeForScreenRow(5).style.zIndex).toBe("0")
+
+      # Tile 2
+      expect(component.lineNumberNodeForScreenRow(6).style.zIndex).toBe("2")
+      expect(component.lineNumberNodeForScreenRow(7).style.zIndex).toBe("1")
+      expect(component.lineNumberNodeForScreenRow(8).style.zIndex).toBe("0")
 
     it "gives the line numbers container the same height as the wrapper node", ->
       linesNode = componentNode.querySelector(".line-numbers")

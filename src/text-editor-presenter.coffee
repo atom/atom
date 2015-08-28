@@ -344,18 +344,20 @@ class TextEditorPresenter
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
-      tile.zIndex = zIndex--
+      tile.zIndex = zIndex
       tile.highlights ?= {}
 
       gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
       gutterTile.top = startRow * @lineHeight - @scrollTop
       gutterTile.height = @tileSize * @lineHeight
       gutterTile.display = "block"
+      gutterTile.zIndex = zIndex
 
       @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
       @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
 
       visibleTiles[startRow] = true
+      zIndex--
 
     if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
@@ -588,7 +590,9 @@ class TextEditorPresenter
       wrapCount = 0
 
     if endRow > startRow
-      for bufferRow, i in @model.bufferRowsForScreenRows(startRow, endRow - 1)
+      bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
+      zIndex = bufferRows.length - 1
+      for bufferRow, i in bufferRows
         if bufferRow is lastBufferRow
           wrapCount++
           id = bufferRow + '-' + wrapCount
@@ -604,8 +608,9 @@ class TextEditorPresenter
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
+        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable, zIndex}
         visibleLineNumberIds[id] = true
+        zIndex--
 
     for id of tileState.lineNumbers
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]

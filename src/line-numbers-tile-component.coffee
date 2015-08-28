@@ -42,6 +42,10 @@ class LineNumbersTileComponent
       @domNode.style['-webkit-transform'] = "translate3d(0, #{@newTileState.top}px, 0px)"
       @oldTileState.top = @newTileState.top
 
+    if @newTileState.zIndex isnt @oldTileState.zIndex
+      @domNode.style.zIndex = @newTileState.zIndex
+      @oldTileState.zIndex = @newTileState.zIndex
+
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       node.remove() for id, node of @lineNumberNodesById
       @oldState.tiles[@id] = {lineNumbers: {}}
@@ -84,9 +88,9 @@ class LineNumbersTileComponent
     return
 
   buildLineNumberHTML: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
+    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
     if screenRow?
-      style = "position: absolute; top: #{top}px;"
+      style = "position: absolute; top: #{top}px; z-index: #{zIndex};"
     else
       style = "visibility: hidden;"
     className = @buildLineNumberClassName(lineNumberState)
@@ -120,6 +124,10 @@ class LineNumbersTileComponent
       node.dataset.screenRow = newLineNumberState.screenRow
       oldLineNumberState.top = newLineNumberState.top
       oldLineNumberState.screenRow = newLineNumberState.screenRow
+
+    unless oldLineNumberState.zIndex is newLineNumberState.zIndex
+      node.style.zIndex = newLineNumberState.zIndex
+      oldLineNumberState.zIndex = newLineNumberState.zIndex
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
     className = "line-number line-number-#{bufferRow}"
