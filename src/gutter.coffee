@@ -19,7 +19,7 @@ class Gutter
   Section: Gutter Destruction
   ###
 
-  # Public: Destroys the gutter.
+  # Essential: Destroys the gutter.
   destroy: ->
     if @name is 'line-number'
       throw new Error('The line-number gutter cannot be destroyed.')
@@ -32,7 +32,7 @@ class Gutter
   Section: Event Subscription
   ###
 
-  # Public: Calls your `callback` when the gutter's visibility changes.
+  # Essential: Calls your `callback` when the gutter's visibility changes.
   #
   # * `callback` {Function}
   #  * `gutter` The gutter whose visibility changed.
@@ -41,7 +41,7 @@ class Gutter
   onDidChangeVisible: (callback) ->
     @emitter.on 'did-change-visible', callback
 
-  # Public: Calls your `callback` when the gutter is destroyed.
+  # Essential: Calls your `callback` when the gutter is destroyed.
   #
   # * `callback` {Function}
   #
@@ -53,23 +53,23 @@ class Gutter
   Section: Visibility
   ###
 
-  # Public: Hide the gutter.
+  # Essential: Hide the gutter.
   hide: ->
     if @visible
       @visible = false
       @emitter.emit 'did-change-visible', this
 
-  # Public: Show the gutter.
+  # Essential: Show the gutter.
   show: ->
     if not @visible
       @visible = true
       @emitter.emit 'did-change-visible', this
 
-  # Public: Returns the visibility of the gutter.
+  # Essential: Returns the visibility of the gutter.
   isVisible: ->
     @visible
 
-  # Public: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # Essential: Adds a decoration that tracks a {Marker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
