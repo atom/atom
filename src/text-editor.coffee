@@ -1943,10 +1943,10 @@ class TextEditor extends Model
   # This method may merge selections that end up intesecting.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
-  selectToScreenPosition: (position, suppressMerge) ->
+  selectToScreenPosition: (position, options) ->
     lastSelection = @getLastSelection()
-    lastSelection.selectToScreenPosition(position)
-    unless suppressMerge
+    lastSelection.selectToScreenPosition(position, options)
+    unless options?.suppressSelectionMerge
       @mergeIntersectingSelections(reversed: lastSelection.isReversed())
 
   # Essential: Move the cursor of each selection one character upward while
