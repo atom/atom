@@ -395,16 +395,16 @@ class TextEditorComponent
           if cursorAtScreenPosition and @editor.hasMultipleCursors()
             cursorAtScreenPosition.destroy()
           else
-            @editor.addCursorAtScreenPosition(screenPosition)
+            @editor.addCursorAtScreenPosition(screenPosition, autoscroll: false)
         else
-          @editor.setCursorScreenPosition(screenPosition)
+          @editor.setCursorScreenPosition(screenPosition, autoscroll: false)
       when 2
-        @editor.getLastSelection().selectWord()
+        @editor.getLastSelection().selectWord(autoscroll: false)
       when 3
-        @editor.getLastSelection().selectLine()
+        @editor.getLastSelection().selectLine(null, autoscroll: false)
 
     @handleDragUntilMouseUp (screenPosition) =>
-      @editor.selectToScreenPosition(screenPosition, true)
+      @editor.selectToScreenPosition(screenPosition, suppressSelectionMerge: true, autoscroll: false)
 
   onLineNumberGutterMouseDown: (event) =>
     return unless event.button is 0 # only handle the left mouse button
@@ -422,14 +422,14 @@ class TextEditorComponent
     clickedScreenRow = @screenPositionForMouseEvent(event).row
     clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
     initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
-    @editor.setSelectedScreenRange(initialScreenRange, preserveFolds: true)
+    @editor.setSelectedScreenRange(initialScreenRange, preserveFolds: true, autoscroll: false)
     @handleGutterDrag(initialScreenRange)
 
   onGutterMetaClick: (event) =>
     clickedScreenRow = @screenPositionForMouseEvent(event).row
     clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
     initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
-    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true)
+    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true, autoscroll: false)
     @handleGutterDrag(initialScreenRange)
 
   onGutterShiftClick: (event) =>
@@ -439,9 +439,9 @@ class TextEditorComponent
     clickedLineScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
 
     if clickedScreenRow < tailScreenPosition.row
-      @editor.selectToScreenPosition(clickedLineScreenRange.start, true)
+      @editor.selectToScreenPosition(clickedLineScreenRange.start, suppressSelectionMerge: true, autoscroll: false)
     else
-      @editor.selectToScreenPosition(clickedLineScreenRange.end, true)
+      @editor.selectToScreenPosition(clickedLineScreenRange.end, suppressSelectionMerge: true, autoscroll: false)
 
     @handleGutterDrag(new Range(tailScreenPosition, tailScreenPosition))
 
@@ -456,7 +456,6 @@ class TextEditorComponent
         endPosition = [dragRow + 1, 0]
         screenRange = new Range(endPosition, endPosition).union(initialRange)
         @editor.getLastSelection().setScreenRange(screenRange, reversed: false, autoscroll: false, preserveFolds: true)
-      @editor.getLastCursor().autoscroll()
 
   onStylesheetsChanged: (styleElement) =>
     return unless @performedInitialMeasurement
@@ -512,7 +511,9 @@ class TextEditorComponent
     animationLoop = =>
       @requestAnimationFrame =>
         if dragging and @mounted
-          screenPosition = @screenPositionForMouseEvent(lastMousePosition)
+          linesClientRect = @linesComponent.getDomNode().getBoundingClientRect()
+          autoscroll(lastMousePosition, linesClientRect)
+          screenPosition = @screenPositionForMouseEvent(lastMousePosition, linesClientRect)
           dragHandler(screenPosition)
           animationLoop()
         else if not @mounted
@@ -542,6 +543,32 @@ class TextEditorComponent
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
       willInsertTextSubscription.dispose()
+
+    autoscroll = (mouseClientPosition) =>
+      editorClientRect = @domNode.getBoundingClientRect()
+
+      if mouseClientPosition.clientY < editorClientRect.top
+        mouseYDelta = editorClientRect.top - mouseClientPosition.clientY
+        yDirection = -1
+      else if mouseClientPosition.clientY > editorClientRect.bottom
+        mouseYDelta = mouseClientPosition.clientY - editorClientRect.bottom
+        yDirection = 1
+
+      if mouseClientPosition.clientX < editorClientRect.left
+        mouseXDelta = editorClientRect.left - mouseClientPosition.clientX
+        xDirection = -1
+      else if mouseClientPosition.clientX > editorClientRect.right
+        mouseXDelta = mouseClientPosition.clientX - editorClientRect.right
+        xDirection = 1
+
+      if mouseYDelta?
+        @presenter.setScrollTop(@presenter.getScrollTop() + yDirection * scaleScrollDelta(mouseYDelta))
+
+      if mouseXDelta?
+        @presenter.setScrollLeft(@presenter.getScrollLeft() + xDirection * scaleScrollDelta(mouseXDelta))
+
+    scaleScrollDelta = (scrollDelta) ->
+      Math.pow(scrollDelta / 2, 3) / 280
 
     pasteSelectionClipboard = (event) =>
       if event?.which is 2 and process.platform is 'linux'
@@ -748,17 +775,20 @@ class TextEditorComponent
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
-  screenPositionForMouseEvent: (event) ->
-    pixelPosition = @pixelPositionForMouseEvent(event)
+  screenPositionForMouseEvent: (event, linesClientRect) ->
+    pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
     @editor.screenPositionForPixelPosition(pixelPosition)
 
-  pixelPositionForMouseEvent: (event) ->
+  pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event
 
-    linesClientRect = @linesComponent.getDomNode().getBoundingClientRect()
+    linesClientRect ?= @linesComponent.getDomNode().getBoundingClientRect()
     top = clientY - linesClientRect.top + @presenter.scrollTop
     left = clientX - linesClientRect.left + @presenter.scrollLeft
-    {top, left}
+    bottom = linesClientRect.top + @presenter.scrollTop + linesClientRect.height - clientY
+    right = linesClientRect.left + @presenter.scrollLeft + linesClientRect.width - clientX
+
+    {top, left, bottom, right}
 
   getModel: ->
     @editor

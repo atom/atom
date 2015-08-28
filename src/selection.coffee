@@ -190,7 +190,7 @@ class Selection extends Model
   # position.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
-  selectToScreenPosition: (position) ->
+  selectToScreenPosition: (position, options) ->
     position = Point.fromObject(position)
 
     @modifySelection =>
@@ -200,12 +200,12 @@ class Selection extends Model
         else
           @marker.setScreenRange([@initialScreenRange.start, position], reversed: false)
       else
-        @cursor.setScreenPosition(position)
+        @cursor.setScreenPosition(position, options)
 
       if @linewise
-        @expandOverLine()
+        @expandOverLine(options)
       else if @wordwise
-        @expandOverWord()
+        @expandOverWord(options)
 
   # Public: Selects the text from the current cursor position to a given buffer
   # position.
@@ -311,28 +311,28 @@ class Selection extends Model
   # Public: Modifies the selection to encompass the current word.
   #
   # Returns a {Range}.
-  selectWord: ->
-    options = {}
+  selectWord: (options={}) ->
     options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
     if @cursor.isBetweenWordAndNonWord()
       options.includeNonWordCharacters = false
 
-    @setBufferRange(@cursor.getCurrentWordBufferRange(options))
+    @setBufferRange(@cursor.getCurrentWordBufferRange(options), options)
     @wordwise = true
     @initialScreenRange = @getScreenRange()
 
   # Public: Expands the newest selection to include the entire word on which
   # the cursors rests.
-  expandOverWord: ->
+  expandOverWord: (options) ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()), autoscroll: false)
-    @cursor.autoscroll()
+    @cursor.autoscroll() if options?.autoscroll ? true
 
   # Public: Selects an entire line in the buffer.
   #
   # * `row` The line {Number} to select (default: the row of the cursor).
-  selectLine: (row=@cursor.getBufferPosition().row) ->
+  selectLine: (row, options) ->
+    row ?= @cursor.getBufferPosition().row
     range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range), autoscroll: true)
+    @setBufferRange(@getBufferRange().union(range), options)
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
@@ -341,10 +341,10 @@ class Selection extends Model
   # the cursor currently rests.
   #
   # It also includes the newline character.
-  expandOverLine: ->
+  expandOverLine: (options) ->
     range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
     @setBufferRange(range, autoscroll: false)
-    @cursor.autoscroll()
+    @cursor.autoscroll() if options?.autoscroll ? true
 
   ###
   Section: Modifying the selected text
