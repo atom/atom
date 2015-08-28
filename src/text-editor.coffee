@@ -2821,7 +2821,8 @@ class TextEditor extends Model
   Section: Gutters
   ###
 
-  # Essential: Creates and returns a {Gutter}.
+  # Essential: Add a custom {Gutter}.
+  #
   # * `options` An {Object} with the following fields:
   #   * `name` (required) A unique {String} to identify this gutter.
   #   * `priority` (optional) A {Number} that determines stacking order between
@@ -2829,14 +2830,20 @@ class TextEditor extends Model
   #       window. (default: -100)
   #   * `visible` (optional) {Boolean} specifying whether the gutter is visible
   #       initially after being created. (default: true)
+  #
+  # Returns the newly-created {Gutter}.
   addGutter: (options) ->
     @gutterContainer.addGutter(options)
 
-  # Essential: Returns the {Array} of all gutters on this editor.
+  # Essential: Get this editor's gutters.
+  #
+  # Returns an {Array} of {Gutter}s.
   getGutters: ->
     @gutterContainer.getGutters()
 
-  # Essential: Returns the gutter with the given name, or null if it doesn't exist.
+  # Essential: Get the gutter with the given name.
+  #
+  # Returns a {Gutter}, or `null` if no gutter exists for the given name.
   gutterWithName: (name) ->
     @gutterContainer.gutterWithName(name)
 
