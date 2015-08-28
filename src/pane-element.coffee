@@ -146,7 +146,7 @@ atom.commands.add 'atom-workspace',
   'pane:show-item-6': -> @getModel().getActivePane().activateItemAtIndex(5)
   'pane:show-item-7': -> @getModel().getActivePane().activateItemAtIndex(6)
   'pane:show-item-8': -> @getModel().getActivePane().activateItemAtIndex(7)
-  'pane:show-item-9': -> @getModel().getActivePane().activateItemAtIndex(8)
+  'pane:show-item-9': -> @getModel().getActivePane().activateItemAtIndex(@getModel().getActivePane().items.length - 1)
   'pane:move-item-right': -> @getModel().getActivePane().moveItemRight()
   'pane:move-item-left': -> @getModel().getActivePane().moveItemLeft()
 
