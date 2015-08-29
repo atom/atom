@@ -4445,7 +4445,7 @@ describe "TextEditor", ->
 
         tokens = atom.grammars.decodeTokens(line, tags)
         expect(tokens[0].value).toBe "var"
-        expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+        expect(tokens[0].scopes).toEqual ["source.js", "storage.type.var.js"]
 
         expect(tokens[6].value).toBe "http://github.com"
         expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
