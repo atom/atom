@@ -29,6 +29,37 @@ formatStackTrace = (spec, message='', stackTrace) ->
   lines = lines.map (line) -> line.trim()
   lines.join('\n').trim()
 
+processStackTrace = (spec, message='', stackTrace) ->
+  return [] unless stackTrace
+
+  jasminePattern = /^\s*at\s+.*\(?.*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
+  firstJasmineLinePattern = /^\s*at [/\\].*[/\\]jasmine(-[^/\\]*)?\.js:\d+:\d+\)?\s*$/
+  lines = []
+  for line in stackTrace.split('\n')
+    lines.push(line) unless jasminePattern.test(line)
+    break if firstJasmineLinePattern.test(line)
+
+  # Remove first line of stack when it is the same as the error message
+  errorMatch = lines[0]?.match(/^Error: (.*)/)
+  lines.shift() if message.trim() is errorMatch?[1]?.trim()
+
+  links = []
+
+  for line in lines
+    links.push link = {}
+
+    # Remove prefix of lines matching: at [object Object].<anonymous> (path:1:2)
+    prefixMatch = line.match(/at \[object Object\]\.<anonymous> \(([^)]+)\)/)
+    line = "at #{prefixMatch[1]}" if prefixMatch
+
+    fileMatch = line.match(/at.* \(?([^() ]+:\d+:\d+)\)?\s*$/)
+    link.href = fileMatch[1] if fileMatch
+
+    # Relativize locations to spec directory
+    link.text = line.replace("at #{spec.specDirectory}#{path.sep}", 'at ').trim()
+
+  links
+
 module.exports =
 class AtomReporter extends View
   @content: ->
@@ -75,6 +106,10 @@ class AtomReporter extends View
 
     @on 'click', '.stack-trace', ->
       $(this).toggleClass('expanded')
+
+    @on 'click', '.stack-trace a', ->
+      if href = $(this)[0].dataset.href
+        atom.open pathsToOpen: [href], devMode: atom.getLoadSettings()?.specRequesterDevMode
 
     @reloadButton.on 'click', -> require('ipc').send('call-window-method', 'restart')
 
@@ -253,10 +288,14 @@ class SpecResultView extends View
     @description.text(description)
 
     for result in @spec.results().getItems() when not result.passed()
-      stackTrace = formatStackTrace(@spec, result.message, result.trace.stack)
+      stackTrace = processStackTrace(@spec, result.message, result.trace.stack)
       @specFailures.append $$ ->
         @div result.message, class: 'result-message fail'
-        @pre stackTrace, class: 'stack-trace padded' if stackTrace
+        if stackTrace.length isnt 0
+          @pre class: 'stack-trace padded', =>
+            stackTrace.forEach (link, index) =>
+              @text '\n' if index isnt 0
+              @a link.text, 'data-href': (link.href)
 
   attach: ->
     @parentSuiteView().append this

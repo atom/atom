@@ -49,6 +49,8 @@ class AtomWindow
     loadSettings.devMode ?= false
     loadSettings.safeMode ?= false
 
+    @devMode ?= false
+
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
       @constructor.includeShellLoadTime = false
