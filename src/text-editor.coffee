@@ -1292,6 +1292,8 @@ class TextEditor extends Model
   #     </div>
   #     ```
   #
+  # ## Arguments
+  #
   # * `marker` A {Marker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
   #   `{type: 'line-number', class: 'linter-error'}`
