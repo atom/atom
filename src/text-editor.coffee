@@ -879,7 +879,7 @@ class TextEditor extends Model
         for selection in selectionsToMove
           newSelectionRanges.push(selection.translate([-insertDelta, 0]))
 
-      @setSelectedBufferRanges(newSelectionRanges)
+      @setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
       @scrollToBufferPosition([newSelectionRanges[0].start.row + 2, 0])
 
   # Move lines intersecting the most recent selection or muiltiple selections down by one row in screen
@@ -941,7 +941,7 @@ class TextEditor extends Model
         for selection in selectionsToMove
           newSelectionRanges.push(selection.translate([insertDelta, 0]))
 
-       @setSelectedBufferRanges(newSelectionRanges, {preserveFolds: true})
+       @setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
        @scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0])
 
   # Duplicate the most recent cursor's current line.
