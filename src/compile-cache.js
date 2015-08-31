@@ -16,7 +16,7 @@ var cacheDirectory = null
 exports.setAtomHomeDirectory = function (atomHome) {
   var cacheDir = path.join(atomHome, 'compile-cache')
   if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
-    cacheDir = path.join(cacheDirectory, 'root')
+    cacheDir = path.join(cacheDir, 'root')
   }
   this.setCacheDirectory(cacheDir)
 }
