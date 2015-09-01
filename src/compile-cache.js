@@ -108,7 +108,7 @@ require('source-map-support').install({
   // source-map-support module, but we've overridden it to read the javascript
   // code from our cache directory.
   retrieveSourceMap: function (filePath) {
-    if (!fs.isFileSync(filePath)) {
+    if (!cacheDirectory || !fs.isFileSync(filePath)) {
       return null
     }
 
