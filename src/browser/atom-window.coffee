@@ -23,9 +23,6 @@ class AtomWindow
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
-    # Normalize to make sure drive letter case is consistent on Windows
-    @resourcePath = path.normalize(@resourcePath) if @resourcePath
-
     options =
       show: false
       title: 'Atom'
