@@ -1898,16 +1898,13 @@ describe "TextEditorComponent", ->
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
-      it "stops selecting if a textInput event occurs during the drag", ->
+      it "stops selecting before the buffer is modified during the drag", ->
         linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
-        inputEvent = new Event('textInput')
-        inputEvent.data = 'x'
-        Object.defineProperty(inputEvent, 'target', get: -> componentNode.querySelector('.hidden-input'))
-        componentNode.dispatchEvent(inputEvent)
+        editor.insertText('x')
         nextAnimationFrame()
 
         expect(editor.getSelectedScreenRange()).toEqual [[2, 5], [2, 5]]
@@ -1915,6 +1912,20 @@ describe "TextEditorComponent", ->
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 5], [2, 5]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([5, 4]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [5, 4]]
+
+        editor.delete()
+        nextAnimationFrame()
+
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [2, 4]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
+        expect(nextAnimationFrame).toBe noAnimationFrame
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [2, 4]]
 
       describe "when the command key is held down", ->
         it "adds a new selection and selects to the nearest screen position, then merges intersecting selections when the mouse button is released", ->

@@ -578,7 +578,7 @@ class TextEditorComponent
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
     disposables = new CompositeDisposable
-    disposables.add(@editor.onWillInsertText(onMouseUp))
+    disposables.add(@editor.getBuffer().onWillChange(onMouseUp))
     disposables.add(@editor.onDidDestroy(stopDragging))
 
   isVisible: ->
