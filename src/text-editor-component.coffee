@@ -545,20 +545,24 @@ class TextEditorComponent
       disposables.dispose()
 
     autoscroll = (mouseClientPosition) =>
-      editorClientRect = @domNode.getBoundingClientRect()
+      {top, bottom, left, right} = @scrollViewNode.getBoundingClientRect()
+      top += 30
+      bottom -= 30
+      left += 30
+      right -= 30
 
-      if mouseClientPosition.clientY < editorClientRect.top
-        mouseYDelta = editorClientRect.top - mouseClientPosition.clientY
+      if mouseClientPosition.clientY < top
+        mouseYDelta = top - mouseClientPosition.clientY
         yDirection = -1
-      else if mouseClientPosition.clientY > editorClientRect.bottom
-        mouseYDelta = mouseClientPosition.clientY - editorClientRect.bottom
+      else if mouseClientPosition.clientY > bottom
+        mouseYDelta = mouseClientPosition.clientY - bottom
         yDirection = 1
 
-      if mouseClientPosition.clientX < editorClientRect.left
-        mouseXDelta = editorClientRect.left - mouseClientPosition.clientX
+      if mouseClientPosition.clientX < left
+        mouseXDelta = left - mouseClientPosition.clientX
         xDirection = -1
-      else if mouseClientPosition.clientX > editorClientRect.right
-        mouseXDelta = mouseClientPosition.clientX - editorClientRect.right
+      else if mouseClientPosition.clientX > right
+        mouseXDelta = mouseClientPosition.clientX - right
         xDirection = 1
 
       if mouseYDelta?

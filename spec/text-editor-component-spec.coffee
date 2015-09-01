@@ -1850,7 +1850,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [10, 0]]
 
-      it "autoscrolls when the cursor exceeds the boundaries of the editor", ->
+      it "autoscrolls when the cursor approaches the boundaries of the editor", ->
         wrapperNode.style.height = '100px'
         wrapperNode.style.width = '100px'
         component.measureDimensions()
@@ -1860,26 +1860,26 @@ describe "TextEditorComponent", ->
         expect(editor.getScrollLeft()).toBe(0)
 
         linesNode.dispatchEvent(buildMouseEvent('mousedown', {clientX: 0, clientY: 0}, which: 1))
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 150, clientY: 50}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 100, clientY: 50}, which: 1))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBe(0)
         expect(editor.getScrollLeft()).toBeGreaterThan(0)
 
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 150, clientY: 150}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 100, clientY: 100}, which: 1))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBeGreaterThan(0)
 
         previousScrollTop = editor.getScrollTop()
         previousScrollLeft = editor.getScrollLeft()
 
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: -20, clientY: 50}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 10, clientY: 50}, which: 1))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBe(previousScrollTop)
         expect(editor.getScrollLeft()).toBeLessThan(previousScrollLeft)
 
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: -20, clientY: -20}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 10, clientY: 10}, which: 1))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBeLessThan(previousScrollTop)
@@ -1995,7 +1995,7 @@ describe "TextEditorComponent", ->
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 4]), which: 1))
         nextAnimationFrame()
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [9, 0]]
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [8, 0]]
         expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
 
         linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
@@ -2086,7 +2086,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getLastSelection().isReversed()).toBe false
 
-      it "autoscrolls when the cursor exceeds the top or bottom of the editor", ->
+      it "autoscrolls when the cursor approaches the top or bottom of the editor", ->
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
         component.measureDimensions()
         nextAnimationFrame()
@@ -2100,11 +2100,12 @@ describe "TextEditorComponent", ->
         expect(editor.getScrollTop()).toBeGreaterThan 0
         maxScrollTop = editor.getScrollTop()
 
-        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(10)))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBe maxScrollTop
 
-        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(2)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(7)))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBeLessThan maxScrollTop
 
