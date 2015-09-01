@@ -66,7 +66,11 @@ class AtomApplication
     {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     # Normalize to make sure drive letter case is consistent on Windows
-    @resourcePath = path.normalize(@resourcePath) if @resourcePath
+    if @resourcePath
+      if process.platform is 'win32'
+        @resourcePath = @resourcePath.replace /^([a-z]):/, ([driveLetter]) ->
+          "#{driveLetter.toUpperCase()}:"
+      @resourcePath = path.normalize(@resourcePath)
 
     global.atomApplication = this
 
