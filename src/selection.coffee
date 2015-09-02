@@ -22,14 +22,8 @@ class Selection extends Model
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
-    @marker.onDidChange (e) => @screenRangeChanged(e)
-    @marker.onDidDestroy =>
-      unless @editor.isDestroyed()
-        @destroyed = true
-        @editor.removeSelection(this)
-        @emit 'destroyed' if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-destroy'
-        @emitter.dispose()
+    @marker.onDidChange (e) => @markerDidChange(e)
+    @marker.onDidDestroy => @markerDidDestroy()
 
   destroy: ->
     @marker.destroy()
@@ -754,20 +748,48 @@ class Selection extends Model
   Section: Private Utilities
   ###
 
-  screenRangeChanged: (e) ->
-    {oldHeadBufferPosition, oldTailBufferPosition} = e
-    {oldHeadScreenPosition, oldTailScreenPosition} = e
+  markerDidChange: (e) ->
+    {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
+    {oldHeadScreenPosition, oldTailScreenPosition, newHeadScreenPosition} = e
+    {textChanged} = e
 
-    eventObject =
+    @cursor.updateVisibility()
+
+    unless oldHeadScreenPosition.isEqual(newHeadScreenPosition)
+      @cursor.goalColumn = null
+      cursorMovedEvent = {
+        oldBufferPosition: oldHeadBufferPosition
+        oldScreenPosition: oldHeadScreenPosition
+        newBufferPosition: newHeadBufferPosition
+        newScreenPosition: newHeadScreenPosition
+        textChanged: textChanged
+        cursor: @cursor
+      }
+      @cursor.emitter.emit('did-change-position', cursorMovedEvent)
+      @editor.cursorMoved(cursorMovedEvent)
+
+    @emitter.emit 'did-change-range'
+    @editor.selectionRangeChanged(
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
       newBufferRange: @getBufferRange()
       newScreenRange: @getScreenRange()
       selection: this
+    )
 
-    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-range'
-    @editor.selectionRangeChanged(eventObject)
+  markerDidDestroy: ->
+    return if @editor.isDestroyed()
+
+    @destroyed = true
+    @cursor.destroyed = true
+
+    @editor.removeSelection(this)
+
+    @cursor.emitter.emit 'did-destroy'
+    @emitter.emit 'did-destroy'
+
+    @cursor.emitter.dispose()
+    @emitter.dispose()
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())

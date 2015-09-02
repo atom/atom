@@ -1761,18 +1761,11 @@ class TextEditor extends Model
     @emitter.emit 'did-add-cursor', cursor
     cursor
 
-  # Remove the given cursor from this editor.
-  removeCursor: (cursor) ->
-    _.remove(@cursors, cursor)
-    @emit 'cursor-removed', cursor if includeDeprecatedAPIs
-    @emitter.emit 'did-remove-cursor', cursor
-
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
   cursorMoved: (event) ->
-    @emit 'cursor-moved', event if includeDeprecatedAPIs
     @emitter.emit 'did-change-cursor-position', event
 
   # Merge cursors that have the same screen position
@@ -2259,9 +2252,9 @@ class TextEditor extends Model
 
   # Remove the given selection.
   removeSelection: (selection) ->
+    _.remove(@cursors, selection.cursor)
     _.remove(@selections, selection)
-    atom.assert @selections.length > 0, "Removed last selection"
-    @emit 'selection-removed', selection if includeDeprecatedAPIs
+    @emitter.emit 'did-remove-cursor', selection.cursor
     @emitter.emit 'did-remove-selection', selection
 
   # Reduce one or more selections to a single empty selection based on the most
@@ -2281,7 +2274,6 @@ class TextEditor extends Model
 
   # Called by the selection
   selectionRangeChanged: (event) ->
-    @emit 'selection-screen-range-changed', event if includeDeprecatedAPIs
     @emitter.emit 'did-change-selection-range', event
 
   createLastSelectionIfNeeded: ->
