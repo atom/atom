@@ -89,6 +89,10 @@ class WindowEventHandler
       @subscribeToCommand $(window), 'window:toggle-menu-bar', ->
         atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
 
+        if atom.config.get('core.autoHideMenuBar')
+          detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
+          atom.notifications.addInfo('Menu bar hidden', {detail})
+
     @subscribeToCommand $(document), 'core:focus-next', @focusNext
 
     @subscribeToCommand $(document), 'core:focus-previous', @focusPrevious

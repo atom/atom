@@ -177,21 +177,18 @@ class DisplayBuffer extends Model
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
-  getVerticalScrollMargin: -> Math.min(@verticalScrollMargin, (@getHeight() - @getLineHeightInPixels()) / 2)
+  getVerticalScrollMargin: ->
+    maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
+    Math.min(@verticalScrollMargin, maxScrollMargin)
+
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getVerticalScrollMarginInPixels: ->
-    scrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeightInPixels()
-    maxScrollMarginInPixels = (@getHeight() - @getLineHeightInPixels()) / 2
-    Math.min(scrollMarginInPixels, maxScrollMarginInPixels)
+  getVerticalScrollMarginInPixels: -> @getVerticalScrollMargin() * @getLineHeightInPixels()
 
-  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, (@getWidth() - @getDefaultCharWidth()) / 2)
+  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getHorizontalScrollMarginInPixels: ->
-    scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
-    maxScrollMarginInPixels = (@getWidth() - @getDefaultCharWidth()) / 2
-    Math.min(scrollMarginInPixels, maxScrollMarginInPixels)
+  getHorizontalScrollMarginInPixels: -> scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
 
   getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
   setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight

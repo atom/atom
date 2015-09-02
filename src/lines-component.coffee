@@ -35,9 +35,9 @@ class LinesComponent extends TiledComponent
     @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible
 
   beforeUpdateSync: (state) ->
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @domNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
+    if @newState.maxHeight isnt @oldState.maxHeight
+      @domNode.style.height = @newState.maxHeight + 'px'
+      @oldState.maxHeight = @newState.maxHeight
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor

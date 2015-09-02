@@ -92,10 +92,14 @@ class Marker
   #
   # * `callback` {Function} to be called when the marker changes.
   #   * `event` {Object} with the following keys:
-  #     * `oldHeadPosition` {Point} representing the former head position
-  #     * `newHeadPosition` {Point} representing the new head position
-  #     * `oldTailPosition` {Point} representing the former tail position
-  #     * `newTailPosition` {Point} representing the new tail position
+  #     * `oldHeadBufferPosition` {Point} representing the former head buffer position
+  #     * `newHeadBufferPosition` {Point} representing the new head buffer position
+  #     * `oldTailBufferPosition` {Point} representing the former tail buffer position
+  #     * `newTailBufferPosition` {Point} representing the new tail buffer position
+  #     * `oldHeadScreenPosition` {Point} representing the former head screen position
+  #     * `newHeadScreenPosition` {Point} representing the new head screen position
+  #     * `oldTailScreenPosition` {Point} representing the former tail screen position
+  #     * `newTailScreenPosition` {Point} representing the new tail screen position
   #     * `wasValid` {Boolean} indicating whether the marker was valid before the change
   #     * `isValid` {Boolean} indicating whether the marker is now valid
   #     * `hadTail` {Boolean} indicating whether the marker had a tail before the change

@@ -207,6 +207,15 @@ describe "TextEditor", ->
         lastCursor = editor.addCursorAtScreenPosition([2, 0])
         expect(editor.getLastCursor()).toBe lastCursor
 
+      it "creates a new cursor at (0, 0) if the last cursor has been destroyed", ->
+        editor.getLastCursor().destroy()
+        expect(editor.getLastCursor().getBufferPosition()).toEqual([0, 0])
+
+    describe ".getCursors()", ->
+      it "creates a new cursor at (0, 0) if the last cursor has been destroyed", ->
+        editor.getLastCursor().destroy()
+        expect(editor.getCursors()[0].getBufferPosition()).toEqual([0, 0])
+
     describe "when the cursor moves", ->
       it "clears a goal column established by vertical movement", ->
         editor.setText('b')
@@ -1026,6 +1035,16 @@ describe "TextEditor", ->
 
     beforeEach ->
       selection = editor.getLastSelection()
+
+    describe ".getLastSelection()", ->
+      it "creates a new selection at (0, 0) if the last selection has been destroyed", ->
+        editor.getLastSelection().destroy()
+        expect(editor.getLastSelection().getBufferRange()).toEqual([[0, 0], [0, 0]])
+
+    describe ".getSelections()", ->
+      it "creates a new selection at (0, 0) if the last selection has been destroyed", ->
+        editor.getLastSelection().destroy()
+        expect(editor.getSelections()[0].getBufferRange()).toEqual([[0, 0], [0, 0]])
 
     describe "when the selection range changes", ->
       it "emits an event with the old range, new range, and the selection that moved", ->
@@ -2544,7 +2563,6 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(1)).toBe 1
             expect(editor.indentationForBufferRow(2)).toBe 0
 
-
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
         changeScreenRangeHandler = null
@@ -3219,6 +3237,28 @@ describe "TextEditor", ->
               items
             """
 
+      describe ".copyOnlySelectedText()", ->
+        describe "when thee are multiple selections", ->
+          it "copies selected text onto the clipboard", ->
+            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]], [[2, 8], [2, 13]]])
+
+            editor.copyOnlySelectedText()
+            expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+            expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+            expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+            expect(clipboard.readText()).toBe 'quicksort\nsort\nitems'
+            expect(atom.clipboard.read()).toEqual """
+              quicksort
+              sort
+              items
+            """
+
+        describe "when no text is selected", ->
+          it "does not copy anything", ->
+            editor.setCursorBufferPosition([1, 5])
+            editor.copyOnlySelectedText()
+            expect(atom.clipboard.read()).toEqual "initial clipboard content"
+
       describe ".pasteText()", ->
         copyText = (text, {startColumn, textEditor}={}) ->
           startColumn ?= 0
@@ -3694,6 +3734,63 @@ describe "TextEditor", ->
         expect(buffer.lineForRow(0)).not.toContain "foo"
         expect(buffer.lineForRow(0)).toContain "fovar"
 
+      it "restores cursors and selections to their states before and after undone and redone changes", ->
+        editor.setSelectedBufferRanges([
+          [[0, 0], [0, 0]],
+          [[1, 0], [1, 3]],
+        ])
+        editor.insertText("abc")
+
+        expect(editor.getSelectedBufferRanges()).toEqual [
+          [[0, 3], [0, 3]],
+          [[1, 3], [1, 3]]
+        ]
+
+        editor.setCursorBufferPosition([0, 0])
+        editor.setSelectedBufferRanges([
+          [[2, 0], [2, 0]],
+          [[3, 0], [3, 0]],
+          [[4, 0], [4, 3]],
+        ])
+        editor.insertText("def")
+
+        expect(editor.getSelectedBufferRanges()).toEqual [
+          [[2, 3], [2, 3]],
+          [[3, 3], [3, 3]]
+          [[4, 3], [4, 3]]
+        ]
+
+        editor.setCursorBufferPosition([0, 0])
+        editor.undo()
+
+        expect(editor.getSelectedBufferRanges()).toEqual [
+          [[2, 0], [2, 0]],
+          [[3, 0], [3, 0]],
+          [[4, 0], [4, 3]],
+        ]
+
+        editor.undo()
+
+        expect(editor.getSelectedBufferRanges()).toEqual [
+          [[0, 0], [0, 0]],
+          [[1, 0], [1, 3]]
+        ]
+
+        editor.redo()
+
+        expect(editor.getSelectedBufferRanges()).toEqual [
+          [[0, 3], [0, 3]],
+          [[1, 3], [1, 3]]
+        ]
+
+        editor.redo()
+
+        expect(editor.getSelectedBufferRanges()).toEqual [
+          [[2, 3], [2, 3]],
+          [[3, 3], [3, 3]]
+          [[4, 3], [4, 3]]
+        ]
+
       it "restores the selected ranges after undo and redo", ->
         editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
         editor.delete()
@@ -3974,23 +4071,177 @@ describe "TextEditor", ->
         expect(editor.lineTextForBufferRow(0)).toBe 'abC'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [0, 2]]
 
-  describe "soft-tabs detection", ->
-    it "assigns soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
-      waitsForPromise ->
-        atom.workspace.open('sample.js', softTabs: false).then (editor) ->
-          expect(editor.getSoftTabs()).toBeTruthy()
+  describe "soft and hard tabs", ->
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
 
-      waitsForPromise ->
-        atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
-          expect(editor.getSoftTabs()).toBeFalsy()
+    describe "when editor.tabType is 'auto'", ->
+      beforeEach ->
+        atom.config.set('editor.tabType', 'auto')
 
-      waitsForPromise ->
-        atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
-          expect(editor.getSoftTabs()).toBeFalsy()
+      it "auto-detects soft / hard tabs based on the contents of the buffer, or uses the default if unknown, and setSoftTabs() overrides", ->
+        waitsForPromise ->
+          atom.workspace.open('sample.js', softTabs: false).then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            editor.setSoftTabs(false)
+            expect(editor.getSoftTabs()).toBe false
 
-      waitsForPromise ->
-        atom.workspace.open(null, softTabs: false).then (editor) ->
-          expect(editor.getSoftTabs()).toBeFalsy()
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs.coffee', softTabs: true).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs-and-initial-comment.js', softTabs: true).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+        waitsForPromise ->
+          atom.workspace.open(null, softTabs: false).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+      it "resets the tab style when tokenization is complete", ->
+        editor.destroy()
+
+        waitsForPromise ->
+          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+
+        runs ->
+          expect(editor.softTabs).toBe true
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+        runs ->
+          expect(editor.softTabs).toBe false
+
+      it "uses hard tabs in Makefile files", ->
+        # FIXME remove once this is handled by a scoped setting in the
+        # language-make package
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-make')
+
+        waitsForPromise ->
+          atom.project.open('Makefile').then (o) -> editor = o
+
+        runs ->
+          expect(editor.softTabs).toBe false
+
+    describe "when editor.tabType is 'hard'", ->
+      beforeEach ->
+        atom.config.set('editor.tabType', 'hard')
+
+      it "always chooses hard tabs and setSoftTabs() overrides the setting", ->
+        waitsForPromise ->
+          atom.workspace.open('sample.js').then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs.coffee').then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs-and-initial-comment.js').then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+        waitsForPromise ->
+          atom.workspace.open(null).then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            editor.setSoftTabs(true)
+            expect(editor.getSoftTabs()).toBe true
+
+    describe "when editor.tabType is 'soft'", ->
+      beforeEach ->
+        atom.config.set('editor.tabType', 'soft')
+
+      it "always chooses soft tabs and setSoftTabs() overrides the setting", ->
+        waitsForPromise ->
+          atom.workspace.open('sample.js').then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            editor.setSoftTabs(false)
+            expect(editor.getSoftTabs()).toBe false
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs.coffee').then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            editor.setSoftTabs(false)
+            expect(editor.getSoftTabs()).toBe false
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs-and-initial-comment.js').then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            editor.setSoftTabs(false)
+            expect(editor.getSoftTabs()).toBe false
+
+        waitsForPromise ->
+          atom.workspace.open(null).then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            editor.setSoftTabs(false)
+            expect(editor.getSoftTabs()).toBe false
+
+      it "keeps the tabType when tokenization is complete", ->
+        editor.destroy()
+
+        waitsForPromise ->
+          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+
+        runs ->
+          expect(editor.softTabs).toBe true
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+        runs ->
+          expect(editor.softTabs).toBe true
+
+    describe "when editor.tabType changes", ->
+      beforeEach ->
+        atom.config.set('editor.tabType', 'auto')
+
+      it "updates based on the value chosen", ->
+        waitsForPromise ->
+          atom.workspace.open('sample.js').then (editor) ->
+            expect(editor.getSoftTabs()).toBe true
+            atom.config.set('editor.tabType', 'hard')
+            expect(editor.getSoftTabs()).toBe false
+            atom.config.set('editor.tabType', 'auto')
+            expect(editor.getSoftTabs()).toBe true
+            atom.config.set('editor.tabType', 'hard', scopeSelector: '.source.js')
+            expect(editor.getSoftTabs()).toBe false
+
+        waitsForPromise ->
+          atom.workspace.open('sample-with-tabs.coffee').then (editor) ->
+            expect(editor.getSoftTabs()).toBe false
+            atom.config.set('editor.tabType', 'soft')
+            expect(editor.getSoftTabs()).toBe true
+            atom.config.set('editor.tabType', 'auto')
+            expect(editor.getSoftTabs()).toBe false
+
+    describe "when the grammar changes", ->
+      coffeeEditor = null
+      beforeEach ->
+        atom.config.set('editor.tabType', 'hard', scopeSelector: '.source.js')
+        atom.config.set('editor.tabType', 'soft', scopeSelector: '.source.coffee')
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+      it "updates based on the value chosen", ->
+        expect(editor.getSoftTabs()).toBe false
+        editor.setGrammar(atom.grammars.grammarForScopeName('source.coffee'))
+        expect(editor.getSoftTabs()).toBe true
 
   describe '.getTabLength()', ->
     describe 'when scoped settings are used', ->
@@ -4220,39 +4471,6 @@ describe "TextEditor", ->
         coffeeEditor.setCursorBufferPosition([1, 18])
         coffeeEditor.insertText("\n")
         expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
-
-  describe "soft and hard tabs", ->
-    afterEach ->
-      atom.packages.deactivatePackages()
-      atom.packages.unloadPackages()
-
-    it "resets the tab style when tokenization is complete", ->
-      editor.destroy()
-
-      waitsForPromise ->
-        atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
-
-      runs ->
-        expect(editor.softTabs).toBe true
-
-      waitsForPromise ->
-        atom.packages.activatePackage('language-coffee-script')
-
-      runs ->
-        expect(editor.softTabs).toBe false
-
-    it "uses hard tabs in Makefile files", ->
-      # FIXME remove once this is handled by a scoped setting in the
-      # language-make package
-
-      waitsForPromise ->
-        atom.packages.activatePackage('language-make')
-
-      waitsForPromise ->
-        atom.project.open('Makefile').then (o) -> editor = o
-
-      runs ->
-        expect(editor.softTabs).toBe false
 
   describe ".destroy()", ->
     it "destroys all markers associated with the edit session", ->
@@ -4615,26 +4833,21 @@ describe "TextEditor", ->
       expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
 
   describe ".pageUp/Down()", ->
-    it "scrolls one screen height up or down and moves the cursor one page length", ->
+    it "moves the cursor down one page length", ->
       editor.setLineHeightInPixels(10)
       editor.setHeight(50)
-      expect(editor.getScrollHeight()).toBe 130
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.pageDown()
-      expect(editor.getScrollTop()).toBe 50
       expect(editor.getCursorBufferPosition().row).toBe 5
 
       editor.pageDown()
-      expect(editor.getScrollTop()).toBe 80
       expect(editor.getCursorBufferPosition().row).toBe 10
 
       editor.pageUp()
-      expect(editor.getScrollTop()).toBe 30
       expect(editor.getCursorBufferPosition().row).toBe 5
 
       editor.pageUp()
-      expect(editor.getScrollTop()).toBe 0
       expect(editor.getCursorBufferPosition().row).toBe 0
 
   describe ".selectPageUp/Down()", ->
@@ -4645,28 +4858,22 @@ describe "TextEditor", ->
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.selectPageDown()
-      expect(editor.getScrollTop()).toBe 30
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [5, 0]]]
 
       editor.selectPageDown()
-      expect(editor.getScrollTop()).toBe 80
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [10, 0]]]
 
       editor.selectPageDown()
-      expect(editor.getScrollTop()).toBe 80
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [12, 2]]]
 
       editor.moveToBottom()
       editor.selectPageUp()
-      expect(editor.getScrollTop()).toBe 50
       expect(editor.getSelectedBufferRanges()).toEqual [[[7, 0], [12, 2]]]
 
       editor.selectPageUp()
-      expect(editor.getScrollTop()).toBe 0
       expect(editor.getSelectedBufferRanges()).toEqual [[[2, 0], [12, 2]]]
 
       editor.selectPageUp()
-      expect(editor.getScrollTop()).toBe 0
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [12, 2]]]
 
   describe '.get/setPlaceholderText()', ->

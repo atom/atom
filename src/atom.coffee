@@ -9,7 +9,7 @@ _ = require 'underscore-plus'
 {deprecate, includeDeprecatedAPIs} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
-{convertStackTrace, convertLine} = require 'coffeestack'
+{mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
@@ -196,15 +196,11 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    sourceMapCache = {}
-
     window.onerror = =>
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
-      convertedLine = convertLine(url, line, column, sourceMapCache)
-      {line, column} = convertedLine if convertedLine?
-      originalError.stack = convertStackTrace(originalError.stack, sourceMapCache) if originalError
+      {line, column} = mapSourcePosition({source: url, line, column})
 
       eventObject = {message, url, line, column, originalError}
 
@@ -673,6 +669,7 @@ class Atom extends Model
     @windowEventHandler?.unsubscribe()
 
   openInitialEmptyEditorIfNecessary: ->
+    return unless @config.get('core.openEmptyEditorOnStart')
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
       @workspace.open(null)
 

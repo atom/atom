@@ -34,12 +34,11 @@ class Project extends Model
     @rootDirectories = []
     @repositories = []
 
-    @directoryProviders = [new DefaultDirectoryProvider()]
+    @directoryProviders = []
+    @defaultDirectoryProvider = new DefaultDirectoryProvider()
     atom.packages.serviceHub.consume(
       'atom.directory-provider',
       '^0.1.0',
-      # New providers are added to the front of @directoryProviders because
-      # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
       (provider) => @directoryProviders.unshift(provider))
 
     # Mapping from the real path of a {Directory} to a {Promise} that resolves
@@ -48,8 +47,6 @@ class Project extends Model
     # the same real path, so it is not a good key.
     @repositoryPromisesByPath = new Map()
 
-    # Note that the GitRepositoryProvider is registered synchronously so that
-    # it is available immediately on startup.
     @repositoryProviders = [new GitRepositoryProvider(this)]
     atom.packages.serviceHub.consume(
       'atom.repository-provider',
@@ -186,18 +183,16 @@ class Project extends Model
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    for directory in @getDirectories()
-      # Apparently a Directory does not believe it can contain itself, so we
-      # must also check whether the paths match.
-      return if directory.contains(projectPath) or directory.getPath() is projectPath
-
     directory = null
     for provider in @directoryProviders
       break if directory = provider.directoryForURISync?(projectPath)
-    if directory is null
-      # This should never happen because DefaultDirectoryProvider should always
-      # return a Directory.
-      throw new Error(projectPath + ' could not be resolved to a directory')
+    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
+
+    directoryExists = directory.existsSync()
+    for rootDirectory in @getDirectories()
+      return if rootDirectory.getPath() is directory.getPath()
+      return if not directoryExists and rootDirectory.contains(directory.getPath())
+
     @rootDirectories.push(directory)
 
     repo = null
@@ -267,10 +262,13 @@ class Project extends Model
   # * `relativePath` {String} The relative path from the project directory to
   #   the given path.
   relativizePath: (fullPath) ->
-    for rootDirectory in @rootDirectories
-      relativePath = rootDirectory.relativize(fullPath)
-      return [rootDirectory.getPath(), relativePath] unless relativePath is fullPath
-    [null, fullPath]
+    result = [null, fullPath]
+    if fullPath?
+      for rootDirectory in @rootDirectories
+        relativePath = rootDirectory.relativize(fullPath)
+        if relativePath?.length < result[1].length
+          result = [rootDirectory.getPath(), relativePath]
+    result
 
   # Public: Determines whether the given path (real or symbolic) is inside the
   # project's directory.

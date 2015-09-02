@@ -302,6 +302,7 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:transpose': -> @transpose()
   'editor:upper-case': -> @upperCase()
   'editor:lower-case': -> @lowerCase()
+  'editor:copy-selection': -> @copyOnlySelectedText()
 )
 
 atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagation(

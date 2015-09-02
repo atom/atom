@@ -16,7 +16,7 @@ process.on 'uncaughtException', (error={}) ->
 
 start = ->
   setupAtomHome()
-  setupCoffeeCache()
+  setupCompileCache()
 
   if process.platform is 'win32'
     SquirrelUpdate = require './squirrel-update'
@@ -54,17 +54,20 @@ start = ->
       else
         path.resolve(pathToOpen)
 
-    if args.devMode
-      AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
-    else
-      AtomApplication = require './atom-application'
+    AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
 
     AtomApplication.open(args)
     console.log("App load time: #{Date.now() - global.shellStartTime}ms") unless args.test
 
-global.devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
-# Normalize to make sure drive letter case is consistent on Windows
-global.devResourcePath = path.normalize(global.devResourcePath) if global.devResourcePath
+normalizeDriveLetterName = (filePath) ->
+  if process.platform is 'win32'
+    filePath.replace /^([a-z]):/, ([driveLetter]) -> driveLetter.toUpperCase() + ":"
+  else
+    filePath
+
+global.devResourcePath = normalizeDriveLetterName(
+  process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
+)
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
@@ -77,14 +80,9 @@ setupAtomHome = ->
     atomHome = fs.realpathSync(atomHome)
   process.env.ATOM_HOME = atomHome
 
-setupCoffeeCache = ->
-  CoffeeCache = require 'coffee-cash'
-  cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
-  # Use separate compile cache when sudo'ing as root to avoid permission issues
-  if process.env.USER is 'root' and process.env.SUDO_USER and process.env.SUDO_USER isnt process.env.USER
-    cacheDir = path.join(cacheDir, 'root')
-  CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'))
-  CoffeeCache.register()
+setupCompileCache = ->
+  compileCache = require('../compile-cache')
+  compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
 parseCommandLine = ->
   version = app.getVersion()
@@ -168,6 +166,8 @@ parseCommandLine = ->
   # On Yosemite the $PATH is not inherited by the "open" command, so we have to
   # explicitly pass it by command line, see http://git.io/YC8_Ew.
   process.env.PATH = args['path-environment'] if args['path-environment']
+
+  resourcePath = normalizeDriveLetterName(resourcePath)
 
   {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
    devMode, safeMode, newWindow, specDirectory, logFile, socketPath, profileStartup}
