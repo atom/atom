@@ -3436,63 +3436,6 @@ describe "TextEditor", ->
         expect(buffer.lineForRow(0)).not.toContain "foo"
         expect(buffer.lineForRow(0)).toContain "fovar"
 
-      it "restores cursors and selections to their states before and after undone and redone changes", ->
-        editor.setSelectedBufferRanges([
-          [[0, 0], [0, 0]],
-          [[1, 0], [1, 3]],
-        ])
-        editor.insertText("abc")
-
-        expect(editor.getSelectedBufferRanges()).toEqual [
-          [[0, 3], [0, 3]],
-          [[1, 3], [1, 3]]
-        ]
-
-        editor.setCursorBufferPosition([0, 0])
-        editor.setSelectedBufferRanges([
-          [[2, 0], [2, 0]],
-          [[3, 0], [3, 0]],
-          [[4, 0], [4, 3]],
-        ])
-        editor.insertText("def")
-
-        expect(editor.getSelectedBufferRanges()).toEqual [
-          [[2, 3], [2, 3]],
-          [[3, 3], [3, 3]]
-          [[4, 3], [4, 3]]
-        ]
-
-        editor.setCursorBufferPosition([0, 0])
-        editor.undo()
-
-        expect(editor.getSelectedBufferRanges()).toEqual [
-          [[2, 0], [2, 0]],
-          [[3, 0], [3, 0]],
-          [[4, 0], [4, 3]],
-        ]
-
-        editor.undo()
-
-        expect(editor.getSelectedBufferRanges()).toEqual [
-          [[0, 0], [0, 0]],
-          [[1, 0], [1, 3]]
-        ]
-
-        editor.redo()
-
-        expect(editor.getSelectedBufferRanges()).toEqual [
-          [[0, 3], [0, 3]],
-          [[1, 3], [1, 3]]
-        ]
-
-        editor.redo()
-
-        expect(editor.getSelectedBufferRanges()).toEqual [
-          [[2, 3], [2, 3]],
-          [[3, 3], [3, 3]]
-          [[4, 3], [4, 3]]
-        ]
-
       it "restores the selected ranges after undo and redo", ->
         editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
         editor.delete()

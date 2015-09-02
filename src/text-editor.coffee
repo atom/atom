@@ -1106,12 +1106,12 @@ class TextEditor extends Model
 
   # Essential: Undo the last change.
   undo: ->
-    @avoidMergingSelections => @buffer.undo()
+    @buffer.undo()
     @getLastSelection().autoscroll()
 
   # Essential: Redo the last change.
   redo: ->
-    @avoidMergingSelections => @buffer.redo()
+    @buffer.redo(this)
     @getLastSelection().autoscroll()
 
   # Extended: Batch multiple operations as a single undo/redo step.
@@ -2205,9 +2205,6 @@ class TextEditor extends Model
       screenRange = currentSelection.getScreenRange()
 
       previousSelection.intersectsScreenRowRange(screenRange.start.row, screenRange.end.row)
-
-  avoidMergingSelections: (args...) ->
-    @mergeSelections args..., -> false
 
   mergeSelections: (args...) ->
     mergePredicate = args.pop()
