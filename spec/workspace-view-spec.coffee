@@ -25,35 +25,6 @@ describe "WorkspaceView", ->
   afterEach ->
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "window:toggle-invisibles event", ->
-    it "shows/hides invisibles in all open and future editors", ->
-      atom.workspaceView.height(200)
-      atom.workspaceView.attachToDom()
-      rightEditorView = atom.workspaceView.getActiveView()
-      rightEditorView.getEditor().setText("\t  \n")
-      rightEditorView.getPaneView().getModel().splitLeft(copyActiveItem: true)
-      leftEditorView = atom.workspaceView.getActiveView()
-      expect(rightEditorView.find(".line:first").text()).toBe "    "
-      expect(leftEditorView.find(".line:first").text()).toBe "    "
-
-      {space, tab, eol} = atom.config.get('editor.invisibles')
-      withInvisiblesShowing = "#{tab} #{space}#{space}#{eol}"
-
-      atom.workspaceView.trigger "window:toggle-invisibles"
-      expect(rightEditorView.find(".line:first").text()).toBe withInvisiblesShowing
-      expect(leftEditorView.find(".line:first").text()).toBe withInvisiblesShowing
-
-      leftEditorView.getPaneView().getModel().splitDown(copyActiveItem: true)
-      lowerLeftEditorView = atom.workspaceView.getActiveView()
-      expect(lowerLeftEditorView.find(".line:first").text()).toBe withInvisiblesShowing
-
-      atom.workspaceView.trigger "window:toggle-invisibles"
-      expect(rightEditorView.find(".line:first").text()).toBe "    "
-      expect(leftEditorView.find(".line:first").text()).toBe "    "
-
-      rightEditorView.getPaneView().getModel().splitDown(copyActiveItem: true)
-      lowerRightEditorView = atom.workspaceView.getActiveView()
-      expect(lowerRightEditorView.find(".line:first").text()).toBe "    "
 
   describe ".eachEditorView(callback)", ->
     beforeEach ->

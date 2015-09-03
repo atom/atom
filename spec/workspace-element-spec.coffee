@@ -17,6 +17,15 @@ describe "WorkspaceElement", ->
       workspaceElement.focus()
       expect(document.activeElement).toBe(activePaneElement)
 
+
+  describe "the 'window:toggle-invisibles' command", ->
+    it "shows/hides invisibles in all open and future editors", ->
+      expect(atom.config.get('editor.showInvisibles')).toBe false
+      atom.commands.dispatch(workspaceElement, 'window:toggle-invisibles')
+      expect(atom.config.get('editor.showInvisibles')).toBe true
+      atom.commands.dispatch(workspaceElement, 'window:toggle-invisibles')
+      expect(atom.config.get('editor.showInvisibles')).toBe false
+
   describe "the 'window:run-package-specs' command", ->
     it "runs the package specs for the active item's project path, or the first project path", ->
       spyOn(ipc, 'send')
