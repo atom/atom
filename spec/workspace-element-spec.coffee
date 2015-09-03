@@ -3,13 +3,9 @@ path = require 'path'
 temp = require('temp').track()
 
 describe "WorkspaceElement", ->
-  workspaceElement = null
-
-  beforeEach ->
-    workspaceElement = atom.views.getView(atom.workspace)
-
   describe "when the workspace element is focused", ->
     it "transfers focus to the active pane", ->
+      workspaceElement = atom.views.getView(atom.workspace)
       jasmine.attachToDOM(workspaceElement)
       activePaneElement = atom.views.getView(atom.workspace.getActivePane())
       document.body.focus()
@@ -17,9 +13,22 @@ describe "WorkspaceElement", ->
       workspaceElement.focus()
       expect(document.activeElement).toBe(activePaneElement)
 
+  describe "the scrollbar visibility class", ->
+    it "has a class based on the style of the scrollbar", ->
+      observeCallback = null
+      scrollbarStyle = require 'scrollbar-style'
+      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake (cb) -> observeCallback = cb
+      workspaceElement = atom.views.getView(atom.workspace)
+
+      observeCallback('legacy')
+      expect(workspaceElement.className).toMatch 'scrollbars-visible-always'
+
+      observeCallback('overlay')
+      expect(workspaceElement).toHaveClass 'scrollbars-visible-when-scrolling'
 
   describe "the 'window:toggle-invisibles' command", ->
     it "shows/hides invisibles in all open and future editors", ->
+      workspaceElement = atom.views.getView(atom.workspace)
       expect(atom.config.get('editor.showInvisibles')).toBe false
       atom.commands.dispatch(workspaceElement, 'window:toggle-invisibles')
       expect(atom.config.get('editor.showInvisibles')).toBe true
@@ -28,6 +37,7 @@ describe "WorkspaceElement", ->
 
   describe "the 'window:run-package-specs' command", ->
     it "runs the package specs for the active item's project path, or the first project path", ->
+      workspaceElement = atom.views.getView(atom.workspace)
       spyOn(ipc, 'send')
 
       # No project paths. Don't try to run specs.
