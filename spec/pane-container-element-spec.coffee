@@ -56,6 +56,30 @@ describe "PaneContainerElement", ->
       rightPane.destroy()
       expect(document.activeElement).toBe leftPaneElement
 
+  describe "when a pane is split", ->
+    it "builds appropriately-oriented atom-pane-axis elements", ->
+      container = new PaneContainer
+      containerElement = atom.views.getView(container)
+
+      pane1 = container.getRoot()
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitDown()
+
+      horizontalPanes = containerElement.querySelectorAll('atom-pane-container > atom-pane-axis.horizontal > atom-pane')
+      expect(horizontalPanes.length).toBe 1
+      expect(horizontalPanes[0]).toBe atom.views.getView(pane1)
+
+      verticalPanes = containerElement.querySelectorAll('atom-pane-container > atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane')
+      expect(verticalPanes.length).toBe 2
+      expect(verticalPanes[0]).toBe atom.views.getView(pane2)
+      expect(verticalPanes[1]).toBe atom.views.getView(pane3)
+
+      pane1.destroy()
+      verticalPanes = containerElement.querySelectorAll('atom-pane-container > atom-pane-axis.vertical > atom-pane')
+      expect(verticalPanes.length).toBe 2
+      expect(verticalPanes[0]).toBe atom.views.getView(pane2)
+      expect(verticalPanes[1]).toBe atom.views.getView(pane3)
+
   describe "when the resize element is dragged ", ->
     [container, containerElement] = []
 

@@ -46,24 +46,6 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "when a pane is split", ->
-    it "builds the appropriateatom-pane-axis.horizontal and pane-column views", ->
-      pane1 = pane
-      pane1Model = pane.getModel()
-      pane.activateItem(editor1)
-
-      pane2Model = pane1Model.splitRight(items: [pane1Model.copyActiveItem()])
-      pane3Model = pane2Model.splitDown(items: [pane2Model.copyActiveItem()])
-      pane2 = pane2Model._view
-      pane2 = atom.views.getView(pane2Model).__spacePenView
-      pane3 = atom.views.getView(pane3Model).__spacePenView
-
-      expect(container.find('> atom-pane-axis.horizontal > atom-pane').toArray()).toEqual [pane1[0]]
-      expect(container.find('> atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
-
-      pane1Model.destroy()
-      expect(container.find('> atom-pane-axis.vertical > atom-pane').toArray()).toEqual [pane2[0], pane3[0]]
-
   describe "serialization", ->
     it "focuses the pane after attach only if had focus when serialized", ->
       container.attachToDom()
