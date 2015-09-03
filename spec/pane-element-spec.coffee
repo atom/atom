@@ -162,3 +162,9 @@ describe "PaneElement", ->
       paneElement.focus()
 
       expect(pane.isActive()).toBe true
+
+  describe "when the pane element is attached", ->
+    it "focuses the pane element if isFocused() returns true on its model", ->
+      pane.focus()
+      jasmine.attachToDOM(paneElement)
+      expect(document.activeElement).toBe paneElement

@@ -46,22 +46,6 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "serialization", ->
-    it "focuses the pane after attach only if had focus when serialized", ->
-      container.attachToDom()
-      pane.focus()
-
-      container2 = atom.views.getView(container.model.testSerialization()).__spacePenView
-      pane2 = container2.getRoot()
-      container2.attachToDom()
-      expect(pane2).toMatchSelector(':has(:focus)')
-
-      $(document.activeElement).blur()
-      container3 = atom.views.getView(container.model.testSerialization()).__spacePenView
-      pane3 = container3.getRoot()
-      container3.attachToDom()
-      expect(pane3).not.toMatchSelector(':has(:focus)')
-
   describe "drag and drop", ->
     buildDragEvent = (type, files) ->
       dataTransfer =
