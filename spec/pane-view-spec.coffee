@@ -46,22 +46,6 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "when the pane is focused", ->
-    beforeEach ->
-      container.attachToDom()
-
-    it "transfers focus to the active view", ->
-      focusHandler = jasmine.createSpy("focusHandler")
-      pane.getActiveItem().on 'focus', focusHandler
-      pane.focus()
-      expect(focusHandler).toHaveBeenCalled()
-
-    it "makes the pane active", ->
-      paneModel.splitRight(items: [pane.copyActiveItem()])
-      expect(paneModel.isActive()).toBe false
-      pane.focus()
-      expect(paneModel.isActive()).toBe true
-
   describe "when a pane is split", ->
     it "builds the appropriateatom-pane-axis.horizontal and pane-column views", ->
       pane1 = pane

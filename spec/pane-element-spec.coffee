@@ -142,3 +142,23 @@ describe "PaneElement", ->
         expect(item2.element.parentElement).toBe paneElement.itemViews
         pane.destroyItem(item2)
         expect(item2.element.parentElement).toBeNull()
+
+  describe "when the pane element is focused", ->
+    it "transfers focus to the active view", ->
+      item = document.createElement('div')
+      item.tabIndex = -1
+      pane.activateItem(item)
+      jasmine.attachToDOM(paneElement)
+
+      expect(document.activeElement).toBe document.body
+      paneElement.focus()
+      expect(document.activeElement).toBe item
+
+    it "makes the pane active", ->
+      pane.splitRight()
+      expect(pane.isActive()).toBe false
+
+      jasmine.attachToDOM(paneElement)
+      paneElement.focus()
+
+      expect(pane.isActive()).toBe true
