@@ -25,17 +25,6 @@ describe "WorkspaceView", ->
   afterEach ->
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "focus", ->
-    beforeEach ->
-      atom.workspaceView.attachToDom()
-
-    it "hands off focus to the active pane", ->
-      activePane = atom.workspaceView.getActivePaneView()
-      $('body').focus()
-      expect(activePane).not.toHaveFocus()
-      atom.workspaceView.focus()
-      expect(activePane).toHaveFocus()
-
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
       atom.workspaceView.height(200)

@@ -8,6 +8,15 @@ describe "WorkspaceElement", ->
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
 
+  describe "when the workspace element is focused", ->
+    it "transfers focus to the active pane", ->
+      jasmine.attachToDOM(workspaceElement)
+      activePaneElement = atom.views.getView(atom.workspace.getActivePane())
+      document.body.focus()
+      expect(document.activeElement).not.toBe(activePaneElement)
+      workspaceElement.focus()
+      expect(document.activeElement).toBe(activePaneElement)
+
   describe "the 'window:run-package-specs' command", ->
     it "runs the package specs for the active item's project path, or the first project path", ->
       spyOn(ipc, 'send')
