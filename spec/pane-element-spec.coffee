@@ -168,3 +168,30 @@ describe "PaneElement", ->
       pane.focus()
       jasmine.attachToDOM(paneElement)
       expect(document.activeElement).toBe paneElement
+
+  describe "drag and drop", ->
+    buildDragEvent = (type, files) ->
+      dataTransfer =
+        files: files
+        data: {}
+        setData: (key, value) -> @data[key] = value
+        getData: (key) -> @data[key]
+
+      event = new CustomEvent("drop")
+      event.dataTransfer = dataTransfer
+      event
+
+    describe "when a file is dragged to the pane", ->
+      it "opens it", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
+        paneElement.dispatchEvent(event)
+        expect(atom.open.callCount).toBe 1
+        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
+
+    describe "when a non-file is dragged to the pane", ->
+      it "does nothing", ->
+        spyOn(atom, "open")
+        event = buildDragEvent("drop", [])
+        paneElement.dispatchEvent(event)
+        expect(atom.open).not.toHaveBeenCalled()
