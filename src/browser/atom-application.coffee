@@ -63,7 +63,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     global.atomApplication = this
 
@@ -160,7 +160,7 @@ class AtomApplication
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
 
-    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
+    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
@@ -252,7 +252,7 @@ class AtomApplication
       @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
+      @runSpecs({resourcePath: @devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -398,8 +398,8 @@ class AtomApplication
     else
       if devMode
         try
-          bootstrapScript = require.resolve(path.join(global.devResourcePath, 'src', 'window-bootstrap'))
-          resourcePath = global.devResourcePath
+          bootstrapScript = require.resolve(path.join(@devResourcePath, 'src', 'window-bootstrap'))
+          resourcePath = @devResourcePath
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
@@ -500,7 +500,7 @@ class AtomApplication
       resourcePath = @resourcePath
 
     try
-      bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'spec', 'spec-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(@devResourcePath, 'spec', 'spec-bootstrap'))
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'spec-bootstrap'))
 
@@ -511,7 +511,7 @@ class AtomApplication
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
-      bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(@devResourcePath, 'benchmark', 'benchmark-bootstrap'))
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 

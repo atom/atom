@@ -53,10 +53,6 @@ normalizeDriveLetterName = (filePath) ->
   else
     filePath
 
-global.devResourcePath = normalizeDriveLetterName(
-  process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
-)
-
 setupUncaughtExceptionHandler = ->
   process.on 'uncaughtException', (error={}) ->
     console.log(error.message) if error.message?
@@ -142,6 +138,7 @@ parseCommandLine = ->
   socketPath = args['socket-path']
   profileStartup = args['profile-startup']
   urlsToOpen = []
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
 
   if args['resource-path']
     devMode = true
@@ -157,7 +154,7 @@ parseCommandLine = ->
           resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
 
     if devMode
-      resourcePath ?= global.devResourcePath
+      resourcePath ?= devResourcePath
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
@@ -167,9 +164,10 @@ parseCommandLine = ->
   process.env.PATH = args['path-environment'] if args['path-environment']
 
   resourcePath = normalizeDriveLetterName(resourcePath)
+  devResourcePath = normalizeDriveLetterName(devResourcePath)
 
-  {resourcePath, pathsToOpen, urlsToOpen, executedFrom, test, version,
-   pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile,
-   socketPath, profileStartup}
+  {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
+   version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
+   logFile, socketPath, profileStartup}
 
 start()
