@@ -3,7 +3,6 @@ path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
-{callAttachHooks} = require 'space-pen'
 
 module.exports =
 class WorkspaceElement extends HTMLElement
@@ -16,7 +15,6 @@ class WorkspaceElement extends HTMLElement
     @observeTextEditorFontConfig()
 
   attachedCallback: ->
-    callAttachHooks(this) if Grim.includeDeprecatedAPIs
     @focus()
 
   detachedCallback: ->

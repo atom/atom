@@ -1,6 +1,5 @@
 {CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
-{callAttachHooks} = require './space-pen-extensions'
 _ = require 'underscore-plus'
 
 module.exports =
@@ -19,7 +18,6 @@ class PaneContainerElement extends HTMLElement
     if root?
       view = atom.views.getView(root)
       @appendChild(view)
-      callAttachHooks(view)
       focusedElement?.focus()
 
   hasFocus: ->

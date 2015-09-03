@@ -1,7 +1,7 @@
 path = require 'path'
 {CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
-{$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
+{$} = require './space-pen-extensions'
 
 class PaneElement extends HTMLElement
   attached: false
@@ -88,7 +88,6 @@ class PaneElement extends HTMLElement
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
-      callAttachHooks(itemView)
 
     for child in @itemViews.children
       if child is itemView
@@ -113,7 +112,6 @@ class PaneElement extends HTMLElement
 
   itemRemoved: ({item, index, destroyed}) ->
     if viewToRemove = atom.views.getView(item)
-      callRemoveHooks(viewToRemove) if destroyed
       viewToRemove.remove()
 
   paneDestroyed: ->
