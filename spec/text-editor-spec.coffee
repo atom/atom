@@ -1284,7 +1284,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeFalsy()
 
     describe ".selectLinesContainingCursors()", ->
-      it "selects the entire line (including newlines) at given row", ->
+      it "selects to the entire line (including newlines) at given row", ->
         editor.setCursorScreenPosition([1, 2])
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [2, 0]]
@@ -1298,6 +1298,13 @@ describe "TextEditor", ->
         editor.selectLinesContainingCursors()
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [2, 0]]
+
+      describe "when the selection spans multiple row", ->
+        it "selects from the beginning of the first line to the last line", ->
+          selection = editor.getLastSelection()
+          selection.setBufferRange [[1, 10], [3, 20]]
+          editor.selectLinesContainingCursors()
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
 
       it "autoscrolls to the selection", ->
         editor.setLineHeightInPixels(10)
