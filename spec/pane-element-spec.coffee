@@ -8,6 +8,17 @@ describe "PaneElement", ->
     pane = container.getRoot()
     paneElement = atom.views.getView(pane)
 
+  describe "when the pane's active status changes", ->
+    it "adds or removes the .active class as appropriate", ->
+      pane2 = pane.splitRight()
+      expect(pane2.isActive()).toBe true
+
+      expect(paneElement.className).not.toMatch /active/
+      pane.activate()
+      expect(paneElement.className).toMatch /active/
+      pane2.activate()
+      expect(paneElement.className).not.toMatch /active/
+
   describe "when the active item changes", ->
     it "hides all item elements except the active one", ->
       item1 = document.createElement('div')

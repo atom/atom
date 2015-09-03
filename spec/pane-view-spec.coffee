@@ -46,21 +46,6 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "when the pane's active status changes", ->
-    [pane2, pane2Model] = []
-
-    beforeEach ->
-      pane2Model = paneModel.splitRight(items: [pane.copyActiveItem()])
-      pane2 = atom.views.getView(pane2Model).__spacePenView
-      expect(pane2Model.isActive()).toBe true
-
-    it "adds or removes the .active class as appropriate", ->
-      expect(pane).not.toHaveClass('active')
-      paneModel.activate()
-      expect(pane).toHaveClass('active')
-      pane2Model.activate()
-      expect(pane).not.toHaveClass('active')
-
   describe "when the pane is focused", ->
     beforeEach ->
       container.attachToDom()
