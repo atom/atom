@@ -4,16 +4,13 @@ PaneAxis = require '../src/pane-axis'
 
 describe "PaneContainerElement", ->
   describe "when panes are added or removed", ->
-    [paneAxisElement, paneAxis] = []
+    it "inserts or removes resize elements", ->
+      childTagNames = ->
+        child.nodeName.toLowerCase() for child in paneAxisElement.children
 
-    beforeEach ->
       paneAxis = new PaneAxis
       paneAxisElement = new PaneAxisElement().initialize(paneAxis)
 
-    childTagNames = ->
-      child.nodeName.toLowerCase() for child in paneAxisElement.children
-
-    it "inserts or removes resize elements", ->
       expect(childTagNames()).toEqual []
 
       paneAxis.addChild(new PaneAxis)
@@ -43,6 +40,21 @@ describe "PaneContainerElement", ->
         'atom-pane-resize-handle'
         'atom-pane-axis'
       ]
+
+    it "transfers focus to the next pane if a focused pane is removed", ->
+      container = new PaneContainer
+      containerElement = atom.views.getView(container)
+      leftPane = container.getActivePane()
+      leftPaneElement = atom.views.getView(leftPane)
+      rightPane = leftPane.splitRight()
+      rightPaneElement = atom.views.getView(rightPane)
+
+      jasmine.attachToDOM(containerElement)
+      rightPaneElement.focus()
+      expect(document.activeElement).toBe rightPaneElement
+
+      rightPane.destroy()
+      expect(document.activeElement).toBe leftPaneElement
 
   describe "when the resize element is dragged ", ->
     [container, containerElement] = []

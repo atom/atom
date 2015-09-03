@@ -46,24 +46,6 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "when a pane is destroyed", ->
-    [pane2, pane2Model] = []
-
-    beforeEach ->
-      pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
-      pane2 = atom.views.getView(pane2Model).__spacePenView
-
-    describe "if the destroyed pane has focus", ->
-      [paneToLeft, paneToRight] = []
-
-      it "focuses the next pane", ->
-        container.attachToDom()
-        pane2.activate()
-        expect(pane.hasFocus()).toBe false
-        expect(pane2.hasFocus()).toBe true
-        pane2Model.destroy()
-        expect(pane.hasFocus()).toBe true
-
   describe "when the pane's active status changes", ->
     [pane2, pane2Model] = []
 
