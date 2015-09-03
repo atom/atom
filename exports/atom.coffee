@@ -24,57 +24,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
   module.exports.TextEditor = require '../src/text-editor'
 
-  if includeDeprecatedAPIs
-    {$, $$, $$$, View} = require '../src/space-pen-extensions'
-
-    Object.defineProperty module.exports, 'Workspace', get: ->
-      deprecate """
-        Requiring `Workspace` from `atom` is no longer supported.
-        If you need this, please open an issue on
-        https://github.com/atom/atom/issues/new
-        And let us know what you are using it for.
-      """
-      require '../src/workspace'
-
-    Object.defineProperty module.exports, '$', get: ->
-      deprecate """
-        Requiring `$` from `atom` is no longer supported.
-        If you are using `space-pen`, please require `$` from `atom-space-pen-views`. Otherwise require `jquery` instead:
-          `{$} = require 'atom-space-pen-views'`
-          or
-          `$ = require 'jquery'`
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-        Or add `"jquery": "^2"` to your package dependencies.
-      """
-      $
-
-    Object.defineProperty module.exports, '$$', get: ->
-      deprecate """
-        Requiring `$$` from `atom` is no longer supported.
-        Please require `atom-space-pen-views` instead:
-          `{$$} = require 'atom-space-pen-views'`
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-      """
-      $$
-
-    Object.defineProperty module.exports, '$$$', get: ->
-      deprecate """
-        Requiring `$$$` from `atom` is no longer supported.
-        Please require `atom-space-pen-views` instead:
-          `{$$$} = require 'atom-space-pen-views'`
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-      """
-      $$$
-
-    Object.defineProperty module.exports, 'View', get: ->
-      deprecate """
-        Requiring `View` from `atom` is no longer supported.
-        Please require `atom-space-pen-views` instead:
-          `{View} = require 'atom-space-pen-views'`
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-      """
-      View
-
 if includeDeprecatedAPIs
   Object.defineProperty module.exports, 'Git', get: ->
     deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
