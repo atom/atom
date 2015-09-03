@@ -5,23 +5,13 @@ app = require 'app'
 fs = require 'fs-plus'
 path = require 'path'
 yargs = require 'yargs'
-url = require 'url'
-nslog = require 'nslog'
-
-console.log = nslog
-
-process.on 'uncaughtException', (error={}) ->
-  nslog(error.message) if error.message?
-  nslog(error.stack) if error.stack?
+console.log = require 'nslog'
 
 start = ->
+  setupUncaughtExceptionHandler()
   setupAtomHome()
   setupCompileCache()
-
-  if process.platform is 'win32'
-    SquirrelUpdate = require './squirrel-update'
-    squirrelCommand = process.argv[1]
-    return if SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
+  return if handleStartupEventWithSquirrel()
 
   args = parseCommandLine()
 
@@ -29,34 +19,21 @@ start = ->
     event.preventDefault()
     args.pathsToOpen.push(pathToOpen)
 
-  args.urlsToOpen = []
   addUrlToOpen = (event, urlToOpen) ->
     event.preventDefault()
     args.urlsToOpen.push(urlToOpen)
 
   app.on 'open-file', addPathToOpen
   app.on 'open-url', addUrlToOpen
-
-  app.on 'will-finish-launching', ->
-    setupCrashReporter()
+  app.on 'will-finish-launching', setupCrashReporter
 
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
-    cwd = args.executedFrom?.toString() or process.cwd()
-    args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      normalizedPath = fs.normalize(pathToOpen)
-      if url.parse(pathToOpen).protocol?
-        pathToOpen
-      else if cwd
-        path.resolve(cwd, normalizedPath)
-      else
-        path.resolve(pathToOpen)
-
     AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
-
     AtomApplication.open(args)
+
     console.log("App load time: #{Date.now() - global.shellStartTime}ms") unless args.test
 
 normalizeDriveLetterName = (filePath) ->
@@ -65,16 +42,22 @@ normalizeDriveLetterName = (filePath) ->
   else
     filePath
 
-global.devResourcePath = normalizeDriveLetterName(
-  process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
-)
+setupUncaughtExceptionHandler = ->
+  process.on 'uncaughtException', (error={}) ->
+    console.log(error.message) if error.message?
+    console.log(error.stack) if error.stack?
+
+handleStartupEventWithSquirrel = ->
+  return false unless process.platform is 'win32'
+  SquirrelUpdate = require './squirrel-update'
+  squirrelCommand = process.argv[1]
+  SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
 setupAtomHome = ->
   return if process.env.ATOM_HOME
-
   atomHome = path.join(app.getHomeDir(), '.atom')
   try
     atomHome = fs.realpathSync(atomHome)
@@ -132,7 +115,7 @@ parseCommandLine = ->
     process.stdout.write("#{version}\n")
     process.exit(0)
 
-  executedFrom = args['executed-from']
+  executedFrom = args['executed-from']?.toString() ? process.cwd()
   devMode = args['dev']
   safeMode = args['safe']
   pathsToOpen = args._
@@ -143,6 +126,8 @@ parseCommandLine = ->
   logFile = args['log-file']
   socketPath = args['socket-path']
   profileStartup = args['profile-startup']
+  urlsToOpen = []
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
 
   if args['resource-path']
     devMode = true
@@ -158,7 +143,7 @@ parseCommandLine = ->
           resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
 
     if devMode
-      resourcePath ?= global.devResourcePath
+      resourcePath ?= devResourcePath
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
@@ -168,8 +153,10 @@ parseCommandLine = ->
   process.env.PATH = args['path-environment'] if args['path-environment']
 
   resourcePath = normalizeDriveLetterName(resourcePath)
+  devResourcePath = normalizeDriveLetterName(devResourcePath)
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
-   devMode, safeMode, newWindow, specDirectory, logFile, socketPath, profileStartup}
+  {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
+   version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
+   logFile, socketPath, profileStartup}
 
 start()
