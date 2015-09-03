@@ -25,55 +25,6 @@ describe "WorkspaceView", ->
   afterEach ->
     jasmine.restoreDeprecationsSnapshot()
 
-
-  describe ".eachEditorView(callback)", ->
-    beforeEach ->
-      atom.workspaceView.attachToDom()
-
-    it "invokes the callback for existing editor", ->
-      count = 0
-      callbackEditor = null
-      callback = (editor) ->
-        callbackEditor = editor
-        count++
-      atom.workspaceView.eachEditorView(callback)
-      expect(count).toBe 1
-      expect(callbackEditor).toBe atom.workspaceView.getActiveView()
-
-    it "invokes the callback for new editor", ->
-      count = 0
-      callbackEditor = null
-      callback = (editor) ->
-        callbackEditor = editor
-        count++
-
-      atom.workspaceView.eachEditorView(callback)
-      count = 0
-      callbackEditor = null
-      atom.workspaceView.getActiveView().getPaneView().getModel().splitRight(copyActiveItem: true)
-      expect(count).toBe 1
-      expect(callbackEditor).toBe atom.workspaceView.getActiveView()
-
-    it "does not invoke the callback for mini editors", ->
-      editorViewCreatedHandler = jasmine.createSpy('editorViewCreatedHandler')
-      atom.workspaceView.eachEditorView(editorViewCreatedHandler)
-      editorViewCreatedHandler.reset()
-      miniEditor = new TextEditorView(mini: true)
-      atom.workspaceView.append(miniEditor)
-      expect(editorViewCreatedHandler).not.toHaveBeenCalled()
-
-    it "returns a subscription that can be disabled", ->
-      count = 0
-      callback = (editor) -> count++
-
-      subscription = atom.workspaceView.eachEditorView(callback)
-      expect(count).toBe 1
-      atom.workspaceView.getActiveView().getPaneView().getModel().splitRight(copyActiveItem: true)
-      expect(count).toBe 2
-      subscription.off()
-      atom.workspaceView.getActiveView().getPaneView().getModel().splitRight(copyActiveItem: true)
-      expect(count).toBe 2
-
   describe "core:close", ->
     it "closes the active pane item until all that remains is a single empty pane", ->
       atom.config.set('core.destroyEmptyPanes', true)
