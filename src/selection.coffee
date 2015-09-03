@@ -324,17 +324,12 @@ class Selection extends Model
   #
   # * `row` The line {Number} to select (default: the row of the cursor).
   selectLine: (row, options) ->
-
     if row?
-      range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-      @setBufferRange(@getBufferRange().union(range), options)
-
+      @setBufferRange(@editor.bufferRangeForBufferRow(row, includeNewline: true), options)
     else
-      rowStart = @marker.getStartBufferPosition().row
-      rangeStart = @editor.bufferRangeForBufferRow(rowStart, includeNewline: true)
-      rowEnd = @marker.getEndBufferPosition().row
-      rangeEnd = @editor.bufferRangeForBufferRow(rowEnd, includeNewline: true)
-      @setBufferRange(@getBufferRange().union(rangeStart).union(rangeEnd), options)
+      startRange = @editor.bufferRangeForBufferRow(@marker.getStartBufferPosition().row)
+      endRange = @editor.bufferRangeForBufferRow(@marker.getEndBufferPosition().row, includeNewline: true)
+      @setBufferRange(startRange.union(endRange), options)
 
     @linewise = true
     @wordwise = false
