@@ -230,3 +230,96 @@ describe "PaneContainerElement", ->
         atom.commands.dispatch(atom.views.getView(rightPane), 'pane:decrease-size')
         expect(leftPane.getFlexScale()).toBe 1/1.1
         expect(rightPane.getFlexScale()).toBe 1/1.1
+
+  describe "changing focus directionally between panes", ->
+    [containerElement, pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9] = []
+
+    beforeEach ->
+      # Set up a grid of 9 panes, in the following arrangement, where the
+      # numbers correspond to the variable names below.
+      #
+      # -------
+      # |1|2|3|
+      # -------
+      # |4|5|6|
+      # -------
+      # |7|8|9|
+      # -------
+
+      buildElement = (id) ->
+        element = document.createElement('div')
+        element.textContent = id
+        element.tabIndex = -1
+        element
+
+      container = new PaneContainer
+      pane1 = container.getRoot()
+      pane1.activateItem(buildElement('1'))
+      pane4 = pane1.splitDown(items: [buildElement('4')])
+      pane7 = pane4.splitDown(items: [buildElement('7')])
+
+      pane2 = pane1.splitRight(items: [buildElement('2')])
+      pane3 = pane2.splitRight(items: [buildElement('3')])
+
+      pane5 = pane4.splitRight(items: [buildElement('5')])
+      pane6 = pane5.splitRight(items: [buildElement('6')])
+
+      pane8 = pane7.splitRight(items: [buildElement('8')])
+      pane9 = pane8.splitRight(items: [buildElement('9')])
+
+      containerElement = atom.views.getView(container)
+      containerElement.style.height = '400px'
+      containerElement.style.width = '400px'
+      jasmine.attachToDOM(containerElement)
+
+    describe "::focusPaneViewAbove()", ->
+      describe "when there are multiple rows above the focused pane", ->
+        it "focuses up to the adjacent row", ->
+          pane8.activate()
+          containerElement.focusPaneViewAbove()
+          expect(document.activeElement).toBe pane5.getActiveItem()
+
+      describe "when there are no rows above the focused pane", ->
+        it "keeps the current pane focused", ->
+          pane2.activate()
+          containerElement.focusPaneViewAbove()
+          expect(document.activeElement).toBe pane2.getActiveItem()
+
+    describe "::focusPaneViewBelow()", ->
+      describe "when there are multiple rows below the focused pane", ->
+        it "focuses down to the adjacent row", ->
+          pane2.activate()
+          containerElement.focusPaneViewBelow()
+          expect(document.activeElement).toBe pane5.getActiveItem()
+
+      describe "when there are no rows below the focused pane", ->
+        it "keeps the current pane focused", ->
+          pane8.activate()
+          containerElement.focusPaneViewBelow()
+          expect(document.activeElement).toBe pane8.getActiveItem()
+
+    describe "::focusPaneViewOnLeft()", ->
+      describe "when there are multiple columns to the left of the focused pane", ->
+        it "focuses left to the adjacent column", ->
+          pane6.activate()
+          containerElement.focusPaneViewOnLeft()
+          expect(document.activeElement).toBe pane5.getActiveItem()
+
+      describe "when there are no columns to the left of the focused pane", ->
+        it "keeps the current pane focused", ->
+          pane4.activate()
+          containerElement.focusPaneViewOnLeft()
+          expect(document.activeElement).toBe pane4.getActiveItem()
+
+    describe "::focusPaneViewOnRight()", ->
+      describe "when there are multiple columns to the right of the focused pane", ->
+        it "focuses right to the adjacent column", ->
+          pane4.activate()
+          containerElement.focusPaneViewOnRight()
+          expect(document.activeElement).toBe pane5.getActiveItem()
+
+      describe "when there are no columns to the right of the focused pane", ->
+        it "keeps the current pane focused", ->
+          pane6.activate()
+          containerElement.focusPaneViewOnRight()
+          expect(document.activeElement).toBe pane6.getActiveItem()
