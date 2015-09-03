@@ -74,35 +74,6 @@ describe "PaneContainerView", ->
         for item in pane.getItems()
           expect(item.saved).toBeTruthy()
 
-  describe "serialization", ->
-    it "can be serialized and deserialized, and correctly adjusts dimensions of deserialized panes after attach", ->
-      newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
-      expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)')).toExist()
-      expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(2)')).toExist()
-      expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(3)')).toExist()
-
-      newContainer.height(200).width(300).attachToDom()
-      expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)').width()).toBe 150
-      expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > :contains(2)').height()).toBe 100
-
-    describe "if there are empty panes after deserialization", ->
-      beforeEach ->
-        # only deserialize pane 1's view successfully
-        TestView.deserialize = ({name}) -> new TestView(name) if name is '1'
-
-      describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
-        it "leaves the empty panes intact", ->
-          newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
-          expect(newContainer.find('atom-pane-axis.horizontal > :contains(1)')).toExist()
-          expect(newContainer.find('atom-pane-axis.horizontal > atom-pane-axis.vertical > atom-pane').length).toBe 2
-
-      describe "if the 'core.destroyEmptyPanes' config option is true", ->
-        it "removes empty panes on deserialization", ->
-          atom.config.set('core.destroyEmptyPanes', true)
-          newContainer = atom.views.getView(container.model.testSerialization()).__spacePenView
-          expect(newContainer.find('atom-pane-axis.horizontal, atom-pane-axis.vertical')).not.toExist()
-          expect(newContainer.find('> :contains(1)')).toExist()
-
   describe "pane-container:active-pane-item-changed", ->
     [pane1, item1a, item1b, item2a, item2b, item3a, container, activeItemChangedHandler] = []
     beforeEach ->

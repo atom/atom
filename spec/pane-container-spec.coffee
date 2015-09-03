@@ -40,6 +40,32 @@ describe "PaneContainer", ->
       containerB = atom.deserializers.deserialize(state)
       expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
 
+    describe "if there are empty panes after deserialization", ->
+      beforeEach ->
+        pane3A.getItems()[0].serialize = -> deserializer: 'Bogus'
+
+      describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
+        it "leaves the empty panes intact", ->
+          state = containerA.serialize()
+          containerB = atom.deserializers.deserialize(state)
+          [leftPane, column] = containerB.getRoot().getChildren()
+          [topPane, bottomPane] = column.getChildren()
+
+          expect(leftPane.getItems().length).toBe 1
+          expect(topPane.getItems().length).toBe 1
+          expect(bottomPane.getItems().length).toBe 0
+
+      describe "if the 'core.destroyEmptyPanes' config option is true", ->
+        it "removes empty panes on deserialization", ->
+          atom.config.set('core.destroyEmptyPanes', true)
+
+          state = containerA.serialize()
+          containerB = atom.deserializers.deserialize(state)
+          [leftPane, rightPane] = containerB.getRoot().getChildren()
+
+          expect(leftPane.getItems().length).toBe 1
+          expect(rightPane.getItems().length).toBe 1
+
   it "does not allow the root pane to be destroyed", ->
     container = new PaneContainer
     container.getRoot().destroy()
