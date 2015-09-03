@@ -11,7 +11,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
-{$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
@@ -468,7 +467,7 @@ class Atom extends Model
   # Extended: Focus the current window.
   focus: ->
     ipc.send('call-window-method', 'focus')
-    $(window).focus()
+    window.focus()
 
   # Extended: Show the current window.
   show: ->
