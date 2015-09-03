@@ -1,7 +1,6 @@
 path = require 'path'
 {CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
-{$} = require './space-pen-extensions'
 
 class PaneElement extends HTMLElement
   attached: false
