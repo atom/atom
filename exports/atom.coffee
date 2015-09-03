@@ -103,16 +103,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       """
       require '../src/scroll-view'
 
-    Object.defineProperty module.exports, 'SelectListView', get: ->
-      deprecate """
-        Requiring `SelectListView` from `atom` is no longer supported.
-        Please require `SelectListView` from `atom-space-pen-view` instead:
-          `{SelectListView} = require 'atom-space-pen-views'`
-        Note that the API has changed slightly! Please read the docs at https://github.com/atom/atom-space-pen-views
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-      """
-      require '../src/select-list-view'
-
 if includeDeprecatedAPIs
   Object.defineProperty module.exports, 'Git', get: ->
     deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
