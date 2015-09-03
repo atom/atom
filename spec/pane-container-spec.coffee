@@ -249,3 +249,19 @@ describe "PaneContainer", ->
         ['will', {item: item2, pane: pane2, index: 0}]
         ['did', {item: item2, pane: pane2, index: 0}]
       ]
+
+  describe "::saveAll()", ->
+    it "saves all open pane items", ->
+      container = new PaneContainer
+      pane1 = container.getRoot()
+      pane2 = pane1.splitRight()
+
+      pane1.addItem(item1 = {getURI: (-> ''), save: -> @saved = true})
+      pane1.addItem(item2 = {getURI: (-> ''), save: -> @saved = true})
+      pane2.addItem(item3 = {getURI: (-> ''), save: -> @saved = true})
+
+      container.saveAll()
+
+      expect(item1.saved).toBe true
+      expect(item2.saved).toBe true
+      expect(item3.saved).toBe true

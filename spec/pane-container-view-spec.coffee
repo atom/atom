@@ -64,16 +64,6 @@ describe "PaneContainerView", ->
       pane4.splitDown()
       expect(panes).toEqual []
 
-  describe ".saveAll()", ->
-    it "saves all open pane items", ->
-      pane1.activateItem(new TestView('4'))
-
-      container.saveAll()
-
-      for pane in container.getPaneViews()
-        for item in pane.getItems()
-          expect(item.saved).toBeTruthy()
-
   describe "pane-container:active-pane-item-changed", ->
     [pane1, item1a, item1b, item2a, item2b, item3a, container, activeItemChangedHandler] = []
     beforeEach ->
