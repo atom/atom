@@ -46,27 +46,6 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "when an item is destroyed", ->
-    it "triggers the 'pane:item-removed' event with the item and its former index", ->
-      itemRemovedHandler = jasmine.createSpy("itemRemovedHandler")
-      pane.on 'pane:item-removed', itemRemovedHandler
-      paneModel.destroyItem(editor1)
-      expect(itemRemovedHandler).toHaveBeenCalled()
-      expect(itemRemovedHandler.argsForCall[0][1..2]).toEqual [editor1, 1]
-
-    describe "when the destroyed item is a view", ->
-      it "removes the item from the 'item-views' div", ->
-        expect(view1.parent()).toMatchSelector pane.itemViews
-        paneModel.destroyItem(view1)
-        expect(view1.parent()).not.toMatchSelector pane.itemViews
-
-    describe "when the destroyed item is a model", ->
-      it "removes the associated view", ->
-        paneModel.activateItem(editor1)
-        expect(pane.itemViews.find('atom-text-editor').length).toBe 1
-        pane.destroyItem(editor1)
-        expect(pane.itemViews.find('atom-text-editor').length).toBe 0
-
   describe "when an item is moved within the same pane", ->
     it "emits a 'pane:item-moved' event with the item and the new index", ->
       pane.on 'pane:item-moved', itemMovedHandler = jasmine.createSpy("itemMovedHandler")
