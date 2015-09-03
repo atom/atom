@@ -65,7 +65,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @executedFrom, @version, @devMode, @safeMode, @socketPath} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     global.atomApplication = this
 
@@ -86,11 +86,11 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
+      @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
       @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
@@ -369,8 +369,8 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
-    locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
+  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
+    locationsToOpen = (@locationForPathToOpen(pathToOpen, executedFrom) for pathToOpen in pathsToOpen)
     pathsToOpen = (locationToOpen.pathToOpen for locationToOpen in locationsToOpen)
 
     unless pidToKillWhenClosed or newWindow
@@ -517,7 +517,7 @@ class AtomApplication
     devMode = true
     new AtomWindow({bootstrapScript, @resourcePath, exitWhenDone, isSpec, specDirectory, devMode})
 
-  locationForPathToOpen: (pathToOpen) ->
+  locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen
 
     pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
@@ -531,7 +531,7 @@ class AtomApplication
       initialLine = initialColumn = null
 
     unless url.parse(pathToOpen).protocol?
-      pathToOpen = path.resolve(@executedFrom, fs.normalize(pathToOpen))
+      pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
 
     {pathToOpen, initialLine, initialColumn}
 
