@@ -109,7 +109,7 @@ class WorkspaceElement extends HTMLElement
       [projectPath] = atom.project.relativizePath(activePath)
     else
       [projectPath] = atom.project.getPaths()
-    ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
+    ipc.send('run-package-specs', path.join(projectPath, 'spec'), atom.devMode) if projectPath
 
 atom.commands.add 'atom-workspace',
   'window:increase-font-size': -> @getModel().increaseFontSize()
