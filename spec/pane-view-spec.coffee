@@ -46,104 +46,12 @@ describe "PaneView", ->
     deserializerDisposable.dispose()
     jasmine.restoreDeprecationsSnapshot()
 
-  describe "when an item is moved within the same pane", ->
-    it "emits a 'pane:item-moved' event with the item and the new index", ->
-      pane.on 'pane:item-moved', itemMovedHandler = jasmine.createSpy("itemMovedHandler")
-      paneModel.moveItem(view1, 2)
-      expect(itemMovedHandler).toHaveBeenCalled()
-      expect(itemMovedHandler.argsForCall[0][1..2]).toEqual [view1, 2]
-
-  describe "when an item is moved to another pane", ->
-    it "detaches the item's view rather than removing it", ->
-      container.attachToDom()
-      expect(view1.is(':visible')).toBe true
-      paneModel2 = paneModel.splitRight()
-      view1.data('preservative', 1234)
-      paneModel.moveItemToPane(view1, paneModel2, 1)
-      expect(view1.data('preservative')).toBe 1234
-      paneModel2.activateItemAtIndex(1)
-      expect(view1.data('preservative')).toBe 1234
-      expect(view1.is(':visible')).toBe true
-
-  describe "when the title of the active item changes", ->
-    describe 'when there is no onDidChangeTitle method (deprecated)', ->
-      beforeEach ->
-        jasmine.snapshotDeprecations()
-
-        view1.onDidChangeTitle = null
-        view2.onDidChangeTitle = null
-
-        pane.activateItem(view2)
-        pane.activateItem(view1)
-
-      afterEach ->
-        jasmine.restoreDeprecationsSnapshot()
-
-      it "emits pane:active-item-title-changed", ->
-        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
-        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
-
-        expect(pane.getActiveItem()).toBe view1
-
-        view2.trigger 'title-changed'
-        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
-
-        view1.trigger 'title-changed'
-        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-        activeItemTitleChangedHandler.reset()
-
-        pane.activateItem(view2)
-        view2.trigger 'title-changed'
-        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-
-    describe 'when there is a onDidChangeTitle method', ->
-      it "emits pane:active-item-title-changed", ->
-        activeItemTitleChangedHandler = jasmine.createSpy("activeItemTitleChangedHandler")
-        pane.on 'pane:active-item-title-changed', activeItemTitleChangedHandler
-
-        expect(pane.getActiveItem()).toBe view1
-        view2.changeTitle()
-        expect(activeItemTitleChangedHandler).not.toHaveBeenCalled()
-
-        view1.changeTitle()
-        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-        activeItemTitleChangedHandler.reset()
-
-        pane.activateItem(view2)
-        view2.changeTitle()
-        expect(activeItemTitleChangedHandler).toHaveBeenCalled()
-
-  describe "when an unmodifed buffer's path is deleted", ->
-    it "removes the pane item", ->
-      editor = null
-      jasmine.unspy(window, 'setTimeout')
-      filePath = path.join(temp.mkdirSync(), 'file.txt')
-      fs.writeFileSync(filePath, '')
-
-      waitsForPromise ->
-        atom.workspace.open(filePath).then (o) -> editor = o
-
-      runs ->
-        pane.activateItem(editor)
-        expect(pane.items).toHaveLength(5)
-        fs.removeSync(filePath)
-
-      waitsFor ->
-        pane.items.length is 4
-
   describe "when a pane is destroyed", ->
     [pane2, pane2Model] = []
 
     beforeEach ->
       pane2Model = paneModel.splitRight() # Can't destroy the last pane, so we add another
       pane2 = atom.views.getView(pane2Model).__spacePenView
-
-    it "triggers a 'pane:removed' event with the pane", ->
-      removedHandler = jasmine.createSpy("removedHandler")
-      container.on 'pane:removed', removedHandler
-      paneModel.destroy()
-      expect(removedHandler).toHaveBeenCalled()
-      expect(removedHandler.argsForCall[0][1]).toBe pane
 
     describe "if the destroyed pane has focus", ->
       [paneToLeft, paneToRight] = []
@@ -155,14 +63,6 @@ describe "PaneView", ->
         expect(pane2.hasFocus()).toBe true
         pane2Model.destroy()
         expect(pane.hasFocus()).toBe true
-
-  describe "::getNextPane()", ->
-    it "returns the next pane if one exists, wrapping around from the last pane to the first", ->
-      pane.activateItem(editor1)
-      expect(pane.getNextPane()).toBeUndefined
-      pane2 = pane.splitRight(pane.copyActiveItem())
-      expect(pane.getNextPane()).toBe pane2
-      expect(pane2.getNextPane()).toBe pane
 
   describe "when the pane's active status changes", ->
     [pane2, pane2Model] = []
@@ -178,18 +78,6 @@ describe "PaneView", ->
       expect(pane).toHaveClass('active')
       pane2Model.activate()
       expect(pane).not.toHaveClass('active')
-
-    it "triggers 'pane:became-active' or 'pane:became-inactive' according to the current status", ->
-      pane.on 'pane:became-active', becameActiveHandler = jasmine.createSpy("becameActiveHandler")
-      pane.on 'pane:became-inactive', becameInactiveHandler = jasmine.createSpy("becameInactiveHandler")
-      paneModel.activate()
-
-      expect(becameActiveHandler.callCount).toBe 1
-      expect(becameInactiveHandler.callCount).toBe 0
-
-      pane2Model.activate()
-      expect(becameActiveHandler.callCount).toBe 1
-      expect(becameInactiveHandler.callCount).toBe 1
 
   describe "when the pane is focused", ->
     beforeEach ->
