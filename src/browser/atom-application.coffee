@@ -17,6 +17,8 @@ url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
+LocationSuffixRegExp = /(:\d+)(:\d+)?$/
+
 DefaultSocketPath =
   if process.platform is 'win32'
     '\\\\.\\pipe\\atom-sock'
@@ -63,12 +65,11 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
+    {@resourcePath, @devResourcePath, @executedFrom, @version, @devMode, @safeMode, @socketPath} = options
 
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
-    @pathsToOpen ?= []
     @windows = []
 
     @autoUpdateManager = new AutoUpdateManager(@version, options.test)
@@ -369,13 +370,8 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
-    pathsToOpen = pathsToOpen.map (pathToOpen) ->
-      if fs.existsSync(pathToOpen)
-        fs.normalize(pathToOpen)
-      else
-        pathToOpen
-
     locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
+    pathsToOpen = (locationToOpen.pathToOpen for locationToOpen in locationsToOpen)
 
     unless pidToKillWhenClosed or newWindow
       existingWindow = @windowForPaths(pathsToOpen, devMode)
@@ -523,19 +519,20 @@ class AtomApplication
 
   locationForPathToOpen: (pathToOpen) ->
     return {pathToOpen} unless pathToOpen
-    return {pathToOpen} if url.parse(pathToOpen).protocol?
-    return {pathToOpen} if fs.existsSync(pathToOpen)
 
     pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
+    match = pathToOpen.match(LocationSuffixRegExp)
 
-    [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
-    return {pathToOpen} unless initialLine
-    return {pathToOpen} unless parseInt(initialLine) >= 0
+    if match?
+      pathToOpen = pathToOpen.slice(0, -match[0].length)
+      initialLine = Math.max(0, parseInt(match[1].slice(1)) - 1) if match[1]
+      initialColumn = Math.max(0, parseInt(match[2].slice(1)) - 1) if match[2]
+    else
+      initialLine = initialColumn = null
 
-    # Convert line numbers to a base of 0
-    initialLine = Math.max(0, initialLine - 1) if initialLine
-    initialColumn = Math.max(0, initialColumn - 1) if initialColumn
-    pathToOpen = path.join(path.dirname(pathToOpen), fileToOpen)
+    unless url.parse(pathToOpen).protocol?
+      pathToOpen = path.resolve(@executedFrom, fs.normalize(pathToOpen))
+
     {pathToOpen, initialLine, initialColumn}
 
   # Opens a native dialog to prompt the user for a path.

@@ -5,7 +5,6 @@ app = require 'app'
 fs = require 'fs-plus'
 path = require 'path'
 yargs = require 'yargs'
-url = require 'url'
 console.log = require 'nslog'
 
 start = ->
@@ -31,16 +30,6 @@ start = ->
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
-
-    cwd = args.executedFrom?.toString() or process.cwd()
-    args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      normalizedPath = fs.normalize(pathToOpen)
-      if url.parse(pathToOpen).protocol?
-        pathToOpen
-      else if cwd
-        path.resolve(cwd, normalizedPath)
-      else
-        path.resolve(pathToOpen)
 
     AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     AtomApplication.open(args)
@@ -126,7 +115,7 @@ parseCommandLine = ->
     process.stdout.write("#{version}\n")
     process.exit(0)
 
-  executedFrom = args['executed-from']
+  executedFrom = args['executed-from']?.toString() ? process.cwd()
   devMode = args['dev']
   safeMode = args['safe']
   pathsToOpen = args._
