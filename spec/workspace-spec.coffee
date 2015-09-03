@@ -1325,3 +1325,32 @@ describe "Workspace", ->
 
         save = -> atom.workspace.saveActivePaneItem()
         expect(save).toThrow()
+
+  describe "::destroyActivePaneItemOrEmptyPane", ->
+    beforeEach ->
+      waitsForPromise -> atom.workspace.open()
+
+    it "closes the active pane item until all that remains is a single empty pane", ->
+      atom.config.set('core.destroyEmptyPanes', false)
+
+      pane1 = atom.workspace.getActivePane()
+      pane2 = pane1.splitRight(copyActiveItem: true)
+
+      expect(atom.workspace.getPanes().length).toBe 2
+      expect(pane2.getItems().length).toBe 1
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+
+      expect(atom.workspace.getPanes().length).toBe 2
+      expect(pane2.getItems().length).toBe 0
+
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+
+      expect(atom.workspace.getPanes().length).toBe 1
+      expect(pane1.getItems().length).toBe 1
+
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      expect(atom.workspace.getPanes().length).toBe 1
+      expect(pane1.getItems().length).toBe 0
+
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      expect(atom.workspace.getPanes().length).toBe 1
