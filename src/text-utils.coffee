@@ -30,6 +30,7 @@ isSurrogatePair = (charCodeA, charCodeB) ->
 #
 # Return a {Boolean}.
 isVariationSequence = (charCodeA, charCodeB) ->
+  return false if charCodeA is 0
   not isVariationSelector(charCodeA) and isVariationSelector(charCodeB)
 
 # Are the given character codes a combined character pair?
@@ -39,6 +40,7 @@ isVariationSequence = (charCodeA, charCodeB) ->
 #
 # Return a {Boolean}.
 isCombinedCharacter = (charCodeA, charCodeB) ->
+  return false if charCodeA is 0
   not isCombiningCharacter(charCodeA) and isCombiningCharacter(charCodeB)
 
 # Is the character at the given index the start of high/low surrogate pair
