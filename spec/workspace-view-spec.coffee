@@ -36,17 +36,6 @@ describe "WorkspaceView", ->
       atom.workspaceView.focus()
       expect(activePane).toHaveFocus()
 
-  describe "keymap wiring", ->
-    describe "when a keydown event is triggered in the WorkspaceView", ->
-      it "triggers matching keybindings for that event", ->
-        commandHandler = jasmine.createSpy('commandHandler')
-        atom.workspaceView.on('foo-command', commandHandler)
-        atom.keymaps.add('name', '*': {'x': 'foo-command'})
-        event = keydownEvent 'x', target: atom.workspaceView[0]
-
-        atom.workspaceView.trigger(event)
-        expect(commandHandler).toHaveBeenCalled()
-
   describe "window:toggle-invisibles event", ->
     it "shows/hides invisibles in all open and future editors", ->
       atom.workspaceView.height(200)

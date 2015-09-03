@@ -1,4 +1,5 @@
 {$, $$} = require '../src/space-pen-extensions'
+KeymapManager = require 'atom-keymap'
 path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
@@ -304,3 +305,16 @@ describe "Window", ->
 
         runs ->
           expect(atom.project.getPaths()[0]).toBe pathToOpen
+
+  describe "when keydown events occur on the document", ->
+    it "dispatches the event via the KeymapManager and CommandRegistry", ->
+      dispatchedCommands = []
+      atom.commands.onWillDispatch (command) -> dispatchedCommands.push(command)
+      atom.commands.add '*', 'foo-command': ->
+      atom.keymaps.add 'source-name', '*': {'x': 'foo-command'}
+
+      event = KeymapManager.buildKeydownEvent('x', target: document.createElement('div'))
+      document.dispatchEvent(event)
+
+      expect(dispatchedCommands.length).toBe 1
+      expect(dispatchedCommands[0].type).toBe 'foo-command'
