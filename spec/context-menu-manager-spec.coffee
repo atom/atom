@@ -1,5 +1,3 @@
-{$$} = require '../src/space-pen-extensions'
-
 ContextMenuManager = require '../src/context-menu-manager'
 
 describe "ContextMenuManager", ->

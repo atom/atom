@@ -1,4 +1,3 @@
-{$, $$}  = require '../src/space-pen-extensions'
 Exec = require('child_process').exec
 path = require 'path'
 Package = require '../src/package'
