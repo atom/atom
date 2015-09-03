@@ -26,6 +26,38 @@ describe "WorkspaceElement", ->
       observeCallback('overlay')
       expect(workspaceElement).toHaveClass 'scrollbars-visible-when-scrolling'
 
+  describe "editor font styling", ->
+    [editor, editorElement] = []
+
+    beforeEach ->
+      waitsForPromise -> atom.workspace.open('sample.js')
+
+      runs ->
+        workspaceElement = atom.views.getView(atom.workspace)
+        jasmine.attachToDOM(workspaceElement)
+        editor = atom.workspace.getActiveTextEditor()
+        editorElement = atom.views.getView(editor)
+
+    it "updates the font-size based on the 'editor.fontSize' config value", ->
+      initialCharWidth = editor.getDefaultCharWidth()
+      expect(getComputedStyle(editorElement).fontSize).toBe atom.config.get('editor.fontSize') + 'px'
+      atom.config.set('editor.fontSize', atom.config.get('editor.fontSize') + 5)
+      expect(getComputedStyle(editorElement).fontSize).toBe atom.config.get('editor.fontSize') + 'px'
+      expect(editor.getDefaultCharWidth()).toBeGreaterThan initialCharWidth
+
+    it "updates the font-family based on the 'editor.fontFamily' config value", ->
+      initialCharWidth = editor.getDefaultCharWidth()
+      expect(getComputedStyle(editorElement).fontFamily).toBe atom.config.get('editor.fontFamily')
+      atom.config.set('editor.fontFamily', 'sans-serif')
+      expect(getComputedStyle(editorElement).fontFamily).toBe atom.config.get('editor.fontFamily')
+      expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
+
+    it "updates the line-height based on the 'editor.lineHeight' config value", ->
+      initialLineHeight = editor.getLineHeightInPixels()
+      atom.config.set('editor.lineHeight', '30px')
+      expect(getComputedStyle(editorElement).lineHeight).toBe atom.config.get('editor.lineHeight')
+      expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
   describe "the 'window:toggle-invisibles' command", ->
     it "shows/hides invisibles in all open and future editors", ->
       workspaceElement = atom.views.getView(atom.workspace)
