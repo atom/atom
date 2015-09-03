@@ -17,7 +17,8 @@ GutterContainer = require './gutter-container'
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
 # If you're manipulating the state of an editor, use this class. If you're
-# interested in the visual appearance of editors, use {TextEditorView} instead.
+# interested in the visual appearance of editors, use {TextEditorElement}
+# instead.
 #
 # A single {TextBuffer} can belong to multiple editors. For example, if the
 # same file is open in two different panes, Atom creates a separate editor for
@@ -545,8 +546,8 @@ class TextEditor extends Model
   # Set the number of characters that can be displayed horizontally in the
   # editor.
   #
-  # * `editorWidthInChars` A {Number} representing the width of the {TextEditorView}
-  # in characters.
+  # * `editorWidthInChars` A {Number} representing the width of the
+  # {TextEditorElement} in characters.
   setEditorWidthInChars: (editorWidthInChars) ->
     @displayBuffer.setEditorWidthInChars(editorWidthInChars)
 
@@ -3050,9 +3051,6 @@ if includeDeprecatedAPIs
   TextEditor.delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
     '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
     toProperty: 'displayBuffer'
-
-  TextEditor::getViewClass = ->
-    require './text-editor-view'
 
   TextEditor::joinLine = ->
     deprecate("Use TextEditor::joinLines() instead")

@@ -6,7 +6,6 @@ TextBuffer = require 'text-buffer'
 Grim = require 'grim'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-TextEditorView = null
 
 ShadowStyleSheet = null
 
@@ -22,7 +21,6 @@ class TextEditorElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
     @initializeContent()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
@@ -56,10 +54,6 @@ class TextEditorElement extends HTMLElement
       @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
 
-  createSpacePenShim: ->
-    TextEditorView ?= require './text-editor-view'
-    @__spacePenView = new TextEditorView(this)
-
   attachedCallback: ->
     @buildModel() unless @getModel()?
     atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
@@ -90,7 +84,6 @@ class TextEditorElement extends HTMLElement
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
     @model.onDidChangeMini (mini) => if mini then @addMiniAttribute() else @removeMiniAttribute()
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
   getModel: ->

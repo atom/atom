@@ -1,12 +1,11 @@
 _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
-TextEditorView = require '../src/text-editor-view'
-TextEditorComponent = require '../src/text-editor-component'
+TextEditorElement = require '../src/text-editor-element'
 nbsp = String.fromCharCode(160)
 
 describe "TextEditorComponent", ->
-  [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
+  [contentNode, editor, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, tileSize, tileHeightInPixels] = []
 
   beforeEach ->
@@ -34,12 +33,13 @@ describe "TextEditorComponent", ->
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
-      wrapperView = new TextEditorView(editor, {tileSize})
-      wrapperView.attachToDom()
-      wrapperNode = wrapperView.element
+      wrapperNode = new TextEditorElement()
+      wrapperNode.tileSize = tileSize
+      wrapperNode.initialize(editor)
       wrapperNode.setUpdatedSynchronously(false)
+      jasmine.attachToDOM(wrapperNode)
 
-      {component} = wrapperView
+      {component} = wrapperNode
       component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)
@@ -2384,11 +2384,11 @@ describe "TextEditorComponent", ->
       inputNode.focus()
       nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe true
-      expect(wrapperView.hasClass('is-focused')).toBe true
+      expect(wrapperNode.classList.contains('is-focused')).toBe true
       inputNode.blur()
       nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe false
-      expect(wrapperView.hasClass('is-focused')).toBe false
+      expect(wrapperNode.classList.contains('is-focused')).toBe false
 
   describe "selection handling", ->
     cursor = null
@@ -2896,17 +2896,18 @@ describe "TextEditorComponent", ->
   describe "hiding and showing the editor", ->
     describe "when the editor is hidden when it is mounted", ->
       it "defers measurement and rendering until the editor becomes visible", ->
-        wrapperView.remove()
+        wrapperNode.remove()
 
         hiddenParent = document.createElement('div')
         hiddenParent.style.display = 'none'
         contentNode.appendChild(hiddenParent)
 
-        wrapperView = new TextEditorView(editor, {tileSize})
-        wrapperNode = wrapperView.element
-        wrapperView.appendTo(hiddenParent)
+        wrapperNode = new TextEditorElement()
+        wrapperNode.tileSize = tileSize
+        wrapperNode.initialize(editor)
+        hiddenParent.appendChild(wrapperNode)
 
-        {component} = wrapperView
+        {component} = wrapperNode
         componentNode = component.getDomNode()
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
@@ -2917,18 +2918,25 @@ describe "TextEditorComponent", ->
 
     describe "when the lineHeight changes while the editor is hidden", ->
       it "does not attempt to measure the lineHeightInPixels until the editor becomes visible again", ->
-        wrapperView.hide()
+        initialLineHeightInPixels = null
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         initialLineHeightInPixels = editor.getLineHeightInPixels()
 
         component.setLineHeight(2)
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
 
     describe "when the fontSize changes while the editor is hidden", ->
       it "does not attempt to measure the lineHeightInPixels or defaultCharWidth until the editor becomes visible again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
@@ -2936,17 +2944,22 @@ describe "TextEditorComponent", ->
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
       it "does not re-measure character widths until the editor is shown again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
 
         component.setFontSize(22)
         editor.getBuffer().insert([0, 0], 'a') # regression test against atom/atom#3318
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
 
@@ -2956,22 +2969,29 @@ describe "TextEditorComponent", ->
 
     describe "when the fontFamily changes while the editor is hidden", ->
       it "does not attempt to measure the defaultCharWidth until the editor becomes visible again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
         component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
       it "does not re-measure character widths until the editor is shown again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
 
         component.setFontFamily('serif')
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
 
@@ -2986,14 +3006,18 @@ describe "TextEditorComponent", ->
       it "does not re-measure character widths until the editor is shown again", ->
         atom.config.set('editor.fontFamily', 'sans-serif')
 
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         atom.themes.applyStylesheet 'test', """
           .function.js {
             font-weight: bold;
           }
         """
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
 
@@ -3004,11 +3028,17 @@ describe "TextEditorComponent", ->
     describe "when lines are changed while the editor is hidden", ->
       it "does not measure new characters until the editor is shown again", ->
         editor.setText('')
-        wrapperView.hide()
+
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         editor.setText('var z = 1')
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
-        wrapperView.show()
+
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         expect(componentNode.querySelector('.cursor').style['-webkit-transform']).toBe "translate(#{9 * charWidth}px, 0px)"
 
   describe "soft wrapping", ->
@@ -3138,26 +3168,6 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
 
-  describe "legacy editor compatibility", ->
-    it "triggers the screen-lines-changed event before the editor:display-updated event", ->
-      editor.setSoftWrapped(true)
-
-      callingOrder = []
-      editor.onDidChange -> callingOrder.push 'screen-lines-changed'
-      wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
-      editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
-      nextAnimationFrame()
-
-      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated', 'editor:display-updated']
-
-    it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
-      setEditorHeightInLines(wrapperView, 7)
-      nextAnimationFrame()
-      expect(componentNode.offsetHeight).toBe lineHeightInPixels * 7
-
-      setEditorWidthInChars(wrapperView, 10)
-      expect(componentNode.querySelector('.scroll-view').offsetWidth).toBe charWidth * 10
-
   describe "grammar data attributes", ->
     it "adds and updates the grammar data attribute based on the current grammar", ->
       expect(wrapperNode.dataset.grammar).toBe 'source js'
@@ -3172,10 +3182,10 @@ describe "TextEditorComponent", ->
 
   describe "detaching and reattaching the editor (regression)", ->
     it "does not throw an exception", ->
-      wrapperView.detach()
-      wrapperView.attachToDom()
+      wrapperNode.remove()
+      jasmine.attachToDOM(wrapperNode)
 
-      wrapperView.trigger('core:move-right')
+      atom.commands.dispatch(wrapperNode, 'core:move-right')
 
       expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 

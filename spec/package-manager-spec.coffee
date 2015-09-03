@@ -220,22 +220,16 @@ describe "PackageManager", ->
             atom.workspace.open()
 
           runs ->
-            editorView = atom.views.getView(atom.workspace.getActiveTextEditor()).__spacePenView
-            legacyCommandListener = jasmine.createSpy("legacyCommandListener")
-            editorView.command 'activation-command', legacyCommandListener
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
             editorCommandListener = jasmine.createSpy("editorCommandListener")
             atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
-            atom.commands.dispatch(editorView[0], 'activation-command')
+            atom.commands.dispatch(editorElement, 'activation-command')
             expect(mainModule.activate.callCount).toBe 1
-            expect(mainModule.legacyActivationCommandCallCount).toBe 1
             expect(mainModule.activationCommandCallCount).toBe 1
-            expect(legacyCommandListener.callCount).toBe 1
             expect(editorCommandListener.callCount).toBe 1
             expect(workspaceCommandListener.callCount).toBe 1
-            atom.commands.dispatch(editorView[0], 'activation-command')
-            expect(mainModule.legacyActivationCommandCallCount).toBe 2
+            atom.commands.dispatch(editorElement, 'activation-command')
             expect(mainModule.activationCommandCallCount).toBe 2
-            expect(legacyCommandListener.callCount).toBe 2
             expect(editorCommandListener.callCount).toBe 2
             expect(workspaceCommandListener.callCount).toBe 2
             expect(mainModule.activate.callCount).toBe 1

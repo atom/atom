@@ -75,24 +75,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       """
       View
 
-    Object.defineProperty module.exports, 'EditorView', get: ->
-      deprecate """
-        Requiring `EditorView` from `atom` is no longer supported.
-        Please require `TextEditorView` from `atom-space-pen-view` instead:
-          `{TextEditorView} = require 'atom-space-pen-views'`
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-      """
-      require '../src/text-editor-view'
-
-    Object.defineProperty module.exports, 'TextEditorView', get: ->
-      deprecate """
-        Requiring `TextEditorView` from `atom` is no longer supported.
-        Please require `TextEditorView` from `atom-space-pen-view` instead:
-          `{TextEditorView} = require 'atom-space-pen-views'`
-        Add `"atom-space-pen-views": "^2.0.3"` to your package dependencies.
-      """
-      require '../src/text-editor-view'
-
 if includeDeprecatedAPIs
   Object.defineProperty module.exports, 'Git', get: ->
     deprecate "Please require `GitRepository` instead of `Git`: `{GitRepository} = require 'atom'`"
