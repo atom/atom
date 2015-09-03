@@ -17,6 +17,64 @@ describe "Workspace", ->
     atom.workspace = workspace = new Workspace
     waits(1)
 
+  describe "serialization", ->
+    simulateReload = ->
+      workspaceState = atom.workspace.serialize()
+      projectState = atom.project.serialize()
+      atom.workspace.destroy()
+      atom.project.destroy()
+      atom.project = atom.deserializers.deserialize(projectState)
+      atom.workspace = Workspace.deserialize(workspaceState)
+
+    describe "when the workspace contains text editors", ->
+      it "constructs the view with the same panes", ->
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight(copyActiveItem: true)
+        pane3 = pane2.splitRight(copyActiveItem: true)
+        pane4 = null
+
+        waitsForPromise ->
+          atom.workspace.open('b').then (editor) ->
+            pane2.activateItem(editor.copy())
+
+        waitsForPromise ->
+          atom.workspace.open('../sample.js').then (editor) ->
+            pane3.activateItem(editor)
+
+        runs ->
+          pane3.activeItem.setCursorScreenPosition([2, 4])
+          pane4 = pane2.splitDown()
+
+        waitsForPromise ->
+          atom.workspace.open('../sample.txt').then (editor) ->
+            pane4.activateItem(editor)
+
+        runs ->
+          pane4.getActiveItem().setCursorScreenPosition([0, 2])
+          pane2.activate()
+
+          simulateReload()
+
+          expect(atom.workspace.getTextEditors().length).toBe 4
+          [editor1, editor2, editor3, editor4] = atom.workspace.getTextEditors()
+
+          expect(editor1.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
+          expect(editor2.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
+          expect(editor2.getCursorScreenPosition()).toEqual [0, 2]
+          expect(editor3.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
+          expect(editor4.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
+          expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
+
+          expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
+          expect(document.title).toBe "#{path.basename(editor3.getPath())} - #{atom.project.getPaths()[0]} - Atom"
+
+    describe "where there are no open panes or editors", ->
+      it "constructs the view with no open editors", ->
+        atom.workspace.getActivePane().destroy()
+        expect(atom.workspace.getTextEditors().length).toBe 0
+        simulateReload()
+        expect(atom.workspace.getTextEditors().length).toBe 0
+
   describe "::open(uri, options)", ->
     openEvents = null
 
