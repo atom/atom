@@ -904,7 +904,12 @@ class Workspace extends Model
           resolve('cancelled')
         else
           resolve(null)
-      searchPromise.then(onSuccess, reject)
+
+      onFailure = ->
+        promise.cancel() for promise in allSearches
+        reject()
+
+      searchPromise.then(onSuccess, onFailure)
     cancellablePromise.cancel = ->
       isCancelled = true
       # Note that cancelling all of the members of allSearches will cause all of the searches

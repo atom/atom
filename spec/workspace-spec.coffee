@@ -1135,15 +1135,28 @@ describe "Workspace", ->
               expect(resultOfPromiseSearch).toBe('cancelled')
 
           it "will have the side-effect of failing the overall search if it fails", ->
-            cancelableSearch = atom.workspace.scan /aaaa/, ->
-            fakeSearch.hoistedReject()
+            # This provider's search should be cancelled when the first provider fails
+            fakeSearch2 = null
+            atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
+              canSearchDirectory: (directory) -> directory.getPath() is dir2
+              search: (directory, regex, options) -> fakeSearch2 = new FakeSearch(options)
+            })
 
             didReject = false
+            promise = cancelableSearch = atom.workspace.scan /aaaa/, ->
+            waitsFor 'fakeSearch to be defined', -> fakeSearch?
+
+            runs ->
+              fakeSearch.hoistedReject()
+
             waitsForPromise ->
               cancelableSearch.catch -> didReject = true
 
+            waitsFor (done) -> promise.then(null, done)
+
             runs ->
               expect(didReject).toBe(true)
+              expect(fakeSearch2.cancelled).toBe true # Cancels other ongoing searches
 
   describe "::replace(regex, replacementText, paths, iterator)", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
