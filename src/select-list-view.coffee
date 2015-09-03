@@ -290,7 +290,7 @@ class SelectListView extends View
     if @previouslyFocusedElement?.isOnDom()
       @previouslyFocusedElement.focus()
     else
-      atom.workspaceView.focus()
+      atom.views.getView(atom.workspace).focus()
 
   cancelled: ->
     @filterEditorView.getEditor().setText('')

@@ -102,7 +102,7 @@ beforeEach ->
   atom.styles.restoreSnapshot(styleElementsToRestore)
   atom.views.clearDocumentRequests()
 
-  atom.workspaceViewParentSelector = '#jasmine-content'
+  atom.workspaceParentSelectorctor = '#jasmine-content'
 
   window.resetTimeouts()
   spyOn(_._, "now").andCallFake -> window.now
@@ -171,7 +171,6 @@ afterEach ->
 
   atom.workspace?.destroy()
   atom.workspace = null
-  atom.__workspaceView = null
   delete atom.state.workspace
 
   atom.project?.destroy()

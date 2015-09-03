@@ -4,7 +4,6 @@ path = require 'path'
 Grim = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
 {callAttachHooks} = require 'space-pen'
-WorkspaceView = null
 
 module.exports =
 class WorkspaceElement extends HTMLElement
@@ -15,7 +14,6 @@ class WorkspaceElement extends HTMLElement
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
     callAttachHooks(this) if Grim.includeDeprecatedAPIs
@@ -64,10 +62,6 @@ class WorkspaceElement extends HTMLElement
     """
     atom.styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
 
-  createSpacePenShim: ->
-    WorkspaceView ?= require './workspace-view'
-    @__spacePenView = new WorkspaceView(this)
-
   initialize: (@model) ->
     @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
@@ -88,7 +82,6 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model

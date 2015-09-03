@@ -1,3 +1,5 @@
+#
+
 require './benchmark-helper'
 {$} = require '../src/space-pen-extensions'
 _ = require 'underscore-plus'
@@ -8,7 +10,7 @@ describe "editorView.", ->
   editorView = null
 
   beforeEach ->
-    atom.workspaceViewParentSelector = '#jasmine-content'
+    atom.workspaceParentSelectorctor = '#jasmine-content'
     atom.workspaceView = atom.views.getView(atom.workspace).__spacePenView
     atom.workspaceView.attachToDom()
 

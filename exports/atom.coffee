@@ -36,13 +36,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
       """
       require '../src/workspace'
 
-    Object.defineProperty module.exports, 'WorkspaceView', get: ->
-      deprecate """
-        Requiring `WorkspaceView` from `atom` is no longer supported.
-        Use `atom.views.getView(atom.workspace)` instead.
-      """
-      require '../src/workspace-view'
-
     Object.defineProperty module.exports, '$', get: ->
       deprecate """
         Requiring `$` from `atom` is no longer supported.
