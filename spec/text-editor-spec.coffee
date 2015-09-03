@@ -1299,6 +1299,13 @@ describe "TextEditor", ->
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [2, 0]]
 
+      describe "when selection span multiple row", ->
+        it "complete selection to contain the entire first and last line", ->
+          selection = editor.getLastSelection()
+          selection.setBufferRange [[1, 10], [3, 20]]
+          editor.selectLinesContainingCursors()
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
+
       it "autoscrolls to the selection", ->
         editor.setLineHeightInPixels(10)
         editor.setDefaultCharWidth(10)
