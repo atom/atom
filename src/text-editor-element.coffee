@@ -1,5 +1,4 @@
 {Emitter} = require 'event-kit'
-{View, $, callRemoveHooks} = require 'space-pen'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -119,7 +118,6 @@ class TextEditorElement extends HTMLElement
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
-    callRemoveHooks(this)
     if @component?
       @component.destroy()
       @component.getDomNode().remove()
