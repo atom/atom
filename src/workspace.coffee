@@ -509,9 +509,12 @@ class Workspace extends Model
   #
   # Note that the opener will be called if and only if the URI is not already open
   # in the current pane. The searchAllPanes flag expands the search from the
-  # current pane to all panes. If the file path is converted from a standard path, 
-  # e.g. /foo/bar/baz.html, to a URI with a fake protocol, e.g. custom://foo/bar/baz.html, 
-  # it wouldn't conflict and the opener will be invoked.
+  # current pane to all panes. If you wish to open a view of a different type for 
+  # a file that is already open, consider changing the protocol of the URI. For 
+  # example, perhaps you wish to preview a rendered version of the file /foo/bar/baz.quux 
+  # that is already open in a text editor view. You could signal this by calling 
+  # {Workspace::open} on the URI quux-preview://foo/bar/baz.quux. Then your opener 
+  # can check the protocol for quux-preview and only handle those URIs that match.
   addOpener: (opener) ->
     if includeDeprecatedAPIs
       packageName = @getCallingPackageName()
