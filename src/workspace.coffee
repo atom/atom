@@ -506,6 +506,12 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
+  #
+  # Note that the opener will be called if and only if the URI is not already open
+  # in the current pane. The searchAllPanes flag expands the search from the
+  # current pane to all panes. If the file path is converted from a standard path, 
+  # e.g. /foo/bar/baz.html, to a URI with a fake protocol, e.g. custom://foo/bar/baz.html, 
+  # it wouldn't conflict and the opener will be invoked.
   addOpener: (opener) ->
     if includeDeprecatedAPIs
       packageName = @getCallingPackageName()
