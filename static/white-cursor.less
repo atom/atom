@@ -4,3 +4,17 @@
 .white-cursor-image() {
   cursor: -webkit-image-set(@ibeam-1x 1x, @ibeam-2x 2x) 5 8, text;
 }
+
+// Editors
+& when ( lightness(@syntax-background-color) < 50% ) {
+  .platform-darwin atom-text-editor:not([mini])::shadow .editor-contents--private {
+    .white-cursor-image();
+  }
+}
+
+// Mini Editors
+& when ( lightness(@input-background-color) < 50% ) {
+  .platform-darwin atom-text-editor[mini]::shadow .editor-contents--private {
+    .white-cursor-image();
+  }
+}
