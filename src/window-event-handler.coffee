@@ -19,20 +19,27 @@ class WindowEventHandler
     @addEventListener(window, 'blur', @handleWindowBlur)
     @addEventListener(window, 'beforeunload', @handleWindowBeforeunload)
     @addEventListener(window, 'unload', @handleWindowUnload)
-    @addEventListener(window, 'window:toggle-full-screen', @handleWindowToggleFullScreen)
-    @addEventListener(window, 'window:close', @handleWindowClose)
-    @addEventListener(window, 'window:reload', @handleWindowReload)
-    @addEventListener(window, 'window:toggle-dev-tools', @handleWindowToggleDevTools)
-    @addEventListener(window, 'window:toggle-menu-bar', @handleWindowToggleMenuBar) if process.platform in ['win32', 'linux']
 
-    @addEventListener(document, 'core:focus-next', @handleFocusNext)
-    @addEventListener(document, 'core:focus-previous', @handleFocusPrevious)
     @addEventListener(document, 'keydown', @handleDocumentKeydown)
     @addEventListener(document, 'drop', @handleDocumentDrop)
     @addEventListener(document, 'dragover', @handleDocumentDragover)
     @addEventListener(document, 'click', @handleDocumentClick)
     @addEventListener(document, 'submit', @handleDocumentSubmit)
     @addEventListener(document, 'contextmenu', @handleDocumentContextmenu)
+
+    @subscriptions.add atom.commands.add window,
+      'window:toggle-full-screen': @handleWindowToggleFullScreen
+      'window:close': @handleWindowClose
+      'window:reload': @handleWindowReload
+      'window:toggle-dev-tools': @handleWindowToggleDevTools
+
+    if process.platform in ['win32', 'linux']
+      @subscriptions.add atom.commands.add window,
+        'window:toggle-menu-bar': @handleWindowToggleMenuBar
+
+    @subscriptions.add atom.commands.add document,
+      'core:focus-next': @handleFocusNext
+      'core:focus-previous': @handleFocusPrevious
 
     @handleNativeKeybindings()
 
