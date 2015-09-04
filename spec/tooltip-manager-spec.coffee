@@ -1,5 +1,4 @@
 TooltipManager = require '../src/tooltip-manager'
-{$} = require 'space-pen'
 _ = require "underscore-plus"
 
 describe "TooltipManager", ->
@@ -15,18 +14,31 @@ describe "TooltipManager", ->
     jasmine.attachToDOM(element)
 
   hover = (element, fn) ->
-    $(element).trigger 'mouseenter'
+    element.dispatchEvent(new CustomEvent('mouseenter', bubbles: true))
     advanceClock(manager.defaults.delay.show)
     fn()
-    $(element).trigger 'mouseleave'
+    element.dispatchEvent(new CustomEvent('mouseleave', bubbles: true))
     advanceClock(manager.defaults.delay.hide)
 
   describe "::add(target, options)", ->
-    describe "when the target is an element", ->
-      it "creates a tooltip based on the given options when hovering over the target element", ->
-        manager.add element, title: "Title"
-        hover element, ->
-          expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+    it "creates a tooltip based on the given options when hovering over the target element", ->
+      manager.add element, title: "Title"
+      hover element, ->
+        expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+
+    describe "when a selector is specified", ->
+      it "creates a tooltip when hovering over a descendant of the target that matches the selector", ->
+        child = document.createElement('div')
+        child.classList.add('bar')
+        grandchild = document.createElement('div')
+        element.appendChild(child)
+        child.appendChild(grandchild)
+
+        manager.add element, selector: '.bar', title: 'Bar'
+
+        hover grandchild, ->
+          expect(document.body.querySelector('.tooltip')).toHaveText('Bar')
+        expect(document.body.querySelector('.tooltip')).toBeNull()
 
     describe "when a keyBindingCommand is specified", ->
       describe "when a title is specified", ->
