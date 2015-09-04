@@ -10,9 +10,6 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
 
-# FIXME: Remove jquery from this
-{$} = require '../src/space-pen-extensions'
-
 Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
@@ -40,7 +37,9 @@ window.addEventListener 'core:close', -> window.close()
 window.addEventListener 'beforeunload', ->
   atom.storeWindowDimensions()
   atom.saveSync()
-$('html,body').css('overflow', 'auto')
+
+document.querySelector('html').style.overflow = 'auto'
+document.body.style.overflow = 'auto'
 
 # Allow document.title to be assigned in specs without screwing up spec window title
 documentTitle = null
@@ -90,7 +89,6 @@ if specDirectory
 isCoreSpec = specDirectory is fs.realpathSync(__dirname)
 
 beforeEach ->
-  $.fx.off = true
   documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.packages.serviceHub = new ServiceHub
@@ -179,7 +177,7 @@ afterEach ->
 
   delete atom.state.packageStates
 
-  $('#jasmine-content').empty() unless window.debugContent
+  document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
   jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
@@ -277,43 +275,6 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected element '#{element}' or its descendants#{notText} to show."
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
-window.keyIdentifierForKey = (key) ->
-  if key.length > 1 # named key
-    key
-  else
-    charCode = key.toUpperCase().charCodeAt(0)
-    "U+00" + charCode.toString(16)
-
-window.keydownEvent = (key, properties={}) ->
-  originalEventProperties = {}
-  originalEventProperties.ctrl = properties.ctrlKey
-  originalEventProperties.alt = properties.altKey
-  originalEventProperties.shift = properties.shiftKey
-  originalEventProperties.cmd = properties.metaKey
-  originalEventProperties.target = properties.target?[0] ? properties.target
-  originalEventProperties.which = properties.which
-  originalEvent = KeymapManager.buildKeydownEvent(key, originalEventProperties)
-  properties = $.extend({originalEvent}, properties)
-  $.Event("keydown", properties)
-
-window.mouseEvent = (type, properties) ->
-  if properties.point
-    {point, editorView} = properties
-    {top, left} = @pagePixelPositionForPoint(editorView, point)
-    properties.pageX = left + 1
-    properties.pageY = top + 1
-  properties.originalEvent ?= {detail: 1}
-  $.Event type, properties
-
-window.clickEvent = (properties={}) ->
-  window.mouseEvent("click", properties)
-
-window.mousedownEvent = (properties={}) ->
-  window.mouseEvent('mousedown', properties)
-
-window.mousemoveEvent = (properties={}) ->
-  window.mouseEvent('mousemove', properties)
-
 window.waitsForPromise = (args...) ->
   if args.length > 1
     {shouldReject, timeout} = args[0]
@@ -372,45 +333,3 @@ window.advanceClock = (delta=1) ->
       true
 
   callback() for callback in callbacks
-
-window.pagePixelPositionForPoint = (editorView, point) ->
-  point = Point.fromObject point
-  top = editorView.renderedLines.offset().top + point.row * editorView.lineHeight
-  left = editorView.renderedLines.offset().left + point.column * editorView.charWidth - editorView.renderedLines.scrollLeft()
-  {top, left}
-
-window.tokensText = (tokens) ->
-  _.pluck(tokens, 'value').join('')
-
-window.setEditorWidthInChars = (editorView, widthInChars, charWidth=editorView.charWidth) ->
-  editorView.width(charWidth * widthInChars + editorView.gutter.outerWidth())
-  $(window).trigger 'resize' # update width of editor view's on-screen lines
-
-window.setEditorHeightInLines = (editorView, heightInLines, lineHeight=editorView.lineHeight) ->
-  editorView.height(editorView.getEditor().getLineHeightInPixels() * heightInLines)
-  editorView.component?.measureDimensions()
-
-$.fn.resultOfTrigger = (type) ->
-  event = $.Event(type)
-  this.trigger(event)
-  event.result
-
-$.fn.enableKeymap = ->
-  @on 'keydown', (e) ->
-    originalEvent = e.originalEvent ? e
-    Object.defineProperty(originalEvent, 'target', get: -> e.target) unless originalEvent.target?
-    atom.keymaps.handleKeyboardEvent(originalEvent)
-    not e.originalEvent.defaultPrevented
-
-$.fn.attachToDom = ->
-  @appendTo($('#jasmine-content')) unless @isOnDom()
-
-$.fn.simulateDomAttachment = ->
-  $('<html>').append(this)
-
-$.fn.textInput = (data) ->
-  this.each ->
-    event = document.createEvent('TextEvent')
-    event.initTextEvent('textInput', true, true, window, data)
-    event = $.event.fix(event)
-    $(this).trigger(event)

@@ -5,7 +5,7 @@ describe "SpacePen extensions", ->
     describe "when the window is resized", ->
       it "hides the tooltips", ->
         view = $('<div></div>')
-        view.attachToDom()
+        jasmine.attachToDOM(view[0])
         view.setTooltip('this is a tip')
 
         view.tooltip('show')

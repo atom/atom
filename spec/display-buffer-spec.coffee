@@ -281,6 +281,9 @@ describe "DisplayBuffer", ->
 
     describe ".setEditorWidthInChars(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
+        tokensText = (tokens) ->
+          _.pluck(tokens, 'value').join('')
+
         displayBuffer.setEditorWidthInChars(40)
         expect(tokensText displayBuffer.tokenizedLineForScreenRow(4).tokens).toBe '    left = [], right = [];'
         expect(tokensText displayBuffer.tokenizedLineForScreenRow(5).tokens).toBe '    while(items.length > 0) {'
