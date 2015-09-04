@@ -1122,11 +1122,16 @@ describe "Workspace", ->
 
           it "can be cancelled when the object returned by scan() has its cancel() method invoked", ->
             thenable = atom.workspace.scan /aaaa/, ->
-            expect(fakeSearch.cancelled).toBe(undefined)
-            thenable.cancel()
-            expect(fakeSearch.cancelled).toBe(true)
-
             resultOfPromiseSearch = null
+
+            waitsFor 'fakeSearch to be defined', -> fakeSearch?
+
+            runs ->
+              expect(fakeSearch.cancelled).toBe(undefined)
+              thenable.cancel()
+              expect(fakeSearch.cancelled).toBe(true)
+
+
             waitsForPromise ->
               thenable.then (promiseResult) -> resultOfPromiseSearch = promiseResult
 
