@@ -1,6 +1,6 @@
 path = require 'path'
 _ = require 'underscore-plus'
-{View, $, $$} = require '../src/space-pen-extensions'
+{View, $, $$} = require 'space-pen'
 grim = require 'grim'
 marked = require 'marked'
 
@@ -200,7 +200,6 @@ class AtomReporter extends View
   specComplete: (spec) ->
     specSummaryElement = $("#spec-summary-#{spec.id}")
     specSummaryElement.removeClass('pending')
-    specSummaryElement.setTooltip(title: spec.getFullName(), container: '.spec-reporter')
 
     results = spec.results()
     if results.skipped

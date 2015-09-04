@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 {Disposable} = require 'event-kit'
-{$} = require './space-pen-extensions'
+{$} = require 'space-pen'
 
 # Essential: Associates tooltips with HTML elements or selectors.
 #
@@ -86,12 +86,17 @@ class TooltipManager
     $target = $(target)
     $target.tooltip(_.defaults(options, @defaults))
 
-    new Disposable ->
+    removeTooltipOnWindowResize = -> disposable.dispose()
+    window.addEventListener('resize', removeTooltipOnWindowResize)
+    disposable = new Disposable ->
+      window.removeEventListener('resize', removeTooltipOnWindowResize)
       tooltip = $target.data('bs.tooltip')
       if tooltip?
         tooltip.leave(currentTarget: target)
         tooltip.hide()
       $target.tooltip('destroy')
+
+    disposable
 
 humanizeKeystrokes = (keystroke) ->
   keystrokes = keystroke.split(' ')
