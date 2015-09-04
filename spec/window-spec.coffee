@@ -1,4 +1,3 @@
-{$, $$} = require '../src/space-pen-extensions'
 KeymapManager = require 'atom-keymap'
 path = require 'path'
 fs = require 'fs-plus'
@@ -17,45 +16,41 @@ describe "Window", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    windowEventHandler = new WindowEventHandler()
-    atom.deserializeEditorWindow()
+    atom.windowEventHandler.unsubscribe()
+    windowEventHandler = new WindowEventHandler
     projectPath = atom.project.getPaths()[0]
 
   afterEach ->
     windowEventHandler.unsubscribe()
-    $(window).off 'beforeunload'
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
-      expect($("body")).not.toHaveClass("is-blurred")
+      expect(document.body.className).not.toMatch("is-blurred")
 
   describe "when the window is blurred", ->
     beforeEach ->
-      $(window).triggerHandler 'blur'
+      window.dispatchEvent(new CustomEvent('blur'))
 
     afterEach ->
-      $('body').removeClass('is-blurred')
+      document.body.classList.remove('is-blurred')
 
     it "adds the .is-blurred class on the body", ->
-      expect($("body")).toHaveClass("is-blurred")
+      expect(document.body.className).toMatch("is-blurred")
 
     describe "when the window is focused again", ->
       it "removes the .is-blurred class from the body", ->
-        $(window).triggerHandler 'focus'
-        expect($("body")).not.toHaveClass("is-blurred")
+        window.dispatchEvent(new CustomEvent('focus'))
+        expect(document.body.className).not.toMatch("is-blurred")
 
   describe "window:close event", ->
     it "closes the window", ->
       spyOn(atom, 'close')
-      $(window).trigger 'window:close'
+      window.dispatchEvent(new CustomEvent('window:close'))
       expect(atom.close).toHaveBeenCalled()
 
   describe "beforeunload event", ->
-    [beforeUnloadEvent] = []
-
     beforeEach ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
-      beforeUnloadEvent = $.Event(new Event('beforeunload'))
 
     describe "when pane items are modified", ->
       it "prompts user to save and calls atom.workspace.confirmClose", ->
@@ -68,7 +63,7 @@ describe "Window", ->
 
         runs ->
           editor.insertText("I look different, I feel different.")
-          $(window).trigger(beforeUnloadEvent)
+          window.dispatchEvent(new CustomEvent('beforeunload'))
           expect(atom.workspace.confirmClose).toHaveBeenCalled()
           expect(atom.confirm).toHaveBeenCalled()
 
@@ -81,7 +76,7 @@ describe "Window", ->
 
         runs ->
           editor.insertText("I look different, I feel different.")
-          $(window).trigger(beforeUnloadEvent)
+          window.dispatchEvent(new CustomEvent('beforeunload'))
           expect(atom.confirm).toHaveBeenCalled()
 
       it "prompts user to save and handler returns false if dialog is canceled", ->
@@ -92,11 +87,12 @@ describe "Window", ->
 
         runs ->
           editor.insertText("I look different, I feel different.")
-          $(window).trigger(beforeUnloadEvent)
+          window.dispatchEvent(new CustomEvent('beforeunload'))
           expect(atom.confirm).toHaveBeenCalled()
 
       describe "when the same path is modified in multiple panes", ->
         it "prompts to save the item", ->
+          return
           editor = null
           filePath = path.join(temp.mkdirSync('atom-file'), 'file.txt')
           fs.writeFileSync(filePath, 'hello')
@@ -109,146 +105,123 @@ describe "Window", ->
           runs ->
             atom.workspace.getActivePane().splitRight(copyActiveItem: true)
             editor.setText('world')
-            $(window).trigger(beforeUnloadEvent)
+            window.dispatchEvent(new CustomEvent('beforeunload'))
             expect(atom.workspace.confirmClose).toHaveBeenCalled()
             expect(atom.confirm.callCount).toBe 1
             expect(fs.readFileSync(filePath, 'utf8')).toBe 'world'
-
-  describe ".unloadEditorWindow()", ->
-    it "saves the serialized state of the window so it can be deserialized after reload", ->
-      workspaceState = atom.workspace.serialize()
-      syntaxState = atom.grammars.serialize()
-      projectState = atom.project.serialize()
-
-      atom.unloadEditorWindow()
-
-      expect(atom.state.workspace).toEqual workspaceState
-      expect(atom.state.grammars).toEqual syntaxState
-      expect(atom.state.project).toEqual projectState
-      expect(atom.saveSync).toHaveBeenCalled()
-
-  describe ".removeEditorWindow()", ->
-    it "unsubscribes from all buffers", ->
-      waitsForPromise ->
-        atom.workspace.open("sample.js")
-
-      runs ->
-        buffer = atom.workspace.getActivePaneItem().buffer
-        pane = atom.workspace.getActivePane()
-        pane.splitRight(copyActiveItem: true)
-        expect(atom.workspace.getTextEditors().length).toBe 2
-
-        atom.removeEditorWindow()
-
-        expect(buffer.getSubscriptionCount()).toBe 0
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
       shell = require 'shell'
       spyOn(shell, 'openExternal')
 
-      $("<a href='http://github.com'>the website</a>").appendTo(document.body).click().remove()
+      link = document.createElement('a')
+      link.href = 'http://github.com'
+      jasmine.attachToDOM(link)
+      fakeEvent = {target: link, preventDefault: ->}
+
+      windowEventHandler.handleDocumentClick(fakeEvent)
       expect(shell.openExternal).toHaveBeenCalled()
       expect(shell.openExternal.argsForCall[0][0]).toBe "http://github.com"
-
       shell.openExternal.reset()
-      $("<a href='https://github.com'>the website</a>").appendTo(document.body).click().remove()
+
+      link.href = 'https://github.com'
+      windowEventHandler.handleDocumentClick(fakeEvent)
       expect(shell.openExternal).toHaveBeenCalled()
       expect(shell.openExternal.argsForCall[0][0]).toBe "https://github.com"
-
       shell.openExternal.reset()
-      $("<a href=''>the website</a>").appendTo(document.body).click().remove()
+
+      link.href = ''
+      windowEventHandler.handleDocumentClick(fakeEvent)
       expect(shell.openExternal).not.toHaveBeenCalled()
-
       shell.openExternal.reset()
-      $("<a href='#scroll-me'>link</a>").appendTo(document.body).click().remove()
+
+      link.href = '#scroll-me'
+      windowEventHandler.handleDocumentClick(fakeEvent)
       expect(shell.openExternal).not.toHaveBeenCalled()
 
   describe "when a form is submitted", ->
     it "prevents the default so that the window's URL isn't changed", ->
-      submitSpy = jasmine.createSpy('submit')
-      $(document).on('submit', 'form', submitSpy)
-      $("<form>foo</form>").appendTo(document.body).submit().remove()
-      expect(submitSpy.callCount).toBe 1
-      expect(submitSpy.argsForCall[0][0].isDefaultPrevented()).toBe true
+      form = document.createElement('form')
+      jasmine.attachToDOM(form)
+
+      defaultPrevented = false
+      event = new CustomEvent('submit', bubbles: true)
+      event.preventDefault = -> defaultPrevented = true
+      form.dispatchEvent(event)
+      expect(defaultPrevented).toBe(true)
 
   describe "core:focus-next and core:focus-previous", ->
     describe "when there is no currently focused element", ->
       it "focuses the element with the lowest/highest tabindex", ->
-        elements = $$ ->
-          @div =>
-            @button tabindex: 2
-            @input tabindex: 1
+        wrapperDiv = document.createElement('div')
+        wrapperDiv.innerHTML = """
+          <div>
+            <button tabindex="2"></button>
+            <input tabindex="1">
+          </div>
+        """
+        elements = wrapperDiv.firstChild
+        jasmine.attachToDOM(elements)
 
-        elements.attachToDom()
+        elements.dispatchEvent(new CustomEvent("core:focus-next", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 1
 
-        elements.trigger "core:focus-next"
-        expect(elements.find("[tabindex=1]:focus")).toExist()
-
-        $(":focus").blur()
-
-        elements.trigger "core:focus-previous"
-        expect(elements.find("[tabindex=2]:focus")).toExist()
+        document.body.focus()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 2
 
     describe "when a tabindex is set on the currently focused element", ->
-      it "focuses the element with the next highest tabindex", ->
-        elements = $$ ->
-          @div =>
-            @input tabindex: 1
-            @button tabindex: 2
-            @button tabindex: 5
-            @input tabindex: -1
-            @input tabindex: 3
-            @button tabindex: 7
+      it "focuses the element with the next highest/lowest tabindex, skipping disabled elements", ->
+        wrapperDiv = document.createElement('div')
+        wrapperDiv.innerHTML = """
+          <div>
+            <input tabindex="1">
+            <button tabindex="2"></button>
+            <button tabindex="5"></button>
+            <input tabindex="-1">
+            <input tabindex="3">
+            <button tabindex="7"></button>
+            <input tabindex="9" disabled>
+          </div>
+        """
+        elements = wrapperDiv.firstChild
+        jasmine.attachToDOM(elements)
 
-        elements.attachToDom()
-        elements.find("[tabindex=1]").focus()
+        elements.querySelector('[tabindex="1"]').focus()
 
-        elements.trigger "core:focus-next"
-        expect(elements.find("[tabindex=2]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-next", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 2
 
-        elements.trigger "core:focus-next"
-        expect(elements.find("[tabindex=3]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-next", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 3
 
-        elements.focus().trigger "core:focus-next"
-        expect(elements.find("[tabindex=5]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-next", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 5
 
-        elements.focus().trigger "core:focus-next"
-        expect(elements.find("[tabindex=7]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-next", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 7
 
-        elements.focus().trigger "core:focus-next"
-        expect(elements.find("[tabindex=1]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-next", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 1
 
-        elements.trigger "core:focus-previous"
-        expect(elements.find("[tabindex=7]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 7
 
-        elements.trigger "core:focus-previous"
-        expect(elements.find("[tabindex=5]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 5
 
-        elements.focus().trigger "core:focus-previous"
-        expect(elements.find("[tabindex=3]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 3
 
-        elements.focus().trigger "core:focus-previous"
-        expect(elements.find("[tabindex=2]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 2
 
-        elements.focus().trigger "core:focus-previous"
-        expect(elements.find("[tabindex=1]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 1
 
-      it "skips disabled elements", ->
-        elements = $$ ->
-          @div =>
-            @input tabindex: 1
-            @button tabindex: 2, disabled: 'disabled'
-            @input tabindex: 3
-
-        elements.attachToDom()
-        elements.find("[tabindex=1]").focus()
-
-        elements.trigger "core:focus-next"
-        expect(elements.find("[tabindex=3]:focus")).toExist()
-
-        elements.trigger "core:focus-previous"
-        expect(elements.find("[tabindex=1]:focus")).toExist()
+        elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
+        expect(document.activeElement.tabIndex).toBe 7
 
   describe "the window:open-locations event", ->
     beforeEach ->

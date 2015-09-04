@@ -222,3 +222,31 @@ describe "the `atom` global", ->
       spyOn(atom, "pickFolder").andCallFake (callback) -> callback(null)
       atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths)
+
+  describe "::unloadEditorWindow()", ->
+    it "saves the serialized state of the window so it can be deserialized after reload", ->
+      workspaceState = atom.workspace.serialize()
+      syntaxState = atom.grammars.serialize()
+      projectState = atom.project.serialize()
+
+      atom.unloadEditorWindow()
+
+      expect(atom.state.workspace).toEqual workspaceState
+      expect(atom.state.grammars).toEqual syntaxState
+      expect(atom.state.project).toEqual projectState
+      expect(atom.saveSync).toHaveBeenCalled()
+
+  describe "::removeEditorWindow()", ->
+    it "unsubscribes from all buffers", ->
+      waitsForPromise ->
+        atom.workspace.open("sample.js")
+
+      runs ->
+        buffer = atom.workspace.getActivePaneItem().buffer
+        pane = atom.workspace.getActivePane()
+        pane.splitRight(copyActiveItem: true)
+        expect(atom.workspace.getTextEditors().length).toBe 2
+
+        atom.removeEditorWindow()
+
+        expect(buffer.getSubscriptionCount()).toBe 0
