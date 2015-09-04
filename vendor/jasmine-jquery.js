@@ -1,47 +1,32 @@
-(function(jQuery) {
+(function() {
 
 jasmine.JQuery = function() {};
 
 jasmine.JQuery.browserTagCaseIndependentHtml = function(html) {
-  return jQuery('<div/>').append(html).html();
+  var div = document.createElement('div');
+  div.innerHTML = html
+  return div.innerHTML
 };
 
 jasmine.JQuery.elementToString = function(element) {
-  return jQuery('<div />').append(element.clone()).html();
+  if (element instanceof HTMLElement) {
+    return element.outerHTML
+  } else {
+    return element.html()
+  }
 };
 
 jasmine.JQuery.matchersClass = {};
 
-(function(namespace) {
-  var data = {
-    spiedEvents: {},
-    handlers:    []
-  };
-
-  namespace.events = {
-    spyOn: function(selector, eventName) {
-      var handler = function(e) {
-        data.spiedEvents[[selector, eventName]] = e;
-      };
-      jQuery(selector).bind(eventName, handler);
-      data.handlers.push(handler);
-    },
-
-    wasTriggered: function(selector, eventName) {
-      return !!(data.spiedEvents[[selector, eventName]]);
-    },
-
-    cleanUp: function() {
-      data.spiedEvents = {};
-      data.handlers    = [];
-    }
-  }
-})(jasmine.JQuery);
-
 (function(){
   var jQueryMatchers = {
     toHaveClass: function(className) {
-      return this.actual.hasClass(className);
+      debugger
+      if (this.actual instanceof HTMLElement) {
+        return this.actual.classList.contains(className)
+      } else {
+        return this.actual.hasClass(className);
+      }
     },
 
     toBeVisible: function() {
@@ -65,26 +50,55 @@ jasmine.JQuery.matchersClass = {};
     },
 
     toExist: function() {
-      return this.actual.size() > 0;
+      if (this.actual instanceof HTMLElement) {
+        return true
+      } else {
+        return this.actual.size() > 0;
+      }
     },
 
     toHaveAttr: function(attributeName, expectedAttributeValue) {
-      return hasProperty(this.actual.attr(attributeName), expectedAttributeValue);
+      var actualAttributeValue;
+      if (this.actual instanceof HTMLElement) {
+        actualAttributeValue = this.actual.getAttribute(attributeName)
+      } else {
+        actualAttributeValue = this.actual.attr(attributeName)
+      }
+
+      return hasProperty(actualAttributeValue, expectedAttributeValue);
     },
 
     toHaveId: function(id) {
-      return this.actual.attr('id') == id;
+      if (this.actual instanceof HTMLElement) {
+        return this.actual.getAttribute('id') == id
+      } else {
+        return this.actual.attr('id') == id;
+      }
     },
 
     toHaveHtml: function(html) {
-      return this.actual.html() == jasmine.JQuery.browserTagCaseIndependentHtml(html);
+      var actualHTML;
+      if (this.actual instanceof HTMLElement) {
+        actualHTML = this.actual.outerHTML
+      } else {
+        actualHTML = this.actual.html()
+      }
+
+      return actualHTML == jasmine.JQuery.browserTagCaseIndependentHtml(html);
     },
 
     toHaveText: function(text) {
-      if (text && jQuery.isFunction(text.test)) {
-        return text.test(this.actual.text());
+      var actualText;
+      if (this.actual instanceof HTMLElement) {
+        actualText = this.actual.textContent
       } else {
-        return this.actual.text() == text;
+        actualText = this.actual.text()
+      }
+
+      if (text && typeof text.test === 'function') {
+        return text.test(actualText);
+      } else {
+        return actualText == text;
       }
     },
 
@@ -127,6 +141,13 @@ jasmine.JQuery.matchersClass = {};
     }
   };
 
+  jQueryMatchers.toExist.supportsBareElements = true
+  jQueryMatchers.toHaveClass.supportsBareElements = true
+  jQueryMatchers.toHaveText.supportsBareElements = true
+  jQueryMatchers.toHaveId.supportsBareElements = true
+  jQueryMatchers.toHaveAttr.supportsBareElements = true
+  jQueryMatchers.toHaveHtml.supportsBareElements = true
+
   var hasProperty = function(actualValue, expectedValue) {
     if (expectedValue === undefined) {
       return actualValue !== undefined;
@@ -138,10 +159,7 @@ jasmine.JQuery.matchersClass = {};
     var builtInMatcher = jasmine.Matchers.prototype[methodName];
 
     jasmine.JQuery.matchersClass[methodName] = function() {
-      if (this.actual instanceof HTMLElement) {
-        this.actual = jQuery(this.actual);
-      }
-      if (this.actual && this.actual.jquery) {
+      if (this.actual && this.actual.jquery || this.actual instanceof HTMLElement && jQueryMatchers[methodName].supportsBareElements) {
         var result = jQueryMatchers[methodName].apply(this, arguments);
         this.actual = jasmine.JQuery.elementToString(this.actual);
         return result;
@@ -162,20 +180,5 @@ jasmine.JQuery.matchersClass = {};
 
 beforeEach(function() {
   this.addMatchers(jasmine.JQuery.matchersClass);
-  this.addMatchers({
-    toHaveBeenTriggeredOn: function(selector) {
-      this.message = function() {
-        return [
-          "Expected event " + this.actual + " to have been triggered on" + selector,
-          "Expected event " + this.actual + " not to have been triggered on" + selector
-        ];
-      };
-      return jasmine.JQuery.events.wasTriggered(selector, this.actual);
-    }
-  })
 });
-
-afterEach(function() {
-  jasmine.JQuery.events.cleanUp();
-});
-})(require('../src/space-pen-extensions').jQuery);
+})();
