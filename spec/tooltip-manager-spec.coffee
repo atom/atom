@@ -81,3 +81,11 @@ describe "TooltipManager", ->
 
         hover element, ->
           expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    describe "when the window is resized", ->
+      it "hides the tooltips", ->
+        manager.add element, title: "Title"
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).toBeDefined()
+          window.dispatchEvent(new CustomEvent('resize'))
+          expect(document.body.querySelector(".tooltip")).toBeNull()
