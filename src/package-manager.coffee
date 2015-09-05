@@ -327,14 +327,7 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    # TODO: remove after a few atom versions.
-    @uninstallAutocompletePlus()
-
     packagePaths = @getAvailablePackagePaths()
-
-    # TODO: remove after a few atom versions.
-    @migrateSublimeTabsSettings(packagePaths)
-
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
@@ -454,35 +447,6 @@ class PackageManager
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
     atom.notifications.addError(message, {stack, detail, dismissable: true})
-
-  # TODO: remove these autocomplete-plus specific helpers after a few versions.
-  uninstallAutocompletePlus: ->
-    packageDir = null
-    devDir = path.join("dev", "packages")
-    for packageDirPath in @packageDirPaths
-      if not packageDirPath.endsWith(devDir)
-        packageDir = packageDirPath
-        break
-
-    if packageDir?
-      dirsToRemove = [
-        path.join(packageDir, 'autocomplete-plus')
-        path.join(packageDir, 'autocomplete-atom-api')
-        path.join(packageDir, 'autocomplete-css')
-        path.join(packageDir, 'autocomplete-html')
-        path.join(packageDir, 'autocomplete-snippets')
-      ]
-      for dirToRemove in dirsToRemove
-        @uninstallDirectory(dirToRemove)
-    return
-
-  # TODO: remove this after a few versions
-  migrateSublimeTabsSettings: (packagePaths) ->
-    return if Grim.includeDeprecatedAPIs
-    for packagePath in packagePaths when path.basename(packagePath) is 'sublime-tabs'
-      atom.config.removeAtKeyPath('core.disabledPackages', 'tree-view')
-      atom.config.removeAtKeyPath('core.disabledPackages', 'tabs')
-    return
 
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->
