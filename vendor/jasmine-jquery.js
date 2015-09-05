@@ -21,7 +21,6 @@ jasmine.JQuery.matchersClass = {};
 (function(){
   var jQueryMatchers = {
     toHaveClass: function(className) {
-      debugger
       if (this.actual instanceof HTMLElement) {
         return this.actual.classList.contains(className)
       } else {
