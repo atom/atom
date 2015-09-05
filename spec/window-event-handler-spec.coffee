@@ -116,28 +116,30 @@ describe "Window", ->
       spyOn(shell, 'openExternal')
 
       link = document.createElement('a')
+      linkChild = document.createElement('span')
+      link.appendChild(linkChild)
       link.href = 'http://github.com'
       jasmine.attachToDOM(link)
-      fakeEvent = {target: link, preventDefault: (->)}
+      fakeEvent = {target: linkChild, currentTarget: link, preventDefault: (->)}
 
-      windowEventHandler.handleDocumentClick(fakeEvent)
+      windowEventHandler.handleLinkClick(fakeEvent)
       expect(shell.openExternal).toHaveBeenCalled()
       expect(shell.openExternal.argsForCall[0][0]).toBe "http://github.com"
       shell.openExternal.reset()
 
       link.href = 'https://github.com'
-      windowEventHandler.handleDocumentClick(fakeEvent)
+      windowEventHandler.handleLinkClick(fakeEvent)
       expect(shell.openExternal).toHaveBeenCalled()
       expect(shell.openExternal.argsForCall[0][0]).toBe "https://github.com"
       shell.openExternal.reset()
 
       link.href = ''
-      windowEventHandler.handleDocumentClick(fakeEvent)
+      windowEventHandler.handleLinkClick(fakeEvent)
       expect(shell.openExternal).not.toHaveBeenCalled()
       shell.openExternal.reset()
 
       link.href = '#scroll-me'
-      windowEventHandler.handleDocumentClick(fakeEvent)
+      windowEventHandler.handleLinkClick(fakeEvent)
       expect(shell.openExternal).not.toHaveBeenCalled()
 
   describe "when a form is submitted", ->

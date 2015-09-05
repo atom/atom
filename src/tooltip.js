@@ -2,6 +2,7 @@
 
 const EventKit = require('event-kit')
 const tooltipComponentsByElement = new WeakMap()
+const listen = require('./delegated-listener')
 
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
@@ -450,29 +451,6 @@ function extend () {
     source = args.shift()
   }
   return target
-}
-
-function listen (element, eventName, selector, handler) {
-  var innerHandler = function (event) {
-    if (selector) {
-      var currentTarget = event.target
-      while (true) {
-        if (currentTarget.matches && currentTarget.matches(selector)) {
-          handler({type: event.type, currentTarget: currentTarget})
-        }
-        if (currentTarget === element) break
-        currentTarget = currentTarget.parentNode
-      }
-    } else {
-      handler(event)
-    }
-  }
-
-  element.addEventListener(eventName, innerHandler)
-
-  return new EventKit.Disposable(function () {
-    element.removeEventListener(eventName, innerHandler)
-  })
 }
 
 module.exports = Tooltip

@@ -3,6 +3,7 @@ path = require 'path'
 ipc = require 'ipc'
 shell = require 'shell'
 fs = require 'fs-plus'
+listen = require './delegated-listener'
 
 # Handles low-level events related to the window.
 module.exports =
@@ -23,9 +24,9 @@ class WindowEventHandler
     @addEventListener(document, 'keydown', @handleDocumentKeydown)
     @addEventListener(document, 'drop', @handleDocumentDrop)
     @addEventListener(document, 'dragover', @handleDocumentDragover)
-    @addEventListener(document, 'click', @handleDocumentClick)
-    @addEventListener(document, 'submit', @handleDocumentSubmit)
     @addEventListener(document, 'contextmenu', @handleDocumentContextmenu)
+    @subscriptions.add listen(document, 'click', 'a', @handleLinkClick)
+    @subscriptions.add listen(document, 'submit', 'form', @handleFormSubmit)
 
     @subscriptions.add atom.commands.add window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
@@ -208,17 +209,15 @@ class WindowEventHandler
       detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
       atom.notifications.addInfo('Menu bar hidden', {detail})
 
-  handleDocumentClick: (event) ->
-    if (event.target.matches('a'))
-      event.preventDefault()
-      location = event.target?.getAttribute('href')
-      if location and location[0] isnt '#' and /^https?:\/\//.test(location)
-        shell.openExternal(location)
+  handleLinkClick: (event) ->
+    event.preventDefault()
+    location = event.currentTarget?.getAttribute('href')
+    if location and location[0] isnt '#' and /^https?:\/\//.test(location)
+      shell.openExternal(location)
 
-  handleDocumentSubmit: (event) ->
+  handleFormSubmit: (event) ->
     # Prevent form submits from changing the current window's URL
-    if event.target.matches('form')
-      event.preventDefault()
+    event.preventDefault()
 
   handleDocumentContextmenu: (event) ->
     event.preventDefault()
