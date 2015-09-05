@@ -3,6 +3,8 @@ _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
 
+listen = require '../src/delegated-listener'
+
 formatStackTrace = (spec, message='', stackTrace) ->
   return stackTrace unless stackTrace
 
@@ -27,19 +29,6 @@ formatStackTrace = (spec, message='', stackTrace) ->
 
   lines = lines.map (line) -> line.trim()
   lines.join('\n').trim()
-
-listen = (element, eventName, selector, handler) ->
-  innerHandler = (event) ->
-    if selector
-      currentTarget = event.target
-      loop
-        if currentTarget.matches and currentTarget.matches(selector)
-          handler({currentTarget: currentTarget, preventDefault: -> event.preventDefault()})
-
-        break if currentTarget is element
-        currentTarget = currentTarget.parentNode
-
-  element.addEventListener(eventName, innerHandler)
 
 module.exports =
 class AtomReporter
