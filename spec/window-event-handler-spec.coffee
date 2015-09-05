@@ -118,7 +118,7 @@ describe "Window", ->
       link = document.createElement('a')
       link.href = 'http://github.com'
       jasmine.attachToDOM(link)
-      fakeEvent = {target: link, preventDefault: ->}
+      fakeEvent = {target: link, preventDefault: (->)}
 
       windowEventHandler.handleDocumentClick(fakeEvent)
       expect(shell.openExternal).toHaveBeenCalled()

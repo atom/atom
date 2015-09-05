@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
 const EventKit = require('event-kit')
-const tooltipComponentsByElement = new WeakMap
+const tooltipComponentsByElement = new WeakMap()
 
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
@@ -17,7 +17,7 @@ var Tooltip = function (element, options) {
   this.init(element, options)
 }
 
-Tooltip.VERSION  = '3.3.5'
+Tooltip.VERSION = '3.3.5'
 
 Tooltip.TRANSITION_DURATION = 150
 
@@ -38,9 +38,9 @@ Tooltip.DEFAULTS = {
 }
 
 Tooltip.prototype.init = function (element, options) {
-  this.enabled   = true
+  this.enabled = true
   this.element = element
-  this.options   = this.getOptions(options)
+  this.options = this.getOptions(options)
   this.disposables = new EventKit.CompositeDisposable()
 
   if (this.options.viewport) {
@@ -50,7 +50,7 @@ Tooltip.prototype.init = function (element, options) {
       this.viewport = document.querySelector(this.options.viewport.selector || this.options.viewport)
     }
   }
-  this.inState   = {click: false, hover: false, focus: false}
+  this.inState = {click: false, hover: false, focus: false}
 
   if (this.element instanceof document.constructor && !this.options.selector) {
     throw new Error('`selector` option must be specified when initializing tooltip on the window.document object!')
@@ -61,9 +61,9 @@ Tooltip.prototype.init = function (element, options) {
   for (var i = triggers.length; i--;) {
     var trigger = triggers[i]
 
-    if (trigger == 'click') {
+    if (trigger === 'click') {
       this.disposables.add(listen(this.element, 'click', this.options.selector, this.toggle.bind(this)))
-    } else if (trigger != 'manual') {
+    } else if (trigger !== 'manual') {
       var eventIn, eventOut
 
       if (trigger === 'hover') {
@@ -96,7 +96,7 @@ Tooltip.prototype.getDefaults = function () {
 Tooltip.prototype.getOptions = function (options) {
   options = extend({}, this.getDefaults(), options)
 
-  if (options.delay && typeof options.delay == 'number') {
+  if (options.delay && typeof options.delay === 'number') {
     options.delay = {
       show: options.delay,
       hide: options.delay
@@ -107,13 +107,13 @@ Tooltip.prototype.getOptions = function (options) {
 }
 
 Tooltip.prototype.getDelegateOptions = function () {
-  var options  = {}
+  var options = {}
   var defaults = this.getDefaults()
 
   if (this._options) {
     for (var key of Object.getOwnPropertyNames(this._options)) {
       var value = this._options[key]
-      if (defaults[key] != value) options[key] = value
+      if (defaults[key] !== value) options[key] = value
     }
   }
 
@@ -127,10 +127,10 @@ Tooltip.prototype.enter = function (event) {
       return
     }
 
-    this.inState[event.type == 'focusin' ? 'focus' : 'hover'] = true
+    this.inState[event.type === 'focusin' ? 'focus' : 'hover'] = true
   }
 
-  if (this.getTooltipElement().classList.contains('in') || this.hoverState == 'in') {
+  if (this.getTooltipElement().classList.contains('in') || this.hoverState === 'in') {
     this.hoverState = 'in'
     return
   }
@@ -142,7 +142,7 @@ Tooltip.prototype.enter = function (event) {
   if (!this.options.delay || !this.options.delay.show) return this.show()
 
   this.timeout = setTimeout(function () {
-    if (this.hoverState == 'in') this.show()
+    if (this.hoverState === 'in') this.show()
   }.bind(this), this.options.delay.show)
 }
 
@@ -161,7 +161,7 @@ Tooltip.prototype.leave = function (event) {
       return
     }
 
-    this.inState[event.type == 'focusout' ? 'focus' : 'hover'] = false
+    this.inState[event.type === 'focusout' ? 'focus' : 'hover'] = false
   }
 
   if (this.isInStateTrue()) return
@@ -173,14 +173,12 @@ Tooltip.prototype.leave = function (event) {
   if (!this.options.delay || !this.options.delay.hide) return this.hide()
 
   this.timeout = setTimeout(function () {
-    if (this.hoverState == 'out') this.hide()
+    if (this.hoverState === 'out') this.hide()
   }.bind(this), this.options.delay.hide)
 }
 
 Tooltip.prototype.show = function () {
   if (this.hasContent() && this.enabled) {
-    var inDom = this.element.ownerDocument.documentElement.contains(this.element)
-
     var tip = this.getTooltipElement()
 
     var tipId = this.getUID('tooltip')
@@ -191,7 +189,7 @@ Tooltip.prototype.show = function () {
 
     if (this.options.animation) tip.classList.add('fade')
 
-    var placement = typeof this.options.placement == 'function' ?
+    var placement = typeof this.options.placement === 'function' ?
       this.options.placement.call(this, tip, this.element) :
       this.options.placement
 
@@ -207,18 +205,18 @@ Tooltip.prototype.show = function () {
 
     document.body.appendChild(tip)
 
-    var pos          = this.element.getBoundingClientRect()
-    var actualWidth  = tip.offsetWidth
+    var pos = this.element.getBoundingClientRect()
+    var actualWidth = tip.offsetWidth
     var actualHeight = tip.offsetHeight
 
     if (autoPlace) {
       var orgPlacement = placement
       var viewportDim = this.viewport.getBoundingClientRect()
 
-      placement = placement == 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top'    :
-                  placement == 'top'    && pos.top    - actualHeight < viewportDim.top    ? 'bottom' :
-                  placement == 'right'  && pos.right  + actualWidth  > viewportDim.width  ? 'left'   :
-                  placement == 'left'   && pos.left   - actualWidth  < viewportDim.left   ? 'right'  :
+      placement = placement === 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top' :
+                  placement === 'top' && pos.top - actualHeight < viewportDim.top ? 'bottom' :
+                  placement === 'right' && pos.right + actualWidth > viewportDim.width ? 'left' :
+                  placement === 'left' && pos.left - actualWidth < viewportDim.left ? 'right' :
                   placement
 
       tip.classList.remove(orgPlacement)
@@ -232,22 +230,22 @@ Tooltip.prototype.show = function () {
     var prevHoverState = this.hoverState
     this.hoverState = null
 
-    if (prevHoverState == 'out') this.leave()
+    if (prevHoverState === 'out') this.leave()
   }
 }
 
 Tooltip.prototype.applyPlacement = function (offset, placement) {
-  var tip   = this.getTooltipElement()
+  var tip = this.getTooltipElement()
 
-  var width  = tip.offsetWidth
+  var width = tip.offsetWidth
   var height = tip.offsetHeight
 
   // manually read margins because getBoundingClientRect includes difference
-  var computedStyle = getComputedStyle(tip)
+  var computedStyle = window.getComputedStyle(tip)
   var marginTop = parseInt(computedStyle.marginTop, 10)
   var marginLeft = parseInt(computedStyle.marginLeft, 10)
 
-  offset.top  += marginTop
+  offset.top += marginTop
   offset.left += marginLeft
 
   tip.style.top = offset.top + 'px'
@@ -256,10 +254,10 @@ Tooltip.prototype.applyPlacement = function (offset, placement) {
   tip.classList.add('in')
 
   // check to see if placing tip in new offset caused the tip to resize itself
-  var actualWidth  = tip.offsetWidth
+  var actualWidth = tip.offsetWidth
   var actualHeight = tip.offsetHeight
 
-  if (placement == 'top' && actualHeight != height) {
+  if (placement === 'top' && actualHeight !== height) {
     offset.top = offset.top + height - actualHeight
   }
 
@@ -268,8 +266,8 @@ Tooltip.prototype.applyPlacement = function (offset, placement) {
   if (delta.left) offset.left += delta.left
   else offset.top += delta.top
 
-  var isVertical          = /top|bottom/.test(placement)
-  var arrowDelta          = isVertical ? delta.left * 2 - width + actualWidth : delta.top * 2 - height + actualHeight
+  var isVertical = /top|bottom/.test(placement)
+  var arrowDelta = isVertical ? delta.left * 2 - width + actualWidth : delta.top * 2 - height + actualHeight
   var arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight'
 
   tip.style.top = offset.top + 'px'
@@ -292,7 +290,7 @@ Tooltip.prototype.replaceArrow = function (delta, dimension, isVertical) {
 }
 
 Tooltip.prototype.setContent = function () {
-  var tip  = this.getTooltipElement()
+  var tip = this.getTooltipElement()
   var title = this.getTitle()
 
   var inner = tip.querySelector('.tooltip-inner')
@@ -308,7 +306,7 @@ Tooltip.prototype.setContent = function () {
 Tooltip.prototype.hide = function (callback) {
   this.tip && this.tip.classList.remove('in')
 
-  if (this.hoverState != 'in') this.tip && this.tip.remove()
+  if (this.hoverState !== 'in') this.tip && this.tip.remove()
 
   this.element.removeAttribute('aria-describedby')
 
@@ -320,7 +318,7 @@ Tooltip.prototype.hide = function (callback) {
 }
 
 Tooltip.prototype.fixTitle = function () {
-  if (this.element.getAttribute('title') || typeof this.element.getAttribute('data-original-title') != 'string') {
+  if (this.element.getAttribute('title') || typeof this.element.getAttribute('data-original-title') !== 'string') {
     this.element.setAttribute('data-original-title', this.element.getAttribute('title') || '')
     this.element.setAttribute('title', '')
   }
@@ -331,10 +329,10 @@ Tooltip.prototype.hasContent = function () {
 }
 
 Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
-  return placement == 'bottom' ? { top: pos.top + pos.height,   left: pos.left + pos.width / 2 - actualWidth / 2 } :
-         placement == 'top'    ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2 } :
-         placement == 'left'   ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
-      /* placement == 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width }
+  return placement === 'bottom' ? { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2 } :
+         placement === 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2 } :
+         placement === 'left' ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
+      /* placement === 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width }
 }
 
 Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWidth, actualHeight) {
@@ -345,7 +343,7 @@ Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWid
   var viewportDimensions = this.viewport.getBoundingClientRect()
 
   if (/right|left/.test(placement)) {
-    var topEdgeOffset    = pos.top - viewportPadding - viewportDimensions.scroll
+    var topEdgeOffset = pos.top - viewportPadding - viewportDimensions.scroll
     var bottomEdgeOffset = pos.top + viewportPadding - viewportDimensions.scroll + actualHeight
     if (topEdgeOffset < viewportDimensions.top) { // top overflow
       delta.top = viewportDimensions.top - topEdgeOffset
@@ -353,7 +351,7 @@ Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWid
       delta.top = viewportDimensions.top + viewportDimensions.height - bottomEdgeOffset
     }
   } else {
-    var leftEdgeOffset  = pos.left - viewportPadding
+    var leftEdgeOffset = pos.left - viewportPadding
     var rightEdgeOffset = pos.left + viewportPadding + actualWidth
     if (leftEdgeOffset < viewportDimensions.left) { // left overflow
       delta.left = viewportDimensions.left - leftEdgeOffset
@@ -370,9 +368,9 @@ Tooltip.prototype.getTitle = function () {
   if (title) {
     return title
   } else {
-    return (typeof this.options.title == 'function')
+    return (typeof this.options.title === 'function')
       ? this.options.title.call(this.element)
-      :  this.options.title
+      : this.options.title
   }
 }
 
@@ -386,7 +384,7 @@ Tooltip.prototype.getTooltipElement = function () {
   if (!this.tip) {
     let div = document.createElement('div')
     div.innerHTML = this.options.template
-    if (div.children.length != 1) {
+    if (div.children.length !== 1) {
       throw new Error('Tooltip `template` option must consist of exactly 1 top-level element!')
     }
     this.tip = div.firstChild
@@ -395,7 +393,8 @@ Tooltip.prototype.getTooltipElement = function () {
 }
 
 Tooltip.prototype.getArrowElement = function () {
-  return (this.arrow = this.arrow || this.getTooltipElement().querySelector('.tooltip-arrow'))
+  this.arrow = this.arrow || this.getTooltipElement().querySelector('.tooltip-arrow')
+  return this.arrow
 }
 
 Tooltip.prototype.enable = function () {
@@ -443,16 +442,17 @@ Tooltip.prototype.getDelegateComponent = function (element) {
 function extend () {
   var args = Array.prototype.slice.apply(arguments)
   var target = args.shift()
-  var source
-  while (source = args.shift()) {
+  var source = args.shift()
+  while (source) {
     for (var key of Object.getOwnPropertyNames(source)) {
       target[key] = source[key]
     }
+    source = args.shift()
   }
   return target
 }
 
-function listen(element, eventName, selector, handler) {
+function listen (element, eventName, selector, handler) {
   var innerHandler = function (event) {
     if (selector) {
       var currentTarget = event.target
