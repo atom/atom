@@ -174,24 +174,6 @@ describe "PackageManager", ->
           expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
           expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
 
-      describe "when a package has configDefaults", ->
-        beforeEach ->
-          jasmine.snapshotDeprecations()
-
-        afterEach ->
-          jasmine.restoreDeprecationsSnapshot()
-
-        it "still assigns configDefaults from the module though deprecated", ->
-
-          expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
-
-          waitsForPromise ->
-            atom.packages.activatePackage('package-with-config-defaults')
-
-          runs ->
-            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
-            expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
-
       describe "when the package metadata includes `activationCommands`", ->
         [mainModule, promise, workspaceCommandListener, registration] = []
 
