@@ -108,7 +108,6 @@ atom.commands.add 'atom-workspace',
   'window:reset-font-size': -> @getModel().resetFontSize()
   'application:about': -> ipc.send('command', 'application:about')
   'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
-  'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
   'application:show-preferences': -> ipc.send('command', 'application:show-settings')
   'application:show-settings': -> ipc.send('command', 'application:show-settings')
   'application:quit': -> ipc.send('command', 'application:quit')
