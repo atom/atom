@@ -6,7 +6,6 @@ platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
 fstream = require 'fstream'
 fs = require 'fs-plus'
-Grim = require 'grim'
 
 describe "Workspace", ->
   workspace = null
@@ -382,21 +381,6 @@ describe "Workspace", ->
 
       runs ->
         expect(newEditorHandler.argsForCall[0][0].textEditor).toBe editor
-
-    it "records a deprecation warning on the appropriate package if the item has a ::getUri method instead of ::getURI", ->
-      jasmine.snapshotDeprecations()
-
-      waitsForPromise -> atom.packages.activatePackage('package-with-deprecated-pane-item-method')
-
-      waitsForPromise ->
-        atom.workspace.open("test")
-
-      runs ->
-        deprecations = Grim.getDeprecations()
-        expect(deprecations.length).toBe 1
-        expect(deprecations[0].message).toBe "Pane item with class `TestItem` should implement `::getURI` instead of `::getUri`."
-        expect(deprecations[0].getStacks()[0].metadata.packageName).toBe "package-with-deprecated-pane-item-method"
-        jasmine.restoreDeprecationsSnapshot()
 
     describe "when there is an error opening the file", ->
       notificationSpy = null
