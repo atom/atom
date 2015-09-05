@@ -1,5 +1,4 @@
 {find, flatten} = require 'underscore-plus'
-Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
 Gutter = require './gutter'
@@ -19,8 +18,7 @@ class PaneContainer extends Model
   constructor: (params) ->
     super
 
-    unless Grim.includeDeprecatedAPIs
-      @activePane = params?.activePane
+    @activePane = params?.activePane
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -222,12 +220,3 @@ class PaneContainer extends Model
 
   removedPaneItem: (item) ->
     @itemRegistry.removeItem(item)
-
-if Grim.includeDeprecatedAPIs
-  PaneContainer.properties
-    activePane: null
-
-  PaneContainer.behavior 'activePaneItem', ->
-    @$activePane
-      .switch((activePane) -> activePane?.$activeItem)
-      .distinctUntilChanged()
