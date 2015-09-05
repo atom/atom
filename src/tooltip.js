@@ -64,8 +64,21 @@ Tooltip.prototype.init = function (element, options) {
     if (trigger == 'click') {
       this.disposables.add(listen(this.element, 'click', this.options.selector, this.toggle.bind(this)))
     } else if (trigger != 'manual') {
-      var eventIn  = trigger == 'hover' ? 'mouseenter' : 'focusin'
-      var eventOut = trigger == 'hover' ? 'mouseleave' : 'focusout'
+      var eventIn, eventOut
+
+      if (trigger === 'hover') {
+        if (this.options.selector) {
+          eventIn = 'mouseover'
+          eventOut = 'mouseout'
+        } else {
+          eventIn = 'mouseenter'
+          eventOut = 'mouseleave'
+        }
+      } else {
+        eventIn = 'focusin'
+        eventOut = 'focusout'
+      }
+
       this.disposables.add(listen(this.element, eventIn, this.options.selector, this.enter.bind(this)))
       this.disposables.add(listen(this.element, eventOut, this.options.selector, this.leave.bind(this)))
     }
@@ -444,12 +457,11 @@ function listen(element, eventName, selector, handler) {
     if (selector) {
       var currentTarget = event.target
       while (true) {
-        if (!currentTarget) debugger
-        if (currentTarget.matches(selector)) {
+        if (currentTarget.matches && currentTarget.matches(selector)) {
           handler({type: event.type, currentTarget: currentTarget})
         }
-        currentTarget = currentTarget.parentElement
         if (currentTarget === element) break
+        currentTarget = currentTarget.parentNode
       }
     } else {
       handler(event)

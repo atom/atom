@@ -14,10 +14,12 @@ describe "TooltipManager", ->
     jasmine.attachToDOM(element)
 
   hover = (element, fn) ->
-    element.dispatchEvent(new CustomEvent('mouseenter', bubbles: true))
+    element.dispatchEvent(new CustomEvent('mouseenter', bubbles: false))
+    element.dispatchEvent(new CustomEvent('mouseover', bubbles: true))
     advanceClock(manager.defaults.delay.show)
     fn()
-    element.dispatchEvent(new CustomEvent('mouseleave', bubbles: true))
+    element.dispatchEvent(new CustomEvent('mouseleave', bubbles: false))
+    element.dispatchEvent(new CustomEvent('mouseout', bubbles: true))
     advanceClock(manager.defaults.delay.hide)
 
   describe "::add(target, options)", ->
