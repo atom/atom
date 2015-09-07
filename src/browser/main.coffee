@@ -56,11 +56,22 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
+isPortableInstall = ->
+  return false unless process.platform is 'win32'
+  return false unless (process and process.type)
+
+  ourPath = process.execPath.toLowerCase()
+  return (ourPath.indexOf(process.env.LOCALAPPDATA.toLowerCase()) is 0)
+
 setupAtomHome = ->
   return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   try
     atomHome = fs.realpathSync(atomHome)
+    fs.statSync(atomHome)
+  catch
+    atomHome = path.join(path.dirname(process.execPath), '.atom') if isPortableInstall()
+
   process.env.ATOM_HOME = atomHome
 
 setupCompileCache = ->
