@@ -450,7 +450,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
 
-      it "keeps rebuilding lines when continuous reflow is on", ->
+      it "keeps rebuilding lines when continuous reflow is on and the editor is focused", ->
         atom.config.set("editor.continuousReflow", true)
         wrapperNode.focus()
         nextAnimationFrame()
@@ -854,7 +854,7 @@ describe "TextEditorComponent", ->
       expect(componentNode.querySelector('.gutter').style.display).toBe ''
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
-    it "keeps rebuilding line numbers when continuous reflow is on", ->
+    it "keeps rebuilding line numbers when continuous reflow is on and the editor is focused", ->
       atom.config.set("editor.continuousReflow", true)
       wrapperNode.focus()
       nextAnimationFrame()
