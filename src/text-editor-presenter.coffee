@@ -269,8 +269,8 @@ class TextEditorPresenter
     @resetTrackedUpdates()
 
   updateReflowState: ->
-    @state.content.continuousReflow = @continuousReflow
-    @lineNumberGutter.continuousReflow = @continuousReflow
+    @state.content.continuousReflow = @focused and @continuousReflow
+    @lineNumberGutter.continuousReflow = @focused and @continuousReflow
 
   startReflowing: ->
     @reflowingInterval = setInterval(@emitDidUpdateState.bind(this), @minimumReflowInterval)
