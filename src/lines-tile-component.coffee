@@ -107,12 +107,23 @@ class LinesTileComponent
 
     WrapperDiv.innerHTML = newLinesHTML
     newLineNodes = _.toArray(WrapperDiv.children)
-    for id, i in newLineIds
-      lineNode = newLineNodes[i]
-      @lineNodesByLineId[id] = lineNode
-      @domNode.appendChild(lineNode)
+    newLineNodes = _.sortBy(newLineNodes, @screenRowForNode)
+
+    while newLineNode = newLineNodes.shift()
+      oldLineNodes = _.rest(@domNode.children) # skips highlights node
+      while oldLineNode = oldLineNodes.shift()
+        break if @screenRowForNode(newLineNode) < @screenRowForNode(oldLineNode)
+
+      lineId = @lineIdsByScreenRow[newLineNode.dataset.screenRow]
+      @lineNodesByLineId[lineId] = newLineNode
+      if oldLineNode?
+        @domNode.insertBefore(newLineNode, oldLineNode)
+      else
+        @domNode.appendChild(newLineNode)
 
     return
+
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineHTML: (id) ->
     {width} = @newState
@@ -124,7 +135,7 @@ class LinesTileComponent
         classes += decorationClass + ' '
     classes += 'line'
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(id)
@@ -283,9 +294,6 @@ class LinesTileComponent
     newLineState = @newTileState.lines[id]
 
     lineNode = @lineNodesByLineId[id]
-
-    if @newState.width isnt @oldState.width
-      lineNode.style.width = @newState.width + 'px'
 
     newDecorationClasses = newLineState.decorationClasses
     oldDecorationClasses = oldLineState.decorationClasses
