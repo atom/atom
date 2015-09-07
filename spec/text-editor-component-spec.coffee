@@ -452,6 +452,7 @@ describe "TextEditorComponent", ->
 
       it "keeps rebuilding lines when continuous reflow is on", ->
         atom.config.set("editor.continuousReflow", true)
+        wrapperNode.focus()
         nextAnimationFrame()
 
         oldLineNodes = componentNode.querySelectorAll(".line")
@@ -467,6 +468,7 @@ describe "TextEditorComponent", ->
         oldLineNodes = newLineNodes
 
         atom.config.set("editor.continuousReflow", false)
+        wrapperNode.blur()
         nextAnimationFrame()
 
         newLineNodes = componentNode.querySelectorAll(".line")
@@ -854,6 +856,7 @@ describe "TextEditorComponent", ->
 
     it "keeps rebuilding line numbers when continuous reflow is on", ->
       atom.config.set("editor.continuousReflow", true)
+      wrapperNode.focus()
       nextAnimationFrame()
 
       oldLineNodes = componentNode.querySelectorAll(".line-number")
@@ -869,6 +872,7 @@ describe "TextEditorComponent", ->
       oldLineNodes = newLineNodes
 
       atom.config.set("editor.continuousReflow", false)
+      wrapperNode.blur()
       nextAnimationFrame()
 
       newLineNodes = componentNode.querySelectorAll(".line-number")
