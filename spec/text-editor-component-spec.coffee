@@ -450,6 +450,31 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
 
+      it "keeps rebuilding lines when continuous reflow is on", ->
+        atom.config.set("editor.continuousReflow", true)
+        nextAnimationFrame()
+
+        oldLineNodes = componentNode.querySelectorAll(".line")
+
+        advanceClock(10)
+        expect(nextAnimationFrame).toBe(noAnimationFrame)
+
+        advanceClock(component.presenter.minimumReflowInterval - 10)
+        nextAnimationFrame()
+
+        newLineNodes = componentNode.querySelectorAll(".line")
+        expect(oldLineNodes).not.toEqual(newLineNodes)
+        oldLineNodes = newLineNodes
+
+        atom.config.set("editor.continuousReflow", false)
+        nextAnimationFrame()
+
+        newLineNodes = componentNode.querySelectorAll(".line")
+        expect(oldLineNodes).toEqual(newLineNodes)
+
+        advanceClock(component.presenter.minimumReflowInterval)
+        expect(nextAnimationFrame).toBe(noAnimationFrame)
+
       describe "when soft wrapping is enabled", ->
         beforeEach ->
           editor.setText "a line that wraps \n"
@@ -826,6 +851,31 @@ describe "TextEditorComponent", ->
 
       expect(componentNode.querySelector('.gutter').style.display).toBe ''
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
+
+    it "keeps rebuilding line numbers when continuous reflow is on", ->
+      atom.config.set("editor.continuousReflow", true)
+      nextAnimationFrame()
+
+      oldLineNodes = componentNode.querySelectorAll(".line-number")
+
+      advanceClock(10)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
+
+      advanceClock(component.presenter.minimumReflowInterval - 10)
+      nextAnimationFrame()
+
+      newLineNodes = componentNode.querySelectorAll(".line-number")
+      expect(oldLineNodes).not.toEqual(newLineNodes)
+      oldLineNodes = newLineNodes
+
+      atom.config.set("editor.continuousReflow", false)
+      nextAnimationFrame()
+
+      newLineNodes = componentNode.querySelectorAll(".line-number")
+      expect(oldLineNodes).toEqual(newLineNodes)
+
+      advanceClock(component.presenter.minimumReflowInterval)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
 
     describe "fold decorations", ->
       describe "rendering fold decorations", ->

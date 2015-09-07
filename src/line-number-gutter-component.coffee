@@ -62,6 +62,9 @@ class LineNumberGutterComponent extends TiledComponent
 
   buildComponentForTile: (id) -> new LineNumbersTileComponent({id})
 
+  shouldRecreateAllTilesOnUpdate: ->
+    @newState.continuousReflow
+
   ###
   Section: Private Methods
   ###

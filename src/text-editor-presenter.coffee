@@ -11,6 +11,7 @@ class TextEditorPresenter
   mouseWheelScreenRow: null
   scopedCharacterWidthsChangeCount: 0
   overlayDimensions: {}
+  minimumReflowInterval: 200
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
@@ -35,6 +36,7 @@ class TextEditorPresenter
     @observeConfig()
     @buildState()
     @startBlinkingCursors() if @focused
+    @startReflowing() if @continuousReflow
     @updating = false
 
   destroy: ->
@@ -72,6 +74,7 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
     @updateCommonGutterState()
+    @updateReflowState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -169,6 +172,7 @@ class TextEditorPresenter
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
 
+    @continuousReflow = atom.config.get('editor.continuousReflow', configParams)
     @scrollPastEnd = atom.config.get('editor.scrollPastEnd', configParams)
     @showLineNumbers = atom.config.get('editor.showLineNumbers', configParams)
     @showIndentGuide = atom.config.get('editor.showIndentGuide', configParams)
@@ -196,6 +200,16 @@ class TextEditorPresenter
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
+
+      @emitDidUpdateState()
+
+    @configDisposables.add atom.config.onDidChange 'editor.continuousReflow', configParams, ({newValue}) =>
+      @continuousReflow = newValue
+
+      if @continuousReflow
+        @startReflowing()
+      else
+        @stopReflowing()
 
       @emitDidUpdateState()
 
@@ -253,6 +267,17 @@ class TextEditorPresenter
     @updateCustomGutterDecorationState()
 
     @resetTrackedUpdates()
+
+  updateReflowState: ->
+    @state.content.continuousReflow = @continuousReflow
+    @lineNumberGutter.continuousReflow = @continuousReflow
+
+  startReflowing: ->
+    @reflowingInterval = setInterval(@emitDidUpdateState.bind(this), @minimumReflowInterval)
+
+  stopReflowing: ->
+    clearInterval(@reflowingInterval)
+    @reflowingInterval = null
 
   updateFocusedState: ->
     @state.focused = @focused

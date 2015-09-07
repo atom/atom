@@ -217,6 +217,10 @@ module.exports =
         type: 'boolean'
         default: process.platform isnt 'darwin'
         description: 'Increase/decrease the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+      continuousReflow:
+        type: 'boolean'
+        default: false
+        description: 'Track down expensive layouts or style recalculations by continously reflowing the editor. (Has performance overhead)'
 
 if process.platform in ['win32', 'linux']
   module.exports.core.properties.autoHideMenuBar =
