@@ -8,6 +8,7 @@ class LineNumbersTileComponent
 
   constructor: ({@id}) ->
     @lineNumberNodesById = {}
+    @lineNumberIdsByScreenRow = {}
     @domNode = document.createElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
@@ -62,6 +63,7 @@ class LineNumbersTileComponent
       unless @newTileState.lineNumbers.hasOwnProperty(id)
         @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
+        delete @lineNumberIdsByScreenRow[lineNumberState.screenRow]
         delete @oldTileState.lineNumbers[id]
 
     for id, lineNumberState of @newTileState.lineNumbers
@@ -72,19 +74,28 @@ class LineNumbersTileComponent
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
         newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
+        @lineNumberIdsByScreenRow[lineNumberState.screenRow] = id
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
     if newLineNumberIds?
       WrapperDiv.innerHTML = newLineNumbersHTML
       newLineNumberNodes = _.toArray(WrapperDiv.children)
+      newLineNumberNodes = _.sortBy(newLineNumberNodes, @screenRowForNode)
+      while newNode = newLineNumberNodes.shift()
+        oldLineNumberNodes = _.toArray(@domNode.children)
+        while oldNode = oldLineNumberNodes.shift()
+          break if @screenRowForNode(newNode) < @screenRowForNode(oldNode)
 
-      node = @domNode
-      for id, i in newLineNumberIds
-        lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[id] = lineNumberNode
-        node.appendChild(lineNumberNode)
+        id = @lineNumberIdsByScreenRow[newNode.dataset.screenRow]
+        @lineNumberNodesById[id] = newNode
+        if oldNode?
+          @domNode.insertBefore(newNode, oldNode)
+        else
+          @domNode.appendChild(newNode)
 
     return
+
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNumberHTML: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
@@ -95,7 +106,7 @@ class LineNumbersTileComponent
     className = @buildLineNumberClassName(lineNumberState)
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
 
-    "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"#{className}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
     {maxLineNumberDigits} = @newState
@@ -118,15 +129,12 @@ class LineNumbersTileComponent
       oldLineNumberState.foldable = newLineNumberState.foldable
       oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
-    unless oldLineNumberState.top is newLineNumberState.top
-      node.style.top = newLineNumberState.top + 'px'
+    unless oldLineNumberState.screenRow is newLineNumberState.screenRow or oldLineNumberState.bufferRow is newLineNumberState.bufferRow
+      node.innerHTML = @buildLineNumberInnerHTML(newLineNumberState.bufferRow, newLineNumberState.softWrapped)
       node.dataset.screenRow = newLineNumberState.screenRow
-      oldLineNumberState.top = newLineNumberState.top
+      node.dataset.bufferRow = newLineNumberState.bufferRow
       oldLineNumberState.screenRow = newLineNumberState.screenRow
-
-    unless oldLineNumberState.zIndex is newLineNumberState.zIndex
-      node.style.zIndex = newLineNumberState.zIndex
-      oldLineNumberState.zIndex = newLineNumberState.zIndex
+      oldLineNumberState.bufferRow = newLineNumberState.bufferRow
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
     className = "line-number"

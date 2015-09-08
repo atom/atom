@@ -607,6 +607,7 @@ class TextEditorPresenter
         top = (screenRow - startRow) * @lineHeight
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
+        id = @model.tokenizedLineForScreenRow(screenRow).id
 
         tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable, zIndex}
         visibleLineNumberIds[id] = true
