@@ -33,13 +33,10 @@ class TokenIterator
       if tag < 0
         if tag % 2 is 0
           scopeName = atom.grammars.scopeForId(tag + 1)
-          if @scopeStarts.length is 0
-            @scopeEnds.push(scopeName)
+          if @scopeStarts[@scopeStarts.length - 1] is scopeName
+            @scopeStarts.pop()
           else
-            startsTop = this.scopeStarts.pop()
-            if startsTop isnt scopeName
-              @scopeStarts.push(startsTop)
-              @scopeEnds.push(scopeName)
+            @scopeEnds.push()
           @scopes.pop()
         else
           scope = atom.grammars.scopeForId(tag)
