@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "atomShellVersion": "0.22.3",
+  "electronVersion": "0.30.6",
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^5.1.10",
@@ -39,7 +39,7 @@
     "mixto": "^1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^2.0.0",
-    "oniguruma": "^4.1",
+    "oniguruma": "^4.2.2",
     "pathwatcher": "^4.4.3",
     "property-accessors": "^1.1.3",
     "q": "^1.1.2",
