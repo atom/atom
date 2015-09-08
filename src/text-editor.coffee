@@ -831,6 +831,11 @@ class TextEditor extends Model
         selection = selections.shift()
         selectionsToMove = [selection]
 
+        while selection.end.row is selections[0]?.start.row
+          selectionsToMove.push(selections[0])
+          selection.end.row = selections[0].end.row
+          selections.shift()
+
         # Compute the range spanned by all these selections...
         linesRangeStart = [selection.start.row, 0]
         if selection.end.row > selection.start.row and selection.end.column is 0
