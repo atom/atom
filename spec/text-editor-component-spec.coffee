@@ -294,7 +294,7 @@ describe "TextEditorComponent", ->
       editorFullWidth = editor.getScrollWidth() + editor.getVerticalScrollbarWidth()
 
       for lineNode in lineNodes
-        expect(lineNode.style.width).toBe editorFullWidth + 'px'
+        expect(lineNode.getBoundingClientRect().width).toBe(editorFullWidth)
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
       component.measureDimensions()
@@ -302,7 +302,7 @@ describe "TextEditorComponent", ->
       scrollViewWidth = scrollViewNode.offsetWidth
 
       for lineNode in lineNodes
-        expect(lineNode.style.width).toBe scrollViewWidth + 'px'
+        expect(lineNode.getBoundingClientRect().width).toBe(scrollViewWidth)
 
     it "renders an nbsp on empty lines when no line-ending character is defined", ->
       atom.config.set("editor.showInvisibles", false)
