@@ -36,7 +36,7 @@ class TokenIterator
           if @scopeStarts[@scopeStarts.length - 1] is scopeName
             @scopeStarts.pop()
           else
-            @scopeEnds.push()
+            @scopeEnds.push(scopeName)
           @scopes.pop()
         else
           scope = atom.grammars.scopeForId(tag)
