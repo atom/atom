@@ -108,7 +108,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style.zIndex).toBe("2")
       expect(tilesNodes[1].style.zIndex).toBe("1")
@@ -118,7 +118,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style.zIndex).toBe("3")
       expect(tilesNodes[1].style.zIndex).toBe("2")
@@ -130,7 +130,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes.length).toBe(3)
 
@@ -158,7 +158,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(component.lineNodeForScreenRow(2)).toBeUndefined()
       expect(tilesNodes.length).toBe(3)
@@ -187,7 +187,7 @@ describe "TextEditorComponent", ->
       editor.getBuffer().deleteRows(0, 1)
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expectTileContainsRow(tilesNodes[0], 0, top: 0 * lineHeightInPixels)
@@ -202,7 +202,7 @@ describe "TextEditorComponent", ->
       editor.getBuffer().insert([0, 0], '\n\n')
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expectTileContainsRow(tilesNodes[0], 0, top: 0 * lineHeightInPixels)
@@ -313,7 +313,7 @@ describe "TextEditorComponent", ->
       backgroundColor = getComputedStyle(wrapperNode).backgroundColor
       expect(linesNode.style.backgroundColor).toBe backgroundColor
 
-      for tileNode in linesNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLines()
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
@@ -322,7 +322,7 @@ describe "TextEditorComponent", ->
       advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
-      for tileNode in linesNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLines()
         expect(tileNode.style.backgroundColor).toBe("rgb(255, 0, 0)")
 
 
@@ -606,7 +606,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(tilesNodes[0].style.zIndex).toBe("2")
       expect(tilesNodes[1].style.zIndex).toBe("1")
@@ -616,7 +616,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(tilesNodes[0].style.zIndex).toBe("3")
       expect(tilesNodes[1].style.zIndex).toBe("2")
@@ -663,7 +663,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(tilesNodes.length).toBe(3)
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
@@ -689,7 +689,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(component.lineNumberNodeForScreenRow(2)).toBeUndefined()
       expect(tilesNodes.length).toBe(3)
@@ -791,7 +791,7 @@ describe "TextEditorComponent", ->
       lineNumbersNode = gutterNode.querySelector('.line-numbers')
       {backgroundColor} = getComputedStyle(wrapperNode)
       expect(lineNumbersNode.style.backgroundColor).toBe backgroundColor
-      for tileNode in lineNumbersNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLineNumbers()
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       # favor gutter color if it's assigned
@@ -800,7 +800,7 @@ describe "TextEditorComponent", ->
 
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
-      for tileNode in lineNumbersNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLineNumbers()
         expect(tileNode.style.backgroundColor).toBe("rgb(255, 0, 0)")
 
     it "hides or shows the gutter based on the '::isLineNumberGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
@@ -1133,7 +1133,7 @@ describe "TextEditorComponent", ->
     it "renders 2 regions for 2-line selections", ->
       editor.setSelectedScreenRange([[1, 6], [2, 10]])
       nextAnimationFrame()
-      tileNode = componentNode.querySelector(".lines").querySelectorAll(".tile")[0]
+      tileNode = component.tileNodesForLines()[0]
       regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe 2
 
@@ -1154,7 +1154,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Tile 0
-      tileNode = componentNode.querySelector(".lines").querySelectorAll(".tile")[0]
+      tileNode = component.tileNodesForLines()[0]
       regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe(3)
 
@@ -1177,7 +1177,7 @@ describe "TextEditorComponent", ->
       expect(region3Rect.right).toBe tileNode.getBoundingClientRect().right
 
       # Tile 3
-      tileNode = componentNode.querySelector(".lines").querySelectorAll(".tile")[1]
+      tileNode = component.tileNodesForLines()[1]
       regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe(3)
 
@@ -2408,7 +2408,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       top = 0
       for tileNode in tilesNodes

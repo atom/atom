@@ -9,7 +9,6 @@ class LineNumbersTileComponent
   constructor: ({@id}) ->
     @lineNumberNodesById = {}
     @domNode = document.createElement("div")
-    @domNode.classList.add("tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber

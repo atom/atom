@@ -1,3 +1,5 @@
+{values} = require 'underscore-plus'
+
 cloneObject = (object) ->
   clone = {}
   clone[key] = value for key, value of object
@@ -49,3 +51,6 @@ class TiledComponent
 
   getComponentForTile: (tileRow) ->
     @componentsByTileId[tileRow]
+
+  getTiles: ->
+    values(@componentsByTileId).map (component) -> component.getDomNode()
