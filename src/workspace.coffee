@@ -251,6 +251,16 @@ class Workspace extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddPane: (callback) -> @paneContainer.onDidAddPane(callback)
 
+  # Extended: Invoke the given callback before a pane is destroyed in the
+  # workspace.
+  #
+  # * `callback` {Function} to be called before panes are destroyed.
+  #   * `event` {Object} with the following keys:
+  #     * `pane` The pane to be destroyed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onWillDestroyPane: (callback) -> @paneContainer.onWillDestroyPane(callback)
+
   # Extended: Invoke the given callback when a pane is destroyed in the
   # workspace.
   #
@@ -442,8 +452,8 @@ class Workspace extends Model
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
           return Q()
-        when 'EPERM', 'EBUSY'
-          atom.notifications.addWarning("Unable to open '#{error.path}'", detail: error.message)
+        when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL'
+          atom.notifications.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
           return Q()
         else
           throw error
@@ -456,8 +466,15 @@ class Workspace extends Model
         @itemOpened(item)
         pane.activateItem(item)
         pane.activate() if activatePane
-        if options.initialLine? or options.initialColumn?
-          item.setCursorBufferPosition?([options.initialLine, options.initialColumn])
+
+        initialLine = initialColumn = 0
+        unless Number.isNaN(options.initialLine)
+          initialLine = options.initialLine
+        unless Number.isNaN(options.initialColumn)
+          initialColumn = options.initialColumn
+        if initialLine >= 0 or initialColumn >= 0
+          item.setCursorBufferPosition?([initialLine, initialColumn])
+
         index = pane.getActiveItemIndex()
         @emit "uri-opened" if includeDeprecatedAPIs
         @emitter.emit 'did-open', {uri, pane, item, index}
@@ -762,9 +779,9 @@ class Workspace extends Model
   # Essential: Adds a panel item as a modal dialog.
   #
   # * `options` {Object}
-  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #   * `item` Your panel content. It can be a DOM element, a jQuery element, or
   #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
-  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #     model option. See {ViewRegistry::addViewProvider} for more information.
   #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
   #     (default: true)
   #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are

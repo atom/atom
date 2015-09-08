@@ -23,6 +23,7 @@ class DisplayBuffer extends Model
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
+  changeCount: 0
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
     super
@@ -176,21 +177,18 @@ class DisplayBuffer extends Model
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
-  getVerticalScrollMargin: -> Math.min(@verticalScrollMargin, (@getHeight() - @getLineHeightInPixels()) / 2)
+  getVerticalScrollMargin: ->
+    maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
+    Math.min(@verticalScrollMargin, maxScrollMargin)
+
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getVerticalScrollMarginInPixels: ->
-    scrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeightInPixels()
-    maxScrollMarginInPixels = (@getHeight() - @getLineHeightInPixels()) / 2
-    Math.min(scrollMarginInPixels, maxScrollMarginInPixels)
+  getVerticalScrollMarginInPixels: -> @getVerticalScrollMargin() * @getLineHeightInPixels()
 
-  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, (@getWidth() - @getDefaultCharWidth()) / 2)
+  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getHorizontalScrollMarginInPixels: ->
-    scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
-    maxScrollMarginInPixels = (@getWidth() - @getDefaultCharWidth()) / 2
-    Math.min(scrollMarginInPixels, maxScrollMarginInPixels)
+  getHorizontalScrollMarginInPixels: -> scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
 
   getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
   setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
@@ -800,6 +798,11 @@ class DisplayBuffer extends Model
           foldCount: @findFoldMarkers().length
           lastBufferRow: @buffer.getLastRow()
           lastScreenRow: @getLastRow()
+          bufferRow: row
+          screenRow: screenRow
+          displayBufferChangeCount: @changeCount
+          tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+          bufferChangeCount: @buffer.changeCount
 
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
@@ -890,6 +893,20 @@ class DisplayBuffer extends Model
       column = 0
 
     screenLine = @tokenizedLineForScreenRow(row)
+    unless screenLine?
+      error = new Error("Undefined screen line when clipping screen position")
+      Error.captureStackTrace(error)
+      error.metadata = {
+        screenRow: row
+        screenColumn: column
+        maxScreenRow: @getLastRow()
+        screenLinesDefined: @screenLines.map (sl) -> sl?
+        displayBufferChangeCount: @changeCount
+        tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+        bufferChangeCount: @buffer.changeCount
+      }
+      throw error
+
     maxScreenColumn = screenLine.getMaxScreenColumn()
 
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
@@ -1153,6 +1170,7 @@ class DisplayBuffer extends Model
     return
 
   destroyed: ->
+    fold.destroy() for markerId, fold of @foldsByMarkerId
     marker.disposables.dispose() for id, marker of @markers
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
@@ -1168,12 +1186,14 @@ class DisplayBuffer extends Model
     @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
+    @changeCount = @tokenizedBuffer.changeCount
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
     @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     return if @largeFileMode
+    return if @isDestroyed()
 
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
     endBufferRow = @rowMap.bufferRowRangeForBufferRow(endBufferRow - 1)[1]
@@ -1183,6 +1203,9 @@ class DisplayBuffer extends Model
     screenDelta = screenLines.length - (endScreenRow - startScreenRow)
 
     _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
+
+    @checkScreenLinesInvariant()
+
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 
@@ -1301,6 +1324,20 @@ class DisplayBuffer extends Model
       @overlayDecorationsById[decoration.id] = decoration
     else
       delete @overlayDecorationsById[decoration.id]
+
+  checkScreenLinesInvariant: ->
+    return if @isSoftWrapped()
+    return if _.size(@foldsByMarkerId) > 0
+
+    screenLinesCount = @screenLines.length
+    tokenizedLinesCount = @tokenizedBuffer.getLineCount()
+    bufferLinesCount = @buffer.getLineCount()
+
+    atom.assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
+      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
+
+    atom.assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
+      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
 
 if Grim.includeDeprecatedAPIs
   DisplayBuffer.properties

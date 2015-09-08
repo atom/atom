@@ -13,6 +13,12 @@ class LinesComponent extends TiledComponent
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
+    @tilesNode = document.createElement("div")
+    # Create a new stacking context, so that tiles z-index does not interfere
+    # with other visual elements.
+    @tilesNode.style.isolation = "isolate"
+    @tilesNode.style.zIndex = 0
+    @domNode.appendChild(@tilesNode)
 
     @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
@@ -29,9 +35,9 @@ class LinesComponent extends TiledComponent
     @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible
 
   beforeUpdateSync: (state) ->
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @domNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
+    if @newState.maxHeight isnt @oldState.maxHeight
+      @domNode.style.height = @newState.maxHeight + 'px'
+      @oldState.maxHeight = @newState.maxHeight
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor
@@ -62,7 +68,7 @@ class LinesComponent extends TiledComponent
   getNewState: (state) ->
     state.content
 
-  getTilesNode: -> @domNode
+  getTilesNode: -> @tilesNode
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)

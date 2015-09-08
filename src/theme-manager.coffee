@@ -71,11 +71,11 @@ class ThemeManager
   Section: Accessing Loaded Themes
   ###
 
-  # Public: Get an array of all the loaded theme names.
+  # Public: Returns an {Array} of {String}s of all the loaded theme names.
   getLoadedThemeNames: ->
     theme.name for theme in @getLoadedThemes()
 
-  # Public: Get an array of all the loaded themes.
+  # Public: Returns an {Array} of all the loaded themes.
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
@@ -83,11 +83,11 @@ class ThemeManager
   Section: Accessing Active Themes
   ###
 
-  # Public: Get an array of all the active theme names.
+  # Public: Returns an {Array} of {String}s all the active theme names.
   getActiveThemeNames: ->
     theme.name for theme in @getActiveThemes()
 
-  # Public: Get an array of all the active themes.
+  # Public: Returns an {Array} of all the active themes.
   getActiveThemes: ->
     pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 

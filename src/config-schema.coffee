@@ -26,6 +26,14 @@ module.exports =
         default: []
         items:
           type: 'string'
+      customFileTypes:
+        type: 'object'
+        default: {}
+        description: 'Associates scope names (e.g. "source.js") with arrays of file extensions and file names (e.g. ["Somefile", ".js2"])'
+        additionalProperties:
+          type: 'array'
+          items:
+            type: 'string'
       themes:
         type: 'array'
         default: ['one-dark-ui', 'one-dark-syntax']
@@ -81,6 +89,10 @@ module.exports =
           'windows1258',
           'windows866'
         ]
+      openEmptyEditorOnStart:
+        description: 'Automatically opens an empty editor when atom starts.'
+        type: 'boolean'
+        default: true
 
   editor:
     type: 'object'
@@ -127,7 +139,7 @@ module.exports =
         default: true
       nonWordCharacters:
         type: 'string'
-        default: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-"
+        default: "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
       preferredLineLength:
         type: 'integer'
         default: 80
@@ -143,6 +155,11 @@ module.exports =
       softTabs:
         type: 'boolean'
         default: true
+      tabType:
+        type: 'string'
+        default: 'auto'
+        enum: ['auto', 'soft', 'hard']
+        description: 'Determine character inserted during Tab keypress.'
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
@@ -173,6 +190,10 @@ module.exports =
         type: 'boolean'
         default: true
         title: 'Confirm Checkout HEAD Revision'
+      backUpBeforeSaving:
+        type: 'boolean'
+        default: false
+        description: 'Ensure file contents aren\'t lost if there is an I/O error during save by making a temporary backup copy.'
       invisibles:
         type: 'object'
         properties:

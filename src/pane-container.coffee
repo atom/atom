@@ -2,16 +2,9 @@
 Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
 Serializable = require 'serializable'
-{createGutterView} = require './gutter-component-helpers'
 Gutter = require './gutter'
 Model = require './model'
 Pane = require './pane'
-PaneElement = require './pane-element'
-PaneContainerElement = require './pane-container-element'
-PaneAxisElement = require './pane-axis-element'
-PaneAxis = require './pane-axis'
-TextEditor = require './text-editor'
-TextEditorElement = require './text-editor-element'
 ItemRegistry = require './item-registry'
 
 module.exports =
@@ -33,7 +26,6 @@ class PaneContainer extends Model
     @subscriptions = new CompositeDisposable
 
     @itemRegistry = new ItemRegistry
-    @registerViewProviders()
 
     @setRoot(params?.root ? new Pane)
     @setActivePane(@getPanes()[0]) unless @getActivePane()
@@ -53,17 +45,6 @@ class PaneContainer extends Model
     root: @root?.serialize()
     activePaneId: @activePane.id
 
-  registerViewProviders: ->
-    atom.views.addViewProvider PaneContainer, (model) ->
-      new PaneContainerElement().initialize(model)
-    atom.views.addViewProvider PaneAxis, (model) ->
-      new PaneAxisElement().initialize(model)
-    atom.views.addViewProvider Pane, (model) ->
-      new PaneElement().initialize(model)
-    atom.views.addViewProvider TextEditor, (model) ->
-      new TextEditorElement().initialize(model)
-    atom.views.addViewProvider(Gutter, createGutterView)
-
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn
 
@@ -80,6 +61,9 @@ class PaneContainer extends Model
 
   onDidDestroyPane: (fn) ->
     @emitter.on 'did-destroy-pane', fn
+
+  onWillDestroyPane: (fn) ->
+    @emitter.on 'will-destroy-pane', fn
 
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
@@ -196,6 +180,9 @@ class PaneContainer extends Model
 
   didAddPane: (event) ->
     @emitter.emit 'did-add-pane', event
+
+  willDestroyPane: (event) ->
+    @emitter.emit 'will-destroy-pane', event
 
   didDestroyPane: (event) ->
     @emitter.emit 'did-destroy-pane', event

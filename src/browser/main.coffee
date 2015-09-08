@@ -5,23 +5,16 @@ app = require 'app'
 fs = require 'fs-plus'
 path = require 'path'
 yargs = require 'yargs'
-url = require 'url'
-nslog = require 'nslog'
-
-console.log = nslog
-
-process.on 'uncaughtException', (error={}) ->
-  nslog(error.message) if error.message?
-  nslog(error.stack) if error.stack?
+console.log = require 'nslog'
 
 start = ->
+  setupUncaughtExceptionHandler()
   setupAtomHome()
-  setupCoffeeCache()
+  setupCompileCache()
+  return if handleStartupEventWithSquirrel()
 
-  if process.platform is 'win32'
-    SquirrelUpdate = require './squirrel-update'
-    squirrelCommand = process.argv[1]
-    return if SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
+    # NB: This prevents Win10 from showing dupe items in the taskbar
+    app.setAppUserModelId('com.squirrel.atom.atom')
 
   args = parseCommandLine()
 
@@ -29,62 +22,53 @@ start = ->
     event.preventDefault()
     args.pathsToOpen.push(pathToOpen)
 
-  args.urlsToOpen = []
   addUrlToOpen = (event, urlToOpen) ->
     event.preventDefault()
     args.urlsToOpen.push(urlToOpen)
 
   app.on 'open-file', addPathToOpen
   app.on 'open-url', addUrlToOpen
-
-  app.on 'will-finish-launching', ->
-    setupCrashReporter()
+  app.on 'will-finish-launching', setupCrashReporter
 
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
-    cwd = args.executedFrom?.toString() or process.cwd()
-    args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      normalizedPath = fs.normalize(pathToOpen)
-      if url.parse(pathToOpen).protocol?
-        pathToOpen
-      else if cwd
-        path.resolve(cwd, normalizedPath)
-      else
-        path.resolve(pathToOpen)
-
-    if args.devMode
-      AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
-    else
-      AtomApplication = require './atom-application'
-
+    AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     AtomApplication.open(args)
+
     console.log("App load time: #{Date.now() - global.shellStartTime}ms") unless args.test
 
-global.devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
-# Normalize to make sure drive letter case is consistent on Windows
-global.devResourcePath = path.normalize(global.devResourcePath) if global.devResourcePath
+normalizeDriveLetterName = (filePath) ->
+  if process.platform is 'win32'
+    filePath.replace /^([a-z]):/, ([driveLetter]) -> driveLetter.toUpperCase() + ":"
+  else
+    filePath
+
+setupUncaughtExceptionHandler = ->
+  process.on 'uncaughtException', (error={}) ->
+    console.log(error.message) if error.message?
+    console.log(error.stack) if error.stack?
+
+handleStartupEventWithSquirrel = ->
+  return false unless process.platform is 'win32'
+  SquirrelUpdate = require './squirrel-update'
+  squirrelCommand = process.argv[1]
+  SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
 setupAtomHome = ->
   return if process.env.ATOM_HOME
-
   atomHome = path.join(app.getHomeDir(), '.atom')
   try
     atomHome = fs.realpathSync(atomHome)
   process.env.ATOM_HOME = atomHome
 
-setupCoffeeCache = ->
-  CoffeeCache = require 'coffee-cash'
-  cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
-  # Use separate compile cache when sudo'ing as root to avoid permission issues
-  if process.env.USER is 'root' and process.env.SUDO_USER and process.env.SUDO_USER isnt process.env.USER
-    cacheDir = path.join(cacheDir, 'root')
-  CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'))
-  CoffeeCache.register()
+setupCompileCache = ->
+  compileCache = require('../compile-cache')
+  compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
 parseCommandLine = ->
   version = app.getVersion()
@@ -134,7 +118,7 @@ parseCommandLine = ->
     process.stdout.write("#{version}\n")
     process.exit(0)
 
-  executedFrom = args['executed-from']
+  executedFrom = args['executed-from']?.toString() ? process.cwd()
   devMode = args['dev']
   safeMode = args['safe']
   pathsToOpen = args._
@@ -145,6 +129,8 @@ parseCommandLine = ->
   logFile = args['log-file']
   socketPath = args['socket-path']
   profileStartup = args['profile-startup']
+  urlsToOpen = []
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
 
   if args['resource-path']
     devMode = true
@@ -160,7 +146,7 @@ parseCommandLine = ->
           resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
 
     if devMode
-      resourcePath ?= global.devResourcePath
+      resourcePath ?= devResourcePath
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
@@ -169,7 +155,11 @@ parseCommandLine = ->
   # explicitly pass it by command line, see http://git.io/YC8_Ew.
   process.env.PATH = args['path-environment'] if args['path-environment']
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
-   devMode, safeMode, newWindow, specDirectory, logFile, socketPath, profileStartup}
+  resourcePath = normalizeDriveLetterName(resourcePath)
+  devResourcePath = normalizeDriveLetterName(devResourcePath)
+
+  {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
+   version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
+   logFile, socketPath, profileStartup}
 
 start()

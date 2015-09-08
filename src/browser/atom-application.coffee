@@ -17,6 +17,8 @@ url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 
+LocationSuffixRegExp = /(:\d+)(:\d+)?$/
+
 DefaultSocketPath =
   if process.platform is 'win32'
     '\\\\.\\pipe\\atom-sock'
@@ -63,15 +65,11 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @version, @devMode, @safeMode, @socketPath} = options
-
-    # Normalize to make sure drive letter case is consistent on Windows
-    @resourcePath = path.normalize(@resourcePath) if @resourcePath
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
-    @pathsToOpen ?= []
     @windows = []
 
     @autoUpdateManager = new AutoUpdateManager(@version, options.test)
@@ -88,11 +86,11 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
       @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
+      @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
       @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
@@ -163,7 +161,7 @@ class AtomApplication
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
 
-    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: global.devResourcePath, safeMode: @focusedWindow()?.safeMode)
+    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:run-benchmarks', -> @runBenchmarks()
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
@@ -192,7 +190,6 @@ class AtomApplication
     @on 'application:check-for-update', => @autoUpdateManager.check()
 
     if process.platform is 'darwin'
-      @on 'application:about', -> Menu.sendActionToFirstResponder('orderFrontStandardAboutPanel:')
       @on 'application:bring-all-windows-to-front', -> Menu.sendActionToFirstResponder('arrangeInFront:')
       @on 'application:hide', -> Menu.sendActionToFirstResponder('hide:')
       @on 'application:hide-other-applications', -> Menu.sendActionToFirstResponder('hideOtherApplications:')
@@ -203,6 +200,7 @@ class AtomApplication
       @on 'application:minimize', -> @focusedWindow()?.minimize()
       @on 'application:zoom', -> @focusedWindow()?.maximize()
 
+    @openPathOnEvent('application:about', 'atom://about')
     @openPathOnEvent('application:show-settings', 'atom://config')
     @openPathOnEvent('application:open-your-config', 'atom://.atom/config')
     @openPathOnEvent('application:open-your-init-script', 'atom://.atom/init-script')
@@ -255,7 +253,7 @@ class AtomApplication
       @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runSpecs({resourcePath: global.devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
+      @runSpecs({resourcePath: @devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -371,14 +369,9 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
-    pathsToOpen = pathsToOpen.map (pathToOpen) ->
-      if fs.existsSync(pathToOpen)
-        fs.normalize(pathToOpen)
-      else
-        pathToOpen
-
-    locationsToOpen = (@locationForPathToOpen(pathToOpen) for pathToOpen in pathsToOpen)
+  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
+    locationsToOpen = (@locationForPathToOpen(pathToOpen, executedFrom) for pathToOpen in pathsToOpen)
+    pathsToOpen = (locationToOpen.pathToOpen for locationToOpen in locationsToOpen)
 
     unless pidToKillWhenClosed or newWindow
       existingWindow = @windowForPaths(pathsToOpen, devMode)
@@ -401,8 +394,8 @@ class AtomApplication
     else
       if devMode
         try
-          bootstrapScript = require.resolve(path.join(global.devResourcePath, 'src', 'window-bootstrap'))
-          resourcePath = global.devResourcePath
+          bootstrapScript = require.resolve(path.join(@devResourcePath, 'src', 'window-bootstrap'))
+          resourcePath = @devResourcePath
 
       bootstrapScript ?= require.resolve('../window-bootstrap')
       resourcePath ?= @resourcePath
@@ -503,7 +496,7 @@ class AtomApplication
       resourcePath = @resourcePath
 
     try
-      bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'spec', 'spec-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(@devResourcePath, 'spec', 'spec-bootstrap'))
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'spec-bootstrap'))
 
@@ -514,7 +507,7 @@ class AtomApplication
 
   runBenchmarks: ({exitWhenDone, specDirectory}={}) ->
     try
-      bootstrapScript = require.resolve(path.resolve(global.devResourcePath, 'benchmark', 'benchmark-bootstrap'))
+      bootstrapScript = require.resolve(path.resolve(@devResourcePath, 'benchmark', 'benchmark-bootstrap'))
     catch error
       bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'benchmark', 'benchmark-bootstrap'))
 
@@ -524,21 +517,22 @@ class AtomApplication
     devMode = true
     new AtomWindow({bootstrapScript, @resourcePath, exitWhenDone, isSpec, specDirectory, devMode})
 
-  locationForPathToOpen: (pathToOpen) ->
+  locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen
-    return {pathToOpen} if url.parse(pathToOpen).protocol?
-    return {pathToOpen} if fs.existsSync(pathToOpen)
 
     pathToOpen = pathToOpen.replace(/[:\s]+$/, '')
+    match = pathToOpen.match(LocationSuffixRegExp)
 
-    [fileToOpen, initialLine, initialColumn] = path.basename(pathToOpen).split(':')
-    return {pathToOpen} unless initialLine
-    return {pathToOpen} unless parseInt(initialLine) >= 0
+    if match?
+      pathToOpen = pathToOpen.slice(0, -match[0].length)
+      initialLine = Math.max(0, parseInt(match[1].slice(1)) - 1) if match[1]
+      initialColumn = Math.max(0, parseInt(match[2].slice(1)) - 1) if match[2]
+    else
+      initialLine = initialColumn = null
 
-    # Convert line numbers to a base of 0
-    initialLine = Math.max(0, initialLine - 1) if initialLine
-    initialColumn = Math.max(0, initialColumn - 1) if initialColumn
-    pathToOpen = path.join(path.dirname(pathToOpen), fileToOpen)
+    unless url.parse(pathToOpen).protocol?
+      pathToOpen = path.resolve(executedFrom, fs.normalize(pathToOpen))
+
     {pathToOpen, initialLine, initialColumn}
 
   # Opens a native dialog to prompt the user for a path.

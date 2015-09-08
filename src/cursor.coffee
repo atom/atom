@@ -22,32 +22,6 @@ class Cursor extends Model
 
     @assignId(id)
     @updateVisibility()
-    @marker.onDidChange (e) =>
-      @updateVisibility()
-      {oldHeadScreenPosition, newHeadScreenPosition} = e
-      {oldHeadBufferPosition, newHeadBufferPosition} = e
-      {textChanged} = e
-      return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
-
-      @goalColumn = null
-
-      movedEvent =
-        oldBufferPosition: oldHeadBufferPosition
-        oldScreenPosition: oldHeadScreenPosition
-        newBufferPosition: newHeadBufferPosition
-        newScreenPosition: newHeadScreenPosition
-        textChanged: textChanged
-        cursor: this
-
-      @emit 'moved', movedEvent if Grim.includeDeprecatedAPIs
-      @emitter.emit 'did-change-position', movedEvent
-      @editor.cursorMoved(movedEvent)
-    @marker.onDidDestroy =>
-      @destroyed = true
-      @editor.removeCursor(this)
-      @emit 'destroyed' if Grim.includeDeprecatedAPIs
-      @emitter.emit 'did-destroy'
-      @emitter.dispose()
 
   destroy: ->
     @marker.destroy()
@@ -536,9 +510,13 @@ class Cursor extends Model
 
     endOfWordPosition = null
     @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if range.start.isLessThanOrEqual(currentBufferPosition) or allowNext
-        endOfWordPosition = range.end
-      if not endOfWordPosition?.isEqual(currentBufferPosition)
+      if allowNext
+        if range.end.isGreaterThan(currentBufferPosition)
+          endOfWordPosition = range.end
+          stop()
+      else
+        if range.start.isLessThanOrEqual(currentBufferPosition)
+          endOfWordPosition = range.end
         stop()
 
     endOfWordPosition ? currentBufferPosition
@@ -657,18 +635,22 @@ class Cursor extends Model
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
     nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
+    uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
+    snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
     segments = [
       "^[\t ]+",
       "[\t ]+$",
-      "[A-Z]?[a-z]+",
-      "[A-Z]+(?![a-z])",
-      "\\d+",
-      "_+"
+      "[#{uppercaseLetters}]+(?![#{lowercaseLetters}])",
+      "\\d+"
     ]
     if options.backwards
+      segments.push("#{snakeCamelSegment}_*")
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+\\s*")
     else
+      segments.push("_*#{snakeCamelSegment}")
       segments.push("\\s*[#{_.escapeRegExp(nonWordCharacters)}]+")
+    segments.push("_+")
     new RegExp(segments.join("|"), "g")
 
   ###

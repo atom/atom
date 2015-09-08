@@ -9,7 +9,7 @@ _ = require 'underscore-plus'
 {deprecate, includeDeprecatedAPIs} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
-{convertStackTrace, convertLine} = require 'coffeestack'
+{mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 {$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
@@ -196,15 +196,11 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    sourceMapCache = {}
-
     window.onerror = =>
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
-      convertedLine = convertLine(url, line, column, sourceMapCache)
-      {line, column} = convertedLine if convertedLine?
-      originalError.stack = convertStackTrace(originalError.stack, sourceMapCache) if originalError
+      {line, column} = mapSourcePosition({source: url, line, column})
 
       eventObject = {message, url, line, column, originalError}
 
@@ -265,6 +261,7 @@ class Atom extends Model
     @notifications = new NotificationManager
     @commands = new CommandRegistry
     @views = new ViewRegistry
+    @registerViewProviders()
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
     document.head.appendChild(new StylesElement)
@@ -290,6 +287,30 @@ class Atom extends Model
     TextEditor = require './text-editor'
 
     @windowEventHandler = new WindowEventHandler
+
+  # Register the core views as early as possible in case they are needed for
+  # package deserialization.
+  registerViewProviders: ->
+    Gutter = require './gutter'
+    Pane = require './pane'
+    PaneElement = require './pane-element'
+    PaneContainer = require './pane-container'
+    PaneContainerElement = require './pane-container-element'
+    PaneAxis = require './pane-axis'
+    PaneAxisElement = require './pane-axis-element'
+    TextEditor = require './text-editor'
+    TextEditorElement = require './text-editor-element'
+    {createGutterView} = require './gutter-component-helpers'
+
+    atom.views.addViewProvider PaneContainer, (model) ->
+      new PaneContainerElement().initialize(model)
+    atom.views.addViewProvider PaneAxis, (model) ->
+      new PaneAxisElement().initialize(model)
+    atom.views.addViewProvider Pane, (model) ->
+      new PaneElement().initialize(model)
+    atom.views.addViewProvider TextEditor, (model) ->
+      new TextEditorElement().initialize(model)
+    atom.views.addViewProvider(Gutter, createGutterView)
 
   ###
   Section: Event Subscription
@@ -343,15 +364,15 @@ class Atom extends Model
   Section: Atom Details
   ###
 
-  # Public: Is the current window in development mode?
+  # Public: Returns a {Boolean} that is `true` if the current window is in development mode.
   inDevMode: ->
     @devMode ?= @getLoadSettings().devMode
 
-  # Public: Is the current window in safe mode?
+  # Public: Returns a {Boolean} that is `true` if the current window is in safe mode.
   inSafeMode: ->
     @safeMode ?= @getLoadSettings().safeMode
 
-  # Public: Is the current window running specs?
+  # Public: Returns a {Boolean} that is `true` if the current window is running specs.
   inSpecMode: ->
     @specMode ?= @getLoadSettings().isSpec
 
@@ -361,7 +382,7 @@ class Atom extends Model
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
-  # Public: Determine whether the current version is an official release.
+  # Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
@@ -477,7 +498,7 @@ class Atom extends Model
   reload: ->
     ipc.send('call-window-method', 'restart')
 
-  # Extended: Returns a {Boolean} true when the current window is maximized.
+  # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
     @getCurrentWindow().isMaximized()
 
@@ -488,7 +509,7 @@ class Atom extends Model
   maximize: ->
     ipc.send('call-window-method', 'maximize')
 
-  # Extended: Is the current window in full screen mode?
+  # Extended: Returns a {Boolean} that is `true` if the current window is in full screen mode.
   isFullScreen: ->
     @getCurrentWindow().isFullScreen()
 
@@ -648,6 +669,7 @@ class Atom extends Model
     @windowEventHandler?.unsubscribe()
 
   openInitialEmptyEditorIfNecessary: ->
+    return unless @config.get('core.openEmptyEditorOnStart')
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
       @workspace.open(null)
 
@@ -721,17 +743,12 @@ class Atom extends Model
   Section: Private
   ###
 
-  assert: (condition, message, metadata) ->
+  assert: (condition, message, callback) ->
     return true if condition
 
     error = new Error("Assertion failed: #{message}")
     Error.captureStackTrace(error, @assert)
-
-    if metadata?
-      if typeof metadata is 'function'
-        error.metadata = metadata()
-      else
-        error.metadata = metadata
+    callback?(error)
 
     @emitter.emit 'did-fail-assertion', error
 

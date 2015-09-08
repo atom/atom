@@ -11,6 +11,7 @@ Q = require 'q'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
+BufferedProcess = require './buffered-process'
 
 packagesCache = require('../package.json')?._atomPackages ? {}
 
@@ -67,6 +68,7 @@ class Package
   mainModulePath: null
   resolvedMainModulePath: false
   mainModule: null
+  mainActivated: false
 
   ###
   Section: Construction
@@ -122,7 +124,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @settingsPromise = @loadSettings()
-        @requireMainModule() unless @hasActivationCommands()
+        @requireMainModule() unless @mainModule? or @activationShouldBeDeferred()
       catch error
         @handleError("Failed to load the #{@name} package", error)
     this
@@ -133,6 +135,7 @@ class Package
     @menus = []
     @grammars = []
     @settings = []
+    @mainActivated = false
 
   activate: ->
     @grammarsPromise ?= @loadGrammars()
@@ -142,8 +145,8 @@ class Package
       @measure 'activateTime', =>
         try
           @activateResources()
-          if @hasActivationCommands()
-            @subscribeToActivationCommands()
+          if @activationShouldBeDeferred()
+            @subscribeToDeferredActivation()
           else
             @activateNow()
         catch error
@@ -155,7 +158,7 @@ class Package
     try
       @activateConfig()
       @activateStylesheets()
-      if @requireMainModule()
+      if @mainModule? and not @mainActivated
         @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
@@ -167,7 +170,7 @@ class Package
   activateConfig: ->
     return if @configActivated
 
-    @requireMainModule()
+    @requireMainModule() unless @mainModule?
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
@@ -198,7 +201,12 @@ class Package
 
   activateResources: ->
     @activationDisposables = new CompositeDisposable
-    @activationDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+
+    keymapIsDisabled = _.include(atom.config.get("core.packagesWithKeymapsDisabled") ? [], @name)
+    if keymapIsDisabled
+      @deactivateKeymaps()
+    else
+      @activateKeymaps()
 
     for [menuPath, map] in @menus when map['context-menu']?
       try
@@ -229,6 +237,30 @@ class Package
 
     settings.activate() for settings in @settings
     @settingsActivated = true
+
+  activateKeymaps: ->
+    return if @keymapActivated
+
+    @keymapDisposables = new CompositeDisposable()
+
+    @keymapDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    atom.menu.update()
+
+    @keymapActivated = true
+
+  deactivateKeymaps: ->
+    return if not @keymapActivated
+
+    @keymapDisposables?.dispose()
+    atom.menu.update()
+
+    @keymapActivated = false
+
+  hasKeymaps: ->
+    for [path, map] in @keymaps
+      if map.length > 0
+        return true
+    false
 
   activateServices: ->
     for name, {versions} of @metadata.providedServices
@@ -379,9 +411,11 @@ class Package
     @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
+    @deactivateKeymaps()
     if @mainActivated
       try
         @mainModule?.deactivate?()
+        @mainActivated = false
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
     @emit 'deactivated' if includeDeprecatedAPIs
@@ -396,6 +430,7 @@ class Package
     settings.deactivate() for settings in @settings
     @stylesheetDisposables?.dispose()
     @activationDisposables?.dispose()
+    @keymapDisposables?.dispose()
     @stylesheetsActivated = false
     @grammarsActivated = false
     @settingsActivated = false
@@ -443,10 +478,20 @@ class Package
           path.join(@path, 'index')
       @mainModulePath = fs.resolveExtension(mainModulePath, ["", _.keys(require.extensions)...])
 
+  activationShouldBeDeferred: ->
+    @hasActivationCommands() or @hasActivationHooks()
+
+  hasActivationHooks: ->
+    @getActivationHooks()?.length > 0
+
   hasActivationCommands: ->
     for selector, commands of @getActivationCommands()
       return true if commands.length > 0
     false
+
+  subscribeToDeferredActivation: ->
+    @subscribeToActivationCommands()
+    @subscribeToActivationHooks()
 
   subscribeToActivationCommands: ->
     @activationCommandSubscriptions = new CompositeDisposable
@@ -516,6 +561,27 @@ class Package
 
     @activationCommands
 
+  subscribeToActivationHooks: ->
+    @activationHookSubscriptions = new CompositeDisposable
+    for hook in @getActivationHooks()
+      do (hook) =>
+        @activationHookSubscriptions.add(atom.packages.onDidTriggerActivationHook(hook, => @activateNow())) if hook? and _.isString(hook) and hook.trim().length > 0
+
+    return
+
+  getActivationHooks: ->
+    return @activationHooks if @metadata? and @activationHooks?
+
+    @activationHooks = []
+
+    if @metadata.activationHooks?
+      if _.isArray(@metadata.activationHooks)
+        @activationHooks.push(@metadata.activationHooks...)
+      else if _.isString(@metadata.activationHooks)
+        @activationHooks.push(@metadata.activationHooks)
+
+    @activationHooks = _.uniq(@activationHooks)
+
   # Does the given module path contain native code?
   isNativeModule: (modulePath) ->
     try
@@ -538,6 +604,70 @@ class Package
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
 
+  ###
+  Section: Native Module Compatibility
+  ###
+
+  # Extended: Are all native modules depended on by this package correctly
+  # compiled against the current version of Atom?
+  #
+  # Incompatible packages cannot be activated.
+  #
+  # Returns a {Boolean}, true if compatible, false if incompatible.
+  isCompatible: ->
+    return @compatible if @compatible?
+
+    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+      # Bundled packages are always considered compatible
+      @compatible = true
+    else if @getMainModulePath()
+      @incompatibleModules = @getIncompatibleNativeModules()
+      @compatible = @incompatibleModules.length is 0 and not @getBuildFailureOutput()?
+    else
+      @compatible = true
+
+  # Extended: Rebuild native modules in this package's dependencies for the
+  # current version of Atom.
+  #
+  # Returns a {Promise} that resolves with an object containing `code`,
+  # `stdout`, and `stderr` properties based on the results of running
+  # `apm rebuild` on the package.
+  rebuild: ->
+    new Promise (resolve) =>
+      @runRebuildProcess (result) =>
+        if result.code is 0
+          global.localStorage.removeItem(@getBuildFailureOutputStorageKey())
+        else
+          @compatible = false
+          global.localStorage.setItem(@getBuildFailureOutputStorageKey(), result.stderr)
+        global.localStorage.setItem(@getIncompatibleNativeModulesStorageKey(), '[]')
+        resolve(result)
+
+  # Extended: If a previous rebuild failed, get the contents of stderr.
+  #
+  # Returns a {String} or null if no previous build failure occurred.
+  getBuildFailureOutput: ->
+    global.localStorage.getItem(@getBuildFailureOutputStorageKey())
+
+  runRebuildProcess: (callback) ->
+    stderr = ''
+    stdout = ''
+    new BufferedProcess({
+      command: atom.packages.getApmPath()
+      args: ['rebuild', '--no-color']
+      options: {cwd: @path}
+      stderr: (output) -> stderr += output
+      stdout: (output) -> stdout += output
+      exit: (code) -> callback({code, stdout, stderr})
+    })
+
+  getBuildFailureOutputStorageKey: ->
+    "installed-packages:#{@name}:#{@metadata.version}:build-error"
+
+  getIncompatibleNativeModulesStorageKey: ->
+    electronVersion = process.versions['electron'] ? process.versions['atom-shell']
+    "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
+
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that
   # contain a `.node` file.
@@ -545,11 +675,10 @@ class Package
   # This information is cached in local storage on a per package/version basis
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
-    localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
     unless atom.inDevMode()
       try
-        {incompatibleNativeModules} = JSON.parse(global.localStorage.getItem(localStorageKey)) ? {}
-      return incompatibleNativeModules if incompatibleNativeModules?
+        if arrayAsString = global.localStorage.getItem(@getIncompatibleNativeModulesStorageKey())
+          return JSON.parse(arrayAsString)
 
     incompatibleNativeModules = []
     for nativeModulePath in @getNativeModuleDependencyPaths()
@@ -564,27 +693,8 @@ class Package
           version: version
           error: error.message
 
-    global.localStorage.setItem(localStorageKey, JSON.stringify({incompatibleNativeModules}))
+    global.localStorage.setItem(@getIncompatibleNativeModulesStorageKey(), JSON.stringify(incompatibleNativeModules))
     incompatibleNativeModules
-
-  # Public: Is this package compatible with this version of Atom?
-  #
-  # Incompatible packages cannot be activated. This will include packages
-  # installed to ~/.atom/packages that were built against node 0.11.10 but
-  # now need to be upgrade to node 0.11.13.
-  #
-  # Returns a {Boolean}, true if compatible, false if incompatible.
-  isCompatible: ->
-    return @compatible if @compatible?
-
-    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
-      # Bundled packages are always considered compatible
-      @compatible = true
-    else if @getMainModulePath()
-      @incompatibleModules = @getIncompatibleNativeModules()
-      @compatible = @incompatibleModules.length is 0
-    else
-      @compatible = true
 
   handleError: (message, error) ->
     if error.filename and error.location and (error instanceof SyntaxError)

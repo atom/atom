@@ -47,9 +47,9 @@ class LineNumberGutterComponent extends TiledComponent
   beforeUpdateSync: (state) ->
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    if @newState.styles.scrollHeight isnt @oldState.styles.scrollHeight
-      @lineNumbersNode.style.height = @newState.styles.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
+    if @newState.styles.maxHeight isnt @oldState.styles.maxHeight
+      @lineNumbersNode.style.height = @newState.styles.maxHeight + 'px'
+      @oldState.maxHeight = @newState.maxHeight
 
     if @newState.styles.backgroundColor isnt @oldState.styles.backgroundColor
       @lineNumbersNode.style.backgroundColor = @newState.styles.backgroundColor

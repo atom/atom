@@ -44,6 +44,10 @@ class LinesTileComponent
       @domNode.style.backgroundColor = @newState.backgroundColor
       @oldState.backgroundColor = @newState.backgroundColor
 
+    if @newTileState.zIndex isnt @oldTileState.zIndex
+      @domNode.style.zIndex = @newTileState.zIndex
+      @oldTileState.zIndex = @newTileState.zIndex
+
     if @newTileState.display isnt @oldTileState.display
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
@@ -346,17 +350,44 @@ class LinesTileComponent
             rangeForMeasurement ?= document.createRange()
             iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
             textNode = iterator.nextNode()
+            textNodeLength = textNode.textContent.length
             textNodeIndex = 0
-            nextTextNodeIndex = textNode.textContent.length
+            nextTextNodeIndex = textNodeLength
 
           while nextTextNodeIndex <= charIndex
             textNode = iterator.nextNode()
+            textNodeLength = textNode.textContent.length
             textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNode.textContent.length
+            nextTextNodeIndex = textNodeIndex + textNodeLength
 
           i = charIndex - textNodeIndex
           rangeForMeasurement.setStart(textNode, i)
-          rangeForMeasurement.setEnd(textNode, i + charLength)
+
+          if i + charLength <= textNodeLength
+            rangeForMeasurement.setEnd(textNode, i + charLength)
+          else
+            rangeForMeasurement.setEnd(textNode, textNodeLength)
+            atom.assert false, "Expected index to be less than the length of text node while measuring", (error) =>
+              editor = @presenter.model
+              screenRow = tokenizedLine.screenRow
+              bufferRow = editor.bufferRowForScreenRow(screenRow)
+
+              error.metadata = {
+                grammarScopeName: editor.getGrammar().scopeName
+                screenRow: screenRow
+                bufferRow: bufferRow
+                softWrapped: editor.isSoftWrapped()
+                softTabs: editor.getSoftTabs()
+                i: i
+                charLength: charLength
+                textNodeLength: textNode.length
+              }
+              error.privateMetadataDescription = "The contents of line #{bufferRow + 1}."
+              error.privateMetadata = {
+                lineText: editor.lineTextForBufferRow(bufferRow)
+              }
+              error.privateMetadataRequestName = "measured-line-text"
+
           charWidth = rangeForMeasurement.getBoundingClientRect().width
           @presenter.setScopedCharacterWidth(scopes, char, charWidth)
 

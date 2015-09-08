@@ -23,6 +23,7 @@ class TokenizedBuffer extends Model
   invalidRows: null
   visible: false
   configSettings: null
+  changeCount: 0
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -67,15 +68,15 @@ class TokenizedBuffer extends Model
     if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
-      newScore = grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
+      newScore = atom.grammars.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
-    return if grammar is @grammar
+    return unless grammar? and grammar isnt @grammar
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
+    @currentGrammarScore = score ? atom.grammars.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
@@ -102,8 +103,7 @@ class TokenizedBuffer extends Model
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-
-    @emit 'grammar-changed', grammar if Grim.includeDeprecatedAPIs
+    atom.packages.triggerActivationHook("#{grammar.packageName}:grammar-used")
     @emitter.emit 'did-change-grammar', grammar
 
   getGrammarSelectionContent: ->
@@ -229,6 +229,8 @@ class TokenizedBuffer extends Model
         row + delta
 
   handleBufferChange: (e) ->
+    @changeCount = @buffer.changeCount
+
     {oldRange, newRange} = e
     start = oldRange.start.row
     end = oldRange.end.row
@@ -296,10 +298,14 @@ class TokenizedBuffer extends Model
     # undefined. This should paper over the problem but we want to figure out
     # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    atom.assert tokenizedLine?, "TokenizedLine is defined", =>
-      metadata:
+    atom.assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
+      error.metadata = {
         row: row
         rowCount: @tokenizedLines.length
+        tokenizedBufferChangeCount: @changeCount
+        bufferChangeCount: @buffer.changeCount
+      }
+
     return false unless tokenizedLine?
 
     return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
@@ -377,7 +383,7 @@ class TokenizedBuffer extends Model
 
   openScopesForRow: (bufferRow) ->
     if bufferRow > 0
-      precedingLine = @tokenizedLines[bufferRow - 1]
+      precedingLine = @tokenizedLineForRow(bufferRow - 1)
       @scopesFromTags(precedingLine.openScopes, precedingLine.tags)
     else
       []
@@ -388,20 +394,21 @@ class TokenizedBuffer extends Model
       if (tag % 2) is -1
         scopes.push(tag)
       else
-        expectedScope = tag + 1
-        poppedScope = scopes.pop()
-        unless poppedScope is expectedScope
-          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
-          error.metadata = {
-            grammarScopeName: @grammar.scopeName
-          }
-          path = require 'path'
-          error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
-          error.privateMetadata = {
-            filePath: @buffer.getPath()
-            fileContents: @buffer.getText()
-          }
-          throw error
+        matchingStartTag = tag + 1
+        loop
+          break if scopes.pop() is matchingStartTag
+          if scopes.length is 0
+            atom.assert false, "Encountered an unmatched scope end tag.", (error) =>
+              error.metadata = {
+                grammarScopeName: @grammar.scopeName
+                unmatchedEndTag: @grammar.scopeForId(tag)
+              }
+              path = require 'path'
+              error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
+              error.privateMetadata = {
+                filePath: @buffer.getPath()
+                fileContents: @buffer.getText()
+              }
     scopes
 
   indentLevelForRow: (bufferRow) ->
@@ -444,9 +451,9 @@ class TokenizedBuffer extends Model
       0
 
   scopeDescriptorForPosition: (position) ->
-    {row, column} = Point.fromObject(position)
+    {row, column} = @buffer.clipPosition(Point.fromObject(position))
 
-    iterator = @tokenizedLines[row].getTokenIterator()
+    iterator = @tokenizedLineForRow(row).getTokenIterator()
     while iterator.next()
       if iterator.getBufferEnd() > column
         scopes = iterator.getScopes()
@@ -483,7 +490,7 @@ class TokenizedBuffer extends Model
           scopes.pop()
       else
         endColumn = startColumn + tag
-        if endColumn > position.column
+        if endColumn >= position.column
           break
         else
           startColumn = endColumn

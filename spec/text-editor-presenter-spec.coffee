@@ -559,6 +559,18 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> advanceClock(100)
           expect(presenter.getState().content.scrollingVertically).toBe false
 
+      describe ".maxHeight", ->
+        it "changes based on boundingClientRect", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
+
+          expectStateUpdate presenter, ->
+            presenter.setBoundingClientRect(left: 0, top: 0, height: 20, width: 0)
+          expect(presenter.getState().content.maxHeight).toBe(20)
+
+          expectStateUpdate presenter, ->
+            presenter.setBoundingClientRect(left: 0, top: 0, height: 50, width: 0)
+          expect(presenter.getState().content.maxHeight).toBe(50)
+
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
@@ -940,10 +952,10 @@ describe "TextEditorPresenter", ->
 
           describe ".decorationClasses", ->
             it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
-              marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+              marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
               decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
               presenter = buildPresenter()
-              marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+              marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
               decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
 
               expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
@@ -1202,7 +1214,7 @@ describe "TextEditorPresenter", ->
 
           # showing
           expectStateUpdate presenter, -> editor.getSelections()[1].clear()
-          expect(stateForCursor(presenter, 1)).toEqual {top: 5, left: 5 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 1)).toEqual {top: 0, left: 5 * 10, width: 10, height: 10}
 
           # hiding
           expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 5]])
@@ -1214,11 +1226,11 @@ describe "TextEditorPresenter", ->
 
           # adding
           expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([4, 4])
-          expect(stateForCursor(presenter, 2)).toEqual {top: 5, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toEqual {top: 0, left: 4 * 10, width: 10, height: 10}
 
           # moving added cursor
           expectStateUpdate presenter, -> editor.getCursors()[2].setBufferPosition([4, 6])
-          expect(stateForCursor(presenter, 2)).toEqual {top: 5, left: 6 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toEqual {top: 0, left: 6 * 10, width: 10, height: 10}
 
           # destroying
           destroyedCursor = editor.getCursors()[2]
@@ -1637,7 +1649,7 @@ describe "TextEditorPresenter", ->
           presenter.getState().content.overlays[decoration.id]
 
         it "contains state for overlay decorations both initially and when their markers move", ->
-          marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
+          marker = editor.markBufferPosition([2, 13], invalidate: 'touch', maintainHistory: true)
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
 
@@ -2093,10 +2105,10 @@ describe "TextEditorPresenter", ->
 
             describe ".decorationClasses", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
-                marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+                marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
                 decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
                 presenter = buildPresenter()
-                marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
+                marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
                 decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
 
                 expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
@@ -2299,6 +2311,17 @@ describe "TextEditorPresenter", ->
             expect(decorationState[decoration2.id].class).toBe 'test-class'
 
             expect(decorationState[decoration3.id]).toBeUndefined()
+
+          it "updates all the gutters, even when a gutter with higher priority is hidden", ->
+            hiddenGutter = {name: 'test-gutter-1', priority: -150, visible: false}
+            editor.addGutter(hiddenGutter)
+
+            # This update will scroll decoration1 out of view, and decoration3 into view.
+            expectStateUpdate presenter, -> presenter.setScrollTop(scrollTop + lineHeight * 5)
+
+            decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id]).toBeUndefined()
+            expect(decorationState[decoration3.id].top).toBeDefined()
 
           it "updates when ::scrollTop changes", ->
             # This update will scroll decoration1 out of view, and decoration3 into view.

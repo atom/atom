@@ -15,6 +15,7 @@ describe "Workspace", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     atom.workspace = workspace = new Workspace
+    waits(1)
 
   describe "::open(uri, options)", ->
     openEvents = null
@@ -223,6 +224,44 @@ describe "Workspace", ->
               expect(pane4.items).toEqual [editor]
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
+
+    describe "when an initialLine and initialColumn are specified", ->
+      it "moves the cursor to the indicated location", ->
+        waitsForPromise ->
+          workspace.open('a', initialLine: 1, initialColumn: 5)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [1, 5]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: 2, initialColumn: 4)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [2, 4]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: 0, initialColumn: 0)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [0, 0]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: NaN, initialColumn: 4)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [0, 4]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: 2, initialColumn: NaN)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [2, 0]
+
+        waitsForPromise ->
+          workspace.open('a', initialLine: Infinity, initialColumn: Infinity)
+
+        runs ->
+          expect(workspace.getActiveTextEditor().getCursorBufferPosition()).toEqual [2, 11]
 
     describe "when the file is over 2MB", ->
       it "opens the editor with largeFileMode: true", ->

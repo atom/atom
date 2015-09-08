@@ -73,25 +73,35 @@ class Pane extends Model
     @flexScale
 
   getFlexScale: -> @flexScale
+
+  increaseSize: -> @setFlexScale(@getFlexScale() * 1.1)
+
+  decreaseSize: -> @setFlexScale(@getFlexScale() / 1.1)
+
   ###
   Section: Event Subscription
   ###
 
-  # Public: Invoke the given callback when the pane resize
+  # Public: Invoke the given callback when the pane resizes
   #
-  # the callback will be invoked when pane's flexScale property changes
+  # The callback will be invoked when pane's flexScale property changes.
+  # Use {::getFlexScale} to get the current value.
   #
   # * `callback` {Function} to be called when the pane is resized
+  #   * `flexScale` {Number} representing the panes `flex-grow`; ability for a
+  #     flex item to grow if necessary.
   #
   # Returns a {Disposable} on which '.dispose()' can be called to unsubscribe.
   onDidChangeFlexScale: (callback) ->
     @emitter.on 'did-change-flex-scale', callback
 
-  # Public: Invoke the given callback with all current and future items.
+  # Public: Invoke the given callback with the current and future values of
+  # {::getFlexScale}.
   #
-  # * `callback` {Function} to be called with current and future items.
-  #   * `item` An item that is present in {::getItems} at the time of
-  #     subscription or that is added at some later time.
+  # * `callback` {Function} to be called with the current and future values of
+  #   the {::getFlexScale} property.
+  #   * `flexScale` {Number} representing the panes `flex-grow`; ability for a
+  #     flex item to grow if necessary.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeFlexScale: (callback) ->
@@ -108,6 +118,14 @@ class Pane extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidActivate: (callback) ->
     @emitter.on 'did-activate', callback
+
+  # Public: Invoke the given callback before the pane is destroyed.
+  #
+  # * `callback` {Function} to be called before the pane is destroyed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onWillDestroy: (callback) ->
+    @emitter.on 'will-destroy', callback
 
   # Public: Invoke the given callback when the pane is destroyed.
   #
@@ -491,7 +509,7 @@ class Pane extends Model
       try
         item.save?()
       catch error
-        @handleSaveError(error)
+        @handleSaveError(error, item)
       nextAction?()
     else
       @saveItemAs(item, nextAction)
@@ -512,7 +530,7 @@ class Pane extends Model
       try
         item.saveAs(newItemPath)
       catch error
-        @handleSaveError(error)
+        @handleSaveError(error, item)
       nextAction?()
 
   # Public: Save all items.
@@ -534,6 +552,8 @@ class Pane extends Model
       itemUri is uri
 
   # Public: Activate the first item that matches the given URI.
+  #
+  # * `uri` {String} containing a URI.
   #
   # Returns a {Boolean} indicating whether an item matching the URI was found.
   activateItemForURI: (uri) ->
@@ -573,6 +593,8 @@ class Pane extends Model
     if @container?.isAlive() and @container.getPanes().length is 1
       @destroyItems()
     else
+      @emitter.emit 'will-destroy'
+      @container?.willDestroyPane(pane: this)
       super
 
   # Called by model superclass.
@@ -676,19 +698,34 @@ class Pane extends Model
       return false unless @promptToSaveItem(item)
     true
 
-  handleSaveError: (error) ->
+  handleSaveError: (error, item) ->
+    itemPath = error.path ? item?.getPath?()
+    addWarningWithPath = (message, options) ->
+      message = "#{message} '#{itemPath}'" if itemPath
+      atom.notifications.addWarning(message, options)
+
     if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
       atom.notifications.addWarning("Unable to save file: #{error.message}")
-    else if error.code is 'EACCES' and error.path?
-      atom.notifications.addWarning("Unable to save file: Permission denied '#{error.path}'")
-    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST'] and error.path?
-      atom.notifications.addWarning("Unable to save file '#{error.path}'", detail: error.message)
-    else if error.code is 'EROFS' and error.path?
-      atom.notifications.addWarning("Unable to save file: Read-only file system '#{error.path}'")
-    else if error.code is 'ENOSPC' and error.path?
-      atom.notifications.addWarning("Unable to save file: No space left on device '#{error.path}'")
-    else if error.code is 'ENXIO' and error.path?
-      atom.notifications.addWarning("Unable to save file: No such device or address '#{error.path}'")
+    else if error.code is 'EACCES'
+      addWarningWithPath('Unable to save file: Permission denied')
+    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST']
+      addWarningWithPath('Unable to save file', detail: error.message)
+    else if error.code is 'EROFS'
+      addWarningWithPath('Unable to save file: Read-only file system')
+    else if error.code is 'ENOSPC'
+      addWarningWithPath('Unable to save file: No space left on device')
+    else if error.code is 'ENXIO'
+      addWarningWithPath('Unable to save file: No such device or address')
+    else if error.code is 'ENOTSUP'
+      addWarningWithPath('Unable to save file: Operation not supported on socket')
+    else if error.code is 'EIO'
+      addWarningWithPath('Unable to save file: I/O error writing file')
+    else if error.code is 'EINTR'
+      addWarningWithPath('Unable to save file: Interrupted system call')
+    else if error.code is 'ECONNRESET'
+      addWarningWithPath('Unable to save file: Connection reset')
+    else if error.code is 'ESPIPE'
+      addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
