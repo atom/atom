@@ -78,7 +78,7 @@ jasmine.JQuery.matchersClass = {};
     toHaveHtml: function(html) {
       var actualHTML;
       if (this.actual instanceof HTMLElement) {
-        actualHTML = this.actual.outerHTML
+        actualHTML = this.actual.innerHTML
       } else {
         actualHTML = this.actual.html()
       }
