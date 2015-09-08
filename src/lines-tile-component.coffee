@@ -113,8 +113,8 @@ class LinesTileComponent
       while oldLineNode = oldLineNodes.shift()
         break if @screenRowForNode(newLineNode) < @screenRowForNode(oldLineNode)
 
-      lineId = @lineIdsByScreenRow[newLineNode.dataset.screenRow]
-      @lineNodesByLineId[lineId] = newLineNode
+      id = @lineIdsByScreenRow[newLineNode.dataset.screenRow]
+      @lineNodesByLineId[id] = newLineNode
       if oldLineNode?
         @domNode.insertBefore(newLineNode, oldLineNode)
       else
