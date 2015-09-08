@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{Disposable} = require 'event-kit'
+{Disposable, CompositeDisposable} = require 'event-kit'
 Tooltip = null
 
 # Essential: Associates tooltips with HTML elements or selectors.
@@ -71,6 +71,11 @@ class TooltipManager
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # tooltip.
   add: (target, options) ->
+    if target.jquery
+      disposable = new CompositeDisposable
+      disposable.add @add(element, options) for element in target
+      return disposable
+
     Tooltip ?= require './tooltip'
 
     {keyBindingCommand, keyBindingTarget} = options

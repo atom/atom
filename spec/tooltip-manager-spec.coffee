@@ -28,6 +28,24 @@ describe "TooltipManager", ->
       hover element, ->
         expect(document.body.querySelector(".tooltip")).toHaveText("Title")
 
+    it "allows jQuery elements to be passed as the target", ->
+      element2 = document.createElement('div')
+      jasmine.attachToDOM(element2)
+
+      fakeJqueryWrapper = [element, element2]
+      fakeJqueryWrapper.jquery = 'any-version'
+      disposable = manager.add fakeJqueryWrapper, title: "Title"
+
+      hover element, -> expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+      expect(document.body.querySelector(".tooltip")).toBeNull()
+      hover element2, -> expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+      expect(document.body.querySelector(".tooltip")).toBeNull()
+
+      disposable.dispose()
+
+      hover element, -> expect(document.body.querySelector(".tooltip")).toBeNull()
+      hover element2, -> expect(document.body.querySelector(".tooltip")).toBeNull()
+
     describe "when a selector is specified", ->
       it "creates a tooltip when hovering over a descendant of the target that matches the selector", ->
         child = document.createElement('div')
