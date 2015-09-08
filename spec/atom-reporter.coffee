@@ -175,9 +175,6 @@ class AtomReporter
 
     @reloadButton.addEventListener('click', -> require('ipc').send('call-window-method', 'restart'))
 
-    document.addEventListener 'keydown', (event) ->
-      console.log event
-
   updateSpecCounts: ->
     if @skippedCount
       specCount = "#{@completeSpecCount - @skippedCount}/#{@totalSpecCount - @skippedCount} (#{@skippedCount} skipped)"
