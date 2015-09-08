@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {Disposable} = require 'event-kit'
+Tooltip = null
 
 # Essential: Associates tooltips with HTML elements or selectors.
 #
@@ -70,7 +71,7 @@ class TooltipManager
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # tooltip.
   add: (target, options) ->
-    Tooltip = require './tooltip'
+    Tooltip ?= require './tooltip'
 
     {keyBindingCommand, keyBindingTarget} = options
 
