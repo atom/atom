@@ -129,7 +129,7 @@ class LineNumbersTileComponent
       oldLineNumberState.zIndex = newLineNumberState.zIndex
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
-    className = "line-number line-number-#{bufferRow}"
+    className = "line-number"
     className += " " + decorationClasses.join(' ') if decorationClasses?
     className += " foldable" if foldable and not softWrapped
     className
