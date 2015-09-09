@@ -16,7 +16,6 @@
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^5.1.10",
-    "atom-space-pen-views": "^2.1.0",
     "babel-core": "^5.8.21",
     "bootstrap": "^3.3.4",
     "clear-cut": "^2.0.1",
@@ -53,7 +52,6 @@
     "serializable": "^1",
     "service-hub": "^0.6.2",
     "source-map-support": "^0.3.2",
-    "space-pen": "3.8.2",
     "stacktrace-parser": "0.1.1",
     "temp": "0.8.1",
     "text-buffer": "6.7.2",
