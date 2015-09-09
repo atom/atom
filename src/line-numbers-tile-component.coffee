@@ -103,7 +103,7 @@ class LineNumbersTileComponent
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNumberHTML: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
+    {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
     className = @buildLineNumberClassName(lineNumberState)
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
 
