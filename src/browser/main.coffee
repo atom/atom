@@ -1,5 +1,9 @@
 global.shellStartTime = Date.now()
 
+process.on 'uncaughtException', (error={}) ->
+  console.log(error.message) if error.message?
+  console.log(error.stack) if error.stack?
+
 crashReporter = require 'crash-reporter'
 app = require 'app'
 fs = require 'fs-plus'
@@ -8,7 +12,6 @@ yargs = require 'yargs'
 console.log = require 'nslog'
 
 start = ->
-  setupUncaughtExceptionHandler()
   setupAtomHome()
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
@@ -44,11 +47,6 @@ normalizeDriveLetterName = (filePath) ->
     filePath.replace /^([a-z]):/, ([driveLetter]) -> driveLetter.toUpperCase() + ":"
   else
     filePath
-
-setupUncaughtExceptionHandler = ->
-  process.on 'uncaughtException', (error={}) ->
-    console.log(error.message) if error.message?
-    console.log(error.stack) if error.stack?
 
 handleStartupEventWithSquirrel = ->
   return false unless process.platform is 'win32'
