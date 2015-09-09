@@ -77,32 +77,33 @@ class LineNumbersTileComponent
         @lineNumberIdsByScreenRow[lineNumberState.screenRow] = id
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
-    if newLineNumberIds?
-      WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = _.toArray(WrapperDiv.children)
-      newLineNumberNodes = _.sortBy(newLineNumberNodes, @screenRowForNode)
-      while newNode = newLineNumberNodes.shift()
-        oldLineNumberNodes = _.toArray(@domNode.children)
-        while oldNode = oldLineNumberNodes.shift()
-          break if @screenRowForNode(newNode) < @screenRowForNode(oldNode)
+    return unless newLineNumberIds?
 
-        id = @lineNumberIdsByScreenRow[newNode.dataset.screenRow]
-        @lineNumberNodesById[id] = newNode
-        if oldNode?
-          @domNode.insertBefore(newNode, oldNode)
-        else
-          @domNode.appendChild(newNode)
+    WrapperDiv.innerHTML = newLineNumbersHTML
+    newLineNumberNodes = _.toArray(WrapperDiv.children)
+    @insertNodes(newLineNumberNodes)
 
+  insertNodes: (lineNumberNodes) ->
+    lineNumberNodes = _.sortBy(lineNumberNodes, @screenRowForNode)
+    while newNode = lineNumberNodes.shift()
+      id = @lineNumberIdsByScreenRow[newNode.dataset.screenRow]
+
+      domNodes = _.toArray(@domNode.children)
+      while nextNode = domNodes.shift()
+        break if @screenRowForNode(newNode) < @screenRowForNode(nextNode)
+
+      if nextNode?
+        @domNode.insertBefore(newNode, nextNode)
+      else
+        @domNode.appendChild(newNode)
+
+      @lineNumberNodesById[id] = newNode
     return
 
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNumberHTML: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
-    if screenRow?
-      style = "position: absolute; top: #{top}px; z-index: #{zIndex};"
-    else
-      style = "visibility: hidden;"
     className = @buildLineNumberClassName(lineNumberState)
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
 

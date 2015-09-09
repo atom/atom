@@ -106,20 +106,23 @@ class LinesTileComponent
 
     WrapperDiv.innerHTML = newLinesHTML
     newLineNodes = _.toArray(WrapperDiv.children)
-    newLineNodes = _.sortBy(newLineNodes, @screenRowForNode)
+    @insertLineNodes(newLineNodes)
 
-    while newLineNode = newLineNodes.shift()
-      oldLineNodes = _.rest(@domNode.children) # skips highlights node
-      while oldLineNode = oldLineNodes.shift()
-        break if @screenRowForNode(newLineNode) < @screenRowForNode(oldLineNode)
+  insertLineNodes: (lineNodes) ->
+    lineNodes = _.sortBy(lineNodes, @screenRowForNode)
+    while newNode = lineNodes.shift()
+      id = @lineIdsByScreenRow[newNode.dataset.screenRow]
 
-      id = @lineIdsByScreenRow[newLineNode.dataset.screenRow]
-      @lineNodesByLineId[id] = newLineNode
-      if oldLineNode?
-        @domNode.insertBefore(newLineNode, oldLineNode)
+      domNodes = _.rest(@domNode.children) # skips highlights node
+      while nextNode = domNodes.shift()
+        break if @screenRowForNode(newNode) < @screenRowForNode(nextNode)
+
+      if nextNode?
+        @domNode.insertBefore(newNode, nextNode)
       else
-        @domNode.appendChild(newLineNode)
+        @domNode.appendChild(newNode)
 
+      @lineNodesByLineId[id] = newNode
     return
 
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
