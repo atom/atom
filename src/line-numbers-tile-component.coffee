@@ -130,7 +130,7 @@ class LineNumbersTileComponent
       oldLineNumberState.foldable = newLineNumberState.foldable
       oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
-    unless oldLineNumberState.screenRow is newLineNumberState.screenRow or oldLineNumberState.bufferRow is newLineNumberState.bufferRow
+    unless oldLineNumberState.screenRow is newLineNumberState.screenRow and oldLineNumberState.bufferRow is newLineNumberState.bufferRow
       node.innerHTML = @buildLineNumberInnerHTML(newLineNumberState.bufferRow, newLineNumberState.softWrapped)
       node.dataset.screenRow = newLineNumberState.screenRow
       node.dataset.bufferRow = newLineNumberState.bufferRow
