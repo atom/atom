@@ -62,6 +62,8 @@ function bootstrap() {
     'temp'
   ];
 
+  process.env.ATOM_RESOURCE_PATH = path.resolve(__dirname, '..');
+
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
   var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
