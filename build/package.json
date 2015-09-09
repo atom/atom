@@ -11,7 +11,7 @@
     "donna": "1.0.10",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
-    "github-releases": "~0.2.0",
+    "github-releases": "~0.3.0",
     "glob": "^5.0.14",
     "grunt": "~0.4.1",
     "grunt-babel": "^5.0.1",
