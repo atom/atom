@@ -154,11 +154,15 @@ var jQueryMatchers = {
     }
   },
 
-  toContain: function(selector) {
+  toContain: function(contained) {
     if (this.actual instanceof HTMLElement) {
-      return !!this.actual.querySelector(selector)
+      if (typeof contained === 'string') {
+        return this.actual.querySelector(contained)
+      } else {
+        return this.actual.contains(contained)
+      }
     } else {
-      return this.actual.find(selector).size() > 0
+      return this.actual.find(contained).size() > 0
     }
   },
 
