@@ -20,7 +20,7 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileSize ?= 4
+    @tileSize ?= 6
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -1282,8 +1282,7 @@ class TextEditorPresenter
     true
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - tileStartRow * @lineHeight
-    region.left += @scrollLeft
+    region.top -= tileStartRow * @lineHeight
 
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @lineHeight
