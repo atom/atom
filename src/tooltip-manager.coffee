@@ -22,7 +22,7 @@ _ = require 'underscore-plus'
 # CompositeDisposable
 #
 # ```coffee
-# {CompositeDisposable} = require 'atom'
+# {CompositeDisposable} = require 'event-kit'
 # subscriptions = new CompositeDisposable
 #
 # div1 = document.createElement('div')
