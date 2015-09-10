@@ -31,15 +31,14 @@ class TokenIterator
     while @index < tags.length
       tag = tags[@index]
       if tag < 0
+        scope = atom.grammars.scopeForId(tag)
         if tag % 2 is 0
-          scopeName = atom.grammars.scopeForId(tag + 1)
-          if @scopeStarts[@scopeStarts.length - 1] is scopeName
+          if @scopeStarts[@scopeStarts.length - 1] is scope
             @scopeStarts.pop()
           else
-            @scopeEnds.push(scopeName)
+            @scopeEnds.push(scope)
           @scopes.pop()
         else
-          scope = atom.grammars.scopeForId(tag)
           @scopeStarts.push(scope)
           @scopes.push(scope)
         @index++
