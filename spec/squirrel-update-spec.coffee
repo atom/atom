@@ -15,7 +15,7 @@ describe "Windows squirrel updates", ->
 
     # Prevent any commands from actually running and affecting the host
     originalSpawn = Spawner.spawn
-    spyOn(Spawner, 'spawn').andCallFake (command, args) ->
+    spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
       if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
         fs.writeFileSync(path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk'), '')
 
@@ -25,15 +25,8 @@ describe "Windows squirrel updates", ->
       else
         originalSpawn('ls')
 
-  it "ignores errors spawning Squirrel", ->
-    jasmine.unspy(Spawner, 'spawn')
-    spyOn(Spawner, 'spawn').andCallFake -> throw new Error("EBUSY")
-
-    app = quit: jasmine.createSpy('quit')
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
-
-    waitsFor ->
-      app.quit.callCount is 1
+      # Finally, run following callback
+      callback?
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
