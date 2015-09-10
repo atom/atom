@@ -39,30 +39,17 @@ class LinesTileComponent
     @newTileState = @newState.tiles[@id]
     @oldTileState = @oldState.tiles[@id]
 
-    if @newState.backgroundColor isnt @oldState.backgroundColor
-      @domNode.style.backgroundColor = @newState.backgroundColor
-      @oldState.backgroundColor = @newState.backgroundColor
-
-    if @newTileState.zIndex isnt @oldTileState.zIndex
-      @domNode.style.zIndex = @newTileState.zIndex
-      @oldTileState.zIndex = @newTileState.zIndex
-
     if @newTileState.display isnt @oldTileState.display
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
 
-    if @newTileState.height isnt @oldTileState.height
-      @domNode.style.height = @newTileState.height + 'px'
-      @oldTileState.height = @newTileState.height
+    if @newTileState.top isnt @oldTileState.top
+      @domNode.style.top = @newTileState.top + "px"
+      @oldTileState.top = @newTileState.top
 
     if @newState.width isnt @oldState.width
-      @domNode.style.width = @newState.width + 'px'
-      @oldTileState.width = @newTileState.width
-
-    if @newTileState.top isnt @oldTileState.top or @newTileState.left isnt @oldTileState.left
-      @domNode.style['-webkit-transform'] = "translate3d(#{@newTileState.left}px, #{@newTileState.top}px, 0px)"
-      @oldTileState.top = @newTileState.top
-      @oldTileState.left = @newTileState.left
+      @domNode.style.width = @newState.width + "px"
+      @oldState.width = @newState.width
 
     @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()

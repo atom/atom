@@ -30,21 +30,9 @@ class LineNumbersTileComponent
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display
 
-    if @newState.styles.backgroundColor isnt @oldState.styles.backgroundColor
-      @domNode.style.backgroundColor = @newState.styles.backgroundColor
-      @oldState.styles.backgroundColor = @newState.styles.backgroundColor
-
-    if @newTileState.height isnt @oldTileState.height
-      @domNode.style.height = @newTileState.height + 'px'
-      @oldTileState.height = @newTileState.height
-
     if @newTileState.top isnt @oldTileState.top
-      @domNode.style['-webkit-transform'] = "translate3d(0, #{@newTileState.top}px, 0px)"
+      @domNode.style.top = @newTileState.top + "px"
       @oldTileState.top = @newTileState.top
-
-    if @newTileState.zIndex isnt @oldTileState.zIndex
-      @domNode.style.zIndex = @newTileState.zIndex
-      @oldTileState.zIndex = @newTileState.zIndex
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       node.remove() for id, node of @lineNumberNodesById

@@ -796,10 +796,10 @@ class TextEditorComponent
     {clientX, clientY} = event
 
     linesClientRect ?= @linesComponent.getDomNode().getBoundingClientRect()
-    top = clientY - linesClientRect.top + @presenter.scrollTop
-    left = clientX - linesClientRect.left + @presenter.scrollLeft
-    bottom = linesClientRect.top + @presenter.scrollTop + linesClientRect.height - clientY
-    right = linesClientRect.left + @presenter.scrollLeft + linesClientRect.width - clientX
+    top = clientY - linesClientRect.top
+    left = clientX - linesClientRect.left
+    bottom = linesClientRect.top + linesClientRect.height - clientY
+    right = linesClientRect.left + linesClientRect.width - clientX
 
     {top, left, bottom, right}
 

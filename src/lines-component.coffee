@@ -35,9 +35,14 @@ class LinesComponent extends TiledComponent
     @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible
 
   beforeUpdateSync: (state) ->
-    if @newState.maxHeight isnt @oldState.maxHeight
-      @domNode.style.height = @newState.maxHeight + 'px'
-      @oldState.maxHeight = @newState.maxHeight
+    if @newState.scrollHeight isnt @oldState.scrollHeight
+      @domNode.style.height = @newState.scrollHeight + 'px'
+      @oldState.scrollHeight = @newState.scrollHeight
+
+    if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
+      @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, #{-@newState.scrollTop}px, 0px)"
+      @oldState.scrollTop = @newState.scrollTop
+      @oldState.scrollLeft = @newState.scrollLeft
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor
