@@ -132,7 +132,15 @@ var jQueryMatchers = {
 
   toHaveData: function(key, expectedValue) {
     if (this.actual instanceof HTMLElement) {
-      return hasProperty(this.actual.dataset[key], expectedValue)
+      var camelCaseKey
+      for (var part of key.split('-')) {
+        if (camelCaseKey) {
+          camelCaseKey += part[0].toUpperCase() + part.substring(1)
+        } else {
+          camelCaseKey = part
+        }
+      }
+      return hasProperty(this.actual.dataset[camelCaseKey], expectedValue)
     } else {
       return hasProperty(this.actual.data(key), expectedValue)
     }
