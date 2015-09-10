@@ -1,8 +1,9 @@
-ChildProcess = require 'child_process'
 {EventEmitter} = require 'events'
 fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
+Spawner = require '../src/browser/spawner'
+WinRegistry = require '../src/browser/win-registry'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 
 describe "Windows squirrel updates", ->
@@ -13,9 +14,9 @@ describe "Windows squirrel updates", ->
     tempHomeDirectory = temp.mkdirSync('atom-temp-home-')
     spyOn(fs, 'getHomeDirectory').andReturn(tempHomeDirectory)
 
-    # Prevent any commands from actually running and affecting the host
-    originalSpawn = ChildProcess.spawn
-    spyOn(ChildProcess, 'spawn').andCallFake (command, args) ->
+    # Prevent any spawned command from actually running and affecting the host
+    originalSpawn = Spawner.spawn
+    spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
       if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
         fs.writeFileSync(path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk'), '')
 
@@ -25,15 +26,17 @@ describe "Windows squirrel updates", ->
       else
         originalSpawn('ls')
 
-  it "ignores errors spawning Squirrel", ->
-    jasmine.unspy(ChildProcess, 'spawn')
-    spyOn(ChildProcess, 'spawn').andCallFake -> throw new Error("EBUSY")
+      # Then run passed callback
+      error = null
+      stdout = ''
+      callback?(error, stdout)
 
-    app = quit: jasmine.createSpy('quit')
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
-
-    waitsFor ->
-      app.quit.callCount is 1
+    # Prevent any actual change to Windows registr, just run passed callback
+    for key, value of WinRegistry
+      spyOn(WinRegistry, key).andCallFake (callback) ->
+        error = null
+        stdout = ''
+        callback?(error, stdout)
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
@@ -98,7 +101,7 @@ describe "Windows squirrel updates", ->
       SquirrelUpdate.restartAtom(app)
       expect(app.quit.callCount).toBe 1
 
-      expect(ChildProcess.spawn.callCount).toBe 0
+      expect(Spawner.spawn.callCount).toBe 0
       app.emit('will-quit')
-      expect(ChildProcess.spawn.callCount).toBe 1
-      expect(path.basename(ChildProcess.spawn.argsForCall[0][0])).toBe 'atom.cmd'
+      expect(Spawner.spawn.callCount).toBe 1
+      expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'
