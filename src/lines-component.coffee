@@ -13,6 +13,8 @@ class LinesComponent extends TiledComponent
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
+    @domNode.style.height = "1000000px"
+
     @tilesNode = document.createElement("div")
     # Create a new stacking context, so that tiles z-index does not interfere
     # with other visual elements.
@@ -35,10 +37,6 @@ class LinesComponent extends TiledComponent
     @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible
 
   beforeUpdateSync: (state) ->
-    if @newState.scrollHeight isnt @oldState.scrollHeight
-      @domNode.style.height = @newState.scrollHeight + 'px'
-      @oldState.scrollHeight = @newState.scrollHeight
-
     if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
       @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, #{-@newState.scrollTop}px, 0px)"
       @oldState.scrollTop = @newState.scrollTop
