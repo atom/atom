@@ -1,8 +1,8 @@
-ChildProcess = require 'child_process'
 {EventEmitter} = require 'events'
 fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
+Spawner = require '../src/browser/spawner'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 
 describe "Windows squirrel updates", ->
@@ -14,8 +14,8 @@ describe "Windows squirrel updates", ->
     spyOn(fs, 'getHomeDirectory').andReturn(tempHomeDirectory)
 
     # Prevent any commands from actually running and affecting the host
-    originalSpawn = ChildProcess.spawn
-    spyOn(ChildProcess, 'spawn').andCallFake (command, args) ->
+    originalSpawn = Spawner.spawn
+    spyOn(Spawner, 'spawn').andCallFake (command, args) ->
       if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
         fs.writeFileSync(path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk'), '')
 
@@ -26,8 +26,8 @@ describe "Windows squirrel updates", ->
         originalSpawn('ls')
 
   it "ignores errors spawning Squirrel", ->
-    jasmine.unspy(ChildProcess, 'spawn')
-    spyOn(ChildProcess, 'spawn').andCallFake -> throw new Error("EBUSY")
+    jasmine.unspy(Spawner, 'spawn')
+    spyOn(Spawner, 'spawn').andCallFake -> throw new Error("EBUSY")
 
     app = quit: jasmine.createSpy('quit')
     expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
@@ -98,7 +98,7 @@ describe "Windows squirrel updates", ->
       SquirrelUpdate.restartAtom(app)
       expect(app.quit.callCount).toBe 1
 
-      expect(ChildProcess.spawn.callCount).toBe 0
+      expect(Spawner.spawn.callCount).toBe 0
       app.emit('will-quit')
-      expect(ChildProcess.spawn.callCount).toBe 1
-      expect(path.basename(ChildProcess.spawn.argsForCall[0][0])).toBe 'atom.cmd'
+      expect(Spawner.spawn.callCount).toBe 1
+      expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'
