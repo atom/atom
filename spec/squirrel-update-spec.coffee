@@ -3,6 +3,7 @@ fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
 Spawner = require '../src/browser/spawner'
+WinRegistry = require '../src/browser/win-registry'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 
 describe "Windows squirrel updates", ->
@@ -13,7 +14,7 @@ describe "Windows squirrel updates", ->
     tempHomeDirectory = temp.mkdirSync('atom-temp-home-')
     spyOn(fs, 'getHomeDirectory').andReturn(tempHomeDirectory)
 
-    # Prevent any commands from actually running and affecting the host
+    # Prevent any spawned command from actually running and affecting the host
     originalSpawn = Spawner.spawn
     spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
       if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
@@ -25,8 +26,17 @@ describe "Windows squirrel updates", ->
       else
         originalSpawn('ls')
 
-      # Finally, run following callback
-      callback?
+      # Then run passed callback
+      error = null
+      stdout = ''
+      callback?(error, stdout)
+
+    # Prevent any actual change to Windows registr, just run passed callback
+    for key, value of WinRegistry
+      spyOn(WinRegistry, key).andCallFake (callback) ->
+        error = null
+        stdout = ''
+        callback?(error, stdout)
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
