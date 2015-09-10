@@ -506,6 +506,15 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
+  #
+  # Note that the opener will be called if and only if the URI is not already open
+  # in the current pane. The searchAllPanes flag expands the search from the
+  # current pane to all panes. If you wish to open a view of a different type for 
+  # a file that is already open, consider changing the protocol of the URI. For 
+  # example, perhaps you wish to preview a rendered version of the file `/foo/bar/baz.quux` 
+  # that is already open in a text editor view. You could signal this by calling 
+  # {Workspace::open} on the URI `quux-preview://foo/bar/baz.quux`. Then your opener 
+  # can check the protocol for quux-preview and only handle those URIs that match.
   addOpener: (opener) ->
     if includeDeprecatedAPIs
       packageName = @getCallingPackageName()
