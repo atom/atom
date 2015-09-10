@@ -24,6 +24,12 @@ module.exports = (grunt) ->
       return done("Unsupported arch #{process.arch}")
 
     {name, version, description} = grunt.file.readJSON('package.json')
+
+    # RPM versions can't have dashes in them.
+    # * http://www.rpm.org/max-rpm/ch-rpm-file-format.html
+    # * https://github.com/mojombo/semver/issues/145
+    version = version.replace(/-beta$/, "~beta")
+
     buildDir = grunt.config.get('atom.buildDir')
 
     rpmDir = path.join(buildDir, 'rpm')
