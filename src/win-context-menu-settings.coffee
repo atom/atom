@@ -1,8 +1,7 @@
 {CompositeDisposable} = require 'event-kit'
 WinRegistry = require './browser/win-registry'
 
-# TODO Module description missing
-
+# Update Atom integration in Windows Explorer context menu, according to current settings.
 module.exports =
 class WinContextMenuSettings
   constructor: ->
