@@ -238,6 +238,7 @@ class Atom extends Model
     StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
+    WinContextMenuSettings = require './win-context-menu-settings'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
@@ -270,6 +271,8 @@ class Atom extends Model
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
 
+    @disposables.add (new WinContextMenuSettings())
+    
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
 
     if includeDeprecatedAPIs
