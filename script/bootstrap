@@ -33,7 +33,7 @@ function bootstrap() {
   var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
-  var npmPath = path.resolve('/usr', 'bin', 'npm');
+  var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
   var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
   var npmFlags = ' --userconfig=' + path.resolve(__dirname, '..', 'build', '.npmrc') + ' ';
 
@@ -62,9 +62,11 @@ function bootstrap() {
     'temp'
   ];
 
+  process.env.ATOM_RESOURCE_PATH = path.resolve(__dirname, '..');
+
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
-  var apmInstallCommand = npmPath + npmFlags + '--target=2.3.0 ' + 'install';
+  var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
