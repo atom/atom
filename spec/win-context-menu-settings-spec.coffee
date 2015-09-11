@@ -4,7 +4,7 @@ temp = require 'temp'
 WinRegistry = require '../src/browser/win-registry'
 WinContextMenuSettings = require '../src/win-context-menu-settings'
 
-fdescribe "WinContextMenuSettings", ->
+describe "WinContextMenuSettings", ->
   dotAtomPath = null
 
   beforeEach ->
@@ -18,7 +18,9 @@ fdescribe "WinContextMenuSettings", ->
     # Prevent any actual change to Windows registry, just run passed callback
     for key, value of WinRegistry
       spyOn(WinRegistry, key).andCallFake (callback) ->
-        callback?
+        error = null
+        stdout = ''
+        callback?(error, stdout)
         
     @disposables.add (new WinContextMenuSettings())
 
