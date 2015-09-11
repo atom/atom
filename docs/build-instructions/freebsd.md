@@ -12,12 +12,28 @@ FreeBSD -RELEASE 64-bit is the recommended platform.
 
 ## Instructions
 
+1. Clone the Atom repository:
+
   ```sh
   git clone https://github.com/atom/atom
   cd atom
-  script/build # Creates application at $TMPDIR/atom-build/Atom
-  sudo script/grunt install # Installs command to /usr/local/bin/atom
   ```
+
+2. Build Atom:
+
+  ```sh
+  script/build
+  ```
+
+  This will create the atom application at `$TMPDIR/atom-build/Atom`.
+
+3. Install the `atom` command to `/usr/local/bin/atom` by executing:
+
+  ```sh
+  sudo script/grunt install
+  ```
+
+To use the newly installed Atom, quit and restart all running Atom instances.
 
 ## Advanced Options
 

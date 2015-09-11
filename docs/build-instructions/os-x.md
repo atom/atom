@@ -8,11 +8,22 @@
 
 ## Instructions
 
-  ```sh
-  git clone https://github.com/atom/atom.git
-  cd atom
-  script/build # Creates application at /Applications/Atom.app
-  ```
+  If you have problems with permissions don't forget to prefix with `sudo`
+
+  1. Clone the Atom repository:
+
+    ```sh
+    git clone https://github.com/atom/atom
+    cd atom
+    ```
+
+  2. Build Atom:
+
+    ```sh
+    script/build
+    ```
+
+    Creates application at /Applications/Atom.app.
 
 ### `script/build` Options
   * `--install-dir` - The full path to the final built application (must include `.app` in the path), e.g. `script/build --install-dir /Users/username/full/path/to/Atom.app`
