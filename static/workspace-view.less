@@ -5,8 +5,11 @@
 
 html {
   font: menu;
-  font-family: @font-family;
   font-size: @font-size;
+}
+
+html when not (@font-family = '') {
+  font-family: @font-family;
 }
 
 html,
@@ -24,7 +27,6 @@ atom-workspace {
   color: @text-color;
   background-color: @app-background-color;
   font: menu;
-  font-family: @font-family;
   font-size: inherit;
   line-height: inherit;
 
@@ -38,4 +40,8 @@ atom-workspace {
     -webkit-flex: 1;
     -webkit-flex-flow: column;
   }
+}
+
+atom-workspace when not (@font-family = '') {
+  font-family: @font-family;
 }
