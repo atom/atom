@@ -21,5 +21,6 @@ class DomElementsPool
   freeElementAndDescendants: (element) ->
     @free(element)
 
-    for child in toArray(element.children)
+    for index in [element.children.length - 1..0] by -1
+      child = element.children[index]
       @freeElementAndDescendants(child)

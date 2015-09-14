@@ -35,7 +35,7 @@ describe "DomElementsPool", ->
     domElementsPool.freeElementAndDescendants(div)
 
     expect(domElementsPool.build("div")).toBe(div)
-    expect(domElementsPool.build("span")).toBe(span3)
-    expect(domElementsPool.build("span")).toBe(span4)
-    expect(domElementsPool.build("span")).toBe(span1)
     expect(domElementsPool.build("span")).toBe(span2)
+    expect(domElementsPool.build("span")).toBe(span1)
+    expect(domElementsPool.build("span")).toBe(span4)
+    expect(domElementsPool.build("span")).toBe(span3)
