@@ -223,3 +223,9 @@ if process.platform in ['win32', 'linux']
     type: 'boolean'
     default: false
     description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
+
+if process.platform in ['win32']
+  module.exports.core.properties.showAtomInShellContextMenu =
+    type: 'boolean'
+    default: true
+    description: 'Show Atom in Explorer context menu when right-clicking on files and folders. This is only supported on Windows.'
