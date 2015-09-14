@@ -8,10 +8,6 @@ html {
   font-size: @font-size;
 }
 
-html when not (@font-family = '') {
-  font-family: @font-family;
-}
-
 html,
 body {
   width: 100%;
@@ -42,6 +38,9 @@ atom-workspace {
   }
 }
 
-atom-workspace when not (@font-family = '') {
-  font-family: @font-family;
+& when not (@font-family = '') {
+  html,
+  atom-workspace {
+    font-family: @font-family;
+  }
 }
