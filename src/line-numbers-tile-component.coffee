@@ -8,7 +8,6 @@ class LineNumbersTileComponent
 
   constructor: ({@id}) ->
     @lineNumberNodesById = {}
-    @lineNumberIdsByScreenRow = {}
     @domNode = document.createElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
@@ -63,7 +62,6 @@ class LineNumbersTileComponent
       unless @newTileState.lineNumbers.hasOwnProperty(id)
         @lineNumberNodesById[id].remove()
         delete @lineNumberNodesById[id]
-        delete @lineNumberIdsByScreenRow[lineNumberState.screenRow]
         delete @oldTileState.lineNumbers[id]
 
     for id, lineNumberState of @newTileState.lineNumbers
@@ -74,30 +72,24 @@ class LineNumbersTileComponent
         newLineNumbersHTML ?= ""
         newLineNumberIds.push(id)
         newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
-        @lineNumberIdsByScreenRow[lineNumberState.screenRow] = id
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
     return unless newLineNumberIds?
 
     WrapperDiv.innerHTML = newLineNumbersHTML
     newLineNumberNodes = _.toArray(WrapperDiv.children)
-    @insertNodes(newLineNumberNodes)
 
-  insertNodes: (lineNumberNodes) ->
-    lineNumberNodes = _.sortBy(lineNumberNodes, @screenRowForNode)
-    while newNode = lineNumberNodes.shift()
-      id = @lineNumberIdsByScreenRow[newNode.dataset.screenRow]
-
-      domNodes = _.toArray(@domNode.children)
-      while nextNode = domNodes.shift()
-        break if @screenRowForNode(newNode) < @screenRowForNode(nextNode)
-
-      if nextNode?
-        @domNode.insertBefore(newNode, nextNode)
+    for id, i in newLineNumberIds
+      lineNumberNode = newLineNumberNodes[i]
+      @lineNumberNodesById[id] = lineNumberNode
+      if nextNode = @findNodeNextTo(lineNumberNode)
+        @domNode.insertBefore(lineNumberNode, nextNode)
       else
-        @domNode.appendChild(newNode)
+        @domNode.appendChild(lineNumberNode)
 
-      @lineNumberNodesById[id] = newNode
+  findNodeNextTo: (node) ->
+    for nextNode in @domNode.children
+      return nextNode if @screenRowForNode(node) < @screenRowForNode(nextNode)
     return
 
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
