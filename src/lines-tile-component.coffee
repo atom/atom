@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 HighlightsComponent = require './highlights-component'
 TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
-WrapperDiv = document.createElement('div')
 TokenTextEscapeRegex = /[&"'<>]/g
 MaxTokenLength = 20000
 

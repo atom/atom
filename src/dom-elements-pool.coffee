@@ -1,5 +1,3 @@
-{toArray} = require 'underscore-plus'
-
 module.exports =
 class DomElementsPool
   constructor: ->

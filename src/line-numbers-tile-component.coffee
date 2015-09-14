@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-WrapperDiv = document.createElement('div')
 
 module.exports =
 class LineNumbersTileComponent
