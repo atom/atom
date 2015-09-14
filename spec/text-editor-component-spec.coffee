@@ -1006,10 +1006,11 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
+
       range = document.createRange()
-      range.setStart(cursorLocationTextNode, 3)
-      range.setEnd(cursorLocationTextNode, 4)
+      range.setStart(cursorLocationTextNode, 0)
+      range.setEnd(cursorLocationTextNode, 1)
       rangeRect = range.getBoundingClientRect()
 
       expect(cursorRect.left).toBe rangeRect.left

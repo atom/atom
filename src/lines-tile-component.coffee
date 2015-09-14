@@ -89,24 +89,22 @@ class LinesTileComponent
         @removeLineNode(id)
 
     newLineIds = null
-    newLinesHTML = null
+    newLineNodes = null
 
     for id, lineState of @newTileState.lines
       if @oldTileState.lines.hasOwnProperty(id)
         @updateLineNode(id)
       else
         newLineIds ?= []
-        newLinesHTML ?= ""
+        newLineNodes ?= []
         newLineIds.push(id)
-        newLinesHTML += @buildLineHTML(id)
+        newLineNodes.push(@buildLineNode(id))
         @screenRowsByLineId[id] = lineState.screenRow
         @lineIdsByScreenRow[lineState.screenRow] = id
         @oldTileState.lines[id] = cloneObject(lineState)
 
     return unless newLineIds?
 
-    WrapperDiv.innerHTML = newLinesHTML
-    newLineNodes = _.toArray(WrapperDiv.children)
     for id, i in newLineIds
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
@@ -114,7 +112,7 @@ class LinesTileComponent
 
     return
 
-  buildLineHTML: (id) ->
+  buildLineNode: (id) ->
     {width} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
@@ -139,7 +137,7 @@ class LinesTileComponent
       foldMarker.classList.add("fold-marker")
       lineNode.appendChild(foldMarker)
 
-    lineNode.outerHTML
+    lineNode
 
   appendEmptyLineInnerNodes: (id, lineNode) ->
     {indentGuidesVisible} = @newState
@@ -352,8 +350,6 @@ class LinesTileComponent
           char = text[textIndex]
           charLength = 1
           textIndex++
-
-        continue if char is '\0'
 
         unless charWidths[char]?
           unless textNode?
