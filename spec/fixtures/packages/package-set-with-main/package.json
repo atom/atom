@@ -1,0 +1,10 @@
+{
+  "name": "package-set-with-main",
+  "version": "0.2.0",
+  "type": "package-set",
+  "main": "./main-module",
+  "includedPackages":  {
+    "test-module": ">=0.2.0",
+    "test-module-with-symlink": ">=5.0.0"
+  }
+}
