@@ -5,7 +5,7 @@ TextEditorView = require '../src/text-editor-view'
 TextEditorComponent = require '../src/text-editor-component'
 nbsp = String.fromCharCode(160)
 
-describe "TextEditorComponent", ->
+fdescribe "TextEditorComponent", ->
   [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, tileSize, tileHeightInPixels] = []
 
@@ -40,6 +40,11 @@ describe "TextEditorComponent", ->
       wrapperNode.setUpdatedSynchronously(false)
 
       {component} = wrapperView
+
+    waitsFor ->
+      component.linesYardstick.canMeasure()
+
+    runs ->
       component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)
@@ -76,6 +81,37 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       expect(component.lineNodeForScreenRow(0).textContent).not.toBe("You shouldn't see this update.")
+
+  describe "measurements", ->
+    it "is equivalent to TextEditorPresenter::pixelPositionForScreenPosition", ->
+      screenRows = new Set([0...editor.getScreenLineCount()])
+      component.prepareScreenRowsForMeasurement(screenRows)
+
+      screenRows.forEach (screenRow) ->
+        length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
+
+        for screenColumn in [0..length] by 1
+          point = [screenRow, screenColumn]
+          actual = component.pixelPositionForScreenPosition(point)
+          expected = component.presenter.pixelPositionForScreenPosition(point)
+
+          expect(expected).toEqual(actual)
+
+      component.setFontSize(14)
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      component.prepareScreenRowsForMeasurement(screenRows)
+
+      screenRows.forEach (screenRow) ->
+        length = editor.tokenizedLineForScreenRow(screenRow).getMaxScreenColumn()
+
+        for screenColumn in [0..length] by 1
+          point = [screenRow, screenColumn]
+          actual = component.pixelPositionForScreenPosition(point)
+          expected = component.presenter.pixelPositionForScreenPosition(point)
+
+          expect(expected).toEqual(actual)
 
   describe "line rendering", ->
     expectTileContainsRow = (tileNode, screenRow, {top}) ->

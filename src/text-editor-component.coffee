@@ -12,6 +12,8 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
+LinesYardstick = require './lines-yardstick'
+LineHtmlBuilder = require './line-html-builder'
 
 module.exports =
 class TextEditorComponent
@@ -43,6 +45,13 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
 
+    @lineHtmlBuilder = new LineHtmlBuilder(true)
+    @linesYardstick = new LinesYardstick(@editor)
+    @linesYardstick.onWillMeasureScreenRows =>
+      @showIndentGuide = atom.config.get('editor.showIndentGuide')
+    @linesYardstick.setLineHtmlProvider (screenRow, line) =>
+      @lineHtmlBuilder.buildLineHTML(@showIndentGuide, 0, line)
+
     @presenter = new TextEditorPresenter
       model: @editor
       scrollTop: @editor.getScrollTop()
@@ -51,7 +60,7 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
-
+      linesYardstick: @linesYardstick
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domNode = document.createElement('div')
@@ -65,6 +74,8 @@ class TextEditorComponent
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode)
+
+    @domNode.appendChild(@linesYardstick.getDomNode())
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -101,6 +112,11 @@ class TextEditorComponent
 
     @updateSync()
     @checkForVisibilityChange()
+
+    @disposables.add @linesYardstick.onDidInitialize =>
+      @linesYardstick.setDefaultFont(@fontFamily, @fontSize)
+      @linesYardstick.resetStyleSheets(@stylesElement.children)
+      @presenter.characterWidthsChanged()
 
   destroy: ->
     @mounted = false
@@ -478,6 +494,7 @@ class TextEditorComponent
     @handleStylingChange()
 
   handleStylingChange: =>
+    @linesYardstick.resetStyleSheets(@stylesElement.children)
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
@@ -650,6 +667,7 @@ class TextEditorComponent
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @measureLineHeightAndDefaultCharWidth()
+      @linesYardstick.setDefaultFont(@fontFamily, @fontSize)
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
       @remeasureCharacterWidths()
@@ -795,6 +813,21 @@ class TextEditorComponent
     right = linesClientRect.left + @presenter.scrollLeft + linesClientRect.width - clientX
 
     {top, left, bottom, right}
+
+  prepareScreenRowsForMeasurement: (screenRows) ->
+    @linesYardstick.buildDomNodesForScreenRows(screenRows)
+
+  pixelPositionForScreenPosition: (screenPosition, clip = true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+
+    top = targetRow * @editor.getLineHeightInPixels()
+    left = @linesYardstick.leftPixelPositionForScreenPosition(screenPosition)
+
+    {top, left}
 
   getModel: ->
     @editor
