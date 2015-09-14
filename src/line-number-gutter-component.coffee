@@ -1,7 +1,7 @@
 TiledComponent = require './tiled-component'
 LineNumbersTileComponent = require './line-numbers-tile-component'
 WrapperDiv = document.createElement('div')
-DomElementsPool = require './dom-elements-pool'
+DOMElementPool = require './dom-element-pool'
 
 module.exports =
 class LineNumberGutterComponent extends TiledComponent
@@ -10,9 +10,9 @@ class LineNumberGutterComponent extends TiledComponent
   constructor: ({@onMouseDown, @editor, @gutter}) ->
     @visible = true
 
-    @elementsPool = new DomElementsPool
+    @domElementPool = new DOMElementPool
 
-    @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@elementsPool)
+    @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
 
     @domNode = atom.views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
@@ -64,7 +64,7 @@ class LineNumberGutterComponent extends TiledComponent
       @oldState.styles = {}
       @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
 
-  buildComponentForTile: (id) -> new LineNumbersTileComponent({id, @elementsPool})
+  buildComponentForTile: (id) -> new LineNumbersTileComponent({id, @domElementPool})
 
   ###
   Section: Private Methods

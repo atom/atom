@@ -2,18 +2,18 @@ _ = require 'underscore-plus'
 
 module.exports =
 class LineNumbersTileComponent
-  @createDummy: (elementsPool) ->
-    new LineNumbersTileComponent({id: -1, elementsPool})
+  @createDummy: (domElementPool) ->
+    new LineNumbersTileComponent({id: -1, domElementPool})
 
-  constructor: ({@id, @elementsPool}) ->
+  constructor: ({@id, @domElementPool}) ->
     @lineNumberNodesById = {}
-    @domNode = @elementsPool.build("div", "tile")
+    @domNode = @domElementPool.build("div", "tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
 
   destroy: ->
-    @elementsPool.freeElementAndDescendants(@domNode)
+    @domElementPool.freeElementAndDescendants(@domNode)
 
   getDomNode: ->
     @domNode
@@ -49,7 +49,7 @@ class LineNumbersTileComponent
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       for id, node of @lineNumberNodesById
-        @elementsPool.freeElementAndDescendants(node)
+        @domElementPool.freeElementAndDescendants(node)
 
       @oldState.tiles[@id] = {lineNumbers: {}}
       @oldTileState = @oldState.tiles[@id]
@@ -64,7 +64,7 @@ class LineNumbersTileComponent
 
     for id, lineNumberState of @oldTileState.lineNumbers
       unless @newTileState.lineNumbers.hasOwnProperty(id)
-        @elementsPool.freeElementAndDescendants(@lineNumberNodesById[id])
+        @domElementPool.freeElementAndDescendants(@lineNumberNodesById[id])
         delete @lineNumberNodesById[id]
         delete @oldTileState.lineNumbers[id]
 
@@ -91,7 +91,7 @@ class LineNumbersTileComponent
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
 
     className = @buildLineNumberClassName(lineNumberState)
-    lineNumberNode = @elementsPool.build("div", className)
+    lineNumberNode = @domElementPool.build("div", className)
     lineNumberNode.dataset.screenRow = screenRow
     lineNumberNode.dataset.bufferRow = bufferRow
 
@@ -114,7 +114,7 @@ class LineNumbersTileComponent
       lineNumber = (bufferRow + 1).toString()
 
     padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
-    iconRight = @elementsPool.build("div", "icon-right")
+    iconRight = @domElementPool.build("div", "icon-right")
 
     lineNumberNode.innerText = padding + lineNumber
     lineNumberNode.appendChild(iconRight)

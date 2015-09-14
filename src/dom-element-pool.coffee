@@ -1,5 +1,5 @@
 module.exports =
-class DomElementsPool
+class DOMElementPool
   constructor: ->
     @freeElementsByTagName = {}
     @freedElements = new Set
@@ -25,8 +25,9 @@ class DomElementsPool
     throw new Error("The element cannot be null or undefined.") unless element?
     throw new Error("The element has already been freed!") if @freedElements.has(element)
 
-    @freeElementsByTagName[element.tagName.toLowerCase()] ?= []
-    @freeElementsByTagName[element.tagName.toLowerCase()].push(element)
+    tagName = element.tagName.toLowerCase()
+    @freeElementsByTagName[tagName] ?= []
+    @freeElementsByTagName[tagName].push(element)
     @freedElements.add(element)
 
     element.remove()
