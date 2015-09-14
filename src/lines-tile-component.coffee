@@ -160,7 +160,7 @@ class LinesTileComponent
         )
     else
       unless @appendEndOfLineNodes(id, lineNode)
-        lineNode.insertAdjacentText("beforeend", "\u00a0")
+        lineNode.textContent = "\u00a0"
 
   appendLineInnerNodes: (id, lineNode) ->
     lineState = @newTileState.lines[id]
