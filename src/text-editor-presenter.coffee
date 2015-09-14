@@ -20,7 +20,7 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileSize ?= 12
+    @tileSize = 1
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -1313,10 +1313,7 @@ class TextEditorPresenter
         height: lineHeightInPixels
         left: startPixelPosition.left
 
-      if screenRange.end.column is Infinity
-        region.right = 0
-      else
-        region.width = endPixelPosition.left - startPixelPosition.left
+      region.width = endPixelPosition.left - startPixelPosition.left
 
       regions.push(region)
     else
