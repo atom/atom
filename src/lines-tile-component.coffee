@@ -202,19 +202,19 @@ class LinesTileComponent
         (invisibles?.tab and isHardTab) or
           (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
 
-      @appendToken(openScopeNode, tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
+      @appendTokenNodes(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, openScopeNode)
 
     @appendEndOfLineNodes(id, lineNode)
 
-  appendToken: (scopeNode, tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters) ->
+  appendTokenNodes: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, scopeNode) ->
     if isHardTab
-      hardTab = @elementsPool.build("span", "hard-tab", tokenText)
-      hardTab.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
-      hardTab.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
-      hardTab.classList.add("indent-guide") if hasIndentGuide
-      hardTab.classList.add("invisible-character") if hasInvisibleCharacters
+      hardTabNode = @elementsPool.build("span", "hard-tab", tokenText)
+      hardTabNode.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
+      hardTabNode.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
+      hardTabNode.classList.add("indent-guide") if hasIndentGuide
+      hardTabNode.classList.add("invisible-character") if hasInvisibleCharacters
 
-      scopeNode.appendChild(hardTab)
+      scopeNode.appendChild(hardTabNode)
     else
       startIndex = 0
       endIndex = tokenText.length
