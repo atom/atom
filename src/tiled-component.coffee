@@ -21,9 +21,7 @@ class TiledComponent
     return
 
   removeTileNode: (tileRow) ->
-    node = @componentsByTileId[tileRow].getDomNode()
-
-    node.remove()
+    @componentsByTileId[tileRow].destroy()
     delete @componentsByTileId[tileRow]
     delete @oldState.tiles[tileRow]
 

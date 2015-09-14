@@ -3,6 +3,7 @@
 CursorsComponent = require './cursors-component'
 LinesTileComponent = require './lines-tile-component'
 TiledComponent = require './tiled-component'
+DomElementsPool = require './dom-elements-pool'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 
@@ -22,6 +23,8 @@ class LinesComponent extends TiledComponent
 
     @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
+
+    @elementsPool = new DomElementsPool
 
     if @useShadowDOM
       insertionPoint = document.createElement('content')
@@ -60,7 +63,7 @@ class LinesComponent extends TiledComponent
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
 
-  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter})
+  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @elementsPool})
 
   buildEmptyState: ->
     {tiles: {}}

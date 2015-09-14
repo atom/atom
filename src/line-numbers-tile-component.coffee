@@ -14,6 +14,9 @@ class LineNumbersTileComponent
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
 
+  destroy: ->
+    @domNode.remove()
+
   getDomNode: ->
     @domNode
 
