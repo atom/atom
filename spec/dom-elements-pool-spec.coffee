@@ -6,26 +6,14 @@ describe "DomElementsPool", ->
   beforeEach ->
     domElementsPool = new DomElementsPool
 
-  it "creates new nodes until some of them are freed", ->
-    span1 = domElementsPool.build("span")
-    span2 = domElementsPool.build("span")
-    span3 = domElementsPool.build("span")
-
-    expect(span1).not.toBe(span2)
-    expect(span2).not.toBe(span3)
-
-    domElementsPool.free(span1)
-    domElementsPool.free(span2)
-
-    expect(domElementsPool.build("span")).toBe(span2)
-    expect(domElementsPool.build("span")).toBe(span1)
-
-  it "recursively frees a dom tree", ->
-    div = domElementsPool.build("div")
-    span1 = domElementsPool.build("span")
-    span2 = domElementsPool.build("span")
-    span3 = domElementsPool.build("span")
-    span4 = domElementsPool.build("span")
+  it "builds DOM nodes, recycling them when they are freed", ->
+    [div, span1, span2, span3, span4] = elements = [
+      domElementsPool.build("div")
+      domElementsPool.build("span")
+      domElementsPool.build("span")
+      domElementsPool.build("span")
+      domElementsPool.build("span")
+    ]
 
     div.appendChild(span1)
     span1.appendChild(span2)
@@ -34,8 +22,19 @@ describe "DomElementsPool", ->
 
     domElementsPool.freeElementAndDescendants(div)
 
-    expect(domElementsPool.build("div")).toBe(div)
-    expect(domElementsPool.build("span")).toBe(span2)
-    expect(domElementsPool.build("span")).toBe(span1)
-    expect(domElementsPool.build("span")).toBe(span4)
-    expect(domElementsPool.build("span")).toBe(span3)
+    expect(elements).toContain(domElementsPool.build("div"))
+    expect(elements).toContain(domElementsPool.build("span"))
+    expect(elements).toContain(domElementsPool.build("span"))
+    expect(elements).toContain(domElementsPool.build("span"))
+    expect(elements).toContain(domElementsPool.build("span"))
+
+    expect(elements).not.toContain(domElementsPool.build("span"))
+
+  it "throws an error when trying to free the same node twice", ->
+    div = domElementsPool.build("div")
+    domElementsPool.freeElementAndDescendants(div)
+    expect(-> domElementsPool.freeElementAndDescendants(div)).toThrow()
+
+  it "throws an error when trying to free an invalid element", ->
+    expect(-> domElementsPool.freeElementAndDescendants(null)).toThrow()
+    expect(-> domElementsPool.freeElementAndDescendants(undefined)).toThrow()
