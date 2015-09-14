@@ -118,24 +118,30 @@ class LinesTileComponent
     {width} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
-    classes = ''
+    lineNode = document.createElement("div")
+    lineNode.classList.add("line")
     if decorationClasses?
       for decorationClass in decorationClasses
-        classes += decorationClass + ' '
-    classes += 'line'
+        lineNode.classList.add(decorationClass)
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    lineNode.style.position = "absolute"
+    lineNode.style.top = top + "px"
+    lineNode.style.width = width + "px"
+    lineNode.dataset.screenRow = screenRow
 
     if text is ""
-      lineHTML += @buildEmptyLineInnerHTML(id)
+      @appendEmptyLineInnerNodes(id, lineNode)
     else
-      lineHTML += @buildLineInnerHTML(id)
+      @appendLineInnerNodes(id, lineNode)
 
-    lineHTML += '<span class="fold-marker"></span>' if fold
-    lineHTML += "</div>"
-    lineHTML
+    if fold
+      foldMarker = document.createElement("span")
+      foldMarker.classList.add("fold-marker")
+      lineNode.appendChild(foldMarker)
 
-  buildEmptyLineInnerHTML: (id) ->
+    lineNode.outerHTML
+
+  appendEmptyLineInnerNodes: (id, lineNode) ->
     {indentGuidesVisible} = @newState
     {indentLevel, tabLength, endOfLineInvisibles} = @newTileState.lines[id]
 
@@ -143,35 +149,46 @@ class LinesTileComponent
       invisibleIndex = 0
       lineHTML = ''
       for i in [0...indentLevel]
-        lineHTML += "<span class='indent-guide'>"
+        indentGuide = document.createElement("span")
+        indentGuide.classList.add("indent-guide")
         for j in [0...tabLength]
           if invisible = endOfLineInvisibles?[invisibleIndex++]
-            lineHTML += "<span class='invisible-character'>#{invisible}</span>"
+            invisibleCharacter = document.createElement("span")
+            invisibleCharacter.classList.add("invisible-character")
+            invisibleCharacter.textContent = invisible
+            indentGuide.appendChild(invisibleCharacter)
           else
-            lineHTML += ' '
-        lineHTML += "</span>"
+            indentGuide.insertAdjacentText("beforeend", " ")
+        lineNode.appendChild(indentGuide)
 
       while invisibleIndex < endOfLineInvisibles?.length
-        lineHTML += "<span class='invisible-character'>#{endOfLineInvisibles[invisibleIndex++]}</span>"
-
-      lineHTML
+        invisibleCharacter = document.createElement("span")
+        invisibleCharacter.classList.add("invisible-character")
+        invisibleCharacter.textContent = endOfLineInvisibles[invisibleIndex++]
+        lineNode.appendChild(invisibleCharacter)
     else
-      @buildEndOfLineHTML(id) or '&nbsp;'
+      unless @appendEndOfLineNodes(id, lineNode)
+        lineNode.insertAdjacentHTML("beforeend", "&nbsp;")
 
-  buildLineInnerHTML: (id) ->
+  appendLineInnerNodes: (id, lineNode) ->
     lineState = @newTileState.lines[id]
     {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, invisibles} = lineState
     lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
 
     innerHTML = ""
     @tokenIterator.reset(lineState)
+    openScopeNode = lineNode
 
     while @tokenIterator.next()
       for scope in @tokenIterator.getScopeEnds()
-        innerHTML += "</span>"
+        openScopeNode = openScopeNode.parentElement
 
       for scope in @tokenIterator.getScopeStarts()
-        innerHTML += "<span class=\"#{scope.replace(/\.+/g, ' ')}\">"
+        newScopeNode = document.createElement("span")
+        newScopeNode.className = scope.replace(/\.+/g, ' ')
+        openScopeNode.appendChild(newScopeNode)
+
+        openScopeNode = newScopeNode
 
       tokenStart = @tokenIterator.getScreenStart()
       tokenEnd = @tokenIterator.getScreenEnd()
@@ -196,87 +213,80 @@ class LinesTileComponent
         (invisibles?.tab and isHardTab) or
           (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
 
-      innerHTML += @buildTokenHTML(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
+      @appendToken(openScopeNode, tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters)
 
-    for scope in @tokenIterator.getScopeEnds()
-      innerHTML += "</span>"
+    @appendEndOfLineNodes(id, lineNode)
 
-    for scope in @tokenIterator.getScopes()
-      innerHTML += "</span>"
-
-    innerHTML += @buildEndOfLineHTML(id)
-    innerHTML
-
-  buildTokenHTML: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters) ->
+  appendToken: (scopeNode, tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters) ->
     if isHardTab
-      classes = 'hard-tab'
-      classes += ' leading-whitespace' if firstNonWhitespaceIndex?
-      classes += ' trailing-whitespace' if firstTrailingWhitespaceIndex?
-      classes += ' indent-guide' if hasIndentGuide
-      classes += ' invisible-character' if hasInvisibleCharacters
-      return "<span class='#{classes}'>#{@escapeTokenText(tokenText)}</span>"
+      hardTab = document.createElement("span")
+      hardTab.classList.add("hard-tab")
+      hardTab.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
+      hardTab.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
+      hardTab.classList.add("indent-guide") if hasIndentGuide
+      hardTab.classList.add("invisible-character") if hasInvisibleCharacters
+      hardTab.textContent = tokenText
+
+      scopeNode.appendChild(hardTab)
     else
       startIndex = 0
       endIndex = tokenText.length
 
-      leadingHtml = ''
-      trailingHtml = ''
+      leadingWhitespaceNode = null
+      trailingWhitespaceNode = null
 
       if firstNonWhitespaceIndex?
-        leadingWhitespace = tokenText.substring(0, firstNonWhitespaceIndex)
+        leadingWhitespaceNode = document.createElement("span")
+        leadingWhitespaceNode.classList.add("leading-whitespace")
+        leadingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide
+        leadingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+        leadingWhitespaceNode.textContent = tokenText.substring(0, firstNonWhitespaceIndex)
 
-        classes = 'leading-whitespace'
-        classes += ' indent-guide' if hasIndentGuide
-        classes += ' invisible-character' if hasInvisibleCharacters
-
-        leadingHtml = "<span class='#{classes}'>#{leadingWhitespace}</span>"
         startIndex = firstNonWhitespaceIndex
 
       if firstTrailingWhitespaceIndex?
         tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
-        trailingWhitespace = tokenText.substring(firstTrailingWhitespaceIndex)
 
-        classes = 'trailing-whitespace'
-        classes += ' indent-guide' if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
-        classes += ' invisible-character' if hasInvisibleCharacters
-
-        trailingHtml = "<span class='#{classes}'>#{trailingWhitespace}</span>"
+        trailingWhitespaceNode = document.createElement("span")
+        trailingWhitespaceNode.classList.add("trailing-whitespace")
+        trailingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
+        trailingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+        trailingWhitespaceNode.textContent = tokenText.substring(firstTrailingWhitespaceIndex)
 
         endIndex = firstTrailingWhitespaceIndex
 
-      html = leadingHtml
+      scopeNode.appendChild(leadingWhitespaceNode) if leadingWhitespaceNode?
+
       if tokenText.length > MaxTokenLength
         while startIndex < endIndex
-          html += "<span>" + @escapeTokenText(tokenText, startIndex, startIndex + MaxTokenLength) + "</span>"
+          tokenNode = document.createElement("span")
+          tokenNode.textContent = @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
+          scopeNode.appendChild(tokenNode)
           startIndex += MaxTokenLength
       else
-        html += @escapeTokenText(tokenText, startIndex, endIndex)
+        scopeNode.insertAdjacentText("beforeend", @sliceText(tokenText, startIndex, endIndex))
 
-      html += trailingHtml
-    html
+      scopeNode.appendChild(trailingWhitespaceNode) if trailingWhitespaceNode?
 
-  escapeTokenText: (tokenText, startIndex, endIndex) ->
+  sliceText: (tokenText, startIndex, endIndex) ->
     if startIndex? and endIndex? and startIndex > 0 or endIndex < tokenText.length
       tokenText = tokenText.slice(startIndex, endIndex)
-    tokenText.replace(TokenTextEscapeRegex, @escapeTokenTextReplace)
+    tokenText
 
-  escapeTokenTextReplace: (match) ->
-    switch match
-      when '&' then '&amp;'
-      when '"' then '&quot;'
-      when "'" then '&#39;'
-      when '<' then '&lt;'
-      when '>' then '&gt;'
-      else match
-
-  buildEndOfLineHTML: (id) ->
+  appendEndOfLineNodes: (id, lineNode) ->
     {endOfLineInvisibles} = @newTileState.lines[id]
 
-    html = ''
+    hasInvisibles = false
     if endOfLineInvisibles?
       for invisible in endOfLineInvisibles
-        html += "<span class='invisible-character'>#{invisible}</span>"
-    html
+        hasInvisibles = true
+
+        invisibleCharacter = document.createElement("span")
+        invisibleCharacter.classList.add("invisible-character")
+        invisibleCharacter.textContent = invisible
+        lineNode.appendChild(invisibleCharacter)
+
+    hasInvisibles
 
   updateLineNode: (id) ->
     oldLineState = @oldTileState.lines[id]
