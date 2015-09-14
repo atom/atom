@@ -19,7 +19,7 @@ class DomElementsPool
     @freeElementsByTagName[element.tagName.toLowerCase()].push(element)
 
   freeElementAndDescendants: (element) ->
+    @free(element)
+
     for child in toArray(element.children)
       @freeElementAndDescendants(child)
-
-    @free(element)

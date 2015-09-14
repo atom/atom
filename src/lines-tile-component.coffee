@@ -143,7 +143,6 @@ class LinesTileComponent
 
     if indentGuidesVisible and indentLevel > 0
       invisibleIndex = 0
-      lineHTML = ''
       for i in [0...indentLevel]
         indentGuide = @elementsPool.build("span", "indent-guide")
         for j in [0...tabLength]
@@ -162,14 +161,13 @@ class LinesTileComponent
         )
     else
       unless @appendEndOfLineNodes(id, lineNode)
-        lineNode.insertAdjacentHTML("beforeend", "&nbsp;")
+        lineNode.insertAdjacentText("beforeend", "\u00a0")
 
   appendLineInnerNodes: (id, lineNode) ->
     lineState = @newTileState.lines[id]
     {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, invisibles} = lineState
     lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
 
-    innerHTML = ""
     @tokenIterator.reset(lineState)
     openScopeNode = lineNode
 

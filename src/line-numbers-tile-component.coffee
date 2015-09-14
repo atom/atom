@@ -114,10 +114,10 @@ class LineNumbersTileComponent
     else
       lineNumber = (bufferRow + 1).toString()
 
-    padding = _.multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
+    padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
     iconRight = @elementsPool.build("div", "icon-right")
 
-    lineNumberNode.innerHTML = padding + lineNumber
+    lineNumberNode.innerText = padding + lineNumber
     lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->
