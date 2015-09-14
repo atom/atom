@@ -1,0 +1,102 @@
+#!/usr/bin/env node
+
+var fs = require('fs')
+var exec = require('child_process').exec
+var async = require('../build/node_modules/async')
+
+var branchName, leadingBranchName
+
+async.series([
+  parseArguments,
+  checkCleanWorkingTree,
+  checkoutBranch,
+  pullUpstreamChanges,
+  mergeLeadingBranch,
+  fetchUpstreamTags,
+  updateVersionNumber,
+  pushLocalChanges,
+  pushLocalTags,
+], finish)
+
+function parseArguments(next) {
+  branchName = process.argv[2]
+  switch (branchName) {
+    case 'beta':
+      leadingBranchName = 'master'
+      break
+    case 'stable':
+      leadingBranchName = 'beta'
+      break
+    default:
+      return next(new Error('Usage: script/railcar <beta|stable>'))
+  }
+  next()
+}
+
+function checkCleanWorkingTree(next) {
+  console.log('Checking for a clean working tree');
+  exec('git status --porcelain', function(error, output) {
+    var modifiedEntries = output.split('\n').filter(function(line) {
+      return !/^\?\?/.test(line) && line.length > 0
+    });
+
+    next(
+      modifiedEntries.length === 0 ?
+      null  :
+      new Error('Cannot run the railcars with a dirty working tree')
+    )
+  })
+}
+
+function checkoutBranch(next) {
+  console.log('Checking out ' + branchName);
+  exec('git checkout ' + branchName, next)
+}
+
+function pullUpstreamChanges(next) {
+  console.log('Pulling upstream changes on ' + branchName);
+  exec('git pull --ff-only origin ' + branchName, next)
+}
+
+function mergeLeadingBranch(next) {
+  console.log('Merging new changes from ' + leadingBranchName);
+  exec('git pull --ff-only origin ' + leadingBranchName, next)
+}
+
+function fetchUpstreamTags(next) {
+  console.log('Fetching upstream tags');
+  exec('git fetch --tags', next)
+}
+
+function updateVersionNumber(next) {
+  var newVersion
+  if (branchName === 'beta') {
+    newVersion = require('../package.json')
+      .version
+      .replace(/-\w+$/, '-beta-0')
+  } else {
+    newVersion = 'patch'
+  }
+
+  console.log('Updating version to ' + newVersion);
+  exec('npm version ' + newVersion, next)
+}
+
+function pushLocalChanges(next) {
+  console.log('Pushing local changes');
+  exec('git push origin ' + branchName, next)
+}
+
+function pushLocalTags(next) {
+  console.log('Pushing local tags');
+  exec('git push --tags origin', next)
+}
+
+function finish(error) {
+  if (error) {
+    console.log('Error: ' + error.message)
+    process.exit(1)
+  }
+
+  console.log('Success! Now just wait for all CI builds to pass on ' + branchName)
+}
