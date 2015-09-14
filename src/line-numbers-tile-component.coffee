@@ -3,19 +3,18 @@ WrapperDiv = document.createElement('div')
 
 module.exports =
 class LineNumbersTileComponent
-  @createDummy: ->
-    new LineNumbersTileComponent({id: -1})
+  @createDummy: (elementsPool) ->
+    new LineNumbersTileComponent({id: -1, elementsPool})
 
-  constructor: ({@id}) ->
+  constructor: ({@id, @elementsPool}) ->
     @lineNumberNodesById = {}
-    @domNode = document.createElement("div")
-    @domNode.classList.add("tile")
+    @domNode = @elementsPool.build("div", "tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
 
   destroy: ->
-    @domNode.remove()
+    @elementsPool.freeElementAndDescendants(@domNode)
 
   getDomNode: ->
     @domNode
@@ -50,7 +49,9 @@ class LineNumbersTileComponent
       @oldTileState.zIndex = @newTileState.zIndex
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
-      node.remove() for id, node of @lineNumberNodesById
+      for id, node of @lineNumberNodesById
+        @elementsPool.freeElementAndDescendants(node)
+
       @oldState.tiles[@id] = {lineNumbers: {}}
       @oldTileState = @oldState.tiles[@id]
       @lineNumberNodesById = {}
@@ -60,11 +61,11 @@ class LineNumbersTileComponent
 
   updateLineNumbers: ->
     newLineNumberIds = null
-    newLineNumbersHTML = null
+    newLineNumberNodes = null
 
     for id, lineNumberState of @oldTileState.lineNumbers
       unless @newTileState.lineNumbers.hasOwnProperty(id)
-        @lineNumberNodesById[id].remove()
+        @elementsPool.freeElementAndDescendants(@lineNumberNodesById[id])
         delete @lineNumberNodesById[id]
         delete @oldTileState.lineNumbers[id]
 
@@ -73,15 +74,12 @@ class LineNumbersTileComponent
         @updateLineNumberNode(id, lineNumberState)
       else
         newLineNumberIds ?= []
-        newLineNumbersHTML ?= ""
+        newLineNumberNodes ?= []
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
+        newLineNumberNodes.push(@buildLineNumberNode(lineNumberState))
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
     if newLineNumberIds?
-      WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = _.toArray(WrapperDiv.children)
-
       node = @domNode
       for id, i in newLineNumberIds
         lineNumberNode = newLineNumberNodes[i]
@@ -90,18 +88,25 @@ class LineNumbersTileComponent
 
     return
 
-  buildLineNumberHTML: (lineNumberState) ->
+  buildLineNumberNode: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
-    if screenRow?
-      style = "position: absolute; top: #{top}px; z-index: #{zIndex};"
-    else
-      style = "visibility: hidden;"
+
     className = @buildLineNumberClassName(lineNumberState)
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
+    lineNumberNode = @elementsPool.build("div", className)
+    lineNumberNode.dataset.screenRow = screenRow
+    lineNumberNode.dataset.bufferRow = bufferRow
 
-    "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    if screenRow?
+      lineNumberNode.style.position = "absolute"
+      lineNumberNode.style.top = top + "px"
+      lineNumberNode.style.zIndex = zIndex
+    else
+      lineNumberNode.style.visibility = "hidden"
 
-  buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
+    @appendLineNumberInnerNodes(bufferRow, softWrapped, lineNumberNode)
+    lineNumberNode
+
+  appendLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
     {maxLineNumberDigits} = @newState
 
     if softWrapped
@@ -110,8 +115,10 @@ class LineNumbersTileComponent
       lineNumber = (bufferRow + 1).toString()
 
     padding = _.multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-    iconHTML = '<div class="icon-right"></div>'
-    padding + lineNumber + iconHTML
+    iconRight = @elementsPool.build("div", "icon-right")
+
+    lineNumberNode.innerHTML = padding + lineNumber
+    lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->
     oldLineNumberState = @oldTileState.lineNumbers[lineNumberId]
