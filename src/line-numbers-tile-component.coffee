@@ -116,7 +116,7 @@ class LineNumbersTileComponent
     padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
     iconRight = @domElementPool.build("div", "icon-right")
 
-    lineNumberNode.innerText = padding + lineNumber
+    lineNumberNode.textContent = padding + lineNumber
     lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->
