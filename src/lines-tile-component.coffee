@@ -116,8 +116,7 @@ class LinesTileComponent
     {width} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
-    lineNode = document.createElement("div")
-    lineNode.classList.add("line")
+    lineNode = @buildElement("div", "line")
     if decorationClasses?
       for decorationClass in decorationClasses
         lineNode.classList.add(decorationClass)
@@ -132,12 +131,14 @@ class LinesTileComponent
     else
       @appendLineInnerNodes(id, lineNode)
 
-    if fold
-      foldMarker = document.createElement("span")
-      foldMarker.classList.add("fold-marker")
-      lineNode.appendChild(foldMarker)
-
+    lineNode.appendChild(@buildElement("span", "fold-marker")) if fold
     lineNode
+
+  buildElement: (name, className, textContent) ->
+    element = document.createElement(name)
+    element.className = className if className?
+    element.textContent = textContent if textContent?
+    element
 
   appendEmptyLineInnerNodes: (id, lineNode) ->
     {indentGuidesVisible} = @newState
@@ -147,23 +148,21 @@ class LinesTileComponent
       invisibleIndex = 0
       lineHTML = ''
       for i in [0...indentLevel]
-        indentGuide = document.createElement("span")
-        indentGuide.classList.add("indent-guide")
+        indentGuide = @buildElement("span", "indent-guide")
         for j in [0...tabLength]
           if invisible = endOfLineInvisibles?[invisibleIndex++]
-            invisibleCharacter = document.createElement("span")
-            invisibleCharacter.classList.add("invisible-character")
-            invisibleCharacter.textContent = invisible
-            indentGuide.appendChild(invisibleCharacter)
+            indentGuide.appendChild(
+              @buildElement("span", "invisible-character", invisible)
+            )
           else
             indentGuide.insertAdjacentText("beforeend", " ")
         lineNode.appendChild(indentGuide)
 
       while invisibleIndex < endOfLineInvisibles?.length
-        invisibleCharacter = document.createElement("span")
-        invisibleCharacter.classList.add("invisible-character")
-        invisibleCharacter.textContent = endOfLineInvisibles[invisibleIndex++]
-        lineNode.appendChild(invisibleCharacter)
+        invisible = endOfLineInvisibles[invisibleIndex++]
+        lineNode.appendChild(
+          @buildElement("span", "invisible-character", invisible)
+        )
     else
       unless @appendEndOfLineNodes(id, lineNode)
         lineNode.insertAdjacentHTML("beforeend", "&nbsp;")
@@ -182,10 +181,8 @@ class LinesTileComponent
         openScopeNode = openScopeNode.parentElement
 
       for scope in @tokenIterator.getScopeStarts()
-        newScopeNode = document.createElement("span")
-        newScopeNode.className = scope.replace(/\.+/g, ' ')
+        newScopeNode = @buildElement("span", scope.replace(/\.+/g, ' '))
         openScopeNode.appendChild(newScopeNode)
-
         openScopeNode = newScopeNode
 
       tokenStart = @tokenIterator.getScreenStart()
@@ -217,13 +214,11 @@ class LinesTileComponent
 
   appendToken: (scopeNode, tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters) ->
     if isHardTab
-      hardTab = document.createElement("span")
-      hardTab.classList.add("hard-tab")
+      hardTab = @buildElement("span", "hard-tab", tokenText)
       hardTab.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
       hardTab.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
       hardTab.classList.add("indent-guide") if hasIndentGuide
       hardTab.classList.add("invisible-character") if hasInvisibleCharacters
-      hardTab.textContent = tokenText
 
       scopeNode.appendChild(hardTab)
     else
@@ -234,22 +229,26 @@ class LinesTileComponent
       trailingWhitespaceNode = null
 
       if firstNonWhitespaceIndex?
-        leadingWhitespaceNode = document.createElement("span")
-        leadingWhitespaceNode.classList.add("leading-whitespace")
+        leadingWhitespaceNode = @buildElement(
+          "span",
+          "leading-whitespace",
+          tokenText.substring(0, firstNonWhitespaceIndex)
+        )
         leadingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide
         leadingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
-        leadingWhitespaceNode.textContent = tokenText.substring(0, firstNonWhitespaceIndex)
 
         startIndex = firstNonWhitespaceIndex
 
       if firstTrailingWhitespaceIndex?
         tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
 
-        trailingWhitespaceNode = document.createElement("span")
-        trailingWhitespaceNode.classList.add("trailing-whitespace")
+        trailingWhitespaceNode = @buildElement(
+          "span",
+          "trailing-whitespace",
+          tokenText.substring(firstTrailingWhitespaceIndex)
+        )
         trailingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
         trailingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
-        trailingWhitespaceNode.textContent = tokenText.substring(firstTrailingWhitespaceIndex)
 
         endIndex = firstTrailingWhitespaceIndex
 
@@ -257,9 +256,8 @@ class LinesTileComponent
 
       if tokenText.length > MaxTokenLength
         while startIndex < endIndex
-          tokenNode = document.createElement("span")
-          tokenNode.textContent = @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
-          scopeNode.appendChild(tokenNode)
+          text = @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
+          scopeNode.appendChild(@buildElement("span", null, text))
           startIndex += MaxTokenLength
       else
         scopeNode.insertAdjacentText("beforeend", @sliceText(tokenText, startIndex, endIndex))
@@ -278,11 +276,9 @@ class LinesTileComponent
     if endOfLineInvisibles?
       for invisible in endOfLineInvisibles
         hasInvisibles = true
-
-        invisibleCharacter = document.createElement("span")
-        invisibleCharacter.classList.add("invisible-character")
-        invisibleCharacter.textContent = invisible
-        lineNode.appendChild(invisibleCharacter)
+        lineNode.appendChild(
+          @buildElement("span", "invisible-character", invisible)
+        )
 
     hasInvisibles
 
