@@ -29,6 +29,7 @@ module.exports = (grunt) ->
     # * http://www.rpm.org/max-rpm/ch-rpm-file-format.html
     # * https://github.com/mojombo/semver/issues/145
     version = version.replace(/-beta$/, "~beta")
+    version = version.replace(/-dev$/, "~dev")
 
     buildDir = grunt.config.get('atom.buildDir')
 
