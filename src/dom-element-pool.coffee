@@ -9,12 +9,14 @@ class DOMElementPool
     for tagName, freeElements of @freeElementsByTagName
       freeElements.length = 0
 
-  build: (tagName, className, textContent) ->
+  build: (tagName, className, textContent = "") ->
     element = @freeElementsByTagName[tagName]?.pop()
     element ?= document.createElement(tagName)
-    element.className = className
-    element.textContent = textContent
+    delete element.dataset[dataId] for dataId of element.dataset
+    element.removeAttribute("class")
     element.removeAttribute("style")
+    element.className = className if className?
+    element.textContent = textContent
 
     @freedElements.delete(element)
 
