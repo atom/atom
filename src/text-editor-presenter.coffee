@@ -34,6 +34,7 @@ class TextEditorPresenter
     @observeModel()
     @observeConfig()
     @buildState()
+    @invalidate()
     @startBlinkingCursors() if @focused
     @updating = false
 
@@ -111,6 +112,23 @@ class TextEditorPresenter
     @shouldUpdateLineNumbersState = false
     @shouldUpdateGutterOrderState = false
     @shouldUpdateCustomGutterDecorationState = false
+
+  invalidate: ->
+    @shouldUpdateFocusedState = true
+    @shouldUpdateHeightState = true
+    @shouldUpdateVerticalScrollState = true
+    @shouldUpdateHorizontalScrollState = true
+    @shouldUpdateScrollbarsState = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateContentState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateLinesState = true
+    @shouldUpdateCursorsState = true
+    @shouldUpdateOverlaysState = true
+    @shouldUpdateLineNumberGutterState = true
+    @shouldUpdateLineNumbersState = true
+    @shouldUpdateGutterOrderState = true
+    @shouldUpdateCustomGutterDecorationState = true
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
@@ -226,35 +244,6 @@ class TextEditorPresenter
     @customGutterDecorations = {}
     @lineNumberGutter =
       tiles: {}
-
-    @updateState()
-
-  updateState: ->
-    @shouldUpdateLinesState = true
-    @shouldUpdateLineNumbersState = true
-
-    @updateContentDimensions()
-    @updateScrollbarDimensions()
-    @updateStartRow()
-    @updateEndRow()
-
-    @updateFocusedState()
-    @updateHeightState()
-    @updateVerticalScrollState()
-    @updateHorizontalScrollState()
-    @updateScrollbarsState()
-    @updateHiddenInputState()
-    @updateContentState()
-    @updateDecorations()
-    @updateTilesState()
-    @updateCursorsState()
-    @updateOverlaysState()
-    @updateLineNumberGutterState()
-    @updateCommonGutterState()
-    @updateGutterOrderState()
-    @updateCustomGutterDecorationState()
-
-    @resetTrackedUpdates()
 
   updateFocusedState: ->
     @state.focused = @focused
