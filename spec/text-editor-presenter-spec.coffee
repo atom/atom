@@ -2035,15 +2035,10 @@ describe "TextEditorPresenter", ->
           lineNumberStateForScreenRow = (presenter, screenRow) ->
             editor = presenter.model
             tileRow = presenter.tileForRow(screenRow)
-            bufferRow = editor.bufferRowForScreenRow(screenRow)
-            wrapCount = screenRow - editor.screenRowForBufferRow(bufferRow)
-            if wrapCount > 0
-              key = bufferRow + '-' + wrapCount
-            else
-              key = bufferRow
+            line = editor.tokenizedLineForScreenRow(screenRow)
 
             gutterState = getLineNumberGutterState(presenter)
-            gutterState.content.tiles[tileRow]?.lineNumbers[key]
+            gutterState.content.tiles[tileRow]?.lineNumbers[line?.id]
 
           tiledContentContract (presenter) -> getLineNumberGutterState(presenter).content
 

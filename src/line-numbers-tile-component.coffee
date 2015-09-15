@@ -9,7 +9,6 @@ class LineNumbersTileComponent
   constructor: ({@id}) ->
     @lineNumberNodesById = {}
     @domNode = document.createElement("div")
-    @domNode.classList.add("tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
@@ -75,28 +74,32 @@ class LineNumbersTileComponent
         newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
-    if newLineNumberIds?
-      WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = _.toArray(WrapperDiv.children)
+    return unless newLineNumberIds?
 
-      node = @domNode
-      for id, i in newLineNumberIds
-        lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[id] = lineNumberNode
-        node.appendChild(lineNumberNode)
+    WrapperDiv.innerHTML = newLineNumbersHTML
+    newLineNumberNodes = _.toArray(WrapperDiv.children)
 
+    for id, i in newLineNumberIds
+      lineNumberNode = newLineNumberNodes[i]
+      @lineNumberNodesById[id] = lineNumberNode
+      if nextNode = @findNodeNextTo(lineNumberNode)
+        @domNode.insertBefore(lineNumberNode, nextNode)
+      else
+        @domNode.appendChild(lineNumberNode)
+
+  findNodeNextTo: (node) ->
+    for nextNode in @domNode.children
+      return nextNode if @screenRowForNode(node) < @screenRowForNode(nextNode)
     return
 
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
+
   buildLineNumberHTML: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
-    if screenRow?
-      style = "position: absolute; top: #{top}px; z-index: #{zIndex};"
-    else
-      style = "visibility: hidden;"
+    {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
     className = @buildLineNumberClassName(lineNumberState)
     innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
 
-    "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    "<div class=\"#{className}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
 
   buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
     {maxLineNumberDigits} = @newState
@@ -119,18 +122,15 @@ class LineNumbersTileComponent
       oldLineNumberState.foldable = newLineNumberState.foldable
       oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
-    unless oldLineNumberState.top is newLineNumberState.top
-      node.style.top = newLineNumberState.top + 'px'
+    unless oldLineNumberState.screenRow is newLineNumberState.screenRow and oldLineNumberState.bufferRow is newLineNumberState.bufferRow
+      node.innerHTML = @buildLineNumberInnerHTML(newLineNumberState.bufferRow, newLineNumberState.softWrapped)
       node.dataset.screenRow = newLineNumberState.screenRow
-      oldLineNumberState.top = newLineNumberState.top
+      node.dataset.bufferRow = newLineNumberState.bufferRow
       oldLineNumberState.screenRow = newLineNumberState.screenRow
-
-    unless oldLineNumberState.zIndex is newLineNumberState.zIndex
-      node.style.zIndex = newLineNumberState.zIndex
-      oldLineNumberState.zIndex = newLineNumberState.zIndex
+      oldLineNumberState.bufferRow = newLineNumberState.bufferRow
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
-    className = "line-number line-number-#{bufferRow}"
+    className = "line-number"
     className += " " + decorationClasses.join(' ') if decorationClasses?
     className += " foldable" if foldable and not softWrapped
     className

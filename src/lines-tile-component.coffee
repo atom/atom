@@ -21,7 +21,6 @@ class LinesTileComponent
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @domNode = document.createElement("div")
-    @domNode.classList.add("tile")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
@@ -110,9 +109,18 @@ class LinesTileComponent
     for id, i in newLineIds
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
-      @domNode.appendChild(lineNode)
+      if nextNode = @findNodeNextTo(lineNode)
+        @domNode.insertBefore(lineNode, nextNode)
+      else
+        @domNode.appendChild(lineNode)
 
+  findNodeNextTo: (node) ->
+    for nextNode, index in @domNode.children
+      continue if index is 0 # skips highlights node
+      return nextNode if @screenRowForNode(node) < @screenRowForNode(nextNode)
     return
+
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineHTML: (id) ->
     {width} = @newState
@@ -124,7 +132,7 @@ class LinesTileComponent
         classes += decorationClass + ' '
     classes += 'line'
 
-    lineHTML = "<div class=\"#{classes}\" style=\"position: absolute; top: #{top}px; width: #{width}px;\" data-screen-row=\"#{screenRow}\">"
+    lineHTML = "<div class=\"#{classes}\" data-screen-row=\"#{screenRow}\">"
 
     if text is ""
       lineHTML += @buildEmptyLineInnerHTML(id)
@@ -284,9 +292,6 @@ class LinesTileComponent
 
     lineNode = @lineNodesByLineId[id]
 
-    if @newState.width isnt @oldState.width
-      lineNode.style.width = @newState.width + 'px'
-
     newDecorationClasses = newLineState.decorationClasses
     oldDecorationClasses = oldLineState.decorationClasses
 
@@ -301,10 +306,6 @@ class LinesTileComponent
           lineNode.classList.add(decorationClass)
 
     oldLineState.decorationClasses = newLineState.decorationClasses
-
-    if newLineState.top isnt oldLineState.top
-      lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow
