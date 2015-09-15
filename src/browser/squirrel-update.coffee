@@ -135,7 +135,12 @@ exports.handleStartupEvent = (app, squirrelCommand) ->
       true
     when '--squirrel-updated'
       updateShortcuts ->
-        WinRegistry.installContextMenu ->
+        contextMenuWasEnabled = atom.config.get('core.showAtomInShellContextMenu')
+        passCallback = (callback) -> callback()
+        
+        next = if contextMenuWasEnabled then WinRegistry.installContextMenu else passCallback
+            
+        next ->
           addCommandsToPath ->
             app.quit()
       true

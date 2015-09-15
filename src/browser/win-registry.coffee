@@ -27,7 +27,7 @@ isAscii = (text) ->
 
 # Install the Open with Atom explorer context menu items via the registry.
 #
-# * `callback` The {Function} to call after registry operation is done. 
+# * `callback` The {Function} to call after registry operation is done.
 #   It will be invoked with the same arguments provided by {Spawner.spawn}.
 #
 # Returns `undefined`.
@@ -51,7 +51,7 @@ exports.installContextMenu = (callback) ->
 
 # Uninstall the Open with Atom explorer context menu items via the registry.
 #
-# * `callback` The {Function} to call after registry operation is done. 
+# * `callback` The {Function} to call after registry operation is done.
 #   It will be invoked with the same arguments provided by {Spawner.spawn}.
 #
 # Returns `undefined`.
@@ -65,7 +65,7 @@ exports.uninstallContextMenu = (callback) ->
 
 # Get the user's PATH environment variable registry value.
 #
-# * `callback` The {Function} to call after registry operation is done. 
+# * `callback` The {Function} to call after registry operation is done.
 #   It will be invoked with the same arguments provided by {Spawner.spawn}.
 #
 # Returns the path {String}.
