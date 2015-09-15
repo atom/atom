@@ -26,6 +26,7 @@ describe "Windows squirrel updates", ->
       else
         originalSpawn('ls')
 
+      # Then run passed callback
       invokeCallback callback
 
     # Prevent any actual change to Windows registry, just run passed callback
