@@ -36,6 +36,8 @@ function parseArguments(next) {
 function checkCleanWorkingTree(next) {
   console.log('Checking for a clean working tree');
   exec('git status --porcelain', function(error, output) {
+    if (error) return next(error)
+
     var modifiedEntries = output.split('\n').filter(function(line) {
       return !/^\?\?/.test(line) && line.length > 0
     });
