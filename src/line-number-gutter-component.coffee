@@ -77,8 +77,7 @@ class LineNumberGutterComponent extends TiledComponent
 
   updateDummyLineNumber: ->
     @dummyLineNumberComponent.newState = @newState
-    @dummyLineNumberNode.innerHTML = ""
-    @dummyLineNumberComponent.appendLineNumberInnerNodes(0, false, @dummyLineNumberNode)
+    @dummyLineNumberComponent.setLineNumberInnerNodes(0, false, @dummyLineNumberNode)
 
   onMouseDown: (event) =>
     {target} = event

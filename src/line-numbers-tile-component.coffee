@@ -7,7 +7,7 @@ class LineNumbersTileComponent
 
   constructor: ({@id, @domElementPool}) ->
     @lineNumberNodesById = {}
-    @domNode = @domElementPool.build("div", "tile")
+    @domNode = @domElementPool.build("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
@@ -78,14 +78,22 @@ class LineNumbersTileComponent
         newLineNumberNodes.push(@buildLineNumberNode(lineNumberState))
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
-    if newLineNumberIds?
-      node = @domNode
-      for id, i in newLineNumberIds
-        lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[id] = lineNumberNode
-        node.appendChild(lineNumberNode)
+    return unless newLineNumberIds?
 
+    for id, i in newLineNumberIds
+      lineNumberNode = newLineNumberNodes[i]
+      @lineNumberNodesById[id] = lineNumberNode
+      if nextNode = @findNodeNextTo(lineNumberNode)
+        @domNode.insertBefore(lineNumberNode, nextNode)
+      else
+        @domNode.appendChild(lineNumberNode)
+
+  findNodeNextTo: (node) ->
+    for nextNode in @domNode.children
+      return nextNode if @screenRowForNode(node) < @screenRowForNode(nextNode)
     return
+
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNumberNode: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
@@ -95,17 +103,10 @@ class LineNumbersTileComponent
     lineNumberNode.dataset.screenRow = screenRow
     lineNumberNode.dataset.bufferRow = bufferRow
 
-    if screenRow?
-      lineNumberNode.style.position = "absolute"
-      lineNumberNode.style.top = top + "px"
-      lineNumberNode.style.zIndex = zIndex
-    else
-      lineNumberNode.style.visibility = "hidden"
-
-    @appendLineNumberInnerNodes(bufferRow, softWrapped, lineNumberNode)
+    @setLineNumberInnerNodes(bufferRow, softWrapped, lineNumberNode)
     lineNumberNode
 
-  appendLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
+  setLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
     {maxLineNumberDigits} = @newState
 
     if softWrapped
@@ -128,18 +129,15 @@ class LineNumbersTileComponent
       oldLineNumberState.foldable = newLineNumberState.foldable
       oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
-    unless oldLineNumberState.top is newLineNumberState.top
-      node.style.top = newLineNumberState.top + 'px'
+    unless oldLineNumberState.screenRow is newLineNumberState.screenRow and oldLineNumberState.bufferRow is newLineNumberState.bufferRow
+      @setLineNumberInnerNodes(newLineNumberState.bufferRow, newLineNumberState.softWrapped, node)
       node.dataset.screenRow = newLineNumberState.screenRow
-      oldLineNumberState.top = newLineNumberState.top
+      node.dataset.bufferRow = newLineNumberState.bufferRow
       oldLineNumberState.screenRow = newLineNumberState.screenRow
-
-    unless oldLineNumberState.zIndex is newLineNumberState.zIndex
-      node.style.zIndex = newLineNumberState.zIndex
-      oldLineNumberState.zIndex = newLineNumberState.zIndex
+      oldLineNumberState.bufferRow = newLineNumberState.bufferRow
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
-    className = "line-number line-number-#{bufferRow}"
+    className = "line-number"
     className += " " + decorationClasses.join(' ') if decorationClasses?
     className += " foldable" if foldable and not softWrapped
     className

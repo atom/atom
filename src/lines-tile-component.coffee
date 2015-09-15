@@ -19,8 +19,7 @@ class LinesTileComponent
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
-    @domNode = @domElementPool.build("div", "tile")
-    @domNode.classList.add("tile")
+    @domNode = @domElementPool.build("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
@@ -110,33 +109,39 @@ class LinesTileComponent
     for id, i in newLineIds
       lineNode = newLineNodes[i]
       @lineNodesByLineId[id] = lineNode
-      @domNode.appendChild(lineNode)
+      if nextNode = @findNodeNextTo(lineNode)
+        @domNode.insertBefore(lineNode, nextNode)
+      else
+        @domNode.appendChild(lineNode)
 
+  findNodeNextTo: (node) ->
+    for nextNode, index in @domNode.children
+      continue if index is 0 # skips highlights node
+      return nextNode if @screenRowForNode(node) < @screenRowForNode(nextNode)
     return
+
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNode: (id) ->
     {width} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
     lineNode = @domElementPool.build("div", "line")
+    lineNode.dataset.screenRow = screenRow
+
     if decorationClasses?
       for decorationClass in decorationClasses
         lineNode.classList.add(decorationClass)
 
-    lineNode.style.position = "absolute"
-    lineNode.style.top = top + "px"
-    lineNode.style.width = width + "px"
-    lineNode.dataset.screenRow = screenRow
-
     if text is ""
-      @appendEmptyLineInnerNodes(id, lineNode)
+      @setEmptyLineInnerNodes(id, lineNode)
     else
-      @appendLineInnerNodes(id, lineNode)
+      @setLineInnerNodes(id, lineNode)
 
     lineNode.appendChild(@domElementPool.build("span", "fold-marker")) if fold
     lineNode
 
-  appendEmptyLineInnerNodes: (id, lineNode) ->
+  setEmptyLineInnerNodes: (id, lineNode) ->
     {indentGuidesVisible} = @newState
     {indentLevel, tabLength, endOfLineInvisibles} = @newTileState.lines[id]
 
@@ -162,7 +167,7 @@ class LinesTileComponent
       unless @appendEndOfLineNodes(id, lineNode)
         lineNode.textContent = "\u00a0"
 
-  appendLineInnerNodes: (id, lineNode) ->
+  setLineInnerNodes: (id, lineNode) ->
     lineState = @newTileState.lines[id]
     {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, invisibles} = lineState
     lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
@@ -282,9 +287,6 @@ class LinesTileComponent
 
     lineNode = @lineNodesByLineId[id]
 
-    if @newState.width isnt @oldState.width
-      lineNode.style.width = @newState.width + 'px'
-
     newDecorationClasses = newLineState.decorationClasses
     oldDecorationClasses = oldLineState.decorationClasses
 
@@ -299,10 +301,6 @@ class LinesTileComponent
           lineNode.classList.add(decorationClass)
 
     oldLineState.decorationClasses = newLineState.decorationClasses
-
-    if newLineState.top isnt oldLineState.top
-      lineNode.style.top = newLineState.top + 'px'
-      oldLineState.top = newLineState.top
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow

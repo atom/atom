@@ -1,7 +1,7 @@
 {
   "name": "atom",
   "productName": "Atom",
-  "version": "1.0.12",
+  "version": "1.0.12-dev",
   "description": "A hackable text editor for the 21st Century.",
   "main": "./src/browser/main.js",
   "repository": {
@@ -138,11 +138,11 @@
     "language-make": "0.17.0",
     "language-mustache": "0.12.0",
     "language-objective-c": "0.15.0",
-    "language-perl": "0.28.0",
-    "language-php": "0.29.0",
+    "language-perl": "0.29.0",
+    "language-php": "0.30.0",
     "language-property-list": "0.8.0",
     "language-python": "0.40.0",
-    "language-ruby": "0.57.0",
+    "language-ruby": "0.58.0",
     "language-ruby-on-rails": "0.22.0",
     "language-sass": "0.41.0",
     "language-shellscript": "0.17.0",
