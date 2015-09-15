@@ -653,6 +653,7 @@ class TextEditorComponent
     {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
+      @domElementPool.clear()
       @measureLineHeightAndDefaultCharWidth()
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
