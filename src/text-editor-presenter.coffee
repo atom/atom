@@ -331,47 +331,63 @@ class TextEditorPresenter
       (@getEndTileRow() - @getStartTileRow() + 1) / @tileSize
     )
 
-  updateTilesState: ->
-    return unless @startRow? and @endRow? and @lineHeight?
+  updateLinesTileState: (startRow, zIndex) ->
+    endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
-    visibleTiles = {}
+    tile = @state.content.tiles[startRow] ?= {}
+    tile.top = startRow * @lineHeight - @scrollTop
+    tile.left = -@scrollLeft
+    tile.height = @tileSize * @lineHeight
+    tile.display = "block"
+    tile.zIndex = zIndex
+    tile.highlights ?= {}
+
+    @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
+
+  updateLineNumbersTileState: (startRow, zIndex) ->
+    endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
+
+    gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
+    gutterTile.top = startRow * @lineHeight - @scrollTop
+    gutterTile.height = @tileSize * @lineHeight
+    gutterTile.display = "block"
+    gutterTile.zIndex = zIndex
+
+    @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
+
+  updateVisibleTilesState: ->
     zIndex = @getTilesCount() - 1
     for startRow in [@getStartTileRow()..@getEndTileRow()] by @tileSize
-      endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
-
-      tile = @state.content.tiles[startRow] ?= {}
-      tile.top = startRow * @lineHeight - @scrollTop
-      tile.left = -@scrollLeft
-      tile.height = @tileSize * @lineHeight
-      tile.display = "block"
-      tile.zIndex = zIndex
-      tile.highlights ?= {}
-
-      gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
-      gutterTile.top = startRow * @lineHeight - @scrollTop
-      gutterTile.height = @tileSize * @lineHeight
-      gutterTile.display = "block"
-      gutterTile.zIndex = zIndex
-
-      @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
-      @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
-
-      visibleTiles[startRow] = true
+      @updateLinesTileState(startRow, zIndex)
+      @updateLineNumbersTileState(startRow, zIndex)
+      @visibleTiles[startRow] = true
       zIndex--
 
-    if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
-      mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
+  updateMouseWheelTileState: ->
+    return unless @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
 
-      unless visibleTiles[mouseWheelTile]?
-        @lineNumberGutter.tiles[mouseWheelTile].display = "none"
-        @state.content.tiles[mouseWheelTile].display = "none"
-        visibleTiles[mouseWheelTile] = true
+    mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
 
+    unless @visibleTiles[mouseWheelTile]?
+      @lineNumberGutter.tiles[mouseWheelTile].display = "none"
+      @state.content.tiles[mouseWheelTile].display = "none"
+      @visibleTiles[mouseWheelTile] = true
+
+  deleteHiddenTilesState: ->
     for id, tile of @state.content.tiles
-      continue if visibleTiles.hasOwnProperty(id)
+      continue if @visibleTiles.hasOwnProperty(id)
 
       delete @state.content.tiles[id]
       delete @lineNumberGutter.tiles[id]
+
+  updateTilesState: ->
+    return unless @startRow? and @endRow? and @lineHeight?
+
+    @visibleTiles = {}
+
+    @updateVisibleTilesState()
+    @updateMouseWheelTileState()
+    @deleteHiddenTilesState()
 
   updateLinesState: (tileState, startRow, endRow) ->
     tileState.lines ?= {}
