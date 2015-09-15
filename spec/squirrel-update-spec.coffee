@@ -6,7 +6,7 @@ Spawner = require '../src/browser/spawner'
 WinRegistry = require '../src/browser/win-registry'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 
-fdescribe "Windows squirrel updates", ->
+describe "Windows squirrel updates", ->
   tempHomeDirectory = null
 
   beforeEach ->
@@ -103,9 +103,9 @@ fdescribe "Windows squirrel updates", ->
 
   describe "Shell context menu", ->
     contextMenuState = 
-      unknown: 0
-      installed: 1
-      notInstalled: 2
+      unknown: 'unknown'
+      installed: 'installed'
+      notInstalled: 'notInstalled'
       
     contextMenu = contextMenuState.unknown
     
@@ -139,6 +139,9 @@ fdescribe "Windows squirrel updates", ->
     
     describe "when menu is removed and then app is updated", ->
       beforeEach ->
+        atom.config.set('core.showAtomInShellContextMenu', false)
+        contextMenu = contextMenuState.notInstalled  # keep dummy test state in sync
+        
         waitForUpdated()
 
       it "is not readded", ->
