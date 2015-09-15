@@ -3,7 +3,6 @@
 CursorsComponent = require './cursors-component'
 LinesTileComponent = require './lines-tile-component'
 TiledComponent = require './tiled-component'
-DOMElementPool = require './dom-element-pool'
 
 DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
 
@@ -11,7 +10,7 @@ module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @hostElement, @useShadowDOM, visible}) ->
+  constructor: ({@presenter, @hostElement, @useShadowDOM, visible, @domElementPool}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
@@ -24,15 +23,10 @@ class LinesComponent extends TiledComponent
     @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
 
-    @domElementPool = new DOMElementPool
-
     if @useShadowDOM
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
       @domNode.appendChild(insertionPoint)
-
-  destroy: ->
-    @domElementPool.clear()
 
   getDomNode: ->
     @domNode

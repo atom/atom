@@ -7,10 +7,8 @@ module.exports =
 class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter}) ->
+  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool}) ->
     @visible = true
-
-    @domElementPool = new DOMElementPool
 
     @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
 
@@ -22,8 +20,6 @@ class LineNumberGutterComponent extends TiledComponent
     @domNode.addEventListener 'mousedown', @onMouseDown
 
   destroy: ->
-    @domElementPool.clear()
-
     @domNode.removeEventListener 'click', @onClick
     @domNode.removeEventListener 'mousedown', @onMouseDown
 
