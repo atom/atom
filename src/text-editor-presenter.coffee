@@ -331,35 +331,29 @@ class TextEditorPresenter
       (@getEndTileRow() - @getStartTileRow() + 1) / @tileSize
     )
 
-  updateLinesTileState: (startRow, zIndex) ->
-    endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
-
-    tile = @state.content.tiles[startRow] ?= {}
-    tile.top = startRow * @lineHeight - @scrollTop
-    tile.left = -@scrollLeft
-    tile.height = @tileSize * @lineHeight
-    tile.display = "block"
-    tile.zIndex = zIndex
-    tile.highlights ?= {}
-
-    @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
-
-  updateLineNumbersTileState: (startRow, zIndex) ->
-    endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
-
-    gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
-    gutterTile.top = startRow * @lineHeight - @scrollTop
-    gutterTile.height = @tileSize * @lineHeight
-    gutterTile.display = "block"
-    gutterTile.zIndex = zIndex
-
-    @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
-
   updateVisibleTilesState: ->
     zIndex = @getTilesCount() - 1
     for startRow in [@getStartTileRow()..@getEndTileRow()] by @tileSize
-      @updateLinesTileState(startRow, zIndex)
-      @updateLineNumbersTileState(startRow, zIndex)
+      endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
+
+      tile = @state.content.tiles[startRow] ?= {}
+      tile.top = startRow * @lineHeight - @scrollTop
+      tile.left = -@scrollLeft
+      tile.height = @tileSize * @lineHeight
+      tile.display = "block"
+      tile.visibility = "initial"
+      tile.zIndex = zIndex
+      tile.highlights ?= {}
+
+      gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
+      gutterTile.top = startRow * @lineHeight - @scrollTop
+      gutterTile.height = @tileSize * @lineHeight
+      gutterTile.display = "block"
+      gutterTile.zIndex = zIndex
+
+      @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
+      @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
+
       @visibleTiles[startRow] = true
       zIndex--
 
@@ -372,6 +366,19 @@ class TextEditorPresenter
       @lineNumberGutter.tiles[mouseWheelTile].display = "none"
       @state.content.tiles[mouseWheelTile].display = "none"
       @visibleTiles[mouseWheelTile] = true
+
+  updateLongestTileState: ->
+    longestScreenRow = @model.getLongestScreenRow()
+    longestScreenRowTile = @tileForRow(longestScreenRow)
+
+    return if @getStartTileRow() <= longestScreenRowTile <= @getEndTileRow()
+
+    tile = @state.content.tiles[longestScreenRowTile] ?= {}
+    tile.visibility = "hidden"
+
+    @updateLinesState(tile, longestScreenRow, longestScreenRow + 1)
+
+    @visibleTiles[longestScreenRowTile] = true
 
   deleteHiddenTilesState: ->
     for id, tile of @state.content.tiles
@@ -386,6 +393,7 @@ class TextEditorPresenter
     @visibleTiles = {}
 
     @updateVisibleTilesState()
+    @updateLongestTileState()
     @updateMouseWheelTileState()
     @deleteHiddenTilesState()
 

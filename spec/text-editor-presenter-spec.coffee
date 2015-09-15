@@ -832,11 +832,46 @@ describe "TextEditorPresenter", ->
         lineStateForScreenRow = (presenter, row) ->
           lineId  = presenter.model.tokenizedLineForScreenRow(row).id
           tileRow = presenter.tileForRow(row)
-          presenter.getState().content.tiles[tileRow]?.lines[lineId]
+          presenter.getState().content.tiles[tileRow]?.lines?[lineId]
 
         tiledContentContract (presenter) -> presenter.getState().content
 
+        it "contains the state for the longest tile on screen", ->
+          presenter = buildPresenter(explicitHeight: 4, scrollTop: 0, lineHeight: 1, tileSize: 2)
+
+          expectValues presenter.getState().content.tiles[6], {
+            visibility: "hidden"
+          }
+
+          expectStateUpdate presenter, -> presenter.setScrollTop(2)
+
+          expectValues presenter.getState().content.tiles[6], {
+            visibility: "initial"
+          }
+
+          expectStateUpdate presenter, -> presenter.setScrollTop(0)
+
+          expectValues presenter.getState().content.tiles[6], {
+            visibility: "hidden"
+          }
+
         describe "[tileId].lines[lineId]", -> # line state objects
+          it "includes the state for the longest line on screen", ->
+            presenter = buildPresenter(explicitHeight: 4, scrollTop: 0, lineHeight: 1, tileSize: 2)
+
+            expect(lineStateForScreenRow(presenter, 6)).toBeDefined()
+            expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
+
+            expectStateUpdate presenter, -> presenter.setScrollTop(2)
+
+            expect(lineStateForScreenRow(presenter, 6)).toBeDefined()
+            expect(lineStateForScreenRow(presenter, 7)).toBeDefined()
+
+            expectStateUpdate presenter, -> presenter.setScrollTop(0)
+
+            expect(lineStateForScreenRow(presenter, 6)).toBeDefined()
+            expect(lineStateForScreenRow(presenter, 7)).toBeUndefined()
+
           it "includes the state for visible lines in a tile", ->
             presenter = buildPresenter(explicitHeight: 3, scrollTop: 4, lineHeight: 1, tileSize: 3, stoppedScrollingDelay: 200)
 
