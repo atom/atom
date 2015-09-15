@@ -749,6 +749,13 @@ class TextEditorComponent
 
     tileComponent?.lineNumberNodeForScreenRow(screenRow)
 
+  tileNodesForLines: ->
+    @linesComponent.getTiles()
+
+  tileNodesForLineNumbers: ->
+    gutterComponent = @gutterContainerComponent.getLineNumberGutterComponent()
+    gutterComponent.getTiles()
+
   screenRowForNode: (node) ->
     while node?
       if screenRow = node.dataset.screenRow
