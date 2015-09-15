@@ -31,6 +31,9 @@ class LinesComponent extends TiledComponent
       insertionPoint.setAttribute('select', '.overlayer')
       @domNode.appendChild(insertionPoint)
 
+  destroy: ->
+    @domElementPool.clear()
+
   getDomNode: ->
     @domNode
 

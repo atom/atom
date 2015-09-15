@@ -34,6 +34,17 @@ describe "DOMElementPool", ->
     expect(elements).not.toContain(domElementPool.build("div"))
     expect(elements).not.toContain(domElementPool.build("span"))
 
+  it "forgets free nodes after being cleared", ->
+    span = domElementPool.build("span")
+    div = domElementPool.build("div")
+    domElementPool.freeElementAndDescendants(span)
+    domElementPool.freeElementAndDescendants(div)
+
+    domElementPool.clear()
+
+    expect(domElementPool.build("span")).not.toBe(span)
+    expect(domElementPool.build("div")).not.toBe(div)
+
   it "throws an error when trying to free the same node twice", ->
     div = domElementPool.build("div")
     domElementPool.freeElementAndDescendants(div)

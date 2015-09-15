@@ -107,6 +107,7 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     @gutterContainerComponent?.destroy()
+    @linesComponent.destroy()
 
   getDomNode: ->
     @domNode

@@ -4,6 +4,11 @@ class DOMElementPool
     @freeElementsByTagName = {}
     @freedElements = new Set
 
+  clear: ->
+    @freedElements.clear()
+    for tagName, freeElements of @freeElementsByTagName
+      freeElements.length = 0
+
   build: (tagName, className, textContent) ->
     element = @freeElementsByTagName[tagName]?.pop()
     element ?= document.createElement(tagName)

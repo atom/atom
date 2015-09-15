@@ -22,6 +22,8 @@ class LineNumberGutterComponent extends TiledComponent
     @domNode.addEventListener 'mousedown', @onMouseDown
 
   destroy: ->
+    @domElementPool.clear()
+
     @domNode.removeEventListener 'click', @onClick
     @domNode.removeEventListener 'mousedown', @onMouseDown
 
