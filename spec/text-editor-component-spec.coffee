@@ -219,7 +219,7 @@ describe "TextEditorComponent", ->
       expectTileContainsRow(tilesNodes[2], 7, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[2], 8, top: 2 * lineHeightInPixels)
 
-    fffit "renders the longest screen row even when it's not visible", ->
+    it "renders the longest screen row even when it's not visible", ->
       wrapperNode.style.height = 2 * lineHeightInPixels + 'px'
       component.measureDimensions()
       nextAnimationFrame()

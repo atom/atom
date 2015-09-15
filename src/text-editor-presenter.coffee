@@ -354,7 +354,8 @@ class TextEditorPresenter
       @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
       @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
 
-      @visibleTiles[startRow] = true
+      @visibleLinesTiles[startRow] = true
+      @visibleGutterTiles[startRow] = true
       zIndex--
 
   updateMouseWheelTileState: ->
@@ -362,10 +363,11 @@ class TextEditorPresenter
 
     mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
 
-    unless @visibleTiles[mouseWheelTile]?
+    unless @visibleGutterTiles[mouseWheelTile]? and @visibleLinesTiles[mouseWheelTile]
       @lineNumberGutter.tiles[mouseWheelTile].display = "none"
       @state.content.tiles[mouseWheelTile].display = "none"
-      @visibleTiles[mouseWheelTile] = true
+      @visibleGutterTiles[mouseWheelTile] = true
+      @visibleLinesTiles[mouseWheelTile] = true
 
   updateLongestTileState: ->
     longestScreenRow = @model.getLongestScreenRow()
@@ -375,22 +377,22 @@ class TextEditorPresenter
 
     tile = @state.content.tiles[longestScreenRowTile] ?= {}
     tile.visibility = "hidden"
+    tile.highlights = {}
 
     @updateLinesState(tile, longestScreenRow, longestScreenRow + 1)
 
-    @visibleTiles[longestScreenRowTile] = true
+    @visibleLinesTiles[longestScreenRowTile] = true
 
   deleteHiddenTilesState: ->
     for id, tile of @state.content.tiles
-      continue if @visibleTiles.hasOwnProperty(id)
-
-      delete @state.content.tiles[id]
-      delete @lineNumberGutter.tiles[id]
+      delete @state.content.tiles[id] unless @visibleLinesTiles[id]
+      delete @lineNumberGutter.tiles[id] unless @visibleGutterTiles[id]
 
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    @visibleTiles = {}
+    @visibleGutterTiles = {}
+    @visibleLinesTiles = {}
 
     @updateVisibleTilesState()
     @updateLongestTileState()

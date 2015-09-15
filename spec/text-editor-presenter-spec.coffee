@@ -154,20 +154,23 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[10]).toBeUndefined()
 
       it "updates when ::lineHeight changes", ->
-        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
+        presenter = buildPresenter(explicitHeight: 10, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
         expect(stateFn(presenter).tiles[0]).toBeDefined()
         expect(stateFn(presenter).tiles[2]).toBeDefined()
         expect(stateFn(presenter).tiles[4]).toBeDefined()
         expect(stateFn(presenter).tiles[6]).toBeDefined()
-        expect(stateFn(presenter).tiles[8]).toBeUndefined()
+        expect(stateFn(presenter).tiles[8]).toBeDefined()
+        expect(stateFn(presenter).tiles[10]).toBeDefined()
+        expect(stateFn(presenter).tiles[12]).toBeUndefined()
 
         expectStateUpdate presenter, -> presenter.setLineHeight(2)
 
         expect(stateFn(presenter).tiles[0]).toBeDefined()
         expect(stateFn(presenter).tiles[2]).toBeDefined()
         expect(stateFn(presenter).tiles[4]).toBeDefined()
-        expect(stateFn(presenter).tiles[6]).toBeUndefined()
+        expect(stateFn(presenter).tiles[6]).toBeDefined()
+        expect(stateFn(presenter).tiles[8]).toBeUndefined()
 
       it "does not remove out-of-view tiles corresponding to ::mouseWheelScreenRow until ::stoppedScrollingDelay elapses", ->
         presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2, stoppedScrollingDelay: 200)
