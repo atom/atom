@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-var fs = require('fs')
 var exec = require('child_process').exec
 var async = require('../build/node_modules/async')
 
