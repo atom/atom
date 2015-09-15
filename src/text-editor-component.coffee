@@ -70,8 +70,6 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterContainerComponent() if @presenter.getState().gutters.length
-
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
