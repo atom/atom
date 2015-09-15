@@ -102,7 +102,7 @@ describe "Windows squirrel updates", ->
       expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'
 
   describe "Shell context menu", ->
-    contextMenuState = 
+    contextMenuState =
       unknown: 'unknown'
       installed: 'installed'
       notInstalled: 'notInstalled'
