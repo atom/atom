@@ -4,12 +4,14 @@ TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
+LinesYardstick = require '../src/lines-yardstick'
+MockLineNodesProvider = require './mock-line-nodes-provider'
 
 describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
-    [buffer, editor] = []
+    [buffer, editor, linesYardstick, lineNodesProvider] = []
 
     beforeEach ->
       # These *should* be mocked in the spec helper, but changing that now would break packages :-(
@@ -18,9 +20,13 @@ describe "TextEditorPresenter", ->
 
       buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
       editor = new TextEditor({buffer})
+      lineNodesProvider = new MockLineNodesProvider(editor)
+      lineNodesProvider.setDefaultFont("16px monospace")
+      linesYardstick = new LinesYardstick(editor, lineNodesProvider)
       waitsForPromise -> buffer.load()
 
     afterEach ->
+      lineNodesProvider.dispose()
       editor.destroy()
       buffer.destroy()
 
@@ -40,7 +46,9 @@ describe "TextEditorPresenter", ->
         scrollTop: 0
         scrollLeft: 0
 
-      new TextEditorPresenter(params)
+      presenter = new TextEditorPresenter(params)
+      presenter.setLinesYardstick(linesYardstick)
+      presenter
 
     expectValues = (actual, expected) ->
       for key, value of expected
@@ -297,7 +305,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+          expectStateUpdate presenter, ->
+            lineNodesProvider.setDefaultFont("25px monospace")
+            presenter.setBaseCharacterWidth(15)
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 15 * maxLineLength + 1
 
         it "updates when the scoped character widths change", ->
@@ -308,8 +318,13 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
-            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setFontForScopes(['source.js', 'support.function.js'], "34px monospace")
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'u', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 's', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'h', 20)
+            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 8)) + (20 * 8) + 1 # 8 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
@@ -536,10 +551,16 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter()
             expect(presenter.getState().hiddenInput.width).toBe 10
 
-            expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setDefaultFont("25px monospace")
+              presenter.setBaseCharacterWidth(15)
             expect(presenter.getState().hiddenInput.width).toBe 15
 
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setFontForScopes(['source.js', 'storage.modifier.js'], "33px monospace")
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'a', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
             expect(presenter.getState().hiddenInput.width).toBe 20
 
         it "is 2px at the end of lines", ->
@@ -631,7 +652,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
-          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+          expectStateUpdate presenter, ->
+            lineNodesProvider.setDefaultFont("25px monospace")
+            presenter.setBaseCharacterWidth(15)
           expect(presenter.getState().content.scrollWidth).toBe 15 * maxLineLength + 1
 
         it "updates when the scoped character widths change", ->
@@ -642,8 +665,13 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
             expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
-            expect(presenter.getState().content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setFontForScopes(['source.js', 'support.function.js'], "33px monospace")
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'u', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 's', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'h', 20)
+            expect(presenter.getState().content.scrollWidth).toBe (10 * (maxLineLength - 8)) + (20 * 8) + 1 # 8 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
@@ -1221,7 +1249,9 @@ describe "TextEditorPresenter", ->
           editor.setCursorBufferPosition([2, 4])
           presenter = buildPresenter(explicitHeight: 20, scrollTop: 20)
 
-          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
+          expectStateUpdate presenter, ->
+            lineNodesProvider.setDefaultFont("33px monospace")
+            presenter.setBaseCharacterWidth(20)
           expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 4 * 20, width: 20, height: 10}
 
         it "updates when scoped character widths change", ->
@@ -1232,11 +1262,19 @@ describe "TextEditorPresenter", ->
             editor.setCursorBufferPosition([1, 4])
             presenter = buildPresenter(explicitHeight: 20)
 
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
-            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setFontForScopes(['source.js', 'storage.modifier.js'], "33px monospace")
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'a', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (2 * 10) + (2 * 20), width: 20, height: 10}
 
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
-            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setFontForScopes(['source.js', 'storage.modifier.js'], "36px monospace")
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 22)
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'a', 22)
+              presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 22)
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (2 * 10) + (2 * 22), width: 22, height: 10}
 
         it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
           editor.setSelectedBufferRanges([
@@ -1561,7 +1599,9 @@ describe "TextEditorPresenter", ->
           expectValues stateForSelectionInTile(presenter, 0, 2), {
             regions: [{top: 0, left: 2 * 10, width: 2 * 10, height: 10}]
           }
-          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
+          expectStateUpdate presenter, ->
+            lineNodesProvider.setDefaultFont("33px monospace")
+            presenter.setBaseCharacterWidth(20)
           expectValues stateForSelectionInTile(presenter, 0, 2), {
             regions: [{top: 0, left: 2 * 20, width: 2 * 20, height: 10}]
           }
@@ -1580,9 +1620,12 @@ describe "TextEditorPresenter", ->
             expectValues stateForSelectionInTile(presenter, 0, 2), {
               regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
             }
-            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'keyword.control.js'], 'i', 20)
+            expectStateUpdate presenter, ->
+              lineNodesProvider.setFontForScopes(['source.js', 'keyword.control.js'], "25px monospace")
+              presenter.setScopedCharacterWidth(['source.js', 'keyword.control.js'], 'i', 20)
+              presenter.setScopedCharacterWidth(['source.js', 'keyword.control.js'], 'f', 20)
             expectValues stateForSelectionInTile(presenter, 0, 2), {
-              regions: [{top: 0, left: 4 * 10, width: 20 + 10, height: 10}]
+              regions: [{top: 0, left: 4 * 10, width: 15 * 2, height: 10}]
             }
 
         it "updates when highlight decorations are added, moved, hidden, shown, or destroyed", ->
@@ -1744,7 +1787,9 @@ describe "TextEditorPresenter", ->
             pixelPosition: {top: 3 * 10 - scrollTop, left: 13 * 10}
           }
 
-          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(5)
+          expectStateUpdate presenter, ->
+            lineNodesProvider.setDefaultFont("9px monospace")
+            presenter.setBaseCharacterWidth(5)
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item
