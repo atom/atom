@@ -695,10 +695,6 @@ class TextEditorPresenter
       @updateScrollbarDimensions()
       @updateScrollWidth()
 
-  updateContentDimensions: ->
-    @updateVerticalDimensions()
-    @updateHorizontalDimensions()
-
   updateClientHeight: ->
     return unless @height? and @horizontalScrollbarHeight?
 

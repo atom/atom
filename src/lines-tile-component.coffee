@@ -315,6 +315,7 @@ class LinesTileComponent
       lineNode.dataset.screenRow = newLineState.screenRow
       oldLineState.screenRow = newLineState.screenRow
       @lineIdsByScreenRow[newLineState.screenRow] = id
+      @screenRowsByLineId[id] = newLineState.screenRow
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
