@@ -4,7 +4,7 @@
 @font-face { .octicon-font(); }
 
 html {
-  font-family: @font-family;
+  font: menu;
   font-size: @font-size;
 }
 
@@ -22,7 +22,9 @@ atom-workspace {
   position: relative;
   color: @text-color;
   background-color: @app-background-color;
-  font-family: @font-family;
+  font: menu;
+  font-size: inherit;
+  line-height: inherit;
 
   atom-workspace-axis.horizontal {
     display: -webkit-flex;
@@ -33,5 +35,12 @@ atom-workspace {
     display: -webkit-flex;
     -webkit-flex: 1;
     -webkit-flex-flow: column;
+  }
+}
+
+& when not (@font-family = '') {
+  html,
+  atom-workspace {
+    font-family: @font-family;
   }
 }
