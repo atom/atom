@@ -24,6 +24,7 @@ class LinesYardstick
   leftPixelPositionForScreenPosition: (row, column) ->
     lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
 
+    return 0 unless lineNode?
     tokenizedLine = @model.tokenizedLineForScreenRow(row)
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
@@ -59,24 +60,27 @@ class LinesYardstick
 
         if charIndex is column
           indexWithinToken = charIndex - textNodeIndex
-          return @leftPixelPositionForCharInTextNode(textNode, indexWithinToken)
+          return @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinToken)
 
         charIndex += charLength
 
     if textNode?
-      @leftPixelPositionForCharInTextNode(textNode, textNode.textContent.length)
+      @leftPixelPositionForCharInTextNode(lineNode, textNode, textNode.textContent.length)
     else
       0
 
-  leftPixelPositionForCharInTextNode: (textNode, charIndex) ->
+  leftPixelPositionForCharInTextNode: (lineNode, textNode, charIndex) ->
     @rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
 
-    if charIndex is 0
-      @rangeForMeasurement.setStart(textNode, 0)
-      @rangeForMeasurement.getBoundingClientRect().left
-    else if charIndex is textNode.textContent.length
-      @rangeForMeasurement.setStart(textNode, 0)
-      @rangeForMeasurement.getBoundingClientRect().right
-    else
-      @rangeForMeasurement.setStart(textNode, charIndex)
-      @rangeForMeasurement.getBoundingClientRect().left
+    position =
+      if charIndex is 0
+        @rangeForMeasurement.setStart(textNode, 0)
+        @rangeForMeasurement.getBoundingClientRect().left
+      else if charIndex is textNode.textContent.length
+        @rangeForMeasurement.setStart(textNode, 0)
+        @rangeForMeasurement.getBoundingClientRect().right
+      else
+        @rangeForMeasurement.setStart(textNode, charIndex)
+        @rangeForMeasurement.getBoundingClientRect().left
+
+    position - lineNode.getBoundingClientRect().left

@@ -13,6 +13,8 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 
+LinesYardstick = require './lines-yardstick'
+
 module.exports =
 class TextEditorComponent
   scrollSensitivity: 0.4
@@ -76,6 +78,10 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
+    @linesYardstick = new LinesYardstick(@editor, this)
+    @presenter.setLinesYardstick(@linesYardstick)
+    @presenter.onWillMeasure(@updateLinesComponentSync)
+
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
     @scrollViewNode.appendChild(@horizontalScrollbarComponent.getDomNode())
 
@@ -108,6 +114,9 @@ class TextEditorComponent
 
   getDomNode: ->
     @domNode
+
+  updateLinesComponentSync: (state) =>
+    @linesComponent.updateSync(state)
 
   updateSync: ->
     @oldState ?= {}
