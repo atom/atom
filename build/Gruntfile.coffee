@@ -31,12 +31,15 @@ module.exports = (grunt) ->
   # This allows all subsequent paths to the relative to the root of the repo
   grunt.file.setBase(path.resolve('..'))
 
-  [major, minor, patch] = packageJson.version.split('.')
   tmpDir = os.tmpdir()
   appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   buildDir = path.resolve(buildDir)
   installDir = grunt.option('install-dir')
+
+  channel = grunt.option('channel')
+  channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
+  channel ?= 'dev'
 
   home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
   electronDownloadDir = path.join(home, '.atom', 'electron')
@@ -153,7 +156,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
-    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir}
+    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir, channel}
 
     docsOutputDir: 'docs/output'
 
@@ -234,8 +237,8 @@ module.exports = (grunt) ->
         outputDirectory: path.join(buildDir, 'installer')
         authors: 'GitHub Inc.'
         loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
-        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
-        setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
+        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/stable/atom.ico'
+        setupIcon: path.resolve(__dirname, '..', 'resources', 'app-icons', 'stable', 'atom.ico')
         remoteReleases: 'https://atom.io/api/updates'
 
     shell:
