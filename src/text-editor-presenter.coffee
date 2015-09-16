@@ -43,6 +43,10 @@ class TextEditorPresenter
   destroy: ->
     @disposables.dispose()
 
+  # Calls your `callback` while performing ::getState(), before computing any state that needs measurements.
+  onWillMeasure: (callback) ->
+    @emitter.on "will-measure", callback
+
   # Calls your `callback` when some changes in the model occurred and the current state has been updated.
   onDidUpdateState: (callback) ->
     @emitter.on 'did-update-state', callback
@@ -74,8 +78,13 @@ class TextEditorPresenter
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
-    @updateCommonGutterState()
 
+    @updateLinesDecorations() if @shouldUpdateDecorations
+    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
+
+    @emitter.emit "will-measure", @state
+
+    @updateCommonGutterState()
     @updateHorizontalDimensions()
 
     @updateFocusedState() if @shouldUpdateFocusedState
@@ -85,8 +94,7 @@ class TextEditorPresenter
     @updateScrollbarsState() if @shouldUpdateScrollbarsState
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
-    @updateDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
+    @updateHighlightDecorations() if @shouldUpdateDecorations
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
@@ -240,6 +248,7 @@ class TextEditorPresenter
         tiles: {}
         highlights: {}
         overlays: {}
+        cursors: {}
       gutters: []
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
@@ -1144,22 +1153,28 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  updateDecorations: ->
+  updateLinesDecorations: ->
     @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
+
+    return unless 0 <= @startRow <= @endRow <= Infinity
+
+    for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
+      range = @model.getMarker(markerId).getScreenRange()
+      for decoration in decorations when decoration.isType('line') or decoration.isType('gutter')
+        @addToLineDecorationCaches(decoration, range)
+
+  updateHighlightDecorations: ->
     @visibleHighlights = {}
 
     return unless 0 <= @startRow <= @endRow <= Infinity
 
     for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
       range = @model.getMarker(markerId).getScreenRange()
-      for decoration in decorations
-        if decoration.isType('line') or decoration.isType('gutter')
-          @addToLineDecorationCaches(decoration, range)
-        else if decoration.isType('highlight')
-          @updateHighlightState(decoration, range)
+      for decoration in decorations when decoration.isType('highlight')
+        @updateHighlightState(decoration, range)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights

@@ -220,9 +220,35 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[0]).toBeDefined()
 
     describe "during state retrieval", ->
-      it "does not trigger onDidUpdateState events", ->
+      it "does not trigger ::onDidUpdateState events", ->
         presenter = buildPresenter()
         expectNoStateUpdate presenter, -> presenter.getState()
+
+      it "triggers ::onWillMeasure events before computing any state that needs measurement", ->
+        editor.setCursorBufferPosition([0, 0])
+        cursorLine = editor.tokenizedLineForScreenRow(0)
+        called = false
+
+        onWillMeasureSpy = (state) ->
+          called = true
+          expect(Object.keys(state.content.tiles).length).toBeGreaterThan(0)
+          for tile, tileState of state.content.tiles
+            expect(tileState.highlights).toEqual({})
+          expect(state.content.tiles[0].lines[cursorLine.id].decorationClasses).not.toBeNull()
+
+          expect(state.gutters).toEqual([])
+          expect(state.hiddenInput).toEqual({})
+          expect(state.content.overlays).toEqual({})
+          expect(state.content.cursors).toEqual({})
+          expect(state.content.width).toBeUndefined()
+          expect(state.content.scrollWidth).toBeUndefined()
+
+        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
+
+        presenter.onWillMeasure(onWillMeasureSpy)
+        presenter.getState()
+
+        expect(called).toBe(true)
 
     describe ".horizontalScrollbar", ->
       describe ".visible", ->
