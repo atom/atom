@@ -59,6 +59,7 @@ class Workspace extends Model
       left: new PanelContainer({location: 'left'})
       right: new PanelContainer({location: 'right'})
       bottom: new PanelContainer({location: 'bottom'})
+      popover: new PanelContainer({location: 'popover'})
       modal: new PanelContainer({location: 'modal'})
 
     @subscribeToActiveItem()
@@ -780,6 +781,30 @@ class Workspace extends Model
   # Returns a {Panel}
   addTopPanel: (options) ->
     @addPanel('top', options)
+
+  # Essential: Get an {Array} of all the popover panel items
+  getPopoverPanels: ->
+    @getPanels('popover')
+
+  # Essential: Adds a panel item as a popover.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     `a model with a view registered via {ViewRegistry::addViewProvider}.
+  #     `We recommend the latter. See {ViewRegistry::addViewProvider} for more
+  #     `information.
+  #   * `target` {Element} or {Function} or {Rect} Target rectangle around
+  #     `which popover is placed.
+  #   * `viewport` (optional) {Element} or {Function} or {Rect} Keeps the
+  #     `popover within the viewport rectangle. (default: null)
+  #   * `placement` (optional) {String} How to position the popover. (default:
+  #     `"top center")
+  #   * `visible` (optional) {Boolean} false if you want the panel to
+  #     `initially be hidden (default: true)
+  #
+  # Returns a {Panel}
+  addPopoverPanel: (options={}) ->
+    @addPanel('popover', options)
 
   # Essential: Get an {Array} of all the modal panel items
   getModalPanels: ->

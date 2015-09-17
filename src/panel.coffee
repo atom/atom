@@ -14,10 +14,11 @@ class Panel
   Section: Construction and Destruction
   ###
 
-  constructor: ({@item, @visible, @priority, @className}={}) ->
+  constructor: ({@item, @visible, @priority, @className, @target, @viewport, @placement}={}) ->
     @emitter = new Emitter
     @visible ?= true
     @priority ?= 100
+    @placement ?= 'top center'
 
   # Public: Destroy and remove this panel from the UI.
   destroy: ->

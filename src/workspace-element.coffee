@@ -78,6 +78,7 @@ class WorkspaceElement extends HTMLElement
       left: atom.views.getView(@model.panelContainers.left)
       right: atom.views.getView(@model.panelContainers.right)
       bottom: atom.views.getView(@model.panelContainers.bottom)
+      popover: atom.views.getView(@model.panelContainers.popover)
       modal: atom.views.getView(@model.panelContainers.modal)
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
@@ -86,6 +87,7 @@ class WorkspaceElement extends HTMLElement
     @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
     @verticalAxis.appendChild(@panelContainers.bottom)
 
+    @appendChild(@panelContainers.popover)
     @appendChild(@panelContainers.modal)
 
     @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
