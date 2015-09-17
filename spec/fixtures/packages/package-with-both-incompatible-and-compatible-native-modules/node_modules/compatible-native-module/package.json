@@ -1,0 +1,4 @@
+{
+  "name": "compatible-native-module",
+  "main": "./main.js"
+}
