@@ -22,10 +22,14 @@ class LinesYardstick
     {top, left}
 
   leftPixelPositionForScreenPosition: (row, column) ->
-    lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
+    tokenizedLine = @model.tokenizedLineForScreenRow(row)
+    return 0 unless tokenizedLine?
+
+    lineNode =
+      @lineNodesProvider.lineNodeForLineIdAndScreenRow(tokenizedLine.id, row)
 
     return 0 unless lineNode?
-    tokenizedLine = @model.tokenizedLineForScreenRow(row)
+
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
 

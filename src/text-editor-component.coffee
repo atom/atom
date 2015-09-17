@@ -743,6 +743,12 @@ class TextEditorComponent
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @editor.consolidateSelections()
 
+  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
+    tileRow = @presenter.tileForRow(screenRow)
+    tileComponent = @linesComponent.getComponentForTile(tileRow)
+
+    tileComponent?.lineNodeForLineId(lineId)
+
   lineNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)
     tileComponent = @linesComponent.getComponentForTile(tileRow)

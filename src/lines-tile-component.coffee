@@ -320,6 +320,9 @@ class LinesTileComponent
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
+  lineNodeForLineId: (lineId) ->
+    @lineNodesByLineId[lineId]
+
   measureCharactersInNewLines: ->
     for id, lineState of @oldTileState.lines
       unless @measuredLines.has(id)

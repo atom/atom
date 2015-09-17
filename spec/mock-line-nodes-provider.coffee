@@ -15,7 +15,7 @@ class MockLineNodesProvider
 
   setDefaultFont: (font) -> @defaultFont = font
 
-  lineNodeForScreenRow: (screenRow) ->
+  lineNodeForLineIdAndScreenRow: (id, screenRow) ->
     lineNode = document.createElement("div")
     lineNode.style.whiteSpace = "pre"
     lineState = @editor.tokenizedLineForScreenRow(screenRow)
