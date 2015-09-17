@@ -23,7 +23,7 @@ class LinesTileComponent
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
-    @highlightsComponent = new HighlightsComponent
+    @highlightsComponent = new HighlightsComponent(@domElementPool)
     @domNode.appendChild(@highlightsComponent.getDomNode())
 
   destroy: ->
