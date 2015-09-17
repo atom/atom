@@ -12,6 +12,7 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
+DOMElementPool = require './dom-element-pool'
 
 module.exports =
 class TextEditorComponent
@@ -54,6 +55,8 @@ class TextEditorComponent
 
     @presenter.onDidUpdateState(@requestUpdate)
 
+    @domElementPool = new DOMElementPool
+
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
@@ -75,7 +78,7 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -107,6 +110,7 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     @gutterContainerComponent?.destroy()
+    @domElementPool.clear()
 
   getDomNode: ->
     @domNode
@@ -152,6 +156,10 @@ class TextEditorComponent
 
     @overlayManager?.render(@newState)
 
+    if @clearPoolAfterUpdate
+      @domElementPool.clear()
+      @clearPoolAfterUpdate = false
+
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
@@ -165,7 +173,7 @@ class TextEditorComponent
     @overlayManager?.measureOverlays()
 
   mountGutterContainerComponent: ->
-    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown})
+    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool})
     @domNode.insertBefore(@gutterContainerComponent.getDomNode(), @domNode.firstChild)
 
   becameVisible: ->
@@ -649,6 +657,7 @@ class TextEditorComponent
     {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
+      @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement

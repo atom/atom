@@ -5,12 +5,11 @@ module.exports =
 class HighlightsComponent
   oldState: null
 
-  constructor: ->
+  constructor: (@domElementPool) ->
     @highlightNodesById = {}
     @regionNodesByHighlightId = {}
 
-    @domNode = document.createElement('div')
-    @domNode.classList.add('highlights')
+    @domNode = @domElementPool.build("div", "highlights")
 
   getDomNode: ->
     @domNode
@@ -30,8 +29,7 @@ class HighlightsComponent
     # add or update highlights
     for id, highlightState of newState
       unless @oldState[id]?
-        highlightNode = document.createElement('div')
-        highlightNode.classList.add('highlight')
+        highlightNode = @domElementPool.build("div", "highlight")
         @highlightNodesById[id] = highlightNode
         @regionNodesByHighlightId[id] = {}
         @domNode.appendChild(highlightNode)
@@ -75,12 +73,11 @@ class HighlightsComponent
     for newRegionState, i in newHighlightState.regions
       unless oldHighlightState.regions[i]?
         oldHighlightState.regions[i] = {}
-        regionNode = document.createElement('div')
+        regionNode = @domElementPool.build("div", "region")
         # This prevents highlights at the tiles boundaries to be hidden by the
         # subsequent tile. When this happens, subpixel anti-aliasing gets
         # disabled.
         regionNode.style.boxSizing = "border-box"
-        regionNode.classList.add('region')
         regionNode.classList.add(newHighlightState.deprecatedRegionClass) if newHighlightState.deprecatedRegionClass?
         @regionNodesByHighlightId[id][i] = regionNode
         highlightNode.appendChild(regionNode)
