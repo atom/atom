@@ -23,6 +23,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'mkdeb', 'Create debian package', ->
     done = @async()
     buildDir = grunt.config.get('atom.buildDir')
+    channel = grunt.config.get('atom.channel')
 
     if process.arch is 'ia32'
       arch = 'i386'
@@ -41,10 +42,10 @@ module.exports = (grunt) ->
       data = {name, version, description, section, arch, maintainer, installDir, iconName, installedSize, executable}
       controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
       desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
-      icon = path.join('resources', 'atom.png')
+      iconPath = path.join('resources', 'app-icons', channel, 'png', '1024.png')
 
       cmd = path.join('script', 'mkdeb')
-      args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
+      args = [version, arch, controlFilePath, desktopFilePath, iconPath, buildDir]
       spawn {cmd, args}, (error) ->
         if error?
           done(error)
