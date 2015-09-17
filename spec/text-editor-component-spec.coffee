@@ -383,7 +383,6 @@ describe "TextEditorComponent", ->
 
       newLineNodes = componentNode.querySelectorAll(".line")
       expect(oldLineNodes).not.toEqual(newLineNodes)
-      oldLineNodes = newLineNodes
 
       wrapperNode.setContinuousReflow(false)
       advanceClock(component.presenter.minimumReflowInterval)
@@ -839,7 +838,6 @@ describe "TextEditorComponent", ->
 
       newLineNodes = componentNode.querySelectorAll(".line-number")
       expect(oldLineNodes).not.toEqual(newLineNodes)
-      oldLineNodes = newLineNodes
 
       wrapperNode.setContinuousReflow(false)
       advanceClock(component.presenter.minimumReflowInterval)
