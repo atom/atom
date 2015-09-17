@@ -333,6 +333,17 @@ class TextEditorPresenter
       (@getEndTileRow() - @getStartTileRow() + 1) / @tileSize
     )
 
+  updateTilesState: ->
+    return unless @startRow? and @endRow? and @lineHeight?
+
+    @visibleGutterTiles = {}
+    @visibleLinesTiles = {}
+
+    @updateVisibleTilesState()
+    @updateLongestTileState()
+    @updateMouseWheelTileState()
+    @deleteHiddenTilesState()
+
   updateVisibleTilesState: ->
     zIndex = @getTilesCount() - 1
     for startRow in [@getStartTileRow()..@getEndTileRow()] by @tileSize
@@ -375,6 +386,7 @@ class TextEditorPresenter
     longestScreenRow = @model.getLongestScreenRow()
     longestScreenRowTile = @tileForRow(longestScreenRow)
 
+    return unless longestScreenRow?
     return if @getStartTileRow() <= longestScreenRowTile <= @getEndTileRow()
 
     tile = @state.content.tiles[longestScreenRowTile] ?= {}
@@ -389,17 +401,6 @@ class TextEditorPresenter
     for id, tile of @state.content.tiles
       delete @state.content.tiles[id] unless @visibleLinesTiles[id]
       delete @lineNumberGutter.tiles[id] unless @visibleGutterTiles[id]
-
-  updateTilesState: ->
-    return unless @startRow? and @endRow? and @lineHeight?
-
-    @visibleGutterTiles = {}
-    @visibleLinesTiles = {}
-
-    @updateVisibleTilesState()
-    @updateLongestTileState()
-    @updateMouseWheelTileState()
-    @deleteHiddenTilesState()
 
   updateLinesState: (tileState, startRow, endRow) ->
     tileState.lines ?= {}
