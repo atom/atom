@@ -8,6 +8,7 @@ class DOMElementPool
     @freedElements.clear()
     for tagName, freeElements of @freeElementsByTagName
       freeElements.length = 0
+    return
 
   build: (tagName, className, textContent = "") ->
     element = @freeElementsByTagName[tagName]?.pop()
@@ -27,6 +28,7 @@ class DOMElementPool
     for index in [element.children.length - 1..0] by -1
       child = element.children[index]
       @freeElementAndDescendants(child)
+    return
 
   free: (element) ->
     throw new Error("The element cannot be null or undefined.") unless element?
