@@ -7,9 +7,7 @@ class LinesYardstick
   constructor: (@model, @lineNodesProvider) ->
     @tokenIterator = new TokenIterator
     @rangeForMeasurement = document.createRange()
-    @leftMargin = 0
-
-  setLeftMargin: (@leftMargin) ->
+    @cachedPositionsByLineId = {}
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
@@ -28,16 +26,22 @@ class LinesYardstick
     tokenizedLine = @model.tokenizedLineForScreenRow(row)
     return 0 unless tokenizedLine?
 
+    if cachedPosition = @cachedPositionsByLineId[tokenizedLine.id]?[column]
+      return cachedPosition
+
     lineNode =
       @lineNodesProvider.lineNodeForLineIdAndScreenRow(tokenizedLine.id, row)
 
     return 0 unless lineNode?
 
+    indexWithinTextNode = null
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
     charIndex = 0
 
     @tokenIterator.reset(tokenizedLine)
     while @tokenIterator.next()
+      break if indexWithinTextNode?
+
       text = @tokenIterator.getText()
 
       textIndex = 0
@@ -64,17 +68,20 @@ class LinesYardstick
           nextTextNodeIndex = textNodeIndex + textNodeLength
 
         if charIndex is column
-          indexWithinToken = charIndex - textNodeIndex
-          return @leftPixelPositionForCharInTextNode(textNode, indexWithinToken)
+          indexWithinTextNode = charIndex - textNodeIndex
+          break
 
         charIndex += charLength
 
     if textNode?
-      @leftPixelPositionForCharInTextNode(textNode, textNode.textContent.length)
+      indexWithinTextNode ?= textNode.textContent.length
+      @cachedPositionsByLineId[tokenizedLine.id] ?= {}
+      @cachedPositionsByLineId[tokenizedLine.id][column] =
+        @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinTextNode)
     else
       0
 
-  leftPixelPositionForCharInTextNode: (textNode, charIndex) ->
+  leftPixelPositionForCharInTextNode: (lineNode, textNode, charIndex) ->
     @rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
 
     position =
@@ -88,4 +95,4 @@ class LinesYardstick
         @rangeForMeasurement.setStart(textNode, charIndex)
         @rangeForMeasurement.getBoundingClientRect().left
 
-    position - @leftMargin
+    position - lineNode.getBoundingClientRect().left
