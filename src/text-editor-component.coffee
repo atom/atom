@@ -156,6 +156,10 @@ class TextEditorComponent
 
     @overlayManager?.render(@newState)
 
+    if @clearPoolAfterUpdate
+      @domElementPool.clear()
+      @clearPoolAfterUpdate = false
+
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
@@ -653,7 +657,7 @@ class TextEditorComponent
     {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
-      @domElementPool.clear()
+      @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
