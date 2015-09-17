@@ -15,9 +15,17 @@ module.exports = (grunt) ->
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
-      cp 'atom-shell/Atom.app', shellAppDir, filter: /default_app/
+      cp 'electron/Electron.app', shellAppDir, filter: /default_app/
+      fs.renameSync path.join(shellAppDir, 'Contents', 'MacOS', 'Electron'), path.join(shellAppDir, 'Contents', 'MacOS', 'Atom')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Electron Helper.app'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Electron Helper'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
     else
-      cp 'atom-shell', shellAppDir, filter: /default_app/
+      cp 'electron', shellAppDir, filter: /default_app/
+
+      if process.platform is 'win32'
+        fs.renameSync path.join(shellAppDir, 'electron.exe'), path.join(shellAppDir, 'atom.exe')
+      else
+        fs.renameSync path.join(shellAppDir, 'electron'), path.join(shellAppDir, 'atom')
 
     mkdir appDir
 
