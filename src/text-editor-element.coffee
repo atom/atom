@@ -174,7 +174,7 @@ class TextEditorElement extends HTMLElement
 
   # Extended: Continuously reflows lines and line numbers. (Has performance overhead)
   #
-  # `continousReflow` A {Boolean} indicating whether to keep reflowing or not.
+  # `continuousReflow` A {Boolean} indicating whether to keep reflowing or not.
   setContinuousReflow: (continuousReflow) ->
     @component?.setContinuousReflow(continuousReflow)
 
