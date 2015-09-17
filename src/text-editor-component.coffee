@@ -83,7 +83,7 @@ class TextEditorComponent
 
     @linesYardstick = new LinesYardstick(@editor, this)
     @presenter.setLinesYardstick(@linesYardstick)
-    @presenter.onWillMeasure(@updateLinesComponentSync)
+    @presenter.onWillNeedMeasurements(@updateLinesComponentSync)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
     @scrollViewNode.appendChild(@horizontalScrollbarComponent.getDomNode())

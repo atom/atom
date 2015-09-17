@@ -44,8 +44,8 @@ class TextEditorPresenter
     @disposables.dispose()
 
   # Calls your `callback` while performing ::getState(), before computing any state that needs measurements.
-  onWillMeasure: (callback) ->
-    @emitter.on "will-measure", callback
+  onWillNeedMeasurements: (callback) ->
+    @emitter.on "will-need-measurements", callback
 
   # Calls your `callback` when some changes in the model occurred and the current state has been updated.
   onDidUpdateState: (callback) ->
@@ -82,7 +82,7 @@ class TextEditorPresenter
     @updateLinesDecorations() if @shouldUpdateDecorations
     @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
 
-    @emitter.emit "will-measure", @state
+    @emitter.emit "will-need-measurements", @state
 
     @updateCommonGutterState()
     @updateHorizontalDimensions()

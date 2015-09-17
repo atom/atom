@@ -224,12 +224,12 @@ describe "TextEditorPresenter", ->
         presenter = buildPresenter()
         expectNoStateUpdate presenter, -> presenter.getState()
 
-      it "triggers ::onWillMeasure events before computing any state that needs measurement", ->
+      it "triggers ::onWillNeedMeasurements events before computing any state that needs measurement", ->
         editor.setCursorBufferPosition([0, 0])
         cursorLine = editor.tokenizedLineForScreenRow(0)
         called = false
 
-        onWillMeasureSpy = (state) ->
+        onWillNeedMeasurementsSpy = (state) ->
           called = true
           expect(Object.keys(state.content.tiles).length).toBeGreaterThan(0)
           for tile, tileState of state.content.tiles
@@ -245,7 +245,7 @@ describe "TextEditorPresenter", ->
 
         presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
 
-        presenter.onWillMeasure(onWillMeasureSpy)
+        presenter.onWillNeedMeasurements(onWillNeedMeasurementsSpy)
         presenter.getState()
 
         expect(called).toBe(true)
