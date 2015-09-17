@@ -1046,6 +1046,8 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
+    @linesYardstick.clearCache()
+
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true

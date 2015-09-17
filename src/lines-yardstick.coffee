@@ -9,6 +9,9 @@ class LinesYardstick
     @rangeForMeasurement = document.createRange()
     @cachedPositionsByLineId = {}
 
+  clearCache: ->
+    @cachedPositionsByLineId = {}
+
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
