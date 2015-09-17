@@ -257,9 +257,14 @@ class Selection extends Model
     @modifySelection => @cursor.moveToFirstCharacterOfLine()
 
   # Public: Selects all the text from the current cursor position to the end of
-  # the line.
+  # the screen line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfScreenLine()
+
+  # Public: Selects all the text from the current cursor position to the end of
+  # the buffer line.
+  selectToEndOfBufferLine: ->
+    @modifySelection => @cursor.moveToEndOfLine()
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the word.
@@ -572,9 +577,14 @@ class Selection extends Model
   toggleLineComments: ->
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
-  # Public: Cuts the selection until the end of the line.
+  # Public: Cuts the selection until the end of the screen line.
   cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
+    @cut(maintainClipboard)
+
+  # Public: Cuts the selection until the end of the buffer line.
+  cutToEndOfBufferLine: (maintainClipboard) ->
+    @selectToEndOfBufferLine() if @isEmpty()
     @cut(maintainClipboard)
 
   # Public: Copies the selection to the clipboard and then deletes it.

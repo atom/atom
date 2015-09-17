@@ -299,6 +299,7 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:delete-to-end-of-subword': -> @deleteToEndOfSubword()
   'editor:delete-line': -> @deleteLine()
   'editor:cut-to-end-of-line': -> @cutToEndOfLine()
+  'editor:cut-to-end-of-buffer-line': -> @cutToEndOfBufferLine()
   'editor:transpose': -> @transpose()
   'editor:upper-case': -> @upperCase()
   'editor:lower-case': -> @lowerCase()
