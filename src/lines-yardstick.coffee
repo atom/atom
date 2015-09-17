@@ -7,6 +7,9 @@ class LinesYardstick
   constructor: (@model, @lineNodesProvider) ->
     @tokenIterator = new TokenIterator
     @rangeForMeasurement = document.createRange()
+    @leftMargin = 0
+
+  setLeftMargin: (@leftMargin) ->
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
@@ -62,16 +65,16 @@ class LinesYardstick
 
         if charIndex is column
           indexWithinToken = charIndex - textNodeIndex
-          return @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinToken)
+          return @leftPixelPositionForCharInTextNode(textNode, indexWithinToken)
 
         charIndex += charLength
 
     if textNode?
-      @leftPixelPositionForCharInTextNode(lineNode, textNode, textNode.textContent.length)
+      @leftPixelPositionForCharInTextNode(textNode, textNode.textContent.length)
     else
       0
 
-  leftPixelPositionForCharInTextNode: (lineNode, textNode, charIndex) ->
+  leftPixelPositionForCharInTextNode: (textNode, charIndex) ->
     @rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
 
     position =
@@ -85,4 +88,4 @@ class LinesYardstick
         @rangeForMeasurement.setStart(textNode, charIndex)
         @rangeForMeasurement.getBoundingClientRect().left
 
-    position - lineNode.getBoundingClientRect().left
+    position - @leftMargin

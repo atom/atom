@@ -121,6 +121,9 @@ class TextEditorComponent
 
   updateLinesComponentSync: (state) =>
     @linesComponent.updateSync(state)
+    @linesYardstick.setLeftMargin(
+      @linesComponent.getDomNode().getBoundingClientRect().left
+    )
 
   updateSync: ->
     @oldState ?= {}
