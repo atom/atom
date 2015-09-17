@@ -819,6 +819,9 @@ class TextEditorComponent
 
   setInputEnabled: (@inputEnabled) -> @inputEnabled
 
+  setContinuousReflow: (continuousReflow) ->
+    @presenter.setContinuousReflow(continuousReflow)
+
   updateParentViewFocusedClassIfNeeded: ->
     if @oldState.focused isnt @newState.focused
       @hostElement.classList.toggle('is-focused', @newState.focused)
