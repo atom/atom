@@ -598,11 +598,10 @@ class Package
     nativeModulePaths = []
 
     if @metadata._atomModuleCache?
-      nativeModuleBindingPaths = @metadata._atomModuleCache.extensions?['.node'] ? []
-      for nativeModuleBindingPath in nativeModuleBindingPaths
-        # The `.node` file lies in nativeModulePath/build/Release/ folder.
-        nativeModulePath = path.join(path.dirname(nativeModuleBindingPath), '..', '..')
-        nativeModulePaths.push(nativeModulePath) if @isNativeModule(nativeModulePath)
+      relativeNativeModuleBindingPaths = @metadata._atomModuleCache.extensions?['.node'] ? []
+      for relativeNativeModuleBindingPath in relativeNativeModuleBindingPaths
+        nativeModulePath = path.join(@path, relativeNativeModuleBindingPath, '..', '..', '..')
+        nativeModulePaths.push(nativeModulePath)
       return nativeModulePaths
 
     traversePath = (nodeModulesPath) =>

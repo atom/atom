@@ -19,12 +19,15 @@ describe "Package", ->
       expect(pack.incompatibleModules[0].name).toBe 'native-module'
       expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
 
-    it "utilizes _atomModuleCache to get native modules and skips traversing through submodules", ->
+    it "utilizes _atomModuleCache if present to determine the package's native dependencies", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-ignored-incompatible-native-module')
       pack = new Package(packagePath)
-      # Since `_atomModuleCache` exists and it doesn't have the record of the
-      # incompatible native module, this package is recognized as compatible.
+      expect(pack.getNativeModuleDependencyPaths().length).toBe(1) # doesn't see the incompatible module
       expect(pack.isCompatible()).toBe true
+
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-cached-incompatible-native-module')
+      pack = new Package(packagePath)
+      expect(pack.isCompatible()).toBe false
 
     it "caches the incompatible native modules in local storage", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
