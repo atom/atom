@@ -19,6 +19,11 @@ describe "Package", ->
       expect(pack.incompatibleModules[0].name).toBe 'native-module'
       expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
 
+    it "utilizes _atomModuleCache to get native modules and skips traversing through submodules", ->
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-both-incompatible-and-compatible-native-modules')
+      pack = new Package(packagePath)
+      expect(pack.isCompatible()).toBe true
+
     it "caches the incompatible native modules in local storage", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
 
