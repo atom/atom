@@ -48,8 +48,6 @@ class LinesYardstick
           charLength = 1
           textIndex++
 
-        continue if char is '\0'
-
         unless textNode?
           textNode = iterator.nextNode()
           textNodeLength = textNode.textContent.length

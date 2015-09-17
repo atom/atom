@@ -1,17 +1,19 @@
 _ = require 'underscore-plus'
-WrapperDiv = document.createElement('div')
 
 module.exports =
 class LineNumbersTileComponent
-  @createDummy: ->
-    new LineNumbersTileComponent({id: -1})
+  @createDummy: (domElementPool) ->
+    new LineNumbersTileComponent({id: -1, domElementPool})
 
-  constructor: ({@id}) ->
+  constructor: ({@id, @domElementPool}) ->
     @lineNumberNodesById = {}
-    @domNode = document.createElement("div")
+    @domNode = @domElementPool.build("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
+
+  destroy: ->
+    @domElementPool.freeElementAndDescendants(@domNode)
 
   getDomNode: ->
     @domNode
@@ -46,7 +48,9 @@ class LineNumbersTileComponent
       @oldTileState.zIndex = @newTileState.zIndex
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
-      node.remove() for id, node of @lineNumberNodesById
+      for id, node of @lineNumberNodesById
+        @domElementPool.freeElementAndDescendants(node)
+
       @oldState.tiles[@id] = {lineNumbers: {}}
       @oldTileState = @oldState.tiles[@id]
       @lineNumberNodesById = {}
@@ -56,11 +60,11 @@ class LineNumbersTileComponent
 
   updateLineNumbers: ->
     newLineNumberIds = null
-    newLineNumbersHTML = null
+    newLineNumberNodes = null
 
     for id, lineNumberState of @oldTileState.lineNumbers
       unless @newTileState.lineNumbers.hasOwnProperty(id)
-        @lineNumberNodesById[id].remove()
+        @domElementPool.freeElementAndDescendants(@lineNumberNodesById[id])
         delete @lineNumberNodesById[id]
         delete @oldTileState.lineNumbers[id]
 
@@ -69,15 +73,12 @@ class LineNumbersTileComponent
         @updateLineNumberNode(id, lineNumberState)
       else
         newLineNumberIds ?= []
-        newLineNumbersHTML ?= ""
+        newLineNumberNodes ?= []
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
+        newLineNumberNodes.push(@buildLineNumberNode(lineNumberState))
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
     return unless newLineNumberIds?
-
-    WrapperDiv.innerHTML = newLineNumbersHTML
-    newLineNumberNodes = _.toArray(WrapperDiv.children)
 
     for id, i in newLineNumberIds
       lineNumberNode = newLineNumberNodes[i]
@@ -94,14 +95,18 @@ class LineNumbersTileComponent
 
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
-  buildLineNumberHTML: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
+  buildLineNumberNode: (lineNumberState) ->
+    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
+
     className = @buildLineNumberClassName(lineNumberState)
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
+    lineNumberNode = @domElementPool.build("div", className)
+    lineNumberNode.dataset.screenRow = screenRow
+    lineNumberNode.dataset.bufferRow = bufferRow
 
-    "<div class=\"#{className}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    @setLineNumberInnerNodes(bufferRow, softWrapped, lineNumberNode)
+    lineNumberNode
 
-  buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
+  setLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
     {maxLineNumberDigits} = @newState
 
     if softWrapped
@@ -109,9 +114,11 @@ class LineNumbersTileComponent
     else
       lineNumber = (bufferRow + 1).toString()
 
-    padding = _.multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-    iconHTML = '<div class="icon-right"></div>'
-    padding + lineNumber + iconHTML
+    padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
+    iconRight = @domElementPool.build("div", "icon-right")
+
+    lineNumberNode.textContent = padding + lineNumber
+    lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->
     oldLineNumberState = @oldTileState.lineNumbers[lineNumberId]
@@ -123,7 +130,7 @@ class LineNumbersTileComponent
       oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
     unless oldLineNumberState.screenRow is newLineNumberState.screenRow and oldLineNumberState.bufferRow is newLineNumberState.bufferRow
-      node.innerHTML = @buildLineNumberInnerHTML(newLineNumberState.bufferRow, newLineNumberState.softWrapped)
+      @setLineNumberInnerNodes(newLineNumberState.bufferRow, newLineNumberState.softWrapped, node)
       node.dataset.screenRow = newLineNumberState.screenRow
       node.dataset.bufferRow = newLineNumberState.bufferRow
       oldLineNumberState.screenRow = newLineNumberState.screenRow
