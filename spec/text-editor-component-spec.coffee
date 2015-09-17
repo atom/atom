@@ -370,6 +370,25 @@ describe "TextEditorComponent", ->
       expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
       expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
+    it "keeps rebuilding lines when continuous reflow is on", ->
+      wrapperNode.setContinuousReflow(true)
+
+      oldLineNodes = componentNode.querySelectorAll(".line")
+
+      advanceClock(10)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
+
+      advanceClock(component.presenter.minimumReflowInterval - 10)
+      nextAnimationFrame()
+
+      newLineNodes = componentNode.querySelectorAll(".line")
+      expect(oldLineNodes).not.toEqual(newLineNodes)
+      oldLineNodes = newLineNodes
+
+      wrapperNode.setContinuousReflow(false)
+      advanceClock(component.presenter.minimumReflowInterval)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
+
     describe "when showInvisibles is enabled", ->
       invisibles = null
 
@@ -449,33 +468,6 @@ describe "TextEditorComponent", ->
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
         nextAnimationFrame()
         expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
-
-      it "keeps rebuilding lines when continuous reflow is on and the editor is focused", ->
-        atom.config.set("editor.continuousReflow", true)
-        wrapperNode.focus()
-        nextAnimationFrame()
-
-        oldLineNodes = componentNode.querySelectorAll(".line")
-
-        advanceClock(10)
-        expect(nextAnimationFrame).toBe(noAnimationFrame)
-
-        advanceClock(component.presenter.minimumReflowInterval - 10)
-        nextAnimationFrame()
-
-        newLineNodes = componentNode.querySelectorAll(".line")
-        expect(oldLineNodes).not.toEqual(newLineNodes)
-        oldLineNodes = newLineNodes
-
-        atom.config.set("editor.continuousReflow", false)
-        wrapperNode.blur()
-        nextAnimationFrame()
-
-        newLineNodes = componentNode.querySelectorAll(".line")
-        expect(oldLineNodes).toEqual(newLineNodes)
-
-        advanceClock(component.presenter.minimumReflowInterval)
-        expect(nextAnimationFrame).toBe(noAnimationFrame)
 
       describe "when soft wrapping is enabled", ->
         beforeEach ->
@@ -834,10 +826,8 @@ describe "TextEditorComponent", ->
       expect(componentNode.querySelector('.gutter').style.display).toBe ''
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
 
-    it "keeps rebuilding line numbers when continuous reflow is on and the editor is focused", ->
-      atom.config.set("editor.continuousReflow", true)
-      wrapperNode.focus()
-      nextAnimationFrame()
+    it "keeps rebuilding line numbers when continuous reflow is on", ->
+      wrapperNode.setContinuousReflow(true)
 
       oldLineNodes = componentNode.querySelectorAll(".line-number")
 
@@ -851,13 +841,7 @@ describe "TextEditorComponent", ->
       expect(oldLineNodes).not.toEqual(newLineNodes)
       oldLineNodes = newLineNodes
 
-      atom.config.set("editor.continuousReflow", false)
-      wrapperNode.blur()
-      nextAnimationFrame()
-
-      newLineNodes = componentNode.querySelectorAll(".line-number")
-      expect(oldLineNodes).toEqual(newLineNodes)
-
+      wrapperNode.setContinuousReflow(false)
       advanceClock(component.presenter.minimumReflowInterval)
       expect(nextAnimationFrame).toBe(noAnimationFrame)
 

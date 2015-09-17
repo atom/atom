@@ -172,6 +172,12 @@ class TextEditorElement extends HTMLElement
 
   isUpdatedSynchronously: -> @updatedSynchronously
 
+  # Extended: Continuously reflows lines and line numbers. (Has performance overhead)
+  #
+  # `continousReflow` A {Boolean} indicating whether to keep reflowing or not.
+  setContinuousReflow: (continuousReflow) ->
+    @component?.setContinuousReflow(continuousReflow)
+
   # Extended: get the width of a character of text displayed in this element.
   #
   # Returns a {Number} of pixels.

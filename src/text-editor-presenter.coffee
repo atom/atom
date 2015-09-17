@@ -172,7 +172,6 @@ class TextEditorPresenter
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
 
-    @continuousReflow = atom.config.get('editor.continuousReflow', configParams)
     @scrollPastEnd = atom.config.get('editor.scrollPastEnd', configParams)
     @showLineNumbers = atom.config.get('editor.showLineNumbers', configParams)
     @showIndentGuide = atom.config.get('editor.showIndentGuide', configParams)
@@ -200,16 +199,6 @@ class TextEditorPresenter
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
-
-      @emitDidUpdateState()
-
-    @configDisposables.add atom.config.onDidChange 'editor.continuousReflow', configParams, ({newValue}) =>
-      @continuousReflow = newValue
-
-      if @continuousReflow
-        @startReflowing()
-      else
-        @stopReflowing()
 
       @emitDidUpdateState()
 
@@ -268,9 +257,15 @@ class TextEditorPresenter
 
     @resetTrackedUpdates()
 
+  setContinuousReflow: (@continuousReflow) ->
+    if @continuousReflow
+      @startReflowing()
+    else
+      @stopReflowing()
+
   updateReflowState: ->
-    @state.content.continuousReflow = @focused and @continuousReflow
-    @lineNumberGutter.continuousReflow = @focused and @continuousReflow
+    @state.content.continuousReflow = @continuousReflow
+    @lineNumberGutter.continuousReflow = @continuousReflow
 
   startReflowing: ->
     @reflowingInterval = setInterval(@emitDidUpdateState.bind(this), @minimumReflowInterval)
