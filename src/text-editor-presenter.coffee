@@ -67,6 +67,18 @@ class TextEditorPresenter
   isBatching: ->
     @updating is false
 
+  getStateForMeasurements: (screenRows) ->
+    screenRows = _.uniq(screenRows.concat(@getVisibleRows()))
+
+    @updateVerticalDimensions()
+    @updateScrollbarDimensions()
+    @updateStartRow()
+    @updateEndRow()
+
+    @updateTilesState(screenRows)
+
+    @state
+
   # Public: Gets this presenter's state, updating it just in time before returning from this function.
   # Returns a state {Object}, useful for rendering to screen.
   getState: ->
@@ -340,16 +352,21 @@ class TextEditorPresenter
       @tileForRow(@model.getScreenLineCount()), @tileForRow(@endRow)
     )
 
+  getVisibleRows: ->
+    startRow = @getStartTileRow()
+    endRow = Math.min(@model.getScreenLineCount(), @getEndTileRow() + @tileSize)
+
+    [startRow...endRow]
+
   updateVisibleTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    startRow = @getStartTileRow()
-    endRow = Math.min(@model.getScreenLineCount(), @getEndTileRow() + @tileSize)
-    @updateTilesState([startRow...endRow])
+    @updateTilesState(@getVisibleRows())
 
   updateTilesState: (screenRows) ->
-    visibleTiles = {}
+    screenRows.sort (a, b) -> a - b
 
+    visibleTiles = {}
     startRow = screenRows[0]
     endRow = screenRows[screenRows.length - 1]
     screenRowIndex = screenRows.length - 1

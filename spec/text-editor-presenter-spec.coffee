@@ -5,59 +5,72 @@ TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 
-describe "TextEditorPresenter", ->
+fdescribe "TextEditorPresenter", ->
+  [buffer, editor] = []
+
+  beforeEach ->
+    # These *should* be mocked in the spec helper, but changing that now would break packages :-(
+    spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+    spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
+
+    buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
+    editor = new TextEditor({buffer})
+    waitsForPromise -> buffer.load()
+
+  afterEach ->
+    editor.destroy()
+    buffer.destroy()
+
+  buildPresenter = (params={}) ->
+    _.defaults params,
+      model: editor
+      explicitHeight: 130
+      contentFrameWidth: 500
+      windowWidth: 500
+      windowHeight: 130
+      boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
+      gutterWidth: 0
+      lineHeight: 10
+      baseCharacterWidth: 10
+      horizontalScrollbarHeight: 10
+      verticalScrollbarWidth: 10
+      scrollTop: 0
+      scrollLeft: 0
+
+    new TextEditorPresenter(params)
+
+  expectValues = (actual, expected) ->
+    for key, value of expected
+      expect(actual[key]).toEqual value
+
+  expectStateUpdatedToBe = (value, presenter, fn) ->
+    updatedState = false
+    disposable = presenter.onDidUpdateState ->
+      updatedState = true
+      disposable.dispose()
+    fn()
+    expect(updatedState).toBe(value)
+
+  expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
+
+  expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
+
+  describe "::getStateForMeasurements(screenRows)", ->
+    it "contains states for tiles of the visible rows + the supplied ones", ->
+      presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
+      state = presenter.getStateForMeasurements([10, 11])
+
+      expect(state.content.tiles[0]).toBeDefined()
+      expect(state.content.tiles[2]).toBeDefined()
+      expect(state.content.tiles[4]).toBeDefined()
+      expect(state.content.tiles[6]).toBeDefined()
+      expect(state.content.tiles[8]).toBeUndefined()
+      expect(state.content.tiles[10]).toBeDefined()
+      expect(state.content.tiles[12]).toBeUndefined()
+
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
-    [buffer, editor] = []
-
-    beforeEach ->
-      # These *should* be mocked in the spec helper, but changing that now would break packages :-(
-      spyOn(window, "setInterval").andCallFake window.fakeSetInterval
-      spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
-
-      buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-      editor = new TextEditor({buffer})
-      waitsForPromise -> buffer.load()
-
-    afterEach ->
-      editor.destroy()
-      buffer.destroy()
-
-    buildPresenter = (params={}) ->
-      _.defaults params,
-        model: editor
-        explicitHeight: 130
-        contentFrameWidth: 500
-        windowWidth: 500
-        windowHeight: 130
-        boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
-        gutterWidth: 0
-        lineHeight: 10
-        baseCharacterWidth: 10
-        horizontalScrollbarHeight: 10
-        verticalScrollbarWidth: 10
-        scrollTop: 0
-        scrollLeft: 0
-
-      new TextEditorPresenter(params)
-
-    expectValues = (actual, expected) ->
-      for key, value of expected
-        expect(actual[key]).toEqual value
-
-    expectStateUpdatedToBe = (value, presenter, fn) ->
-      updatedState = false
-      disposable = presenter.onDidUpdateState ->
-        updatedState = true
-        disposable.dispose()
-      fn()
-      expect(updatedState).toBe(value)
-
-    expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
-
-    expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
-
     tiledContentContract = (stateFn) ->
       it "contains states for tiles that are visible on screen", ->
         presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
