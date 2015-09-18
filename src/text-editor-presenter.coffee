@@ -343,7 +343,7 @@ class TextEditorPresenter
   updateVisibleTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    @updateTilesState([@startRow..@endRow])
+    @updateTilesState([@startRow...@endRow])
 
   updateTilesState: (screenRows) ->
     visibleTiles = {}
@@ -360,7 +360,7 @@ class TextEditorPresenter
       while screenRowIndex >= 0
         currentScreenRow = screenRows[screenRowIndex]
         break if currentScreenRow < tileStartRow
-        rowsWithinTile.push(currentScreenRow)
+        rowsWithinTile.unshift(currentScreenRow)
         screenRowIndex--
 
       continue if rowsWithinTile.length is 0
