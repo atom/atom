@@ -2900,33 +2900,30 @@ describe "TextEditor", ->
               expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".cutToEndOfBufferLine()", ->
-        describe "when soft wrap is on", ->
+        beforeEach ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(10)
+
+        describe "when nothing is selected", ->
           it "cuts up to the end of the buffer line", ->
-            editor.setSoftWrapped(true)
-            editor.setEditorWidthInChars(10)
-            editor.setCursorScreenPosition([2, 2])
+            editor.setCursorBufferPosition([2, 20])
+            editor.addCursorAtBufferPosition([3, 20])
+
             editor.cutToEndOfBufferLine()
-            expect(editor.tokenizedLineForScreenRow(2).text).toBe '= '
 
-        describe "when soft wrap is off", ->
-          describe "when nothing is selected", ->
-            it "cuts up to the end of the buffer line", ->
-              editor.setCursorBufferPosition([2, 20])
-              editor.addCursorAtBufferPosition([3, 20])
-              editor.cutToEndOfBufferLine()
-              expect(buffer.lineForRow(2)).toBe '    if (items.length'
-              expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-              expect(atom.clipboard.read()).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+            expect(buffer.lineForRow(2)).toBe '    if (items.length'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(atom.clipboard.read()).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
-          describe "when text is selected", ->
-            it "only cuts the selected text, not to the end of the buffer line", ->
-              editor.setSelectedBufferRanges([[[2, 20], [2, 30]], [[3, 20], [3, 20]]])
+        describe "when text is selected", ->
+          it "only cuts the selected text, not to the end of the buffer line", ->
+            editor.setSelectedBufferRanges([[[2, 20], [2, 30]], [[3, 20], [3, 20]]])
 
-              editor.cutToEndOfBufferLine()
+            editor.cutToEndOfBufferLine()
 
-              expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
-              expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-              expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+            expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
