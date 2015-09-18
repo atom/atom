@@ -445,6 +445,7 @@ class PackageManager
       Promise.reject(new Error("Failed to load package '#{name}'"))
 
   triggerDeferredActivationHooks: ->
+    return unless @deferredActivationHooks?
     @activationHookEmitter.emit(hook) for hook in @deferredActivationHooks
     @deferredActivationHooks = null
 
