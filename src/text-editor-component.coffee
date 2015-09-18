@@ -14,8 +14,6 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 
-LinesYardstick = require './lines-yardstick'
-
 module.exports =
 class TextEditorComponent
   scrollSensitivity: 0.4
@@ -81,10 +79,6 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, this)
-    @presenter.setLinesYardstick(@linesYardstick)
-    @presenter.onWillNeedMeasurements(@updateLinesComponentSync)
-
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
     @scrollViewNode.appendChild(@horizontalScrollbarComponent.getDomNode())
 
@@ -118,9 +112,6 @@ class TextEditorComponent
 
   getDomNode: ->
     @domNode
-
-  updateLinesComponentSync: (state) =>
-    @linesComponent.updateSync(state)
 
   updateSync: ->
     @oldState ?= {}
@@ -751,12 +742,6 @@ class TextEditorComponent
 
   consolidateSelections: (e) ->
     e.abortKeyBinding() unless @editor.consolidateSelections()
-
-  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
-    tileRow = @presenter.tileForRow(screenRow)
-    tileComponent = @linesComponent.getComponentForTile(tileRow)
-
-    tileComponent?.lineNodeForLineId(lineId)
 
   lineNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)

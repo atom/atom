@@ -219,54 +219,6 @@ describe "TextEditorComponent", ->
       expectTileContainsRow(tilesNodes[2], 7, top: 1 * lineHeightInPixels)
       expectTileContainsRow(tilesNodes[2], 8, top: 2 * lineHeightInPixels)
 
-    it "renders the longest screen row even when it's not visible", ->
-      wrapperNode.style.height = 2 * lineHeightInPixels + 'px'
-      component.measureDimensions()
-      nextAnimationFrame()
-
-      tileNodes = component.tileNodesForLines()
-      expect(tileNodes.length).toBe(3)
-
-      expect(getComputedStyle(tileNodes[0]).visibility).toBe("visible")
-      expect(tileNodes[0].querySelectorAll(".line").length).toBe(3)
-
-      expect(getComputedStyle(tileNodes[1]).visibility).toBe("visible")
-      expect(tileNodes[1].querySelectorAll(".line").length).toBe(3)
-
-      # tile with the longest screen row
-      expect(getComputedStyle(tileNodes[2]).visibility).toBe("hidden")
-      expect(tileNodes[2].querySelectorAll(".line").length).toBe(1)
-
-      verticalScrollbarNode.scrollTop = 4 * lineHeightInPixels
-      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextAnimationFrame()
-
-      tileNodes = component.tileNodesForLines()
-      expect(tileNodes.length).toBe(2) # don't render an extra tile if the longest screen row is already visible
-
-      expect(getComputedStyle(tileNodes[0]).visibility).toBe("visible")
-      expect(tileNodes[0].querySelectorAll(".line").length).toBe(3)
-
-      expect(getComputedStyle(tileNodes[1]).visibility).toBe("visible")
-      expect(tileNodes[1].querySelectorAll(".line").length).toBe(3)
-
-      verticalScrollbarNode.scrollTop = 0 * lineHeightInPixels
-      verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-      nextAnimationFrame()
-
-      tileNodes = component.tileNodesForLines()
-      expect(tileNodes.length).toBe(3)
-
-      expect(getComputedStyle(tileNodes[0]).visibility).toBe("visible")
-      expect(tileNodes[0].querySelectorAll(".line").length).toBe(3)
-
-      expect(getComputedStyle(tileNodes[1]).visibility).toBe("visible")
-      expect(tileNodes[1].querySelectorAll(".line").length).toBe(3)
-
-      # tile with the longest screen row
-      expect(getComputedStyle(tileNodes[2]).visibility).toBe("hidden")
-      expect(tileNodes[2].querySelectorAll(".line").length).toBe(1)
-
     it "updates the lines when lines are inserted or removed above the rendered row range", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
@@ -3050,7 +3002,7 @@ describe "TextEditorComponent", ->
         expect(cursorLeft).toBe line0Right
 
     describe "when lines are changed while the editor is hidden", ->
-      xit "does not measure new characters until the editor is shown again", ->
+      it "does not measure new characters until the editor is shown again", ->
         editor.setText('')
         wrapperView.hide()
         editor.setText('var z = 1')
@@ -3071,7 +3023,7 @@ describe "TextEditorComponent", ->
 
       atom.views.performDocumentPoll()
       nextAnimationFrame()
-      expect(componentNode.querySelectorAll('.line')).toHaveLength(7) # visible rows + the longest screen row
+      expect(componentNode.querySelectorAll('.line')).toHaveLength(6)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
