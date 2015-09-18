@@ -590,9 +590,19 @@ class Package
       false
 
   # Get an array of all the native modules that this package depends on.
-  # This will recurse through all dependencies.
+  #
+  # First try to get this information from
+  # @metadata._atomModuleCache.extensions. If @metadata._atomModuleCache doesn't
+  # exist, recurse through all dependencies.
   getNativeModuleDependencyPaths: ->
     nativeModulePaths = []
+
+    if @metadata._atomModuleCache?
+      relativeNativeModuleBindingPaths = @metadata._atomModuleCache.extensions?['.node'] ? []
+      for relativeNativeModuleBindingPath in relativeNativeModuleBindingPaths
+        nativeModulePath = path.join(@path, relativeNativeModuleBindingPath, '..', '..', '..')
+        nativeModulePaths.push(nativeModulePath)
+      return nativeModulePaths
 
     traversePath = (nodeModulesPath) =>
       try

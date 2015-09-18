@@ -48,12 +48,12 @@ function bumpStableVersion (next) {
 }
 
 function bumpBetaVersion (next) {
-  var newVersion = semver.inc(getCurrentVersion(), 'prerelease', 'beta')
+  var newVersion = semver.inc(getCurrentVersion(), 'preminor', 'beta')
   run('npm version ' + newVersion)(next)
 }
 
 function bumpDevVersion (next) {
-  var newVersion = semver.inc(getCurrentVersion(), 'preminor', 'dev')
+  var newVersion = semver.inc(getCurrentVersion(), 'preminor', 'dev').replace(/\.0$/, '')
   series([
     run('npm --no-git-tag-version version ' + newVersion),
     run('git commit -am "' + newVersion + '"')

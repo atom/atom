@@ -11,6 +11,7 @@ class TextEditorPresenter
   mouseWheelScreenRow: null
   scopedCharacterWidthsChangeCount: 0
   overlayDimensions: {}
+  minimumReflowInterval: 200
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
@@ -36,6 +37,7 @@ class TextEditorPresenter
     @buildState()
     @invalidate()
     @startBlinkingCursors() if @focused
+    @startReflowing() if @continuousReflow
     @updating = false
 
   setLinesYardstick: (@linesYardstick) ->
@@ -86,6 +88,7 @@ class TextEditorPresenter
 
     @updateCommonGutterState()
     @updateHorizontalDimensions()
+    @updateReflowState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -255,6 +258,23 @@ class TextEditorPresenter
     @customGutterDecorations = {}
     @lineNumberGutter =
       tiles: {}
+
+  setContinuousReflow: (@continuousReflow) ->
+    if @continuousReflow
+      @startReflowing()
+    else
+      @stopReflowing()
+
+  updateReflowState: ->
+    @state.content.continuousReflow = @continuousReflow
+    @lineNumberGutter.continuousReflow = @continuousReflow
+
+  startReflowing: ->
+    @reflowingInterval = setInterval(@emitDidUpdateState.bind(this), @minimumReflowInterval)
+
+  stopReflowing: ->
+    clearInterval(@reflowingInterval)
+    @reflowingInterval = null
 
   updateFocusedState: ->
     @state.focused = @focused
