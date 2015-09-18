@@ -68,14 +68,15 @@ class TextEditorPresenter
     @updating is false
 
   getStateForMeasurements: (screenRows) ->
-    screenRows = _.uniq(screenRows.concat(@getVisibleRows()))
-
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
 
-    @updateTilesState(screenRows)
+    screenRows = _.without(screenRows, null, undefined, @getVisibleRows()...)
+
+    @updateVisibleTilesState() if @shouldUpdateLineNumbersState or @shouldUpdateLinesState
+    @updateTilesState(screenRows, true)
 
     @state
 
@@ -84,10 +85,11 @@ class TextEditorPresenter
   getState: ->
     @updating = true
 
-    @updateVerticalDimensions()
-    @updateScrollbarDimensions()
-    @updateStartRow()
-    @updateEndRow()
+    @linesYardstick.prepareScreenRowsForMeasurement([
+      @model.getLongestScreenRow()
+    ])
+    @deleteTemporaryTiles()
+
     @updateCommonGutterState()
     @updateHorizontalDimensions()
     @updateReflowState()
@@ -359,11 +361,16 @@ class TextEditorPresenter
     [startRow...endRow]
 
   updateVisibleTilesState: ->
-    return unless @startRow? and @endRow? and @lineHeight?
-
     @updateTilesState(@getVisibleRows())
 
-  updateTilesState: (screenRows) ->
+  deleteTemporaryTiles: ->
+    for tileId, tileState of @state.content.tiles when tileState.temporary
+      delete @state.content.tiles[tileId]
+      delete @lineNumberGutter.tiles[tileId]
+
+  updateTilesState: (screenRows, temporary = false) ->
+    return unless @startRow? and @endRow? and @lineHeight?
+
     screenRows.sort (a, b) -> a - b
 
     visibleTiles = {}
@@ -391,18 +398,22 @@ class TextEditorPresenter
       tile.display = "block"
       tile.zIndex = zIndex
       tile.highlights ?= {}
+      tile.temporary = temporary
 
       gutterTile = @lineNumberGutter.tiles[tileStartRow] ?= {}
       gutterTile.top = tileStartRow * @lineHeight - @scrollTop
       gutterTile.height = @tileSize * @lineHeight
       gutterTile.display = "block"
       gutterTile.zIndex = zIndex
+      gutterTile.temporary = temporary
 
       @updateLinesState(tile, rowsWithinTile) if @shouldUpdateLinesState
       @updateLineNumbersState(gutterTile, rowsWithinTile) if @shouldUpdateLineNumbersState
 
       visibleTiles[tileStartRow] = true
       zIndex++
+
+    return if temporary
 
     if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
@@ -424,7 +435,7 @@ class TextEditorPresenter
     for screenRow in screenRows
       line = @model.tokenizedLineForScreenRow(screenRow)
       unless line?
-        throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
+        throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
       if tileState.lines.hasOwnProperty(line.id)
