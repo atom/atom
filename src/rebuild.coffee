@@ -48,8 +48,12 @@ class Rebuild extends Command
     ]
     rebuildArgs = rebuildArgs.concat(options.argv._)
 
+    if vsArgs = @getVisualStudioFlags()
+      rebuildArgs.push(vsArgs)
+
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
     env.USERPROFILE = env.HOME if config.isWin32()
+    @addBuildEnvVars(env)
 
     @fork(@atomNpmPath, rebuildArgs, {env}, callback)
 
@@ -57,14 +61,15 @@ class Rebuild extends Command
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
-    @loadInstalledAtomMetadata =>
-      @installNode (error) =>
-        return callback(error) if error?
+    config.loadNpm (error, @npm) =>
+      @loadInstalledAtomMetadata =>
+        @installNode (error) =>
+          return callback(error) if error?
 
-        @forkNpmRebuild options, (code, stderr='') =>
-          if code is 0
-            @logSuccess()
-            callback()
-          else
-            @logFailure()
-            callback(stderr)
+          @forkNpmRebuild options, (code, stderr='') =>
+            if code is 0
+              @logSuccess()
+              callback()
+            else
+              @logFailure()
+              callback(stderr)

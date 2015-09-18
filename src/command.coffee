@@ -3,6 +3,7 @@ path = require 'path'
 _ = require 'underscore-plus'
 semver = require 'npm/node_modules/semver'
 config = require './apm'
+git = require './git'
 
 module.exports =
 class Command
@@ -87,3 +88,43 @@ class Command
       process.nextTick => callback(@resourcePath)
     else
       config.getResourcePath (@resourcePath) => callback(@resourcePath)
+
+  addBuildEnvVars: (env) ->
+    @updateWindowsEnv(env) if config.isWin32()
+    @addNodeBinToEnv(env)
+    @addProxyToEnv(env)
+
+  getVisualStudioFlags: ->
+    if vsVersion = config.getInstalledVisualStudioFlag()
+      "--msvs_version=#{vsVersion}"
+
+  updateWindowsEnv: (env) ->
+    env.USERPROFILE = env.HOME
+
+    # Make sure node-gyp is always on the PATH
+    localModuleBins = path.resolve(__dirname, '..', 'node_modules', '.bin')
+    if env.Path
+      env.Path += "#{path.delimiter}#{localModuleBins}"
+    else
+      env.Path = localModuleBins
+
+    git.addGitToEnv(env)
+
+  addNodeBinToEnv: (env) ->
+    nodeBinFolder = path.resolve(__dirname, '..', 'bin')
+    pathKey = if config.isWin32() then 'Path' else 'PATH'
+    if env[pathKey]
+      env[pathKey] = "#{nodeBinFolder}#{path.delimiter}#{env[pathKey]}"
+    else
+      env[pathKey]= nodeBinFolder
+
+  addProxyToEnv: (env) ->
+    httpProxy = @npm.config.get('proxy')
+    if httpProxy
+      env.HTTP_PROXY ?= httpProxy
+      env.http_proxy ?= httpProxy
+
+    httpsProxy = @npm.config.get('https-proxy')
+    if httpsProxy
+      env.HTTPS_PROXY ?= httpsProxy
+      env.https_proxy ?= httpsProxy

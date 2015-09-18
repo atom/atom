@@ -10,7 +10,6 @@ temp = require 'temp'
 config = require './apm'
 Command = require './command'
 fs = require './fs'
-git = require './git'
 RebuildModuleCache = require './rebuild-module-cache'
 request = require './request'
 {isDeprecatedPackage} = require './deprecated-packages'
@@ -85,37 +84,6 @@ class Install extends Command
       else
         callback("#{stdout}\n#{stderr}")
 
-  updateWindowsEnv: (env) ->
-    env.USERPROFILE = env.HOME
-
-    # Make sure node-gyp is always on the PATH
-    localModuleBins = path.resolve(__dirname, '..', 'node_modules', '.bin')
-    if env.Path
-      env.Path += "#{path.delimiter}#{localModuleBins}"
-    else
-      env.Path = localModuleBins
-
-    git.addGitToEnv(env)
-
-  addNodeBinToEnv: (env) ->
-    nodeBinFolder = path.resolve(__dirname, '..', 'bin')
-    pathKey = if config.isWin32() then 'Path' else 'PATH'
-    if env[pathKey]
-      env[pathKey] = "#{nodeBinFolder}#{path.delimiter}#{env[pathKey]}"
-    else
-      env[pathKey]= nodeBinFolder
-
-  addProxyToEnv: (env) ->
-    httpProxy = @npm.config.get('proxy')
-    if httpProxy
-      env.HTTP_PROXY ?= httpProxy
-      env.http_proxy ?= httpProxy
-
-    httpsProxy = @npm.config.get('https-proxy')
-    if httpsProxy
-      env.HTTPS_PROXY ?= httpsProxy
-      env.https_proxy ?= httpsProxy
-
   installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
@@ -129,9 +97,7 @@ class Install extends Command
       installArgs.push(vsArgs)
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
-    @updateWindowsEnv(env) if config.isWin32()
-    @addNodeBinToEnv(env)
-    @addProxyToEnv(env)
+    @addBuildEnvVars(env)
     installOptions = {env}
     installOptions.streaming = true if @verbose
 
@@ -202,10 +168,6 @@ class Install extends Command
     """
 
     message
-
-  getVisualStudioFlags: ->
-    if vsVersion = config.getInstalledVisualStudioFlag()
-      "--msvs_version=#{vsVersion}"
 
   installModules: (options, callback) =>
     process.stdout.write 'Installing modules '
