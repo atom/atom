@@ -115,6 +115,15 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(dispatchedEvent)
       expect(dispatchedEvent.abortKeyBinding).toHaveBeenCalled()
 
+    it "copies non-standard properties from the original event to the synthetic event", ->
+      syntheticEvent = null
+      registry.add '.child', 'command', (event) -> syntheticEvent = event
+
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      dispatchedEvent.nonStandardProperty = 'testing'
+      grandchild.dispatchEvent(dispatchedEvent)
+      expect(syntheticEvent.nonStandardProperty).toBe 'testing'
+
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []
 
