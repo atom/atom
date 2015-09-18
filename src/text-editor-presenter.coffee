@@ -381,8 +381,8 @@ class TextEditorPresenter
       gutterTile.display = "block"
       gutterTile.zIndex = zIndex
 
-      @updateLinesState(tile, tileStartRow, tileEndRow) if @shouldUpdateLinesState
-      @updateLineNumbersState(gutterTile, tileStartRow, tileEndRow) if @shouldUpdateLineNumbersState
+      @updateLinesState(tile, rowsWithinTile) if @shouldUpdateLinesState
+      @updateLineNumbersState(gutterTile, rowsWithinTile) if @shouldUpdateLineNumbersState
 
       visibleTiles[tileStartRow] = true
       zIndex++
@@ -401,23 +401,22 @@ class TextEditorPresenter
       delete @state.content.tiles[id]
       delete @lineNumberGutter.tiles[id]
 
-  updateLinesState: (tileState, startRow, endRow) ->
+  updateLinesState: (tileState, screenRows) ->
     tileState.lines ?= {}
     visibleLineIds = {}
-    row = startRow
-    while row < endRow
-      line = @model.tokenizedLineForScreenRow(row)
+    for screenRow in screenRows
+      line = @model.tokenizedLineForScreenRow(screenRow)
       unless line?
         throw new Error("No line exists for row #{row}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
-        lineState.screenRow = row
-        lineState.decorationClasses = @lineDecorationClassesForRow(row)
+        lineState.screenRow = screenRow
+        lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
       else
         tileState.lines[line.id] =
-          screenRow: row
+          screenRow: screenRow
           text: line.text
           openScopes: line.openScopes
           tags: line.tags
@@ -430,8 +429,7 @@ class TextEditorPresenter
           indentLevel: line.indentLevel
           tabLength: line.tabLength
           fold: line.fold
-          decorationClasses: @lineDecorationClassesForRow(row)
-      row++
+          decorationClasses: @lineDecorationClassesForRow(screenRow)
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -603,32 +601,24 @@ class TextEditorPresenter
       isVisible = isVisible and @showLineNumbers
     isVisible
 
-  updateLineNumbersState: (tileState, startRow, endRow) ->
+  isSoftWrappedRow: (bufferRow, screenRow) ->
+    return false if screenRow is 0
+
+    @model.bufferRowForScreenRow(screenRow - 1) is bufferRow
+
+  updateLineNumbersState: (tileState, screenRows) ->
     tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
-    if startRow > 0
-      rowBeforeStartRow = startRow - 1
-      lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
-    else
-      lastBufferRow = null
+    for screenRow in screenRows
+      bufferRow = @model.bufferRowForScreenRow(screenRow)
+      softWrapped = @isSoftWrappedRow(bufferRow, screenRow)
+      decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+      foldable = @model.isFoldableAtScreenRow(screenRow)
+      id = @model.tokenizedLineForScreenRow(screenRow).id
 
-    if endRow > startRow
-      bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
-      for bufferRow, i in bufferRows
-        if bufferRow is lastBufferRow
-          softWrapped = true
-        else
-          lastBufferRow = bufferRow
-          softWrapped = false
-
-        screenRow = startRow + i
-        decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-        foldable = @model.isFoldableAtScreenRow(screenRow)
-        id = @model.tokenizedLineForScreenRow(screenRow).id
-
-        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
-        visibleLineNumberIds[id] = true
+      tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
+      visibleLineNumberIds[id] = true
 
     for id of tileState.lineNumbers
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
