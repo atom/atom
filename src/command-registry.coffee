@@ -227,6 +227,9 @@ class CommandRegistry
     Object.defineProperty dispatchedEvent, 'abortKeyBinding', value: ->
       event.abortKeyBinding?()
 
+    for key in Object.keys(event)
+      dispatchedEvent[key] = event[key]
+
     @emitter.emit 'will-dispatch', dispatchedEvent
 
     loop
