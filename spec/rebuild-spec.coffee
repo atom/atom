@@ -8,7 +8,7 @@ wrench = require 'wrench'
 apm = require '../lib/apm-cli'
 
 describe 'apm rebuild', ->
-  [server] = []
+  [server, originalPathEnv] = []
 
   beforeEach ->
     spyOnToken()
@@ -34,12 +34,16 @@ describe 'apm rebuild', ->
     process.env.ATOM_ELECTRON_VERSION = 'v0.10.3'
     process.env.ATOM_RESOURCE_PATH = temp.mkdirSync('atom-resource-path-')
 
+    originalPathEnv = process.env.PATH
+    process.env.PATH = ""
+
   afterEach ->
     server.close()
+    process.env.PATH = originalPathEnv
 
   it "rebuilds all modules when no module names are specified", ->
-    packageToRebuild = temp.mkdirSync('apm-test-package-')
-    fs.writeFileSync(path.join(packageToRebuild, 'package.json'), JSON.stringify(name: 'test', version: '1.0.0'))
+    packageToRebuild = path.join(__dirname, 'fixtures/package-with-native-deps')
+
     process.chdir(packageToRebuild)
     callback = jasmine.createSpy('callback')
     apm.run(['rebuild'], callback)
@@ -51,11 +55,11 @@ describe 'apm rebuild', ->
       expect(callback.mostRecentCall.args[0]).toBeUndefined()
 
   it "rebuilds the specified modules", ->
-    packageToRebuild = temp.mkdirSync('apm-test-package-')
-    fs.writeFileSync(path.join(packageToRebuild, 'package.json'), JSON.stringify(name: 'test', version: '1.0.0'))
+    packageToRebuild = path.join(__dirname, 'fixtures/package-with-native-deps')
+
     process.chdir(packageToRebuild)
     callback = jasmine.createSpy('callback')
-    apm.run(['rebuild', 'foo'], callback)
+    apm.run(['rebuild', 'native-dep'], callback)
 
     waitsFor 'waiting for rebuild to complete', 600000, ->
       callback.callCount is 1
