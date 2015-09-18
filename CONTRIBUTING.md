@@ -86,6 +86,26 @@ For more information on how to work with Atom's official packages, see
 * Using a plain `return` when returning explicitly at the end of a function.
     * Not `return null`, `return undefined`, `null`, or `undefined`
 
+### Branch
+
+* Branch name is desired to follow those style-guides:
+  * Begin with your Github Username
+  * Include Topic Categories
+  * Include simple descriptive name for your branch
+  * Username and Topic Categories are separated with `/`
+  * Topic Categories and Branch Name are separated with `_`
+  * Each name is concatenated with `-`
+
+#### Example
+
+```text
+// General
+[Github Username]/topic-categories_simple-descriptive-name-of-your-branch
+
+// Example
+KENJU/documentation_suggestion-for-branch-name-in-contributing
+```
+
 ## Git Commit Messages
 
 * Use the present tense ("Add feature" not "Added feature")
