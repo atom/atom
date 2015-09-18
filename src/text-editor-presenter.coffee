@@ -412,7 +412,6 @@ class TextEditorPresenter
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = row
-        lineState.top = (row - startRow) * @lineHeight
         lineState.decorationClasses = @lineDecorationClassesForRow(row)
       else
         tileState.lines[line.id] =
@@ -429,7 +428,6 @@ class TextEditorPresenter
           indentLevel: line.indentLevel
           tabLength: line.tabLength
           fold: line.fold
-          top: (row - startRow) * @lineHeight
           decorationClasses: @lineDecorationClassesForRow(row)
       row++
 
@@ -623,7 +621,6 @@ class TextEditorPresenter
           softWrapped = false
 
         screenRow = startRow + i
-        top = (screenRow - startRow) * @lineHeight
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
         id = @model.tokenizedLineForScreenRow(screenRow).id

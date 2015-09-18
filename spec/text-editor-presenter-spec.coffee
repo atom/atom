@@ -851,7 +851,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line3.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line3.firstTrailingWhitespaceIndex
               invisibles: line3.invisibles
-              top: 0
             }
 
             line4 = editor.tokenizedLineForScreenRow(4)
@@ -863,7 +862,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line4.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line4.firstTrailingWhitespaceIndex
               invisibles: line4.invisibles
-              top: 1
             }
 
             line5 = editor.tokenizedLineForScreenRow(5)
@@ -875,7 +873,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line5.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line5.firstTrailingWhitespaceIndex
               invisibles: line5.invisibles
-              top: 2
             }
 
             line6 = editor.tokenizedLineForScreenRow(6)
@@ -887,7 +884,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line6.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line6.firstTrailingWhitespaceIndex
               invisibles: line6.invisibles
-              top: 0
             }
 
             line7 = editor.tokenizedLineForScreenRow(7)
@@ -899,7 +895,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line7.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line7.firstTrailingWhitespaceIndex
               invisibles: line7.invisibles
-              top: 1
             }
 
             line8 = editor.tokenizedLineForScreenRow(8)
@@ -911,7 +906,6 @@ describe "TextEditorPresenter", ->
               firstNonWhitespaceIndex: line8.firstNonWhitespaceIndex
               firstTrailingWhitespaceIndex: line8.firstTrailingWhitespaceIndex
               invisibles: line8.invisibles
-              top: 2
             }
 
             expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()
@@ -2050,12 +2044,12 @@ describe "TextEditorPresenter", ->
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 2)
 
               expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-              expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false, top: 0 * 10}
-              expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false, top: 1 * 10}
-              expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true, top: 0 * 10}
-              expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false, top: 1 * 10}
-              expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false, top: 0 * 10}
-              expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false, top: 1 * 10}
+              expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false}
+              expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false}
+              expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true}
+              expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false}
+              expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false}
+              expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false}
               expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
 
             it "updates when the editor's content changes", ->
