@@ -1,8 +1,8 @@
 LinesYardstick = require '../src/lines-yardstick'
-MockLineNodesProvider = require './mock-line-nodes-provider'
+MockLinesComponent = require './mock-lines-component'
 
 describe "LinesYardstick", ->
-  [editor, mockLineNodesProvider, builtLineNodes, linesYardstick] = []
+  [editor, mockPresenter, mockLinesComponent, linesYardstick] = []
 
   beforeEach ->
     waitsForPromise ->
@@ -12,14 +12,23 @@ describe "LinesYardstick", ->
       atom.project.open('sample.js').then (o) -> editor = o
 
     runs ->
-      mockLineNodesProvider = new MockLineNodesProvider(editor)
-      linesYardstick = new LinesYardstick(editor, mockLineNodesProvider)
+      mockPresenter = {getStateForMeasurements: jasmine.createSpy()}
+      mockLinesComponent = new MockLinesComponent(editor)
+      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLinesComponent)
+
+      mockLinesComponent.setDefaultFont("14px monospace")
 
   afterEach ->
-    mockLineNodesProvider.dispose()
+    doSomething = true
 
   it "converts screen positions to pixel positions", ->
-    mockLineNodesProvider.setDefaultFont("14px monospace")
+    stubState = {anything: {}}
+    mockPresenter.getStateForMeasurements.andReturn(stubState)
+
+    linesYardstick.prepareScreenRowsForMeasurement([0, 1, 2])
+
+    expect(mockPresenter.getStateForMeasurements).toHaveBeenCalledWith([0, 1, 2])
+    expect(mockLinesComponent.updateSync).toHaveBeenCalledWith(stubState)
 
     conversionTable = [
       [[0, 0], {left: 0, top: editor.getLineHeightInPixels() * 0}]
@@ -37,7 +46,7 @@ describe "LinesYardstick", ->
         linesYardstick.pixelPositionForScreenPosition(point)
       ).toEqual(position)
 
-    mockLineNodesProvider.setFontForScopes(
+    mockLinesComponent.setFontForScopes(
       ["source.js", "storage.modifier.js"], "16px monospace"
     )
     linesYardstick.clearCache()
@@ -57,19 +66,3 @@ describe "LinesYardstick", ->
       expect(
         linesYardstick.pixelPositionForScreenPosition(point)
       ).toEqual(position)
-
-  it "does not compute the same position twice unless the cache gets cleared", ->
-    mockLineNodesProvider.setDefaultFont("14px monospace")
-
-    oldPosition1 = linesYardstick.pixelPositionForScreenPosition([0, 5])
-    oldPosition2 = linesYardstick.pixelPositionForScreenPosition([1, 4])
-
-    mockLineNodesProvider.setDefaultFont("16px monospace")
-
-    expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).toEqual(oldPosition1)
-    expect(linesYardstick.pixelPositionForScreenPosition([1, 4])).toEqual(oldPosition2)
-
-    linesYardstick.clearCache()
-
-    expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).not.toEqual(oldPosition1)
-    expect(linesYardstick.pixelPositionForScreenPosition([1, 4])).not.toEqual(oldPosition2)

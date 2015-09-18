@@ -4,13 +4,17 @@ AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @lineNodesProvider) ->
+  constructor: (@model, @presenter, @lineNodesProvider) ->
+    @cachedPositionsByLineId = {}
     @tokenIterator = new TokenIterator
     @rangeForMeasurement = document.createRange()
-    @cachedPositionsByLineId = {}
 
   clearCache: ->
     @cachedPositionsByLineId = {}
+
+  prepareScreenRowsForMeasurement: (screenRows) ->
+    state = @presenter.getStateForMeasurements(screenRows)
+    @lineNodesProvider.updateSync(state)
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)

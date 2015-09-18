@@ -5,7 +5,7 @@ TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 LinesYardstick = require '../src/lines-yardstick'
-MockLineNodesProvider = require './mock-line-nodes-provider'
+MockLineNodesProvider = require './mock-lines-component'
 
 describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.

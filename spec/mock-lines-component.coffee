@@ -1,8 +1,8 @@
 TokenIterator = require '../src/token-iterator'
 
 module.exports =
-class MockLineNodesProvider
-  constructor: (@editor) ->
+class MockLinesComponent
+  constructor: (@model) ->
     @defaultFont = ""
     @fontsByScopes = {}
     @tokenIterator = new TokenIterator
@@ -11,14 +11,12 @@ class MockLineNodesProvider
   dispose: ->
     node.remove() for node in @builtLineNodes
 
-  setFontForScopes: (scopes, font) -> @fontsByScopes[scopes] = font
-
-  setDefaultFont: (font) -> @defaultFont = font
+  updateSync: jasmine.createSpy()
 
   lineNodeForLineIdAndScreenRow: (id, screenRow) ->
     lineNode = document.createElement("div")
     lineNode.style.whiteSpace = "pre"
-    lineState = @editor.tokenizedLineForScreenRow(screenRow)
+    lineState = @model.tokenizedLineForScreenRow(screenRow)
 
     @tokenIterator.reset(lineState)
     while @tokenIterator.next()
@@ -32,3 +30,7 @@ class MockLineNodesProvider
     document.body.appendChild(lineNode)
 
     lineNode
+
+  setFontForScopes: (scopes, font) -> @fontsByScopes[scopes] = font
+
+  setDefaultFont: (font) -> @defaultFont = font
