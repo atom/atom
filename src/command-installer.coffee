@@ -71,5 +71,6 @@ module.exports =
             error = null
             symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
           catch error
+            undefined
 
         callback?(error)
