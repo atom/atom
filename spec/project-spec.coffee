@@ -508,36 +508,3 @@ describe "Project", ->
 
       randomPath = path.join("some", "random", "path")
       expect(atom.project.contains(randomPath)).toBe false
-
-  describe ".eachBuffer(callback)", ->
-    beforeEach ->
-      jasmine.snapshotDeprecations()
-      atom.project.bufferForPathSync('a')
-
-    afterEach ->
-      jasmine.restoreDeprecationsSnapshot()
-
-    it "invokes the callback for existing buffer", ->
-      count = 0
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-      atom.project.eachBuffer(callback)
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.project.getBuffers()[0]
-
-    it "invokes the callback for new buffers", ->
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-
-      atom.project.eachBuffer(callback)
-      count = 0
-      callbackBuffer = null
-      atom.project.bufferForPathSync(require.resolve('./fixtures/sample.txt'))
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.project.getBuffers()[1]
