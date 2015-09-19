@@ -30,7 +30,7 @@ class AtomProtocolHandler
   # Creates the 'atom' custom protocol handler.
   registerAtomProtocol: ->
     protocol.registerProtocol 'atom', (request) =>
-      relativePath = path.normalize(request.url.substr(7))
+      relativePath = path.normalize(request.url.substr(7).split(/[\?\#]/)[0])
 
       if relativePath.indexOf('assets/') is 0
         assetsPath = path.join(process.env.ATOM_HOME, relativePath)
