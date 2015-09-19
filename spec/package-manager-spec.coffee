@@ -1,10 +1,14 @@
 path = require 'path'
-{$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
 {Disposable} = require 'atom'
 
 describe "PackageManager", ->
   workspaceElement = null
+
+  createTestElement = (className) ->
+    element = document.createElement('div')
+    element.className = className
+    element
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
@@ -220,22 +224,16 @@ describe "PackageManager", ->
             atom.workspace.open()
 
           runs ->
-            editorView = atom.views.getView(atom.workspace.getActiveTextEditor()).__spacePenView
-            legacyCommandListener = jasmine.createSpy("legacyCommandListener")
-            editorView.command 'activation-command', legacyCommandListener
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
             editorCommandListener = jasmine.createSpy("editorCommandListener")
             atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
-            atom.commands.dispatch(editorView[0], 'activation-command')
+            atom.commands.dispatch(editorElement, 'activation-command')
             expect(mainModule.activate.callCount).toBe 1
-            expect(mainModule.legacyActivationCommandCallCount).toBe 1
             expect(mainModule.activationCommandCallCount).toBe 1
-            expect(legacyCommandListener.callCount).toBe 1
             expect(editorCommandListener.callCount).toBe 1
             expect(workspaceCommandListener.callCount).toBe 1
-            atom.commands.dispatch(editorView[0], 'activation-command')
-            expect(mainModule.legacyActivationCommandCallCount).toBe 2
+            atom.commands.dispatch(editorElement, 'activation-command')
             expect(mainModule.activationCommandCallCount).toBe 2
-            expect(legacyCommandListener.callCount).toBe 2
             expect(editorCommandListener.callCount).toBe 2
             expect(workspaceCommandListener.callCount).toBe 2
             expect(mainModule.activate.callCount).toBe 1
@@ -399,36 +397,36 @@ describe "PackageManager", ->
     describe "keymap loading", ->
       describe "when the metadata does not contain a 'keymaps' manifest", ->
         it "loads all the .cson/.json files in the keymaps directory", ->
-          element1 = $$ -> @div class: 'test-1'
-          element2 = $$ -> @div class: 'test-2'
-          element3 = $$ -> @div class: 'test-3'
+          element1 = createTestElement('test-1')
+          element2 = createTestElement('test-2')
+          element3 = createTestElement('test-3')
 
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2)).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3)).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe "test-1"
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])[0].command).toBe "test-2"
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe "test-1"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2)[0].command).toBe "test-2"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3)).toHaveLength 0
 
       describe "when the metadata contains a 'keymaps' manifest", ->
         it "loads only the keymaps specified by the manifest, in the specified order", ->
-          element1 = $$ -> @div class: 'test-1'
-          element3 = $$ -> @div class: 'test-3'
+          element1 = createTestElement('test-1')
+          element3 = createTestElement('test-3')
 
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1[0])[0].command).toBe 'keymap-2'
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe 'keymap-1'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1)[0].command).toBe 'keymap-2'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3)).toHaveLength 0
 
       describe "when the keymap file is empty", ->
         it "does not throw an error on activation", ->
@@ -440,9 +438,9 @@ describe "PackageManager", ->
 
       describe "when the package's keymaps have been disabled", ->
         it "does not add the keymaps", ->
-          element1 = $$ -> @div class: 'test-1'
+          element1 = createTestElement('test-1')
 
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
 
           atom.config.set("core.packagesWithKeymapsDisabled", ["package-with-keymaps-manifest"])
 
@@ -450,11 +448,11 @@ describe "PackageManager", ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
 
       describe "when the package's keymaps are disabled and re-enabled after it is activated", ->
         it "removes and re-adds the keymaps", ->
-          element1 = $$ -> @div class: 'test-1'
+          element1 = createTestElement('test-1')
           atom.packages.observePackagesWithKeymapsDisabled()
 
           waitsForPromise ->
@@ -462,10 +460,10 @@ describe "PackageManager", ->
 
           runs ->
             atom.config.set("core.packagesWithKeymapsDisabled", ['package-with-keymaps-manifest'])
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
 
             atom.config.set("core.packagesWithKeymapsDisabled", [])
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe 'keymap-1'
 
     describe "menu loading", ->
       beforeEach ->
@@ -474,7 +472,7 @@ describe "PackageManager", ->
 
       describe "when the metadata does not contain a 'menus' manifest", ->
         it "loads all the .cson/.json files in the menus directory", ->
-          element = ($$ -> @div class: 'test-1')[0]
+          element = createTestElement('test-1')
 
           expect(atom.contextMenu.templateForElement(element)).toEqual []
 
@@ -491,7 +489,7 @@ describe "PackageManager", ->
 
       describe "when the metadata contains a 'menus' manifest", ->
         it "loads only the menus specified by the manifest, in the specified order", ->
-          element = ($$ -> @div class: 'test-1')[0]
+          element = createTestElement('test-1')
 
           expect(atom.contextMenu.templateForElement(element)).toEqual []
 
@@ -535,7 +533,8 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).toBeNull()
-            expect($('#jasmine-content').css('font-size')).toBe '1px'
+
+            expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe '1px'
 
       describe "when the metadata does not contain a 'styleSheets' manifest", ->
         it "loads all style sheets from the styles directory", ->
@@ -562,7 +561,7 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(four)).not.toBeNull()
-            expect($('#jasmine-content').css('font-size')).toBe '3px'
+            expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe '3px'
 
       it "assigns the stylesheet's context based on the filename", ->
         waitsForPromise ->
@@ -747,8 +746,8 @@ describe "PackageManager", ->
 
       runs ->
         atom.packages.deactivatePackage('package-with-keymaps')
-        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
-        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: createTestElement('test-1'))).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: createTestElement('test-2'))).toHaveLength 0
 
     it "removes the package's stylesheets", ->
       waitsForPromise ->

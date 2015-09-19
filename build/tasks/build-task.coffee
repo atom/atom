@@ -37,7 +37,6 @@ module.exports = (grunt) ->
     packageNames = []
     packageDirectories = []
     nonPackageDirectories = [
-      'benchmark'
       'dot-atom'
       'vendor'
     ]
@@ -146,19 +145,14 @@ module.exports = (grunt) ->
 
     testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}_*te?sts?_*#{_.escapeRegExp(path.sep)}")
     exampleFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}examples?#{_.escapeRegExp(path.sep)}")
-    benchmarkFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}benchmarks?#{_.escapeRegExp(path.sep)}")
 
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
     filterNodeModule = (pathToCopy) ->
-      return true if benchmarkFolderPattern.test(pathToCopy)
-
       pathToCopy = path.resolve(pathToCopy)
       nodeModulesFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
     packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
     filterPackage = (pathToCopy) ->
-      return true if benchmarkFolderPattern.test(pathToCopy)
-
       pathToCopy = path.resolve(pathToCopy)
       packageFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 

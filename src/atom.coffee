@@ -11,7 +11,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
-{$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
@@ -35,27 +34,11 @@ class Atom extends Model
     atom.deserializeTimings.atom = Date.now() -  startTime
 
     if includeDeprecatedAPIs
-      workspaceViewDeprecationMessage = """
-        atom.workspaceView is no longer available.
-        In most cases you will not need the view. See the Workspace docs for
-        alternatives: https://atom.io/docs/api/latest/Workspace.
-        If you do need the view, please use `atom.views.getView(atom.workspace)`,
-        which returns an HTMLElement.
-      """
-
       serviceHubDeprecationMessage = """
         atom.services is no longer available. To register service providers and
         consumers, use the `providedServices` and `consumedServices` fields in
         your package's package.json.
       """
-
-      Object.defineProperty atom, 'workspaceView',
-        get: ->
-          deprecate(workspaceViewDeprecationMessage)
-          atom.__workspaceView
-        set: (newValue) ->
-          deprecate(workspaceViewDeprecationMessage)
-          atom.__workspaceView = newValue
 
       Object.defineProperty atom, 'services',
         get: ->
@@ -123,7 +106,7 @@ class Atom extends Model
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  workspaceViewParentSelector: 'body'
+  workspaceParentSelectorctor: 'body'
   lastUncaughtError: null
 
   ###
@@ -484,7 +467,7 @@ class Atom extends Model
   # Extended: Focus the current window.
   focus: ->
     ipc.send('call-window-method', 'focus')
-    $(window).focus()
+    window.focus()
 
   # Extended: Show the current window.
   show: ->
@@ -680,7 +663,6 @@ class Atom extends Model
   # Essential: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
-    @__workspaceView?.trigger 'beep'
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
@@ -761,24 +743,18 @@ class Atom extends Model
     @project ?= @deserializers.deserialize(@state.project) ? new Project()
     @deserializeTimings.project = Date.now() - startTime
 
-  deserializeWorkspaceView: ->
+  deserializeWorkspace: ->
     Workspace = require './workspace'
-
-    if includeDeprecatedAPIs
-      WorkspaceView = require './workspace-view'
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
 
     workspaceElement = @views.getView(@workspace)
 
-    if includeDeprecatedAPIs
-      @__workspaceView = workspaceElement.__spacePenView
-
     @deserializeTimings.workspace = Date.now() - startTime
 
     @keymaps.defaultTarget = workspaceElement
-    document.querySelector(@workspaceViewParentSelector).appendChild(workspaceElement)
+    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
   deserializePackageStates: ->
     @packages.packageStates = @state.packageStates ? {}
@@ -787,7 +763,7 @@ class Atom extends Model
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
-    @deserializeWorkspaceView()
+    @deserializeWorkspace()
 
   loadConfig: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
