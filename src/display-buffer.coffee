@@ -23,6 +23,17 @@ class DisplayBuffer extends Model
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
   changeCount: 0
+  softWrapped: null
+  editorWidthInChars: null
+  lineHeightInPixels: null
+  defaultCharWidth: null
+  height: null
+  width: null
+  scrollTop: 0
+  scrollLeft: 0
+  scrollWidth: 0
+  verticalScrollbarWidth: 15
+  horizontalScrollbarHeight: 15
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
     super
@@ -1330,30 +1341,3 @@ class DisplayBuffer extends Model
 
     atom.assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
       error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
-
-Grim = require 'grim'
-if Grim.includeDeprecatedAPIs
-  DisplayBuffer.properties
-    softWrapped: null
-    editorWidthInChars: null
-    lineHeightInPixels: null
-    defaultCharWidth: null
-    height: null
-    width: null
-    scrollTop: 0
-    scrollLeft: 0
-    scrollWidth: 0
-    verticalScrollbarWidth: 15
-    horizontalScrollbarHeight: 15
-else
-  DisplayBuffer::softWrapped = null
-  DisplayBuffer::editorWidthInChars = null
-  DisplayBuffer::lineHeightInPixels = null
-  DisplayBuffer::defaultCharWidth = null
-  DisplayBuffer::height = null
-  DisplayBuffer::width = null
-  DisplayBuffer::scrollTop = 0
-  DisplayBuffer::scrollLeft = 0
-  DisplayBuffer::scrollWidth = 0
-  DisplayBuffer::verticalScrollbarWidth = 15
-  DisplayBuffer::horizontalScrollbarHeight = 15
