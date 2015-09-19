@@ -873,6 +873,11 @@ class Atom extends Model
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
     ipc.send('call-window-method', 'setMenuBarVisibility', not autoHide)
 
+# Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
+Promise.prototype.done = (callback) ->
+  deprecate("Atom now uses ES6 Promises instead of Q. Call promise.then instead of promise.done")
+  @then(callback)
+
 if includeDeprecatedAPIs
   # Deprecated: Callers should be converted to use atom.deserializers
   Atom::registerRepresentationClass = ->

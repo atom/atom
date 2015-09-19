@@ -201,18 +201,6 @@ describe "Project", ->
           expect(editor.buffer.getPath()).toBeUndefined()
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
 
-    it "returns number of read bytes as progress indicator", ->
-      filePath = atom.project.getDirectories()[0]?.resolve 'a'
-      totalBytes = 0
-      promise = atom.project.open(filePath)
-      promise.progress (bytesRead) -> totalBytes = bytesRead
-
-      waitsForPromise ->
-        promise
-
-      runs ->
-        expect(totalBytes).toBe fs.statSync(filePath).size
-
   describe ".bufferForPath(path)", ->
     [buffer] = []
     beforeEach ->

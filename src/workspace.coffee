@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
-Q = require 'q'
 Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
@@ -448,17 +447,17 @@ class Workspace extends Model
     catch error
       switch error.code
         when 'CANCELLED'
-          return Q()
+          return Promise.resolve()
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
-          return Q()
+          return Promise.resolve()
         when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL'
           atom.notifications.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
-          return Q()
+          return Promise.resolve()
         else
           throw error
 
-    Q(item)
+    Promise.resolve(item)
       .then (item) =>
         if not pane
           pane = new Pane(items: [item])
@@ -488,7 +487,7 @@ class Workspace extends Model
     if uri = @destroyedItemURIs.pop()
       @open(uri)
     else
-      Q()
+      Promise.resolve()
 
   # Public: Register an opener for a uri.
   #
@@ -934,36 +933,33 @@ class Workspace extends Model
   #
   # Returns a `Promise`.
   replace: (regex, replacementText, filePaths, iterator) ->
-    deferred = Q.defer()
+    new Promise (resolve, reject) =>
+      openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
+      outOfProcessPaths = _.difference(filePaths, openPaths)
 
-    openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
-    outOfProcessPaths = _.difference(filePaths, openPaths)
+      inProcessFinished = not openPaths.length
+      outOfProcessFinished = not outOfProcessPaths.length
+      checkFinished = ->
+        resolve() if outOfProcessFinished and inProcessFinished
 
-    inProcessFinished = not openPaths.length
-    outOfProcessFinished = not outOfProcessPaths.length
-    checkFinished = ->
-      deferred.resolve() if outOfProcessFinished and inProcessFinished
+      unless outOfProcessFinished.length
+        flags = 'g'
+        flags += 'i' if regex.ignoreCase
 
-    unless outOfProcessFinished.length
-      flags = 'g'
-      flags += 'i' if regex.ignoreCase
+        task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
+          outOfProcessFinished = true
+          checkFinished()
 
-      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
-        outOfProcessFinished = true
-        checkFinished()
+        task.on 'replace:path-replaced', iterator
+        task.on 'replace:file-error', (error) -> iterator(null, error)
 
-      task.on 'replace:path-replaced', iterator
-      task.on 'replace:file-error', (error) -> iterator(null, error)
+      for buffer in atom.project.getBuffers()
+        continue unless buffer.getPath() in filePaths
+        replacements = buffer.replace(regex, replacementText, iterator)
+        iterator({filePath: buffer.getPath(), replacements}) if replacements
 
-    for buffer in atom.project.getBuffers()
-      continue unless buffer.getPath() in filePaths
-      replacements = buffer.replace(regex, replacementText, iterator)
-      iterator({filePath: buffer.getPath(), replacements}) if replacements
-
-    inProcessFinished = true
-    checkFinished()
-
-    deferred.promise
+      inProcessFinished = true
+      checkFinished()
 
 if includeDeprecatedAPIs
   Workspace.properties

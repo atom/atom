@@ -3,7 +3,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 fs = require 'fs-plus'
-Q = require 'q'
 Grim = require 'grim'
 
 ServiceHub = require 'service-hub'
@@ -392,7 +391,7 @@ class PackageManager
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
-    Q.all(promises).then =>
+    Promise.all(promises).then =>
       @emit 'activated' if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-activate-initial-packages'
 
@@ -415,14 +414,14 @@ class PackageManager
   # Activate a single package by name
   activatePackage: (name) ->
     if pack = @getActivePackage(name)
-      Q(pack)
+      Promise.resolve(pack)
     else if pack = @loadPackage(name)
       pack.activate().then =>
         @activePackages[pack.name] = pack
         @emitter.emit 'did-activate-package', pack
         pack
     else
-      Q.reject(new Error("Failed to load package '#{name}'"))
+      Promise.reject(new Error("Failed to load package '#{name}'"))
 
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
