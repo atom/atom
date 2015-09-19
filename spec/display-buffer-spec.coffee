@@ -240,7 +240,8 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30, softWrapped: true})
+          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30})
+          displayBuffer.setSoftWrapped(true)
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
           buffer.insert([0, Infinity], '\n')

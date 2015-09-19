@@ -64,9 +64,6 @@
     ModuleCache.register(loadSettings)
     ModuleCache.add(loadSettings.resourcePath)
 
-    // Only include deprecated APIs when running core spec
-    require('grim').includeDeprecatedAPIs = isRunningCoreSpecs(loadSettings)
-
     // Start the crash reporter before anything else.
     require('crash-reporter').start({
       productName: 'Atom',
