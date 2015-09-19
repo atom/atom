@@ -181,14 +181,6 @@
     }, false)
   }
 
-  function isRunningCoreSpecs (loadSettings) {
-    return !!(loadSettings &&
-      loadSettings.isSpec &&
-      loadSettings.specDirectory &&
-      loadSettings.resourcePath &&
-      path.dirname(loadSettings.specDirectory) === loadSettings.resourcePath)
-  }
-
   parseLoadSettings()
   setupWindowBackground()
 })()
