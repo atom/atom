@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
-grim = require 'grim'
 {CompositeDisposable} = require 'event-kit'
 ipc = require 'ipc'
 
@@ -795,12 +794,3 @@ class TextEditorComponent
   updateParentViewMiniClass: ->
     @hostElement.classList.toggle('mini', @editor.isMini())
     @rootElement.classList.toggle('mini', @editor.isMini())
-
-if grim.includeDeprecatedAPIs
-  TextEditorComponent::setInvisibles = (invisibles={}) ->
-    grim.deprecate "Use config.set('editor.invisibles', invisibles) instead"
-    atom.config.set('editor.invisibles', invisibles)
-
-  TextEditorComponent::setShowInvisibles = (showInvisibles) ->
-    grim.deprecate "Use config.set('editor.showInvisibles', showInvisibles) instead"
-    atom.config.set('editor.showInvisibles', showInvisibles)
