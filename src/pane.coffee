@@ -14,11 +14,16 @@ class Pane extends Model
   atom.deserializers.add(this)
   Serializable.includeInto(this)
 
+  container: undefined
+  activeItem: undefined
+  focused: false
+
   constructor: (params) ->
     super
 
     @container = params?.container
     @activeItem = params?.activeItem
+    @focused = params?.focused
 
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
@@ -714,14 +719,3 @@ class Pane extends Model
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
     else
       throw error
-
-Grim = require 'grim'
-if Grim.includeDeprecatedAPIs
-  Pane.properties
-    container: undefined
-    activeItem: undefined
-    focused: false
-else
-  Pane::container = undefined
-  Pane::activeItem = undefined
-  Pane::focused = undefined
