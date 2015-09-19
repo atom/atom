@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
-Grim = require 'grim'
 
 # Extended: Handles loading and activating available themes.
 #
@@ -26,24 +25,17 @@ class ThemeManager
   styleElementAdded: (styleElement) ->
     {sheet} = styleElement
     @sheetsByStyleElement.set(styleElement, sheet)
-    @emit 'stylesheet-added', sheet if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-stylesheet', sheet
-    @emit 'stylesheets-changed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-stylesheets'
 
   styleElementRemoved: (styleElement) ->
     sheet = @sheetsByStyleElement.get(styleElement)
-    @emit 'stylesheet-removed', sheet if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-remove-stylesheet', sheet
-    @emit 'stylesheets-changed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-stylesheets'
 
   styleElementUpdated: ({sheet}) ->
-    @emit 'stylesheet-removed', sheet if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-remove-stylesheet', sheet
-    @emit 'stylesheet-added', sheet if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-stylesheet', sheet
-    @emit 'stylesheets-changed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-stylesheets'
 
   ###
@@ -279,7 +271,6 @@ class ThemeManager
           @loadUserStylesheet()
           @reloadBaseStylesheets()
           @initialLoadComplete = true
-          @emit 'reloaded' if Grim.includeDeprecatedAPIs
           @emitter.emit 'did-change-active-themes'
           resolve()
 
@@ -321,59 +312,3 @@ class ThemeManager
             themePaths.push(path.join(themePath, 'styles'))
 
     themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(ThemeManager)
-
-  ThemeManager::on = (eventName) ->
-    switch eventName
-      when 'reloaded'
-        Grim.deprecate 'Use ThemeManager::onDidChangeActiveThemes instead'
-      when 'stylesheet-added'
-        Grim.deprecate 'Use ThemeManager::onDidAddStylesheet instead'
-      when 'stylesheet-removed'
-        Grim.deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
-      when 'stylesheet-updated'
-        Grim.deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
-      when 'stylesheets-changed'
-        Grim.deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
-      else
-        Grim.deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
-  ThemeManager::onDidReloadAll = (callback) ->
-    Grim.deprecate("Use `::onDidChangeActiveThemes` instead.")
-    @onDidChangeActiveThemes(callback)
-
-  ThemeManager::onDidAddStylesheet = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidAddStyleElement instead")
-    @emitter.on 'did-add-stylesheet', callback
-
-  ThemeManager::onDidRemoveStylesheet = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidRemoveStyleElement instead")
-    @emitter.on 'did-remove-stylesheet', callback
-
-  ThemeManager::onDidUpdateStylesheet = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidUpdateStyleElement instead")
-    @emitter.on 'did-update-stylesheet', callback
-
-  ThemeManager::onDidChangeStylesheets = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidAdd/RemoveStyleElement instead")
-    @emitter.on 'did-change-stylesheets', callback
-
-  ThemeManager::getUserStylesheetPath = ->
-    Grim.deprecate("Call atom.styles.getUserStyleSheetPath() instead")
-    atom.styles.getUserStyleSheetPath()
-
-  ThemeManager::getLoadedNames = ->
-    Grim.deprecate("Use `::getLoadedThemeNames` instead.")
-    @getLoadedThemeNames()
-
-  ThemeManager::getActiveNames = ->
-    Grim.deprecate("Use `::getActiveThemeNames` instead.")
-    @getActiveThemeNames()
-
-  ThemeManager::setEnabledThemes = (enabledThemeNames) ->
-    Grim.deprecate("Use `atom.config.set('core.themes', arrayOfThemeNames)` instead")
-    atom.config.set('core.themes', enabledThemeNames)
