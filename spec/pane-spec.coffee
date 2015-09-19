@@ -1,4 +1,4 @@
-{Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
@@ -6,13 +6,17 @@ PaneContainer = require '../src/pane-container'
 describe "Pane", ->
   deserializerDisposable = null
 
-  class Item extends Model
+  class Item
     @deserialize: ({name, uri}) -> new this(name, uri)
-    constructor: (@name, @uri) ->
+    constructor: (@name, @uri) -> @emitter = new Emitter
+    destroyed: false
     getURI: -> @uri
     getPath: -> @path
     serialize: -> {deserializer: 'Item', @name, @uri}
     isEqual: (other) -> @name is other?.name
+    onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
+    destroy: -> @destroyed = true; @emitter.emit('did-destroy')
+    isDestroyed: -> @destroyed
 
   beforeEach ->
     deserializerDisposable = atom.deserializers.add(Item)
