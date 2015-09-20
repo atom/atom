@@ -16,6 +16,8 @@ class LinesComponent extends TiledComponent
   constructor: ({@presenter, @hostElement, @useShadowDOM, visible, @domElementPool}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
+    @domNode.style.height = "1000000px"
+
     @tilesNode = document.createElement("div")
     # Create a new stacking context, so that tiles z-index does not interfere
     # with other visual elements.
@@ -38,9 +40,10 @@ class LinesComponent extends TiledComponent
     @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible or @newState.continuousReflow
 
   beforeUpdateSync: (state) ->
-    if @newState.maxHeight isnt @oldState.maxHeight
-      @domNode.style.height = @newState.maxHeight + 'px'
-      @oldState.maxHeight = @newState.maxHeight
+    if @newState.scrollTop isnt @oldState.scrollTop or @newState.scrollLeft isnt @oldState.scrollLeft
+      @domNode.style['-webkit-transform'] = "translate3d(#{-@newState.scrollLeft}px, #{-@newState.scrollTop}px, 0px)"
+      @oldState.scrollTop = @newState.scrollTop
+      @oldState.scrollLeft = @newState.scrollLeft
 
     if @newState.backgroundColor isnt @oldState.backgroundColor
       @domNode.style.backgroundColor = @newState.backgroundColor

@@ -314,6 +314,8 @@ class TextEditorPresenter
     {top, left, height, width} = @pixelRectForScreenRange(lastCursor.getScreenRange())
 
     if @focused
+      top -= @scrollTop
+      left -= @scrollLeft
       @state.hiddenInput.top = Math.max(Math.min(top, @clientHeight - height), 0)
       @state.hiddenInput.left = Math.max(Math.min(left, @clientWidth - width), 0)
     else
@@ -360,18 +362,13 @@ class TextEditorPresenter
       endRow = Math.min(@model.getScreenLineCount(), startRow + @tileSize)
 
       tile = @state.content.tiles[startRow] ?= {}
-      tile.top = startRow * @lineHeight - @scrollTop
-      tile.left = -@scrollLeft
-      tile.height = @tileSize * @lineHeight
+      tile.top = startRow * @lineHeight
       tile.display = "block"
-      tile.zIndex = zIndex
       tile.highlights ?= {}
 
       gutterTile = @lineNumberGutter.tiles[startRow] ?= {}
-      gutterTile.top = startRow * @lineHeight - @scrollTop
-      gutterTile.height = @tileSize * @lineHeight
+      gutterTile.top = startRow * @lineHeight
       gutterTile.display = "block"
-      gutterTile.zIndex = zIndex
 
       @updateLinesState(tile, startRow, endRow) if @shouldUpdateLinesState
       @updateLineNumbersState(gutterTile, startRow, endRow) if @shouldUpdateLineNumbersState
@@ -406,7 +403,6 @@ class TextEditorPresenter
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = row
-        lineState.top = (row - startRow) * @lineHeight
         lineState.decorationClasses = @lineDecorationClassesForRow(row)
       else
         tileState.lines[line.id] =
@@ -423,7 +419,6 @@ class TextEditorPresenter
           indentLevel: line.indentLevel
           tabLength: line.tabLength
           fold: line.fold
-          top: (row - startRow) * @lineHeight
           decorationClasses: @lineDecorationClassesForRow(row)
       row++
 
@@ -1088,8 +1083,6 @@ class TextEditorPresenter
         left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
         column += charLength
 
-    top -= @scrollTop
-    left -= @scrollLeft
     {top, left}
 
   hasPixelRectRequirements: ->
@@ -1309,8 +1302,7 @@ class TextEditorPresenter
     true
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - tileStartRow * @lineHeight
-    region.left += @scrollLeft
+    region.top -= tileStartRow * @lineHeight
 
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @lineHeight

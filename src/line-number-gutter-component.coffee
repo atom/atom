@@ -15,6 +15,7 @@ class LineNumberGutterComponent extends TiledComponent
     @domNode = atom.views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
     @lineNumbersNode.innerHTML = ''
+    @lineNumbersNode.style.height = "1000000px"
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
@@ -49,9 +50,9 @@ class LineNumberGutterComponent extends TiledComponent
   beforeUpdateSync: (state) ->
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    if @newState.styles.maxHeight isnt @oldState.styles.maxHeight
-      @lineNumbersNode.style.height = @newState.styles.maxHeight + 'px'
-      @oldState.maxHeight = @newState.maxHeight
+    if @newState.styles.scrollTop isnt @oldState.scrollTop
+      @lineNumbersNode.style['-webkit-transform'] = "translate3d(0px, #{-@newState.styles.scrollTop}px, 0px)"
+      @oldState.scrollTop = @newState.styles.scrollTop
 
     if @newState.styles.backgroundColor isnt @oldState.styles.backgroundColor
       @lineNumbersNode.style.backgroundColor = @newState.styles.backgroundColor
