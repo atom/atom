@@ -67,16 +67,17 @@ class TextEditorPresenter
   isBatching: ->
     @updating is false
 
-  getStateForMeasurements: (screenRows) ->
+  getStateForMeasurements: ->
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
 
-    screenRows = _.without(screenRows, null, undefined, @getVisibleRows()...)
+    @updateLineDecorations() if @shouldUpdateDecorations
+    @updateTilesState() if @shouldUpdateLineNumbersState or @shouldUpdateLinesState
 
-    @updateVisibleTilesState() if @shouldUpdateLineNumbersState or @shouldUpdateLinesState
-    @updateTilesState(screenRows, true)
+    @shouldUpdateLinesState = false
+    @shouldUpdateLineNumbersState = false
 
     @state
 
@@ -85,29 +86,25 @@ class TextEditorPresenter
   getState: ->
     @updating = true
 
-    @linesYardstick.prepareScreenRowsForMeasurement([
-      @model.getLongestScreenRow()
-    ])
-    @deleteTemporaryTiles()
+    @linesYardstick.measure [@model.getLongestScreenRow()], =>
+      @updateCommonGutterState()
+      @updateHorizontalDimensions()
+      @updateReflowState()
 
-    @updateCommonGutterState()
-    @updateHorizontalDimensions()
-    @updateReflowState()
+      @updateFocusedState() if @shouldUpdateFocusedState
+      @updateHeightState() if @shouldUpdateHeightState
+      @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
+      @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
+      @updateScrollbarsState() if @shouldUpdateScrollbarsState
+      @updateHiddenInputState() if @shouldUpdateHiddenInputState
+      @updateContentState() if @shouldUpdateContentState
+      @updateHighlightDecorations() if @shouldUpdateDecorations
+      @updateCursorsState() if @shouldUpdateCursorsState
+      @updateOverlaysState() if @shouldUpdateOverlaysState
+      @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
+      @updateGutterOrderState() if @shouldUpdateGutterOrderState
+      @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
 
-    @updateFocusedState() if @shouldUpdateFocusedState
-    @updateHeightState() if @shouldUpdateHeightState
-    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
-    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
-    @updateScrollbarsState() if @shouldUpdateScrollbarsState
-    @updateHiddenInputState() if @shouldUpdateHiddenInputState
-    @updateContentState() if @shouldUpdateContentState
-    @updateDecorations() if @shouldUpdateDecorations
-    @updateVisibleTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
-    @updateCursorsState() if @shouldUpdateCursorsState
-    @updateOverlaysState() if @shouldUpdateOverlaysState
-    @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
-    @updateGutterOrderState() if @shouldUpdateGutterOrderState
-    @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
     @updating = false
 
     @resetTrackedUpdates()
@@ -354,25 +351,31 @@ class TextEditorPresenter
       @tileForRow(@model.getScreenLineCount()), @tileForRow(@endRow)
     )
 
-  getVisibleRows: ->
+  getVisibleScreenRows: ->
     startRow = @getStartTileRow()
     endRow = Math.min(@model.getScreenLineCount(), @getEndTileRow() + @tileSize)
 
     [startRow...endRow]
 
-  updateVisibleTilesState: ->
-    @updateTilesState(@getVisibleRows())
+  getScreenRows: ->
+    screenRows = @getVisibleScreenRows().concat(@screenRowsToMeasure)
+    screenRows.sort (a, b) -> a - b
+    _.uniq(screenRows, true)
 
-  deleteTemporaryTiles: ->
-    for tileId, tileState of @state.content.tiles when tileState.temporary
-      delete @state.content.tiles[tileId]
-      delete @lineNumberGutter.tiles[tileId]
+  setScreenRowsToMeasure: (screenRows) ->
+    @screenRowsToMeasure = screenRows
+    @shouldUpdateLinesState = true
+    @shouldUpdateDecorations = true
 
-  updateTilesState: (screenRows, temporary = false) ->
+  clearScreenRowsToMeasure: ->
+    @screenRowsToMeasure = []
+    @shouldUpdateLinesState = true
+    @shouldUpdateDecorations = true
+
+  updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    screenRows.sort (a, b) -> a - b
-
+    screenRows = @getScreenRows()
     visibleTiles = {}
     startRow = screenRows[0]
     endRow = screenRows[screenRows.length - 1]
@@ -398,22 +401,18 @@ class TextEditorPresenter
       tile.display = "block"
       tile.zIndex = zIndex
       tile.highlights ?= {}
-      tile.temporary = temporary
 
       gutterTile = @lineNumberGutter.tiles[tileStartRow] ?= {}
       gutterTile.top = tileStartRow * @lineHeight - @scrollTop
       gutterTile.height = @tileSize * @lineHeight
       gutterTile.display = "block"
       gutterTile.zIndex = zIndex
-      gutterTile.temporary = temporary
 
       @updateLinesState(tile, rowsWithinTile) if @shouldUpdateLinesState
       @updateLineNumbersState(gutterTile, rowsWithinTile) if @shouldUpdateLineNumbersState
 
       visibleTiles[tileStartRow] = true
       zIndex++
-
-    return if temporary
 
     if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
@@ -1194,22 +1193,30 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  updateDecorations: ->
+  updateLineDecorations: ->
     @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
+
+    return unless 0 <= @startRow <= @endRow <= Infinity
+
+    for row in @getScreenRows()
+      for markerId, decorations of @model.decorationsForScreenRowRange(row, row)
+        range = @model.getMarker(markerId).getScreenRange()
+        for decoration in decorations
+          if decoration.isType('line') or decoration.isType('gutter')
+            @addToLineDecorationCaches(decoration, range)
+
+  updateHighlightDecorations: ->
     @visibleHighlights = {}
 
     return unless 0 <= @startRow <= @endRow <= Infinity
 
     for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
       range = @model.getMarker(markerId).getScreenRange()
-      for decoration in decorations
-        if decoration.isType('line') or decoration.isType('gutter')
-          @addToLineDecorationCaches(decoration, range)
-        else if decoration.isType('highlight')
-          @updateHighlightState(decoration, range)
+      for decoration in decorations when decoration.isType('highlight')
+        @updateHighlightState(decoration, range)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights

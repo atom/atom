@@ -4,15 +4,17 @@ TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
+LinesYardstick = require '../src/lines-yardstick'
 
-fdescribe "TextEditorPresenter", ->
-  [buffer, editor] = []
+describe "TextEditorPresenter", ->
+  [buffer, editor, linesYardstick, mockLineNodesProvider] = []
 
   beforeEach ->
     # These *should* be mocked in the spec helper, but changing that now would break packages :-(
     spyOn(window, "setInterval").andCallFake window.fakeSetInterval
     spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
 
+    mockLineNodesProvider = {updateSync: ->}
     buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
     editor = new TextEditor({buffer})
     waitsForPromise -> buffer.load()
@@ -37,7 +39,10 @@ fdescribe "TextEditorPresenter", ->
       scrollTop: 0
       scrollLeft: 0
 
-    new TextEditorPresenter(params)
+    presenter = new TextEditorPresenter(params)
+    linesYardstick = new LinesYardstick(editor, presenter, mockLineNodesProvider)
+    presenter.setLinesYardstick(linesYardstick)
+    presenter
 
   expectValues = (actual, expected) ->
     for key, value of expected
@@ -54,19 +59,6 @@ fdescribe "TextEditorPresenter", ->
   expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
 
   expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
-
-  describe "::getStateForMeasurements(screenRows)", ->
-    it "contains states for tiles of the visible rows + the supplied ones", ->
-      presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
-      state = presenter.getStateForMeasurements([10, 11])
-
-      expect(state.content.tiles[0]).toBeDefined()
-      expect(state.content.tiles[2]).toBeDefined()
-      expect(state.content.tiles[4]).toBeDefined()
-      expect(state.content.tiles[6]).toBeDefined()
-      expect(state.content.tiles[8]).toBeUndefined()
-      expect(state.content.tiles[10]).toBeDefined()
-      expect(state.content.tiles[12]).toBeUndefined()
 
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.

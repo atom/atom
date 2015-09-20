@@ -13,8 +13,17 @@ class LinesYardstick
     @cachedPositionsByLineId = {}
 
   prepareScreenRowsForMeasurement: (screenRows) ->
-    state = @presenter.getStateForMeasurements(screenRows)
-    @lineNodesProvider.updateSync(state)
+    @presenter.setScreenRowsToMeasure(screenRows)
+    @lineNodesProvider.updateSync(@presenter.getStateForMeasurements())
+
+  cleanup: ->
+    @presenter.clearScreenRowsToMeasure()
+    @lineNodesProvider.updateSync(@presenter.getStateForMeasurements())
+
+  measure: (screenRows, fn) ->
+    @prepareScreenRowsForMeasurement(screenRows)
+    fn()
+    @cleanup()
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
@@ -47,7 +56,7 @@ class LinesYardstick
 
     @tokenIterator.reset(tokenizedLine)
     while @tokenIterator.next()
-      break if indexWithinTextNode?
+      break if foundIndexWithinTextNode?
 
       text = @tokenIterator.getText()
 
@@ -75,16 +84,16 @@ class LinesYardstick
           nextTextNodeIndex = textNodeIndex + textNodeLength
 
         if charIndex is column
-          indexWithinTextNode = charIndex - textNodeIndex
+          foundIndexWithinTextNode = charIndex - textNodeIndex
           break
 
         charIndex += charLength
 
     if textNode?
-      indexWithinTextNode ?= textNode.textContent.length
+      foundIndexWithinTextNode ?= textNode.textContent.length
       @cachedPositionsByLineId[tokenizedLine.id] ?= {}
       @cachedPositionsByLineId[tokenizedLine.id][column] =
-        @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinTextNode)
+        @leftPixelPositionForCharInTextNode(lineNode, textNode, foundIndexWithinTextNode)
     else
       0
 

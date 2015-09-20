@@ -399,3 +399,5 @@ class LinesTileComponent
 
   clearMeasurements: ->
     @measuredLines.clear()
+
+  lineNodeForLineId: (id) -> @lineNodesByLineId[id]

@@ -97,3 +97,7 @@ class LinesComponent extends TiledComponent
       component.clearMeasurements()
 
     @presenter.clearScopedCharacterWidths()
+
+  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+    @getComponentForTile(screenRow)?.lineNodeForLineId(lineId)
