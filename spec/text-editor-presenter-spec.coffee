@@ -60,6 +60,32 @@ describe "TextEditorPresenter", ->
 
   expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
+  describe "::getStateForMeasurements()", ->
+    it "contains states for tiles that need measurement, in addition to visible ones", ->
+      presenter = buildPresenter(explicitHeight: 4, scrollTop: 6, lineHeight: 1, tileSize: 2)
+
+      presenter.setScreenRowsToMeasure([4, 0])
+      state = presenter.getStateForMeasurements()
+
+      expect(state.content.tiles[0]).toBeDefined()
+      expect(state.content.tiles[2]).toBeUndefined()
+      expect(state.content.tiles[4]).toBeDefined()
+      expect(state.content.tiles[6]).toBeDefined()
+      expect(state.content.tiles[8]).toBeDefined()
+      expect(state.content.tiles[10]).toBeDefined()
+      expect(state.content.tiles[12]).toBeUndefined()
+
+      presenter.clearScreenRowsToMeasure()
+      state = presenter.getStateForMeasurements()
+
+      expect(state.content.tiles[0]).toBeUndefined()
+      expect(state.content.tiles[2]).toBeUndefined()
+      expect(state.content.tiles[4]).toBeUndefined()
+      expect(state.content.tiles[6]).toBeDefined()
+      expect(state.content.tiles[8]).toBeDefined()
+      expect(state.content.tiles[10]).toBeDefined()
+      expect(state.content.tiles[12]).toBeUndefined()
+
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->

@@ -147,8 +147,9 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
-      @updateVerticalDimensions()
-      @updateHorizontalDimensions()
+      @linesYardstick.measure [@model.getLongestScreenRow()], =>
+        @updateVerticalDimensions()
+        @updateHorizontalDimensions()
 
       @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
@@ -1078,42 +1079,12 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @model.clipScreenPosition(screenPosition) if clip
-
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-    baseCharacterWidth = @baseCharacterWidth
-
-    top = targetRow * @lineHeight
-    left = 0
-    column = 0
-
-    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
-
-      valueIndex = 0
-      text = iterator.getText()
-      while valueIndex < text.length
-        if iterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          valueIndex += 2
-        else
-          char = text[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        break if column is targetColumn
-
-        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
-        column += charLength
-
-    top -= @scrollTop
-    left -= @scrollLeft
-    {top, left}
+  pixelPositionForScreenPosition: (screenPosition, clip) ->
+    position =
+      @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
+    position.left -= @scrollLeft
+    position.top -= @scrollTop
+    position
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?

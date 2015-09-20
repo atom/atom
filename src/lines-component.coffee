@@ -100,4 +100,4 @@ class LinesComponent extends TiledComponent
 
   lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
     tile = @presenter.tileForRow(screenRow)
-    @getComponentForTile(screenRow)?.lineNodeForLineId(lineId)
+    @getComponentForTile(tile)?.lineNodeForLineId(lineId)
