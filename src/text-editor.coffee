@@ -2665,12 +2665,21 @@ class TextEditor extends Model
       @emitter.emit 'did-insert-text', didInsertEvent
 
   # Essential: For each selection, if the selection is empty, cut all characters
-  # of the containing line following the cursor. Otherwise cut the selected
+  # of the containing screen line following the cursor. Otherwise cut the selected
   # text.
   cutToEndOfLine: ->
     maintainClipboard = false
     @mutateSelectedText (selection) ->
       selection.cutToEndOfLine(maintainClipboard)
+      maintainClipboard = true
+
+  # Essential: For each selection, if the selection is empty, cut all characters
+  # of the containing buffer line following the cursor. Otherwise cut the
+  # selected text.
+  cutToEndOfBufferLine: ->
+    maintainClipboard = false
+    @mutateSelectedText (selection) ->
+      selection.cutToEndOfBufferLine(maintainClipboard)
       maintainClipboard = true
 
   ###
