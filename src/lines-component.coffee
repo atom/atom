@@ -10,7 +10,7 @@ module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @hostElement, @useShadowDOM, visible, @domElementPool}) ->
+  constructor: ({@presenter, @useShadowDOM, @domElementPool}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")

@@ -8,7 +8,7 @@ class MockLinesComponent
     @tokenIterator = new TokenIterator
     @builtLineNodes = []
 
-  dispose: ->
+  destroy: ->
     node.remove() for node in @builtLineNodes
 
   updateSync: jasmine.createSpy()
