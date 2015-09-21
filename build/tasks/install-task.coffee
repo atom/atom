@@ -30,11 +30,11 @@ module.exports = (grunt) ->
       fs.renameSync(tempFolder, installDir)
     else
       binDir = path.join(installDir, 'bin')
-      appDirName = appName.toLowerCase().replace(/\s+/g, '-')
-      shareDir = path.join(installDir, 'share', appDirName)
+      appFileName = appName.toLowerCase().replace(/\s+/g, '-')
+      shareDir = path.join(installDir, 'share', appFileName)
 
       mkdir binDir
-      cp 'atom.sh', path.join(binDir, 'atom')
+      cp 'atom.sh', path.join(binDir, appFileName)
       rm shareDir
       mkdir path.dirname(shareDir)
       cp shellAppDir, shareDir
@@ -43,7 +43,7 @@ module.exports = (grunt) ->
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
       if installDir.indexOf(tmpDir) isnt 0
         desktopFile = path.join('resources', 'linux', 'atom.desktop.in')
-        desktopInstallFile = path.join(installDir, 'share', 'applications', appDirName + '.desktop')
+        desktopInstallFile = path.join(installDir, 'share', 'applications', appFileName + '.desktop')
 
         {description} = grunt.file.readJSON('package.json')
         iconName = path.join(shareDir, 'resources', 'app.asar.unpacked', 'resources', 'atom.png')
@@ -56,6 +56,6 @@ module.exports = (grunt) ->
       # Create relative symbol link for apm.
       process.chdir(binDir)
       rm('apm')
-      fs.symlinkSync(path.join('..', 'share', appDirName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
+      fs.symlinkSync(path.join('..', 'share', appFileName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
 
       fs.chmodSync(path.join(shareDir, 'atom'), "755")
