@@ -4,7 +4,7 @@ temp = require 'temp'
 CommandInstaller = require '../src/command-installer'
 
 describe "CommandInstaller on #darwin", ->
-  [resourcesPath, installationPath, atomBinPath, apmBinPath] = []
+  [installer, resourcesPath, installationPath, atomBinPath, apmBinPath] = []
 
   beforeEach ->
     installationPath = temp.mkdirSync("atom-bin")
@@ -20,9 +20,24 @@ describe "CommandInstaller on #darwin", ->
     spyOn(CommandInstaller::, 'getResourcesDirectory').andReturn(resourcesPath)
     spyOn(CommandInstaller::, 'getInstallDirectory').andReturn(installationPath)
 
-  describe "installApmCommand(callback)", ->
-    it "symlinks the apm command and makes it executable", ->
+  describe "when using a stable version of atom", ->
+    beforeEach ->
       installer = new CommandInstaller("2.0.2")
+
+    it "symlinks the atom command as 'atom'", ->
+      installedAtomPath = path.join(installationPath, 'atom')
+
+      expect(fs.isFileSync(installedAtomPath)).toBeFalsy()
+
+      waitsFor (done) ->
+        installer.installAtomCommand(false, done)
+
+      runs ->
+        expect(fs.realpathSync(installedAtomPath)).toBe fs.realpathSync(atomBinPath)
+        expect(fs.isExecutableSync(installedAtomPath)).toBe true
+        expect(fs.isFileSync(path.join(installationPath, 'atom-beta'))).toBe false
+
+    it "symlinks the apm command as 'apm'", ->
       installedApmPath = path.join(installationPath, 'apm')
 
       expect(fs.isFileSync(installedApmPath)).toBeFalsy()
@@ -33,34 +48,34 @@ describe "CommandInstaller on #darwin", ->
       runs ->
         expect(fs.realpathSync(installedApmPath)).toBe fs.realpathSync(apmBinPath)
         expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
+        expect(fs.isFileSync(path.join(installationPath, 'apm-beta'))).toBe false
 
-  describe "installAtomCommand(askForPrivilege, callback)", ->
-    describe "when using a stable version of atom", ->
-      it "installs the atom command as 'atom'", ->
-        installer = new CommandInstaller("2.0.2")
-        installedAtomPath = path.join(installationPath, 'atom')
+  describe "when using a beta version of atom", ->
+    beforeEach ->
+      installer = new CommandInstaller("2.2.0-beta.0")
 
-        expect(fs.isFileSync(installedAtomPath)).toBeFalsy()
+    it "symlinks the atom command as 'atom-beta'", ->
+      installedAtomPath = path.join(installationPath, 'atom-beta')
 
-        waitsFor (done) ->
-          installer.installAtomCommand(false, done)
+      expect(fs.isFileSync(installedAtomPath)).toBeFalsy()
 
-        runs ->
-          expect(fs.realpathSync(installedAtomPath)).toBe fs.realpathSync(atomBinPath)
-          expect(fs.isExecutableSync(installedAtomPath)).toBe true
-          expect(fs.isFileSync(path.join(installationPath, 'atom-beta'))).toBe false
+      waitsFor (done) ->
+        installer.installAtomCommand(false, done)
 
-    describe "when using a beta version of atom", ->
-      it "installs the atom command as 'atom-beta'", ->
-        installer = new CommandInstaller("2.2.0-beta.0")
-        installedAtomPath = path.join(installationPath, 'atom-beta')
+      runs ->
+        expect(fs.realpathSync(installedAtomPath)).toBe fs.realpathSync(atomBinPath)
+        expect(fs.isExecutableSync(installedAtomPath)).toBe true
+        expect(fs.isFileSync(path.join(installationPath, 'atom'))).toBe false
 
-        expect(fs.isFileSync(installedAtomPath)).toBeFalsy()
+    it "symlinks the apm command as 'apm-beta'", ->
+      installedApmPath = path.join(installationPath, 'apm-beta')
 
-        waitsFor (done) ->
-          installer.installAtomCommand(false, done)
+      expect(fs.isFileSync(installedApmPath)).toBeFalsy()
 
-        runs ->
-          expect(fs.realpathSync(installedAtomPath)).toBe fs.realpathSync(atomBinPath)
-          expect(fs.isExecutableSync(installedAtomPath)).toBe true
-          expect(fs.isFileSync(path.join(installationPath, 'atom'))).toBe false
+      waitsFor (done) ->
+        installer.installApmCommand(false, done)
+
+      runs ->
+        expect(fs.realpathSync(installedApmPath)).toBe fs.realpathSync(apmBinPath)
+        expect(fs.isExecutableSync(installedApmPath)).toBeTruthy()
+        expect(fs.isFileSync(path.join(installationPath, 'apm'))).toBe false

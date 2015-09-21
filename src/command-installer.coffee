@@ -53,17 +53,22 @@ class CommandInstaller
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   installAtomCommand: (askForPrivilege, callback) ->
-    launcherName = if @appVersion.includes("beta")
+    programName = if @appVersion.includes("beta")
       "atom-beta"
     else
       "atom"
 
     commandPath = path.join(@getResourcesDirectory(), 'app', 'atom.sh')
-    @createSymlink commandPath, launcherName, askForPrivilege, callback
+    @createSymlink commandPath, programName, askForPrivilege, callback
 
   installApmCommand: (askForPrivilege, callback) ->
+    programName = if @appVersion.includes("beta")
+      "apm-beta"
+    else
+      "apm"
+
     commandPath = path.join(@getResourcesDirectory(), 'app', 'apm', 'node_modules', '.bin', 'apm')
-    @createSymlink commandPath, 'apm', askForPrivilege, callback
+    @createSymlink commandPath, programName, askForPrivilege, callback
 
   createSymlink: (commandPath, commandName, askForPrivilege, callback) ->
     return unless process.platform is 'darwin'
