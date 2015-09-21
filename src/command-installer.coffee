@@ -70,7 +70,7 @@ module.exports =
           try
             error = null
             symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
-          catch error
-            undefined
+          catch err
+            error = err
 
         callback?(error)
