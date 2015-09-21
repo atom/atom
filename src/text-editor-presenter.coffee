@@ -74,10 +74,9 @@ class TextEditorPresenter
     @updateEndRow()
 
     @updateLineDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateLineNumbersState or @shouldUpdateLinesState
+    @updateTilesState() if @shouldUpdateLinesState
 
     @shouldUpdateLinesState = false
-    @shouldUpdateLineNumbersState = false
 
     @state
 
