@@ -35,7 +35,7 @@ class TextEditorPresenter
     @observeModel()
     @observeConfig()
     @buildState()
-    @invalidate()
+    @invalidateState()
     @startBlinkingCursors() if @focused
     @startReflowing() if @continuousReflow
     @updating = false
@@ -128,7 +128,7 @@ class TextEditorPresenter
     @shouldUpdateGutterOrderState = false
     @shouldUpdateCustomGutterDecorationState = false
 
-  invalidate: ->
+  invalidateState: ->
     @shouldUpdateFocusedState = true
     @shouldUpdateHeightState = true
     @shouldUpdateVerticalScrollState = true
