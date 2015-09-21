@@ -3,8 +3,6 @@ path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
-{callAttachHooks} = require 'space-pen'
-WorkspaceView = null
 
 module.exports =
 class WorkspaceElement extends HTMLElement
@@ -15,10 +13,8 @@ class WorkspaceElement extends HTMLElement
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
-    callAttachHooks(this) if Grim.includeDeprecatedAPIs
     @focus()
 
   detachedCallback: ->
@@ -64,10 +60,6 @@ class WorkspaceElement extends HTMLElement
     """
     atom.styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
 
-  createSpacePenShim: ->
-    WorkspaceView ?= require './workspace-view'
-    @__spacePenView = new WorkspaceView(this)
-
   initialize: (@model) ->
     @paneContainer = atom.views.getView(@model.paneContainer)
     @verticalAxis.appendChild(@paneContainer)
@@ -88,7 +80,6 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
@@ -117,7 +108,6 @@ atom.commands.add 'atom-workspace',
   'window:reset-font-size': -> @getModel().resetFontSize()
   'application:about': -> ipc.send('command', 'application:about')
   'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
-  'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
   'application:show-preferences': -> ipc.send('command', 'application:show-settings')
   'application:show-settings': -> ipc.send('command', 'application:show-settings')
   'application:quit': -> ipc.send('command', 'application:quit')

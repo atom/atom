@@ -1,12 +1,10 @@
 {Emitter} = require 'event-kit'
-{View, $, callRemoveHooks} = require 'space-pen'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 Grim = require 'grim'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-TextEditorView = null
 
 ShadowStyleSheet = null
 
@@ -22,7 +20,6 @@ class TextEditorElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
     @initializeContent()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
@@ -56,10 +53,6 @@ class TextEditorElement extends HTMLElement
       @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
 
-  createSpacePenShim: ->
-    TextEditorView ?= require './text-editor-view'
-    @__spacePenView = new TextEditorView(this)
-
   attachedCallback: ->
     @buildModel() unless @getModel()?
     atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
@@ -90,7 +83,6 @@ class TextEditorElement extends HTMLElement
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
     @model.onDidChangeMini (mini) => if mini then @addMiniAttribute() else @removeMiniAttribute()
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
   getModel: ->
@@ -126,7 +118,6 @@ class TextEditorElement extends HTMLElement
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
-    callRemoveHooks(this)
     if @component?
       @component.destroy()
       @component.getDomNode().remove()
@@ -305,6 +296,7 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:delete-to-end-of-subword': -> @deleteToEndOfSubword()
   'editor:delete-line': -> @deleteLine()
   'editor:cut-to-end-of-line': -> @cutToEndOfLine()
+  'editor:cut-to-end-of-buffer-line': -> @cutToEndOfBufferLine()
   'editor:transpose': -> @transpose()
   'editor:upper-case': -> @upperCase()
   'editor:lower-case': -> @lowerCase()

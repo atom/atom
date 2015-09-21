@@ -1,10 +1,13 @@
-{$$} = require 'space-pen'
-
 CursorsComponent = require './cursors-component'
 LinesTileComponent = require './lines-tile-component'
 TiledComponent = require './tiled-component'
 
-DummyLineNode = $$(-> @div className: 'line', style: 'position: absolute; visibility: hidden;', => @span 'x')[0]
+DummyLineNode = document.createElement('div')
+DummyLineNode.className = 'line'
+DummyLineNode.style.position = 'absolute'
+DummyLineNode.style.visibility = 'hidden'
+DummyLineNode.appendChild(document.createElement('span'))
+DummyLineNode.firstChild.textContent = 'x'
 
 module.exports =
 class LinesComponent extends TiledComponent

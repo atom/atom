@@ -1,5 +1,4 @@
 {CompositeDisposable} = require 'event-kit'
-{callAttachHooks} = require './space-pen-extensions'
 Panel = require './panel'
 
 class PanelElement extends HTMLElement
@@ -21,7 +20,6 @@ class PanelElement extends HTMLElement
     atom.views.getView(@getModel().getItem())
 
   attachedCallback: ->
-    callAttachHooks(@getItemView()) # for backward compatibility with SpacePen views
     @visibleChanged(@getModel().isVisible())
 
   visibleChanged: (visible) ->

@@ -579,7 +579,7 @@ class TextEditorPresenter
   #     decoration.id : {
   #       top: # of pixels from top
   #       height: # of pixels height of this decoration
-  #       item (optional): HTMLElement or space-pen View
+  #       item (optional): HTMLElement
   #       class (optional): {String} class
   #     }
   #   }

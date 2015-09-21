@@ -3,7 +3,6 @@ url = require 'url'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-Q = require 'q'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
 {Emitter} = require 'event-kit'
 Serializable = require 'serializable'
@@ -367,8 +366,11 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   bufferForPath: (absoluteFilePath) ->
-    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
-    Q(existingBuffer ? @buildBuffer(absoluteFilePath))
+    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
+    if existingBuffer
+      Promise.resolve(existingBuffer)
+    else
+      @buildBuffer(absoluteFilePath)
 
   bufferForId: (id) ->
     _.find @buffers, (buffer) -> buffer.id is id
