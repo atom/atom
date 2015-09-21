@@ -31,15 +31,16 @@ module.exports = (grunt) ->
   # This allows all subsequent paths to the relative to the root of the repo
   grunt.file.setBase(path.resolve('..'))
 
-  tmpDir = os.tmpdir()
-  appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
-  buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
-  buildDir = path.resolve(buildDir)
-  installDir = grunt.option('install-dir')
-
   channel = grunt.option('channel')
   channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
   channel ?= 'dev'
+
+  appName = packageJson.productName
+  appName += ' Beta' if channel is 'beta'
+  appName += '.app' if process.platform is 'darwin'
+  buildDir = grunt.option('build-dir') ? path.join(os.tmpdir(), 'atom-build')
+  buildDir = path.resolve(buildDir)
+  installDir = grunt.option('install-dir')
 
   home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
   electronDownloadDir = path.join(home, '.atom', 'electron')

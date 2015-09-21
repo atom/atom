@@ -10,6 +10,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'install', 'Install the built application', ->
     installDir = grunt.config.get('atom.installDir')
     shellAppDir = grunt.config.get('atom.shellAppDir')
+    appName = grunt.config.get('atom.appName')
 
     if process.platform is 'win32'
       runas ?= require 'runas'
@@ -18,7 +19,7 @@ module.exports = (grunt) ->
         grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
 
       createShortcut = path.resolve 'script', 'create-shortcut.cmd'
-      runas('cmd', ['/c', createShortcut, path.join(installDir, 'atom.exe'), 'Atom'])
+      runas('cmd', ['/c', createShortcut, path.join(installDir, 'atom.exe'), appName])
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
@@ -29,7 +30,8 @@ module.exports = (grunt) ->
       fs.renameSync(tempFolder, installDir)
     else
       binDir = path.join(installDir, 'bin')
-      shareDir = path.join(installDir, 'share', 'atom')
+      appDirName = appName.toLowerCase().replace(/\s+/g, '-')
+      shareDir = path.join(installDir, 'share', appDirName)
 
       mkdir binDir
       cp 'atom.sh', path.join(binDir, 'atom')
@@ -41,7 +43,7 @@ module.exports = (grunt) ->
       tmpDir = if process.env.TMPDIR? then process.env.TMPDIR else '/tmp'
       if installDir.indexOf(tmpDir) isnt 0
         desktopFile = path.join('resources', 'linux', 'atom.desktop.in')
-        desktopInstallFile = path.join(installDir, 'share', 'applications', 'atom.desktop')
+        desktopInstallFile = path.join(installDir, 'share', 'applications', appDirName + '.desktop')
 
         {description} = grunt.file.readJSON('package.json')
         iconName = path.join(shareDir, 'resources', 'app.asar.unpacked', 'resources', 'atom.png')
@@ -54,6 +56,6 @@ module.exports = (grunt) ->
       # Create relative symbol link for apm.
       process.chdir(binDir)
       rm('apm')
-      fs.symlinkSync(path.join('..', 'share', 'atom', 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
+      fs.symlinkSync(path.join('..', 'share', appDirName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'), 'apm')
 
       fs.chmodSync(path.join(shareDir, 'atom'), "755")
