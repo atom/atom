@@ -573,9 +573,11 @@ class Atom extends Model
     {safeMode} = @getLoadSettings()
 
     CommandInstaller = require './command-installer'
-    CommandInstaller.installAtomCommand false, (error) ->
+
+    commandInstaller = new CommandInstaller(@getVersion())
+    commandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
-    CommandInstaller.installApmCommand false, (error) ->
+    commandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
     @loadConfig()

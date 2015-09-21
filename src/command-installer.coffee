@@ -25,8 +25,14 @@ symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
     throw new Error("Failed to symlink '#{sourcePath}' to '#{destinationPath}'")
 
 module.exports =
+class CommandInstaller
+  constructor: (@appVersion) ->
+
   getInstallDirectory: ->
     "/usr/local/bin"
+
+  getResourcesDirectory: ->
+    process.resourcesPath
 
   installShellCommandsInteractively: ->
     showErrorDialog = (error) ->
@@ -47,17 +53,21 @@ module.exports =
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 
   installAtomCommand: (askForPrivilege, callback) ->
-    commandPath = path.join(process.resourcesPath, 'app', 'atom.sh')
-    @createSymlink commandPath, askForPrivilege, callback
+    launcherName = if @appVersion.includes("beta")
+      "atom-beta"
+    else
+      "atom"
+
+    commandPath = path.join(@getResourcesDirectory(), 'app', 'atom.sh')
+    @createSymlink commandPath, launcherName, askForPrivilege, callback
 
   installApmCommand: (askForPrivilege, callback) ->
-    commandPath = path.join(process.resourcesPath, 'app', 'apm', 'node_modules', '.bin', 'apm')
-    @createSymlink commandPath, askForPrivilege, callback
+    commandPath = path.join(@getResourcesDirectory(), 'app', 'apm', 'node_modules', '.bin', 'apm')
+    @createSymlink commandPath, 'apm', askForPrivilege, callback
 
-  createSymlink: (commandPath, askForPrivilege, callback) ->
+  createSymlink: (commandPath, commandName, askForPrivilege, callback) ->
     return unless process.platform is 'darwin'
 
-    commandName = path.basename(commandPath, path.extname(commandPath))
     destinationPath = path.join(@getInstallDirectory(), commandName)
 
     fs.readlink destinationPath, (error, realpath) ->
