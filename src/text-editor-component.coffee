@@ -27,8 +27,6 @@ class TextEditorComponent
   updatesPaused: false
   updateRequestedWhilePaused: false
   heightAndWidthMeasurementRequested: false
-  cursorMoved: false
-  selectionChanged: false
   inputEnabled: true
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
@@ -118,11 +116,6 @@ class TextEditorComponent
   updateSync: ->
     @oldState ?= {}
     @newState = @presenter.getState()
-
-    cursorMoved = @cursorMoved
-    selectionChanged = @selectionChanged
-    @cursorMoved = false
-    @selectionChanged = false
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
@@ -219,8 +212,6 @@ class TextEditorComponent
 
   observeEditor: ->
     @disposables.add @editor.observeGrammar(@onGrammarChanged)
-    @disposables.add @editor.observeCursors(@onCursorAdded)
-    @disposables.add @editor.observeSelections(@onSelectionAdded)
 
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
@@ -485,29 +476,6 @@ class TextEditorComponent
     @sampleFontStyling()
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
-
-  onSelectionAdded: (selection) =>
-    selectionDisposables = new CompositeDisposable
-    selectionDisposables.add selection.onDidChangeRange => @onSelectionChanged(selection)
-    selectionDisposables.add selection.onDidDestroy =>
-      @onSelectionChanged(selection)
-      selectionDisposables.dispose()
-      @disposables.remove(selectionDisposables)
-
-    @disposables.add(selectionDisposables)
-
-    if @editor.selectionIntersectsVisibleRowRange(selection)
-      @selectionChanged = true
-
-  onSelectionChanged: (selection) =>
-    if @editor.selectionIntersectsVisibleRowRange(selection)
-      @selectionChanged = true
-
-  onCursorAdded: (cursor) =>
-    @disposables.add cursor.onDidChangePosition @onCursorMoved
-
-  onCursorMoved: =>
-    @cursorMoved = true
 
   handleDragUntilMouseUp: (dragHandler) =>
     dragging = false
