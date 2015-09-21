@@ -15,28 +15,6 @@ class ThemeManager
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
-    @sheetsByStyleElement = new WeakMap
-
-    stylesElement = document.head.querySelector('atom-styles')
-    stylesElement.onDidAddStyleElement @styleElementAdded.bind(this)
-    stylesElement.onDidRemoveStyleElement @styleElementRemoved.bind(this)
-    stylesElement.onDidUpdateStyleElement @styleElementUpdated.bind(this)
-
-  styleElementAdded: (styleElement) ->
-    {sheet} = styleElement
-    @sheetsByStyleElement.set(styleElement, sheet)
-    @emitter.emit 'did-add-stylesheet', sheet
-    @emitter.emit 'did-change-stylesheets'
-
-  styleElementRemoved: (styleElement) ->
-    sheet = @sheetsByStyleElement.get(styleElement)
-    @emitter.emit 'did-remove-stylesheet', sheet
-    @emitter.emit 'did-change-stylesheets'
-
-  styleElementUpdated: ({sheet}) ->
-    @emitter.emit 'did-remove-stylesheet', sheet
-    @emitter.emit 'did-add-stylesheet', sheet
-    @emitter.emit 'did-change-stylesheets'
 
   ###
   Section: Event Subscription
@@ -48,7 +26,6 @@ class ThemeManager
   # * `callback` {Function}
   onDidChangeActiveThemes: (callback) ->
     @emitter.on 'did-change-active-themes', callback
-    @emitter.on 'did-reload-all', callback # TODO: Remove once deprecated pre-1.0 APIs are gone
 
   ###
   Section: Accessing Available Themes
@@ -88,6 +65,13 @@ class ThemeManager
   Section: Managing Enabled Themes
   ###
 
+  warnForNonExistentThemes: ->
+    themeNames = atom.config.get('core.themes') ? []
+    themeNames = [themeNames] unless _.isArray(themeNames)
+    for themeName in themeNames
+      unless themeName and typeof themeName is 'string' and atom.packages.resolvePackagePath(themeName)
+        console.warn("Enabled theme '#{themeName}' is not installed.")
+
   # Public: Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
@@ -97,7 +81,6 @@ class ThemeManager
     themeNames = themeNames.filter (themeName) ->
       if themeName and typeof themeName is 'string'
         return true if atom.packages.resolvePackagePath(themeName)
-        console.warn("Enabled theme '#{themeName}' is not installed.")
       false
 
     # Use a built-in syntax and UI theme any time the configured themes are not
@@ -256,6 +239,8 @@ class ThemeManager
       atom.config.observe 'core.themes', =>
         @deactivateThemes()
 
+        @warnForNonExistentThemes()
+
         @refreshLessCache() # Update cache for packages in core.themes config
 
         promises = []
@@ -283,10 +268,10 @@ class ThemeManager
   isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
-    workspaceElement = atom.views.getView(atom.workspace)
-    for pack in @getActiveThemes()
-      workspaceElement.classList.add("theme-#{pack.name}")
-    return
+    if workspaceElement = atom.views.getView(atom.workspace)
+      for pack in @getActiveThemes()
+        workspaceElement.classList.add("theme-#{pack.name}")
+      return
 
   removeActiveThemeClasses: ->
     workspaceElement = atom.views.getView(atom.workspace)
