@@ -933,7 +933,7 @@ class Workspace extends Model
   #
   # Returns a `Promise`.
   replace: (regex, replacementText, filePaths, iterator) ->
-    new Promise (resolve, reject) =>
+    new Promise (resolve, reject) ->
       openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
       outOfProcessPaths = _.difference(filePaths, openPaths)
 
