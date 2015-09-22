@@ -2,7 +2,6 @@ _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 {ScopeSelector} = require 'first-mate'
-Serializable = require 'serializable'
 Model = require './model'
 TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
@@ -11,8 +10,6 @@ ScopeDescriptor = require './scope-descriptor'
 
 module.exports =
 class TokenizedBuffer extends Model
-  Serializable.includeInto(this)
-
   grammar: null
   currentGrammarScore: null
   buffer: null
@@ -23,6 +20,10 @@ class TokenizedBuffer extends Model
   visible: false
   configSettings: null
   changeCount: 0
+
+  @deserialize: (state) ->
+    state.buffer = atom.project.bufferForPathSync(state.bufferPath)
+    new this(state)
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -40,15 +41,12 @@ class TokenizedBuffer extends Model
   destroyed: ->
     @disposables.dispose()
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'TokenizedBuffer'
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
     ignoreInvisibles: @ignoreInvisibles
     largeFileMode: @largeFileMode
-
-  deserializeParams: (params) ->
-    params.buffer = atom.project.bufferForPathSync(params.bufferPath)
-    params
 
   observeGrammar: (callback) ->
     callback(@grammar)
