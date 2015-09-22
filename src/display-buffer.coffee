@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-Serializable = require 'serializable'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
@@ -17,8 +16,6 @@ class BufferToScreenConversionError extends Error
 
 module.exports =
 class DisplayBuffer extends Model
-  Serializable.includeInto(this)
-
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
@@ -34,6 +31,10 @@ class DisplayBuffer extends Model
   scrollWidth: 0
   verticalScrollbarWidth: 15
   horizontalScrollbarHeight: 15
+
+  @deserialize: (state) ->
+    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer)
+    new this(state)
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
     super
@@ -93,7 +94,8 @@ class DisplayBuffer extends Model
 
     @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'DisplayBuffer'
     id: @id
     softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
@@ -101,10 +103,6 @@ class DisplayBuffer extends Model
     scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
-
-  deserializeParams: (params) ->
-    params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
-    params
 
   copy: ->
     newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @largeFileMode})
