@@ -1,6 +1,5 @@
 {find, compact, extend, last} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Serializable = require 'serializable'
 Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
@@ -12,11 +11,22 @@ TextEditor = require './text-editor'
 module.exports =
 class Pane extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
 
   container: undefined
   activeItem: undefined
   focused: false
+
+  @deserialize: (state, params) ->
+    {items, activeItemURI, activeItemUri} = state
+    state.container = params?.container
+    activeItemURI ?= activeItemUri
+    state.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    state.activeItem = find state.items, (item) ->
+      if typeof item.getURI is 'function'
+        itemURI = item.getURI()
+      itemURI is activeItemURI
+
+    new this(state)
 
   constructor: (params) ->
     super
@@ -33,27 +43,16 @@ class Pane extends Model
     @setActiveItem(@items[0]) unless @getActiveItem()?
     @setFlexScale(params?.flexScale ? 1)
 
-  # Called by the Serializable mixin during serialization.
-  serializeParams: ->
+  serialize: ->
     if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
 
+    deserializer: 'Pane'
     id: @id
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemURI: activeItemURI
     focused: @focused
     flexScale: @flexScale
-
-  # Called by the Serializable mixin during deserialization.
-  deserializeParams: (params) ->
-    {items, activeItemURI, activeItemUri} = params
-    activeItemURI ?= activeItemUri
-    params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
-    params.activeItem = find params.items, (item) ->
-      if typeof item.getURI is 'function'
-        itemURI = item.getURI()
-      itemURI is activeItemURI
-    params
 
   getParent: -> @parent
 
