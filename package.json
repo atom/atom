@@ -53,7 +53,7 @@
     "source-map-support": "^0.3.2",
     "stacktrace-parser": "0.1.1",
     "temp": "0.8.1",
-    "text-buffer": "7.0.3",
+    "text-buffer": "7.1.0",
     "theorist": "^1.0.2",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.6",
