@@ -1472,40 +1472,69 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
+  getVerticalScrollMarginInPixels: ->
+    @model.getVerticalScrollMargin() * @lineHeight
+
+  getHorizontalScrollMarginInPixels: ->
+    @model.getHorizontalScrollMargin() * @baseCharacterWidth
+
   updateScrollPosition: ->
     return unless @pendingScrollLogicalPosition?
 
     {screenRange, options} = @pendingScrollLogicalPosition
+
+    verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
+    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
 
     {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
     {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
     bottom = endTop + endHeight
     right = endLeft
 
-    left += @scrollLeft
-    right += @scrollLeft
     top += @scrollTop
     bottom += @scrollTop
+    left += @scrollLeft
+    right += @scrollLeft
+
+    if options?.center
+      desiredScrollCenter = (top + bottom) / 2
+      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
+        desiredScrollTop = desiredScrollCenter - @getClientHeight() / 2
+        desiredScrollBottom = desiredScrollCenter + @getClientHeight() / 2
+    else
+      desiredScrollTop = top - verticalScrollMarginInPixels
+      desiredScrollBottom = bottom + verticalScrollMarginInPixels
+
+    desiredScrollLeft = left - horizontalScrollMarginInPixels
+    desiredScrollRight = right + horizontalScrollMarginInPixels
+
+    if global.enableLogs
+      console.log "====== DB ======"
+      console.log "Screen Range: #{screenRange.toString()}"
+      console.log "Client Width: #{@getClientWidth()}"
+      console.log "#{desiredScrollLeft}/#{desiredScrollRight}"
+      console.log "#{@getScrollLeft()}/#{@getScrollRight()}"
+      console.log "================"
 
     if options?.reversed ? true
-      if bottom > @getScrollBottom()
-        @setScrollBottom(bottom)
-      if top < @getScrollTop()
-        @setScrollTop(top)
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
 
-      if right > @getScrollRight()
-        @setScrollRight(right)
-      if left < @getScrollLeft()
-        @setScrollLeft(left)
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
     else
-      if top < @getScrollTop()
-        @setScrollTop(top)
-      if bottom > @getScrollBottom()
-        @setScrollBottom(bottom)
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
 
-      if left < @getScrollLeft()
-        @setScrollLeft(left)
-      if right > @getScrollRight()
-        @setScrollRight(right)
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
 
     @pendingScrollLogicalPosition = null

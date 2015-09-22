@@ -362,35 +362,12 @@ class DisplayBuffer extends Model
     {start, end} = selection.getScreenRange()
     @intersectsVisibleRowRange(start.row, end.row + 1)
 
-  scrollToScreenRangeLogical: (screenRange, options) ->
-    top = screenRange.start.row
-    left = screenRange.start.column
-    bottom = screenRange.end.row
-    right = screenRange.end.column
-
-    if options?.center
-      center = (top + bottom) / 2
-      top = center - @getLogicalHeight() / 2
-      bottom = center + @getLogicalHeight() / 2
-    else
-      top -= @getVerticalScrollMargin()
-      bottom += @getVerticalScrollMargin()
-
-    left -= @getHorizontalScrollMargin()
-    right += @getHorizontalScrollMargin()
-
-    top = Math.max(0, Math.min(@getLineCount() - 1, top))
-    bottom = Math.max(0, Math.min(@getLineCount() - 1, bottom))
-    left = Math.max(0, left)
-    right = Math.max(0, right)
-
-    screenRange = new Range(new Point(top, left), new Point(bottom, right))
-
+  logicalScrollToScreenRange: (screenRange, options) ->
     scrollEvent = {screenRange, options}
     @emitter.emit "did-change-scroll-position", scrollEvent
 
   scrollToScreenRange: (screenRange, options) ->
-    @scrollToScreenRangeLogical(screenRange, options)
+    @logicalScrollToScreenRange(screenRange, options)
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
     horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
@@ -414,9 +391,10 @@ class DisplayBuffer extends Model
 
     if global.enableLogs
       console.log "====== DB ======"
-      console.log "Client Height: #{@getClientHeight()}"
-      console.log "#{desiredScrollTop}/#{desiredScrollBottom}"
-      console.log "#{@getScrollTop()}/#{@getScrollBottom()}"
+      console.log "Screen Range: #{screenRange.toString()}"
+      console.log "Client Width: #{@getClientWidth()}"
+      console.log "#{desiredScrollLeft}/#{desiredScrollRight}"
+      console.log "#{@getScrollLeft()}/#{@getScrollRight()}"
       console.log "================"
 
     if options?.reversed ? true
