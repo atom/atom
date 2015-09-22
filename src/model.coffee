@@ -1,8 +1,3 @@
-Grim = require 'grim'
-if Grim.includeDeprecatedAPIs
-  module.exports = require('theorist').Model
-  return
-
 PropertyAccessors = require 'property-accessors'
 
 nextInstanceId = 1

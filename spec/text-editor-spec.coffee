@@ -4979,18 +4979,6 @@ describe "TextEditor", ->
     beforeEach ->
       marker = editor.markBufferRange([[1, 0], [1, 0]])
 
-    it "casts 'gutter' type to 'line-number' unless a gutter name is specified.", ->
-      jasmine.snapshotDeprecations()
-
-      lineNumberDecoration = editor.decorateMarker(marker, {type: 'gutter'})
-      customGutterDecoration = editor.decorateMarker(marker, {type: 'gutter', gutterName: 'custom'})
-      expect(lineNumberDecoration.getProperties().type).toBe 'line-number'
-      expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
-      expect(customGutterDecoration.getProperties().type).toBe 'gutter'
-      expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
-
-      jasmine.restoreDeprecationsSnapshot()
-
     it 'reflects an added decoration when one of its custom gutters is decorated.', ->
       gutter = editor.addGutter {'name': 'custom-gutter'}
       decoration = gutter.decorateMarker marker, {class: 'custom-class'}
