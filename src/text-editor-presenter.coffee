@@ -1477,7 +1477,6 @@ class TextEditorPresenter
 
     {screenRange, options} = @pendingScrollLogicalPosition
 
-    # console.log screenRange.start.toString()
     {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
     {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
     bottom = endTop + endHeight
@@ -1487,13 +1486,6 @@ class TextEditorPresenter
     right += @scrollLeft
     top += @scrollTop
     bottom += @scrollTop
-
-    if global.enableLogs
-      console.log "====== presenter ======"
-      console.log "Client Height: #{@getClientHeight()}"
-      console.log "#{top}/#{bottom}"
-      console.log "#{@getScrollTop()}/#{@getScrollBottom()}"
-      console.log "======================="
 
     if options?.reversed ? true
       if bottom > @getScrollBottom()
