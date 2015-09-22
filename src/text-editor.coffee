@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 path = require 'path'
-Serializable = require 'serializable'
 Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
@@ -55,10 +54,8 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  Serializable.includeInto(this)
   atom.deserializers.add(this)
 
-  deserializing: false
   callDisplayBufferCreatedHook: false
   registerEditor: false
   buffer: null
@@ -69,6 +66,19 @@ class TextEditor extends Model
   updateBatchDepth: 0
   selectionFlashDuration: 500
   gutterContainer: null
+
+  @deserialize: (state) ->
+    try
+      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer)
+    catch error
+      if error.syscall is 'read'
+        return # Error reading the file, don't deserialize an editor for it
+      else
+        throw error
+
+    state.displayBuffer = displayBuffer
+    state.registerEditor = true
+    new this(state)
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
@@ -113,25 +123,13 @@ class TextEditor extends Model
 
     atom.workspace?.editorAdded(this) if registerEditor
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
     scrollTop: @scrollTop
     scrollLeft: @scrollLeft
     displayBuffer: @displayBuffer.serialize()
-
-  deserializeParams: (params) ->
-    try
-      displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
-    catch error
-      if error.syscall is 'read'
-        return # Error reading the file, don't deserialize an editor for it
-      else
-        throw error
-
-    params.displayBuffer = displayBuffer
-    params.registerEditor = true
-    params
 
   subscribeToBuffer: ->
     @buffer.retain()
