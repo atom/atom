@@ -4,6 +4,7 @@ os = require 'os'
 path = require 'path'
 remote = require 'remote'
 shell = require 'shell'
+webFrame = require 'web-frame'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -215,6 +216,9 @@ class Atom extends Model
 
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
+
+    # Disable pinch-to-zoom.
+    webFrame.setZoomLevelLimits(1, 1)
 
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
