@@ -3036,7 +3036,7 @@ class TextEditor extends Model
 
   autoIndentBufferRow: (bufferRow, options) -> @languageMode.autoIndentBufferRow(bufferRow, options)
 
-  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startNow, endRow)
+  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startRow, endRow)
 
   autoDecreaseIndentForBufferRow: (bufferRow) -> @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
