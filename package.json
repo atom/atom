@@ -15,7 +15,7 @@
   "electronVersion": "0.30.6",
   "dependencies": {
     "async": "0.2.6",
-    "atom-keymap": "^5.1.11",
+    "atom-keymap": "5.1.11",
     "babel-core": "^5.8.21",
     "bootstrap": "^3.3.4",
     "clear-cut": "^2.0.1",
