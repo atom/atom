@@ -34,7 +34,6 @@
     "jquery": "^2.1.1",
     "less-cache": "0.22",
     "marked": "^0.3.4",
-    "mixto": "^1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^2.0.0",
     "oniguruma": "^4.2.4",
