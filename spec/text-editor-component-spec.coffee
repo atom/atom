@@ -1674,8 +1674,8 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      editor.setScrollTop(3 * lineHeightInPixels)
-      editor.setScrollLeft(3 * charWidth)
+      wrapperNode.setScrollTop(3 * lineHeightInPixels)
+      wrapperNode.setScrollLeft(3 * charWidth)
       nextAnimationFrame()
 
       expect(inputNode.offsetTop).toBe 0
@@ -1690,8 +1690,8 @@ describe "TextEditorComponent", ->
       # In bounds and focused
       wrapperNode.focus() # updates via state change
       nextAnimationFrame()
-      expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - editor.getScrollTop()
-      expect(inputNode.offsetLeft).toBe (4 * charWidth) - editor.getScrollLeft()
+      expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - wrapperNode.getScrollTop()
+      expect(inputNode.offsetLeft).toBe (4 * charWidth) - wrapperNode.getScrollLeft()
 
       # In bounds, not focused
       inputNode.blur() # updates via state change
@@ -1755,8 +1755,8 @@ describe "TextEditorComponent", ->
           wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
           wrapperNode.style.width = 10 * charWidth + 'px'
           component.measureDimensions()
-          editor.setScrollTop(3.5 * lineHeightInPixels)
-          editor.setScrollLeft(2 * charWidth)
+          wrapperNode.setScrollTop(3.5 * lineHeightInPixels)
+          wrapperNode.setScrollLeft(2 * charWidth)
           nextAnimationFrame()
 
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8])))
@@ -1873,33 +1873,33 @@ describe "TextEditorComponent", ->
         component.measureDimensions()
         nextAnimationFrame()
 
-        expect(editor.getScrollTop()).toBe(0)
-        expect(editor.getScrollLeft()).toBe(0)
+        expect(wrapperNode.getScrollTop()).toBe(0)
+        expect(wrapperNode.getScrollLeft()).toBe(0)
 
         linesNode.dispatchEvent(buildMouseEvent('mousedown', {clientX: 0, clientY: 0}, which: 1))
         linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 100, clientY: 50}, which: 1))
         nextAnimationFrame()
 
-        expect(editor.getScrollTop()).toBe(0)
-        expect(editor.getScrollLeft()).toBeGreaterThan(0)
+        expect(wrapperNode.getScrollTop()).toBe(0)
+        expect(wrapperNode.getScrollLeft()).toBeGreaterThan(0)
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 100, clientY: 100}, which: 1))
         nextAnimationFrame()
-        expect(editor.getScrollTop()).toBeGreaterThan(0)
+        expect(wrapperNode.getScrollTop()).toBeGreaterThan(0)
 
-        previousScrollTop = editor.getScrollTop()
-        previousScrollLeft = editor.getScrollLeft()
+        previousScrollTop = wrapperNode.getScrollTop()
+        previousScrollLeft = wrapperNode.getScrollLeft()
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 10, clientY: 50}, which: 1))
         nextAnimationFrame()
 
-        expect(editor.getScrollTop()).toBe(previousScrollTop)
-        expect(editor.getScrollLeft()).toBeLessThan(previousScrollLeft)
+        expect(wrapperNode.getScrollTop()).toBe(previousScrollTop)
+        expect(wrapperNode.getScrollLeft()).toBeLessThan(previousScrollLeft)
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 10, clientY: 10}, which: 1))
         nextAnimationFrame()
 
-        expect(editor.getScrollTop()).toBeLessThan(previousScrollTop)
+        expect(wrapperNode.getScrollTop()).toBeLessThan(previousScrollTop)
 
       it "stops selecting if the mouse is dragged into the dev tools", ->
         linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
@@ -1992,12 +1992,12 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [12, 2]]
 
-        maximalScrollTop = editor.getScrollTop()
+        maximalScrollTop = wrapperNode.getScrollTop()
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([9, 3]), which: 1))
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[5, 6], [9, 4]]
-        expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
+        expect(wrapperNode.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
 
         linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
 
@@ -2019,12 +2019,12 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [12, 2]]
 
-        maximalScrollTop = editor.getScrollTop()
+        maximalScrollTop = wrapperNode.getScrollTop()
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 4]), which: 1))
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [8, 0]]
-        expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
+        expect(wrapperNode.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
 
         linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
 
@@ -2119,23 +2119,23 @@ describe "TextEditorComponent", ->
         component.measureDimensions()
         nextAnimationFrame()
 
-        expect(editor.getScrollTop()).toBe 0
+        expect(wrapperNode.getScrollTop()).toBe 0
 
         gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
         gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(8)))
         nextAnimationFrame()
 
-        expect(editor.getScrollTop()).toBeGreaterThan 0
-        maxScrollTop = editor.getScrollTop()
+        expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
+        maxScrollTop = wrapperNode.getScrollTop()
 
 
         gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(10)))
         nextAnimationFrame()
-        expect(editor.getScrollTop()).toBe maxScrollTop
+        expect(wrapperNode.getScrollTop()).toBe maxScrollTop
 
         gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(7)))
         nextAnimationFrame()
-        expect(editor.getScrollTop()).toBeLessThan maxScrollTop
+        expect(wrapperNode.getScrollTop()).toBeLessThan maxScrollTop
 
       it "stops selecting if a textInput event occurs during the drag", ->
         gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(2)))
@@ -2416,7 +2416,7 @@ describe "TextEditorComponent", ->
 
       expect(verticalScrollbarNode.scrollTop).toBe 0
 
-      editor.setScrollTop(10)
+      wrapperNode.setScrollTop(10)
       nextAnimationFrame()
       expect(verticalScrollbarNode.scrollTop).toBe 10
 
@@ -2434,7 +2434,7 @@ describe "TextEditorComponent", ->
 
       expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
-      editor.setScrollLeft(100)
+      wrapperNode.setScrollLeft(100)
       nextAnimationFrame()
 
       top = 0
@@ -2449,18 +2449,18 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      expect(editor.getScrollLeft()).toBe 0
+      expect(wrapperNode.getScrollLeft()).toBe 0
       horizontalScrollbarNode.scrollLeft = 100
       horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      expect(editor.getScrollLeft()).toBe 100
+      expect(wrapperNode.getScrollLeft()).toBe 100
 
     it "does not obscure the last line with the horizontal scrollbar", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
-      editor.setScrollBottom(editor.getScrollHeight())
+      wrapperNode.setScrollBottom(editor.getScrollHeight())
       nextAnimationFrame()
       lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
@@ -2479,7 +2479,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 7 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
-      editor.setScrollLeft(Infinity)
+      wrapperNode.setScrollLeft(Infinity)
       nextAnimationFrame()
 
       rightOfLongestLine = component.lineNodeForScreenRow(6).querySelector('.line > span:last-child').getBoundingClientRect().right
@@ -2649,14 +2649,14 @@ describe "TextEditorComponent", ->
         expect(component.presenter.mouseWheelScreenRow).toBe null
 
       it "clears the mouseWheelScreenRow after a delay even if the event does not cause scrolling", ->
-        expect(editor.getScrollTop()).toBe 0
+        expect(wrapperNode.getScrollTop()).toBe 0
 
         lineNode = componentNode.querySelector('.line')
         wheelEvent = new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 10)
         Object.defineProperty(wheelEvent, 'target', get: -> lineNode)
         componentNode.dispatchEvent(wheelEvent)
 
-        expect(editor.getScrollTop()).toBe 0
+        expect(wrapperNode.getScrollTop()).toBe 0
 
         expect(component.presenter.mouseWheelScreenRow).toBe 0
         advanceClock(component.presenter.stoppedScrollingDelay)
@@ -2701,36 +2701,36 @@ describe "TextEditorComponent", ->
 
       # try to scroll past the top, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 50))
-      expect(editor.getScrollTop()).toBe 0
+      expect(wrapperNode.getScrollTop()).toBe 0
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
       # scroll to the bottom in one huge event
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -3000))
       nextAnimationFrame()
-      maxScrollTop = editor.getScrollTop()
+      maxScrollTop = wrapperNode.getScrollTop()
       expect(WheelEvent::preventDefault).toHaveBeenCalled()
       WheelEvent::preventDefault.reset()
 
       # try to scroll past the bottom, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -30))
-      expect(editor.getScrollTop()).toBe maxScrollTop
+      expect(wrapperNode.getScrollTop()).toBe maxScrollTop
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
       # try to scroll past the left side, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 50, wheelDeltaY: 0))
-      expect(editor.getScrollLeft()).toBe 0
+      expect(wrapperNode.getScrollLeft()).toBe 0
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
       # scroll all the way right
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -3000, wheelDeltaY: 0))
       nextAnimationFrame()
-      maxScrollLeft = editor.getScrollLeft()
+      maxScrollLeft = wrapperNode.getScrollLeft()
       expect(WheelEvent::preventDefault).toHaveBeenCalled()
       WheelEvent::preventDefault.reset()
 
       # try to scroll past the right side, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -30, wheelDeltaY: 0))
-      expect(editor.getScrollLeft()).toBe maxScrollLeft
+      expect(wrapperNode.getScrollLeft()).toBe maxScrollLeft
       expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
 
   describe "input events", ->
@@ -3370,15 +3370,15 @@ describe "TextEditorComponent", ->
   clientCoordinatesForScreenPosition = (screenPosition) ->
     positionOffset = wrapperNode.pixelPositionForScreenPosition(screenPosition)
     scrollViewClientRect = componentNode.querySelector('.scroll-view').getBoundingClientRect()
-    clientX = scrollViewClientRect.left + positionOffset.left - editor.getScrollLeft()
-    clientY = scrollViewClientRect.top + positionOffset.top - editor.getScrollTop()
+    clientX = scrollViewClientRect.left + positionOffset.left - wrapperNode.getScrollLeft()
+    clientY = scrollViewClientRect.top + positionOffset.top - wrapperNode.getScrollTop()
     {clientX, clientY}
 
   clientCoordinatesForScreenRowInGutter = (screenRow) ->
     positionOffset = wrapperNode.pixelPositionForScreenPosition([screenRow, Infinity])
     gutterClientRect = componentNode.querySelector('.gutter').getBoundingClientRect()
-    clientX = gutterClientRect.left + positionOffset.left - editor.getScrollLeft()
-    clientY = gutterClientRect.top + positionOffset.top - editor.getScrollTop()
+    clientX = gutterClientRect.left + positionOffset.left - wrapperNode.getScrollLeft()
+    clientY = gutterClientRect.top + positionOffset.top - wrapperNode.getScrollTop()
     {clientX, clientY}
 
   lineAndLineNumberHaveClass = (screenRow, klass) ->

@@ -358,6 +358,30 @@ class TextEditorComponent
       @scrollViewNode.scrollTop = 0
       @scrollViewNode.scrollLeft = 0
 
+  setScrollLeft: (scrollLeft) ->
+    @presenter.setScrollLeft(scrollLeft)
+
+  setScrollRight: (scrollRight) ->
+    @presenter.setScrollRight(scrollRight)
+
+  setScrollTop: (scrollTop) ->
+    @presenter.setScrollTop(scrollTop)
+
+  setScrollBottom: (scrollBottom) ->
+    @presenter.setScrollBottom(scrollBottom)
+
+  getScrollTop: ->
+    @presenter.getScrollTop()
+
+  getScrollLeft: ->
+    @presenter.getScrollLeft()
+
+  getScrollRight: ->
+    @presenter.getScrollRight()
+
+  getScrollBottom: ->
+    @presenter.getScrollBottom()
+
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
       # Only handle mouse down events for left mouse button on all platforms

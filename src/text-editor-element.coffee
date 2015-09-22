@@ -219,6 +219,30 @@ class TextEditorElement extends HTMLElement
   onDidDetach: (callback) ->
     @emitter.on("did-detach", callback)
 
+  setScrollLeft: (scrollLeft) ->
+    @component.setScrollLeft(scrollLeft)
+
+  setScrollRight: (scrollRight) ->
+    @component.setScrollRight(scrollRight)
+
+  setScrollTop: (scrollTop) ->
+    @component.setScrollTop(scrollTop)
+
+  setScrollBottom: (scrollBottom) ->
+    @component.setScrollBottom(scrollBottom)
+
+  getScrollTop: ->
+    @component.getScrollTop()
+
+  getScrollLeft: ->
+    @component.getScrollLeft()
+
+  getScrollRight: ->
+    @component.getScrollRight()
+
+  getScrollBottom: ->
+    @component.getScrollBottom()
+
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
   for commandName, commandListener of commandListeners
