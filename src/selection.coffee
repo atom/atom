@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Grim = require 'grim'
 Model = require './model'
 
 NonWhitespaceRegExp = /\S/
@@ -836,25 +835,3 @@ class Selection extends Model
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
-
-if Grim.includeDeprecatedAPIs
-  Selection::on = (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-      else
-        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  Selection::backspaceToBeginningOfWord = ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  Selection::backspaceToBeginningOfLine = ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
