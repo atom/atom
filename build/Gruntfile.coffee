@@ -31,39 +31,50 @@ module.exports = (grunt) ->
   # This allows all subsequent paths to the relative to the root of the repo
   grunt.file.setBase(path.resolve('..'))
 
+  # Options
+  installDir = grunt.option('install-dir')
+  buildDir = grunt.option('build-dir')
+  buildDir ?= path.join(os.tmpdir(), 'atom-build')
+  buildDir = path.resolve(buildDir)
   channel = grunt.option('channel')
   channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
   channel ?= 'dev'
 
+  metadata = packageJson
   appName = packageJson.productName
-  appName += ' Beta' if channel is 'beta'
-  appName += '.app' if process.platform is 'darwin'
-  buildDir = grunt.option('build-dir') ? path.join(os.tmpdir(), 'atom-build')
-  buildDir = path.resolve(buildDir)
-  installDir = grunt.option('install-dir')
+  appFileName = packageJson.name
+  apmFileName = 'apm'
 
-  home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
-  electronDownloadDir = path.join(home, '.atom', 'electron')
+  if channel is 'beta'
+    appName += ' Beta'
+    appFileName += '-beta'
+    apmFileName += '-beta'
 
-  symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
+  symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
+
   if process.platform is 'win32'
+    homeDir = process.env.USERPROFILE
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= path.join(process.env.ProgramFiles, appName)
     killCommand = 'taskkill /F /IM atom.exe'
   else if process.platform is 'darwin'
+    homeDir = process.env.HOME
+    appName += '.app'
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
     installDir ?= path.join('/Applications', appName)
     killCommand = 'pkill -9 Atom'
   else
+    homeDir = process.env.HOME
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
     installDir ?= process.env.INSTALL_PREFIX ? '/usr/local'
     killCommand ='pkill -9 atom'
 
   installDir = path.resolve(installDir)
+  electronDownloadDir = path.join(homeDir, '.atom', 'electron')
 
   coffeeConfig =
     glob_to_multiple:
@@ -105,7 +116,7 @@ module.exports = (grunt) ->
   csonConfig =
     options:
       rootObject: true
-      cachePath: path.join(home, '.atom', 'compile-cache', 'grunt-cson')
+      cachePath: path.join(homeDir, '.atom', 'compile-cache', 'grunt-cson')
 
     glob_to_multiple:
       expand: true
@@ -156,7 +167,11 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
-    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir, channel}
+    atom: {
+      appName, channel, metadata,
+      appFileName, apmFileName,
+      appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
+    }
 
     docsOutputDir: 'docs/output'
 
@@ -237,8 +252,8 @@ module.exports = (grunt) ->
         outputDirectory: path.join(buildDir, 'installer')
         authors: 'GitHub Inc.'
         loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
-        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/stable/atom.ico'
-        setupIcon: path.resolve(__dirname, '..', 'resources', 'app-icons', 'stable', 'atom.ico')
+        iconUrl: "https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/#{channel}/atom.ico"
+        setupIcon: path.resolve(__dirname, '..', 'resources', 'app-icons', channel, 'atom.ico')
         remoteReleases: 'https://atom.io/api/updates'
 
     shell:
