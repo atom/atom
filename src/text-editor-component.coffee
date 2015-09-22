@@ -328,6 +328,8 @@ class TextEditorComponent
         @pendingScrollLeft = null
 
   onMouseWheel: (event) =>
+    event.preventDefault() unless @editor.isMini()
+
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
 
@@ -344,13 +346,11 @@ class TextEditorComponent
       # Scrolling horizontally
       previousScrollLeft = @presenter.getScrollLeft()
       @presenter.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-      event.preventDefault() unless previousScrollLeft is @presenter.getScrollLeft()
     else
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
       @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-      event.preventDefault() unless previousScrollTop is @presenter.getScrollTop()
 
   onScrollViewScroll: =>
     if @mounted
