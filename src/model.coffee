@@ -1,11 +1,7 @@
-PropertyAccessors = require 'property-accessors'
-
 nextInstanceId = 1
 
 module.exports =
 class Model
-  PropertyAccessors.includeInto(this)
-
   @resetNextInstanceId: -> nextInstanceId = 1
 
   alive: true
@@ -15,9 +11,7 @@ class Model
 
   assignId: (id) ->
     @id ?= id ? nextInstanceId++
-
-  @::advisedAccessor 'id',
-    set: (id) -> nextInstanceId = id + 1 if id >= nextInstanceId
+    nextInstanceId = id + 1 if id >= nextInstanceId
 
   destroy: ->
     return unless @isAlive()
