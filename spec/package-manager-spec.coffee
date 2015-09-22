@@ -62,17 +62,7 @@ describe "PackageManager", ->
       expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
 
     describe "when the package is deprecated", ->
-      grim = require 'grim'
-      includeDeprecatedAPIs = null
-
-      beforeEach ->
-        {includeDeprecatedAPIs} = grim
-
-      afterEach ->
-        grim.includeDeprecatedAPIs = includeDeprecatedAPIs
-
       it "returns null", ->
-        grim.includeDeprecatedAPIs = false
         expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.9')).toBe true
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.0')).toBe true
