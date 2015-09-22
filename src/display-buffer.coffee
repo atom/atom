@@ -132,6 +132,9 @@ class DisplayBuffer extends Model
   onDidChangeScrollLeft: (callback) ->
     @emitter.on 'did-change-scroll-left', callback
 
+  onDidChangeScrollPosition: (callback) ->
+    @emitter.on 'did-change-scroll-position', callback
+
   observeScrollTop: (callback) ->
     callback(@scrollTop)
     @onDidChangeScrollTop(callback)
@@ -348,6 +351,10 @@ class DisplayBuffer extends Model
 
     [startRow, endRow]
 
+  getLogicalHeight: ->
+    [startRow, endRow] = @getVisibleRowRange()
+    endRow - startRow
+
   intersectsVisibleRowRange: (startRow, endRow) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
     not (endRow <= visibleStart or visibleEnd <= startRow)
@@ -356,7 +363,31 @@ class DisplayBuffer extends Model
     {start, end} = selection.getScreenRange()
     @intersectsVisibleRowRange(start.row, end.row + 1)
 
+  scrollToScreenRangeLogical: (screenRange, options) ->
+    top = screenRange.start.row
+    left = screenRange.start.column
+    bottom = screenRange.end.row
+    right = screenRange.end.column
+
+    if options?.center
+      center = (top + bottom) / 2
+      top = center - @getLogicalHeight() / 2
+      bottom = center + @getLogicalHeight() / 2
+    else
+      top -= @getVerticalScrollMargin()
+      bottom += @getVerticalScrollMargin()
+
+    left -= @getHorizontalScrollMargin()
+    right += @getHorizontalScrollMargin()
+
+    screenRange = new Range(new Point(top, left), new Point(bottom, right))
+
+    scrollEvent = {screenRange, options}
+    @emitter.emit "did-change-scroll-position", scrollEvent
+
   scrollToScreenRange: (screenRange, options) ->
+    @scrollToScreenRangeLogical(screenRange, options)
+
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
     horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
 
@@ -376,6 +407,13 @@ class DisplayBuffer extends Model
 
     desiredScrollLeft = left - horizontalScrollMarginInPixels
     desiredScrollRight = right + horizontalScrollMarginInPixels
+
+    if global.enableLogs
+      console.log "====== DB ======"
+      console.log "Client Height: #{@getClientHeight()}"
+      console.log "#{desiredScrollTop}/#{desiredScrollBottom}"
+      console.log "#{@getScrollTop()}/#{@getScrollBottom()}"
+      console.log "================"
 
     if options?.reversed ? true
       if desiredScrollBottom > @getScrollBottom()

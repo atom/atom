@@ -5,7 +5,7 @@ TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 
-describe "TextEditorPresenter", ->
+fdescribe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
@@ -483,7 +483,7 @@ describe "TextEditorPresenter", ->
 
     describe ".hiddenInput", ->
       describe ".top/.left", ->
-        it "is positioned over the last cursor it is in view and the editor is focused", ->
+        fffit "is positioned over the last cursor it is in view and the editor is focused", ->
           editor.setCursorBufferPosition([3, 6])
           presenter = buildPresenter(focused: false, explicitHeight: 50, contentFrameWidth: 300, horizontalScrollbarHeight: 0, verticalScrollbarWidth: 0)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
@@ -503,8 +503,10 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollLeft(70)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
 
+          global.enableLogs = true
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([11, 43])
           expectValues presenter.getState().hiddenInput, {top: 11 * 10 - editor.getScrollTop(), left: 43 * 10 - editor.getScrollLeft()}
+          global.enableLogs = false
 
           newCursor = null
           expectStateUpdate presenter, -> newCursor = editor.addCursorAtBufferPosition([6, 10])
@@ -1821,7 +1823,7 @@ describe "TextEditorPresenter", ->
 
             expectStateUpdate presenter, ->
               editor.insertNewline()
-              editor.setScrollTop(scrollTop) # I'm fighting the editor
+              presenter.setScrollTop(scrollTop) # I'm fighting the editor
             expectValues stateForOverlay(presenter, decoration), {
               item: item
               pixelPosition: {top: 6 * 10 - scrollTop - itemHeight, left: gutterWidth}

@@ -71,6 +71,7 @@ class TextEditorPresenter
 
     @updateContentDimensions()
     @updateScrollbarDimensions()
+    @updateScrollPosition()
     @updateStartRow()
     @updateEndRow()
     @updateCommonGutterState()
@@ -115,8 +116,6 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
-      @updateContentDimensions()
-
       @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -162,8 +161,9 @@ class TextEditorPresenter
 
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
-    @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
-    @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
+    @disposables.add @model.onDidChangeScrollPosition(@didChangeScrollPosition.bind(this))
+    # @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
+    # @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
@@ -813,7 +813,7 @@ class TextEditorPresenter
 
     unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
       @scrollTop = scrollTop
-      @model.setScrollTop(scrollTop)
+      @model.setScrollTop(@scrollTop)
       @didStartScrolling()
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHiddenInputState = true
@@ -852,7 +852,7 @@ class TextEditorPresenter
     unless @scrollLeft is scrollLeft or Number.isNaN(scrollLeft)
       oldScrollLeft = @scrollLeft
       @scrollLeft = scrollLeft
-      @model.setScrollLeft(scrollLeft)
+      @model.setScrollLeft(@scrollLeft)
       @shouldUpdateHorizontalScrollState = true
       @shouldUpdateHiddenInputState = true
       @shouldUpdateCursorsState = true
@@ -865,11 +865,29 @@ class TextEditorPresenter
   getScrollLeft: ->
     @scrollLeft
 
+  getClientHeight: ->
+    if @clientHeight
+      @clientHeight
+    else
+      @explicitHeight - @horizontalScrollbarHeight
+
+  getClientWidth: ->
+    @clientWidth ? @contentFrameWidth
+
+  getScrollBottom: -> @getScrollTop() + @getClientHeight()
+  setScrollBottom: (scrollBottom) ->
+    @setScrollTop(scrollBottom - @getClientHeight())
+    @getScrollBottom()
+
+  getScrollRight: -> @getScrollLeft() + @getClientWidth()
+  setScrollRight: (scrollRight) ->
+    @setScrollLeft(scrollRight - @getClientWidth())
+    @getScrollRight()
+
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
       oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
       @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
-      @model.setHorizontalScrollbarHeight(horizontalScrollbarHeight)
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -881,7 +899,6 @@ class TextEditorPresenter
     unless @measuredVerticalScrollbarWidth is verticalScrollbarWidth
       oldVerticalScrollbarWidth = @measuredVerticalScrollbarWidth
       @measuredVerticalScrollbarWidth = verticalScrollbarWidth
-      @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -1438,3 +1455,61 @@ class TextEditorPresenter
       @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
       @startBlinkingCursorsAfterDelay()
       @emitDidUpdateState()
+
+  didChangeScrollPosition: (position) ->
+    @pendingScrollLogicalPosition = position
+
+    @shouldUpdateCursorsState = true
+    @shouldUpdateCustomGutterDecorationState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateHorizontalScrollState = true
+    @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
+    @shouldUpdateOverlaysState = true
+    @shouldUpdateScrollPosition = true
+    @shouldUpdateVerticalScrollState = true
+
+    @emitDidUpdateState()
+
+  updateScrollPosition: ->
+    return unless @pendingScrollLogicalPosition?
+
+    {screenRange, options} = @pendingScrollLogicalPosition
+
+    console.log screenRange.start.toString()
+    console.log screenRange.end.toString()
+    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
+    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
+    bottom = endTop + endHeight
+    right = endLeft
+
+    if global.enableLogs
+      console.log "====== presenter ======"
+      console.log "Client Height: #{@getClientHeight()}"
+      console.log "#{desiredScrollTop}/#{desiredScrollBottom}"
+      console.log "#{@getScrollTop()}/#{@getScrollBottom()}"
+      console.log "======================="
+
+    if options?.reversed ? true
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
+
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+    else
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
+
+    @pendingScrollLogicalPosition = null
