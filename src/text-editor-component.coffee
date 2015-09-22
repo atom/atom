@@ -34,6 +34,7 @@ class TextEditorComponent
   stylingChangeAnimationFrameRequested: false
   gutterComponent: null
   mounted: true
+  initialized: false
 
   constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize}) ->
     @tileSize = tileSize if tileSize?
@@ -102,6 +103,7 @@ class TextEditorComponent
 
     @updateSync()
     @checkForVisibilityChange()
+    @initialized = true
 
   destroy: ->
     @mounted = false
@@ -558,7 +560,11 @@ class TextEditorComponent
     disposables.add(@editor.onDidDestroy(stopDragging))
 
   isVisible: ->
-    @domNode.offsetHeight > 0 or @domNode.offsetWidth > 0
+    # Investigating an exception that occurs here due to ::domNode being null.
+    atom.assert @domNode?, "TextEditorComponent::domNode was null.", (error) =>
+      error.metadata = {@initialized}
+
+    @domNode? and (@domNode.offsetHeight > 0 or @domNode.offsetWidth > 0)
 
   pollDOM: =>
     unless @checkForVisibilityChange()
