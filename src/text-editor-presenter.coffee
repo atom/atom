@@ -809,22 +809,21 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setScrollTop: (scrollTop) ->
-    scrollTop = @constrainScrollTop(scrollTop)
+    return unless scrollTop?
 
-    unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
-      @scrollTop = scrollTop
-      @model.setScrollTop(@scrollTop)
-      @didStartScrolling()
-      @shouldUpdateVerticalScrollState = true
-      @shouldUpdateHiddenInputState = true
-      @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
-      @shouldUpdateCursorsState = true
-      @shouldUpdateLineNumbersState = true
-      @shouldUpdateCustomGutterDecorationState = true
-      @shouldUpdateOverlaysState = true
+    @pendingScrollTop = scrollTop
 
-      @emitDidUpdateState()
+    @shouldUpdateVerticalScrollState = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateLinesState = true
+    @shouldUpdateCursorsState = true
+    @shouldUpdateLineNumbersState = true
+    @shouldUpdateCustomGutterDecorationState = true
+    @shouldUpdateOverlaysState = true
+
+    @didStartScrolling()
+    @emitDidUpdateState()
 
   getScrollTop: ->
     @scrollTop
@@ -848,19 +847,18 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   setScrollLeft: (scrollLeft) ->
-    scrollLeft = @constrainScrollLeft(scrollLeft)
-    unless @scrollLeft is scrollLeft or Number.isNaN(scrollLeft)
-      oldScrollLeft = @scrollLeft
-      @scrollLeft = scrollLeft
-      @model.setScrollLeft(@scrollLeft)
-      @shouldUpdateHorizontalScrollState = true
-      @shouldUpdateHiddenInputState = true
-      @shouldUpdateCursorsState = true
-      @shouldUpdateOverlaysState = true
-      @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+    return unless scrollLeft?
 
-      @emitDidUpdateState()
+    @pendingScrollLeft = scrollLeft
+
+    @shouldUpdateHorizontalScrollState = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateCursorsState = true
+    @shouldUpdateOverlaysState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateLinesState = true
+
+    @emitDidUpdateState()
 
   getScrollLeft: ->
     @scrollLeft
@@ -1478,9 +1476,7 @@ class TextEditorPresenter
   getHorizontalScrollMarginInPixels: ->
     @model.getHorizontalScrollMargin() * @baseCharacterWidth
 
-  updateScrollPosition: ->
-    return unless @pendingScrollLogicalPosition?
-
+  commitPendingLogicalScrollPosition: ->
     {screenRange, options} = @pendingScrollLogicalPosition
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
@@ -1508,14 +1504,6 @@ class TextEditorPresenter
     desiredScrollLeft = left - horizontalScrollMarginInPixels
     desiredScrollRight = right + horizontalScrollMarginInPixels
 
-    if global.enableLogs
-      console.log "====== DB ======"
-      console.log "Screen Range: #{screenRange.toString()}"
-      console.log "Client Width: #{@getClientWidth()}"
-      console.log "#{desiredScrollLeft}/#{desiredScrollRight}"
-      console.log "#{@getScrollLeft()}/#{@getScrollRight()}"
-      console.log "================"
-
     if options?.reversed ? true
       if desiredScrollBottom > @getScrollBottom()
         @setScrollBottom(desiredScrollBottom)
@@ -1537,4 +1525,23 @@ class TextEditorPresenter
       if desiredScrollRight > @getScrollRight()
         @setScrollRight(desiredScrollRight)
 
+  commitPendingScrollLeftPosition: ->
+    scrollLeft = @constrainScrollLeft(@pendingScrollLeft)
+    if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
+      @scrollLeft = scrollLeft
+      @model.setScrollLeft(scrollLeft)
+
+  commitPendingScrollTopPosition: ->
+    scrollTop = @constrainScrollTop(@pendingScrollTop)
+    if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
+      @scrollTop = scrollTop
+      @model.setScrollTop(scrollTop)
+
+  updateScrollPosition: ->
+    @commitPendingLogicalScrollPosition() if @pendingScrollLogicalPosition?
+    @commitPendingScrollLeftPosition() if @pendingScrollLeft?
+    @commitPendingScrollTopPosition() if @pendingScrollTop?
+
+    @pendingScrollTop = null
+    @pendingScrollLeft = null
     @pendingScrollLogicalPosition = null
