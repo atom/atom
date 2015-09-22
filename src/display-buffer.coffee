@@ -352,8 +352,7 @@ class DisplayBuffer extends Model
     [startRow, endRow]
 
   getLogicalHeight: ->
-    [startRow, endRow] = @getVisibleRowRange()
-    endRow - startRow
+    Math.floor(@getHeight() / @getLineHeightInPixels())
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
