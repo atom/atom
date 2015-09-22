@@ -4,7 +4,6 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter} = require 'event-kit'
-Serializable = require 'serializable'
 TextBuffer = require 'text-buffer'
 
 DefaultDirectoryProvider = require './default-directory-provider'
@@ -19,11 +18,24 @@ GitRepositoryProvider = require './git-repository-provider'
 module.exports =
 class Project extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
 
   ###
   Section: Construction and Destruction
   ###
+
+  @deserialize: (state) ->
+    state.buffers = _.compact state.buffers.map (bufferState) ->
+      # Check that buffer's file path is accessible
+      return if fs.isDirectorySync(bufferState.filePath)
+      if bufferState.filePath
+        try
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
+        catch error
+          return unless error.code is 'ENOENT'
+
+      atom.deserializers.deserialize(bufferState)
+
+    new this(state)
 
   constructor: ({path, paths, @buffers}={}) ->
     @emitter = new Emitter
@@ -75,22 +87,10 @@ class Project extends Model
   Section: Serialization
   ###
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'Project'
     paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
-
-  deserializeParams: (params) ->
-    params.buffers = _.compact params.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          return unless error.code is 'ENOENT'
-
-      atom.deserializers.deserialize(bufferState)
-    params
 
   ###
   Section: Event Subscription
