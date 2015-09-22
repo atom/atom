@@ -21,7 +21,6 @@
     "clear-cut": "^2.0.1",
     "coffee-script": "1.8.0",
     "color": "^0.7.3",
-    "delegato": "^1",
     "event-kit": "^1.3.0",
     "first-mate": "^5.0.0",
     "fs-plus": "^2.8.0",

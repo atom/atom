@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
 Serializable = require 'serializable'
-Delegator = require 'delegato'
 Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
@@ -58,7 +57,6 @@ module.exports =
 class TextEditor extends Model
   Serializable.includeInto(this)
   atom.deserializers.add(this)
-  Delegator.includeInto(this)
 
   deserializing: false
   callDisplayBufferCreatedHook: false
@@ -71,10 +69,6 @@ class TextEditor extends Model
   updateBatchDepth: 0
   selectionFlashDuration: 500
   gutterContainer: null
-
-  @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
-    'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
-    toProperty: 'languageMode'
 
   constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
@@ -3033,3 +3027,19 @@ class TextEditor extends Model
     willInsertEvent = {cancel, text}
     @emitter.emit 'will-insert-text', willInsertEvent
     result
+
+  ###
+  Section: Language Mode Delegated Methods
+  ###
+
+  suggestedIndentForBufferRow: (bufferRow, options) -> @languageMode.suggestedIndentForBufferRow(bufferRow, options)
+
+  autoIndentBufferRow: (bufferRow, options) -> @languageMode.autoIndentBufferRow(bufferRow, options)
+
+  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startNow, endRow)
+
+  autoDecreaseIndentForBufferRow: (bufferRow) -> @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
+
+  toggleLineCommentForBufferRow: (row) -> @languageMode.toggleLineCommentsForBufferRow(row)
+
+  toggleLineCommentsForBufferRows: (start, end) -> @languageMode.toggleLineCommentsForBufferRows(start, end)
