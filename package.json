@@ -24,7 +24,7 @@
     "async": "~0.2.8",
     "colors": "~0.6.1",
     "exit": "0.1.2",
-    "first-mate": ">=3 <4",
+    "first-mate": "^5.0",
     "fs-plus": "2.x",
     "git-utils": ">=3 <4",
     "keytar": ">=2.1 <3",
