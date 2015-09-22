@@ -355,6 +355,7 @@ class Pane extends Model
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
+    throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
