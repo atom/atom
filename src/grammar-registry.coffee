@@ -135,5 +135,4 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     undefined
 
   clearObservers: ->
-    @off() if includeDeprecatedAPIs
     @emitter = new Emitter
