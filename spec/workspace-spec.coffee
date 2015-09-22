@@ -666,7 +666,7 @@ describe "Workspace", ->
 
       it "updates the title to contain the project's path", ->
         document.title = null
-        workspace2 = atom.workspace.testSerialization()
+        workspace2 = Workspace.deserialize(atom.workspace.serialize())
         item = atom.workspace.getActivePaneItem()
         expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()

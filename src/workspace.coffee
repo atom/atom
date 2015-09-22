@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
-Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 DefaultDirectorySearcher = require './default-directory-searcher'
@@ -28,7 +27,13 @@ Task = require './task'
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
+
+  @deserialize: (state) ->
+    for packageName in state.packagesWithActiveGrammars ? []
+      atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
+
+    state.paneContainer = PaneContainer.deserialize(state.paneContainer)
+    new this(state)
 
   constructor: (params) ->
     super
@@ -81,16 +86,9 @@ class Workspace extends Model
 
     @subscribeToFontSize()
 
-  # Called by the Serializable mixin during deserialization
-  deserializeParams: (params) ->
-    for packageName in params.packagesWithActiveGrammars ? []
-      atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
-
-    params.paneContainer = PaneContainer.deserialize(params.paneContainer)
-    params
-
   # Called by the Serializable mixin during serialization.
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'Workspace'
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
