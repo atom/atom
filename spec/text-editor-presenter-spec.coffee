@@ -483,7 +483,7 @@ fdescribe "TextEditorPresenter", ->
 
     describe ".hiddenInput", ->
       describe ".top/.left", ->
-        fffit "is positioned over the last cursor it is in view and the editor is focused", ->
+        it "is positioned over the last cursor it is in view and the editor is focused", ->
           editor.setCursorBufferPosition([3, 6])
           presenter = buildPresenter(focused: false, explicitHeight: 50, contentFrameWidth: 300, horizontalScrollbarHeight: 0, verticalScrollbarWidth: 0)
           expectValues presenter.getState().hiddenInput, {top: 0, left: 0}

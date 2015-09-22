@@ -380,6 +380,11 @@ class DisplayBuffer extends Model
     left -= @getHorizontalScrollMargin()
     right += @getHorizontalScrollMargin()
 
+    top = Math.max(0, Math.min(@getLineCount() - 1, top))
+    bottom = Math.max(0, Math.min(@getLineCount() - 1, bottom))
+    left = Math.max(0, left)
+    right = Math.max(0, right)
+
     screenRange = new Range(new Point(top, left), new Point(bottom, right))
 
     scrollEvent = {screenRange, options}
