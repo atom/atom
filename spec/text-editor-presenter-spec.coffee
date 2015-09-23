@@ -333,6 +333,14 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe 50
 
+        it "is always rounded to the nearest integer", ->
+          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expect(presenter.getState().content.scrollLeft).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollLeft(11.4)
+          expect(presenter.getState().content.scrollLeft).toBe 11
+          expectStateUpdate presenter, -> presenter.setScrollLeft(12.6)
+          expect(presenter.getState().content.scrollLeft).toBe 13
+
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, explicitHeight: 100, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
@@ -673,6 +681,14 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.getState().content.scrollTop).toBe 50
+
+        it "is always rounded to the nearest integer", ->
+          presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 20)
+          expect(presenter.getState().content.scrollTop).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollTop(11.4)
+          expect(presenter.getState().content.scrollTop).toBe 11
+          expectStateUpdate presenter, -> presenter.setScrollTop(12.6)
+          expect(presenter.getState().content.scrollTop).toBe 13
 
         it "scrolls down automatically when the model is changed", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
