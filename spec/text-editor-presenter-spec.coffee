@@ -365,6 +365,18 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
           expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe 0
 
+        it "is always 0 when soft wrapping is enabled", ->
+          presenter = buildPresenter(scrollLeft: 0, verticalScrollbarWidth: 0, contentFrameWidth: 85, baseCharacterWidth: 10)
+
+          editor.setSoftWrapped(false)
+          presenter.setScrollLeft(Infinity)
+          expect(presenter.getState().content.scrollLeft).toBeGreaterThan 0
+
+          editor.setSoftWrapped(true)
+          expect(presenter.getState().content.scrollLeft).toBe 0
+          presenter.setScrollLeft(10)
+          expect(presenter.getState().content.scrollLeft).toBe 0
+
     describe ".verticalScrollbar", ->
       describe ".visible", ->
         it "is true if the scrollHeight exceeds the computed client height", ->
@@ -681,6 +693,12 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.getState().content.scrollTop).toBe 50
+
+        it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
+          presenter = buildPresenter(scrollTop: 80, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 0)
+          expect(presenter.getState().content.scrollTop).toBe(80)
+          buffer.deleteRows(10, 9, 8)
+          expect(presenter.getState().content.scrollTop).toBe(60)
 
         it "is always rounded to the nearest integer", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 20)

@@ -47,14 +47,6 @@ describe "DisplayBuffer", ->
       buffer.insert([0, 0], oneHundredLines)
       expect(displayBuffer.getLineCount()).toBe 100 + originalLineCount
 
-    it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
-      displayBuffer.setHeight(50)
-      displayBuffer.setLineHeightInPixels(10)
-      displayBuffer.setScrollTop(80)
-
-      buffer.delete([[8, 0], [10, 0]])
-      expect(displayBuffer.getScrollTop()).toBe 60
-
     it "updates the display buffer prior to invoking change handlers registered on the buffer", ->
       buffer.onDidChange -> expect(displayBuffer2.tokenizedLineForScreenRow(0).text).toBe "testing"
       displayBuffer2 = new DisplayBuffer({buffer, tabLength})
@@ -295,18 +287,6 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.editorWidthInChars).not.toBe 0
         displayBuffer.setEditorWidthInChars(-1)
         expect(displayBuffer.editorWidthInChars).not.toBe -1
-
-    it "sets ::scrollLeft to 0 and keeps it there when soft wrapping is enabled", ->
-      displayBuffer.setDefaultCharWidth(10)
-      displayBuffer.setWidth(85)
-
-      displayBuffer.setSoftWrapped(false)
-      displayBuffer.setScrollLeft(Infinity)
-      expect(displayBuffer.getScrollLeft()).toBeGreaterThan 0
-      displayBuffer.setSoftWrapped(true)
-      expect(displayBuffer.getScrollLeft()).toBe 0
-      displayBuffer.setScrollLeft(10)
-      expect(displayBuffer.getScrollLeft()).toBe 0
 
   describe "primitive folding", ->
     beforeEach ->
