@@ -3412,6 +3412,13 @@ describe "TextEditorComponent", ->
         expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
         expect(wrapperNode.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
 
+    describe "when adding selections for buffer ranges", ->
+      it "autoscrolls to the added selection if needed", ->
+        editor.addSelectionForBufferRange([[8, 10], [8, 15]])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe (9 * 10) + (2 * 10)
+        expect(wrapperNode.getScrollRight()).toBe (15 * 10) + (2 * 10)
+
     describe "when selecting lines containing cursors", ->
       it "autoscrolls to the selection", ->
         editor.setCursorScreenPosition([5, 6])
@@ -3424,6 +3431,20 @@ describe "TextEditorComponent", ->
         editor.selectLinesContainingCursors()
         nextAnimationFrame()
         expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+
+    describe "when inserting text", ->
+      describe "when there are multiple empty selections on different lines", ->
+        it "autoscrolls to the last cursor", ->
+          editor.setCursorScreenPosition([1, 2], autoscroll: false)
+          nextAnimationFrame()
+
+          editor.addCursorAtScreenPosition([10, 4], autoscroll: false)
+          nextAnimationFrame()
+
+          expect(wrapperNode.getScrollTop()).toBe 0
+          editor.insertText('a')
+          nextAnimationFrame()
+          expect(wrapperNode.getScrollTop()).toBe 75
 
     describe "moving cursors", ->
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
