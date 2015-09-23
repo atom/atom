@@ -29,6 +29,8 @@ class Workspace extends Model
   atom.deserializers.add(this)
 
   @deserialize: (state) ->
+    return unless state?
+
     for packageName in state.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
