@@ -1234,31 +1234,17 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.getDecorations(class: 'one').length).toEqual 1
 
   describe "::scrollToScreenPosition(position, [options])", ->
-    beforeEach ->
-      displayBuffer.setLineHeightInPixels(10)
-      displayBuffer.setDefaultCharWidth(10)
-      displayBuffer.setHorizontalScrollbarHeight(0)
-      displayBuffer.setHeight(50)
-      displayBuffer.setWidth(150)
-
-    it "sets the scroll top and scroll left so the given screen position is in view", ->
-      displayBuffer.scrollToScreenPosition([8, 20])
-      expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
-      expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
+    it "triggers ::onDidChangeScrollPosition with the logical coordinates along with the options", ->
+      scrollSpy = jasmine.createSpy("::onDidChangeScrollPosition")
+      displayBuffer.onDidChangeScrollPosition(scrollSpy)
 
       displayBuffer.scrollToScreenPosition([8, 20])
-      expect(displayBuffer.getScrollBottom()).toBe (9 + displayBuffer.getVerticalScrollMargin()) * 10
-      expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
+      displayBuffer.scrollToScreenPosition([8, 20], center: true)
+      displayBuffer.scrollToScreenPosition([8, 20], center: false, reversed: true)
 
-    describe "when the 'center' option is true", ->
-      it "vertically scrolls to center the given position vertically", ->
-        displayBuffer.scrollToScreenPosition([8, 20], center: true)
-        expect(displayBuffer.getScrollTop()).toBe (8 * 10) + 5 - (50 / 2)
-        expect(displayBuffer.getScrollRight()).toBe (20 + displayBuffer.getHorizontalScrollMargin()) * 10
-
-      it "does not scroll vertically if the position is already in view", ->
-        displayBuffer.scrollToScreenPosition([4, 20], center: true)
-        expect(displayBuffer.getScrollTop()).toBe 0
+      expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {})
+      expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: true})
+      expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true})
 
   describe "scroll width", ->
     cursorWidth = 1

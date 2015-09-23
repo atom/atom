@@ -362,7 +362,7 @@ class DisplayBuffer extends Model
     {start, end} = selection.getScreenRange()
     @intersectsVisibleRowRange(start.row, end.row + 1)
 
-  logicalScrollToScreenRange: (screenRange, options) ->
+  logicalScrollToScreenRange: (screenRange, options = {}) ->
     scrollEvent = {screenRange, options}
     @emitter.emit "did-change-scroll-position", scrollEvent
 
@@ -388,14 +388,6 @@ class DisplayBuffer extends Model
 
     desiredScrollLeft = left - horizontalScrollMarginInPixels
     desiredScrollRight = right + horizontalScrollMarginInPixels
-
-    if global.enableLogs
-      console.log "====== DB ======"
-      console.log "Screen Range: #{screenRange.toString()}"
-      console.log "Client Width: #{@getClientWidth()}"
-      console.log "#{desiredScrollLeft}/#{desiredScrollRight}"
-      console.log "#{@getScrollLeft()}/#{@getScrollRight()}"
-      console.log "================"
 
     if options?.reversed ? true
       if desiredScrollBottom > @getScrollBottom()
