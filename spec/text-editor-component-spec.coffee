@@ -3371,7 +3371,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
-  fffdescribe "autoscroll", ->
+  describe "autoscroll", ->
     beforeEach ->
       editor.setVerticalScrollMargin(2)
       editor.setHorizontalScrollMargin(2)
