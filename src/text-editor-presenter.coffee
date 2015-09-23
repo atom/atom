@@ -50,8 +50,6 @@ class TextEditorPresenter
     @emitter.emit "did-update-state" if @isBatching()
 
   transferMeasurementsToModel: ->
-    # @model.setHeight(@explicitHeight) if @explicitHeight?
-    @model.setWidth(@contentFrameWidth) if @contentFrameWidth?
     @model.setLineHeightInPixels(@lineHeight) if @lineHeight?
     @model.setDefaultCharWidth(@baseCharacterWidth) if @baseCharacterWidth?
 
@@ -679,6 +677,7 @@ class TextEditorPresenter
       @updateScrollHeight()
 
     if @contentWidth isnt oldContentWidth
+      @model.setWidth(Math.min(@clientWidth, @contentWidth))
       @updateScrollbarDimensions()
       @updateScrollWidth()
 
@@ -698,6 +697,7 @@ class TextEditorPresenter
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
+      @model.setWidth(Math.min(@clientWidth, @contentWidth))
       @updateScrollWidth()
       @updateScrollLeft()
 
@@ -944,7 +944,6 @@ class TextEditorPresenter
     unless @contentFrameWidth is contentFrameWidth
       oldContentFrameWidth = @contentFrameWidth
       @contentFrameWidth = contentFrameWidth
-      @model.setWidth(contentFrameWidth)
       @updateScrollbarDimensions()
       @updateClientWidth()
       @shouldUpdateVerticalScrollState = true

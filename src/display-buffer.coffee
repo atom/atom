@@ -205,77 +205,14 @@ class DisplayBuffer extends Model
   setHeight: (@height) ->
     @height
 
-  getClientHeight: (reentrant) ->
-    @getHeight()
-
-  getClientWidth: (reentrant) ->
-    if @verticallyScrollable(reentrant)
-      @getWidth() - @getVerticalScrollbarWidth()
-    else
-      @getWidth()
-
-  horizontallyScrollable: (reentrant) ->
-    return false unless @width?
-    return false if @isSoftWrapped()
-    if reentrant
-      @getScrollWidth() > @getWidth()
-    else
-      @getScrollWidth() > @getClientWidth(true)
-
-  verticallyScrollable: (reentrant) ->
-    return false unless @height?
-    if reentrant
-      @getScrollHeight() > @getHeight()
-    else
-      @getScrollHeight() > @getClientHeight(true)
-
   getWidth: ->
-    if @width?
-      @width
-    else
-      if @verticallyScrollable()
-        @getScrollWidth() + @getVerticalScrollbarWidth()
-      else
-        @getScrollWidth()
+    @width or 0
 
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
     @updateWrappedScreenLines() if newWidth isnt oldWidth and @isSoftWrapped()
-    @setScrollTop(@getScrollTop()) # Ensure scrollTop is still valid in case horizontal scrollbar disappeared
     @width
-
-  getScrollTop: -> @scrollTop
-  setScrollTop: (scrollTop) ->
-    scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
-    unless scrollTop is @scrollTop
-      @scrollTop = scrollTop
-      @emitter.emit 'did-change-scroll-top', @scrollTop
-    @scrollTop
-
-  getMaxScrollTop: ->
-    @getScrollHeight() - @getClientHeight()
-
-  getScrollBottom: -> @scrollTop + @getClientHeight()
-  setScrollBottom: (scrollBottom) ->
-    @setScrollTop(scrollBottom - @getClientHeight())
-    @getScrollBottom()
-
-  getScrollLeft: -> @scrollLeft
-  setScrollLeft: (scrollLeft) ->
-    scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
-    unless scrollLeft is @scrollLeft
-      @scrollLeft = scrollLeft
-      @emitter.emit 'did-change-scroll-left', @scrollLeft
-    @scrollLeft
-
-  getMaxScrollLeft: ->
-    @getScrollWidth() - @getClientWidth()
-
-  getScrollRight: -> @scrollLeft + @width
-  setScrollRight: (scrollRight) ->
-    @setScrollLeft(scrollRight - @width)
-    @getScrollRight()
 
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
@@ -284,7 +221,6 @@ class DisplayBuffer extends Model
   setDefaultCharWidth: (defaultCharWidth) ->
     if defaultCharWidth isnt @defaultCharWidth
       @defaultCharWidth = defaultCharWidth
-      @computeScrollWidth()
     defaultCharWidth
 
   getCursorWidth: -> 1
@@ -313,7 +249,6 @@ class DisplayBuffer extends Model
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @computeScrollWidth()
     @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
 
@@ -400,8 +335,7 @@ class DisplayBuffer extends Model
 
   # Returns the editor width in characters for soft wrap.
   getEditorWidthInChars: ->
-    width = @width ? @getScrollWidth()
-    width -= @getVerticalScrollbarWidth()
+    width = @getWidth()
     if width? and @defaultCharWidth > 0
       Math.max(0, Math.floor(width / @defaultCharWidth))
     else
@@ -1128,7 +1062,6 @@ class DisplayBuffer extends Model
     @changeCount = @tokenizedBuffer.changeCount
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
-    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     return if @largeFileMode
@@ -1232,13 +1165,6 @@ class DisplayBuffer extends Model
       if length > @maxLineLength
         @longestScreenRow = screenRow
         @maxLineLength = length
-
-    @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength
-
-  computeScrollWidth: ->
-    @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
-    @scrollWidth += 1 unless @isSoftWrapped()
-    @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
 
   handleBufferMarkerCreated: (textBufferMarker) =>
     if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
