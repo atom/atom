@@ -1336,15 +1336,13 @@ describe "TextEditorComponent", ->
       expect(lineAndLineNumberHaveClass(6, 'a')).toBe true
       expect(lineAndLineNumberHaveClass(7, 'a')).toBe false
 
-    it "remove decoration classes and unsubscribes from markers decorations are removed", ->
-      expect(marker.getSubscriptionCount('changed'))
+    it "remove decoration classes when decorations are removed", ->
       decoration.destroy()
       nextAnimationFrame()
       expect(lineNumberHasClass(1, 'a')).toBe false
       expect(lineNumberHasClass(2, 'a')).toBe false
       expect(lineNumberHasClass(3, 'a')).toBe false
       expect(lineNumberHasClass(4, 'a')).toBe false
-      expect(marker.getSubscriptionCount('changed')).toBe 0
 
     it "removes decorations when their marker is invalidated", ->
       editor.getBuffer().insert([3, 2], 'n')

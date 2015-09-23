@@ -2,7 +2,6 @@ fs = require 'fs-plus'
 path = require 'path'
 KeymapManager = require 'atom-keymap'
 CSON = require 'season'
-Grim = require 'grim'
 
 bundledKeymaps = require('../package.json')?._atomKeymaps
 

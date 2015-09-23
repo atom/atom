@@ -1,6 +1,5 @@
 path = require 'path'
 {CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
 
 class PaneElement extends HTMLElement
   attached: false

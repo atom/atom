@@ -1,4 +1,4 @@
-{Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
@@ -6,13 +6,17 @@ PaneContainer = require '../src/pane-container'
 describe "Pane", ->
   deserializerDisposable = null
 
-  class Item extends Model
+  class Item
     @deserialize: ({name, uri}) -> new this(name, uri)
-    constructor: (@name, @uri) ->
+    constructor: (@name, @uri) -> @emitter = new Emitter
+    destroyed: false
     getURI: -> @uri
     getPath: -> @path
     serialize: -> {deserializer: 'Item', @name, @uri}
     isEqual: (other) -> @name is other?.name
+    onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
+    destroy: -> @destroyed = true; @emitter.emit('did-destroy')
+    isDestroyed: -> @destroyed
 
   beforeEach ->
     deserializerDisposable = atom.deserializers.add(Item)
@@ -728,12 +732,12 @@ describe "Pane", ->
       pane = new Pane(params)
 
     it "can serialize and deserialize the pane and all its items", ->
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.getItems()).toEqual pane.getItems()
 
     it "restores the active item on deserialization", ->
       pane.activateItemAtIndex(1)
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
 
     it "does not include items that cannot be deserialized", ->
@@ -741,11 +745,11 @@ describe "Pane", ->
       unserializable = {}
       pane.activateItem(unserializable)
 
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.getActiveItem()).toEqual pane.itemAtIndex(0)
       expect(newPane.getItems().length).toBe pane.getItems().length - 1
 
     it "includes the pane's focus state in the serialized state", ->
       pane.focus()
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.focused).toBe true
