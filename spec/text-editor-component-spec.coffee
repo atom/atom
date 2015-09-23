@@ -3461,7 +3461,8 @@ describe "TextEditorComponent", ->
 
         wrapperNode.setScrollTop(0)
         wrapperNode.scrollToCursorPosition(center: false)
-        expect(editor.getScrollBottom()).toBe (8 + editor.getVerticalScrollMargin()) * 10
+        expect(wrapperNode.getScrollTop()).toBe (7.8 - editor.getVerticalScrollMargin()) * 10
+        expect(wrapperNode.getScrollBottom()).toBe (9.3 + editor.getVerticalScrollMargin()) * 10
 
     describe "moving cursors", ->
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
