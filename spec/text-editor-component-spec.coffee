@@ -3393,6 +3393,19 @@ describe "TextEditorComponent", ->
     afterEach ->
       atom.themes.removeStylesheet("test")
 
+    describe "when selecting lines containing cursors", ->
+      it "autoscrolls to the selection", ->
+        editor.setCursorScreenPosition([5, 6])
+        nextAnimationFrame()
+
+        wrapperNode.scrollToTop()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+
+        editor.selectLinesContainingCursors()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+
     describe "moving cursors", ->
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
         expect(wrapperNode.getScrollTop()).toBe 0

@@ -1194,20 +1194,6 @@ describe "TextEditor", ->
           editor.selectLinesContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
 
-      it "autoscrolls to the selection", ->
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(50)
-        editor.setWidth(50)
-        editor.setHorizontalScrollbarHeight(0)
-        editor.setCursorScreenPosition([5, 6])
-
-        editor.scrollToTop()
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.selectLinesContainingCursors()
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
-
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
         editor.setCursorScreenPosition [0, 13]
