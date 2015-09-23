@@ -6,7 +6,7 @@ remote = require 'remote'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecate, includeDeprecatedAPIs} = require 'grim'
+{deprecate} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
@@ -32,22 +32,6 @@ class Atom extends Model
     startTime = Date.now()
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
-
-    if includeDeprecatedAPIs
-      serviceHubDeprecationMessage = """
-        atom.services is no longer available. To register service providers and
-        consumers, use the `providedServices` and `consumedServices` fields in
-        your package's package.json.
-      """
-
-      Object.defineProperty atom, 'services',
-        get: ->
-          deprecate(serviceHubDeprecationMessage)
-          atom.packages.serviceHub
-        set: (newValue) ->
-          deprecate(serviceHubDeprecationMessage)
-          atom.packages.serviceHub = newValue
-
     atom
 
   # Deserializes the Atom environment from a state object
@@ -196,7 +180,6 @@ class Atom extends Model
         @openDevTools()
         @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
-      @emit 'uncaught-error', arguments... if includeDeprecatedAPIs
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @disposables?.dispose()
@@ -235,10 +218,6 @@ class Atom extends Model
 
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
-
-    if includeDeprecatedAPIs
-      @keymap = @keymaps # Deprecated
-
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
     @notifications = new NotificationManager
@@ -252,14 +231,7 @@ class Atom extends Model
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
-
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
-
-    if includeDeprecatedAPIs
-      Object.defineProperty this, 'syntax', get: ->
-        deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
-        @grammars
-
     @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
@@ -484,10 +456,6 @@ class Atom extends Model
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
     @getCurrentWindow().isMaximized()
-
-  isMaximixed: ->
-    deprecate "Use atom.isMaximized() instead"
-    @isMaximized()
 
   maximize: ->
     ipc.send('call-window-method', 'maximize')
@@ -748,11 +716,9 @@ class Atom extends Model
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-
-    workspaceElement = @views.getView(@workspace)
-
     @deserializeTimings.workspace = Date.now() - startTime
 
+    workspaceElement = @views.getView(@workspace)
     @keymaps.defaultTarget = workspaceElement
     document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
@@ -877,12 +843,3 @@ class Atom extends Model
 Promise.prototype.done = (callback) ->
   deprecate("Atom now uses ES6 Promises instead of Q. Call promise.then instead of promise.done")
   @then(callback)
-
-if includeDeprecatedAPIs
-  # Deprecated: Callers should be converted to use atom.deserializers
-  Atom::registerRepresentationClass = ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
-  # Deprecated: Callers should be converted to use atom.deserializers
-  Atom::registerRepresentationClasses = ->
-    deprecate("Callers should be converted to use atom.deserializers")

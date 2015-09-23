@@ -1,5 +1,4 @@
 {CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
 _ = require 'underscore-plus'
 
 module.exports =

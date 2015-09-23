@@ -31,7 +31,7 @@ describe "TextEditor", ->
 
       runs ->
         fs.mkdirSync(pathToOpen)
-        expect(editor1.testSerialization()).toBeUndefined()
+        expect(TextEditor.deserialize(editor1.serialize())).toBeUndefined()
 
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = editor.testSerialization()
+      editor2 = TextEditor.deserialize(editor.serialize())
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -52,7 +52,7 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
-      editor2 = editor.testSerialization()
+      editor2 = TextEditor.deserialize(editor.serialize())
 
       expect(previousInvisibles).toBeDefined()
       expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
@@ -4786,18 +4786,6 @@ describe "TextEditor", ->
 
     beforeEach ->
       marker = editor.markBufferRange([[1, 0], [1, 0]])
-
-    it "casts 'gutter' type to 'line-number' unless a gutter name is specified.", ->
-      jasmine.snapshotDeprecations()
-
-      lineNumberDecoration = editor.decorateMarker(marker, {type: 'gutter'})
-      customGutterDecoration = editor.decorateMarker(marker, {type: 'gutter', gutterName: 'custom'})
-      expect(lineNumberDecoration.getProperties().type).toBe 'line-number'
-      expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
-      expect(customGutterDecoration.getProperties().type).toBe 'gutter'
-      expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
-
-      jasmine.restoreDeprecationsSnapshot()
 
     it 'reflects an added decoration when one of its custom gutters is decorated.', ->
       gutter = editor.addGutter {'name': 'custom-gutter'}

@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Grim = require 'grim'
 
 idCounter = 0
 nextId = -> idCounter++
@@ -82,7 +81,6 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -155,7 +153,6 @@ class Decoration
     @properties.id = @id
     if newProperties.type?
       @displayBuffer.decorationDidChangeType(this)
-    @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -175,34 +172,8 @@ class Decoration
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
-    @emit 'flash' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-flash'
 
   consumeNextFlash: ->
     return @flashQueue.shift() if @flashQueue?.length > 0
     null
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(Decoration)
-
-  Decoration::on = (eventName) ->
-    switch eventName
-      when 'updated'
-        Grim.deprecate 'Use Decoration::onDidChangeProperties instead'
-      when 'destroyed'
-        Grim.deprecate 'Use Decoration::onDidDestroy instead'
-      when 'flash'
-        Grim.deprecate 'Use Decoration::onDidFlash instead'
-      else
-        Grim.deprecate 'Decoration::on is deprecated. Use event subscription methods instead.'
-
-    EmitterMixin::on.apply(this, arguments)
-
-  Decoration::getParams = ->
-    Grim.deprecate 'Use Decoration::getProperties instead'
-    @getProperties()
-
-  Decoration::update = (newProperties) ->
-    Grim.deprecate 'Use Decoration::setProperties instead'
-    @setProperties(newProperties)

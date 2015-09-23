@@ -1,10 +1,7 @@
-{includeDeprecatedAPIs, deprecate} = require 'grim'
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
-Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
 fs = require 'fs-plus'
 DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
@@ -30,15 +27,22 @@ Task = require './task'
 module.exports =
 class Workspace extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
+
+  @deserialize: (state) ->
+    return unless state?
+
+    for packageName in state.packagesWithActiveGrammars ? []
+      atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
+
+    state.paneContainer = PaneContainer.deserialize(state.paneContainer)
+    new this(state)
 
   constructor: (params) ->
     super
 
-    unless Grim.includeDeprecatedAPIs
-      @paneContainer = params?.paneContainer
-      @fullScreen = params?.fullScreen ? false
-      @destroyedItemURIs = params?.destroyedItemURIs ? []
+    @paneContainer = params?.paneContainer
+    @fullScreen = params?.fullScreen ? false
+    @destroyedItemURIs = params?.destroyedItemURIs ? []
 
     @emitter = new Emitter
     @openers = []
@@ -84,16 +88,9 @@ class Workspace extends Model
 
     @subscribeToFontSize()
 
-  # Called by the Serializable mixin during deserialization
-  deserializeParams: (params) ->
-    for packageName in params.packagesWithActiveGrammars ? []
-      atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
-
-    params.paneContainer = PaneContainer.deserialize(params.paneContainer)
-    params
-
   # Called by the Serializable mixin during serialization.
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'Workspace'
     paneContainer: @paneContainer.serialize()
     fullScreen: atom.isFullScreen()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
@@ -120,7 +117,6 @@ class Workspace extends Model
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
-    @emit 'editor-created', editor if includeDeprecatedAPIs
 
   installShellCommands: ->
     require('./command-installer').installShellCommandsInteractively()
@@ -409,12 +405,6 @@ class Workspace extends Model
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     the containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
-    # TODO: Remove deprecated changeFocus option
-    if includeDeprecatedAPIs and options.changeFocus?
-      deprecate("The `changeFocus` option has been renamed to `activatePane`")
-      options.activatePane = options.changeFocus
-      delete options.changeFocus
-
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
 
@@ -430,12 +420,6 @@ class Workspace extends Model
     item
 
   openURIInPane: (uri, pane, options={}) ->
-    # TODO: Remove deprecated changeFocus option
-    if includeDeprecatedAPIs and options.changeFocus?
-      deprecate("The `changeFocus` option has been renamed to `activatePane`")
-      options.activatePane = options.changeFocus
-      delete options.changeFocus
-
     activatePane = options.activatePane ? true
 
     if uri?
@@ -475,7 +459,6 @@ class Workspace extends Model
           item.setCursorBufferPosition?([initialLine, initialColumn])
 
         index = pane.getActiveItemIndex()
-        @emit "uri-opened" if includeDeprecatedAPIs
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
 
@@ -515,24 +498,8 @@ class Workspace extends Model
   # {Workspace::open} on the URI `quux-preview://foo/bar/baz.quux`. Then your opener
   # can check the protocol for quux-preview and only handle those URIs that match.
   addOpener: (opener) ->
-    if includeDeprecatedAPIs
-      packageName = @getCallingPackageName()
-
-      wrappedOpener = (uri, options) ->
-        item = opener(uri, options)
-        if item? and typeof item.getUri is 'function' and typeof item.getURI isnt 'function'
-          Grim.deprecate("Pane item with class `#{item.constructor.name}` should implement `::getURI` instead of `::getUri`.", {packageName})
-        if item? and typeof item.on is 'function' and typeof item.onDidChangeTitle isnt 'function'
-          Grim.deprecate("If you would like your pane item with class `#{item.constructor.name}` to support title change behavior, please implement a `::onDidChangeTitle()` method. `::on` methods for items are no longer supported. If not, ignore this message.", {packageName})
-        if item? and typeof item.on is 'function' and typeof item.onDidChangeModified isnt 'function'
-          Grim.deprecate("If you would like your pane item with class `#{item.constructor.name}` to support modified behavior, please implement a `::onDidChangeModified()` method. If not, ignore this message. `::on` methods for items are no longer supported.", {packageName})
-        item
-
-      @openers.push(wrappedOpener)
-      new Disposable => _.remove(@openers, wrappedOpener)
-    else
-      @openers.push(opener)
-      new Disposable => _.remove(@openers, opener)
+    @openers.push(opener)
+    new Disposable => _.remove(@openers, opener)
 
   getOpeners: ->
     @openers
@@ -960,96 +927,3 @@ class Workspace extends Model
 
       inProcessFinished = true
       checkFinished()
-
-if includeDeprecatedAPIs
-  Workspace.properties
-    paneContainer: null
-    fullScreen: false
-    destroyedItemURIs: -> []
-
-  Object.defineProperty Workspace::, 'activePaneItem',
-    get: ->
-      Grim.deprecate "Use ::getActivePaneItem() instead of the ::activePaneItem property"
-      @getActivePaneItem()
-
-  Object.defineProperty Workspace::, 'activePane',
-    get: ->
-      Grim.deprecate "Use ::getActivePane() instead of the ::activePane property"
-      @getActivePane()
-
-  StackTraceParser = require 'stacktrace-parser'
-
-  Workspace::getCallingPackageName = ->
-    error = new Error
-    Error.captureStackTrace(error)
-    stack = StackTraceParser.parse(error.stack)
-
-    packagePaths = @getPackagePathsByPackageName()
-
-    for i in [0...stack.length]
-      stackFramePath = stack[i].file
-
-      # Empty when it was run from the dev console
-      return unless stackFramePath
-
-      for packageName, packagePath of packagePaths
-        continue if stackFramePath is 'node.js'
-        relativePath = path.relative(packagePath, stackFramePath)
-        return packageName unless /^\.\./.test(relativePath)
-    return
-
-  Workspace::getPackagePathsByPackageName = ->
-    packagePathsByPackageName = {}
-    for pack in atom.packages.getLoadedPackages()
-      packagePath = pack.path
-      if packagePath.indexOf('.atom/dev/packages') > -1 or packagePath.indexOf('.atom/packages') > -1
-        packagePath = fs.realpathSync(packagePath)
-      packagePathsByPackageName[pack.name] = packagePath
-    packagePathsByPackageName
-
-  Workspace::eachEditor = (callback) ->
-    deprecate("Use Workspace::observeTextEditors instead")
-
-    callback(editor) for editor in @getEditors()
-    @subscribe this, 'editor-created', (editor) -> callback(editor)
-
-  Workspace::getEditors = ->
-    deprecate("Use Workspace::getTextEditors instead")
-
-    editors = []
-    for pane in @paneContainer.getPanes()
-      editors.push(item) for item in pane.getItems() when item instanceof TextEditor
-
-    editors
-
-  Workspace::on = (eventName) ->
-    switch eventName
-      when 'editor-created'
-        deprecate("Use Workspace::onDidAddTextEditor or Workspace::observeTextEditors instead.")
-      when 'uri-opened'
-        deprecate("Use Workspace::onDidOpen or Workspace::onDidAddPaneItem instead. https://atom.io/docs/api/latest/Workspace#instance-onDidOpen")
-      else
-        deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
-  Workspace::reopenItemSync = ->
-    deprecate("Use Workspace::reopenItem instead")
-    if uri = @destroyedItemURIs.pop()
-      @openSync(uri)
-
-  Workspace::registerOpener = (opener) ->
-    Grim.deprecate("Call Workspace::addOpener instead")
-    @addOpener(opener)
-
-  Workspace::unregisterOpener = (opener) ->
-    Grim.deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
-    _.remove(@openers, opener)
-
-  Workspace::getActiveEditor = ->
-    Grim.deprecate "Call ::getActiveTextEditor instead"
-    @getActivePane()?.getActiveEditor()
-
-  Workspace::paneForUri = (uri) ->
-    deprecate("Use ::paneForURI instead.")
-    @paneForURI(uri)

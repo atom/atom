@@ -21,7 +21,7 @@ describe "PaneContainer", ->
     it "preserves the focused pane across serialization", ->
       expect(pane3A.focused).toBe true
 
-      containerB = containerA.testSerialization()
+      containerB = PaneContainer.deserialize(containerA.serialize())
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(pane3B.focused).toBe true
 
@@ -29,7 +29,7 @@ describe "PaneContainer", ->
       pane3A.activate()
       expect(containerA.getActivePane()).toBe pane3A
 
-      containerB = containerA.testSerialization()
+      containerB = PaneContainer.deserialize(containerA.serialize())
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(containerB.getActivePane()).toBe pane3B
 
