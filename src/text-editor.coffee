@@ -2264,7 +2264,7 @@ class TextEditor extends Model
     @consolidateSelections()
     @getLastSelection().clear(options)
 
-  # Reduce multiple selections to the first, original selection.
+  # Reduce multiple selections to the least recently added selection.
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1

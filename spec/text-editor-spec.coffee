@@ -1890,7 +1890,7 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
 
     describe ".consolidateSelections()", ->
-      it "destroys all selections until the first, original, selections returning true if any selections were destroyed", ->
+      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
         editor.setSelectedBufferRange([[3, 16], [3, 21]])
         selection1 = editor.getLastSelection()
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
