@@ -98,8 +98,6 @@ class DisplayBuffer extends Model
 
   copy: ->
     newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @largeFileMode})
-    newDisplayBuffer.setScrollTop(@getScrollTop())
-    newDisplayBuffer.setScrollLeft(@getScrollLeft())
 
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
@@ -1177,6 +1175,17 @@ class DisplayBuffer extends Model
       # this one. Only emit when the marker still exists.
       @emit 'marker-created', marker if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-create-marker', marker
+
+  # TODO: serialize state in TextEditorElement, rather than saving scroll
+  # positions here.
+
+  getScrollTop: -> @scrollTop
+
+  setScrollTop: (@scrollTop) ->
+
+  getScrollLeft: -> @scrollLeft
+
+  setScrollLeft: (@scrollLeft) ->
 
   decorateFold: (fold) ->
     @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
