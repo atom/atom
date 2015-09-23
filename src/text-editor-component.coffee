@@ -36,6 +36,12 @@ class TextEditorComponent
   mounted: true
   initialized: false
 
+  Object.defineProperty @prototype, "domNode",
+    get: -> @domNodeValue
+    set: (domNode) ->
+      atom.assert domNode?, "TextEditorComponent::domNode was set to null."
+      @domNodeValue = domNode
+
   constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
