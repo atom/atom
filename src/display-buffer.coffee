@@ -341,74 +341,9 @@ class DisplayBuffer extends Model
   getScrollWidth: ->
     @scrollWidth
 
-  # Returns an {Array} of two numbers representing the first and the last visible rows.
-  getVisibleRowRange: ->
-    return [0, 0] unless @getLineHeightInPixels() > 0
-
-    startRow = Math.floor(@getScrollTop() / @getLineHeightInPixels())
-    endRow = Math.ceil((@getScrollTop() + @getHeight()) / @getLineHeightInPixels()) - 1
-    endRow = Math.min(@getLineCount(), endRow)
-
-    [startRow, endRow]
-
-  getLogicalHeight: ->
-    Math.floor(@getHeight() / @getLineHeightInPixels())
-
-  intersectsVisibleRowRange: (startRow, endRow) ->
-    [visibleStart, visibleEnd] = @getVisibleRowRange()
-    not (endRow <= visibleStart or visibleEnd <= startRow)
-
-  selectionIntersectsVisibleRowRange: (selection) ->
-    {start, end} = selection.getScreenRange()
-    @intersectsVisibleRowRange(start.row, end.row + 1)
-
-  logicalScrollToScreenRange: (screenRange, options = {}) ->
+  scrollToScreenRange: (screenRange, options = {}) ->
     scrollEvent = {screenRange, options}
     @emitter.emit "did-change-scroll-position", scrollEvent
-
-  scrollToScreenRange: (screenRange, options) ->
-    @logicalScrollToScreenRange(screenRange, options)
-
-    verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
-    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
-
-    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
-    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
-    bottom = endTop + endHeight
-    right = endLeft
-
-    if options?.center
-      desiredScrollCenter = (top + bottom) / 2
-      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
-        desiredScrollTop =  desiredScrollCenter - @getHeight() / 2
-        desiredScrollBottom =  desiredScrollCenter + @getHeight() / 2
-    else
-      desiredScrollTop = top - verticalScrollMarginInPixels
-      desiredScrollBottom = bottom + verticalScrollMarginInPixels
-
-    desiredScrollLeft = left - horizontalScrollMarginInPixels
-    desiredScrollRight = right + horizontalScrollMarginInPixels
-
-    if options?.reversed ? true
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-
-      if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
-      if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
-    else
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-
-      if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
-      if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
 
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
