@@ -2132,6 +2132,12 @@ describe "TextEditorPresenter", ->
               expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 3, softWrapped: true}
               expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 4, softWrapped: false}
 
+              presenter.setContentFrameWidth(500)
+
+              expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false}
+              expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 5, softWrapped: false}
+              expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 6, softWrapped: false}
+
             describe ".decorationClasses", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
                 marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)

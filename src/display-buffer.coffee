@@ -198,13 +198,13 @@ class DisplayBuffer extends Model
   setVerticalScrollbarWidth: (@verticalScrollbarWidth) -> @verticalScrollbarWidth
 
   getHeight: ->
-    @height or 0
+    @height
 
   setHeight: (@height) ->
     @height
 
   getWidth: ->
-    @width or 0
+    @width
 
   setWidth: (newWidth) ->
     oldWidth = @width

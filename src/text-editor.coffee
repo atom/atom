@@ -554,6 +554,10 @@ class TextEditor extends Model
   setEditorWidthInChars: (editorWidthInChars) ->
     @displayBuffer.setEditorWidthInChars(editorWidthInChars)
 
+  # Returns the editor width in characters.
+  getEditorWidthInChars: ->
+    @displayBuffer.getEditorWidthInChars()
+
   ###
   Section: File Details
   ###

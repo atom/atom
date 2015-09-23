@@ -32,6 +32,7 @@ class TextEditorPresenter
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
     @transferMeasurementsToModel()
+    @transferMeasurementsFromModel()
     @observeModel()
     @observeConfig()
     @buildState()
@@ -52,6 +53,9 @@ class TextEditorPresenter
   transferMeasurementsToModel: ->
     @model.setLineHeightInPixels(@lineHeight) if @lineHeight?
     @model.setDefaultCharWidth(@baseCharacterWidth) if @baseCharacterWidth?
+
+  transferMeasurementsFromModel: ->
+    @editorWidthInChars = @model.getEditorWidthInChars()
 
   # Private: Determines whether {TextEditorPresenter} is currently batching changes.
   # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
@@ -677,7 +681,6 @@ class TextEditorPresenter
       @updateScrollHeight()
 
     if @contentWidth isnt oldContentWidth
-      @model.setWidth(Math.min(@clientWidth, @contentWidth))
       @updateScrollbarDimensions()
       @updateScrollWidth()
 
@@ -685,9 +688,10 @@ class TextEditorPresenter
     return unless @height? and @horizontalScrollbarHeight?
 
     clientHeight = @height - @horizontalScrollbarHeight
+    @model.setHeight(clientHeight)
+
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
-      @model.setHeight(@clientHeight)
       @updateScrollHeight()
       @updateScrollTop()
 
@@ -695,9 +699,10 @@ class TextEditorPresenter
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
 
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    @model.setWidth(clientWidth) unless @editorWidthInChars
+
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
-      @model.setWidth(Math.min(@clientWidth, @contentWidth))
       @updateScrollWidth()
       @updateScrollLeft()
 
@@ -941,9 +946,10 @@ class TextEditorPresenter
       @updateEndRow()
 
   setContentFrameWidth: (contentFrameWidth) ->
-    unless @contentFrameWidth is contentFrameWidth
+    if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
       oldContentFrameWidth = @contentFrameWidth
       @contentFrameWidth = contentFrameWidth
+      @editorWidthInChars = null
       @updateScrollbarDimensions()
       @updateClientWidth()
       @shouldUpdateVerticalScrollState = true
