@@ -1158,11 +1158,19 @@ class DisplayBuffer extends Model
 
   getScrollTop: -> @scrollTop
 
-  setScrollTop: (@scrollTop) ->
+  setScrollTop: (scrollTop) ->
+    unless scrollTop is @scrollTop
+      @scrollTop = scrollTop
+      @emitter.emit 'did-change-scroll-top', @scrollTop
+    @scrollTop
 
   getScrollLeft: -> @scrollLeft
 
-  setScrollLeft: (@scrollLeft) ->
+  setScrollLeft: (scrollLeft) ->
+    unless scrollLeft is @scrollLeft
+      @scrollLeft = scrollLeft
+      @emitter.emit 'did-change-scroll-left', @scrollLeft
+    @scrollLeft
 
   decorateFold: (fold) ->
     @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
