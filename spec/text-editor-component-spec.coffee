@@ -3393,6 +3393,25 @@ describe "TextEditorComponent", ->
     afterEach ->
       atom.themes.removeStylesheet("test")
 
+    describe "when selecting buffer ranges", ->
+      it "autoscrolls the selection if it is last unless the 'autoscroll' option is false", ->
+        expect(wrapperNode.getScrollTop()).toBe 0
+
+        editor.setSelectedBufferRange([[5, 6], [6, 8]])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+        expect(wrapperNode.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
+
+        editor.setSelectedBufferRange([[0, 0], [0, 0]])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        expect(wrapperNode.getScrollLeft()).toBe 0
+
+        editor.setSelectedBufferRange([[6, 6], [6, 8]])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+        expect(wrapperNode.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
+
     describe "when selecting lines containing cursors", ->
       it "autoscrolls to the selection", ->
         editor.setCursorScreenPosition([5, 6])
