@@ -3036,12 +3036,6 @@ class TextEditor extends Model
   getScrollHeight: -> @displayBuffer.getScrollHeight()
   getScrollWidth: -> @displayBuffer.getScrollWidth()
 
-  getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
-
-  intersectsVisibleRowRange: (startRow, endRow) -> @displayBuffer.intersectsVisibleRowRange(startRow, endRow)
-
-  selectionIntersectsVisibleRowRange: (selection) -> @displayBuffer.selectionIntersectsVisibleRowRange(selection)
-
   screenPositionForPixelPosition: (pixelPosition) -> @displayBuffer.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
