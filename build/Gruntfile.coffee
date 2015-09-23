@@ -23,7 +23,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-contrib-less')
   grunt.loadNpmTasks('grunt-shell')
-  grunt.loadNpmTasks('grunt-download-atom-shell')
+  grunt.loadNpmTasks('grunt-download-electron')
   grunt.loadNpmTasks('grunt-electron-installer')
   grunt.loadNpmTasks('grunt-peg')
   grunt.loadTasks('tasks')
@@ -31,19 +31,18 @@ module.exports = (grunt) ->
   # This allows all subsequent paths to the relative to the root of the repo
   grunt.file.setBase(path.resolve('..'))
 
-  if not grunt.option('verbose')
-    grunt.log.writeln = (args...) -> grunt.log
-    grunt.log.write = (args...) -> grunt.log
-
-  [major, minor, patch] = packageJson.version.split('.')
   tmpDir = os.tmpdir()
   appName = if process.platform is 'darwin' then 'Atom.app' else 'Atom'
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   buildDir = path.resolve(buildDir)
   installDir = grunt.option('install-dir')
 
+  channel = grunt.option('channel')
+  channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
+  channel ?= 'dev'
+
   home = if process.platform is 'win32' then process.env.USERPROFILE else process.env.HOME
-  atomShellDownloadDir = path.join(home, '.atom', 'atom-shell')
+  electronDownloadDir = path.join(home, '.atom', 'electron')
 
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
   shellAppDir = path.join(buildDir, appName)
@@ -100,7 +99,6 @@ module.exports = (grunt) ->
   prebuildLessConfig =
     src: [
       'static/**/*.less'
-      'node_modules/atom-space-pen-views/stylesheets/**/*.less'
     ]
 
   csonConfig =
@@ -157,7 +155,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
-    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir}
+    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir, channel}
 
     docsOutputDir: 'docs/output'
 
@@ -225,11 +223,11 @@ module.exports = (grunt) ->
         'static/**/*.less'
       ]
 
-    'download-atom-shell':
-      version: packageJson.atomShellVersion
-      outputDir: 'atom-shell'
-      downloadDir: atomShellDownloadDir
-      rebuild: true  # rebuild native modules after atom-shell is updated
+    'download-electron':
+      version: packageJson.electronVersion
+      outputDir: 'electron'
+      downloadDir: electronDownloadDir
+      rebuild: true  # rebuild native modules after electron is updated
       token: process.env.ATOM_ACCESS_TOKEN
 
     'create-windows-installer':
@@ -238,8 +236,8 @@ module.exports = (grunt) ->
         outputDirectory: path.join(buildDir, 'installer')
         authors: 'GitHub Inc.'
         loadingGif: path.resolve(__dirname, '..', 'resources', 'win', 'loading.gif')
-        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/win/atom.ico'
-        setupIcon: path.resolve(__dirname, '..', 'resources', 'win', 'atom.ico')
+        iconUrl: 'https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/stable/atom.ico'
+        setupIcon: path.resolve(__dirname, '..', 'resources', 'app-icons', 'stable', 'atom.ico')
         remoteReleases: 'https://atom.io/api/updates'
 
     shell:
@@ -254,7 +252,7 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['standard', 'coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
-  ciTasks = ['output-disk-space', 'download-atom-shell', 'download-atom-shell-chromedriver', 'build']
+  ciTasks = ['output-disk-space', 'download-electron', 'download-electron-chromedriver', 'build']
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
@@ -266,6 +264,7 @@ module.exports = (grunt) ->
   ciTasks.push('publish-build') unless process.env.TRAVIS
   grunt.registerTask('ci', ciTasks)
 
-  defaultTasks = ['download-atom-shell', 'download-atom-shell-chromedriver', 'build', 'set-version', 'generate-asar']
-  defaultTasks.push 'install' unless process.platform is 'linux'
+  defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
+  unless process.platform is 'linux' or grunt.option('no-install')
+    defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)

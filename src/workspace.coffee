@@ -2,7 +2,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
 {join} = path
-Q = require 'q'
 Serializable = require 'serializable'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
@@ -448,17 +447,17 @@ class Workspace extends Model
     catch error
       switch error.code
         when 'CANCELLED'
-          return Q()
+          return Promise.resolve()
         when 'EACCES'
           atom.notifications.addWarning("Permission denied '#{error.path}'")
-          return Q()
+          return Promise.resolve()
         when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL'
           atom.notifications.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
-          return Q()
+          return Promise.resolve()
         else
           throw error
 
-    Q(item)
+    Promise.resolve(item)
       .then (item) =>
         if not pane
           pane = new Pane(items: [item])
@@ -488,7 +487,7 @@ class Workspace extends Model
     if uri = @destroyedItemURIs.pop()
       @open(uri)
     else
-      Q()
+      Promise.resolve()
 
   # Public: Register an opener for a uri.
   #
@@ -506,6 +505,15 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # opener.
+  #
+  # Note that the opener will be called if and only if the URI is not already open
+  # in the current pane. The searchAllPanes flag expands the search from the
+  # current pane to all panes. If you wish to open a view of a different type for
+  # a file that is already open, consider changing the protocol of the URI. For
+  # example, perhaps you wish to preview a rendered version of the file `/foo/bar/baz.quux`
+  # that is already open in a text editor view. You could signal this by calling
+  # {Workspace::open} on the URI `quux-preview://foo/bar/baz.quux`. Then your opener
+  # can check the protocol for quux-preview and only handle those URIs that match.
   addOpener: (opener) ->
     if includeDeprecatedAPIs
       packageName = @getCallingPackageName()
@@ -895,7 +903,12 @@ class Workspace extends Model
           resolve('cancelled')
         else
           resolve(null)
-      searchPromise.then(onSuccess, reject)
+
+      onFailure = ->
+        promise.cancel() for promise in allSearches
+        reject()
+
+      searchPromise.then(onSuccess, onFailure)
     cancellablePromise.cancel = ->
       isCancelled = true
       # Note that cancelling all of the members of allSearches will cause all of the searches
@@ -920,36 +933,33 @@ class Workspace extends Model
   #
   # Returns a `Promise`.
   replace: (regex, replacementText, filePaths, iterator) ->
-    deferred = Q.defer()
+    new Promise (resolve, reject) ->
+      openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
+      outOfProcessPaths = _.difference(filePaths, openPaths)
 
-    openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
-    outOfProcessPaths = _.difference(filePaths, openPaths)
+      inProcessFinished = not openPaths.length
+      outOfProcessFinished = not outOfProcessPaths.length
+      checkFinished = ->
+        resolve() if outOfProcessFinished and inProcessFinished
 
-    inProcessFinished = not openPaths.length
-    outOfProcessFinished = not outOfProcessPaths.length
-    checkFinished = ->
-      deferred.resolve() if outOfProcessFinished and inProcessFinished
+      unless outOfProcessFinished.length
+        flags = 'g'
+        flags += 'i' if regex.ignoreCase
 
-    unless outOfProcessFinished.length
-      flags = 'g'
-      flags += 'i' if regex.ignoreCase
+        task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
+          outOfProcessFinished = true
+          checkFinished()
 
-      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
-        outOfProcessFinished = true
-        checkFinished()
+        task.on 'replace:path-replaced', iterator
+        task.on 'replace:file-error', (error) -> iterator(null, error)
 
-      task.on 'replace:path-replaced', iterator
-      task.on 'replace:file-error', (error) -> iterator(null, error)
+      for buffer in atom.project.getBuffers()
+        continue unless buffer.getPath() in filePaths
+        replacements = buffer.replace(regex, replacementText, iterator)
+        iterator({filePath: buffer.getPath(), replacements}) if replacements
 
-    for buffer in atom.project.getBuffers()
-      continue unless buffer.getPath() in filePaths
-      replacements = buffer.replace(regex, replacementText, iterator)
-      iterator({filePath: buffer.getPath(), replacements}) if replacements
-
-    inProcessFinished = true
-    checkFinished()
-
-    deferred.promise
+      inProcessFinished = true
+      checkFinished()
 
 if includeDeprecatedAPIs
   Workspace.properties

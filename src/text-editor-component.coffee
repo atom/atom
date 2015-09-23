@@ -12,6 +12,7 @@ LinesComponent = require './lines-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
+DOMElementPool = require './dom-element-pool'
 
 module.exports =
 class TextEditorComponent
@@ -26,8 +27,6 @@ class TextEditorComponent
   updatesPaused: false
   updateRequestedWhilePaused: false
   heightAndWidthMeasurementRequested: false
-  cursorMoved: false
-  selectionChanged: false
   inputEnabled: true
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
@@ -54,6 +53,8 @@ class TextEditorComponent
 
     @presenter.onDidUpdateState(@requestUpdate)
 
+    @domElementPool = new DOMElementPool
+
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
@@ -75,7 +76,7 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -107,6 +108,7 @@ class TextEditorComponent
     @disposables.dispose()
     @presenter.destroy()
     @gutterContainerComponent?.destroy()
+    @domElementPool.clear()
 
   getDomNode: ->
     @domNode
@@ -114,11 +116,6 @@ class TextEditorComponent
   updateSync: ->
     @oldState ?= {}
     @newState = @presenter.getState()
-
-    cursorMoved = @cursorMoved
-    selectionChanged = @selectionChanged
-    @cursorMoved = false
-    @selectionChanged = false
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
@@ -152,20 +149,20 @@ class TextEditorComponent
 
     @overlayManager?.render(@newState)
 
+    if @clearPoolAfterUpdate
+      @domElementPool.clear()
+      @clearPoolAfterUpdate = false
+
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
-      if grim.includeDeprecatedAPIs
-        @hostElement.__spacePenView.trigger 'cursor:moved' if cursorMoved
-        @hostElement.__spacePenView.trigger 'selection:changed' if selectionChanged
-        @hostElement.__spacePenView.trigger 'editor:display-updated'
 
   readAfterUpdateSync: =>
     @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
     @overlayManager?.measureOverlays()
 
   mountGutterContainerComponent: ->
-    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown})
+    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool})
     @domNode.insertBefore(@gutterContainerComponent.getDomNode(), @domNode.firstChild)
 
   becameVisible: ->
@@ -215,8 +212,6 @@ class TextEditorComponent
 
   observeEditor: ->
     @disposables.add @editor.observeGrammar(@onGrammarChanged)
-    @disposables.add @editor.observeCursors(@onCursorAdded)
-    @disposables.add @editor.observeSelections(@onSelectionAdded)
 
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
@@ -482,29 +477,6 @@ class TextEditorComponent
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
 
-  onSelectionAdded: (selection) =>
-    selectionDisposables = new CompositeDisposable
-    selectionDisposables.add selection.onDidChangeRange => @onSelectionChanged(selection)
-    selectionDisposables.add selection.onDidDestroy =>
-      @onSelectionChanged(selection)
-      selectionDisposables.dispose()
-      @disposables.remove(selectionDisposables)
-
-    @disposables.add(selectionDisposables)
-
-    if @editor.selectionIntersectsVisibleRowRange(selection)
-      @selectionChanged = true
-
-  onSelectionChanged: (selection) =>
-    if @editor.selectionIntersectsVisibleRowRange(selection)
-      @selectionChanged = true
-
-  onCursorAdded: (cursor) =>
-    @disposables.add cursor.onDidChangePosition @onCursorMoved
-
-  onCursorMoved: =>
-    @cursorMoved = true
-
   handleDragUntilMouseUp: (dragHandler) =>
     dragging = false
     lastMousePosition = {}
@@ -545,20 +517,24 @@ class TextEditorComponent
       disposables.dispose()
 
     autoscroll = (mouseClientPosition) =>
-      editorClientRect = @domNode.getBoundingClientRect()
+      {top, bottom, left, right} = @scrollViewNode.getBoundingClientRect()
+      top += 30
+      bottom -= 30
+      left += 30
+      right -= 30
 
-      if mouseClientPosition.clientY < editorClientRect.top
-        mouseYDelta = editorClientRect.top - mouseClientPosition.clientY
+      if mouseClientPosition.clientY < top
+        mouseYDelta = top - mouseClientPosition.clientY
         yDirection = -1
-      else if mouseClientPosition.clientY > editorClientRect.bottom
-        mouseYDelta = mouseClientPosition.clientY - editorClientRect.bottom
+      else if mouseClientPosition.clientY > bottom
+        mouseYDelta = mouseClientPosition.clientY - bottom
         yDirection = 1
 
-      if mouseClientPosition.clientX < editorClientRect.left
-        mouseXDelta = editorClientRect.left - mouseClientPosition.clientX
+      if mouseClientPosition.clientX < left
+        mouseXDelta = left - mouseClientPosition.clientX
         xDirection = -1
-      else if mouseClientPosition.clientX > editorClientRect.right
-        mouseXDelta = mouseClientPosition.clientX - editorClientRect.right
+      else if mouseClientPosition.clientX > right
+        mouseXDelta = mouseClientPosition.clientX - right
         xDirection = 1
 
       if mouseYDelta?
@@ -578,7 +554,7 @@ class TextEditorComponent
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
     disposables = new CompositeDisposable
-    disposables.add(@editor.onWillInsertText(onMouseUp))
+    disposables.add(@editor.getBuffer().onWillChange(onMouseUp))
     disposables.add(@editor.onDidDestroy(stopDragging))
 
   isVisible: ->
@@ -645,6 +621,7 @@ class TextEditorComponent
     {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
+      @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
@@ -745,6 +722,13 @@ class TextEditorComponent
 
     tileComponent?.lineNumberNodeForScreenRow(screenRow)
 
+  tileNodesForLines: ->
+    @linesComponent.getTiles()
+
+  tileNodesForLineNumbers: ->
+    gutterComponent = @gutterContainerComponent.getLineNumberGutterComponent()
+    gutterComponent.getTiles()
+
   screenRowForNode: (node) ->
     while node?
       if screenRow = node.dataset.screenRow
@@ -798,6 +782,9 @@ class TextEditorComponent
   isInputEnabled: -> @inputEnabled
 
   setInputEnabled: (@inputEnabled) -> @inputEnabled
+
+  setContinuousReflow: (continuousReflow) ->
+    @presenter.setContinuousReflow(continuousReflow)
 
   updateParentViewFocusedClassIfNeeded: ->
     if @oldState.focused isnt @newState.focused

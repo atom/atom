@@ -11,6 +11,7 @@ class TextEditorPresenter
   mouseWheelScreenRow: null
   scopedCharacterWidthsChangeCount: 0
   overlayDimensions: {}
+  minimumReflowInterval: 200
 
   constructor: (params) ->
     {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
@@ -20,7 +21,7 @@ class TextEditorPresenter
     @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
-    @tileSize ?= 12
+    @tileSize ?= 6
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -35,6 +36,7 @@ class TextEditorPresenter
     @observeConfig()
     @buildState()
     @startBlinkingCursors() if @focused
+    @startReflowing() if @continuousReflow
     @updating = false
 
   destroy: ->
@@ -72,6 +74,7 @@ class TextEditorPresenter
     @updateStartRow()
     @updateEndRow()
     @updateCommonGutterState()
+    @updateReflowState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -253,6 +256,23 @@ class TextEditorPresenter
     @updateCustomGutterDecorationState()
 
     @resetTrackedUpdates()
+
+  setContinuousReflow: (@continuousReflow) ->
+    if @continuousReflow
+      @startReflowing()
+    else
+      @stopReflowing()
+
+  updateReflowState: ->
+    @state.content.continuousReflow = @continuousReflow
+    @lineNumberGutter.continuousReflow = @continuousReflow
+
+  startReflowing: ->
+    @reflowingInterval = setInterval(@emitDidUpdateState.bind(this), @minimumReflowInterval)
+
+  stopReflowing: ->
+    clearInterval(@reflowingInterval)
+    @reflowingInterval = null
 
   updateFocusedState: ->
     @state.focused = @focused
@@ -527,7 +547,7 @@ class TextEditorPresenter
   #     decoration.id : {
   #       top: # of pixels from top
   #       height: # of pixels height of this decoration
-  #       item (optional): HTMLElement or space-pen View
+  #       item (optional): HTMLElement
   #       class (optional): {String} class
   #     }
   #   }
@@ -584,22 +604,15 @@ class TextEditorPresenter
     if startRow > 0
       rowBeforeStartRow = startRow - 1
       lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
-      wrapCount = rowBeforeStartRow - @model.screenRowForBufferRow(lastBufferRow)
     else
       lastBufferRow = null
-      wrapCount = 0
 
     if endRow > startRow
       bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
-      zIndex = bufferRows.length - 1
       for bufferRow, i in bufferRows
         if bufferRow is lastBufferRow
-          wrapCount++
-          id = bufferRow + '-' + wrapCount
           softWrapped = true
         else
-          id = bufferRow
-          wrapCount = 0
           lastBufferRow = bufferRow
           softWrapped = false
 
@@ -607,10 +620,10 @@ class TextEditorPresenter
         top = (screenRow - startRow) * @lineHeight
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
+        id = @model.tokenizedLineForScreenRow(screenRow).id
 
-        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable, zIndex}
+        tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, top, decorationClasses, foldable}
         visibleLineNumberIds[id] = true
-        zIndex--
 
     for id of tileState.lineNumbers
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]

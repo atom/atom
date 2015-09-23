@@ -1,6 +1,4 @@
 path = require 'path'
-
-{$, $$} = require '../src/space-pen-extensions'
 fs = require 'fs-plus'
 temp = require 'temp'
 
@@ -26,19 +24,20 @@ describe "ThemeManager", ->
     afterEach ->
       jasmine.restoreDeprecationsSnapshot()
 
-    it 'getLoadedThemes get all the loaded themes', ->
-      themes = themeManager.getLoadedThemes()
-      expect(themes.length).toBeGreaterThan(2)
+    describe 'getLoadedThemes', ->
+      it 'gets all the loaded themes', ->
+        themes = themeManager.getLoadedThemes()
+        expect(themes.length).toBeGreaterThan(2)
 
-    it 'getActiveThemes get all the active themes', ->
-      waitsForPromise ->
-        themeManager.activateThemes()
+    describe "getActiveThemes", ->
+      it 'gets all the active themes', ->
+        waitsForPromise -> themeManager.activateThemes()
 
-      runs ->
-        names = atom.config.get('core.themes')
-        expect(names.length).toBeGreaterThan(0)
-        themes = themeManager.getActiveThemes()
-        expect(themes).toHaveLength(names.length)
+        runs ->
+          names = atom.config.get('core.themes')
+          expect(names.length).toBeGreaterThan(0)
+          themes = themeManager.getActiveThemes()
+          expect(themes).toHaveLength(names.length)
 
   describe "when the core.themes config value contains invalid entry", ->
     it "ignores theme", ->
@@ -88,7 +87,7 @@ describe "ThemeManager", ->
 
       runs ->
         didChangeActiveThemesHandler.reset()
-        expect($('style.theme')).toHaveLength 0
+        expect(document.querySelectorAll('style.theme')).toHaveLength 0
         atom.config.set('core.themes', ['atom-dark-ui'])
 
       waitsFor ->
@@ -96,8 +95,8 @@ describe "ThemeManager", ->
 
       runs ->
         didChangeActiveThemesHandler.reset()
-        expect($('style[priority=1]')).toHaveLength 2
-        expect($('style[priority=1]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
+        expect(document.querySelectorAll('style[priority="1"]')).toHaveLength 2
+        expect(document.querySelector('style[priority="1"]').getAttribute('source-path')).toMatch /atom-dark-ui/
         atom.config.set('core.themes', ['atom-light-ui', 'atom-dark-ui'])
 
       waitsFor ->
@@ -105,9 +104,9 @@ describe "ThemeManager", ->
 
       runs ->
         didChangeActiveThemesHandler.reset()
-        expect($('style[priority=1]')).toHaveLength 2
-        expect($('style[priority=1]:eq(0)').attr('source-path')).toMatch /atom-dark-ui/
-        expect($('style[priority=1]:eq(1)').attr('source-path')).toMatch /atom-light-ui/
+        expect(document.querySelectorAll('style[priority="1"]')).toHaveLength 2
+        expect(document.querySelectorAll('style[priority="1"]')[0].getAttribute('source-path')).toMatch /atom-dark-ui/
+        expect(document.querySelectorAll('style[priority="1"]')[1].getAttribute('source-path')).toMatch /atom-light-ui/
         atom.config.set('core.themes', [])
 
       waitsFor ->
@@ -115,7 +114,7 @@ describe "ThemeManager", ->
 
       runs ->
         didChangeActiveThemesHandler.reset()
-        expect($('style[priority=1]')).toHaveLength 2
+        expect(document.querySelectorAll('style[priority="1"]')).toHaveLength 2
         # atom-dark-ui has an directory path, the syntax one doesn't
         atom.config.set('core.themes', ['theme-with-index-less', 'atom-dark-ui'])
 
@@ -123,7 +122,7 @@ describe "ThemeManager", ->
         didChangeActiveThemesHandler.callCount is 1
 
       runs ->
-        expect($('style[priority=1]')).toHaveLength 2
+        expect(document.querySelectorAll('style[priority="1"]')).toHaveLength 2
         importPaths = themeManager.getImportPaths()
         expect(importPaths.length).toBe 1
         expect(importPaths[0]).toContain 'atom-dark-ui'
@@ -172,37 +171,38 @@ describe "ThemeManager", ->
       themeManager.onDidAddStylesheet stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
 
       cssPath = atom.project.getDirectories()[0]?.resolve('css.css')
-      lengthBefore = $('head style').length
+      lengthBefore = document.querySelectorAll('head style').length
 
       themeManager.requireStylesheet(cssPath)
-      expect($('head style').length).toBe lengthBefore + 1
+      expect(document.querySelectorAll('head style').length).toBe lengthBefore + 1
 
       expect(styleElementAddedHandler).toHaveBeenCalled()
       expect(stylesheetAddedHandler).toHaveBeenCalled()
       expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
-      element = $('head style[source-path*="css.css"]')
-      expect(element.attr('source-path')).toBe themeManager.stringToId(cssPath)
-      expect(element.text()).toBe fs.readFileSync(cssPath, 'utf8')
-      expect(element[0].sheet).toBe stylesheetAddedHandler.argsForCall[0][0]
+      element = document.querySelector('head style[source-path*="css.css"]')
+      expect(element.getAttribute('source-path')).toBe themeManager.stringToId(cssPath)
+      expect(element.textContent).toBe fs.readFileSync(cssPath, 'utf8')
+      expect(element.sheet).toBe stylesheetAddedHandler.argsForCall[0][0]
 
       # doesn't append twice
       styleElementAddedHandler.reset()
       themeManager.requireStylesheet(cssPath)
-      expect($('head style').length).toBe lengthBefore + 1
+      expect(document.querySelectorAll('head style').length).toBe lengthBefore + 1
       expect(styleElementAddedHandler).not.toHaveBeenCalled()
 
-      $('head style[id*="css.css"]').remove()
+      for styleElement in document.querySelectorAll('head style[id*="css.css"]')
+        styleElement.remove()
 
     it "synchronously loads and parses less files at the given path and installs a style tag for it in the head", ->
       lessPath = atom.project.getDirectories()[0]?.resolve('sample.less')
-      lengthBefore = $('head style').length
+      lengthBefore = document.querySelectorAll('head style').length
       themeManager.requireStylesheet(lessPath)
-      expect($('head style').length).toBe lengthBefore + 1
+      expect(document.querySelectorAll('head style').length).toBe lengthBefore + 1
 
-      element = $('head style[source-path*="sample.less"]')
-      expect(element.attr('source-path')).toBe themeManager.stringToId(lessPath)
-      expect(element.text()).toBe """
+      element = document.querySelector('head style[source-path*="sample.less"]')
+      expect(element.getAttribute('source-path')).toBe themeManager.stringToId(lessPath)
+      expect(element.textContent).toBe """
       #header {
         color: #4d926f;
       }
@@ -214,24 +214,25 @@ describe "ThemeManager", ->
 
       # doesn't append twice
       themeManager.requireStylesheet(lessPath)
-      expect($('head style').length).toBe lengthBefore + 1
-      $('head style[id*="sample.less"]').remove()
+      expect(document.querySelectorAll('head style').length).toBe lengthBefore + 1
+      for styleElement in document.querySelectorAll('head style[id*="sample.less"]')
+        styleElement.remove()
 
     it "supports requiring css and less stylesheets without an explicit extension", ->
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'css')
-      expect($('head style[source-path*="css.css"]').attr('source-path')).toBe themeManager.stringToId(atom.project.getDirectories()[0]?.resolve('css.css'))
+      expect(document.querySelector('head style[source-path*="css.css"]').getAttribute('source-path')).toBe themeManager.stringToId(atom.project.getDirectories()[0]?.resolve('css.css'))
       themeManager.requireStylesheet path.join(__dirname, 'fixtures', 'sample')
-      expect($('head style[source-path*="sample.less"]').attr('source-path')).toBe themeManager.stringToId(atom.project.getDirectories()[0]?.resolve('sample.less'))
+      expect(document.querySelector('head style[source-path*="sample.less"]').getAttribute('source-path')).toBe themeManager.stringToId(atom.project.getDirectories()[0]?.resolve('sample.less'))
 
-      $('head style[id*="css.css"]').remove()
-      $('head style[id*="sample.less"]').remove()
+      document.querySelector('head style[source-path*="css.css"]').remove()
+      document.querySelector('head style[source-path*="sample.less"]').remove()
 
     it "returns a disposable allowing styles applied by the given path to be removed", ->
       cssPath = require.resolve('./fixtures/css.css')
 
-      expect($(document.body).css('font-weight')).not.toBe("bold")
+      expect(getComputedStyle(document.body).fontWeight).not.toBe("bold")
       disposable = themeManager.requireStylesheet(cssPath)
-      expect($(document.body).css('font-weight')).toBe("bold")
+      expect(getComputedStyle(document.body).fontWeight).toBe("bold")
 
       atom.styles.onDidRemoveStyleElement styleElementRemovedHandler = jasmine.createSpy("styleElementRemovedHandler")
       themeManager.onDidRemoveStylesheet stylesheetRemovedHandler = jasmine.createSpy("stylesheetRemovedHandler")
@@ -239,7 +240,7 @@ describe "ThemeManager", ->
 
       disposable.dispose()
 
-      expect($(document.body).css('font-weight')).not.toBe("bold")
+      expect(getComputedStyle(document.body).fontWeight).not.toBe("bold")
 
       expect(styleElementRemovedHandler).toHaveBeenCalled()
       expect(stylesheetRemovedHandler).toHaveBeenCalled()
@@ -271,9 +272,9 @@ describe "ThemeManager", ->
         expect(getComputedStyle(workspaceElement)["background-color"]).toBe "rgb(0, 0, 255)"
 
         # from within the theme itself
-        expect($("atom-text-editor").css("padding-top")).toBe "150px"
-        expect($("atom-text-editor").css("padding-right")).toBe "150px"
-        expect($("atom-text-editor").css("padding-bottom")).toBe "150px"
+        expect(getComputedStyle(document.querySelector("atom-text-editor")).paddingTop).toBe "150px"
+        expect(getComputedStyle(document.querySelector("atom-text-editor")).paddingRight).toBe "150px"
+        expect(getComputedStyle(document.querySelector("atom-text-editor")).paddingBottom).toBe "150px"
 
     describe "when there is a theme with incomplete variables", ->
       it "loads the correct values from the fallback ui-variables", ->
@@ -288,7 +289,7 @@ describe "ThemeManager", ->
           expect(getComputedStyle(workspaceElement)["background-color"]).toBe "rgb(0, 0, 255)"
 
           # from within the theme itself
-          expect($("atom-text-editor").css("background-color")).toBe "rgb(0, 152, 255)"
+          expect(getComputedStyle(document.querySelector("atom-text-editor")).backgroundColor).toBe "rgb(0, 152, 255)"
 
   describe "user stylesheet", ->
     userStylesheetPath = null
@@ -320,14 +321,14 @@ describe "ThemeManager", ->
           themeManager.onDidAddStylesheet stylesheetAddedHandler = jasmine.createSpy("stylesheetAddedHandler")
           spyOn(themeManager, 'loadUserStylesheet').andCallThrough()
 
-          expect($(document.body).css('border-style')).toBe 'dotted'
+          expect(getComputedStyle(document.body).borderStyle).toBe 'dotted'
           fs.writeFileSync(userStylesheetPath, 'body {border-style: dashed}')
 
         waitsFor ->
           themeManager.loadUserStylesheet.callCount is 1
 
         runs ->
-          expect($(document.body).css('border-style')).toBe 'dashed'
+          expect(getComputedStyle(document.body).borderStyle).toBe 'dashed'
 
           expect(styleElementRemovedHandler).toHaveBeenCalled()
           expect(styleElementRemovedHandler.argsForCall[0][0].textContent).toContain 'dotted'
@@ -354,7 +355,7 @@ describe "ThemeManager", ->
           expect(styleElementRemovedHandler.argsForCall[0][0].textContent).toContain 'dashed'
           expect(stylesheetRemovedHandler).toHaveBeenCalled()
           expect(stylesheetRemovedHandler.argsForCall[0][0].cssRules[0].style.border).toBe 'dashed'
-          expect($(document.body).css('border-style')).toBe 'none'
+          expect(getComputedStyle(document.body).borderStyle).toBe 'none'
           expect(stylesheetsChangedHandler).toHaveBeenCalled()
 
     describe "when there is an error reading the stylesheet", ->

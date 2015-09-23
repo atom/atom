@@ -1,12 +1,11 @@
 _ = require 'underscore-plus'
 {extend, flatten, toArray, last} = _
 
-TextEditorView = require '../src/text-editor-view'
-TextEditorComponent = require '../src/text-editor-component'
+TextEditorElement = require '../src/text-editor-element'
 nbsp = String.fromCharCode(160)
 
 describe "TextEditorComponent", ->
-  [contentNode, editor, wrapperView, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
+  [contentNode, editor, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, tileSize, tileHeightInPixels] = []
 
   beforeEach ->
@@ -34,12 +33,13 @@ describe "TextEditorComponent", ->
       contentNode = document.querySelector('#jasmine-content')
       contentNode.style.width = '1000px'
 
-      wrapperView = new TextEditorView(editor, {tileSize})
-      wrapperView.attachToDom()
-      wrapperNode = wrapperView.element
+      wrapperNode = new TextEditorElement()
+      wrapperNode.tileSize = tileSize
+      wrapperNode.initialize(editor)
       wrapperNode.setUpdatedSynchronously(false)
+      jasmine.attachToDOM(wrapperNode)
 
-      {component} = wrapperView
+      {component} = wrapperNode
       component.setFontFamily('monospace')
       component.setLineHeight(1.3)
       component.setFontSize(20)
@@ -108,7 +108,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style.zIndex).toBe("2")
       expect(tilesNodes[1].style.zIndex).toBe("1")
@@ -118,7 +118,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style.zIndex).toBe("3")
       expect(tilesNodes[1].style.zIndex).toBe("2")
@@ -130,7 +130,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes.length).toBe(3)
 
@@ -158,7 +158,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(component.lineNodeForScreenRow(2)).toBeUndefined()
       expect(tilesNodes.length).toBe(3)
@@ -187,7 +187,7 @@ describe "TextEditorComponent", ->
       editor.getBuffer().deleteRows(0, 1)
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expectTileContainsRow(tilesNodes[0], 0, top: 0 * lineHeightInPixels)
@@ -202,7 +202,7 @@ describe "TextEditorComponent", ->
       editor.getBuffer().insert([0, 0], '\n\n')
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
       expectTileContainsRow(tilesNodes[0], 0, top: 0 * lineHeightInPixels)
@@ -294,7 +294,7 @@ describe "TextEditorComponent", ->
       editorFullWidth = editor.getScrollWidth() + editor.getVerticalScrollbarWidth()
 
       for lineNode in lineNodes
-        expect(lineNode.style.width).toBe editorFullWidth + 'px'
+        expect(lineNode.getBoundingClientRect().width).toBe(editorFullWidth)
 
       componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
       component.measureDimensions()
@@ -302,7 +302,7 @@ describe "TextEditorComponent", ->
       scrollViewWidth = scrollViewNode.offsetWidth
 
       for lineNode in lineNodes
-        expect(lineNode.style.width).toBe scrollViewWidth + 'px'
+        expect(lineNode.getBoundingClientRect().width).toBe(scrollViewWidth)
 
     it "renders an nbsp on empty lines when no line-ending character is defined", ->
       atom.config.set("editor.showInvisibles", false)
@@ -313,7 +313,7 @@ describe "TextEditorComponent", ->
       backgroundColor = getComputedStyle(wrapperNode).backgroundColor
       expect(linesNode.style.backgroundColor).toBe backgroundColor
 
-      for tileNode in linesNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLines()
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
@@ -322,7 +322,7 @@ describe "TextEditorComponent", ->
       advanceClock(atom.views.documentPollingInterval)
       nextAnimationFrame()
       expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
-      for tileNode in linesNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLines()
         expect(tileNode.style.backgroundColor).toBe("rgb(255, 0, 0)")
 
 
@@ -369,6 +369,24 @@ describe "TextEditorComponent", ->
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
       expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe true
       expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
+
+    it "keeps rebuilding lines when continuous reflow is on", ->
+      wrapperNode.setContinuousReflow(true)
+
+      oldLineNodes = componentNode.querySelectorAll(".line")
+
+      advanceClock(10)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
+
+      advanceClock(component.presenter.minimumReflowInterval - 10)
+      nextAnimationFrame()
+
+      newLineNodes = componentNode.querySelectorAll(".line")
+      expect(oldLineNodes).not.toEqual(newLineNodes)
+
+      wrapperNode.setContinuousReflow(false)
+      advanceClock(component.presenter.minimumReflowInterval)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
 
     describe "when showInvisibles is enabled", ->
       invisibles = null
@@ -606,7 +624,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(tilesNodes[0].style.zIndex).toBe("2")
       expect(tilesNodes[1].style.zIndex).toBe("1")
@@ -616,32 +634,12 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(tilesNodes[0].style.zIndex).toBe("3")
       expect(tilesNodes[1].style.zIndex).toBe("2")
       expect(tilesNodes[2].style.zIndex).toBe("1")
       expect(tilesNodes[3].style.zIndex).toBe("0")
-
-    it "renders higher line numbers in front of lower ones", ->
-      wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
-      component.measureDimensions()
-      nextAnimationFrame()
-
-      # Tile 0
-      expect(component.lineNumberNodeForScreenRow(0).style.zIndex).toBe("2")
-      expect(component.lineNumberNodeForScreenRow(1).style.zIndex).toBe("1")
-      expect(component.lineNumberNodeForScreenRow(2).style.zIndex).toBe("0")
-
-      # Tile 1
-      expect(component.lineNumberNodeForScreenRow(3).style.zIndex).toBe("2")
-      expect(component.lineNumberNodeForScreenRow(4).style.zIndex).toBe("1")
-      expect(component.lineNumberNodeForScreenRow(5).style.zIndex).toBe("0")
-
-      # Tile 2
-      expect(component.lineNumberNodeForScreenRow(6).style.zIndex).toBe("2")
-      expect(component.lineNumberNodeForScreenRow(7).style.zIndex).toBe("1")
-      expect(component.lineNumberNodeForScreenRow(8).style.zIndex).toBe("0")
 
     it "gives the line numbers container the same height as the wrapper node", ->
       linesNode = componentNode.querySelector(".line-numbers")
@@ -663,7 +661,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(tilesNodes.length).toBe(3)
       expect(tilesNodes[0].style['-webkit-transform']).toBe "translate3d(0px, 0px, 0px)"
@@ -689,7 +687,7 @@ describe "TextEditorComponent", ->
       verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".line-numbers").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLineNumbers()
 
       expect(component.lineNumberNodeForScreenRow(2)).toBeUndefined()
       expect(tilesNodes.length).toBe(3)
@@ -791,7 +789,7 @@ describe "TextEditorComponent", ->
       lineNumbersNode = gutterNode.querySelector('.line-numbers')
       {backgroundColor} = getComputedStyle(wrapperNode)
       expect(lineNumbersNode.style.backgroundColor).toBe backgroundColor
-      for tileNode in lineNumbersNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLineNumbers()
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       # favor gutter color if it's assigned
@@ -800,7 +798,7 @@ describe "TextEditorComponent", ->
 
       nextAnimationFrame()
       expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
-      for tileNode in lineNumbersNode.querySelectorAll(".tile")
+      for tileNode in component.tileNodesForLineNumbers()
         expect(tileNode.style.backgroundColor).toBe("rgb(255, 0, 0)")
 
     it "hides or shows the gutter based on the '::isLineNumberGutterVisible' property on the model and the global 'editor.showLineNumbers' config setting", ->
@@ -826,6 +824,24 @@ describe "TextEditorComponent", ->
 
       expect(componentNode.querySelector('.gutter').style.display).toBe ''
       expect(component.lineNumberNodeForScreenRow(3)?).toBe true
+
+    it "keeps rebuilding line numbers when continuous reflow is on", ->
+      wrapperNode.setContinuousReflow(true)
+
+      oldLineNodes = componentNode.querySelectorAll(".line-number")
+
+      advanceClock(10)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
+
+      advanceClock(component.presenter.minimumReflowInterval - 10)
+      nextAnimationFrame()
+
+      newLineNodes = componentNode.querySelectorAll(".line-number")
+      expect(oldLineNodes).not.toEqual(newLineNodes)
+
+      wrapperNode.setContinuousReflow(false)
+      advanceClock(component.presenter.minimumReflowInterval)
+      expect(nextAnimationFrame).toBe(noAnimationFrame)
 
     describe "fold decorations", ->
       describe "rendering fold decorations", ->
@@ -1006,10 +1022,11 @@ describe "TextEditorComponent", ->
       cursor = componentNode.querySelector('.cursor')
       cursorRect = cursor.getBoundingClientRect()
 
-      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').firstChild
+      cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
+
       range = document.createRange()
-      range.setStart(cursorLocationTextNode, 3)
-      range.setEnd(cursorLocationTextNode, 4)
+      range.setStart(cursorLocationTextNode, 0)
+      range.setEnd(cursorLocationTextNode, 1)
       rangeRect = range.getBoundingClientRect()
 
       expect(cursorRect.left).toBe rangeRect.left
@@ -1133,7 +1150,7 @@ describe "TextEditorComponent", ->
     it "renders 2 regions for 2-line selections", ->
       editor.setSelectedScreenRange([[1, 6], [2, 10]])
       nextAnimationFrame()
-      tileNode = componentNode.querySelector(".lines").querySelectorAll(".tile")[0]
+      tileNode = component.tileNodesForLines()[0]
       regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe 2
 
@@ -1154,7 +1171,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Tile 0
-      tileNode = componentNode.querySelector(".lines").querySelectorAll(".tile")[0]
+      tileNode = component.tileNodesForLines()[0]
       regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe(3)
 
@@ -1177,7 +1194,7 @@ describe "TextEditorComponent", ->
       expect(region3Rect.right).toBe tileNode.getBoundingClientRect().right
 
       # Tile 3
-      tileNode = componentNode.querySelector(".lines").querySelectorAll(".tile")[1]
+      tileNode = component.tileNodesForLines()[1]
       regions = tileNode.querySelectorAll('.selection .region')
       expect(regions.length).toBe(3)
 
@@ -1850,7 +1867,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [10, 0]]
 
-      it "autoscrolls when the cursor exceeds the boundaries of the editor", ->
+      it "autoscrolls when the cursor approaches the boundaries of the editor", ->
         wrapperNode.style.height = '100px'
         wrapperNode.style.width = '100px'
         component.measureDimensions()
@@ -1860,26 +1877,26 @@ describe "TextEditorComponent", ->
         expect(editor.getScrollLeft()).toBe(0)
 
         linesNode.dispatchEvent(buildMouseEvent('mousedown', {clientX: 0, clientY: 0}, which: 1))
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 150, clientY: 50}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 100, clientY: 50}, which: 1))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBe(0)
         expect(editor.getScrollLeft()).toBeGreaterThan(0)
 
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 150, clientY: 150}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 100, clientY: 100}, which: 1))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBeGreaterThan(0)
 
         previousScrollTop = editor.getScrollTop()
         previousScrollLeft = editor.getScrollLeft()
 
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: -20, clientY: 50}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 10, clientY: 50}, which: 1))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBe(previousScrollTop)
         expect(editor.getScrollLeft()).toBeLessThan(previousScrollLeft)
 
-        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: -20, clientY: -20}, which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', {clientX: 10, clientY: 10}, which: 1))
         nextAnimationFrame()
 
         expect(editor.getScrollTop()).toBeLessThan(previousScrollTop)
@@ -1898,16 +1915,13 @@ describe "TextEditorComponent", ->
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
-      it "stops selecting if a textInput event occurs during the drag", ->
+      it "stops selecting before the buffer is modified during the drag", ->
         linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([6, 8]), which: 1))
         nextAnimationFrame()
         expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [6, 8]]
 
-        inputEvent = new Event('textInput')
-        inputEvent.data = 'x'
-        Object.defineProperty(inputEvent, 'target', get: -> componentNode.querySelector('.hidden-input'))
-        componentNode.dispatchEvent(inputEvent)
+        editor.insertText('x')
         nextAnimationFrame()
 
         expect(editor.getSelectedScreenRange()).toEqual [[2, 5], [2, 5]]
@@ -1915,6 +1929,20 @@ describe "TextEditorComponent", ->
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
         expect(nextAnimationFrame).toBe noAnimationFrame
         expect(editor.getSelectedScreenRange()).toEqual [[2, 5], [2, 5]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([2, 4]), which: 1))
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([5, 4]), which: 1))
+        nextAnimationFrame()
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [5, 4]]
+
+        editor.delete()
+        nextAnimationFrame()
+
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [2, 4]]
+
+        linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 0]), which: 1))
+        expect(nextAnimationFrame).toBe noAnimationFrame
+        expect(editor.getSelectedScreenRange()).toEqual [[2, 4], [2, 4]]
 
       describe "when the command key is held down", ->
         it "adds a new selection and selects to the nearest screen position, then merges intersecting selections when the mouse button is released", ->
@@ -1995,7 +2023,7 @@ describe "TextEditorComponent", ->
 
         linesNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenPosition([8, 4]), which: 1))
         nextAnimationFrame()
-        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [9, 0]]
+        expect(editor.getSelectedScreenRange()).toEqual [[5, 0], [8, 0]]
         expect(editor.getScrollTop()).toBe maximalScrollTop # does not autoscroll upward (regression)
 
         linesNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenPosition([9, 3]), which: 1))
@@ -2086,7 +2114,7 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(editor.getLastSelection().isReversed()).toBe false
 
-      it "autoscrolls when the cursor exceeds the top or bottom of the editor", ->
+      it "autoscrolls when the cursor approaches the top or bottom of the editor", ->
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
         component.measureDimensions()
         nextAnimationFrame()
@@ -2100,11 +2128,12 @@ describe "TextEditorComponent", ->
         expect(editor.getScrollTop()).toBeGreaterThan 0
         maxScrollTop = editor.getScrollTop()
 
-        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(5)))
+
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(10)))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBe maxScrollTop
 
-        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(2)))
+        gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(7)))
         nextAnimationFrame()
         expect(editor.getScrollTop()).toBeLessThan maxScrollTop
 
@@ -2355,11 +2384,11 @@ describe "TextEditorComponent", ->
       inputNode.focus()
       nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe true
-      expect(wrapperView.hasClass('is-focused')).toBe true
+      expect(wrapperNode.classList.contains('is-focused')).toBe true
       inputNode.blur()
       nextAnimationFrame()
       expect(componentNode.classList.contains('is-focused')).toBe false
-      expect(wrapperView.hasClass('is-focused')).toBe false
+      expect(wrapperNode.classList.contains('is-focused')).toBe false
 
   describe "selection handling", ->
     cursor = null
@@ -2396,7 +2425,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      tilesNodes = componentNode.querySelector(".lines").querySelectorAll(".tile")
+      tilesNodes = component.tileNodesForLines()
 
       top = 0
       for tileNode in tilesNodes
@@ -2867,17 +2896,18 @@ describe "TextEditorComponent", ->
   describe "hiding and showing the editor", ->
     describe "when the editor is hidden when it is mounted", ->
       it "defers measurement and rendering until the editor becomes visible", ->
-        wrapperView.remove()
+        wrapperNode.remove()
 
         hiddenParent = document.createElement('div')
         hiddenParent.style.display = 'none'
         contentNode.appendChild(hiddenParent)
 
-        wrapperView = new TextEditorView(editor, {tileSize})
-        wrapperNode = wrapperView.element
-        wrapperView.appendTo(hiddenParent)
+        wrapperNode = new TextEditorElement()
+        wrapperNode.tileSize = tileSize
+        wrapperNode.initialize(editor)
+        hiddenParent.appendChild(wrapperNode)
 
-        {component} = wrapperView
+        {component} = wrapperNode
         componentNode = component.getDomNode()
         expect(componentNode.querySelectorAll('.line').length).toBe 0
 
@@ -2888,18 +2918,25 @@ describe "TextEditorComponent", ->
 
     describe "when the lineHeight changes while the editor is hidden", ->
       it "does not attempt to measure the lineHeightInPixels until the editor becomes visible again", ->
-        wrapperView.hide()
+        initialLineHeightInPixels = null
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         initialLineHeightInPixels = editor.getLineHeightInPixels()
 
         component.setLineHeight(2)
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
 
     describe "when the fontSize changes while the editor is hidden", ->
       it "does not attempt to measure the lineHeightInPixels or defaultCharWidth until the editor becomes visible again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
@@ -2907,17 +2944,22 @@ describe "TextEditorComponent", ->
         expect(editor.getLineHeightInPixels()).toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         expect(editor.getLineHeightInPixels()).not.toBe initialLineHeightInPixels
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
       it "does not re-measure character widths until the editor is shown again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
 
         component.setFontSize(22)
         editor.getBuffer().insert([0, 0], 'a') # regression test against atom/atom#3318
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
 
@@ -2927,22 +2969,29 @@ describe "TextEditorComponent", ->
 
     describe "when the fontFamily changes while the editor is hidden", ->
       it "does not attempt to measure the defaultCharWidth until the editor becomes visible again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         initialLineHeightInPixels = editor.getLineHeightInPixels()
         initialCharWidth = editor.getDefaultCharWidth()
 
         component.setFontFamily('serif')
         expect(editor.getDefaultCharWidth()).toBe initialCharWidth
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
       it "does not re-measure character widths until the editor is shown again", ->
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
 
         component.setFontFamily('serif')
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
 
@@ -2957,14 +3006,18 @@ describe "TextEditorComponent", ->
       it "does not re-measure character widths until the editor is shown again", ->
         atom.config.set('editor.fontFamily', 'sans-serif')
 
-        wrapperView.hide()
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         atom.themes.applyStylesheet 'test', """
           .function.js {
             font-weight: bold;
           }
         """
 
-        wrapperView.show()
+        wrapperNode.style.display = ''
+        component.checkForVisibilityChange()
+
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
 
@@ -2975,11 +3028,17 @@ describe "TextEditorComponent", ->
     describe "when lines are changed while the editor is hidden", ->
       it "does not measure new characters until the editor is shown again", ->
         editor.setText('')
-        wrapperView.hide()
+
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         editor.setText('var z = 1')
         editor.setCursorBufferPosition([0, Infinity])
         nextAnimationFrame()
-        wrapperView.show()
+
+        wrapperNode.style.display = 'none'
+        component.checkForVisibilityChange()
+
         expect(componentNode.querySelector('.cursor').style['-webkit-transform']).toBe "translate(#{9 * charWidth}px, 0px)"
 
   describe "soft wrapping", ->
@@ -3109,26 +3168,6 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
 
-  describe "legacy editor compatibility", ->
-    it "triggers the screen-lines-changed event before the editor:display-updated event", ->
-      editor.setSoftWrapped(true)
-
-      callingOrder = []
-      editor.onDidChange -> callingOrder.push 'screen-lines-changed'
-      wrapperView.on 'editor:display-updated', -> callingOrder.push 'editor:display-updated'
-      editor.insertText("HELLO! HELLO!\n HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! HELLO! ")
-      nextAnimationFrame()
-
-      expect(callingOrder).toEqual ['screen-lines-changed', 'editor:display-updated', 'editor:display-updated']
-
-    it "works with the ::setEditorHeightInLines and ::setEditorWidthInChars helpers", ->
-      setEditorHeightInLines(wrapperView, 7)
-      nextAnimationFrame()
-      expect(componentNode.offsetHeight).toBe lineHeightInPixels * 7
-
-      setEditorWidthInChars(wrapperView, 10)
-      expect(componentNode.querySelector('.scroll-view').offsetWidth).toBe charWidth * 10
-
   describe "grammar data attributes", ->
     it "adds and updates the grammar data attribute based on the current grammar", ->
       expect(wrapperNode.dataset.grammar).toBe 'source js'
@@ -3143,10 +3182,10 @@ describe "TextEditorComponent", ->
 
   describe "detaching and reattaching the editor (regression)", ->
     it "does not throw an exception", ->
-      wrapperView.detach()
-      wrapperView.attachToDom()
+      wrapperNode.remove()
+      jasmine.attachToDOM(wrapperNode)
 
-      wrapperView.trigger('core:move-right')
+      atom.commands.dispatch(wrapperNode, 'core:move-right')
 
       expect(editor.getCursorBufferPosition()).toEqual [0, 1]
 

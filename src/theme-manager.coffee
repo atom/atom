@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
-Q = require 'q'
 Grim = require 'grim'
 
 # Extended: Handles loading and activating available themes.
@@ -260,32 +259,29 @@ class ThemeManager
     string.replace(/\\/g, '/')
 
   activateThemes: ->
-    deferred = Q.defer()
+    new Promise (resolve) =>
+      # atom.config.observe runs the callback once, then on subsequent changes.
+      atom.config.observe 'core.themes', =>
+        @deactivateThemes()
 
-    # atom.config.observe runs the callback once, then on subsequent changes.
-    atom.config.observe 'core.themes', =>
-      @deactivateThemes()
+        @refreshLessCache() # Update cache for packages in core.themes config
 
-      @refreshLessCache() # Update cache for packages in core.themes config
+        promises = []
+        for themeName in @getEnabledThemeNames()
+          if @packageManager.resolvePackagePath(themeName)
+            promises.push(@packageManager.activatePackage(themeName))
+          else
+            console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
 
-      promises = []
-      for themeName in @getEnabledThemeNames()
-        if @packageManager.resolvePackagePath(themeName)
-          promises.push(@packageManager.activatePackage(themeName))
-        else
-          console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
-
-      Q.all(promises).then =>
-        @addActiveThemeClasses()
-        @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-        @loadUserStylesheet()
-        @reloadBaseStylesheets()
-        @initialLoadComplete = true
-        @emit 'reloaded' if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-change-active-themes'
-        deferred.resolve()
-
-    deferred.promise
+        Promise.all(promises).then =>
+          @addActiveThemeClasses()
+          @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+          @loadUserStylesheet()
+          @reloadBaseStylesheets()
+          @initialLoadComplete = true
+          @emit 'reloaded' if Grim.includeDeprecatedAPIs
+          @emitter.emit 'did-change-active-themes'
+          resolve()
 
   deactivateThemes: ->
     @removeActiveThemeClasses()

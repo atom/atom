@@ -6,15 +6,15 @@ async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
-Q = require 'q'
 {includeDeprecatedAPIs, deprecate} = require 'grim'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
+BufferedProcess = require './buffered-process'
 
 packagesCache = require('../package.json')?._atomPackages ? {}
 
-# Loads and activates a package's main module and resources such as
+# Extended: Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
@@ -138,20 +138,21 @@ class Package
 
   activate: ->
     @grammarsPromise ?= @loadGrammars()
+    @activationPromise ?=
+      new Promise (resolve, reject) =>
+        @resolveActivationPromise = resolve
+        @rejectActivationPromise = reject
+        @measure 'activateTime', =>
+          try
+            @activateResources()
+            if @activationShouldBeDeferred()
+              @subscribeToDeferredActivation()
+            else
+              @activateNow()
+          catch error
+            @handleError("Failed to activate the #{@name} package", error)
 
-    unless @activationDeferred?
-      @activationDeferred = Q.defer()
-      @measure 'activateTime', =>
-        try
-          @activateResources()
-          if @activationShouldBeDeferred()
-            @subscribeToDeferredActivation()
-          else
-            @activateNow()
-        catch error
-          @handleError("Failed to activate the #{@name} package", error)
-
-    Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
+    Promise.all([@grammarsPromise, @settingsPromise, @activationPromise])
 
   activateNow: ->
     try
@@ -164,7 +165,7 @@ class Package
     catch error
       @handleError("Failed to activate the #{@name} package", error)
 
-    @activationDeferred?.resolve()
+    @resolveActivationPromise?()
 
   activateConfig: ->
     return if @configActivated
@@ -344,7 +345,7 @@ class Package
     @grammarsActivated = true
 
   loadGrammars: ->
-    return Q() if @grammarsLoaded
+    return Promise.resolve() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
       atom.grammars.readGrammar grammarPath, (error, grammar) =>
@@ -359,14 +360,13 @@ class Package
           grammar.activate() if @grammarsActivated
         callback()
 
-    deferred = Q.defer()
-    grammarsDirPath = path.join(@path, 'grammars')
-    fs.exists grammarsDirPath, (grammarsDirExists) ->
-      return deferred.resolve() unless grammarsDirExists
+    new Promise (resolve) =>
+      grammarsDirPath = path.join(@path, 'grammars')
+      fs.exists grammarsDirPath, (grammarsDirExists) ->
+        return resolve() unless grammarsDirExists
 
-      fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
-        async.each grammarPaths, loadGrammar, -> deferred.resolve()
-    deferred.promise
+        fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
+          async.each grammarPaths, loadGrammar, -> resolve()
 
   loadSettings: ->
     @settings = []
@@ -382,20 +382,18 @@ class Package
           settings.activate() if @settingsActivated
         callback()
 
-    deferred = Q.defer()
+    new Promise (resolve) =>
+      if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
+        settingsDirPath = path.join(@path, 'scoped-properties')
+        deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
+      else
+        settingsDirPath = path.join(@path, 'settings')
 
-    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
-      settingsDirPath = path.join(@path, 'scoped-properties')
-      deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
-    else
-      settingsDirPath = path.join(@path, 'settings')
+      fs.exists settingsDirPath, (settingsDirExists) ->
+        return resolve() unless settingsDirExists
 
-    fs.exists settingsDirPath, (settingsDirExists) ->
-      return deferred.resolve() unless settingsDirExists
-
-      fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
-        async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
-    deferred.promise
+        fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+          async.each settingsPaths, loadSettingsFile, -> resolve()
 
   serialize: ->
     if @mainActivated
@@ -405,8 +403,10 @@ class Package
         console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
-    @activationDeferred?.reject()
-    @activationDeferred = null
+    @rejectActivationPromise?()
+    @activationPromise = null
+    @resolveActivationPromise = null
+    @rejectActivationPromise = null
     @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
@@ -589,9 +589,19 @@ class Package
       false
 
   # Get an array of all the native modules that this package depends on.
-  # This will recurse through all dependencies.
+  #
+  # First try to get this information from
+  # @metadata._atomModuleCache.extensions. If @metadata._atomModuleCache doesn't
+  # exist, recurse through all dependencies.
   getNativeModuleDependencyPaths: ->
     nativeModulePaths = []
+
+    if @metadata._atomModuleCache?
+      relativeNativeModuleBindingPaths = @metadata._atomModuleCache.extensions?['.node'] ? []
+      for relativeNativeModuleBindingPath in relativeNativeModuleBindingPaths
+        nativeModulePath = path.join(@path, relativeNativeModuleBindingPath, '..', '..', '..')
+        nativeModulePaths.push(nativeModulePath)
+      return nativeModulePaths
 
     traversePath = (nodeModulesPath) =>
       try
@@ -603,6 +613,70 @@ class Package
     traversePath(path.join(@path, 'node_modules'))
     nativeModulePaths
 
+  ###
+  Section: Native Module Compatibility
+  ###
+
+  # Extended: Are all native modules depended on by this package correctly
+  # compiled against the current version of Atom?
+  #
+  # Incompatible packages cannot be activated.
+  #
+  # Returns a {Boolean}, true if compatible, false if incompatible.
+  isCompatible: ->
+    return @compatible if @compatible?
+
+    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+      # Bundled packages are always considered compatible
+      @compatible = true
+    else if @getMainModulePath()
+      @incompatibleModules = @getIncompatibleNativeModules()
+      @compatible = @incompatibleModules.length is 0 and not @getBuildFailureOutput()?
+    else
+      @compatible = true
+
+  # Extended: Rebuild native modules in this package's dependencies for the
+  # current version of Atom.
+  #
+  # Returns a {Promise} that resolves with an object containing `code`,
+  # `stdout`, and `stderr` properties based on the results of running
+  # `apm rebuild` on the package.
+  rebuild: ->
+    new Promise (resolve) =>
+      @runRebuildProcess (result) =>
+        if result.code is 0
+          global.localStorage.removeItem(@getBuildFailureOutputStorageKey())
+        else
+          @compatible = false
+          global.localStorage.setItem(@getBuildFailureOutputStorageKey(), result.stderr)
+        global.localStorage.setItem(@getIncompatibleNativeModulesStorageKey(), '[]')
+        resolve(result)
+
+  # Extended: If a previous rebuild failed, get the contents of stderr.
+  #
+  # Returns a {String} or null if no previous build failure occurred.
+  getBuildFailureOutput: ->
+    global.localStorage.getItem(@getBuildFailureOutputStorageKey())
+
+  runRebuildProcess: (callback) ->
+    stderr = ''
+    stdout = ''
+    new BufferedProcess({
+      command: atom.packages.getApmPath()
+      args: ['rebuild', '--no-color']
+      options: {cwd: @path}
+      stderr: (output) -> stderr += output
+      stdout: (output) -> stdout += output
+      exit: (code) -> callback({code, stdout, stderr})
+    })
+
+  getBuildFailureOutputStorageKey: ->
+    "installed-packages:#{@name}:#{@metadata.version}:build-error"
+
+  getIncompatibleNativeModulesStorageKey: ->
+    electronVersion = process.versions['electron'] ? process.versions['atom-shell']
+    "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
+
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that
   # contain a `.node` file.
@@ -610,11 +684,10 @@ class Package
   # This information is cached in local storage on a per package/version basis
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
-    localStorageKey = "installed-packages:#{@name}:#{@metadata.version}"
     unless atom.inDevMode()
       try
-        {incompatibleNativeModules} = JSON.parse(global.localStorage.getItem(localStorageKey)) ? {}
-      return incompatibleNativeModules if incompatibleNativeModules?
+        if arrayAsString = global.localStorage.getItem(@getIncompatibleNativeModulesStorageKey())
+          return JSON.parse(arrayAsString)
 
     incompatibleNativeModules = []
     for nativeModulePath in @getNativeModuleDependencyPaths()
@@ -629,27 +702,8 @@ class Package
           version: version
           error: error.message
 
-    global.localStorage.setItem(localStorageKey, JSON.stringify({incompatibleNativeModules}))
+    global.localStorage.setItem(@getIncompatibleNativeModulesStorageKey(), JSON.stringify(incompatibleNativeModules))
     incompatibleNativeModules
-
-  # Public: Is this package compatible with this version of Atom?
-  #
-  # Incompatible packages cannot be activated. This will include packages
-  # installed to ~/.atom/packages that were built against node 0.11.10 but
-  # now need to be upgrade to node 0.11.13.
-  #
-  # Returns a {Boolean}, true if compatible, false if incompatible.
-  isCompatible: ->
-    return @compatible if @compatible?
-
-    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
-      # Bundled packages are always considered compatible
-      @compatible = true
-    else if @getMainModulePath()
-      @incompatibleModules = @getIncompatibleNativeModules()
-      @compatible = @incompatibleModules.length is 0
-    else
-      @compatible = true
 
   handleError: (message, error) ->
     if error.filename and error.location and (error instanceof SyntaxError)

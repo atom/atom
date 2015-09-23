@@ -22,32 +22,6 @@ class Cursor extends Model
 
     @assignId(id)
     @updateVisibility()
-    @marker.onDidChange (e) =>
-      @updateVisibility()
-      {oldHeadScreenPosition, newHeadScreenPosition} = e
-      {oldHeadBufferPosition, newHeadBufferPosition} = e
-      {textChanged} = e
-      return if oldHeadScreenPosition.isEqual(newHeadScreenPosition)
-
-      @goalColumn = null
-
-      movedEvent =
-        oldBufferPosition: oldHeadBufferPosition
-        oldScreenPosition: oldHeadScreenPosition
-        newBufferPosition: newHeadBufferPosition
-        newScreenPosition: newHeadScreenPosition
-        textChanged: textChanged
-        cursor: this
-
-      @emit 'moved', movedEvent if Grim.includeDeprecatedAPIs
-      @emitter.emit 'did-change-position', movedEvent
-      @editor.cursorMoved(movedEvent)
-    @marker.onDidDestroy =>
-      @destroyed = true
-      @editor.removeCursor(this)
-      @emit 'destroyed' if Grim.includeDeprecatedAPIs
-      @emitter.emit 'did-destroy'
-      @emitter.dispose()
 
   destroy: ->
     @marker.destroy()

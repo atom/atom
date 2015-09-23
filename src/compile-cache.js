@@ -16,7 +16,7 @@ var cacheDirectory = null
 exports.setAtomHomeDirectory = function (atomHome) {
   var cacheDir = path.join(atomHome, 'compile-cache')
   if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
-    cacheDir = path.join(cacheDirectory, 'root')
+    cacheDir = path.join(cacheDir, 'root')
   }
   this.setCacheDirectory(cacheDir)
 }
@@ -108,7 +108,7 @@ require('source-map-support').install({
   // source-map-support module, but we've overridden it to read the javascript
   // code from our cache directory.
   retrieveSourceMap: function (filePath) {
-    if (!fs.isFileSync(filePath)) {
+    if (!cacheDirectory || !fs.isFileSync(filePath)) {
       return null
     }
 

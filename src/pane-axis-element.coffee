@@ -1,5 +1,4 @@
 {CompositeDisposable} = require 'event-kit'
-{callAttachHooks} = require './space-pen-extensions'
 PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
@@ -42,8 +41,6 @@ class PaneAxisElement extends HTMLElement
     if nextElement? and not @isPaneResizeHandleElement(nextElement)
       resizeHandle = document.createElement('atom-pane-resize-handle')
       @insertBefore(resizeHandle, nextElement)
-
-    callAttachHooks(view) # for backward compatibility with SpacePen views
 
   childRemoved: ({child}) ->
     view = atom.views.getView(child)

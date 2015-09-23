@@ -22,14 +22,8 @@ class Selection extends Model
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
-    @marker.onDidChange (e) => @screenRangeChanged(e)
-    @marker.onDidDestroy =>
-      unless @editor.isDestroyed()
-        @destroyed = true
-        @editor.removeSelection(this)
-        @emit 'destroyed' if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-destroy'
-        @emitter.dispose()
+    @marker.onDidChange (e) => @markerDidChange(e)
+    @marker.onDidDestroy => @markerDidDestroy()
 
   destroy: ->
     @marker.destroy()
@@ -263,9 +257,14 @@ class Selection extends Model
     @modifySelection => @cursor.moveToFirstCharacterOfLine()
 
   # Public: Selects all the text from the current cursor position to the end of
-  # the line.
+  # the screen line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfScreenLine()
+
+  # Public: Selects all the text from the current cursor position to the end of
+  # the buffer line.
+  selectToEndOfBufferLine: ->
+    @modifySelection => @cursor.moveToEndOfLine()
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the word.
@@ -330,9 +329,13 @@ class Selection extends Model
   #
   # * `row` The line {Number} to select (default: the row of the cursor).
   selectLine: (row, options) ->
-    row ?= @cursor.getBufferPosition().row
-    range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range), options)
+    if row?
+      @setBufferRange(@editor.bufferRangeForBufferRow(row, includeNewline: true), options)
+    else
+      startRange = @editor.bufferRangeForBufferRow(@marker.getStartBufferPosition().row)
+      endRange = @editor.bufferRangeForBufferRow(@marker.getEndBufferPosition().row, includeNewline: true)
+      @setBufferRange(startRange.union(endRange), options)
+
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
@@ -574,9 +577,14 @@ class Selection extends Model
   toggleLineComments: ->
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
-  # Public: Cuts the selection until the end of the line.
+  # Public: Cuts the selection until the end of the screen line.
   cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
+    @cut(maintainClipboard)
+
+  # Public: Cuts the selection until the end of the buffer line.
+  cutToEndOfBufferLine: (maintainClipboard) ->
+    @selectToEndOfBufferLine() if @isEmpty()
     @cut(maintainClipboard)
 
   # Public: Copies the selection to the clipboard and then deletes it.
@@ -754,20 +762,48 @@ class Selection extends Model
   Section: Private Utilities
   ###
 
-  screenRangeChanged: (e) ->
-    {oldHeadBufferPosition, oldTailBufferPosition} = e
-    {oldHeadScreenPosition, oldTailScreenPosition} = e
+  markerDidChange: (e) ->
+    {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
+    {oldHeadScreenPosition, oldTailScreenPosition, newHeadScreenPosition} = e
+    {textChanged} = e
 
-    eventObject =
+    @cursor.updateVisibility()
+
+    unless oldHeadScreenPosition.isEqual(newHeadScreenPosition)
+      @cursor.goalColumn = null
+      cursorMovedEvent = {
+        oldBufferPosition: oldHeadBufferPosition
+        oldScreenPosition: oldHeadScreenPosition
+        newBufferPosition: newHeadBufferPosition
+        newScreenPosition: newHeadScreenPosition
+        textChanged: textChanged
+        cursor: @cursor
+      }
+      @cursor.emitter.emit('did-change-position', cursorMovedEvent)
+      @editor.cursorMoved(cursorMovedEvent)
+
+    @emitter.emit 'did-change-range'
+    @editor.selectionRangeChanged(
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
       newBufferRange: @getBufferRange()
       newScreenRange: @getScreenRange()
       selection: this
+    )
 
-    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-range'
-    @editor.selectionRangeChanged(eventObject)
+  markerDidDestroy: ->
+    return if @editor.isDestroyed()
+
+    @destroyed = true
+    @cursor.destroyed = true
+
+    @editor.removeSelection(this)
+
+    @cursor.emitter.emit 'did-destroy'
+    @emitter.emit 'did-destroy'
+
+    @cursor.emitter.dispose()
+    @emitter.dispose()
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())

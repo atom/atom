@@ -40,6 +40,32 @@ describe "PaneContainer", ->
       containerB = atom.deserializers.deserialize(state)
       expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
 
+    describe "if there are empty panes after deserialization", ->
+      beforeEach ->
+        pane3A.getItems()[0].serialize = -> deserializer: 'Bogus'
+
+      describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
+        it "leaves the empty panes intact", ->
+          state = containerA.serialize()
+          containerB = atom.deserializers.deserialize(state)
+          [leftPane, column] = containerB.getRoot().getChildren()
+          [topPane, bottomPane] = column.getChildren()
+
+          expect(leftPane.getItems().length).toBe 1
+          expect(topPane.getItems().length).toBe 1
+          expect(bottomPane.getItems().length).toBe 0
+
+      describe "if the 'core.destroyEmptyPanes' config option is true", ->
+        it "removes empty panes on deserialization", ->
+          atom.config.set('core.destroyEmptyPanes', true)
+
+          state = containerA.serialize()
+          containerB = atom.deserializers.deserialize(state)
+          [leftPane, rightPane] = containerB.getRoot().getChildren()
+
+          expect(leftPane.getItems().length).toBe 1
+          expect(rightPane.getItems().length).toBe 1
+
   it "does not allow the root pane to be destroyed", ->
     container = new PaneContainer
     container.getRoot().destroy()
@@ -223,3 +249,19 @@ describe "PaneContainer", ->
         ['will', {item: item2, pane: pane2, index: 0}]
         ['did', {item: item2, pane: pane2, index: 0}]
       ]
+
+  describe "::saveAll()", ->
+    it "saves all open pane items", ->
+      container = new PaneContainer
+      pane1 = container.getRoot()
+      pane2 = pane1.splitRight()
+
+      pane1.addItem(item1 = {getURI: (-> ''), save: -> @saved = true})
+      pane1.addItem(item2 = {getURI: (-> ''), save: -> @saved = true})
+      pane2.addItem(item3 = {getURI: (-> ''), save: -> @saved = true})
+
+      container.saveAll()
+
+      expect(item1.saved).toBe true
+      expect(item2.saved).toBe true
+      expect(item3.saved).toBe true
