@@ -200,21 +200,13 @@ class DisplayBuffer extends Model
   setVerticalScrollbarWidth: (@verticalScrollbarWidth) -> @verticalScrollbarWidth
 
   getHeight: ->
-    if @height?
-      @height
-    else
-      if @horizontallyScrollable()
-        @getScrollHeight() + @getHorizontalScrollbarHeight()
-      else
-        @getScrollHeight()
+    @height or 0
 
-  setHeight: (@height) -> @height
+  setHeight: (@height) ->
+    @height
 
   getClientHeight: (reentrant) ->
-    if @horizontallyScrollable(reentrant)
-      @getHeight() - @getHorizontalScrollbarHeight()
-    else
-      @getHeight()
+    @getHeight()
 
   getClientWidth: (reentrant) ->
     if @verticallyScrollable(reentrant)

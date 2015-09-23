@@ -50,7 +50,7 @@ class TextEditorPresenter
     @emitter.emit "did-update-state" if @isBatching()
 
   transferMeasurementsToModel: ->
-    @model.setHeight(@explicitHeight) if @explicitHeight?
+    # @model.setHeight(@explicitHeight) if @explicitHeight?
     @model.setWidth(@contentFrameWidth) if @contentFrameWidth?
     @model.setLineHeightInPixels(@lineHeight) if @lineHeight?
     @model.setDefaultCharWidth(@baseCharacterWidth) if @baseCharacterWidth?
@@ -688,6 +688,7 @@ class TextEditorPresenter
     clientHeight = @height - @horizontalScrollbarHeight
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
+      @model.setHeight(@clientHeight)
       @updateScrollHeight()
       @updateScrollTop()
 
@@ -919,7 +920,6 @@ class TextEditorPresenter
   setExplicitHeight: (explicitHeight) ->
     unless @explicitHeight is explicitHeight
       @explicitHeight = explicitHeight
-      @model.setHeight(explicitHeight)
       @updateHeight()
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
