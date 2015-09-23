@@ -4398,7 +4398,6 @@ describe "TextEditor", ->
     it "selects one screen height of text up or down", ->
       editor.setLineHeightInPixels(10)
       editor.setHeight(50)
-      expect(editor.getScrollHeight()).toBe 130
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.selectPageDown()
