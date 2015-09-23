@@ -830,6 +830,9 @@ class TextEditorPresenter
   getScrollTop: ->
     @scrollTop
 
+  getRealScrollTop: ->
+    @realScrollTop ? @scrollTop
+
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
       clearTimeout(@stoppedScrollingTimeoutId)
@@ -864,6 +867,9 @@ class TextEditorPresenter
 
   getScrollLeft: ->
     @scrollLeft
+
+  getRealScrollLeft: ->
+    @realScrollLeft ? @scrollLeft
 
   getClientHeight: ->
     if @clientHeight
@@ -1542,15 +1548,17 @@ class TextEditorPresenter
         @setScrollRight(desiredScrollRight)
 
   commitPendingScrollLeftPosition: ->
-    scrollLeft = Math.round(@constrainScrollLeft(@pendingScrollLeft))
+    scrollLeft = @constrainScrollLeft(@pendingScrollLeft)
     if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
-      @scrollLeft = scrollLeft
+      @realScrollLeft = scrollLeft
+      @scrollLeft = Math.round(scrollLeft)
       @model.setScrollLeft(@scrollLeft)
 
   commitPendingScrollTopPosition: ->
-    scrollTop = Math.round(@constrainScrollTop(@pendingScrollTop))
+    scrollTop = @constrainScrollTop(@pendingScrollTop)
     if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
-      @scrollTop = scrollTop
+      @realScrollTop = scrollTop
+      @scrollTop = Math.round(scrollTop)
       @model.setScrollTop(@scrollTop)
 
   updateScrollPosition: ->
