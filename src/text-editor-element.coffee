@@ -237,6 +237,9 @@ class TextEditorElement extends HTMLElement
   scrollToBottom: ->
     @setScrollBottom(Infinity)
 
+  scrollToCursorPosition: (options) ->
+    @getModel().getLastCursor().autoscroll(center: options?.center ? true)
+
   getScrollTop: ->
     @component.getScrollTop()
 

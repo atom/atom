@@ -3381,7 +3381,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
 
       # Why does this set an incorrect width? :confused:
-      wrapperNode.style.width = "108px"
+      wrapperNode.style.width = "108px" # this should be 55px
       wrapperNode.style.height = 5.5 * 10 + "px"
       component.measureDimensions()
       nextAnimationFrame()
@@ -3445,6 +3445,23 @@ describe "TextEditorComponent", ->
           editor.insertText('a')
           nextAnimationFrame()
           expect(wrapperNode.getScrollTop()).toBe 75
+
+    describe "when scrolled to cursor position", ->
+      it "scrolls the last cursor into view, centering around the cursor if possible and the 'center' option isn't false", ->
+        editor.setCursorScreenPosition([8, 8], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        expect(wrapperNode.getScrollLeft()).toBe 0
+
+        wrapperNode.scrollToCursorPosition()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe (8.8 * 10) - 30
+        expect(wrapperNode.getScrollBottom()).toBe (8.3 * 10) + 30
+        expect(wrapperNode.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
+
+        wrapperNode.setScrollTop(0)
+        wrapperNode.scrollToCursorPosition(center: false)
+        expect(editor.getScrollBottom()).toBe (8 + editor.getVerticalScrollMargin()) * 10
 
     describe "moving cursors", ->
       it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
