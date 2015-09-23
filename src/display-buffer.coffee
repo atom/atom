@@ -253,16 +253,6 @@ class DisplayBuffer extends Model
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
 
-  getScrollHeight: ->
-    lineHeight = @getLineHeightInPixels()
-    return 0 unless lineHeight > 0
-
-    scrollHeight = @getLineCount() * lineHeight
-    if @height? and @configSettings.scrollPastEnd
-      scrollHeight = scrollHeight + @height - (lineHeight * 3)
-
-    scrollHeight
-
   getScrollWidth: ->
     @scrollWidth
 
@@ -275,19 +265,6 @@ class DisplayBuffer extends Model
 
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition), options)
-
-  pixelRectForScreenRange: (screenRange) ->
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeightInPixels()
-      width = @getScrollWidth()
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @getLineHeightInPixels()
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}
 
   # Retrieves the current tab length.
   #
