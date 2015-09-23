@@ -1246,41 +1246,6 @@ describe "DisplayBuffer", ->
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: true})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true})
 
-  describe "scroll width", ->
-    cursorWidth = 1
-    beforeEach ->
-      displayBuffer.setDefaultCharWidth(10)
-
-    it "recomputes the scroll width when the default character width changes", ->
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 65 + cursorWidth
-
-      displayBuffer.setDefaultCharWidth(12)
-      expect(displayBuffer.getScrollWidth()).toBe 12 * 65 + cursorWidth
-
-    it "recomputes the scroll width when the max line length changes", ->
-      buffer.insert([6, 12], ' ')
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 66 + cursorWidth
-
-      buffer.delete([[6, 10], [6, 12]], ' ')
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + cursorWidth
-
-    it "recomputes the scroll width when the scoped character widths change", ->
-      operatorWidth = 20
-      displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 64 + operatorWidth + cursorWidth
-
-    it "recomputes the scroll width when the scoped character widths change in a batch", ->
-      operatorWidth = 20
-
-      displayBuffer.onDidChangeCharacterWidths changedSpy = jasmine.createSpy()
-
-      displayBuffer.batchCharacterMeasurement ->
-        displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '<', operatorWidth)
-        displayBuffer.setScopedCharWidth(['source.js', 'keyword.operator.js'], '?', operatorWidth)
-
-      expect(displayBuffer.getScrollWidth()).toBe 10 * 63 + operatorWidth * 2 + cursorWidth
-      expect(changedSpy.callCount).toBe 1
-
   describe "::getVisibleRowRange()", ->
     beforeEach ->
       displayBuffer.setLineHeightInPixels(10)
