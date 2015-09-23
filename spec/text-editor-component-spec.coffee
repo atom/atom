@@ -3453,14 +3453,14 @@ describe "TextEditorComponent", ->
         expect(wrapperNode.getScrollTop()).toBe 0
         expect(wrapperNode.getScrollLeft()).toBe 0
 
-        wrapperNode.scrollToCursorPosition()
+        editor.scrollToCursorPosition()
         nextAnimationFrame()
         expect(wrapperNode.getScrollTop()).toBe (8.8 * 10) - 30
         expect(wrapperNode.getScrollBottom()).toBe (8.3 * 10) + 30
         expect(wrapperNode.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
 
         wrapperNode.setScrollTop(0)
-        wrapperNode.scrollToCursorPosition(center: false)
+        editor.scrollToCursorPosition(center: false)
         expect(wrapperNode.getScrollTop()).toBe (7.8 - editor.getVerticalScrollMargin()) * 10
         expect(wrapperNode.getScrollBottom()).toBe (9.3 + editor.getVerticalScrollMargin()) * 10
 

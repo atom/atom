@@ -1552,14 +1552,12 @@ class TextEditorPresenter
     if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
-      @model.setScrollLeft(@scrollLeft)
 
   commitPendingScrollTopPosition: ->
     scrollTop = @constrainScrollTop(@pendingScrollTop)
     if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
-      @model.setScrollTop(@scrollTop)
 
   updateScrollPosition: ->
     @commitPendingLogicalScrollPosition() if @pendingScrollLogicalPosition?
