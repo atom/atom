@@ -382,6 +382,12 @@ class TextEditorComponent
   getScrollBottom: ->
     @presenter.getScrollBottom()
 
+  getScrollHeight: ->
+    @presenter.getScrollHeight()
+
+  getScrollWidth: ->
+    @presenter.getScrollWidth()
+
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
       # Only handle mouse down events for left mouse button on all platforms

@@ -870,7 +870,10 @@ class TextEditorPresenter
       @explicitHeight - @horizontalScrollbarHeight
 
   getClientWidth: ->
-    @clientWidth ? @contentFrameWidth
+    if @clientWidth
+      @clientWidth
+    else
+      @contentFrameWidth - @verticalScrollbarWidth
 
   getScrollBottom: -> @getScrollTop() + @getClientHeight()
   setScrollBottom: (scrollBottom) ->
@@ -881,6 +884,12 @@ class TextEditorPresenter
   setScrollRight: (scrollRight) ->
     @setScrollLeft(scrollRight - @getClientWidth())
     @getScrollRight()
+
+  getScrollHeight: ->
+    @scrollHeight
+
+  getScrollWidth: ->
+    @scrollWidth
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight

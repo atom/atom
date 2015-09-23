@@ -3371,6 +3371,172 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe false
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
+  fffdescribe "autoscroll", ->
+    beforeEach ->
+      editor.setVerticalScrollMargin(2)
+      editor.setHorizontalScrollMargin(2)
+      component.setLineHeight("10px")
+      component.setFontSize(17)
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      # Why does this set an incorrect width? :confused:
+      wrapperNode.style.width = "108px"
+      wrapperNode.style.height = 5.5 * 10 + "px"
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      component.presenter.setHorizontalScrollbarHeight(0)
+      component.presenter.setVerticalScrollbarWidth(0)
+      nextAnimationFrame() # perform requested update
+
+    afterEach ->
+      atom.themes.removeStylesheet("test")
+
+    describe "moving cursors", ->
+      it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
+        expect(wrapperNode.getScrollTop()).toBe 0
+        expect(wrapperNode.getScrollBottom()).toBe 5.5 * 10
+
+        editor.setCursorScreenPosition([2, 0])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe 5.5 * 10
+
+        editor.moveDown()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe 6 * 10
+
+        editor.moveDown()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe 7 * 10
+
+      it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
+        editor.setCursorScreenPosition([11, 0])
+        nextAnimationFrame()
+        wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
+        nextAnimationFrame()
+
+        editor.moveUp()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe wrapperNode.getScrollHeight()
+
+        editor.moveUp()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 7 * 10
+
+        editor.moveUp()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 6 * 10
+
+      it "scrolls right when the last cursor gets closer than ::horizontalScrollMargin to the right of the editor", ->
+        expect(wrapperNode.getScrollLeft()).toBe 0
+        expect(wrapperNode.getScrollRight()).toBe 5.5 * 10
+
+        editor.setCursorScreenPosition([0, 2])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollRight()).toBe 5.5 * 10
+
+        editor.moveRight()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollRight()).toBe 6 * 10
+
+        editor.moveRight()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollRight()).toBe 7 * 10
+
+      it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
+        wrapperNode.setScrollRight(wrapperNode.getScrollWidth())
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollRight()).toBe wrapperNode.getScrollWidth()
+        editor.setCursorScreenPosition([6, 62], autoscroll: false)
+        nextAnimationFrame()
+
+        editor.moveLeft()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollLeft()).toBe 59 * 10
+
+        editor.moveLeft()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollLeft()).toBe 58 * 10
+
+      it "scrolls down when inserting lines makes the document longer than the editor's height", ->
+        editor.setCursorScreenPosition([13, Infinity])
+        editor.insertNewline()
+        nextAnimationFrame()
+
+        expect(wrapperNode.getScrollBottom()).toBe 14 * 10
+        editor.insertNewline()
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollBottom()).toBe 15 * 10
+
+      it "autoscrolls to the cursor when it moves due to undo", ->
+        editor.insertText('abc')
+        wrapperNode.setScrollTop(Infinity)
+        nextAnimationFrame()
+
+        editor.undo()
+        nextAnimationFrame()
+
+        expect(wrapperNode.getScrollTop()).toBe 0
+
+      it "doesn't scroll when the cursor moves into the visible area", ->
+        editor.setCursorBufferPosition([0, 0])
+        nextAnimationFrame()
+
+        wrapperNode.setScrollTop(40)
+        nextAnimationFrame()
+
+        editor.setCursorBufferPosition([6, 0])
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 40
+
+      it "honors the autoscroll option on cursor and selection manipulation methods", ->
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.setCursorScreenPosition([11, 11], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.setCursorBufferPosition([11, 11], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.clearSelections(autoscroll: false)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+
+        editor.addSelectionForScreenRange([[0, 0], [0, 4]])
+        nextAnimationFrame()
+
+        editor.getCursors()[0].setScreenPosition([11, 11], autoscroll: true)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
+        editor.getCursors()[0].setBufferPosition([0, 0], autoscroll: true)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+        editor.getSelections()[0].setScreenRange([[11, 0], [11, 4]], autoscroll: true)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
+        editor.getSelections()[0].setBufferRange([[0, 0], [0, 4]], autoscroll: true)
+        nextAnimationFrame()
+        expect(wrapperNode.getScrollTop()).toBe 0
+
+
   describe "middle mouse paste on Linux", ->
     originalPlatform = null
 
