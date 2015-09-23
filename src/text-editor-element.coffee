@@ -258,6 +258,12 @@ class TextEditorElement extends HTMLElement
   getScrollWidth: ->
     @component.getScrollWidth()
 
+  getVerticalScrollbarWidth: ->
+    @component.getVerticalScrollbarWidth()
+
+  getHorizontalScrollbarHeight: ->
+    @component.getHorizontalScrollbarHeight()
+
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
   for commandName, commandListener of commandListeners

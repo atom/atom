@@ -1486,6 +1486,12 @@ class TextEditorPresenter
   getHorizontalScrollMarginInPixels: ->
     @model.getHorizontalScrollMargin() * @baseCharacterWidth
 
+  getVerticalScrollbarWidth: ->
+    @verticalScrollbarWidth
+
+  getHorizontalScrollbarHeight: ->
+    @horizontalScrollbarHeight
+
   commitPendingLogicalScrollPosition: ->
     {screenRange, options} = @pendingScrollLogicalPosition
 

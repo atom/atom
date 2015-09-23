@@ -285,18 +285,18 @@ describe "TextEditorComponent", ->
       componentNode.style.width = gutterWidth + (30 * charWidth) + 'px'
       component.measureDimensions()
       nextAnimationFrame()
-      expect(editor.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
+      expect(wrapperNode.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
 
       # At the time of writing, using width: 100% to achieve the full-width
       # lines caused full-screen repaints after switching away from an editor
       # and back again Please ensure you don't cause a performance regression if
       # you change this behavior.
-      editorFullWidth = editor.getScrollWidth() + editor.getVerticalScrollbarWidth()
+      editorFullWidth = wrapperNode.getScrollWidth() + wrapperNode.getVerticalScrollbarWidth()
 
       for lineNode in lineNodes
         expect(lineNode.getBoundingClientRect().width).toBe(editorFullWidth)
 
-      componentNode.style.width = gutterWidth + editor.getScrollWidth() + 100 + 'px'
+      componentNode.style.width = gutterWidth + wrapperNode.getScrollWidth() + 100 + 'px'
       component.measureDimensions()
       nextAnimationFrame()
       scrollViewWidth = scrollViewNode.offsetWidth
@@ -473,7 +473,7 @@ describe "TextEditorComponent", ->
           editor.setText "a line that wraps \n"
           editor.setSoftWrapped(true)
           nextAnimationFrame()
-          componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+          componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
           component.measureDimensions()
           nextAnimationFrame()
 
@@ -893,7 +893,7 @@ describe "TextEditorComponent", ->
           beforeEach ->
             editor.setSoftWrapped(true)
             nextAnimationFrame()
-            componentNode.style.width = 16 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+            componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
             component.measureDimensions()
             nextAnimationFrame()
 
@@ -2244,7 +2244,7 @@ describe "TextEditorComponent", ->
 
         editor.setSoftWrapped(true)
         nextAnimationFrame()
-        componentNode.style.width = 21 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+        componentNode.style.width = 21 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
         component.measureDimensions()
         nextAnimationFrame()
 
@@ -2460,7 +2460,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
-      wrapperNode.setScrollBottom(editor.getScrollHeight())
+      wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
       nextAnimationFrame()
       lastLineNode = component.lineNodeForScreenRow(editor.getLastScreenRow())
       bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
@@ -2570,7 +2570,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      expect(horizontalScrollbarNode.scrollWidth).toBe editor.getScrollWidth()
+      expect(horizontalScrollbarNode.scrollWidth).toBe wrapperNode.getScrollWidth()
       expect(horizontalScrollbarNode.style.left).toBe '0px'
 
   describe "mousewheel events", ->
@@ -3101,7 +3101,7 @@ describe "TextEditorComponent", ->
       expect(componentNode.querySelectorAll('.line')).toHaveLength(6)
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
-      componentNode.style.width = gutterWidth + 14 * charWidth + editor.getVerticalScrollbarWidth() + 'px'
+      componentNode.style.width = gutterWidth + 14 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
       atom.views.performDocumentPoll()
       nextAnimationFrame()
       expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
