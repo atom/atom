@@ -678,6 +678,30 @@ class Pane extends Model
     else
       @splitRight()
 
+  # If the parent is a vertical axis, returns its first child if it is a pane;
+  # otherwise returns this pane.
+  findTopmostSibling: ->
+    if @parent.orientation is 'vertical'
+      [topmostSibling] = @parent.children
+      if topmostSibling instanceof PaneAxis
+        this
+      else
+        topmostSibling
+    else
+      this
+
+  # If the parent is a vertical axis, returns its last child if it is a pane;
+  # otherwise returns a new pane created by splitting this pane bottomward.
+  findOrCreateBottommostSibling: ->
+    if @parent.orientation is 'vertical'
+      bottommostSibling = last(@parent.children)
+      if bottommostSibling instanceof PaneAxis
+        @splitRight()
+      else
+        bottommostSibling
+    else
+      @splitDown()
+
   close: ->
     @destroy() if @confirmClose()
 
