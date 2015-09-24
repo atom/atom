@@ -491,6 +491,8 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
+  #   :testRunnerBootstrap - The optional path to a custom test runner. It must
+  #                          export a function that returns a new jasmine.Env.
   runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode, testRunnerBootstrap}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
