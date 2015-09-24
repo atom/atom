@@ -36,6 +36,7 @@ module.exports = (grunt) ->
   buildDir = grunt.option('build-dir') ? path.join(tmpDir, 'atom-build')
   buildDir = path.resolve(buildDir)
   installDir = grunt.option('install-dir')
+  disableAutoUpdate = grunt.option('no-auto-update') ? false
 
   channel = grunt.option('channel')
   channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
@@ -155,7 +156,7 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
-    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir, channel}
+    atom: {appDir, appName, symbolsDir, buildDir, contentsDir, installDir, shellAppDir, channel, disableAutoUpdate}
 
     docsOutputDir: 'docs/output'
 
