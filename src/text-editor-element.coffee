@@ -181,7 +181,7 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel position.
   pixelPositionForBufferPosition: (bufferPosition) ->
-    @component.pixelPositionForBufferPosition(bufferPosition, true)
+    @component.pixelPositionForBufferPosition(bufferPosition)
 
   # Extended: Converts a screen position to a pixel position.
   #
@@ -190,7 +190,7 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
-    @component.pixelPositionForScreenPosition(screenPosition, true)
+    @component.pixelPositionForScreenPosition(screenPosition)
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.
@@ -283,8 +283,8 @@ class TextEditorElement extends HTMLElement
   pixelRectForScreenRange: (screenRange) ->
     @component.pixelRectForScreenRange(screenRange)
 
-  pixelRangeForScreenRange: (screenRange, clip) ->
-    @component.pixelRangeForScreenRange(screenRange, clip)
+  pixelRangeForScreenRange: (screenRange) ->
+    @component.pixelRangeForScreenRange(screenRange)
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}

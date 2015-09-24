@@ -406,20 +406,36 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForBufferPosition: (bufferPosition) ->
-    @presenter.pixelPositionForBufferPosition(bufferPosition)
-
   pixelPositionForScreenPosition: (screenPosition) ->
-    @presenter.pixelPositionForScreenPosition(screenPosition)
+    position = @presenter.pixelPositionForScreenPosition(screenPosition)
+    position.top += @presenter.getScrollTop()
+    position.left += @presenter.getScrollLeft()
+    position
 
   screenPositionForPixelPosition: (pixelPosition) ->
     @presenter.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
-    @presenter.pixelRectForScreenRange(screenRange)
+    if screenRange.end.row > screenRange.start.row
+      top = @pixelPositionForScreenPosition(screenRange.start).top
+      left = 0
+      height = (screenRange.end.row - screenRange.start.row + 1) * @lineHeight
+      width = @scrollWidth
+    else
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
+      height = @lineHeight
+      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
 
-  pixelRangeForScreenRange: (screenRange, clip) ->
-    @presenter.pixelRangeForScreenRange(screenRange, clip)
+    {top, left, width, height}
+
+  pixelRangeForScreenRange: (screenRange, clip=true) ->
+    {start, end} = Range.fromObject(screenRange)
+    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
+
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @pixelPositionForScreenPosition(
+      @editor.screenPositionForBufferPosition(bufferPosition)
+    )
 
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')

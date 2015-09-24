@@ -1603,11 +1603,6 @@ class TextEditorPresenter
   getVisibleRowRange: ->
     [@startRow, @endRow]
 
-  pixelPositionForBufferPosition: (bufferPosition) ->
-    @pixelPositionForScreenPosition(
-      @model.screenPositionForBufferPosition(bufferPosition)
-    )
-
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
@@ -1642,7 +1637,3 @@ class TextEditorPresenter
         column += charLength
 
     new Point(row, column)
-
-  pixelRangeForScreenRange: (screenRange, clip=true) ->
-    {start, end} = Range.fromObject(screenRange)
-    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
