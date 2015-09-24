@@ -3,6 +3,23 @@
 _ = require 'underscore-plus'
 Decoration = require './decoration'
 
+class ScrollQueue
+  constructor: ->
+    @queue = []
+    @committing = false
+
+  enqueue: (scrollAction) ->
+    if @committing
+      @queue.unshift(scrollAction)
+    else
+      @queue.push(scrollAction)
+
+  commit: ->
+    @committing = true
+    while scrollAction = @queue.shift()
+      scrollAction()
+    @committing = false
+
 module.exports =
 class TextEditorPresenter
   toggleCursorBlinkHandle: null
@@ -22,6 +39,7 @@ class TextEditorPresenter
     @measuredVerticalScrollbarWidth = verticalScrollbarWidth
     @gutterWidth ?= 0
     @tileSize ?= 6
+    @scrollQueue = new ScrollQueue
 
     @disposables = new CompositeDisposable
     @emitter = new Emitter
@@ -816,7 +834,7 @@ class TextEditorPresenter
   setScrollTop: (scrollTop) ->
     return unless scrollTop?
 
-    @pendingScrollTop = scrollTop
+    @scrollQueue.enqueue => @commitScrollTop(scrollTop)
 
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateHiddenInputState = true
@@ -856,7 +874,7 @@ class TextEditorPresenter
   setScrollLeft: (scrollLeft) ->
     return unless scrollLeft?
 
-    @pendingScrollLeft = scrollLeft
+    @scrollQueue.enqueue => @commitScrollLeft(scrollLeft)
 
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateHiddenInputState = true
@@ -1473,7 +1491,54 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   didChangeScrollPosition: (position) ->
-    @pendingScrollLogicalPosition = position
+    @scrollQueue.enqueue =>
+      {screenRange, options} = position
+
+      verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
+      horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
+
+      {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
+      {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
+      bottom = endTop + endHeight
+      right = endLeft
+
+      top += @getScrollTop()
+      bottom += @getScrollTop()
+      left += @getScrollLeft()
+      right += @getScrollLeft()
+
+      if options?.center
+        desiredScrollCenter = (top + bottom) / 2
+        unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
+          desiredScrollTop = desiredScrollCenter - @getClientHeight() / 2
+          desiredScrollBottom = desiredScrollCenter + @getClientHeight() / 2
+      else
+        desiredScrollTop = top - verticalScrollMarginInPixels
+        desiredScrollBottom = bottom + verticalScrollMarginInPixels
+
+      desiredScrollLeft = left - horizontalScrollMarginInPixels
+      desiredScrollRight = right + horizontalScrollMarginInPixels
+
+      if options?.reversed ? true
+        if desiredScrollBottom > @getScrollBottom()
+          @setScrollBottom(desiredScrollBottom)
+        if desiredScrollTop < @getScrollTop()
+          @setScrollTop(desiredScrollTop)
+
+        if desiredScrollRight > @getScrollRight()
+          @setScrollRight(desiredScrollRight)
+        if desiredScrollLeft < @getScrollLeft()
+          @setScrollLeft(desiredScrollLeft)
+      else
+        if desiredScrollTop < @getScrollTop()
+          @setScrollTop(desiredScrollTop)
+        if desiredScrollBottom > @getScrollBottom()
+          @setScrollBottom(desiredScrollBottom)
+
+        if desiredScrollLeft < @getScrollLeft()
+          @setScrollLeft(desiredScrollLeft)
+        if desiredScrollRight > @getScrollRight()
+          @setScrollRight(desiredScrollRight)
 
     @shouldUpdateCursorsState = true
     @shouldUpdateCustomGutterDecorationState = true
@@ -1500,63 +1565,10 @@ class TextEditorPresenter
   getHorizontalScrollbarHeight: ->
     @horizontalScrollbarHeight
 
-  commitPendingLogicalScrollPosition: ->
-    return unless @pendingScrollLogicalPosition?
+  commitScrollLeft: (scrollLeft) ->
+    return unless scrollLeft?
 
-    {screenRange, options} = @pendingScrollLogicalPosition
-
-    verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
-    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
-
-    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
-    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
-    bottom = endTop + endHeight
-    right = endLeft
-
-    top += @scrollTop
-    bottom += @scrollTop
-    left += @scrollLeft
-    right += @scrollLeft
-
-    if options?.center
-      desiredScrollCenter = (top + bottom) / 2
-      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
-        desiredScrollTop = desiredScrollCenter - @getClientHeight() / 2
-        desiredScrollBottom = desiredScrollCenter + @getClientHeight() / 2
-    else
-      desiredScrollTop = top - verticalScrollMarginInPixels
-      desiredScrollBottom = bottom + verticalScrollMarginInPixels
-
-    desiredScrollLeft = left - horizontalScrollMarginInPixels
-    desiredScrollRight = right + horizontalScrollMarginInPixels
-
-    if options?.reversed ? true
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-
-      if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
-      if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
-    else
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-
-      if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
-      if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
-
-    @pendingScrollLogicalPosition = null
-
-  commitPendingScrollLeftPosition: ->
-    return unless @pendingScrollLeft?
-
-    scrollLeft = @constrainScrollLeft(@pendingScrollLeft)
+    scrollLeft = @constrainScrollLeft(scrollLeft)
     if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
@@ -1567,10 +1579,10 @@ class TextEditorPresenter
 
     @pendingScrollLeft = null
 
-  commitPendingScrollTopPosition: ->
-    return unless @pendingScrollTop?
+  commitScrollTop: (scrollTop) ->
+    return unless scrollTop?
 
-    scrollTop = @constrainScrollTop(@pendingScrollTop)
+    scrollTop = @constrainScrollTop(scrollTop)
     if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
@@ -1580,10 +1592,8 @@ class TextEditorPresenter
       @didStartScrolling()
       @emitter.emit 'did-change-scroll-top', @scrollTop
 
-    @pendingScrollTop = null
-
   restoreScrollPosition: ->
-    return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()
+    return unless @hasPixelPositionRequirements()
 
     @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
     @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
@@ -1591,10 +1601,11 @@ class TextEditorPresenter
     @hasRestoredScrollPosition = true
 
   updateScrollPosition: ->
-    @restoreScrollPosition()
-    @commitPendingLogicalScrollPosition()
-    @commitPendingScrollLeftPosition()
-    @commitPendingScrollTopPosition()
+    @restoreScrollPosition() unless @hasRestoredScrollPosition
+    @commitScrollQueue()
+
+  commitScrollQueue: ->
+    @scrollQueue.commit()
 
   onDidChangeScrollTop: (callback) ->
     @emitter.on 'did-change-scroll-top', callback
