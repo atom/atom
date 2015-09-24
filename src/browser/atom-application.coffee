@@ -87,9 +87,9 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup, testRunnerBootstrap}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
+      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile, testRunnerBootstrap})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -491,7 +491,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
+  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode, testRunnerBootstrap}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -503,7 +503,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
+    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode, testRunnerBootstrap})
 
   locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen

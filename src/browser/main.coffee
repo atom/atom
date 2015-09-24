@@ -102,6 +102,7 @@ parseCommandLine = ->
   options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which to run package specs (default: Atom\'s spec directory).')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
+  options.string('test-runner-bootstrap')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.string('socket-path')
@@ -121,6 +122,7 @@ parseCommandLine = ->
   safeMode = args['safe']
   pathsToOpen = args._
   test = args['test']
+  testRunnerBootstrap = args['test-runner-bootstrap']
   specDirectory = args['spec-directory']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
@@ -158,6 +160,6 @@ parseCommandLine = ->
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
    version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
-   logFile, socketPath, profileStartup}
+   logFile, socketPath, profileStartup, testRunnerBootstrap}
 
 start()
