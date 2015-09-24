@@ -199,7 +199,7 @@ export function runSpecSuite (
   }
 
   let jasmineFactory: () => JasmineEnv = require(specSuite)
-  let jasmineEnv = jasmineFactory();
+  let jasmineEnv = jasmineFactory()
   jasmineEnv.addReporter(reporter)
   jasmineEnv.addReporter(timeReporter)
   jasmineEnv.setIncludedTags([process.platform])
