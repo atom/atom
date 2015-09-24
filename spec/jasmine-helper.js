@@ -65,7 +65,7 @@ type JasmineNestedResults = {
    */
   addResult(result: JasmineExpectationResult | JasmineNestedResults | JasmineMessageResult): void,
   passed(): boolean,
-},
+}
 
 /**
  * This interface is defined by https://github.com/jasmine/jasmine/blob/1_3_x/src/core/Runner.js.
