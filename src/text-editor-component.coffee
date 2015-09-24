@@ -306,7 +306,7 @@ class TextEditorComponent
     inputNode.value = event.data if insertedRange
 
   onVerticalScroll: (scrollTop) =>
-    return if @updateRequested or scrollTop is @editor.getScrollTop()
+    return if @updateRequested or scrollTop is @presenter.getScrollTop()
 
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
@@ -318,7 +318,7 @@ class TextEditorComponent
         @presenter.commitPendingScrollTopPosition()
 
   onHorizontalScroll: (scrollLeft) =>
-    return if @updateRequested or scrollLeft is @editor.getScrollLeft()
+    return if @updateRequested or scrollLeft is @presenter.getScrollLeft()
 
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
