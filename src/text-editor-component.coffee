@@ -361,6 +361,12 @@ class TextEditorComponent
       @scrollViewNode.scrollTop = 0
       @scrollViewNode.scrollLeft = 0
 
+  onDidChangeScrollTop: (callback) ->
+    @presenter.onDidChangeScrollTop(callback)
+
+  onDidChangeScrollLeft: (callback) ->
+    @presenter.onDidChangeScrollLeft(callback)
+
   setScrollLeft: (scrollLeft) ->
     @presenter.setScrollLeft(scrollLeft)
 

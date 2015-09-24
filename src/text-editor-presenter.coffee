@@ -1561,6 +1561,8 @@ class TextEditorPresenter
       @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
       @model.setScrollColumn(@scrollColumn)
 
+      @emitter.emit 'did-change-scroll-top', @scrollLeft
+
     @pendingScrollLeft = null
 
   commitPendingScrollTopPosition: ->
@@ -1574,6 +1576,7 @@ class TextEditorPresenter
       @model.setScrollRow(@scrollRow)
 
       @didStartScrolling()
+      @emitter.emit 'did-change-scroll-top', @scrollTop
 
     @pendingScrollTop = null
 
@@ -1590,3 +1593,9 @@ class TextEditorPresenter
     @commitPendingLogicalScrollPosition()
     @commitPendingScrollLeftPosition()
     @commitPendingScrollTopPosition()
+
+  onDidChangeScrollTop: (callback) ->
+    @emitter.on 'did-change-scroll-top', callback
+
+  onDidChangeScrollLeft: (callback) ->
+    @emitter.on 'did-change-scroll-left', callback

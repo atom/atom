@@ -218,6 +218,12 @@ class TextEditorElement extends HTMLElement
   onDidDetach: (callback) ->
     @emitter.on("did-detach", callback)
 
+  onDidChangeScrollTop: (callback) ->
+    @component.onDidChangeScrollTop(callback)
+
+  onDidChangeScrollLeft: (callback) ->
+    @component.onDidChangeScrollLeft(callback)
+
   setScrollLeft: (scrollLeft) ->
     @component.setScrollLeft(scrollLeft)
 
