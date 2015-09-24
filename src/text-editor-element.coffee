@@ -181,7 +181,7 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel position.
   pixelPositionForBufferPosition: (bufferPosition) ->
-    @getModel().pixelPositionForBufferPosition(bufferPosition, true)
+    @component.pixelPositionForBufferPosition(bufferPosition, true)
 
   # Extended: Converts a screen position to a pixel position.
   #
@@ -190,21 +190,21 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
-    @getModel().pixelPositionForScreenPosition(screenPosition, true)
+    @component.pixelPositionForScreenPosition(screenPosition, true)
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    @getModel().getFirstVisibleScreenRow(true)
+    @getVisibleRowRange()[0]
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    @getModel().getLastVisibleScreenRow(true)
+    @getVisibleRowRange()[1]
 
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
@@ -265,6 +265,26 @@ class TextEditorElement extends HTMLElement
 
   getHorizontalScrollbarHeight: ->
     @component.getHorizontalScrollbarHeight()
+
+  getVisibleRowRange: ->
+    @component.getVisibleRowRange()
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    not (endRow <= visibleStart or visibleEnd <= startRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    {start, end} = selection.getScreenRange()
+    @intersectsVisibleRowRange(start.row, end.row + 1)
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    @component.screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) ->
+    @component.pixelRectForScreenRange(screenRange)
+
+  pixelRangeForScreenRange: (screenRange, clip) ->
+    @component.pixelRangeForScreenRange(screenRange, clip)
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}

@@ -125,22 +125,8 @@ class DisplayBuffer extends Model
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
 
-  onDidChangeScrollTop: (callback) ->
-    @emitter.on 'did-change-scroll-top', callback
-
-  onDidChangeScrollLeft: (callback) ->
-    @emitter.on 'did-change-scroll-left', callback
-
   onDidChangeScrollPosition: (callback) ->
     @emitter.on 'did-change-scroll-position', callback
-
-  observeScrollTop: (callback) ->
-    callback(@scrollTop)
-    @onDidChangeScrollTop(callback)
-
-  observeScrollLeft: (callback) ->
-    callback(@scrollLeft)
-    @onDidChangeScrollLeft(callback)
 
   observeDecorations: (callback) ->
     callback(decoration) for decoration in @getDecorations()
@@ -1146,25 +1132,6 @@ class DisplayBuffer extends Model
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
       @emitter.emit 'did-create-marker', marker
-
-  # TODO: serialize state in TextEditorElement, rather than saving scroll
-  # positions here.
-
-  getScrollTop: -> @scrollTop
-
-  setScrollTop: (scrollTop) ->
-    unless scrollTop is @scrollTop
-      @scrollTop = scrollTop
-      @emitter.emit 'did-change-scroll-top', @scrollTop
-    @scrollTop
-
-  getScrollLeft: -> @scrollLeft
-
-  setScrollLeft: (scrollLeft) ->
-    unless scrollLeft is @scrollLeft
-      @scrollLeft = scrollLeft
-      @emitter.emit 'did-change-scroll-left', @scrollLeft
-    @scrollLeft
 
   decorateFold: (fold) ->
     @decorateMarker(fold.marker, type: 'line-number', class: 'folded')

@@ -403,6 +403,24 @@ class TextEditorComponent
   getHorizontalScrollbarHeight: ->
     @presenter.getHorizontalScrollbarHeight()
 
+  getVisibleRowRange: ->
+    @presenter.getVisibleRowRange()
+
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @presenter.pixelPositionForBufferPosition(bufferPosition)
+
+  pixelPositionForScreenPosition: (screenPosition) ->
+    @presenter.pixelPositionForScreenPosition(screenPosition)
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    @presenter.screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) ->
+    @presenter.pixelRectForScreenRange(screenRange)
+
+  pixelRangeForScreenRange: (screenRange, clip) ->
+    @presenter.pixelRangeForScreenRange(screenRange, clip)
+
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
       # Only handle mouse down events for left mouse button on all platforms
@@ -810,7 +828,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @editor.screenPositionForPixelPosition(pixelPosition)
+    @presenter.screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event
