@@ -33,7 +33,7 @@
     "rcedit": "~0.3.0",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
-    "runas": "^2",
+    "runas": "^3",
     "tello": "1.0.5",
     "temp": "~0.8.1",
     "underscore-plus": "1.x",
