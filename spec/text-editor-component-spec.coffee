@@ -3605,6 +3605,40 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(wrapperNode.getScrollTop()).toBe 0
 
+  describe "::screenPositionForPixelPosition(pixelPosition)", ->
+    it "clips pixel positions above buffer start", ->
+      expect(component.screenPositionForPixelPosition(top: -Infinity, left: -Infinity)).toEqual [0, 0]
+      expect(component.screenPositionForPixelPosition(top: -Infinity, left: Infinity)).toEqual [0, 0]
+      expect(component.screenPositionForPixelPosition(top: -1, left: Infinity)).toEqual [0, 0]
+      expect(component.screenPositionForPixelPosition(top: 0, left: Infinity)).toEqual [0, 29]
+
+    it "clips pixel positions below buffer end", ->
+      expect(component.screenPositionForPixelPosition(top: Infinity, left: -Infinity)).toEqual [12, 2]
+      expect(component.screenPositionForPixelPosition(top: Infinity, left: Infinity)).toEqual [12, 2]
+      expect(component.screenPositionForPixelPosition(top: component.getScrollHeight() + 1, left: 0)).toEqual [12, 2]
+      expect(component.screenPositionForPixelPosition(top: component.getScrollHeight() - 1, left: 0)).toEqual [12, 0]
+
+  describe "::getVisibleRowRange()", ->
+    beforeEach ->
+      wrapperNode.style.height = lineHeightInPixels * 8 + "px"
+      component.measureDimensions()
+      nextAnimationFrame()
+
+    it "returns the first and the last visible rows", ->
+      component.setScrollTop(0)
+      nextAnimationFrame()
+
+      expect(component.getVisibleRowRange()).toEqual [0, 9]
+
+    it "ends at last buffer row even if there's more space available", ->
+      wrapperNode.style.height = lineHeightInPixels * 13 + "px"
+      component.measureDimensions()
+      nextAnimationFrame()
+
+      component.setScrollTop(60)
+      nextAnimationFrame()
+
+      expect(component.getVisibleRowRange()).toEqual [0, 13]
 
   describe "middle mouse paste on Linux", ->
     originalPlatform = null

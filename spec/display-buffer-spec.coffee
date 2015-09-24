@@ -718,21 +718,6 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, 1], clip: 'forward')).toEqual [0, tabLength]
         expect(displayBuffer.clipScreenPosition([0, tabLength], clip: 'forward')).toEqual [0, tabLength]
 
-  describe "::screenPositionForPixelPosition(pixelPosition)", ->
-    it "clips pixel positions above buffer start", ->
-      displayBuffer.setLineHeightInPixels(20)
-      expect(displayBuffer.screenPositionForPixelPosition(top: -Infinity, left: -Infinity)).toEqual [0, 0]
-      expect(displayBuffer.screenPositionForPixelPosition(top: -Infinity, left: Infinity)).toEqual [0, 0]
-      expect(displayBuffer.screenPositionForPixelPosition(top: -1, left: Infinity)).toEqual [0, 0]
-      expect(displayBuffer.screenPositionForPixelPosition(top: 0, left: Infinity)).toEqual [0, 29]
-
-    it "clips pixel positions below buffer end", ->
-      displayBuffer.setLineHeightInPixels(20)
-      expect(displayBuffer.screenPositionForPixelPosition(top: Infinity, left: -Infinity)).toEqual [12, 2]
-      expect(displayBuffer.screenPositionForPixelPosition(top: Infinity, left: Infinity)).toEqual [12, 2]
-      expect(displayBuffer.screenPositionForPixelPosition(top: displayBuffer.getHeight() + 1, left: 0)).toEqual [12, 2]
-      expect(displayBuffer.screenPositionForPixelPosition(top: displayBuffer.getHeight() - 1, left: 0)).toEqual [12, 0]
-
   describe "::screenPositionForBufferPosition(bufferPosition, options)", ->
     it "clips the specified buffer position", ->
       expect(displayBuffer.screenPositionForBufferPosition([0, 2])).toEqual [0, 2]
@@ -1246,32 +1231,6 @@ describe "DisplayBuffer", ->
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: true})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true})
-
-  describe "::getVisibleRowRange()", ->
-    beforeEach ->
-      displayBuffer.setLineHeightInPixels(10)
-      displayBuffer.setHeight(100)
-
-    it "returns the first and the last visible rows", ->
-      displayBuffer.setScrollTop(0)
-
-      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 9]
-
-    it "includes partially visible rows in the range", ->
-      displayBuffer.setScrollTop(5)
-
-      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 10]
-
-    it "returns an empty range when lineHeight is 0", ->
-      displayBuffer.setLineHeightInPixels(0)
-
-      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 0]
-
-    it "ends at last buffer row even if there's more space available", ->
-      displayBuffer.setHeight(150)
-      displayBuffer.setScrollTop(60)
-
-      expect(displayBuffer.getVisibleRowRange()).toEqual [0, 13]
 
   describe "::decorateMarker", ->
     describe "when decorating gutters", ->
