@@ -731,17 +731,21 @@ describe "TextEditorPresenter", ->
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
           expect(presenter.getState().content.scrollTop).toBe scrollTopBefore
+          expect(presenter.getRealScrollTop()).toBe scrollTopBefore
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
@@ -794,20 +798,25 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollLeftBefore = presenter.getState().content.scrollLeft
           expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
           expect(presenter.getState().content.scrollLeft).toBe scrollLeftBefore
+          expect(presenter.getRealScrollLeft()).toBe scrollLeftBefore
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)

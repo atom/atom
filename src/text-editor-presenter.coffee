@@ -711,6 +711,7 @@ class TextEditorPresenter
     scrollTop = @constrainScrollTop(@scrollTop)
     unless @scrollTop is scrollTop
       @scrollTop = scrollTop
+      @realScrollTop = @scrollTop
       @updateStartRow()
       @updateEndRow()
 
@@ -720,6 +721,7 @@ class TextEditorPresenter
 
   updateScrollLeft: ->
     @scrollLeft = @constrainScrollLeft(@scrollLeft)
+    @realScrollLeft = @scrollLeft
 
   constrainScrollLeft: (scrollLeft) ->
     return scrollLeft unless scrollLeft? and @scrollWidth? and @clientWidth?
