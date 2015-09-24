@@ -526,7 +526,7 @@ class Atom extends Model
   #   https://github.com/atom/atom-shell/issues/473
   #   https://github.com/atom/atom/issues/7555
   #   https://github.com/atom/atom/issues/8909
-  # note: OS X has continous coordinates space shared by all displays 
+  # note: OS X has continous coordinates space shared by all displays
   # the main display screen is naturally [0,0,widht,height], additional displays are placed around it
   # it is perfectly fine for a secondary display to occupy negative coordinates!
   isValidDimensions: ({x, y, width, height}={}) ->
