@@ -11,6 +11,8 @@ describe "the `atom` global", ->
       it 'sets the position of the window, and can retrieve the position just set', ->
         atom.setPosition(22, 45)
         expect(atom.getPosition()).toEqual x: 22, y: 45
+        atom.setPosition(-22, -45) # negative coordinates are fine on external displays under OS X
+        expect(atom.getPosition()).toEqual x: -22, y: -45
 
     describe '::getSize and ::setSize', ->
       originalSize = null

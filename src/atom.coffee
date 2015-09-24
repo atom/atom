@@ -523,9 +523,17 @@ class Atom extends Model
       @center()
 
   # Returns true if the dimensions are useable, false if they should be ignored.
-  # Work around for https://github.com/atom/atom-shell/issues/473
+  #   https://github.com/atom/atom-shell/issues/473
+  #   https://github.com/atom/atom/issues/7555
+  #   https://github.com/atom/atom/issues/8909
+  # note: OS X has continous coordinates space shared by all displays 
+  # the main display screen is naturally [0,0,widht,height], additional displays are placed around it
+  # it is perfectly fine for a secondary display to occupy negative coordinates!
   isValidDimensions: ({x, y, width, height}={}) ->
-    width > 0 and height > 0 and x + width > 0 and y + height > 0
+    return false unless width > 0 and height > 0
+    if process.platform is 'win32'
+      return false unless x + width > 0 and y + height > 0
+    true
 
   storeDefaultWindowDimensions: ->
     dimensions = @getWindowDimensions()
@@ -543,12 +551,14 @@ class Atom extends Model
       console.warn "Error parsing default window dimensions", error
       localStorage.removeItem("defaultWindowDimensions")
 
-    if @isValidDimensions(dimensions)
-      dimensions
-    else
+    unless @isValidDimensions(dimensions)
+      invalidDimensions = dimensions
       screen = remote.require 'screen'
       {width, height} = screen.getPrimaryDisplay().workAreaSize
-      {x: 0, y: 0, width: Math.min(1024, width), height}
+      dimensions = {x: 0, y: 0, width: Math.max(1024, width), height: Math.max(512, height)}
+      console.warn "Invalid window dimensions detected, reset to defaults: #{JSON.stringify(dimensions)} (invalid were: #{JSON.stringify(invalidDimensions)})"
+      
+    dimensions
 
   restoreWindowDimensions: ->
     dimensions = @state.windowDimensions
