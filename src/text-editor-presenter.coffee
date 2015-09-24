@@ -14,7 +14,7 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -56,6 +56,8 @@ class TextEditorPresenter
 
   transferMeasurementsFromModel: ->
     @editorWidthInChars = @model.getEditorWidthInChars()
+    @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
+    @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
 
   # Private: Determines whether {TextEditorPresenter} is currently batching changes.
   # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
@@ -233,6 +235,7 @@ class TextEditorPresenter
     @shouldUpdateLineNumbersState = true
 
     @updateContentDimensions()
+    @updateScrollPosition()
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
@@ -824,7 +827,6 @@ class TextEditorPresenter
     @shouldUpdateCustomGutterDecorationState = true
     @shouldUpdateOverlaysState = true
 
-    @didStartScrolling()
     @emitDidUpdateState()
 
   getScrollTop: ->
@@ -1552,12 +1554,18 @@ class TextEditorPresenter
     if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
+      @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
+      @model.setScrollColumn(@scrollColumn)
 
   commitPendingScrollTopPosition: ->
     scrollTop = @constrainScrollTop(@pendingScrollTop)
     if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
+      @scrollRow = Math.round(@scrollTop / @lineHeight)
+      @model.setScrollRow(@scrollRow)
+
+      @didStartScrolling()
 
   updateScrollPosition: ->
     @commitPendingLogicalScrollPosition() if @pendingScrollLogicalPosition?

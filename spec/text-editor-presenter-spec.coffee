@@ -333,14 +333,6 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe 50
 
-        it "is always rounded to the nearest integer", ->
-          presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
-          expect(presenter.getState().content.scrollLeft).toBe 10
-          expectStateUpdate presenter, -> presenter.setScrollLeft(11.4)
-          expect(presenter.getState().content.scrollLeft).toBe 11
-          expectStateUpdate presenter, -> presenter.setScrollLeft(12.6)
-          expect(presenter.getState().content.scrollLeft).toBe 13
-
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, explicitHeight: 100, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
@@ -574,6 +566,7 @@ describe "TextEditorPresenter", ->
           advanceClock(100)
           expect(presenter.getState().content.scrollingVertically).toBe true
           presenter.setScrollTop(10)
+          presenter.getState() # commits scroll position
           advanceClock(100)
           expect(presenter.getState().content.scrollingVertically).toBe true
           expectStateUpdate presenter, -> advanceClock(100)
@@ -686,11 +679,26 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollTop", ->
+        it "corresponds to the passed logical coordinates when building the presenter", ->
+          presenter = buildPresenter(scrollRow: 4, lineHeight: 10, explicitHeight: 20)
+          expect(presenter.getState().content.scrollTop).toBe(40)
+
         it "tracks the value of ::scrollTop", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 20)
           expect(presenter.getState().content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           expect(presenter.getState().content.scrollTop).toBe 50
+
+        it "keeps the model up to date with the corresponding logical coordinates", ->
+          presenter = buildPresenter(scrollTop: 0, explicitHeight: 20, horizontalScrollbarHeight: 10, lineHeight: 10)
+
+          expectStateUpdate presenter, -> presenter.setScrollTop(50)
+          presenter.getState() # commits scroll position
+          expect(editor.getScrollRow()).toBe(5)
+
+          expectStateUpdate presenter, -> presenter.setScrollTop(57)
+          presenter.getState() # commits scroll position
+          expect(editor.getScrollRow()).toBe(6)
 
         it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
           presenter = buildPresenter(scrollTop: 80, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 0)
@@ -753,11 +761,34 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
+        it "corresponds to the passed logical coordinates when building the presenter", ->
+          presenter = buildPresenter(scrollColumn: 3, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expect(presenter.getState().content.scrollLeft).toBe(30)
+
         it "tracks the value of ::scrollLeft", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.getState().content.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           expect(presenter.getState().content.scrollLeft).toBe 50
+
+        it "keeps the model up to date with the corresponding logical coordinates", ->
+          presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+
+          expectStateUpdate presenter, -> presenter.setScrollLeft(50)
+          presenter.getState() # commits scroll position
+          expect(editor.getScrollColumn()).toBe(5)
+
+          expectStateUpdate presenter, -> presenter.setScrollLeft(57)
+          presenter.getState() # commits scroll position
+          expect(editor.getScrollColumn()).toBe(6)
+
+        it "is always rounded to the nearest integer", ->
+          presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          expect(presenter.getState().content.scrollLeft).toBe 10
+          expectStateUpdate presenter, -> presenter.setScrollLeft(11.4)
+          expect(presenter.getState().content.scrollLeft).toBe 11
+          expectStateUpdate presenter, -> presenter.setScrollLeft(12.6)
+          expect(presenter.getState().content.scrollLeft).toBe 13
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)

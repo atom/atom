@@ -43,8 +43,8 @@ class TextEditorComponent
 
     @presenter = new TextEditorPresenter
       model: @editor
-      scrollTop: @editor.getScrollTop()
-      scrollLeft: @editor.getScrollLeft()
+      scrollRow: @editor.getScrollRow()
+      scrollColumn: @editor.getScrollColumn()
       tileSize: tileSize
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay

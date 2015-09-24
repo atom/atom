@@ -127,8 +127,8 @@ class TextEditor extends Model
     deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
-    scrollTop: @scrollTop
-    scrollLeft: @scrollLeft
+    scrollRow: @scrollRow
+    scrollColumn: @scrollColumn
     displayBuffer: @displayBuffer.serialize()
 
   subscribeToBuffer: ->
@@ -2991,6 +2991,12 @@ class TextEditor extends Model
 
   setWidth: (width) -> @displayBuffer.setWidth(width)
   getWidth: -> @displayBuffer.getWidth()
+
+  getScrollRow: -> @scrollRow
+  setScrollRow: (@scrollRow) ->
+
+  getScrollColumn: -> @scrollColumn
+  setScrollColumn: (@scrollColumn) ->
 
   getScrollTop: -> @displayBuffer.getScrollTop()
   setScrollTop: (scrollTop) -> @displayBuffer.setScrollTop(scrollTop)

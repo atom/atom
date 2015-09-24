@@ -26,11 +26,6 @@ class DisplayBuffer extends Model
   defaultCharWidth: null
   height: null
   width: null
-  scrollTop: 0
-  scrollLeft: 0
-  scrollWidth: 0
-  verticalScrollbarWidth: 15
-  horizontalScrollbarHeight: 15
 
   @deserialize: (state) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer)
@@ -99,8 +94,6 @@ class DisplayBuffer extends Model
     id: @id
     softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
-    scrollTop: @scrollTop
-    scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
 
