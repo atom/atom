@@ -7,15 +7,15 @@ import fs from 'fs'
  * This interface is defined by https://github.com/jasmine/jasmine/blob/1_3_x/src/core/Env.js.
  */
 type JasmineEnv = {
-  constructor(): void;
-  addReporter(reporter: JasmineReporter): void;
-  execute(): void;
+  constructor(): void,
+  addReporter(reporter: JasmineReporter): void,
+  execute(): void,
 
   /**
    * This method is not a standard part of Jasmine 1.3.1. It is included via
    * https://github.com/atom/jasmine-tagged/blob/master/src/jasmine-tagged.coffee.
    */
-  setIncludedTags(tags: string[]): string[];
+  setIncludedTags(tags: string[]): string[],
 }
 
 /**
@@ -23,38 +23,38 @@ type JasmineEnv = {
  */
 type JasmineExpectationResult = {
   constructor(params: {
-    matcherName: string;
-    passed: boolean;
-    expected: mixed;
-    actual: mixed;
-    message: string;
-    trace?: ?Error;
-  }): void;
-  type: 'expect';
-  toString(): string;
-  passed(): boolean;
+    matcherName: string,
+    passed: boolean,
+    expected: mixed,
+    actual: mixed,
+    message: string,
+    trace?: ?Error,
+  }): void,
+  type: 'expect',
+  toString(): string,
+  passed(): boolean,
 }
 
 /**
  * This interface is defined by https://github.com/jasmine/jasmine/blob/1_3_x/src/core/base.js.
  */
 type JasmineMessageResult = {
-  constructor(values: mixed[]): void;
-  type: 'log';
-  toString(): string;
+  constructor(values: mixed[]): void,
+  type: 'log',
+  toString(): string,
 }
 
 /**
  * This interface is defined by https://github.com/jasmine/jasmine/blob/1_3_x/src/core/NestedResults.js.
  */
 type JasmineNestedResults = {
-  totalCount: number;
-  passedCount: number;
-  failedCount: number;
-  skipped: boolean;
-  rollupCounts(result: JasmineNestedResults): void;
-  log(values: mixed[]): void;
-  getItems(): Array<JasmineExpectationResult | JasmineNestedResults | JasmineMessageResult>;
+  totalCount: number,
+  passedCount: number,
+  failedCount: number,
+  skipped: boolean,
+  rollupCounts(result: JasmineNestedResults): void,
+  log(values: mixed[]): void,
+  getItems(): Array<JasmineExpectationResult | JasmineNestedResults | JasmineMessageResult>,
 
   /**
    * - If result is a JasmineNestedResults, it will be passed to rollupCounts().
@@ -63,18 +63,18 @@ type JasmineNestedResults = {
    * - If result is a JasmineMessageResult, it just gets added to the list of things returned by
    *   getItems().
    */
-  addResult(result: JasmineExpectationResult | JasmineNestedResults | JasmineMessageResult): void;
-  passed(): boolean;
-};
+  addResult(result: JasmineExpectationResult | JasmineNestedResults | JasmineMessageResult): void,
+  passed(): boolean,
+},
 
 /**
  * This interface is defined by https://github.com/jasmine/jasmine/blob/1_3_x/src/core/Runner.js.
  */
 type JasmineRunner = {
-  constructor(env: JasmineEnv): void;
-  results(): JasmineNestedResults;
-  specs(): JasmineSpec[];
-  topLevelSuites(): JasmineSuite[];
+  constructor(env: JasmineEnv): void,
+  results(): JasmineNestedResults,
+  specs(): JasmineSpec[],
+  topLevelSuites(): JasmineSuite[],
 
   // Admittedly, this has many more methods, but implementations of JasmineReporter that make a
   // JasmineRunner available should primarily be concerned about the observer methods.
@@ -84,9 +84,9 @@ type JasmineRunner = {
  * This interface is defined by https://github.com/jasmine/jasmine/blob/1_3_x/src/core/Spec.js.
  */
 type JasmineSpec = {
-  constructor(env: mixed, suite: JasmineSuite, description: string): void;
-  getFullName(): string;
-  results(): JasmineNestedResults;
+  constructor(env: mixed, suite: JasmineSuite, description: string): void,
+  getFullName(): string,
+  results(): JasmineNestedResults,
 }
 
 /**
@@ -98,14 +98,14 @@ type JasmineSuite = {
     description: string,
     specDefinitions: Function,
     parentSuite: JasmineSuite,
-  ): void;
-  getFullName(): string;
-  finish(onComplete: () => void): void;
-  add(suiteOrSpec: JasmineSuite | JasmineSpec): void;
-  specs(): JasmineSpec[];
-  suites(): JasmineSuite[];
-  children(): Array<JasmineSuite | JasmineSpec>;
-  execute(onComplete: () => void): void;
+  ): void,
+  getFullName(): string,
+  finish(onComplete: () => void): void,
+  add(suiteOrSpec: JasmineSuite | JasmineSpec): void,
+  specs(): JasmineSpec[],
+  suites(): JasmineSuite[],
+  children(): Array<JasmineSuite | JasmineSpec>,
+  execute(onComplete: () => void): void,
 }
 
 /**
@@ -113,25 +113,25 @@ type JasmineSuite = {
  */
 type JasmineReporter = {
   /** This is invoked once when the runner starts up. */
-  reportRunnerStarting(runner: JasmineRunner): void;
+  reportRunnerStarting(runner: JasmineRunner): void,
 
   /**
    * This will be invoked when the runner is completely finished. At this point, it makes sense to
    * inspect the runner.
    */
-  reportRunnerResults(runner: JasmineRunner): void;
+  reportRunnerResults(runner: JasmineRunner): void,
 
   /** As an example, TerminalReporter does not use this method. */
-  reportSuiteResults(suite: JasmineSuite): void;
+  reportSuiteResults(suite: JasmineSuite): void,
 
   /** As an example, TerminalReporter does not use this method. */
-  reportSpecStarting(spec: JasmineSpec): void;
+  reportSpecStarting(spec: JasmineSpec): void,
 
   /** This is frequently used to report streaming results. */
-  reportSpecResults(spec: JasmineSpec): void;
+  reportSpecResults(spec: JasmineSpec): void,
 
   /** Reports a log message to print out. */
-  log(str: string): void;
+  log(str: string): void,
 }
 
 /**
