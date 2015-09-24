@@ -21,7 +21,8 @@ try
   process.env.NODE_PATH = exportsPath
 
   document.title = "Spec Suite"
-  runSpecSuite './spec-suite', atom.getLoadSettings().logFile
+  # TODO(bolinfest): Make it possible to customize the path passed to runSpecSuite().
+  runSpecSuite './spec-suite-jasmine', atom.getLoadSettings().logFile
 catch error
   if atom?.getLoadSettings().exitWhenDone
     console.error(error.stack ? error)

@@ -134,10 +134,15 @@ type JasmineReporter = {
   log(str: string): void;
 }
 
+/**
+ * @param specSuite must be a path to a file that, when required, exports a function that takes no
+ *   arguments and returns a new object that satisfies the contract of `JasmineEnv`.
+ * @param logFile If specified, log messages from the test will be written to this file; otherwise,
+ *   they will be written to stderr. (This only applies when tests are run from the terminal.)
+ */
 export function runSpecSuite (
   specSuite: string,
   logFile: ?string,
-  logErrors: boolean = true,
 ) {
   let jasmineGlobals = require('../vendor/jasmine')
   for (let key in jasmineGlobals) {
@@ -193,9 +198,8 @@ export function runSpecSuite (
     reporter = new AtomReporter()
   }
 
-  require(specSuite)
-
-  let jasmineEnv: JasmineEnv = jasmine.getEnv()
+  let jasmineFactory: () => JasmineEnv = require(specSuite)
+  let jasmineEnv = jasmineFactory();
   jasmineEnv.addReporter(reporter)
   jasmineEnv.addReporter(timeReporter)
   jasmineEnv.setIncludedTags([process.platform])
