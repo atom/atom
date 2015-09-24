@@ -416,17 +416,12 @@ class TextEditorComponent
     @presenter.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * @lineHeight
-      width = @scrollWidth
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @lineHeight
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}
+    rect = @presenter.pixelRectForScreenRange(screenRange)
+    rect.top += @presenter.getScrollTop()
+    rect.bottom += @presenter.getScrollTop()
+    rect.left += @presenter.getScrollLeft()
+    rect.right += @presenter.getScrollLeft()
+    rect
 
   pixelRangeForScreenRange: (screenRange, clip=true) ->
     {start, end} = Range.fromObject(screenRange)
