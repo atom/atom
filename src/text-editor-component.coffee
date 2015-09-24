@@ -43,6 +43,8 @@ class TextEditorComponent
 
     @presenter = new TextEditorPresenter
       model: @editor
+      scrollTop: 0
+      scrollLeft: 0
       scrollRow: @editor.getScrollRow()
       scrollColumn: @editor.getScrollColumn()
       tileSize: tileSize

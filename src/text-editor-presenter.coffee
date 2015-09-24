@@ -56,8 +56,6 @@ class TextEditorPresenter
 
   transferMeasurementsFromModel: ->
     @editorWidthInChars = @model.getEditorWidthInChars()
-    @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
-    @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
 
   # Private: Determines whether {TextEditorPresenter} is currently batching changes.
   # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
@@ -1501,6 +1499,8 @@ class TextEditorPresenter
     @horizontalScrollbarHeight
 
   commitPendingLogicalScrollPosition: ->
+    return unless @pendingScrollLogicalPosition?
+
     {screenRange, options} = @pendingScrollLogicalPosition
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
@@ -1549,7 +1549,11 @@ class TextEditorPresenter
       if desiredScrollRight > @getScrollRight()
         @setScrollRight(desiredScrollRight)
 
+    @pendingScrollLogicalPosition = null
+
   commitPendingScrollLeftPosition: ->
+    return unless @pendingScrollLeft?
+
     scrollLeft = @constrainScrollLeft(@pendingScrollLeft)
     if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
@@ -1557,7 +1561,11 @@ class TextEditorPresenter
       @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
       @model.setScrollColumn(@scrollColumn)
 
+    @pendingScrollLeft = null
+
   commitPendingScrollTopPosition: ->
+    return unless @pendingScrollTop?
+
     scrollTop = @constrainScrollTop(@pendingScrollTop)
     if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
@@ -1567,11 +1575,18 @@ class TextEditorPresenter
 
       @didStartScrolling()
 
-  updateScrollPosition: ->
-    @commitPendingLogicalScrollPosition() if @pendingScrollLogicalPosition?
-    @commitPendingScrollLeftPosition() if @pendingScrollLeft?
-    @commitPendingScrollTopPosition() if @pendingScrollTop?
-
     @pendingScrollTop = null
-    @pendingScrollLeft = null
-    @pendingScrollLogicalPosition = null
+
+  restoreScrollPosition: ->
+    return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()
+
+    @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
+    @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
+
+    @hasRestoredScrollPosition = true
+
+  updateScrollPosition: ->
+    @restoreScrollPosition()
+    @commitPendingLogicalScrollPosition()
+    @commitPendingScrollLeftPosition()
+    @commitPendingScrollTopPosition()
