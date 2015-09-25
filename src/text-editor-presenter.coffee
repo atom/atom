@@ -816,6 +816,7 @@ class TextEditorPresenter
   setScrollTop: (scrollTop) ->
     return unless scrollTop?
 
+    @pendingScrollLogicalPosition = null
     @pendingScrollTop = scrollTop
 
     @shouldUpdateVerticalScrollState = true
@@ -856,6 +857,7 @@ class TextEditorPresenter
   setScrollLeft: (scrollLeft) ->
     return unless scrollLeft?
 
+    @pendingScrollLogicalPosition = null
     @pendingScrollLeft = scrollLeft
 
     @shouldUpdateHorizontalScrollState = true
@@ -1474,6 +1476,8 @@ class TextEditorPresenter
 
   didChangeScrollPosition: (position) ->
     @pendingScrollLogicalPosition = position
+    @pendingScrollTop = null
+    @pendingScrollLeft = null
 
     @shouldUpdateCursorsState = true
     @shouldUpdateCustomGutterDecorationState = true

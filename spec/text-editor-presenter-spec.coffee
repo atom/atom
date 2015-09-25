@@ -679,6 +679,20 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollTop", ->
+        it "changes based on the scroll operation that was performed last", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
+          expect(presenter.getState().content.scrollTop).toBe(0)
+
+          presenter.setScrollTop(20)
+          editor.setCursorBufferPosition([5, 0])
+
+          expect(presenter.getState().content.scrollTop).toBe(50)
+
+          editor.setCursorBufferPosition([8, 0])
+          presenter.setScrollTop(10)
+
+          expect(presenter.getState().content.scrollTop).toBe(10)
+
         it "corresponds to the passed logical coordinates when building the presenter", ->
           presenter = buildPresenter(scrollRow: 4, lineHeight: 10, explicitHeight: 20)
           expect(presenter.getState().content.scrollTop).toBe(40)
@@ -765,6 +779,20 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
+        it "changes based on the scroll operation that was performed last", ->
+          presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 10)
+          expect(presenter.getState().content.scrollLeft).toBe(0)
+
+          presenter.setScrollLeft(20)
+          editor.setCursorBufferPosition([0, 9])
+
+          expect(presenter.getState().content.scrollLeft).toBe(90)
+
+          editor.setCursorBufferPosition([0, 18])
+          presenter.setScrollLeft(50)
+
+          expect(presenter.getState().content.scrollLeft).toBe(50)
+
         it "corresponds to the passed logical coordinates when building the presenter", ->
           presenter = buildPresenter(scrollColumn: 3, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.getState().content.scrollLeft).toBe(30)
@@ -1893,9 +1921,9 @@ describe "TextEditorPresenter", ->
               pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
             }
 
-            editor.insertNewline()
-            presenter.getState() # forces scroll top to be changed
-            presenter.setScrollTop(scrollTop) # I'm fighting the editor
+            expectStateUpdate presenter, ->
+              editor.insertNewline()
+              presenter.setScrollTop(scrollTop) # I'm fighting the editor
 
             expectValues stateForOverlay(presenter, decoration), {
               item: item
