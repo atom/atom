@@ -134,11 +134,19 @@ type JasmineReporter = {
   log(str: string): void,
 }
 
+type TestRunnerOptions = {
+  logFile: ?string,
+};
+
+type TestRunner = {
+  execute(): void,
+};
+
 /**
  * @param logFile If specified, log messages from the test will be written to this file; otherwise,
  *   they will be written to stderr. (This only applies when tests are run from the terminal.)
  */
-export default function runSpecSuite (logFile: ?string): { execute(): mixed } {
+export default function runSpecSuite ({logFile}: TestRunnerOptions): TestRunner {
   let jasmineGlobals = require('../vendor/jasmine')
   for (let key in jasmineGlobals) {
     window[key] = jasmineGlobals[key]

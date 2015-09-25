@@ -22,7 +22,7 @@ try
 
   document.title = "Spec Suite"
   testRunnerFactory = require(atom.getLoadSettings().testRunnerBootstrap ? './jasmine-helper')
-  testRunner = testRunnerFactory(atom.getLoadSettings().logFile)
+  testRunner = testRunnerFactory {logFile: atom.getLoadSettings().logFile}
   testRunner.execute()
 catch error
   if atom?.getLoadSettings().exitWhenDone
