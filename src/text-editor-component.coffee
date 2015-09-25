@@ -317,7 +317,7 @@ class TextEditorComponent
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
         @presenter.setScrollTop(pendingScrollTop)
-        @presenter.commitScrollQueue()
+        @presenter.commitPendingScrollTopPosition()
 
   onHorizontalScroll: (scrollLeft) =>
     return if @updateRequested or scrollLeft is @presenter.getScrollLeft()
@@ -327,7 +327,7 @@ class TextEditorComponent
     unless animationFramePending
       @requestAnimationFrame =>
         @presenter.setScrollLeft(@pendingScrollLeft)
-        @presenter.commitScrollQueue()
+        @presenter.commitPendingScrollLeftPosition()
         @pendingScrollLeft = null
 
   onMouseWheel: (event) =>
@@ -613,11 +613,11 @@ class TextEditorComponent
 
       if mouseYDelta?
         @presenter.setScrollTop(@presenter.getScrollTop() + yDirection * scaleScrollDelta(mouseYDelta))
-        @presenter.commitScrollQueue()
+        @presenter.commitPendingScrollTopPosition()
 
       if mouseXDelta?
         @presenter.setScrollLeft(@presenter.getScrollLeft() + xDirection * scaleScrollDelta(mouseXDelta))
-        @presenter.commitScrollQueue()
+        @presenter.commitPendingScrollLeftPosition()
 
     scaleScrollDelta = (scrollDelta) ->
       Math.pow(scrollDelta / 2, 3) / 280

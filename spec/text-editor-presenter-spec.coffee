@@ -1893,9 +1893,9 @@ describe "TextEditorPresenter", ->
               pixelPosition: {top: 6 * 10 - scrollTop, left: gutterWidth}
             }
 
-            expectStateUpdate presenter, ->
-              editor.insertNewline()
-              presenter.setScrollTop(scrollTop) # I'm fighting the editor
+            editor.insertNewline()
+            presenter.getState() # forces scroll top to be changed
+            presenter.setScrollTop(scrollTop) # I'm fighting the editor
 
             expectValues stateForOverlay(presenter, decoration), {
               item: item

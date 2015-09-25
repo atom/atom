@@ -3605,18 +3605,6 @@ describe "TextEditorComponent", ->
         nextAnimationFrame()
         expect(wrapperNode.getScrollTop()).toBe 0
 
-  describe "when many scroll events are triggered before an animation frame", ->
-    it "applies them sequentially, as if they were not batched", ->
-      wrapperNode.style.height = lineHeightInPixels * 7 + "px"
-      component.measureDimensions()
-      nextAnimationFrame()
-
-      editor.scrollToScreenPosition([8, 0])
-      editor.scrollToScreenPosition([8, 0], center: true)
-      nextAnimationFrame()
-
-      expect(wrapperNode.getScrollTop()).toBe(4 * lineHeightInPixels)
-
   describe "::screenPositionForPixelPosition(pixelPosition)", ->
     it "clips pixel positions above buffer start", ->
       expect(component.screenPositionForPixelPosition(top: -Infinity, left: -Infinity)).toEqual [0, 0]
