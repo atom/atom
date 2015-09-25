@@ -1220,9 +1220,9 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.getDecorations(class: 'one').length).toEqual 1
 
   describe "::scrollToScreenPosition(position, [options])", ->
-    it "triggers ::onDidChangeScrollPosition with the logical coordinates along with the options", ->
-      scrollSpy = jasmine.createSpy("::onDidChangeScrollPosition")
-      displayBuffer.onDidChangeScrollPosition(scrollSpy)
+    it "triggers ::onDidRequestAutoscroll with the logical coordinates along with the options", ->
+      scrollSpy = jasmine.createSpy("::onDidRequestAutoscroll")
+      displayBuffer.onDidRequestAutoscroll(scrollSpy)
 
       displayBuffer.scrollToScreenPosition([8, 20])
       displayBuffer.scrollToScreenPosition([8, 20], center: true)

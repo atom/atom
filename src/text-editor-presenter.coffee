@@ -159,9 +159,7 @@ class TextEditorPresenter
 
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
-    @disposables.add @model.onDidChangeScrollPosition(@didChangeScrollPosition.bind(this))
-    # @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
-    # @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
+    @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
@@ -1474,7 +1472,7 @@ class TextEditorPresenter
       @startBlinkingCursorsAfterDelay()
       @emitDidUpdateState()
 
-  didChangeScrollPosition: (position) ->
+  requestAutoscroll: (position) ->
     @pendingScrollLogicalPosition = position
     @pendingScrollTop = null
     @pendingScrollLeft = null

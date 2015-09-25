@@ -436,8 +436,8 @@ class TextEditor extends Model
 
     atom.views.getView(this).onDidChangeScrollLeft(callback)
 
-  onDidChangeScrollPosition: (callback) ->
-    @displayBuffer.onDidChangeScrollPosition(callback)
+  onDidRequestAutoscroll: (callback) ->
+    @displayBuffer.onDidRequestAutoscroll(callback)
 
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->

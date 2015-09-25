@@ -125,7 +125,7 @@ class DisplayBuffer extends Model
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
 
-  onDidChangeScrollPosition: (callback) ->
+  onDidRequestAutoscroll: (callback) ->
     @emitter.on 'did-change-scroll-position', callback
 
   observeDecorations: (callback) ->
