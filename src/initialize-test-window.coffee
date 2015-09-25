@@ -19,7 +19,7 @@ try
 
   document.title = "Spec Suite"
 
-  testRunner = require('./jasmine-test-runner')
+  testRunner = require('../spec/jasmine-test-runner')
   testRunner({
     logFile: atom.getLoadSettings().logFile
     headless: atom.getLoadSettings().headless

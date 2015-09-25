@@ -76,7 +76,7 @@
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())
 
-    require(loadSettings.bootstrapScript)
+    require(loadSettings.windowInitializationScript)
     require('ipc').sendChannel('window-command', 'window:loaded')
   }
 
