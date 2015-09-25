@@ -236,9 +236,11 @@ class TextEditorElement extends HTMLElement
   setScrollBottom: (scrollBottom) ->
     @component.setScrollBottom(scrollBottom)
 
+  # Essential: Scrolls the editor to the top
   scrollToTop: ->
     @setScrollTop(0)
 
+  # Essential: Scrolls the editor to the bottom
   scrollToBottom: ->
     @setScrollBottom(Infinity)
 

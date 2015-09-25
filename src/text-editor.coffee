@@ -2857,13 +2857,11 @@ class TextEditor extends Model
   scrollToScreenPosition: (screenPosition, options) ->
     @displayBuffer.scrollToScreenPosition(screenPosition, options)
 
-  # Essential: Scrolls the editor to the top
   scrollToTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
     atom.views.getView(this).scrollToTop()
 
-  # Essential: Scrolls the editor to the bottom
   scrollToBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
