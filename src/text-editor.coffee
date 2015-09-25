@@ -2987,8 +2987,16 @@ class TextEditor extends Model
 
   getClientHeight: -> @displayBuffer.getClientHeight()
 
-  setWidth: (width) -> @displayBuffer.setWidth(width)
-  getWidth: -> @displayBuffer.getWidth()
+  setWidth: (width, reentrant=false) ->
+    if reentrant
+      @displayBuffer.setWidth(width)
+    else
+      Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
+      atom.views.getView(this).setWidth(width)
+
+  getWidth: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
+    atom.views.getView(this).getWidth()
 
   getScrollRow: -> @scrollRow
   setScrollRow: (@scrollRow) ->

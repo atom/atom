@@ -1015,6 +1015,9 @@ class TextEditorPresenter
       @gutterWidth = gutterWidth
       @updateOverlaysState()
 
+  getGutterWidth: ->
+    @gutterWidth
+
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
