@@ -77,7 +77,12 @@ getAssets = ->
       ]
     when 'win32'
       assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
-      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg", "atom-#{version}-delta.nupkg"]
+
+      # NuGet packages can't have dots in their pre-release name, so we remove
+      # those dots in `grunt-electron-installer` when generating the package.
+      nupkgVersion = version.replace(/\.(\d+)$/, '$1')
+
+      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{nupkgVersion}-full.nupkg", "atom-#{nupkgVersion}-delta.nupkg"]
         cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
       assets
