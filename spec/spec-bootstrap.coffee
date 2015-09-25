@@ -12,16 +12,20 @@ try
   # that are focused in the very first spec run.
   atom.getCurrentWindow().show() unless atom.getLoadSettings().exitWhenDone
 
-  {runSpecSuite} = require './jasmine-helper'
-
   # Add 'exports' to module search path.
   exportsPath = path.join(atom.getLoadSettings().resourcePath, 'exports')
   require('module').globalPaths.push(exportsPath)
-  # Still set NODE_PATH since tasks may need it.
-  process.env.NODE_PATH = exportsPath
+  process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
 
   document.title = "Spec Suite"
-  runSpecSuite './spec-suite', atom.getLoadSettings().logFile
+
+  testRunner = require('./jasmine-test-runner')
+  testRunner({
+    logFile: atom.getLoadSettings().logFile
+    exitWhenDone: atom.getLoadSettings().exitWhenDone
+    testPaths: [atom.getLoadSettings().specDirectory]
+  })
+
 catch error
   if atom?.getLoadSettings().exitWhenDone
     console.error(error.stack ? error)
