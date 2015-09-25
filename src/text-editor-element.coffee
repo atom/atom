@@ -287,10 +287,18 @@ class TextEditorElement extends HTMLElement
     @component.pixelRangeForScreenRange(screenRange)
 
   setWidth: (width) ->
-    @component.setWidth(width)
+    @style.width = (@component.getGutterWidth() + width) + "px"
+    @component.measureDimensions()
 
   getWidth: ->
-    @component.getWidth()
+    @style.offsetWidth - @component.getGutterWidth()
+
+  setHeight: (height) ->
+    @style.height = height + "px"
+    @component.measureDimensions()
+
+  getHeight: ->
+    @style.offsetHeight
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}

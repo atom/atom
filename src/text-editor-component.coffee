@@ -856,12 +856,8 @@ class TextEditorComponent
 
     {top, left, bottom, right}
 
-  setWidth: (width) ->
-    @domNode.style.width = (width + @presenter.getGutterWidth()) + "px"
-    @measureDimensions()
-
-  getWidth: ->
-    @domNode.offsetWidth - @presenter.getGutterWidth()
+  getGutterWidth: ->
+    @presenter.getGutterWidth()
 
   getModel: ->
     @editor

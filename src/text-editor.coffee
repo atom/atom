@@ -2982,8 +2982,16 @@ class TextEditor extends Model
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
   setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
 
-  setHeight: (height) -> @displayBuffer.setHeight(height)
-  getHeight: -> @displayBuffer.getHeight()
+  setHeight: (height, reentrant=false) ->
+    if reentrant
+      @displayBuffer.setHeight(height)
+    else
+      Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
+      atom.views.getView(this).setHeight(height)
+
+  getHeight: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
+    atom.views.getView(this).getHeight()
 
   getClientHeight: -> @displayBuffer.getClientHeight()
 
