@@ -10,7 +10,7 @@ try
 
   # Show window synchronously so a focusout doesn't fire on input elements
   # that are focused in the very first spec run.
-  atom.getCurrentWindow().show() unless atom.getLoadSettings().exitWhenDone
+  atom.getCurrentWindow().show() unless atom.getLoadSettings().headless
 
   # Add 'exports' to module search path.
   exportsPath = path.join(atom.getLoadSettings().resourcePath, 'exports')
@@ -22,12 +22,12 @@ try
   testRunner = require('./jasmine-test-runner')
   testRunner({
     logFile: atom.getLoadSettings().logFile
-    exitWhenDone: atom.getLoadSettings().exitWhenDone
+    headless: atom.getLoadSettings().headless
     testPaths: [atom.getLoadSettings().specDirectory]
   })
 
 catch error
-  if atom?.getLoadSettings().exitWhenDone
+  if atom?.getLoadSettings().headless
     console.error(error.stack ? error)
     atom.exit(1)
   else

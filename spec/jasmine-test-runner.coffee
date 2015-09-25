@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 
-module.exports = ({logFile, exitWhenDone, testPaths}) ->
+module.exports = ({logFile, headless, testPaths}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
 
@@ -14,7 +14,7 @@ module.exports = ({logFile, exitWhenDone, testPaths}) ->
   setSpecType('user')
 
   jasmineEnv = jasmine.getEnv()
-  jasmineEnv.addReporter(buildReporter({logFile, exitWhenDone}))
+  jasmineEnv.addReporter(buildReporter({logFile, headless}))
   TimeReporter = require './time-reporter'
   jasmineEnv.addReporter(new TimeReporter())
   jasmineEnv.setIncludedTags([process.platform])
@@ -51,8 +51,8 @@ setSpecType = (specType) ->
 setSpecDirectory = (specDirectory) ->
   setSpecField('specDirectory', specDirectory)
 
-buildReporter = ({logFile, exitWhenDone}) ->
-  if exitWhenDone
+buildReporter = ({logFile, headless}) ->
+  if headless
     buildTerminalReporter(logFile)
   else
     AtomReporter = require './atom-reporter'
