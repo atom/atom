@@ -126,7 +126,7 @@ class DisplayBuffer extends Model
     @emitter.on 'did-change-character-widths', callback
 
   onDidRequestAutoscroll: (callback) ->
-    @emitter.on 'did-change-scroll-position', callback
+    @emitter.on 'did-request-autoscroll', callback
 
   observeDecorations: (callback) ->
     callback(decoration) for decoration in @getDecorations()
@@ -169,18 +169,8 @@ class DisplayBuffer extends Model
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getVerticalScrollMarginInPixels: -> @getVerticalScrollMargin() * @getLineHeightInPixels()
-
   getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
-
-  getHorizontalScrollMarginInPixels: -> scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
-
-  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
-  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
-
-  getVerticalScrollbarWidth: -> @verticalScrollbarWidth
-  setVerticalScrollbarWidth: (@verticalScrollbarWidth) -> @verticalScrollbarWidth
 
   getHeight: ->
     @height
@@ -237,12 +227,9 @@ class DisplayBuffer extends Model
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
 
-  getScrollWidth: ->
-    @scrollWidth
-
   scrollToScreenRange: (screenRange, options = {}) ->
     scrollEvent = {screenRange, options}
-    @emitter.emit "did-change-scroll-position", scrollEvent
+    @emitter.emit "did-request-autoscroll", scrollEvent
 
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
@@ -504,80 +491,6 @@ class DisplayBuffer extends Model
     start = @bufferPositionForScreenPosition(screenRange.start)
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
-
-  pixelRangeForScreenRange: (screenRange, clip=true) ->
-    {start, end} = Range.fromObject(screenRange)
-    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
-
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @clipScreenPosition(screenPosition) if clip
-
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-    defaultCharWidth = @defaultCharWidth
-
-    top = targetRow * @lineHeightInPixels
-    left = 0
-    column = 0
-
-    iterator = @tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharWidths(iterator.getScopes())
-      valueIndex = 0
-      value = iterator.getText()
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        return {top, left} if column is targetColumn
-        left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column += charLength
-    {top, left}
-
-  screenPositionForPixelPosition: (pixelPosition) ->
-    targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    defaultCharWidth = @defaultCharWidth
-    row = Math.floor(targetTop / @getLineHeightInPixels())
-    targetLeft = 0 if row < 0
-    targetLeft = Infinity if row > @getLastRow()
-    row = Math.min(row, @getLastRow())
-    row = Math.max(0, row)
-
-    left = 0
-    column = 0
-
-    iterator = @tokenizedLineForScreenRow(row).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharWidths(iterator.getScopes())
-      value = iterator.getText()
-      valueIndex = 0
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        charWidth = charWidths[char] ? defaultCharWidth
-        break if targetLeft <= left + (charWidth / 2)
-        left += charWidth
-        column += charLength
-
-    new Point(row, column)
-
-  pixelPositionForBufferPosition: (bufferPosition) ->
-    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(bufferPosition))
 
   # Gets the number of screen lines.
   #

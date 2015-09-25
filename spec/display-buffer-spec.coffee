@@ -1151,20 +1151,6 @@ describe "DisplayBuffer", ->
         expect(marker1.getProperties()).toEqual a: 1, b: 2
         expect(marker2.getProperties()).toEqual a: 1, b: 3
 
-    describe "Marker::getPixelRange()", ->
-      it "returns the start and end positions of the marker based on the line height and character widths assigned to the DisplayBuffer", ->
-        marker = displayBuffer.markScreenRange([[5, 10], [6, 4]])
-
-        displayBuffer.setLineHeightInPixels(20)
-        displayBuffer.setDefaultCharWidth(10)
-
-        for char in ['r', 'e', 't', 'u', 'r', 'n']
-          displayBuffer.setScopedCharWidth(["source.js", "keyword.control.js"], char, 11)
-
-        {start, end} = marker.getPixelRange()
-        expect(start.top).toBe 5 * 20
-        expect(start.left).toBe (4 * 10) + (6 * 11)
-
     describe 'when there are multiple DisplayBuffers for a buffer', ->
       describe 'when a marker is created', ->
         it 'the second display buffer will not emit a marker-created event when the marker has been deleted in the first marker-created event', ->
