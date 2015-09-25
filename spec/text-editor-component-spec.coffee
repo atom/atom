@@ -3333,9 +3333,8 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       nextAnimationFrame()
 
-      # Why does this set an incorrect width? :confused:
-      wrapperNode.style.width = "108px" # this should be 55px
-      wrapperNode.style.height = 5.5 * 10 + "px"
+      wrapperNode.setWidth(55)
+      wrapperNode.setHeight(55)
       component.measureDimensions()
       nextAnimationFrame()
 
