@@ -19,7 +19,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -131,7 +131,7 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      global.atomApplication.exit(100) if @exitWhenDone
+      global.atomApplication.exit(100) if @headless
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'

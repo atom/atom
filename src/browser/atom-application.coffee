@@ -87,7 +87,7 @@ class AtomApplication
 
   openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
+      @runSpecs({headless: true, @resourcePath, specDirectory, logFile})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -160,7 +160,7 @@ class AtomApplication
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
 
-    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
+    @on 'application:run-all-specs', -> @runSpecs(headless: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
@@ -251,7 +251,7 @@ class AtomApplication
       @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runSpecs({resourcePath: @devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
+      @runSpecs({resourcePath: @devResourcePath, specDirectory: specDirectory, headless: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -483,13 +483,13 @@ class AtomApplication
   # Opens up a new {AtomWindow} to run specs within.
   #
   # options -
-  #   :exitWhenDone - A Boolean that, if true, will close the window upon
+  #   :headless - A Boolean that, if true, will close the window upon
   #                   completion.
   #   :resourcePath - The path to include specs from.
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
+  runSpecs: ({headless, resourcePath, specDirectory, logFile, safeMode}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -501,7 +501,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
+    new AtomWindow({bootstrapScript, resourcePath, headless, isSpec, devMode, specDirectory, logFile, safeMode})
 
   locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen
