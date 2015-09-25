@@ -1600,6 +1600,12 @@ class TextEditorPresenter
     @commitPendingScrollLeftPosition()
     @commitPendingScrollTopPosition()
 
+  canScrollLeftTo: (scrollLeft) ->
+    @scrollLeft isnt @constrainScrollLeft(scrollLeft)
+
+  canScrollTopTo: (scrollTop) ->
+    @scrollTop isnt @constrainScrollTop(scrollTop)
+
   onDidChangeScrollTop: (callback) ->
     @emitter.on 'did-change-scroll-top', callback
 

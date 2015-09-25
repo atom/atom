@@ -2689,54 +2689,7 @@ describe "TextEditorComponent", ->
 
         expect(componentNode.contains(lineNumberNode)).toBe true
 
-    it "prevents the default action of mousewheel events for normal editors", ->
-      spyOn(WheelEvent::, 'preventDefault').andCallThrough()
-
-      wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
-      wrapperNode.style.width = 20 * charWidth + 'px'
-      component.measureDimensions()
-      nextAnimationFrame()
-
-      # try to scroll past the top, which is impossible
-      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: 50))
-      expect(wrapperNode.getScrollTop()).toBe 0
-      expect(WheelEvent::preventDefault).toHaveBeenCalled()
-      WheelEvent::preventDefault.reset()
-
-      # scroll to the bottom in one huge event
-      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -3000))
-      nextAnimationFrame()
-      maxScrollTop = wrapperNode.getScrollTop()
-      expect(WheelEvent::preventDefault).toHaveBeenCalled()
-      WheelEvent::preventDefault.reset()
-
-      # try to scroll past the bottom, which is impossible
-      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -30))
-      expect(wrapperNode.getScrollTop()).toBe maxScrollTop
-      expect(WheelEvent::preventDefault).toHaveBeenCalled()
-      WheelEvent::preventDefault.reset()
-
-      # try to scroll past the left side, which is impossible
-      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 50, wheelDeltaY: 0))
-      expect(wrapperNode.getScrollLeft()).toBe 0
-      expect(WheelEvent::preventDefault).toHaveBeenCalled()
-      WheelEvent::preventDefault.reset()
-
-      # scroll all the way right
-      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -3000, wheelDeltaY: 0))
-      nextAnimationFrame()
-      maxScrollLeft = wrapperNode.getScrollLeft()
-      expect(WheelEvent::preventDefault).toHaveBeenCalled()
-      WheelEvent::preventDefault.reset()
-
-      # try to scroll past the right side, which is impossible
-      componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -30, wheelDeltaY: 0))
-      expect(wrapperNode.getScrollLeft()).toBe maxScrollLeft
-      expect(WheelEvent::preventDefault).toHaveBeenCalled()
-
-    it "doesn't prevent the default action of mousewheel events for mini editors", ->
-      editor.setMini(true)
-
+    it "only prevents the default action of the mousewheel event if it actually lead to scrolling", ->
       spyOn(WheelEvent::, 'preventDefault').andCallThrough()
 
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -2753,7 +2706,8 @@ describe "TextEditorComponent", ->
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -3000))
       nextAnimationFrame()
       maxScrollTop = wrapperNode.getScrollTop()
-      expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
+      expect(WheelEvent::preventDefault).toHaveBeenCalled()
+      WheelEvent::preventDefault.reset()
 
       # try to scroll past the bottom, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: 0, wheelDeltaY: -30))
@@ -2769,7 +2723,8 @@ describe "TextEditorComponent", ->
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -3000, wheelDeltaY: 0))
       nextAnimationFrame()
       maxScrollLeft = wrapperNode.getScrollLeft()
-      expect(WheelEvent::preventDefault).not.toHaveBeenCalled()
+      expect(WheelEvent::preventDefault).toHaveBeenCalled()
+      WheelEvent::preventDefault.reset()
 
       # try to scroll past the right side, which is impossible
       componentNode.dispatchEvent(new WheelEvent('mousewheel', wheelDeltaX: -30, wheelDeltaY: 0))
