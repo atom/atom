@@ -80,7 +80,7 @@ class TextEditor extends Model
     state.registerEditor = true
     new this(state)
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
+  constructor: ({@softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
@@ -121,8 +121,8 @@ class TextEditor extends Model
     deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
-    scrollRow: @scrollRow
-    scrollColumn: @scrollColumn
+    scrollRow: @getScrollRow()
+    scrollColumn: @getScrollColumn()
     displayBuffer: @displayBuffer.serialize()
 
   subscribeToBuffer: ->
