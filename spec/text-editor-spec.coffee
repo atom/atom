@@ -4379,7 +4379,7 @@ describe "TextEditor", ->
   describe ".pageUp/Down()", ->
     it "moves the cursor down one page length", ->
       editor.setLineHeightInPixels(10)
-      editor.setHeight(50)
+      editor.setHeight(50, true)
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.pageDown()
@@ -4397,7 +4397,7 @@ describe "TextEditor", ->
   describe ".selectPageUp/Down()", ->
     it "selects one screen height of text up or down", ->
       editor.setLineHeightInPixels(10)
-      editor.setHeight(50)
+      editor.setHeight(50, true)
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.selectPageDown()

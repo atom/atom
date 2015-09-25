@@ -687,7 +687,7 @@ class TextEditorPresenter
     return unless @height? and @horizontalScrollbarHeight?
 
     clientHeight = @height - @horizontalScrollbarHeight
-    @model.setHeight(clientHeight)
+    @model.setHeight(clientHeight, true)
 
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
@@ -698,7 +698,7 @@ class TextEditorPresenter
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
 
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
-    @model.setWidth(clientWidth) unless @editorWidthInChars
+    @model.setWidth(clientWidth, true) unless @editorWidthInChars
 
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
