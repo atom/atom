@@ -135,15 +135,10 @@ type JasmineReporter = {
 }
 
 /**
- * @param specSuite must be a path to a file that, when required, exports a function that takes no
- *   arguments and returns a new object that satisfies the contract of `JasmineEnv`.
  * @param logFile If specified, log messages from the test will be written to this file; otherwise,
  *   they will be written to stderr. (This only applies when tests are run from the terminal.)
  */
-export function runSpecSuite (
-  specSuite: string,
-  logFile: ?string,
-) {
+export default function runSpecSuite (logFile: ?string): { execute(): mixed } {
   let jasmineGlobals = require('../vendor/jasmine')
   for (let key in jasmineGlobals) {
     window[key] = jasmineGlobals[key]
@@ -198,8 +193,9 @@ export function runSpecSuite (
     reporter = new AtomReporter()
   }
 
-  let jasmineFactory: () => JasmineEnv = require(specSuite)
-  let jasmineEnv = jasmineFactory()
+  require('./spec-suite')
+
+  let jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
   jasmineEnv.addReporter(timeReporter)
   jasmineEnv.setIncludedTags([process.platform])
@@ -208,7 +204,7 @@ export function runSpecSuite (
   jasmineContent.setAttribute('id', 'jasmine-content')
   document.body.appendChild(jasmineContent)
 
-  jasmineEnv.execute()
+  return jasmineEnv
 }
 
 function disableFocusMethods () {
