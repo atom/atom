@@ -1,3 +1,7 @@
+os:
+  - linux
+  - osx
+
 git:
   depth: 10
 
@@ -16,11 +20,12 @@ compiler: clang
 
 matrix:
   include:
-    - os: linux
     - os: osx
-      env: ATOM_SPECS_TASK=core
+      env:
+        - ATOM_SPECS_TASK=core
     - os: osx
-      env: ATOM_SPECS_TASK=packages
+      env:
+        - ATOM_SPECS_TASK=packages
 
 sudo: false
 
