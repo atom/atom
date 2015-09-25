@@ -119,7 +119,9 @@ class Workspace extends Model
   editorAdded: (editor) ->
 
   installShellCommands: ->
-    require('./command-installer').installShellCommandsInteractively()
+    CommandInstaller = require('./command-installer')
+    commandInstaller = new CommandInstaller(atom.getVersion())
+    commandInstaller.installShellCommandsInteractively()
 
   subscribeToActiveItem: ->
     @updateWindowTitle()
