@@ -3340,10 +3340,7 @@ describe "TextEditorComponent", ->
 
       component.presenter.setHorizontalScrollbarHeight(0)
       component.presenter.setVerticalScrollbarWidth(0)
-      nextAnimationFrame() # perform requested update
-
-    afterEach ->
-      atom.themes.removeStylesheet("test")
+      nextAnimationFrame()
 
     describe "when selecting buffer ranges", ->
       it "autoscrolls the selection if it is last unless the 'autoscroll' option is false", ->
