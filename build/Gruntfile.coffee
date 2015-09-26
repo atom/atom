@@ -52,6 +52,7 @@ module.exports = (grunt) ->
     appFileName += '-beta'
     apmFileName += '-beta'
 
+  appName += '.app' if process.platform is 'darwin'
   shellAppDir = path.join(buildDir, appName)
   symbolsDir = path.join(buildDir, 'Atom.breakpad.syms')
 
@@ -63,7 +64,6 @@ module.exports = (grunt) ->
     killCommand = 'taskkill /F /IM atom.exe'
   else if process.platform is 'darwin'
     homeDir = process.env.HOME
-    appName += '.app'
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
     installDir ?= path.join('/Applications', appName)
