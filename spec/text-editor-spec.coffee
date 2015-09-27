@@ -3684,19 +3684,6 @@ describe "TextEditor", ->
         runs ->
           expect(editor.softTabs).toBe false
 
-      it "uses hard tabs in Makefile files", ->
-        # FIXME remove once this is handled by a scoped setting in the
-        # language-make package
-
-        waitsForPromise ->
-          atom.packages.activatePackage('language-make')
-
-        waitsForPromise ->
-          atom.project.open('Makefile').then (o) -> editor = o
-
-        runs ->
-          expect(editor.softTabs).toBe false
-
     describe "when editor.tabType is 'hard'", ->
       beforeEach ->
         atom.config.set('editor.tabType', 'hard')
