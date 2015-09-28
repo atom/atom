@@ -8,7 +8,7 @@ describe "TooltipManager", ->
   ctrlY = _.humanizeKeystroke("ctrl-y")
 
   beforeEach ->
-    manager = new TooltipManager
+    manager = new TooltipManager(keymapManager: atom.keymaps)
     element = document.createElement('div')
     element.classList.add('foo')
     jasmine.attachToDOM(element)
