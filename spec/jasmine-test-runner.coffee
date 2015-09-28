@@ -33,11 +33,15 @@ disableFocusMethods = ->
       error = new Error('Focused spec is running on CI')
       focusMethod description, -> throw error
 
-requireSpecs = (specDirectory, specType) ->
-  for specFilePath in fs.listTreeSync(specDirectory) when /-spec\.(coffee|js)$/.test specFilePath
-    require specFilePath
-    # Set spec directory on spec for setting up the project in spec-helper
-    setSpecDirectory(specDirectory)
+requireSpecs = (testPath, specType) ->
+  if fs.isDirectorySync(testPath)
+    for testFilePath in fs.listTreeSync(testPath) when /-spec\.(coffee|js)$/.test testFilePath
+      require(testFilePath)
+      # Set spec directory on spec for setting up the project in spec-helper
+      setSpecDirectory(testPath)
+  else
+    require(testPath)
+    setSpecDirectory(path.dirname(testPath))
 
 setSpecField = (name, value) ->
   specs = jasmine.getEnv().currentRunner().specs()
