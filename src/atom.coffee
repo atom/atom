@@ -177,6 +177,9 @@ class Atom extends Model
     CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
 
+    ViewRegistry = require './view-registry'
+    @views = new ViewRegistry
+
   reset: ->
     @config.reset()
 
@@ -213,7 +216,6 @@ class Atom extends Model
 
     @loadTime = null
 
-    ViewRegistry = require './view-registry'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
@@ -235,7 +237,6 @@ class Atom extends Model
 
     @keymaps.subscribeToFileReadFailure()
 
-    @views = new ViewRegistry
     @registerViewProviders()
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
     @styles = new StyleManager
