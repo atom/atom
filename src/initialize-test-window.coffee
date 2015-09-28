@@ -23,7 +23,7 @@ try
   testRunner({
     logFile: atom.getLoadSettings().logFile
     headless: atom.getLoadSettings().headless
-    testPaths: [atom.getLoadSettings().specDirectory]
+    testPaths: atom.getLoadSettings().testPaths
   })
 
 catch error
