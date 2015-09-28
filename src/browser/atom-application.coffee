@@ -534,7 +534,10 @@ class AtomApplication
           process.stderr.write "Error: Could not resolve test runner path '#{packageMetadata.atomTestRunner}'"
           process.exit(1)
 
-    require.resolve('../../spec/jasmine-test-runner')
+    try
+      require.resolve(path.resolve(@devResourcePath, 'spec', 'jasmine-test-runner'))
+    catch error
+      require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'jasmine-test-runner'))
 
   locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen
