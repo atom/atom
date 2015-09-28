@@ -427,12 +427,14 @@ class TextEditor extends Model
     @displayBuffer.onDidChangeCharacterWidths(callback)
 
   onDidChangeScrollTop: (callback) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
     atom.views.getView(this).onDidChangeScrollTop(callback)
 
   onDidChangeScrollLeft: (callback) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.")
 
     atom.views.getView(this).onDidChangeScrollLeft(callback)
 
@@ -2854,24 +2856,28 @@ class TextEditor extends Model
     @displayBuffer.scrollToScreenPosition(screenPosition, options)
 
   scrollToTop: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
     atom.views.getView(this).scrollToTop()
 
   scrollToBottom: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
     atom.views.getView(this).scrollToBottom()
 
   scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
 
   getHorizontalScrollbarHeight: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
     atom.views.getView(this).getHorizontalScrollbarHeight()
 
   getVerticalScrollbarWidth: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.")
 
     atom.views.getView(this).getVerticalScrollbarWidth()
 
@@ -2937,19 +2943,23 @@ class TextEditor extends Model
     @emitter.emit 'did-change-placeholder-text', @placeholderText
 
   getFirstVisibleScreenRow: ->
-    deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
     atom.views.getView(this).getVisibleRowRange()[0]
 
   getLastVisibleScreenRow: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
     atom.views.getView(this).getVisibleRowRange()[1]
 
   pixelPositionForBufferPosition: (bufferPosition) ->
-    Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
     atom.views.getView(this).pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
     atom.views.getView(this).pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
@@ -2980,11 +2990,13 @@ class TextEditor extends Model
     if reentrant
       @displayBuffer.setHeight(height)
     else
-      Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
+      # TODO: put back once core & bundled packages are updated not to use this.
+      # Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
       atom.views.getView(this).setHeight(height)
 
   getHeight: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
     @displayBuffer.getHeight()
 
   getClientHeight: -> @displayBuffer.getClientHeight()
@@ -2993,11 +3005,13 @@ class TextEditor extends Model
     if reentrant
       @displayBuffer.setWidth(width)
     else
-      Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
+      # TODO: put back once core & bundled packages are updated not to use this.
+      # Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
       atom.views.getView(this).setWidth(width)
 
   getWidth: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @displayBuffer.getWidth()
 
   getScrollRow: -> @scrollRow
@@ -3007,77 +3021,92 @@ class TextEditor extends Model
   setScrollColumn: (@scrollColumn) ->
 
   getScrollTop: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
 
     atom.views.getView(this).getScrollTop()
 
   setScrollTop: (scrollTop) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollTop instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollTop instead.")
 
     atom.views.getView(this).setScrollTop(scrollTop)
 
   getScrollBottom: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollBottom instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollBottom instead.")
 
     atom.views.getView(this).getScrollBottom()
 
   setScrollBottom: (scrollBottom) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollBottom instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollBottom instead.")
 
     atom.views.getView(this).setScrollBottom(scrollBottom)
 
   getScrollLeft: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollLeft instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollLeft instead.")
 
     atom.views.getView(this).getScrollLeft()
 
   setScrollLeft: (scrollLeft) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollLeft instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollLeft instead.")
 
     atom.views.getView(this).setScrollLeft(scrollLeft)
 
   getScrollRight: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollRight instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollRight instead.")
 
     atom.views.getView(this).getScrollRight()
 
   setScrollRight: (scrollRight) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollRight instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollRight instead.")
 
     atom.views.getView(this).setScrollRight(scrollRight)
 
   getScrollHeight: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollHeight instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollHeight instead.")
 
     atom.views.getView(this).getScrollHeight()
 
   getScrollWidth: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollWidth instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollWidth instead.")
 
     atom.views.getView(this).getScrollWidth()
 
   getVisibleRowRange: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
 
     atom.views.getView(this).getVisibleRowRange()
 
   intersectsVisibleRowRange: (startRow, endRow) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
 
     atom.views.getView(this).intersectsVisibleRowRange(startRow, endRow)
 
   selectionIntersectsVisibleRowRange: (selection) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.")
 
     atom.views.getView(this).selectionIntersectsVisibleRowRange(selection)
 
   screenPositionForPixelPosition: (pixelPosition) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.")
 
     atom.views.getView(this).screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.")
+    # TODO: put back once core & bundled packages are updated not to use this.
+    # Grim.deprecate("This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.")
 
     atom.views.getView(this).pixelRectForScreenRange(screenRange)
 
