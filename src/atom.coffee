@@ -151,12 +151,17 @@ class Atom extends Model
 
   # Call .loadOrCreate instead
   constructor: (@state) ->
+    {@mode} = @state
+
     @emitter = new Emitter
     @disposables = new CompositeDisposable
-    {@mode} = @state
+
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
     @deserializeTimings = {}
+
+    NotificationManager = require './notification-manager'
+    @notifications = new NotificationManager
 
   # Sets up the basic services that should be available in all modes
   # (both spec and application).
@@ -196,7 +201,6 @@ class Atom extends Model
     ViewRegistry = require './view-registry'
     CommandRegistry = require './command-registry'
     TooltipManager = require './tooltip-manager'
-    NotificationManager = require './notification-manager'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
@@ -220,7 +224,6 @@ class Atom extends Model
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
-    @notifications = new NotificationManager
     @commands = new CommandRegistry
     @views = new ViewRegistry
     @registerViewProviders()
