@@ -277,6 +277,9 @@ class AtomApplication
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard.writeText(selectedText, 'selection')
 
+    ipc.on 'write-to-stdout', (event, output) ->
+      process.stdout.write(output)
+
   # Public: Executes the given command.
   #
   # If it isn't handled globally, delegate to the currently focused window.

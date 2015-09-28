@@ -2,6 +2,7 @@ fs = require 'fs'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
+ipc = require 'ipc'
 
 module.exports = ({logFile, headless, testPaths}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
@@ -64,7 +65,7 @@ buildTerminalReporter = (logFile) ->
     if logStream?
       fs.writeSync(logStream, str)
     else
-      process.stderr.write(str)
+      ipc.send 'write-to-stdout', str
 
   {TerminalReporter} = require 'jasmine-tagged'
   new TerminalReporter
