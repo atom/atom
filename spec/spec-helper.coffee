@@ -93,6 +93,7 @@ beforeEach ->
   atom.packages.serviceHub = new ServiceHub
   atom.project = new Project(paths: [projectPath])
   atom.workspace = new Workspace()
+  atom.themes.workspace = atom.workspace
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
@@ -165,6 +166,7 @@ afterEach ->
 
   atom.workspace?.destroy()
   atom.workspace = null
+  atom.themes.workspace = null
   delete atom.state.workspace
 
   atom.project?.destroy()

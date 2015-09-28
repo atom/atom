@@ -186,6 +186,12 @@ class Atom extends Model
     StyleManager = require './style-manager'
     @styles = new StyleManager({configDirPath})
 
+    ThemeManager = require './theme-manager'
+    @themes = new ThemeManager({
+      packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
+      styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
+    })
+
   reset: ->
     @config.reset()
 
@@ -224,7 +230,6 @@ class Atom extends Model
 
     Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
-    ThemeManager = require './theme-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -243,7 +248,6 @@ class Atom extends Model
 
     @registerViewProviders()
     document.head.appendChild(new StylesElement)
-    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
@@ -632,6 +636,7 @@ class Atom extends Model
 
     @workspace?.destroy()
     @workspace = null
+    @themes.workspace = null
     @project?.destroy()
     @project = null
 
@@ -734,6 +739,7 @@ class Atom extends Model
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
+    @themes.workspace = @workspace
     @deserializeTimings.workspace = Date.now() - startTime
 
     workspaceElement = @views.getView(@workspace)
