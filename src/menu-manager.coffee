@@ -59,12 +59,12 @@ platformMenu = require('../package.json')?._atomMenu?.menu
 # See {::add} for more info about adding menu's directly.
 module.exports =
 class MenuManager
-  constructor: ({@resourcePath}) ->
+  constructor: ({@resourcePath, @keymapManager, @packageManager}) ->
     @pendingUpdateOperation = null
     @template = []
-    atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
-    atom.keymaps.onDidReloadKeymap => @update()
-    atom.packages.onDidActivateInitialPackages => @sortPackagesMenu()
+    @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
+    @keymapManager.onDidReloadKeymap => @update()
+    @packageManager.onDidActivateInitialPackages => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.
   #
@@ -143,7 +143,7 @@ class MenuManager
       includedBindings = []
       unsetKeystrokes = new Set
 
-      for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
+      for binding in @keymapManager.getKeyBindings() when @includeSelector(binding.selector)
         includedBindings.push(binding)
         if binding.command is 'unset!'
           unsetKeystrokes.add(binding.keystrokes)
