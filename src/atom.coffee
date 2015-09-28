@@ -152,6 +152,8 @@ class Atom extends Model
   # Call .loadOrCreate instead
   constructor: (@state) ->
     {@mode} = @state
+    {resourcePath} = @getLoadSettings()
+    configDirPath = @getConfigDirPath()
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
@@ -162,6 +164,12 @@ class Atom extends Model
 
     NotificationManager = require './notification-manager'
     @notifications = new NotificationManager
+
+    Config = require './config'
+    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
+
+  reset: ->
+    @config.reset()
 
   # Sets up the basic services that should be available in all modes
   # (both spec and application).
@@ -196,7 +204,6 @@ class Atom extends Model
 
     @loadTime = null
 
-    Config = require './config'
     KeymapManager = require './keymap-extensions'
     ViewRegistry = require './view-registry'
     CommandRegistry = require './command-registry'
@@ -220,7 +227,6 @@ class Atom extends Model
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
 
-    @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
