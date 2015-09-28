@@ -26,7 +26,7 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
+  constructor: ({configDirPath, @devMode, safeMode, @resourcePath, @config}) ->
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
@@ -185,7 +185,7 @@ class PackageManager
   #
   # Returns a {Boolean}.
   isPackageDisabled: (name) ->
-    _.include(atom.config.get('core.disabledPackages') ? [], name)
+    _.include(@config.get('core.disabledPackages') ? [], name)
 
   ###
   Section: Accessing active packages
@@ -300,7 +300,7 @@ class PackageManager
     @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    @disabledPackagesSubscription ?= atom.config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
+    @disabledPackagesSubscription ?= @config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
       packagesToEnable = _.difference(oldValue, newValue)
       packagesToDisable = _.difference(newValue, oldValue)
 
@@ -313,7 +313,7 @@ class PackageManager
     @packagesWithKeymapsDisabledSubscription = null
 
   observePackagesWithKeymapsDisabled: ->
-    @packagesWithKeymapsDisabledSubscription ?= atom.config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
+    @packagesWithKeymapsDisabledSubscription ?= @config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
@@ -392,7 +392,7 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    atom.config.transact =>
+    @config.transact =>
       for pack in packages
         promise = @activatePackage(pack.name)
         promises.push(promise) unless pack.hasActivationCommands()
@@ -423,7 +423,7 @@ class PackageManager
 
   # Deactivate all packages
   deactivatePackages: ->
-    atom.config.transact =>
+    @config.transact =>
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()

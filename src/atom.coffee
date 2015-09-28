@@ -152,7 +152,7 @@ class Atom extends Model
   # Call .loadOrCreate instead
   constructor: (@state) ->
     {@mode} = @state
-    {resourcePath} = @getLoadSettings()
+    {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
     @emitter = new Emitter
@@ -179,6 +179,12 @@ class Atom extends Model
 
     ViewRegistry = require './view-registry'
     @views = new ViewRegistry
+
+    PackageManager = require './package-manager'
+    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config})
+
+    StyleManager = require './style-manager'
+    @styles = new StyleManager({configDirPath})
 
   reset: ->
     @config.reset()
@@ -216,11 +222,9 @@ class Atom extends Model
 
     @loadTime = null
 
-    PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
     ThemeManager = require './theme-manager'
-    StyleManager = require './style-manager'
     ContextMenuManager = require './context-menu-manager'
     MenuManager = require './menu-manager'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -238,8 +242,6 @@ class Atom extends Model
     @keymaps.subscribeToFileReadFailure()
 
     @registerViewProviders()
-    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
-    @styles = new StyleManager
     document.head.appendChild(new StylesElement)
     @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
