@@ -89,7 +89,7 @@ class AtomApplication
 
   openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
     if test
-      @runSpecs({headless: true, @resourcePath, specDirectory, logFile})
+      @runTests({headless: true, @resourcePath, executedFrom, specDirectory, pathsToOpen, logFile})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -162,7 +162,7 @@ class AtomApplication
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
 
-    @on 'application:run-all-specs', -> @runSpecs(headless: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
+    @on 'application:run-all-specs', -> @runTests(headless: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
@@ -253,7 +253,7 @@ class AtomApplication
       @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runSpecs({resourcePath: @devResourcePath, specDirectory: specDirectory, headless: false})
+      @runTests({resourcePath: @devResourcePath, specDirectory: specDirectory, headless: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -491,7 +491,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({headless, resourcePath, specDirectory, logFile, safeMode}) ->
+  runTests: ({headless, resourcePath, executedFrom, specDirectory, pathsToOpen, logFile, safeMode}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -500,10 +500,16 @@ class AtomApplication
     catch error
       windowInitializationScript = require.resolve(path.resolve(__dirname, '..', '..', 'src', 'initialize-test-window'))
 
+    testPaths = []
+    testPaths.push(specDirectory) if specDirectory?
+    if pathsToOpen?
+      for pathToOpen in pathsToOpen
+        testPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, specDirectory, logFile, safeMode})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testPaths, logFile, safeMode})
 
   locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen
