@@ -174,6 +174,9 @@ class Atom extends Model
     TooltipManager = require './tooltip-manager'
     @tooltips = new TooltipManager(keymapManager: @keymaps)
 
+    CommandRegistry = require './command-registry'
+    @commands = new CommandRegistry
+
   reset: ->
     @config.reset()
 
@@ -211,7 +214,6 @@ class Atom extends Model
     @loadTime = null
 
     ViewRegistry = require './view-registry'
-    CommandRegistry = require './command-registry'
     PackageManager = require './package-manager'
     Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
@@ -232,7 +234,7 @@ class Atom extends Model
     process.env.NODE_ENV ?= 'production' unless devMode
 
     @keymaps.subscribeToFileReadFailure()
-    @commands = new CommandRegistry
+
     @views = new ViewRegistry
     @registerViewProviders()
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
