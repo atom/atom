@@ -16,6 +16,8 @@ net = require 'net'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
+FindParentDir = null
+Resolve = null
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
@@ -509,10 +511,30 @@ class AtomApplication
       for pathToOpen in pathsToOpen
         testPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)))
 
+    if testPaths.length is 0
+      process.stderr.write 'Error: Specify at least one test path\n\n'
+      process.exit(1)
+
+    testRunnerPath = @resolveTestRunnerPath(testPaths[0])
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testPaths, logFile, safeMode})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, testPaths, logFile, safeMode})
+
+  resolveTestRunnerPath: (testPath) ->
+    FindParentDir ?= require 'find-parent-dir'
+
+    if packageRoot = FindParentDir.sync(testPath, 'package.json')
+      packageMetadata = require(path.join(packageRoot, 'package.json'))
+      if packageMetadata.atomTestRunner
+        Resolve ?= require('resolve')
+        if testRunnerPath = Resolve.sync(packageMetadata.atomTestRunner, basedir: packageRoot, extensions: Object.keys(require.extensions))
+          return testRunnerPath
+        else
+          process.stderr.write "Error: Could not resolve test runner path '#{packageMetadata.atomTestRunner}'"
+          process.exit(1)
+
+    require.resolve('../../spec/jasmine-test-runner')
 
   locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen
