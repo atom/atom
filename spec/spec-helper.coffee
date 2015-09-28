@@ -10,7 +10,6 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
 
-Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
 Workspace = require '../src/workspace'
@@ -124,22 +123,20 @@ beforeEach ->
   spyOn(atom.menu, 'sendToBrowserProcess')
 
   # reset config before each spec; don't load or save from/to `config.json`
-  spyOn(Config::, 'load')
-  spyOn(Config::, 'save')
-  config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
-  atom.config = config
+  spyOn(atom.config, 'load')
+  spyOn(atom.config, 'save')
   atom.loadConfig()
-  config.set "core.destroyEmptyPanes", false
-  config.set "editor.fontFamily", "Courier"
-  config.set "editor.fontSize", 16
-  config.set "editor.autoIndent", false
-  config.set "core.disabledPackages", ["package-that-throws-an-exception",
+  atom.config.set "core.destroyEmptyPanes", false
+  atom.config.set "editor.fontFamily", "Courier"
+  atom.config.set "editor.fontSize", 16
+  atom.config.set "editor.autoIndent", false
+  atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  config.set "editor.useShadowDOM", true
+  atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
-  config.load.reset()
-  config.save.reset()
+  atom.config.load.reset()
+  atom.config.save.reset()
 
   # make editor display updates synchronous
   TextEditorElement::setUpdatedSynchronously(true)
@@ -159,6 +156,8 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
+  atom.reset()
+
   atom.packages.deactivatePackages()
   atom.menu.template = []
   atom.contextMenu.clear()
