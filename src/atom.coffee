@@ -168,6 +168,10 @@ class Atom extends Model
     Config = require './config'
     @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
 
+    KeymapManager = require './keymap-extensions'
+    @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
+
+
   reset: ->
     @config.reset()
 
@@ -204,7 +208,6 @@ class Atom extends Model
 
     @loadTime = null
 
-    KeymapManager = require './keymap-extensions'
     ViewRegistry = require './view-registry'
     CommandRegistry = require './command-registry'
     TooltipManager = require './tooltip-manager'
@@ -227,7 +230,6 @@ class Atom extends Model
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
 
-    @keymaps = new KeymapManager({configDirPath, resourcePath})
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
     @commands = new CommandRegistry
