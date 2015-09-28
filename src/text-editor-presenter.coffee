@@ -86,24 +86,25 @@ class TextEditorPresenter
   getState: ->
     @updating = true
 
-    @linesYardstick.measure [@model.getLongestScreenRow()], =>
-      @updateCommonGutterState()
-      @updateHorizontalDimensions()
-      @updateReflowState()
+    @linesYardstick.prepareScreenRowsForMeasurement()
 
-      @updateFocusedState() if @shouldUpdateFocusedState
-      @updateHeightState() if @shouldUpdateHeightState
-      @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
-      @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
-      @updateScrollbarsState() if @shouldUpdateScrollbarsState
-      @updateHiddenInputState() if @shouldUpdateHiddenInputState
-      @updateContentState() if @shouldUpdateContentState
-      @updateHighlightDecorations() if @shouldUpdateDecorations
-      @updateCursorsState() if @shouldUpdateCursorsState
-      @updateOverlaysState() if @shouldUpdateOverlaysState
-      @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
-      @updateGutterOrderState() if @shouldUpdateGutterOrderState
-      @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
+    @updateCommonGutterState()
+    @updateHorizontalDimensions()
+    @updateReflowState()
+
+    @updateFocusedState() if @shouldUpdateFocusedState
+    @updateHeightState() if @shouldUpdateHeightState
+    @updateVerticalScrollState() if @shouldUpdateVerticalScrollState
+    @updateHorizontalScrollState() if @shouldUpdateHorizontalScrollState
+    @updateScrollbarsState() if @shouldUpdateScrollbarsState
+    @updateHiddenInputState() if @shouldUpdateHiddenInputState
+    @updateContentState() if @shouldUpdateContentState
+    @updateHighlightDecorations() if @shouldUpdateDecorations
+    @updateCursorsState() if @shouldUpdateCursorsState
+    @updateOverlaysState() if @shouldUpdateOverlaysState
+    @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
+    @updateGutterOrderState() if @shouldUpdateGutterOrderState
+    @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
 
     @updating = false
 
@@ -344,33 +345,42 @@ class TextEditorPresenter
   tileForRow: (row) ->
     row - (row % @tileSize)
 
+  constrainRow: (row) ->
+    Math.min(0, Math.max(0, @model.getScreenLineCount()))
+
   getStartTileRow: ->
-    Math.max(0, @tileForRow(@startRow))
+    @constrainRow(@tileForRow(@startRow))
 
   getEndTileRow: ->
-    Math.min(
-      @tileForRow(@model.getScreenLineCount()), @tileForRow(@endRow)
-    )
-
-  getVisibleScreenRows: ->
-    startRow = @getStartTileRow()
-    endRow = Math.min(@model.getScreenLineCount(), @getEndTileRow() + @tileSize)
-
-    [startRow...endRow]
+    @constrainRow(@tileForRow(@endRow))
 
   getScreenRows: ->
-    screenRows = @getVisibleScreenRows().concat(@screenRowsToMeasure)
+    startRow = @getStartTileRow()
+    endRow = @constrainRow(@getEndTileRow() + @tileSize)
+
+    screenRows = [startRow...endRow]
+    if longestScreenRow = @model.getLongestScreenRow()
+      screenRows.push(longestScreenRow)
+    if @screenRowsToMeasure?
+      screenRows.push(@screenRowsToMeasure...)
+
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
 
   setScreenRowsToMeasure: (screenRows) ->
+    return if not screenRows? or screenRows.length is 0
+
     @screenRowsToMeasure = screenRows
     @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
     @shouldUpdateDecorations = true
 
   clearScreenRowsToMeasure: ->
+    return if not screenRows? or screenRows.length is 0
+
     @screenRowsToMeasure = []
     @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
     @shouldUpdateDecorations = true
 
   updateTilesState: ->
