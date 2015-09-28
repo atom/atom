@@ -90,10 +90,6 @@ module.exports = (grunt) ->
       path.join('snippets', 'node_modules', 'pegjs')
       path.join('snippets', 'node_modules', '.bin', 'pegjs')
 
-      # These aren't needed since WeakMap is built-in
-      path.join('emissary', 'node_modules', 'es6-weak-map')
-      path.join('property-accessors', 'node_modules', 'es6-weak-map')
-
       '.DS_Store'
       '.jshintrc'
       '.npmignore'
@@ -190,4 +186,5 @@ module.exports = (grunt) ->
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
+    dependencies.push('disable-autoupdate') if grunt.config.get('atom.disableAutoUpdate')
     grunt.task.run(dependencies...)

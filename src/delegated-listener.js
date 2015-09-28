@@ -5,7 +5,7 @@ function listen (element, eventName, selector, handler) {
   var innerHandler = function (event) {
     if (selector) {
       var currentTarget = event.target
-      while (true) {
+      while (currentTarget) {
         if (currentTarget.matches && currentTarget.matches(selector)) {
           handler({
             type: event.type,

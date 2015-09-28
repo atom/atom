@@ -16,8 +16,8 @@ start = ->
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 
-    # NB: This prevents Win10 from showing dupe items in the taskbar
-    app.setAppUserModelId('com.squirrel.atom.atom')
+  # NB: This prevents Win10 from showing dupe items in the taskbar
+  app.setAppUserModelId('com.squirrel.atom.atom')
 
   args = parseCommandLine()
 

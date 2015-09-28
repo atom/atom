@@ -1,8 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
-Serializable = require 'serializable'
-Delegator = require 'delegato'
-{includeDeprecatedAPIs, deprecate} = require 'grim'
+Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
@@ -56,11 +54,8 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  Serializable.includeInto(this)
   atom.deserializers.add(this)
-  Delegator.includeInto(this)
 
-  deserializing: false
   callDisplayBufferCreatedHook: false
   registerEditor: false
   buffer: null
@@ -72,11 +67,20 @@ class TextEditor extends Model
   selectionFlashDuration: 500
   gutterContainer: null
 
-  @delegatesMethods 'suggestedIndentForBufferRow', 'autoIndentBufferRow', 'autoIndentBufferRows',
-    'autoDecreaseIndentForBufferRow', 'toggleLineCommentForBufferRow', 'toggleLineCommentsForBufferRows',
-    toProperty: 'languageMode'
+  @deserialize: (state) ->
+    try
+      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer)
+    catch error
+      if error.syscall is 'read'
+        return # Error reading the file, don't deserialize an editor for it
+      else
+        throw error
 
-  constructor: ({@softTabs, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
+    state.displayBuffer = displayBuffer
+    state.registerEditor = true
+    new this(state)
+
+  constructor: ({@softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
     super
 
     @emitter = new Emitter
@@ -105,14 +109,6 @@ class TextEditor extends Model
 
     @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
-    @disposables.add @displayBuffer.onDidChangeScrollTop (scrollTop) =>
-      @emit 'scroll-top-changed', scrollTop if includeDeprecatedAPIs
-      @emitter.emit 'did-change-scroll-top', scrollTop
-
-    @disposables.add @displayBuffer.onDidChangeScrollLeft (scrollLeft) =>
-      @emit 'scroll-left-changed', scrollLeft if includeDeprecatedAPIs
-      @emitter.emit 'did-change-scroll-left', scrollLeft
-
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
       name: 'line-number'
@@ -121,44 +117,24 @@ class TextEditor extends Model
 
     atom.workspace?.editorAdded(this) if registerEditor
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
-    scrollTop: @scrollTop
-    scrollLeft: @scrollLeft
+    scrollRow: @getScrollRow()
+    scrollColumn: @getScrollColumn()
     displayBuffer: @displayBuffer.serialize()
-
-  deserializeParams: (params) ->
-    try
-      displayBuffer = DisplayBuffer.deserialize(params.displayBuffer)
-    catch error
-      if error.syscall is 'read'
-        return # Error reading the file, don't deserialize an editor for it
-      else
-        throw error
-
-    params.displayBuffer = displayBuffer
-    params.registerEditor = true
-    params
 
   subscribeToBuffer: ->
     @buffer.retain()
     @disposables.add @buffer.onDidChangePath =>
       unless atom.project.getPaths().length > 0
         atom.project.setPaths([path.dirname(@getPath())])
-      @emit "title-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-title', @getTitle()
-      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-path', @getPath()
     @disposables.add @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
-
-    # TODO: remove these when we remove the deprecations. They are old events.
-    if includeDeprecatedAPIs
-      @subscribe @buffer.onDidStopChanging => @emit "contents-modified"
-      @subscribe @buffer.onDidConflict => @emit "contents-conflicted"
-      @subscribe @buffer.onDidChangeModified => @emit "modified-status-changed"
 
     @preserveCursorPositionOnBufferReload()
 
@@ -168,14 +144,7 @@ class TextEditor extends Model
     @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
     @disposables.add @displayBuffer.onDidChange (e) =>
       @mergeIntersectingSelections()
-      @emit 'screen-lines-changed', e if includeDeprecatedAPIs
       @emitter.emit 'did-change', e
-
-    # TODO: remove these when we remove the deprecations. Though, no one is likely using them
-    if includeDeprecatedAPIs
-      @subscribe @displayBuffer.onDidChangeSoftWrapped (softWrapped) => @emit 'soft-wrap-changed', softWrapped
-      @subscribe @displayBuffer.onDidAddDecoration (decoration) => @emit 'decoration-added', decoration
-      @subscribe @displayBuffer.onDidRemoveDecoration (decoration) => @emit 'decoration-removed', decoration
 
   subscribeToTabTypeConfig: ->
     @tabTypeSubscription?.dispose()
@@ -183,7 +152,6 @@ class TextEditor extends Model
       @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   destroyed: ->
-    @unsubscribe() if includeDeprecatedAPIs
     @disposables.dispose()
     @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
@@ -459,10 +427,17 @@ class TextEditor extends Model
     @displayBuffer.onDidChangeCharacterWidths(callback)
 
   onDidChangeScrollTop: (callback) ->
-    @emitter.on 'did-change-scroll-top', callback
+    Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
+
+    atom.views.getView(this).onDidChangeScrollTop(callback)
 
   onDidChangeScrollLeft: (callback) ->
-    @emitter.on 'did-change-scroll-left', callback
+    Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.")
+
+    atom.views.getView(this).onDidChangeScrollLeft(callback)
+
+  onDidRequestAutoscroll: (callback) ->
+    @displayBuffer.onDidRequestAutoscroll(callback)
 
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->
@@ -550,6 +525,10 @@ class TextEditor extends Model
   # {TextEditorElement} in characters.
   setEditorWidthInChars: (editorWidthInChars) ->
     @displayBuffer.setEditorWidthInChars(editorWidthInChars)
+
+  # Returns the editor width in characters.
+  getEditorWidthInChars: ->
+    @displayBuffer.getEditorWidthInChars()
 
   ###
   Section: File Details
@@ -779,7 +758,6 @@ class TextEditor extends Model
       (selection) =>
         range = selection.insertText(text, options)
         didInsertEvent = {text, range}
-        @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
         @emitter.emit 'did-insert-text', didInsertEvent
         range
       , groupingInterval
@@ -1131,10 +1109,14 @@ class TextEditor extends Model
     @buffer.transact(groupingInterval, fn)
 
   # Deprecated: Start an open-ended transaction.
-  beginTransaction: (groupingInterval) -> @buffer.beginTransaction(groupingInterval)
+  beginTransaction: (groupingInterval) ->
+    Grim.deprecate('Transactions should be performed via TextEditor::transact only')
+    @buffer.beginTransaction(groupingInterval)
 
   # Deprecated: Commit an open-ended transaction started with {::beginTransaction}.
-  commitTransaction: -> @buffer.commitTransaction()
+  commitTransaction: ->
+    Grim.deprecate('Transactions should be performed via TextEditor::transact only')
+    @buffer.commitTransaction()
 
   # Extended: Abort an open transaction, undoing any operations performed so far
   # within the transaction.
@@ -1326,9 +1308,6 @@ class TextEditor extends Model
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
-    if includeDeprecatedAPIs and decorationParams.type is 'gutter' and not decorationParams.gutterName
-      deprecate("Decorations of `type: 'gutter'` have been renamed to `type: 'line-number'`.")
-      decorationParams.type = 'line-number'
     @displayBuffer.decorateMarker(marker, decorationParams)
 
   # Essential: Get all the decorations within a screen row range.
@@ -1758,7 +1737,6 @@ class TextEditor extends Model
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
-    @emit 'cursor-added', cursor if includeDeprecatedAPIs
     @emitter.emit 'did-add-cursor', cursor
     cursor
 
@@ -2247,7 +2225,6 @@ class TextEditor extends Model
         if selection.intersectsBufferRange(selectionBufferRange)
           return selection
     else
-      @emit 'selection-added', selection if includeDeprecatedAPIs
       @emitter.emit 'did-add-selection', selection
       selection
 
@@ -2264,11 +2241,11 @@ class TextEditor extends Model
     @consolidateSelections()
     @getLastSelection().clear(options)
 
-  # Reduce multiple selections to the most recently added selection.
+  # Reduce multiple selections to the least recently added selection.
   consolidateSelections: ->
     selections = @getSelections()
     if selections.length > 1
-      selection.destroy() for selection in selections[0...-1]
+      selection.destroy() for selection in selections[1...(selections.length)]
       true
     else
       false
@@ -2367,10 +2344,6 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
-    # FIXME Remove once this can be specified as a scoped setting in the
-    # language-make package
-    return false if @getGrammar()?.scopeName is 'source.makefile'
-
     for bufferRow in [0..@buffer.getLastRow()]
       continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
@@ -2661,7 +2634,6 @@ class TextEditor extends Model
         range = selection.insertText(text, options)
 
       didInsertEvent = {text, range}
-      @emit('did-insert-text', didInsertEvent) if includeDeprecatedAPIs
       @emitter.emit 'did-insert-text', didInsertEvent
 
   # Essential: For each selection, if the selection is empty, cut all characters
@@ -2881,25 +2853,27 @@ class TextEditor extends Model
   scrollToScreenPosition: (screenPosition, options) ->
     @displayBuffer.scrollToScreenPosition(screenPosition, options)
 
-  # Essential: Scrolls the editor to the top
   scrollToTop: ->
-    @setScrollTop(0)
+    Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-  # Essential: Scrolls the editor to the bottom
+    atom.views.getView(this).scrollToTop()
+
   scrollToBottom: ->
-    @setScrollBottom(Infinity)
+    Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
+
+    atom.views.getView(this).scrollToBottom()
 
   scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
 
-  horizontallyScrollable: -> @displayBuffer.horizontallyScrollable()
+  getHorizontalScrollbarHeight: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
-  verticallyScrollable: -> @displayBuffer.verticallyScrollable()
+    atom.views.getView(this).getHorizontalScrollbarHeight()
 
-  getHorizontalScrollbarHeight: -> @displayBuffer.getHorizontalScrollbarHeight()
-  setHorizontalScrollbarHeight: (height) -> @displayBuffer.setHorizontalScrollbarHeight(height)
+  getVerticalScrollbarWidth: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.")
 
-  getVerticalScrollbarWidth: -> @displayBuffer.getVerticalScrollbarWidth()
-  setVerticalScrollbarWidth: (width) -> @displayBuffer.setVerticalScrollbarWidth(width)
+    atom.views.getView(this).getVerticalScrollbarWidth()
 
   pageUp: ->
     @moveUp(@getRowsPerPage())
@@ -2962,25 +2936,21 @@ class TextEditor extends Model
     @placeholderText = placeholderText
     @emitter.emit 'did-change-placeholder-text', @placeholderText
 
-  getFirstVisibleScreenRow: (suppressDeprecation) ->
-    unless suppressDeprecation
-      deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
-    @getVisibleRowRange()[0]
+  getFirstVisibleScreenRow: ->
+    deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
+    atom.views.getView(this).getVisibleRowRange()[0]
 
-  getLastVisibleScreenRow: (suppressDeprecation) ->
-    unless suppressDeprecation
-      deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
-    @getVisibleRowRange()[1]
+  getLastVisibleScreenRow: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
+    atom.views.getView(this).getVisibleRowRange()[1]
 
-  pixelPositionForBufferPosition: (bufferPosition, suppressDeprecation) ->
-    unless suppressDeprecation
-      deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
-    @displayBuffer.pixelPositionForBufferPosition(bufferPosition)
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
+    atom.views.getView(this).pixelPositionForBufferPosition(bufferPosition)
 
-  pixelPositionForScreenPosition: (screenPosition, suppressDeprecation) ->
-    unless suppressDeprecation
-      deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
-    @displayBuffer.pixelPositionForScreenPosition(screenPosition)
+  pixelPositionForScreenPosition: (screenPosition) ->
+    Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
+    atom.views.getView(this).pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
     {type: 'selection', editorId: @id, invalidate: 'never', maintainHistory: true}
@@ -3006,38 +2976,110 @@ class TextEditor extends Model
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
   setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
 
-  setHeight: (height) -> @displayBuffer.setHeight(height)
-  getHeight: -> @displayBuffer.getHeight()
+  setHeight: (height, reentrant=false) ->
+    if reentrant
+      @displayBuffer.setHeight(height)
+    else
+      Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
+      atom.views.getView(this).setHeight(height)
+
+  getHeight: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
+    @displayBuffer.getHeight()
 
   getClientHeight: -> @displayBuffer.getClientHeight()
 
-  setWidth: (width) -> @displayBuffer.setWidth(width)
-  getWidth: -> @displayBuffer.getWidth()
+  setWidth: (width, reentrant=false) ->
+    if reentrant
+      @displayBuffer.setWidth(width)
+    else
+      Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
+      atom.views.getView(this).setWidth(width)
 
-  getScrollTop: -> @displayBuffer.getScrollTop()
-  setScrollTop: (scrollTop) -> @displayBuffer.setScrollTop(scrollTop)
+  getWidth: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
+    @displayBuffer.getWidth()
 
-  getScrollBottom: -> @displayBuffer.getScrollBottom()
-  setScrollBottom: (scrollBottom) -> @displayBuffer.setScrollBottom(scrollBottom)
+  getScrollRow: -> @scrollRow
+  setScrollRow: (@scrollRow) ->
 
-  getScrollLeft: -> @displayBuffer.getScrollLeft()
-  setScrollLeft: (scrollLeft) -> @displayBuffer.setScrollLeft(scrollLeft)
+  getScrollColumn: -> @scrollColumn
+  setScrollColumn: (@scrollColumn) ->
 
-  getScrollRight: -> @displayBuffer.getScrollRight()
-  setScrollRight: (scrollRight) -> @displayBuffer.setScrollRight(scrollRight)
+  getScrollTop: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
 
-  getScrollHeight: -> @displayBuffer.getScrollHeight()
-  getScrollWidth: -> @displayBuffer.getScrollWidth()
+    atom.views.getView(this).getScrollTop()
 
-  getVisibleRowRange: -> @displayBuffer.getVisibleRowRange()
+  setScrollTop: (scrollTop) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollTop instead.")
 
-  intersectsVisibleRowRange: (startRow, endRow) -> @displayBuffer.intersectsVisibleRowRange(startRow, endRow)
+    atom.views.getView(this).setScrollTop(scrollTop)
 
-  selectionIntersectsVisibleRowRange: (selection) -> @displayBuffer.selectionIntersectsVisibleRowRange(selection)
+  getScrollBottom: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollBottom instead.")
 
-  screenPositionForPixelPosition: (pixelPosition) -> @displayBuffer.screenPositionForPixelPosition(pixelPosition)
+    atom.views.getView(this).getScrollBottom()
 
-  pixelRectForScreenRange: (screenRange) -> @displayBuffer.pixelRectForScreenRange(screenRange)
+  setScrollBottom: (scrollBottom) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollBottom instead.")
+
+    atom.views.getView(this).setScrollBottom(scrollBottom)
+
+  getScrollLeft: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollLeft instead.")
+
+    atom.views.getView(this).getScrollLeft()
+
+  setScrollLeft: (scrollLeft) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollLeft instead.")
+
+    atom.views.getView(this).setScrollLeft(scrollLeft)
+
+  getScrollRight: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollRight instead.")
+
+    atom.views.getView(this).getScrollRight()
+
+  setScrollRight: (scrollRight) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollRight instead.")
+
+    atom.views.getView(this).setScrollRight(scrollRight)
+
+  getScrollHeight: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollHeight instead.")
+
+    atom.views.getView(this).getScrollHeight()
+
+  getScrollWidth: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollWidth instead.")
+
+    atom.views.getView(this).getScrollWidth()
+
+  getVisibleRowRange: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
+
+    atom.views.getView(this).getVisibleRowRange()
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
+
+    atom.views.getView(this).intersectsVisibleRowRange(startRow, endRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.")
+
+    atom.views.getView(this).selectionIntersectsVisibleRowRange(selection)
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.")
+
+    atom.views.getView(this).screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.")
+
+    atom.views.getView(this).pixelRectForScreenRange(screenRange)
 
   ###
   Section: Utility
@@ -3052,232 +3094,21 @@ class TextEditor extends Model
     result = true
     cancel = -> result = false
     willInsertEvent = {cancel, text}
-    @emit('will-insert-text', willInsertEvent) if includeDeprecatedAPIs
     @emitter.emit 'will-insert-text', willInsertEvent
     result
 
-if includeDeprecatedAPIs
-  TextEditor.delegatesProperties '$lineHeightInPixels', '$defaultCharWidth', '$height', '$width',
-    '$verticalScrollbarWidth', '$horizontalScrollbarHeight', '$scrollTop', '$scrollLeft',
-    toProperty: 'displayBuffer'
+  ###
+  Section: Language Mode Delegated Methods
+  ###
 
-  TextEditor::joinLine = ->
-    deprecate("Use TextEditor::joinLines() instead")
-    @joinLines()
+  suggestedIndentForBufferRow: (bufferRow, options) -> @languageMode.suggestedIndentForBufferRow(bufferRow, options)
 
-  TextEditor::scopesAtCursor = ->
-    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
-    @getLastCursor().getScopeDescriptor().getScopesArray()
+  autoIndentBufferRow: (bufferRow, options) -> @languageMode.autoIndentBufferRow(bufferRow, options)
 
-  TextEditor::getCursorScopes = ->
-    deprecate 'Use editor.getLastCursor().getScopeDescriptor() instead'
-    @scopesAtCursor()
+  autoIndentBufferRows: (startRow, endRow) -> @languageMode.autoIndentBufferRows(startRow, endRow)
 
-  TextEditor::getUri = ->
-    deprecate("Use `::getURI` instead")
-    @getURI()
+  autoDecreaseIndentForBufferRow: (bufferRow) -> @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
-  TextEditor::lineForBufferRow = (bufferRow) ->
-    deprecate 'Use TextEditor::lineTextForBufferRow(bufferRow) instead'
-    @lineTextForBufferRow(bufferRow)
+  toggleLineCommentForBufferRow: (row) -> @languageMode.toggleLineCommentsForBufferRow(row)
 
-  TextEditor::lineForScreenRow = (screenRow) ->
-    deprecate "TextEditor::tokenizedLineForScreenRow(bufferRow) is the new name. But it's private. Try to use TextEditor::lineTextForScreenRow instead"
-    @tokenizedLineForScreenRow(screenRow)
-
-  TextEditor::linesForScreenRows = (start, end) ->
-    deprecate "Use TextEditor::tokenizedLinesForScreenRows instead"
-    @tokenizedLinesForScreenRows(start, end)
-
-  TextEditor::lineLengthForBufferRow = (row) ->
-    deprecate "Use editor.lineTextForBufferRow(row).length instead"
-    @lineTextForBufferRow(row).length
-
-  TextEditor::duplicateLine = ->
-    deprecate("Use TextEditor::duplicateLines() instead")
-    @duplicateLines()
-
-  TextEditor::scopesForBufferPosition = (bufferPosition) ->
-    deprecate 'Use ::scopeDescriptorForBufferPosition instead. The return value has changed! It now returns a `ScopeDescriptor`'
-    @scopeDescriptorForBufferPosition(bufferPosition).getScopesArray()
-
-  TextEditor::toggleSoftWrap = ->
-    deprecate("Use TextEditor::toggleSoftWrapped instead")
-    @toggleSoftWrapped()
-
-  TextEditor::setSoftWrap = (softWrapped) ->
-    deprecate("Use TextEditor::setSoftWrapped instead")
-    @setSoftWrapped(softWrapped)
-
-  TextEditor::backspaceToBeginningOfWord = ->
-    deprecate("Use TextEditor::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  TextEditor::backspaceToBeginningOfLine = ->
-    deprecate("Use TextEditor::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()
-
-  TextEditor::getGutterDecorations = (propertyFilter) ->
-    deprecate("Use ::getLineNumberDecorations instead")
-    @getLineNumberDecorations(propertyFilter)
-
-  TextEditor::getCursorScreenRow = ->
-    deprecate('Use `editor.getCursorScreenPosition().row` instead')
-    @getCursorScreenPosition().row
-
-  TextEditor::moveCursorUp = (lineCount) ->
-    deprecate("Use TextEditor::moveUp() instead")
-    @moveUp(lineCount)
-
-  TextEditor::moveCursorDown = (lineCount) ->
-    deprecate("Use TextEditor::moveDown() instead")
-    @moveDown(lineCount)
-
-  TextEditor::moveCursorLeft = ->
-    deprecate("Use TextEditor::moveLeft() instead")
-    @moveLeft()
-
-  TextEditor::moveCursorRight = ->
-    deprecate("Use TextEditor::moveRight() instead")
-    @moveRight()
-
-  TextEditor::moveCursorToBeginningOfLine = ->
-    deprecate("Use TextEditor::moveToBeginningOfLine() instead")
-    @moveToBeginningOfLine()
-
-  TextEditor::moveCursorToBeginningOfScreenLine = ->
-    deprecate("Use TextEditor::moveToBeginningOfScreenLine() instead")
-    @moveToBeginningOfScreenLine()
-
-  TextEditor::moveCursorToFirstCharacterOfLine = ->
-    deprecate("Use TextEditor::moveToFirstCharacterOfLine() instead")
-    @moveToFirstCharacterOfLine()
-
-  TextEditor::moveCursorToEndOfLine = ->
-    deprecate("Use TextEditor::moveToEndOfLine() instead")
-    @moveToEndOfLine()
-
-  TextEditor::moveCursorToEndOfScreenLine = ->
-    deprecate("Use TextEditor::moveToEndOfScreenLine() instead")
-    @moveToEndOfScreenLine()
-
-  TextEditor::moveCursorToBeginningOfWord = ->
-    deprecate("Use TextEditor::moveToBeginningOfWord() instead")
-    @moveToBeginningOfWord()
-
-  TextEditor::moveCursorToEndOfWord = ->
-    deprecate("Use TextEditor::moveToEndOfWord() instead")
-    @moveToEndOfWord()
-
-  TextEditor::moveCursorToTop = ->
-    deprecate("Use TextEditor::moveToTop() instead")
-    @moveToTop()
-
-  TextEditor::moveCursorToBottom = ->
-    deprecate("Use TextEditor::moveToBottom() instead")
-    @moveToBottom()
-
-  TextEditor::moveCursorToBeginningOfNextWord = ->
-    deprecate("Use TextEditor::moveToBeginningOfNextWord() instead")
-    @moveToBeginningOfNextWord()
-
-  TextEditor::moveCursorToPreviousWordBoundary = ->
-    deprecate("Use TextEditor::moveToPreviousWordBoundary() instead")
-    @moveToPreviousWordBoundary()
-
-  TextEditor::moveCursorToNextWordBoundary = ->
-    deprecate("Use TextEditor::moveToNextWordBoundary() instead")
-    @moveToNextWordBoundary()
-
-  TextEditor::moveCursorToBeginningOfNextParagraph = ->
-    deprecate("Use TextEditor::moveToBeginningOfNextParagraph() instead")
-    @moveToBeginningOfNextParagraph()
-
-  TextEditor::moveCursorToBeginningOfPreviousParagraph = ->
-    deprecate("Use TextEditor::moveToBeginningOfPreviousParagraph() instead")
-    @moveToBeginningOfPreviousParagraph()
-
-  TextEditor::getCursor = ->
-    deprecate("Use TextEditor::getLastCursor() instead")
-    @getLastCursor()
-
-  TextEditor::selectLine = ->
-    deprecate('Use TextEditor::selectLinesContainingCursors instead')
-    @selectLinesContainingCursors()
-
-  TextEditor::selectWord = ->
-    deprecate('Use TextEditor::selectWordsContainingCursors instead')
-    @selectWordsContainingCursors()
-
-  TextEditor::getSelection = (index) ->
-    if index?
-      deprecate("Use TextEditor::getSelections()[index] instead when getting a specific selection")
-      @getSelections()[index]
-    else
-      deprecate("Use TextEditor::getLastSelection() instead")
-      @getLastSelection()
-
-  TextEditor::getSoftWrapped = ->
-    deprecate("Use TextEditor::isSoftWrapped instead")
-    @displayBuffer.isSoftWrapped()
-
-  EmitterMixin = require('emissary').Emitter
-  TextEditor::on = (eventName) ->
-    switch eventName
-      when 'title-changed'
-        deprecate("Use TextEditor::onDidChangeTitle instead")
-      when 'path-changed'
-        deprecate("Use TextEditor::onDidChangePath instead")
-      when 'modified-status-changed'
-        deprecate("Use TextEditor::onDidChangeModified instead")
-      when 'soft-wrap-changed'
-        deprecate("Use TextEditor::onDidChangeSoftWrapped instead")
-      when 'grammar-changed'
-        deprecate("Use TextEditor::onDidChangeGrammar instead")
-      when 'character-widths-changed'
-        deprecate("Use TextEditor::onDidChangeCharacterWidths instead")
-      when 'contents-modified'
-        deprecate("Use TextEditor::onDidStopChanging instead")
-      when 'contents-conflicted'
-        deprecate("Use TextEditor::onDidConflict instead")
-
-      when 'will-insert-text'
-        deprecate("Use TextEditor::onWillInsertText instead")
-      when 'did-insert-text'
-        deprecate("Use TextEditor::onDidInsertText instead")
-
-      when 'cursor-added'
-        deprecate("Use TextEditor::onDidAddCursor instead")
-      when 'cursor-removed'
-        deprecate("Use TextEditor::onDidRemoveCursor instead")
-      when 'cursor-moved'
-        deprecate("Use TextEditor::onDidChangeCursorPosition instead")
-
-      when 'selection-added'
-        deprecate("Use TextEditor::onDidAddSelection instead")
-      when 'selection-removed'
-        deprecate("Use TextEditor::onDidRemoveSelection instead")
-      when 'selection-screen-range-changed'
-        deprecate("Use TextEditor::onDidChangeSelectionRange instead")
-
-      when 'decoration-added'
-        deprecate("Use TextEditor::onDidAddDecoration instead")
-      when 'decoration-removed'
-        deprecate("Use TextEditor::onDidRemoveDecoration instead")
-      when 'decoration-updated'
-        deprecate("Use Decoration::onDidChangeProperties instead. You will get the decoration back from `TextEditor::decorateMarker()`")
-      when 'decoration-changed'
-        deprecate("Use Marker::onDidChange instead. e.g. `editor::decorateMarker(...).getMarker().onDidChange()`")
-
-      when 'screen-lines-changed'
-        deprecate("Use TextEditor::onDidChange instead")
-
-      when 'scroll-top-changed'
-        deprecate("Use TextEditor::onDidChangeScrollTop instead")
-      when 'scroll-left-changed'
-        deprecate("Use TextEditor::onDidChangeScrollLeft instead")
-
-      else
-        deprecate("TextEditor::on is deprecated. Use documented event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
+  toggleLineCommentsForBufferRows: (start, end) -> @languageMode.toggleLineCommentsForBufferRows(start, end)

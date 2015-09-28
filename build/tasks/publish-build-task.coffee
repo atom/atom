@@ -31,7 +31,8 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
-    switch process.env.JANKY_BRANCH
+    branchName = process.env.JANKY_BRANCH
+    switch branchName
       when 'stable'
         isPrerelease = false
       when 'beta'
@@ -54,7 +55,7 @@ module.exports = (gruntObject) ->
 
     zipAssets buildDir, assets, (error) ->
       return done(error) if error?
-      getAtomDraftRelease isPrerelease, (error, release) ->
+      getAtomDraftRelease isPrerelease, branchName, (error, release) ->
         return done(error) if error?
         assetNames = (asset.assetName for asset in assets)
         deleteExistingAssets release, assetNames, (error) ->
@@ -76,7 +77,12 @@ getAssets = ->
       ]
     when 'win32'
       assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
-      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg", "atom-#{version}-delta.nupkg"]
+
+      # NuGet packages can't have dots in their pre-release name, so we remove
+      # those dots in `grunt-electron-installer` when generating the package.
+      nupkgVersion = version.replace(/\.(\d+)$/, '$1')
+
+      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{nupkgVersion}-full.nupkg", "atom-#{nupkgVersion}-delta.nupkg"]
         cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
       assets
@@ -128,7 +134,7 @@ zipAssets = (buildDir, assets, callback) ->
     tasks.push(zip.bind(this, buildDir, sourcePath, assetName))
   async.parallel(tasks, callback)
 
-getAtomDraftRelease = (isPrerelease, callback) ->
+getAtomDraftRelease = (isPrerelease, branchName, callback) ->
   atomRepo = new GitHub({repo: 'atom/atom', token})
   atomRepo.getReleases {prerelease: isPrerelease}, (error, releases=[]) ->
     if error?
@@ -150,9 +156,9 @@ getAtomDraftRelease = (isPrerelease, callback) ->
             firstDraft.assets = assets
             callback(null, firstDraft)
       else
-        createAtomDraftRelease(isPrerelease, callback)
+        createAtomDraftRelease(isPrerelease, branchName, callback)
 
-createAtomDraftRelease = (isPrerelease, callback) ->
+createAtomDraftRelease = (isPrerelease, branchName, callback) ->
   {version} = require('../../package.json')
   options =
     uri: 'https://api.github.com/repos/atom/atom/releases'
@@ -161,6 +167,7 @@ createAtomDraftRelease = (isPrerelease, callback) ->
     json:
       tag_name: "v#{version}"
       prerelease: isPrerelease
+      target_commitish: branchName
       name: version
       draft: true
       body: """
