@@ -293,14 +293,14 @@ class TextEditorElement extends HTMLElement
     @component.measureDimensions()
 
   getWidth: ->
-    @style.offsetWidth - @component.getGutterWidth()
+    @offsetWidth - @component.getGutterWidth()
 
   setHeight: (height) ->
     @style.height = height + "px"
     @component.measureDimensions()
 
   getHeight: ->
-    @style.offsetHeight
+    @offsetHeight
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
