@@ -473,8 +473,7 @@ describe "TextEditorComponent", ->
           editor.setText "a line that wraps \n"
           editor.setSoftWrapped(true)
           nextAnimationFrame()
-          componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
-          component.measureDimensions()
+          wrapperNode.setWidth(16 * charWidth)
           nextAnimationFrame()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
