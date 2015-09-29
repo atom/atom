@@ -427,7 +427,7 @@ class TextEditorComponent
     position
 
   screenPositionForPixelPosition: (pixelPosition) ->
-    @presenter.screenPositionForPixelPosition(pixelPosition)
+    @linesYardstick.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
     rect = @presenter.pixelRectForScreenRange(screenRange)
@@ -857,7 +857,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @presenter.screenPositionForPixelPosition(pixelPosition)
+    @screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event

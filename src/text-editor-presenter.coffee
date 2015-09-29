@@ -1626,38 +1626,3 @@ class TextEditorPresenter
 
   getVisibleRowRange: ->
     [@startRow, @endRow]
-
-  screenPositionForPixelPosition: (pixelPosition) ->
-    targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    defaultCharWidth = @baseCharacterWidth
-    row = Math.floor(targetTop / @lineHeight)
-    targetLeft = 0 if row < 0
-    targetLeft = Infinity if row > @model.getLastScreenRow()
-    row = Math.min(row, @model.getLastScreenRow())
-    row = Math.max(0, row)
-
-    left = 0
-    column = 0
-
-    iterator = @model.tokenizedLineForScreenRow(row).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharacterWidths(iterator.getScopes())
-      value = iterator.getText()
-      valueIndex = 0
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        charWidth = charWidths[char] ? defaultCharWidth
-        break if targetLeft <= left + (charWidth / 2)
-        left += charWidth
-        column += charLength
-
-    new Point(row, column)
