@@ -5,25 +5,12 @@ AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 module.exports =
 class LinesYardstick
   constructor: (@model, @presenter, @lineNodesProvider) ->
-    @cachedPositionsByLineId = {}
     @tokenIterator = new TokenIterator
     @rangeForMeasurement = document.createRange()
 
-  clearCache: ->
-    @cachedPositionsByLineId = {}
-
   prepareScreenRowsForMeasurement: (screenRows) ->
     @presenter.setScreenRowsToMeasure(screenRows)
-    @lineNodesProvider.updateSync(@presenter.getStateForMeasurements())
-
-  cleanup: ->
-    @presenter.clearScreenRowsToMeasure()
-    @lineNodesProvider.updateSync(@presenter.getStateForMeasurements())
-
-  measure: (screenRows, fn) ->
-    @prepareScreenRowsForMeasurement(screenRows)
-    fn()
-    @cleanup()
+    @lineNodesProvider.updateSync(@presenter.getPreMeasurementState())
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
@@ -41,9 +28,6 @@ class LinesYardstick
   leftPixelPositionForScreenPosition: (row, column) ->
     tokenizedLine = @model.tokenizedLineForScreenRow(row)
     return 0 unless tokenizedLine?
-
-    if cachedPosition = @cachedPositionsByLineId[tokenizedLine.id]?[column]
-      return cachedPosition
 
     lineNode =
       @lineNodesProvider.lineNodeForLineIdAndScreenRow(tokenizedLine.id, row)
@@ -91,9 +75,7 @@ class LinesYardstick
 
     if textNode?
       foundIndexWithinTextNode ?= textNode.textContent.length
-      @cachedPositionsByLineId[tokenizedLine.id] ?= {}
-      @cachedPositionsByLineId[tokenizedLine.id][column] =
-        @leftPixelPositionForCharInTextNode(lineNode, textNode, foundIndexWithinTextNode)
+      @leftPixelPositionForCharInTextNode(lineNode, textNode, foundIndexWithinTextNode)
     else
       0
 
