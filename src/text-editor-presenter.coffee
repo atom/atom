@@ -70,7 +70,14 @@ class TextEditorPresenter
 
     @updateContentDimensions()
     @updateScrollbarDimensions()
-    @updateScrollPosition()
+
+    @restoreScrollPosition()
+    @commitPendingLogicalScrollTopPosition()
+    @commitPendingScrollTopPosition()
+    @commitPendingLogicalScrollLeftPosition()
+    @commitPendingScrollLeftPosition()
+    @clearPendingScrollPosition()
+
     @updateStartRow()
     @updateEndRow()
     @updateCommonGutterState()
@@ -826,10 +833,10 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setScrollTop: (scrollTop) ->
+  setScrollTop: (scrollTop, overrideScroll=true) ->
     return unless scrollTop?
 
-    @pendingScrollLogicalPosition = null
+    @pendingScrollLogicalPosition = null if overrideScroll
     @pendingScrollTop = scrollTop
 
     @shouldUpdateVerticalScrollState = true
@@ -867,10 +874,10 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  setScrollLeft: (scrollLeft) ->
+  setScrollLeft: (scrollLeft, overrideScroll=true) ->
     return unless scrollLeft?
 
-    @pendingScrollLogicalPosition = null
+    @pendingScrollLogicalPosition = null if overrideScroll
     @pendingScrollLeft = scrollLeft
 
     @shouldUpdateHorizontalScrollState = true
@@ -901,13 +908,13 @@ class TextEditorPresenter
       @contentFrameWidth - @verticalScrollbarWidth
 
   getScrollBottom: -> @getScrollTop() + @getClientHeight()
-  setScrollBottom: (scrollBottom) ->
-    @setScrollTop(scrollBottom - @getClientHeight())
+  setScrollBottom: (scrollBottom, overrideScroll) ->
+    @setScrollTop(scrollBottom - @getClientHeight(), overrideScroll)
     @getScrollBottom()
 
   getScrollRight: -> @getScrollLeft() + @getClientWidth()
-  setScrollRight: (scrollRight) ->
-    @setScrollLeft(scrollRight - @getClientWidth())
+  setScrollRight: (scrollRight, overrideScroll) ->
+    @setScrollLeft(scrollRight - @getClientWidth(), overrideScroll)
     @getScrollRight()
 
   getScrollHeight: ->
@@ -1520,23 +1527,15 @@ class TextEditorPresenter
   getHorizontalScrollbarHeight: ->
     @horizontalScrollbarHeight
 
-  commitPendingLogicalScrollPosition: ->
+  commitPendingLogicalScrollTopPosition: ->
     return unless @pendingScrollLogicalPosition?
 
     {screenRange, options} = @pendingScrollLogicalPosition
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
-    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
 
-    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
-    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
-    bottom = endTop + endHeight
-    right = endLeft
-
-    top += @scrollTop
-    bottom += @scrollTop
-    left += @scrollLeft
-    right += @scrollLeft
+    top = screenRange.start.row * @lineHeight
+    bottom = (screenRange.end.row + 1) * @lineHeight
 
     if options?.center
       desiredScrollCenter = (top + bottom) / 2
@@ -1547,31 +1546,43 @@ class TextEditorPresenter
       desiredScrollTop = top - verticalScrollMarginInPixels
       desiredScrollBottom = bottom + verticalScrollMarginInPixels
 
+    if options?.reversed ? true
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom, false)
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop, false)
+    else
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop, false)
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom, false)
+
+  commitPendingLogicalScrollLeftPosition: ->
+    return unless @pendingScrollLogicalPosition?
+
+    {screenRange, options} = @pendingScrollLogicalPosition
+
+    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
+
+    {left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
+    {left: right} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
+
+    left += @scrollLeft
+    right += @scrollLeft
+
     desiredScrollLeft = left - horizontalScrollMarginInPixels
     desiredScrollRight = right + horizontalScrollMarginInPixels
 
     if options?.reversed ? true
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-
       if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
+        @setScrollRight(desiredScrollRight, false)
       if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
+        @setScrollLeft(desiredScrollLeft, false)
     else
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-
       if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
+        @setScrollLeft(desiredScrollLeft, false)
       if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
-
-    @pendingScrollLogicalPosition = null
+        @setScrollRight(desiredScrollRight, false)
 
   commitPendingScrollLeftPosition: ->
     return unless @pendingScrollLeft?
@@ -1584,8 +1595,6 @@ class TextEditorPresenter
       @model.setScrollColumn(@scrollColumn)
 
       @emitter.emit 'did-change-scroll-left', @scrollLeft
-
-    @pendingScrollLeft = null
 
   commitPendingScrollTopPosition: ->
     return unless @pendingScrollTop?
@@ -1600,8 +1609,6 @@ class TextEditorPresenter
       @didStartScrolling()
       @emitter.emit 'did-change-scroll-top', @scrollTop
 
-    @pendingScrollTop = null
-
   restoreScrollPosition: ->
     return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()
 
@@ -1610,11 +1617,10 @@ class TextEditorPresenter
 
     @hasRestoredScrollPosition = true
 
-  updateScrollPosition: ->
-    @restoreScrollPosition()
-    @commitPendingLogicalScrollPosition()
-    @commitPendingScrollLeftPosition()
-    @commitPendingScrollTopPosition()
+  clearPendingScrollPosition: ->
+    @pendingScrollLogicalPosition = null
+    @pendingScrollTop = null
+    @pendingScrollLeft = null
 
   canScrollLeftTo: (scrollLeft) ->
     @scrollLeft isnt @constrainScrollLeft(scrollLeft)
