@@ -4,7 +4,7 @@
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 [![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
 
-Atom是21世纪最好用的文本编辑器,由[Electron](https://github.com/atom/electron)编写,并且是基于所有我们喜欢的编辑器. 我们深度定制它,但是仍然使用简单的默认配置.
+Atom是21世纪超好用的文本编辑器,由[Electron](https://github.com/atom/electron)编写,并且是基于所有我们喜欢的编辑器. 我们深度定制它,但是仍然使用简单的默认配置.
 
 访问[atom.io](https://atom.io)学习更多或者访问[Atom forum](https://discuss.atom.io).
 
@@ -23,28 +23,27 @@ Atom是21世纪最好用的文本编辑器,由[Electron](https://github.com/atom
 
 ### OS X
 
-Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
+下载最新版[Atom 正式版](https://github.com/atom/atom/releases/latest).
 
-Atom will automatically update when a new release is available.
+当一个新版本可用时Atom会自动更新.
 
 ### Windows
 
-Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
+下载最新版[AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
 
-Atom will automatically update when a new release is available.
+当一个新版本可用时Atom会自动更新.
 
-You can also download an `atom-windows.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
-The `.zip` version will not automatically update.
+你也可以从[版本历史页面](https://github.com/atom/atom/releases/latest)下载一个`atom-windows.zip`文件.
+`.zip`历史版不会自动更新.
 
-Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install
-the latest version of Atom.
+使用[chocolatey](https://chocolatey.org/)? 运行 `cinst Atom`安装最新版Atom.
 
 ### Debian Linux (Ubuntu)
 
 Currently only a 64-bit version is available.
 
-1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
+1.下载`atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+2.运行`sudo dpkg --install atom-amd64.deb` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
@@ -72,7 +71,7 @@ Currently only a 64-bit version is available.
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
 
-## Building
+## 编译
 
 * [Linux](docs/build-instructions/linux.md)
 * [OS X](docs/build-instructions/os-x.md)
