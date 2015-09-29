@@ -10,8 +10,6 @@ TextEditor = require './text-editor'
 # the default configuration, tabs are also displayed for each item.
 module.exports =
 class Pane extends Model
-  atom.deserializers.add(this)
-
   container: undefined
   activeItem: undefined
   focused: false

@@ -204,6 +204,45 @@ class Atom extends Model
     GrammarRegistry = require './grammar-registry'
     @grammars = new GrammarRegistry({@config})
 
+    @registerDeserializersAndViewProviders()
+
+    registerDefaultCommands = require './register-default-commands'
+    registerDefaultCommands(@commands)
+
+  registerDeserializersAndViewProviders: ->
+    Workspace = require './workspace'
+    PaneContainer = require './pane-container'
+    PaneAxis = require './pane-axis'
+    Pane = require './pane'
+    Project = require './project'
+    TextEditor = require './text-editor'
+    TextBuffer = require 'text-buffer'
+
+    @deserializers.add(Workspace)
+    @deserializers.add(PaneContainer)
+    @deserializers.add(PaneAxis)
+    @deserializers.add(Pane)
+    @deserializers.add(Project)
+    @deserializers.add(TextEditor)
+    @deserializers.add(TextBuffer)
+
+    Gutter = require './gutter'
+    PaneElement = require './pane-element'
+    PaneContainerElement = require './pane-container-element'
+    PaneAxisElement = require './pane-axis-element'
+    TextEditorElement = require './text-editor-element'
+    {createGutterView} = require './gutter-component-helpers'
+
+    @views.addViewProvider PaneContainer, (model) ->
+      new PaneContainerElement().initialize(model)
+    @views.addViewProvider PaneAxis, (model) ->
+      new PaneAxisElement().initialize(model)
+    @views.addViewProvider Pane, (model) ->
+      new PaneElement().initialize(model)
+    @views.addViewProvider TextEditor, (model) ->
+      new TextEditorElement().initialize(model)
+    @views.addViewProvider(Gutter, createGutterView)
+
   reset: ->
     @config.reset()
 
@@ -254,46 +293,13 @@ class Atom extends Model
 
     @keymaps.subscribeToFileReadFailure()
 
-    @registerViewProviders()
     document.head.appendChild(new StylesElement)
 
     if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
     @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
-
-    Project = require './project'
-    TextBuffer = require 'text-buffer'
-    @deserializers.add(TextBuffer)
-    TokenizedBuffer = require './tokenized-buffer'
-    DisplayBuffer = require './display-buffer'
-    TextEditor = require './text-editor'
-
     @windowEventHandler = new WindowEventHandler
-
-  # Register the core views as early as possible in case they are needed for
-  # package deserialization.
-  registerViewProviders: ->
-    Gutter = require './gutter'
-    Pane = require './pane'
-    PaneElement = require './pane-element'
-    PaneContainer = require './pane-container'
-    PaneContainerElement = require './pane-container-element'
-    PaneAxis = require './pane-axis'
-    PaneAxisElement = require './pane-axis-element'
-    TextEditor = require './text-editor'
-    TextEditorElement = require './text-editor-element'
-    {createGutterView} = require './gutter-component-helpers'
-
-    atom.views.addViewProvider PaneContainer, (model) ->
-      new PaneContainerElement().initialize(model)
-    atom.views.addViewProvider PaneAxis, (model) ->
-      new PaneAxisElement().initialize(model)
-    atom.views.addViewProvider Pane, (model) ->
-      new PaneElement().initialize(model)
-    atom.views.addViewProvider TextEditor, (model) ->
-      new TextEditorElement().initialize(model)
-    atom.views.addViewProvider(Gutter, createGutterView)
 
   ###
   Section: Event Subscription

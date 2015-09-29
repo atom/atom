@@ -4,8 +4,6 @@ Model = require './model'
 
 module.exports =
 class PaneAxis extends Model
-  atom.deserializers.add(this)
-
   parent: null
   container: null
   orientation: null

@@ -7,8 +7,6 @@ ItemRegistry = require './item-registry'
 
 module.exports =
 class PaneContainer extends Model
-  atom.deserializers.add(this)
-
   @version: 1
 
   root: null

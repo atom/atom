@@ -17,8 +17,6 @@ GitRepositoryProvider = require './git-repository-provider'
 # An instance of this class is always available as the `atom.project` global.
 module.exports =
 class Project extends Model
-  atom.deserializers.add(this)
-
   ###
   Section: Construction and Destruction
   ###
