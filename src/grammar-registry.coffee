@@ -14,18 +14,8 @@ PathSplitRegex = new RegExp("[/.]")
 # language-specific comment regexes. See {::getProperty} for more details.
 module.exports =
 class GrammarRegistry extends FirstMate.GrammarRegistry
-  @deserialize: ({grammarOverridesByPath}) ->
-    grammarRegistry = new GrammarRegistry()
-    grammarRegistry.grammarOverridesByPath = grammarOverridesByPath
-    grammarRegistry
-
-  atom.deserializers.add(this)
-
-  constructor: ->
+  constructor: ({@config}={}) ->
     super(maxTokensPerLine: 100)
-
-  serialize: ->
-    {deserializer: @constructor.name, @grammarOverridesByPath}
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
@@ -70,7 +60,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     pathScore = -1
 
     fileTypes = grammar.fileTypes
-    if customFileTypes = atom.config.get('core.customFileTypes')?[grammar.scopeName]
+    if customFileTypes = @config.get('core.customFileTypes')?[grammar.scopeName]
       fileTypes = fileTypes.concat(customFileTypes)
 
     for fileType, i in fileTypes
