@@ -63,25 +63,31 @@ class TextEditorPresenter
   isBatching: ->
     @updating is false
 
-  # Public: Gets this presenter's state, updating it just in time before returning from this function.
-  # Returns a state {Object}, useful for rendering to screen.
-  getState: ->
+  getPreMeasurementState: ->
     @updating = true
 
-    @updateContentDimensions()
+    @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
     @restoreScrollPosition()
     @commitPendingLogicalScrollTopPosition()
     @commitPendingScrollTopPosition()
-    @commitPendingLogicalScrollLeftPosition()
-    @commitPendingScrollLeftPosition()
-    @clearPendingScrollPosition()
 
     @updateStartRow()
     @updateEndRow()
     @updateCommonGutterState()
     @updateReflowState()
+
+    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
+
+    @updating = false
+    @state
+
+  getPostMeasurementState: ->
+    @updateHorizontalDimensions()
+    @commitPendingLogicalScrollLeftPosition()
+    @commitPendingScrollLeftPosition()
+    @clearPendingScrollPosition()
 
     @updateFocusedState() if @shouldUpdateFocusedState
     @updateHeightState() if @shouldUpdateHeightState
@@ -100,6 +106,14 @@ class TextEditorPresenter
     @updating = false
 
     @resetTrackedUpdates()
+
+  # Public: Gets this presenter's state, updating it just in time before returning from this function.
+  # Returns a state {Object}, useful for rendering to screen.
+  getState: ->
+    @updating = true
+
+    @getPreMeasurementState()
+    @getPostMeasurementState()
 
     @state
 
@@ -684,22 +698,23 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop()
 
-  updateContentDimensions: ->
+  updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
       @contentHeight = @lineHeight * @model.getScreenLineCount()
 
+    if @contentHeight isnt oldContentHeight
+      @updateHeight()
+      @updateScrollbarDimensions()
+      @updateScrollHeight()
+
+  updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
       clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
       @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
-
-    if @contentHeight isnt oldContentHeight
-      @updateHeight()
-      @updateScrollbarDimensions()
-      @updateScrollHeight()
 
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
