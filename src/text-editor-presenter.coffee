@@ -43,6 +43,8 @@ class TextEditorPresenter
 
   setLinesYardstick: (@linesYardstick) ->
 
+  getLinesYardstick: -> @linesYardstick
+
   destroy: ->
     @disposables.dispose()
 
