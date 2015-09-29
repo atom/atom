@@ -201,6 +201,9 @@ class Atom extends Model
     Clipboard = require './clipboard'
     @clipboard = new Clipboard()
 
+    GrammarRegistry = require './grammar-registry'
+    @grammars = new GrammarRegistry({@config})
+
   reset: ->
     @config.reset()
 
@@ -237,7 +240,6 @@ class Atom extends Model
 
     @loadTime = null
 
-    GrammarRegistry = require './grammar-registry'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
@@ -254,7 +256,10 @@ class Atom extends Model
 
     @registerViewProviders()
     document.head.appendChild(new StylesElement)
-    @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
+
+    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
+      @grammars.grammarOverridesByPath = grammarOverridesByPath
+
     @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
@@ -626,7 +631,7 @@ class Atom extends Model
     return if not @project
 
     @storeWindowBackground()
-    @state.grammars = @grammars.serialize()
+    @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
