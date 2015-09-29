@@ -688,6 +688,7 @@ class TextEditorPresenter
 
     clientHeight = @height - @horizontalScrollbarHeight
     @model.setHeight(clientHeight, true)
+    @model.setRowsPerPage(Math.floor(clientHeight / @lineHeight))
 
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
