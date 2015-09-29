@@ -41,6 +41,8 @@ class TextEditorPresenter
     @startReflowing() if @continuousReflow
     @updating = false
 
+  setLinesYardstick: (@linesYardstick) ->
+
   destroy: ->
     @disposables.dispose()
 
