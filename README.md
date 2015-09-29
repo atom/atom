@@ -4,9 +4,9 @@
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 [![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
 
-Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/atom/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
+Atom是21世纪最好用的文本编辑器,由[Electron](https://github.com/atom/electron)编写,并且是基于所有我们喜欢的编辑器. 我们深度定制它,但是仍然使用简单的默认配置.
 
-Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
+访问[atom.io](https://atom.io)学习更多或者访问[Atom forum](https://discuss.atom.io).
 
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
