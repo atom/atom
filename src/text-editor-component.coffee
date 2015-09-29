@@ -12,7 +12,6 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
-LinesYardstick = require './lines-yardstick'
 
 module.exports =
 class TextEditorComponent
@@ -85,9 +84,6 @@ class TextEditorComponent
 
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
-
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent)
-    @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
     @scrollViewNode.appendChild(@horizontalScrollbarComponent.getDomNode())
@@ -716,7 +712,6 @@ class TextEditorComponent
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
-      @linesYardstick.clearCache()
       @measureLineHeightAndDefaultCharWidth()
 
     if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement

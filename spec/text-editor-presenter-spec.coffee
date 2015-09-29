@@ -4,98 +4,60 @@ TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
-LinesYardstick = require '../src/lines-yardstick'
-MockLinesComponent = require './mock-lines-component'
 
 describe "TextEditorPresenter", ->
-  [buffer, editor, linesYardstick, mockLinesComponent] = []
-
-  beforeEach ->
-    # These *should* be mocked in the spec helper, but changing that now would break packages :-(
-    spyOn(window, "setInterval").andCallFake window.fakeSetInterval
-    spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
-
-    buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-    editor = new TextEditor({buffer})
-    waitsForPromise ->
-      buffer.load()
-
-  afterEach ->
-    editor.destroy()
-    buffer.destroy()
-    mockLinesComponent.destroy()
-
-  buildLinesYardstick = (presenter) ->
-    mockLinesComponent = new MockLinesComponent(editor)
-    mockLinesComponent.setDefaultFont("16px monospace")
-    new LinesYardstick(editor, presenter, mockLinesComponent)
-
-  buildPresenter = (params={}) ->
-    _.defaults params,
-      model: editor
-      explicitHeight: 130
-      contentFrameWidth: 500
-      windowWidth: 500
-      windowHeight: 130
-      boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
-      gutterWidth: 0
-      lineHeight: 10
-      baseCharacterWidth: 10
-      horizontalScrollbarHeight: 10
-      verticalScrollbarWidth: 10
-      scrollTop: 0
-      scrollLeft: 0
-
-    presenter = new TextEditorPresenter(params)
-    linesYardstick = buildLinesYardstick(presenter)
-    presenter.setLinesYardstick(linesYardstick)
-    presenter
-
-  expectValues = (actual, expected) ->
-    for key, value of expected
-      expect(actual[key]).toEqual value
-
-  expectStateUpdatedToBe = (value, presenter, fn) ->
-    updatedState = false
-    disposable = presenter.onDidUpdateState ->
-      updatedState = true
-      disposable.dispose()
-    fn()
-    expect(updatedState).toBe(value)
-
-  expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
-
-  expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
-
-  describe "::getStateForMeasurements()", ->
-    it "contains states for tiles that need measurement, in addition to visible ones", ->
-      presenter = buildPresenter(explicitHeight: 4, scrollTop: 6, lineHeight: 1, tileSize: 2)
-
-      presenter.setScreenRowsToMeasure([4, 0])
-      state = presenter.getStateForMeasurements()
-
-      expect(state.content.tiles[0]).toBeDefined()
-      expect(state.content.tiles[2]).toBeUndefined()
-      expect(state.content.tiles[4]).toBeDefined()
-      expect(state.content.tiles[6]).toBeDefined()
-      expect(state.content.tiles[8]).toBeDefined()
-      expect(state.content.tiles[10]).toBeDefined()
-      expect(state.content.tiles[12]).toBeUndefined()
-
-      presenter.clearScreenRowsToMeasure()
-      state = presenter.getStateForMeasurements()
-
-      expect(state.content.tiles[0]).toBeUndefined()
-      expect(state.content.tiles[2]).toBeUndefined()
-      expect(state.content.tiles[4]).toBeUndefined()
-      expect(state.content.tiles[6]).toBeDefined()
-      expect(state.content.tiles[8]).toBeDefined()
-      expect(state.content.tiles[10]).toBeDefined()
-      expect(state.content.tiles[12]).toBeUndefined()
-
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
   describe "::getState()", ->
+    [buffer, editor] = []
+
+    beforeEach ->
+      # These *should* be mocked in the spec helper, but changing that now would break packages :-(
+      spyOn(window, "setInterval").andCallFake window.fakeSetInterval
+      spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
+
+      buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
+      editor = new TextEditor({buffer})
+      waitsForPromise -> buffer.load()
+
+    afterEach ->
+      editor.destroy()
+      buffer.destroy()
+
+    buildPresenter = (params={}) ->
+      _.defaults params,
+        model: editor
+        explicitHeight: 130
+        contentFrameWidth: 500
+        windowWidth: 500
+        windowHeight: 130
+        boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
+        gutterWidth: 0
+        lineHeight: 10
+        baseCharacterWidth: 10
+        horizontalScrollbarHeight: 10
+        verticalScrollbarWidth: 10
+        scrollTop: 0
+        scrollLeft: 0
+
+      new TextEditorPresenter(params)
+
+    expectValues = (actual, expected) ->
+      for key, value of expected
+        expect(actual[key]).toEqual value
+
+    expectStateUpdatedToBe = (value, presenter, fn) ->
+      updatedState = false
+      disposable = presenter.onDidUpdateState ->
+        updatedState = true
+        disposable.dispose()
+      fn()
+      expect(updatedState).toBe(value)
+
+    expectStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(true, presenter, fn)
+
+    expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
+
     tiledContentContract = (stateFn) ->
       it "contains states for tiles that are visible on screen", ->
         presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
@@ -327,15 +289,24 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
 
-        it "updates when character widths change", ->
+        it "updates when the ::baseCharacterWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
-          expectStateUpdate presenter, ->
-            mockLinesComponent.setDefaultFont("33px monospace")
-            presenter.characterWidthsChanged()
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 20 * maxLineLength + 1
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 15 * maxLineLength + 1
+
+        it "updates when the scoped character widths change", ->
+          waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            maxLineLength = editor.getMaxScreenLineLength()
+            presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
+
+            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
@@ -574,9 +545,10 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter()
             expect(presenter.getState().hiddenInput.width).toBe 10
 
-            expectStateUpdate presenter, ->
-              mockLinesComponent.setDefaultFont("33px monospace")
-              presenter.characterWidthsChanged()
+            expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+            expect(presenter.getState().hiddenInput.width).toBe 15
+
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
             expect(presenter.getState().hiddenInput.width).toBe 20
 
         it "is 2px at the end of lines", ->
@@ -664,15 +636,24 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
           expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 20
 
-        it "updates when character widths change", ->
+        it "updates when the ::baseCharacterWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
           expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
-          expectStateUpdate presenter, ->
-            mockLinesComponent.setDefaultFont("33px monospace")
-            presenter.characterWidthsChanged()
-          expect(presenter.getState().content.scrollWidth).toBe 20 * maxLineLength + 1
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
+          expect(presenter.getState().content.scrollWidth).toBe 15 * maxLineLength + 1
+
+        it "updates when the scoped character widths change", ->
+          waitsForPromise -> atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            maxLineLength = editor.getMaxScreenLineLength()
+            presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
+
+            expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+            expect(presenter.getState().content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
@@ -1294,14 +1275,26 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 3)).toEqual {top: 5, left: 12 * 10, width: 10, height: 5}
           expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 5 - 20, left: 4 * 10, width: 10, height: 5}
 
-        it "updates when character widths change", ->
+        it "updates when ::baseCharacterWidth changes", ->
           editor.setCursorBufferPosition([2, 4])
           presenter = buildPresenter(explicitHeight: 20, scrollTop: 20)
 
-          expectStateUpdate presenter, ->
-            mockLinesComponent.setDefaultFont("33px monospace")
-            presenter.characterWidthsChanged()
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
           expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 4 * 20, width: 20, height: 10}
+
+        it "updates when scoped character widths change", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            editor.setCursorBufferPosition([1, 4])
+            presenter = buildPresenter(explicitHeight: 20)
+
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
+
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
         it "updates when cursors are added, moved, hidden, shown, or destroyed", ->
           editor.setSelectedBufferRanges([
@@ -1616,7 +1609,7 @@ describe "TextEditorPresenter", ->
             ]
           }
 
-        it "updates when character widths change", ->
+        it "updates when ::baseCharacterWidth changes", ->
           editor.setSelectedBufferRanges([
             [[2, 2], [2, 4]],
           ])
@@ -1626,12 +1619,29 @@ describe "TextEditorPresenter", ->
           expectValues stateForSelectionInTile(presenter, 0, 2), {
             regions: [{top: 0, left: 2 * 10, width: 2 * 10, height: 10}]
           }
-          expectStateUpdate presenter, ->
-            mockLinesComponent.setDefaultFont("33px monospace")
-            presenter.characterWidthsChanged()
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(20)
           expectValues stateForSelectionInTile(presenter, 0, 2), {
             regions: [{top: 0, left: 2 * 20, width: 2 * 20, height: 10}]
           }
+
+        it "updates when scoped character widths change", ->
+          waitsForPromise ->
+            atom.packages.activatePackage('language-javascript')
+
+          runs ->
+            editor.setSelectedBufferRanges([
+              [[2, 4], [2, 6]],
+            ])
+
+            presenter = buildPresenter(explicitHeight: 20, scrollTop: 0, tileSize: 2)
+
+            expectValues stateForSelectionInTile(presenter, 0, 2), {
+              regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
+            }
+            expectStateUpdate presenter, -> presenter.setScopedCharacterWidth(['source.js', 'keyword.control.js'], 'i', 20)
+            expectValues stateForSelectionInTile(presenter, 0, 2), {
+              regions: [{top: 0, left: 4 * 10, width: 20 + 10, height: 10}]
+            }
 
         it "updates when highlight decorations are added, moved, hidden, shown, or destroyed", ->
           editor.setSelectedBufferRanges([
@@ -1781,7 +1791,7 @@ describe "TextEditorPresenter", ->
             pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
           }
 
-        it "updates when character widths change", ->
+        it "updates when ::baseCharacterWidth changes", ->
           scrollTop = 20
           marker = editor.markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
@@ -1792,9 +1802,7 @@ describe "TextEditorPresenter", ->
             pixelPosition: {top: 3 * 10 - scrollTop, left: 13 * 10}
           }
 
-          expectStateUpdate presenter, ->
-            mockLinesComponent.setDefaultFont("8px monospace")
-            presenter.characterWidthsChanged()
+          expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(5)
 
           expectValues stateForOverlay(presenter, decoration), {
             item: item

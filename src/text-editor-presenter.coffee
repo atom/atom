@@ -41,8 +41,6 @@ class TextEditorPresenter
     @startReflowing() if @continuousReflow
     @updating = false
 
-  setLinesYardstick: (@linesYardstick) ->
-
   destroy: ->
     @disposables.dispose()
 
@@ -65,32 +63,17 @@ class TextEditorPresenter
   isBatching: ->
     @updating is false
 
-  getStateForMeasurements: ->
-    @updateVerticalDimensions()
-    @updateScrollbarDimensions()
-    @updateScrollPosition()
-    @updateStartRow()
-    @updateEndRow()
-
-    @fetchVisibleDecorations() if @shouldUpdateDecorations
-
-    @updateLineDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateLineNumbersState or @shouldUpdateLinesState
-
-    @shouldUpdateLinesState = false
-    @shouldUpdateLineNumbersState = false
-
-    @state
-
   # Public: Gets this presenter's state, updating it just in time before returning from this function.
   # Returns a state {Object}, useful for rendering to screen.
   getState: ->
     @updating = true
 
-    @linesYardstick.prepareScreenRowsForMeasurement()
-
+    @updateContentDimensions()
+    @updateScrollbarDimensions()
+    @updateScrollPosition()
+    @updateStartRow()
+    @updateEndRow()
     @updateCommonGutterState()
-    @updateHorizontalDimensions()
     @updateReflowState()
 
     @updateFocusedState() if @shouldUpdateFocusedState
@@ -100,13 +83,13 @@ class TextEditorPresenter
     @updateScrollbarsState() if @shouldUpdateScrollbarsState
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
-    @updateHighlightDecorations() if @shouldUpdateDecorations
+    @updateDecorations() if @shouldUpdateDecorations
+    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
     @updateGutterOrderState() if @shouldUpdateGutterOrderState
     @updateCustomGutterDecorationState() if @shouldUpdateCustomGutterDecorationState
-
     @updating = false
 
     @resetTrackedUpdates()
@@ -355,8 +338,8 @@ class TextEditorPresenter
     endRow = @constrainRow(@getEndTileRow() + @tileSize)
 
     screenRows = [startRow...endRow]
-    if longestScreenRow = @model.getLongestScreenRow()
-      screenRows.push(longestScreenRow)
+    # if longestScreenRow = @model.getLongestScreenRow()
+      # screenRows.push(longestScreenRow)
     if @screenRowsToMeasure?
       screenRows.push(@screenRowsToMeasure...)
 
@@ -694,23 +677,22 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop()
 
-  updateVerticalDimensions: ->
+  updateContentDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
       @contentHeight = @lineHeight * @model.getScreenLineCount()
 
-    if @contentHeight isnt oldContentHeight
-      @updateHeight()
-      @updateScrollbarDimensions()
-      @updateScrollHeight()
-
-  updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
       clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
       @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
+
+    if @contentHeight isnt oldContentHeight
+      @updateHeight()
+      @updateScrollbarDimensions()
+      @updateScrollHeight()
 
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
@@ -1105,8 +1087,6 @@ class TextEditorPresenter
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @linesYardstick.clearCache()
-
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true
@@ -1126,12 +1106,42 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip) ->
-    position =
-      @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
-    position.left -= @scrollLeft
-    position.top -= @scrollTop
-    position
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @model.clipScreenPosition(screenPosition) if clip
+
+    targetRow = screenPosition.row
+    targetColumn = screenPosition.column
+    baseCharacterWidth = @baseCharacterWidth
+
+    top = targetRow * @lineHeight
+    left = 0
+    column = 0
+
+    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
+    while iterator.next()
+      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
+
+      valueIndex = 0
+      text = iterator.getText()
+      while valueIndex < text.length
+        if iterator.isPairedCharacter()
+          char = text
+          charLength = 2
+          valueIndex += 2
+        else
+          char = text[valueIndex]
+          charLength = 1
+          valueIndex++
+
+        break if column is targetColumn
+
+        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
+        column += charLength
+
+    top -= @scrollTop
+    left -= @scrollLeft
+    {top, left}
 
   hasPixelRectRequirements: ->
     @hasPixelPositionRequirements() and @scrollWidth?
@@ -1211,31 +1221,22 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  fetchVisibleDecorations: ->
-    @visibleDecorations = []
-
-    for row in @getScreenRows()
-      for markerId, decorations of @model.decorationsForScreenRowRange(row, row)
-        range = @model.getMarker(markerId).getScreenRange()
-        for decoration in decorations
-          @visibleDecorations.push({decoration, range})
-
-  updateLineDecorations: ->
+  updateDecorations: ->
     @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
-
-    for {decoration, range} in @visibleDecorations
-      if decoration.isType('line') or decoration.isType('gutter')
-        @addToLineDecorationCaches(decoration, range)
-
-  updateHighlightDecorations: ->
     @visibleHighlights = {}
 
-    for {decoration, range} in @visibleDecorations
-      if decoration.isType('highlight')
-        @updateHighlightState(decoration, range)
+    return unless 0 <= @startRow <= @endRow <= Infinity
+
+    for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
+      range = @model.getMarker(markerId).getScreenRange()
+      for decoration in decorations
+        if decoration.isType('line') or decoration.isType('gutter')
+          @addToLineDecorationCaches(decoration, range)
+        else if decoration.isType('highlight')
+          @updateHighlightState(decoration, range)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights
