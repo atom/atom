@@ -8,19 +8,18 @@ Atom是21世纪最好用的文本编辑器,由[Electron](https://github.com/atom
 
 访问[atom.io](https://atom.io)学习更多或者访问[Atom forum](https://discuss.atom.io).
 
-Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
-announcements.
+按照[@AtomEditor](https://twitter.com/atomeditor)在Twitter上的重要公告.
 
-This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
-By participating, you are expected to uphold this code. Please report unacceptable behavior to atom@github.com.
+该项目遵循[Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0)协议.
+通过参与,我们希望你可以坚持更新代码.请向atom@github.com提交BUG.
 
-## Documentation
+## 文件
 
-If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
+如果你想了解如何使用Atom或者开发插件,请参考在线免费文档[Atom Flight Manual](https://atom.io/docs/latest/),或者下载ePub, PDF或者mobi版本.你可以在 [atom/docs](https://github.com/atom/docs)上找到源代码.
 
-The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
+该[API文档](https://atom.io/docs/api)开发包也被记录在Atom.io.
 
-## Installing
+##安装
 
 ### OS X
 
