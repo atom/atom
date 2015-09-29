@@ -18,7 +18,6 @@ module.exports =
 class DisplayBuffer extends Model
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  scopedCharacterWidthsChangeCount: 0
   changeCount: 0
   softWrapped: null
   editorWidthInChars: null
@@ -197,35 +196,6 @@ class DisplayBuffer extends Model
     defaultCharWidth
 
   getCursorWidth: -> 1
-
-  getScopedCharWidth: (scopeNames, char) ->
-    @getScopedCharWidths(scopeNames)[char]
-
-  getScopedCharWidths: (scopeNames) ->
-    scope = @charWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.charWidths ?= {}
-    scope.charWidths
-
-  batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
-    @batchingCharacterMeasurement = true
-    fn()
-    @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
-
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
-    @scopedCharacterWidthsChangeCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
-  characterWidthsChanged: ->
-    @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
-
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
 
   scrollToScreenRange: (screenRange, options = {}) ->
     scrollEvent = {screenRange, options}
