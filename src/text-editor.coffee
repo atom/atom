@@ -54,8 +54,6 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  atom.deserializers.add(this)
-
   callDisplayBufferCreatedHook: false
   registerEditor: false
   buffer: null

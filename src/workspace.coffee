@@ -26,8 +26,6 @@ Task = require './task'
 #
 module.exports =
 class Workspace extends Model
-  atom.deserializers.add(this)
-
   @deserialize: (state) ->
     return unless state?
 
