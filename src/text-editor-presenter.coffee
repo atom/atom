@@ -359,8 +359,8 @@ class TextEditorPresenter
     endRow = @constrainRow(@getEndTileRow() + @tileSize)
 
     screenRows = [startRow...endRow]
-    # if longestScreenRow = @model.getLongestScreenRow()
-      # screenRows.push(longestScreenRow)
+    if longestScreenRow = @model.getLongestScreenRow()
+      screenRows.push(longestScreenRow)
     if @screenRowsToMeasure?
       screenRows.push(@screenRowsToMeasure...)
 

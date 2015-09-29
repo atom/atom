@@ -3051,7 +3051,7 @@ describe "TextEditorComponent", ->
 
       atom.views.performDocumentPoll()
       nextAnimationFrame()
-      expect(componentNode.querySelectorAll('.line')).toHaveLength(6)
+      expect(componentNode.querySelectorAll('.line')).toHaveLength(7) # visible rows + model longest screen row
 
       gutterWidth = componentNode.querySelector('.gutter').offsetWidth
       componentNode.style.width = gutterWidth + 14 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
