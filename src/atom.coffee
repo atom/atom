@@ -270,9 +270,6 @@ class Atom extends Model
 
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
-    @disposables?.dispose()
-    @disposables = new CompositeDisposable
-
     @displayWindow() unless @inSpecMode()
 
     @setBodyPlatformClass()
