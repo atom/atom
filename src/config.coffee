@@ -5,6 +5,7 @@ CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
+{pushKeyPath, splitKeyPath, getValueAtKeyPath, setValueAtKeyPath} = require 'key-path-helpers'
 
 Color = require './color'
 ScopedPropertyStore = require 'scoped-property-store'
@@ -606,9 +607,9 @@ class Config
     if scopeSelector?
       if keyPath?
         settings = @scopedSettingsStore.propertiesForSourceAndSelector(source, scopeSelector)
-        if _.valueForKeyPath(settings, keyPath)?
+        if getValueAtKeyPath(settings, keyPath)?
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
-          _.setValueForKeyPath(settings, keyPath, undefined)
+          setValueAtKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
           @requestSave()
@@ -619,7 +620,7 @@ class Config
       for scopeSelector of @scopedSettingsStore.propertiesForSource(source)
         @unset(keyPath, {scopeSelector, source})
       if keyPath? and source is @getUserConfigPath()
-        @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+        @set(keyPath, getValueAtKeyPath(@defaultSettings, keyPath))
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
   # settings have been added via {::set}.
@@ -817,9 +818,9 @@ class Config
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
-      value = _.valueForKeyPath(@settings, keyPath)
+      value = getValueAtKeyPath(@settings, keyPath)
     unless options?.sources?.length > 0
-      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+      defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
 
     if value?
       value = @deepClone(value)
@@ -830,11 +831,11 @@ class Config
     value
 
   setRawValue: (keyPath, value) ->
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+    defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
     value = undefined if _.isEqual(defaultValue, value)
 
     if keyPath?
-      _.setValueForKeyPath(@settings, keyPath, value)
+      setValueAtKeyPath(@settings, keyPath, value)
     else
       @settings = value
     @emitChangeEvent()
@@ -859,7 +860,7 @@ class Config
     _.isEqual(pathTokens, pathSubTokens)
 
   setRawDefault: (keyPath, value) ->
-    _.setValueForKeyPath(@defaultSettings, keyPath, value)
+    setValueAtKeyPath(@defaultSettings, keyPath, value)
     @emitChangeEvent()
 
   setDefaults: (keyPath, defaults) ->
@@ -914,7 +915,7 @@ class Config
       for scope, scopeSchema of schema.scopes
         continue unless scopeSchema.hasOwnProperty('default')
         scopedDefaults[scope] = {}
-        _.setValueForKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
+        setValueAtKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
       @scopedSettingsStore.addProperties('schema-default', scopedDefaults)
 
     if schema.type is 'object' and schema.properties? and isPlainObject(schema.properties)
@@ -987,7 +988,7 @@ class Config
   setRawScopedValue: (keyPath, value, source, selector, options) ->
     if keyPath?
       newValue = {}
-      _.setValueForKeyPath(newValue, keyPath, value)
+      setValueAtKeyPath(newValue, keyPath, value)
       value = newValue
 
     settingsBySelector = {}
@@ -1087,7 +1088,7 @@ Config.addSchemaEnforcers
         childSchema = schema.properties[prop] ? defaultChildSchema
         if childSchema?
           try
-            newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
+            newValue[prop] = @executeSchemaEnforcers(pushKeyPath(keyPath, prop), propValue, childSchema)
           catch error
             console.warn "Error setting item in object: #{error.message}"
         else if allowsAdditionalProperties
@@ -1141,17 +1142,6 @@ Config.addSchemaEnforcers
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
-
-splitKeyPath = (keyPath) ->
-  return [] unless keyPath?
-  startIndex = 0
-  keyPathArray = []
-  for char, i in keyPath
-    if char is '.' and (i is 0 or keyPath[i-1] isnt '\\')
-      keyPathArray.push keyPath.substring(startIndex, i)
-      startIndex = i + 1
-  keyPathArray.push keyPath.substr(startIndex, keyPath.length)
-  keyPathArray
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined
