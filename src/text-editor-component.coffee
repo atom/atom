@@ -560,6 +560,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
+    @presenter.characterWidthsChanged()
 
   handleDragUntilMouseUp: (dragHandler) =>
     dragging = false
@@ -708,8 +709,6 @@ class TextEditorComponent
     oldFontFamily = @fontFamily
     oldLineHeight = @lineHeight
 
-    @presenter.characterWidthsChanged()
-
     {@fontSize, @fontFamily, @lineHeight} = getComputedStyle(@getTopmostDOMNode())
 
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
@@ -824,6 +823,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
+    @presenter.characterWidthsChanged()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -831,10 +831,12 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
+    @presenter.characterWidthsChanged()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
+    @presenter.characterWidthsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
     atom.config.set("editor.showIndentGuide", showIndentGuide)
