@@ -198,6 +198,9 @@ class Atom extends Model
     ContextMenuManager = require './context-menu-manager'
     @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
 
+    Clipboard = require './clipboard'
+    @clipboard = new Clipboard()
+
   reset: ->
     @config.reset()
 
@@ -234,7 +237,6 @@ class Atom extends Model
 
     @loadTime = null
 
-    Clipboard = require './clipboard'
     GrammarRegistry = require './grammar-registry'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
@@ -252,7 +254,6 @@ class Atom extends Model
 
     @registerViewProviders()
     document.head.appendChild(new StylesElement)
-    @clipboard = new Clipboard()
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
     @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
 
