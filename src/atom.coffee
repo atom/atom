@@ -251,9 +251,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
-      @grammars.grammarOverridesByPath = grammarOverridesByPath
-
     @windowEventHandler = new WindowEventHandler
 
   ###
@@ -749,6 +746,9 @@ class Atom extends Model
     delete @state.packageStates
 
   deserializeEditorWindow: ->
+    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
+      @grammars.grammarOverridesByPath = grammarOverridesByPath
+
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspace()
