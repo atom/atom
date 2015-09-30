@@ -76,8 +76,7 @@ class Atom extends Model
   @getLoadSettings: -> getWindowLoadSettings()
 
   @updateLoadSetting: (key, value) ->
-    @getLoadSettings()
-    @loadSettings[key] = value
+    @getLoadSettings()[key] = value
     location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
 
   @getCurrentWindow: ->
