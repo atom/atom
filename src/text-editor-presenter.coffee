@@ -72,6 +72,7 @@ class TextEditorPresenter
     @updateScrollPosition()
     @updateStartRow()
     @updateEndRow()
+    @updateRowsPerPage()
     @updateCommonGutterState()
     @updateReflowState()
 
@@ -641,13 +642,19 @@ class TextEditorPresenter
     endRow = startRow + visibleLinesCount
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
 
+  updateRowsPerPage: ->
+    rowsPerPage = Math.floor(@getClientHeight() / @lineHeight)
+    if rowsPerPage isnt @rowsPerPage
+      @rowsPerPage = rowsPerPage
+      @model.setRowsPerPage(@rowsPerPage)
+
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
 
     scrollWidth = Math.max(@contentWidth, @clientWidth)
     unless @scrollWidth is scrollWidth
       @scrollWidth = scrollWidth
-      @updateScrollLeft()
+      @updateScrollLeft(@scrollLeft)
 
   updateScrollHeight: ->
     return unless @contentHeight? and @clientHeight?
@@ -660,7 +667,7 @@ class TextEditorPresenter
 
     unless @scrollHeight is scrollHeight
       @scrollHeight = scrollHeight
-      @updateScrollTop()
+      @updateScrollTop(@scrollTop)
 
   updateContentDimensions: ->
     if @lineHeight?
@@ -692,7 +699,7 @@ class TextEditorPresenter
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
       @updateScrollHeight()
-      @updateScrollTop()
+      @updateScrollTop(@scrollTop)
 
   updateClientWidth: ->
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
@@ -703,23 +710,34 @@ class TextEditorPresenter
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
       @updateScrollWidth()
-      @updateScrollLeft()
+      @updateScrollLeft(@scrollLeft)
 
-  updateScrollTop: ->
-    scrollTop = @constrainScrollTop(@scrollTop)
-    unless @scrollTop is scrollTop
-      @scrollTop = scrollTop
-      @realScrollTop = @scrollTop
+  updateScrollTop: (scrollTop) ->
+    scrollTop = @constrainScrollTop(scrollTop)
+    if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
+      @realScrollTop = scrollTop
+      @scrollTop = Math.round(scrollTop)
+      @scrollRow = Math.round(@scrollTop / @lineHeight)
+      @model.setScrollRow(@scrollRow)
+
       @updateStartRow()
       @updateEndRow()
+      @didStartScrolling()
+      @emitter.emit 'did-change-scroll-top', @scrollTop
 
   constrainScrollTop: (scrollTop) ->
     return scrollTop unless scrollTop? and @scrollHeight? and @clientHeight?
     Math.max(0, Math.min(scrollTop, @scrollHeight - @clientHeight))
 
-  updateScrollLeft: ->
-    @scrollLeft = @constrainScrollLeft(@scrollLeft)
-    @realScrollLeft = @scrollLeft
+  updateScrollLeft: (scrollLeft) ->
+    scrollLeft = @constrainScrollLeft(scrollLeft)
+    if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
+      @realScrollLeft = scrollLeft
+      @scrollLeft = Math.round(scrollLeft)
+      @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
+      @model.setScrollColumn(@scrollColumn)
+
+      @emitter.emit 'did-change-scroll-left', @scrollLeft
 
   constrainScrollLeft: (scrollLeft) ->
     return scrollLeft unless scrollLeft? and @scrollWidth? and @clientWidth?
@@ -1559,33 +1577,14 @@ class TextEditorPresenter
     @pendingScrollLogicalPosition = null
 
   commitPendingScrollLeftPosition: ->
-    return unless @pendingScrollLeft?
-
-    scrollLeft = @constrainScrollLeft(@pendingScrollLeft)
-    if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
-      @realScrollLeft = scrollLeft
-      @scrollLeft = Math.round(scrollLeft)
-      @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
-      @model.setScrollColumn(@scrollColumn)
-
-      @emitter.emit 'did-change-scroll-left', @scrollLeft
-
-    @pendingScrollLeft = null
+    if @pendingScrollLeft?
+      @updateScrollLeft(@pendingScrollLeft)
+      @pendingScrollLeft = null
 
   commitPendingScrollTopPosition: ->
-    return unless @pendingScrollTop?
-
-    scrollTop = @constrainScrollTop(@pendingScrollTop)
-    if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
-      @realScrollTop = scrollTop
-      @scrollTop = Math.round(scrollTop)
-      @scrollRow = Math.round(@scrollTop / @lineHeight)
-      @model.setScrollRow(@scrollRow)
-
-      @didStartScrolling()
-      @emitter.emit 'did-change-scroll-top', @scrollTop
-
-    @pendingScrollTop = null
+    if @pendingScrollTop?
+      @updateScrollTop(@pendingScrollTop)
+      @pendingScrollTop = null
 
   restoreScrollPosition: ->
     return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()

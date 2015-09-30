@@ -739,27 +739,40 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe(10)
 
         it "never exceeds the computed scroll height minus the computed client height", ->
+          didChangeScrollTopSpy = jasmine.createSpy()
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+          presenter.onDidChangeScrollTop(didChangeScrollTopSpy)
+
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
+          didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
+          didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
+          didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
           expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
+          didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
           expect(presenter.getState().content.scrollTop).toBe scrollTopBefore
           expect(presenter.getRealScrollTop()).toBe scrollTopBefore
+          expect(didChangeScrollTopSpy).not.toHaveBeenCalled()
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
@@ -823,28 +836,40 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollLeft).toBe 13
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
+          didChangeScrollLeftSpy = jasmine.createSpy()
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          presenter.onDidChangeScrollLeft(didChangeScrollLeftSpy)
+
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
+          didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
+          didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
+          didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
           expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
           scrollLeftBefore = presenter.getState().content.scrollLeft
+          didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
           expect(presenter.getState().content.scrollLeft).toBe scrollLeftBefore
           expect(presenter.getRealScrollLeft()).toBe scrollLeftBefore
+          expect(didChangeScrollLeftSpy).not.toHaveBeenCalled()
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
@@ -2026,6 +2051,24 @@ describe "TextEditorPresenter", ->
               }
 
     describe ".height", ->
+      it "updates model's rows per page when it changes", ->
+        presenter = buildPresenter(explicitHeight: 50, lineHeightInPixels: 10, horizontalScrollbarHeight: 10)
+
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(4)
+
+        presenter.setExplicitHeight(100)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(9)
+
+        presenter.setHorizontalScrollbarHeight(0)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(10)
+
+        presenter.setLineHeight(5)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(20)
+
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
         expect(presenter.getState().height).toBe editor.getScreenLineCount() * 10

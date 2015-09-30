@@ -23,7 +23,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
         log(str)
       onComplete: (runner) ->
         fs.closeSync(logStream) if logStream?
-        if process.env.JANKY_SHA1
+        if process.env.JANKY_SHA1 or process.env.CI
           grim = require 'grim'
 
           if grim.getDeprecationsLength() > 0
