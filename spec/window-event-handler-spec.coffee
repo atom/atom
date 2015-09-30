@@ -5,7 +5,7 @@ temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 
-describe "Window", ->
+describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
 
   beforeEach ->
@@ -16,8 +16,7 @@ describe "Window", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    atom.windowEventHandler.unsubscribe()
-    windowEventHandler = new WindowEventHandler
+    windowEventHandler = new WindowEventHandler(atom)
     projectPath = atom.project.getPaths()[0]
 
   afterEach ->
@@ -293,3 +292,23 @@ describe "Window", ->
 
       expect(dispatchedCommands.length).toBe 1
       expect(dispatchedCommands[0].type).toBe 'foo-command'
+
+  describe "when an update becomes available", ->
+    subscription = null
+
+    afterEach ->
+      subscription?.dispose()
+
+    it "invokes onUpdateAvailable listeners", ->
+      updateAvailableHandler = jasmine.createSpy("update-available-handler")
+      subscription = atom.onUpdateAvailable updateAvailableHandler
+
+      autoUpdater = require('remote').require('auto-updater')
+      autoUpdater.emit 'update-downloaded', null, "notes", "version"
+
+      waitsFor ->
+        updateAvailableHandler.callCount > 0
+
+      runs ->
+        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
+        expect(releaseVersion).toBe 'version'

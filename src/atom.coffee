@@ -246,13 +246,6 @@ class Atom extends Model
     @config.reset()
     @setConfigSchema()
 
-  # Sets up the basic services that should be available in all modes
-  # (both spec and application).
-  #
-  # Call after this instance has been assigned to the `atom` global.
-  initialize: ->
-    @windowEventHandler = new WindowEventHandler
-
   ###
   Section: Event Subscription
   ###
@@ -574,6 +567,8 @@ class Atom extends Model
 
     @setBodyPlatformClass()
     document.head.appendChild(new StylesElement)
+    @windowEventHandler = new WindowEventHandler(this)
+
     @packages.loadPackages()
     @deserializeEditorWindow()
 
