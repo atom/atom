@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 ipc = require 'ipc'
+StylesElement = require '../src/styles-element'
 
 module.exports = ({logFile, headless, testPaths}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
@@ -22,6 +23,7 @@ module.exports = ({logFile, headless, testPaths}) ->
 
   jasmineContent = document.createElement('div')
   jasmineContent.setAttribute('id', 'jasmine-content')
+  document.head.appendChild(new StylesElement)
   document.body.appendChild(jasmineContent)
 
   jasmineEnv.execute()

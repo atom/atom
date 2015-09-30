@@ -247,14 +247,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    @setBodyPlatformClass()
-
-    {devMode, safeMode, resourcePath} = @getLoadSettings()
-    configDirPath = @getConfigDirPath()
-
-
-    document.head.appendChild(new StylesElement)
-
     if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
@@ -577,6 +569,9 @@ class Atom extends Model
 
     @loadConfig()
     @themes.loadBaseStylesheets()
+
+    @setBodyPlatformClass()
+    document.head.appendChild(new StylesElement)
     @packages.loadPackages()
     @deserializeEditorWindow()
 
