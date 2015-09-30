@@ -21,7 +21,9 @@ try
   process.env.NODE_PATH = exportsPath
 
   document.title = "Spec Suite"
-  runSpecSuite './spec-suite', atom.getLoadSettings().logFile
+  testRunnerFactory = require(atom.getLoadSettings().testRunnerBootstrap ? './jasmine-helper')
+  testRunner = testRunnerFactory {logFile: atom.getLoadSettings().logFile}
+  testRunner.execute()
 catch error
   if atom?.getLoadSettings().exitWhenDone
     console.error(error.stack ? error)
