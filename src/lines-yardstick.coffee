@@ -35,7 +35,9 @@ class LinesYardstick
     return new Point(row, 0) unless lineNode? and line?
 
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
-    charIndex = 0
+    column = 0
+    previousColumn = 0
+    previousDistance = Infinity
 
     @tokenIterator.reset(line)
     while @tokenIterator.next()
@@ -57,19 +59,23 @@ class LinesYardstick
           textNodeIndex = 0
           nextTextNodeIndex = textNodeLength
 
-        while nextTextNodeIndex <= charIndex
+        while nextTextNodeIndex <= column
           textNode = iterator.nextNode()
           textNodeLength = textNode.textContent.length
           textNodeIndex = nextTextNodeIndex
           nextTextNodeIndex = textNodeIndex + textNodeLength
 
-        indexWithinTextNode = charIndex - textNodeIndex
+        indexWithinTextNode = column - textNodeIndex
         left = @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinTextNode)
-        break if left >= targetLeft
+        distance = Math.abs(targetLeft - left)
 
-        charIndex += charLength
+        return new Point(row, previousColumn) if distance > previousDistance
 
-    new Point(row, charIndex)
+        previousDistance = distance
+        previousColumn = column
+        column += charLength
+
+    new Point(row, column)
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
