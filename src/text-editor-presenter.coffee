@@ -89,6 +89,8 @@ class TextEditorPresenter
     @state
 
   getPostMeasurementState: ->
+    @updating = true
+
     @updateHorizontalDimensions()
     @commitPendingLogicalScrollLeftPosition()
     @commitPendingScrollLeftPosition()
@@ -116,8 +118,6 @@ class TextEditorPresenter
   # Public: Gets this presenter's state, updating it just in time before returning from this function.
   # Returns a state {Object}, useful for rendering to screen.
   getState: ->
-    @updating = true
-
     @linesYardstick.prepareScreenRowsForMeasurement()
 
     @getPostMeasurementState()
