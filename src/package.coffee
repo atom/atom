@@ -132,7 +132,6 @@ class Package
     @activationPromise ?=
       new Promise (resolve, reject) =>
         @resolveActivationPromise = resolve
-        @rejectActivationPromise = reject
         @measure 'activateTime', =>
           try
             @activateResources()
@@ -370,10 +369,8 @@ class Package
         console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
-    @rejectActivationPromise?()
     @activationPromise = null
     @resolveActivationPromise = null
-    @rejectActivationPromise = null
     @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()

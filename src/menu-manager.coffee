@@ -191,7 +191,10 @@ class MenuManager
 
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
-    element?.classList.toString().split(' ') ? []
+    if classList = element?.classList
+      Array::slice.apply(classList)
+    else
+      []
 
   sortPackagesMenu: ->
     packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
