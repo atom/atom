@@ -14,6 +14,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
+getWindowLoadSettings = require './get-window-load-settings'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -72,15 +73,7 @@ class Atom extends Model
     @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   # Returns the load settings hash associated with the current window.
-  @getLoadSettings: ->
-    @loadSettings ?= JSON.parse(decodeURIComponent(location.hash.substr(1)))
-    cloned = _.deepClone(@loadSettings)
-    # The loadSettings.windowState could be large, request it only when needed.
-    cloned.__defineGetter__ 'windowState', =>
-      @getCurrentWindow().loadSettings.windowState
-    cloned.__defineSetter__ 'windowState', (value) =>
-      @getCurrentWindow().loadSettings.windowState = value
-    cloned
+  @getLoadSettings: -> getWindowLoadSettings()
 
   @updateLoadSetting: (key, value) ->
     @getLoadSettings()
@@ -261,14 +254,6 @@ class Atom extends Model
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
-    # Add 'exports' to module search path.
-    exportsPath = path.join(resourcePath, 'exports')
-    require('module').globalPaths.push(exportsPath)
-    # Still set NODE_PATH since tasks may need it.
-    process.env.NODE_PATH = exportsPath
-
-    # Make react.js faster
-    process.env.NODE_ENV ?= 'production' unless devMode
 
     document.head.appendChild(new StylesElement)
 
