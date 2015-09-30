@@ -4,7 +4,6 @@ _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
-{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 Task = require './task'
 
@@ -327,7 +326,6 @@ class GitRepository
     else
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
-      @emit 'status-changed', path, pathStatus if includeDeprecatedAPIs
       @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
@@ -496,23 +494,4 @@ class GitRepository
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
       unless statusesUnchanged
-        @emit 'statuses-changed' if includeDeprecatedAPIs
         @emitter.emit 'did-change-statuses'
-
-if includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(GitRepository)
-
-  GitRepository::on = (eventName) ->
-    switch eventName
-      when 'status-changed'
-        deprecate 'Use GitRepository::onDidChangeStatus instead'
-      when 'statuses-changed'
-        deprecate 'Use GitRepository::onDidChangeStatuses instead'
-      else
-        deprecate 'GitRepository::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
-  GitRepository::getOriginUrl = (path) ->
-    deprecate 'Use ::getOriginURL instead.'
-    @getOriginURL(path)

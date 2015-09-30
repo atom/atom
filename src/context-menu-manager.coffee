@@ -4,7 +4,6 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
-Grim = require 'grim'
 MenuHelpers = require './menu-helpers'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
@@ -83,25 +82,25 @@ class ContextMenuManager
   #
   # * `itemsBySelector` An {Object} whose keys are CSS selectors and whose
   #   values are {Array}s of item {Object}s containing the following keys:
-  #   * `label` (Optional) A {String} containing the menu item's label.
-  #   * `command` (Optional) A {String} containing the command to invoke on the
+  #   * `label` (optional) A {String} containing the menu item's label.
+  #   * `command` (optional) A {String} containing the command to invoke on the
   #     target of the right click that invoked the context menu.
-  #   * `enabled` (Optional) A {Boolean} indicating whether the menu item
+  #   * `enabled` (optional) A {Boolean} indicating whether the menu item
   #     should be clickable. Disabled menu items typically appear grayed out.
   #     Defaults to `true`.
-  #   * `submenu` (Optional) An {Array} of additional items.
-  #   * `type` (Optional) If you want to create a separator, provide an item
+  #   * `submenu` (optional) An {Array} of additional items.
+  #   * `type` (optional) If you want to create a separator, provide an item
   #      with `type: 'separator'` and no other keys.
-  #   * `visible` (Optional) A {Boolean} indicating whether the menu item
+  #   * `visible` (optional) A {Boolean} indicating whether the menu item
   #     should appear in the menu. Defaults to `true`.
-  #   * `created` (Optional) A {Function} that is called on the item each time a
+  #   * `created` (optional) A {Function} that is called on the item each time a
   #     context menu is created via a right click. You can assign properties to
   #    `this` to dynamically compute the command, label, etc. This method is
   #    actually called on a clone of the original item template to prevent state
   #    from leaking across context menu deployments. Called with the following
   #    argument:
   #     * `event` The click event that deployed the context menu.
-  #   * `shouldDisplay` (Optional) A {Function} that is called to determine
+  #   * `shouldDisplay` (optional) A {Function} that is called to determine
   #     whether to display this item on a given context menu deployment. Called
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
@@ -109,27 +108,6 @@ class ContextMenuManager
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (itemsBySelector) ->
-    if Grim.includeDeprecatedAPIs
-      # Detect deprecated file path as first argument
-      if itemsBySelector? and typeof itemsBySelector isnt 'object'
-        Grim.deprecate """
-          `ContextMenuManager::add` has changed to take a single object as its
-          argument. Please see
-          https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format for more info.
-        """
-        itemsBySelector = arguments[1]
-        devMode = arguments[2]?.devMode
-
-      # Detect deprecated format for items object
-      for key, value of itemsBySelector
-        unless _.isArray(value)
-          Grim.deprecate """
-            `ContextMenuManager::add` has changed to take a single object as its
-            argument. Please see
-            https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format for more info.
-          """
-          itemsBySelector = @convertLegacyItemsBySelector(itemsBySelector, devMode)
-
     addedItemSets = []
 
     for selector, items of itemsBySelector

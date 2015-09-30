@@ -2,7 +2,6 @@ path = require 'path'
 temp = require 'temp'
 CSON = require 'season'
 fs = require 'fs-plus'
-Grim = require 'grim'
 
 describe "Config", ->
   dotAtomPath = null
@@ -364,16 +363,6 @@ describe "Config", ->
         expect(atom.config.save).not.toHaveBeenCalled()
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
-      it "deprecates passing a scope selector as the first argument", ->
-        atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-
-        spyOn(Grim, 'deprecate')
-        atom.config.unset('.source.coffee', 'foo.bar.baz')
-        expect(Grim.deprecate).toHaveBeenCalled()
-
-        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
-
   describe ".onDidChange(keyPath, {scope})", ->
     [observeHandler, observeSubscription] = []
 
@@ -458,15 +447,6 @@ describe "Config", ->
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined})
         changeSpy.reset()
 
-      it 'deprecates using a scope descriptor as an optional first argument', ->
-        keyPath = "foo.bar.baz"
-        spyOn(Grim, 'deprecate')
-        atom.config.onDidChange [".source.coffee", ".string.quoted.double.coffee"], keyPath, changeSpy = jasmine.createSpy()
-        expect(Grim.deprecate).toHaveBeenCalled()
-
-        atom.config.set("foo.bar.baz", 12)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12})
-
   describe ".observe(keyPath, {scope})", ->
     [observeHandler, observeSubscription] = []
 
@@ -530,16 +510,6 @@ describe "Config", ->
       it "allows settings to be observed in a specific scope", ->
         atom.config.observe("foo.bar.baz", scope: [".some.scope"], observeHandler)
         atom.config.observe("foo.bar.baz", scope: [".another.scope"], otherHandler)
-
-        atom.config.set('foo.bar.baz', "value 2", scopeSelector: ".some")
-        expect(observeHandler).toHaveBeenCalledWith("value 2")
-        expect(otherHandler).not.toHaveBeenCalledWith("value 2")
-
-      it "deprecates using a scope descriptor as the first argument", ->
-        spyOn(Grim, 'deprecate')
-        atom.config.observe([".some.scope"], "foo.bar.baz", observeHandler)
-        atom.config.observe([".another.scope"], "foo.bar.baz", otherHandler)
-        expect(Grim.deprecate).toHaveBeenCalled()
 
         atom.config.set('foo.bar.baz', "value 2", scopeSelector: ".some")
         expect(observeHandler).toHaveBeenCalledWith("value 2")
@@ -1629,135 +1599,3 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
           expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
-
-  describe "Deprecated Methods", ->
-    describe ".getDefault(keyPath)", ->
-      it "returns a clone of the default value", ->
-        atom.config.setDefaults("foo", same: 1, changes: 1)
-
-        spyOn(Grim, 'deprecate')
-        expect(atom.config.getDefault('foo.same')).toBe 1
-        expect(atom.config.getDefault('foo.changes')).toBe 1
-        expect(Grim.deprecate.callCount).toBe 2
-
-        atom.config.set('foo.same', 2)
-        atom.config.set('foo.changes', 3)
-
-        expect(atom.config.getDefault('foo.same')).toBe 1
-        expect(atom.config.getDefault('foo.changes')).toBe 1
-        expect(Grim.deprecate.callCount).toBe 4
-
-        initialDefaultValue = [1, 2, 3]
-        atom.config.setDefaults("foo", bar: initialDefaultValue)
-        expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
-        expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
-        expect(Grim.deprecate.callCount).toBe 6
-
-      describe "when scoped settings are used", ->
-        it "returns the global default when no scoped default set", ->
-          atom.config.setDefaults("foo", bar: baz: 10)
-
-          spyOn(Grim, 'deprecate')
-          expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 10
-          expect(Grim.deprecate).toHaveBeenCalled()
-
-        it "returns the scoped settings not including the user's config file", ->
-          atom.config.setDefaults("foo", bar: baz: 10)
-          atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "some-source")
-
-          spyOn(Grim, 'deprecate')
-          expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
-          expect(Grim.deprecate.callCount).toBe 1
-
-          atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-          expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
-          expect(Grim.deprecate.callCount).toBe 2
-
-    describe ".isDefault(keyPath)", ->
-      it "returns true when the value of the key path is its default value", ->
-        atom.config.setDefaults("foo", same: 1, changes: 1)
-
-        spyOn(Grim, 'deprecate')
-        expect(atom.config.isDefault('foo.same')).toBe true
-        expect(atom.config.isDefault('foo.changes')).toBe true
-        expect(Grim.deprecate.callCount).toBe 2
-
-        atom.config.set('foo.same', 2)
-        atom.config.set('foo.changes', 3)
-
-        expect(atom.config.isDefault('foo.same')).toBe false
-        expect(atom.config.isDefault('foo.changes')).toBe false
-        expect(Grim.deprecate.callCount).toBe 4
-
-      describe "when scoped settings are used", ->
-        it "returns false when a scoped setting was set by the user", ->
-          spyOn(Grim, 'deprecate')
-          expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
-          expect(Grim.deprecate.callCount).toBe 1
-
-          atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "something-else")
-          expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
-          expect(Grim.deprecate.callCount).toBe 2
-
-          atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-          expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
-          expect(Grim.deprecate.callCount).toBe 3
-
-    describe ".toggle(keyPath)", ->
-      beforeEach ->
-        jasmine.snapshotDeprecations()
-
-      afterEach ->
-        jasmine.restoreDeprecationsSnapshot()
-
-      it "negates the boolean value of the current key path value", ->
-        atom.config.set('foo.a', 1)
-        atom.config.toggle('foo.a')
-        expect(atom.config.get('foo.a')).toBe false
-
-        atom.config.set('foo.a', '')
-        atom.config.toggle('foo.a')
-        expect(atom.config.get('foo.a')).toBe true
-
-        atom.config.set('foo.a', null)
-        atom.config.toggle('foo.a')
-        expect(atom.config.get('foo.a')).toBe true
-
-        atom.config.set('foo.a', true)
-        atom.config.toggle('foo.a')
-        expect(atom.config.get('foo.a')).toBe false
-
-    describe ".getSettings()", ->
-      it "returns all settings including defaults", ->
-        atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set("foo.ok", 12)
-
-        jasmine.snapshotDeprecations()
-        expect(atom.config.getSettings().foo).toEqual
-          ok: 12
-          bar:
-            baz: 10
-        jasmine.restoreDeprecationsSnapshot()
-
-    describe ".getPositiveInt(keyPath, defaultValue)", ->
-      beforeEach ->
-        jasmine.snapshotDeprecations()
-
-      afterEach ->
-        jasmine.restoreDeprecationsSnapshot()
-
-      it "returns the proper coerced value", ->
-        atom.config.set('editor.preferredLineLength', 0)
-        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
-
-      it "returns the proper coerced value", ->
-        atom.config.set('editor.preferredLineLength', -1234)
-        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
-
-      it "returns the default value when a string is passed in", ->
-        atom.config.set('editor.preferredLineLength', 'abcd')
-        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
-
-      it "returns the default value when null is passed in", ->
-        atom.config.set('editor.preferredLineLength', null)
-        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80

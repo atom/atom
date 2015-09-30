@@ -1,12 +1,9 @@
 {Emitter} = require 'event-kit'
-{View, $, callRemoveHooks} = require 'space-pen'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
-Grim = require 'grim'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-TextEditorView = null
 
 ShadowStyleSheet = null
 
@@ -22,7 +19,6 @@ class TextEditorElement extends HTMLElement
   createdCallback: ->
     @emitter = new Emitter
     @initializeContent()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
@@ -56,10 +52,6 @@ class TextEditorElement extends HTMLElement
       @stylesElement = document.head.querySelector('atom-styles')
       @rootElement = this
 
-  createSpacePenShim: ->
-    TextEditorView ?= require './text-editor-view'
-    @__spacePenView = new TextEditorView(this)
-
   attachedCallback: ->
     @buildModel() unless @getModel()?
     atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
@@ -90,7 +82,6 @@ class TextEditorElement extends HTMLElement
     @model.onDidChangeEncoding => @addEncodingAttribute()
     @model.onDidDestroy => @unmountComponent()
     @model.onDidChangeMini (mini) => if mini then @addMiniAttribute() else @removeMiniAttribute()
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     @model
 
   getModel: ->
@@ -126,7 +117,6 @@ class TextEditorElement extends HTMLElement
       inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
-    callRemoveHooks(this)
     if @component?
       @component.destroy()
       @component.getDomNode().remove()
@@ -172,6 +162,12 @@ class TextEditorElement extends HTMLElement
 
   isUpdatedSynchronously: -> @updatedSynchronously
 
+  # Extended: Continuously reflows lines and line numbers. (Has performance overhead)
+  #
+  # `continuousReflow` A {Boolean} indicating whether to keep reflowing or not.
+  setContinuousReflow: (continuousReflow) ->
+    @component?.setContinuousReflow(continuousReflow)
+
   # Extended: get the width of a character of text displayed in this element.
   #
   # Returns a {Number} of pixels.
@@ -185,7 +181,7 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel position.
   pixelPositionForBufferPosition: (bufferPosition) ->
-    @getModel().pixelPositionForBufferPosition(bufferPosition, true)
+    @component.pixelPositionForBufferPosition(bufferPosition)
 
   # Extended: Converts a screen position to a pixel position.
   #
@@ -194,21 +190,21 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
-    @getModel().pixelPositionForScreenPosition(screenPosition, true)
+    @component.pixelPositionForScreenPosition(screenPosition)
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    @getModel().getFirstVisibleScreenRow(true)
+    @getVisibleRowRange()[0]
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    @getModel().getLastVisibleScreenRow(true)
+    @getVisibleRowRange()[1]
 
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
@@ -221,6 +217,90 @@ class TextEditorElement extends HTMLElement
   # * `callback` {Function}
   onDidDetach: (callback) ->
     @emitter.on("did-detach", callback)
+
+  onDidChangeScrollTop: (callback) ->
+    @component.onDidChangeScrollTop(callback)
+
+  onDidChangeScrollLeft: (callback) ->
+    @component.onDidChangeScrollLeft(callback)
+
+  setScrollLeft: (scrollLeft) ->
+    @component.setScrollLeft(scrollLeft)
+
+  setScrollRight: (scrollRight) ->
+    @component.setScrollRight(scrollRight)
+
+  setScrollTop: (scrollTop) ->
+    @component.setScrollTop(scrollTop)
+
+  setScrollBottom: (scrollBottom) ->
+    @component.setScrollBottom(scrollBottom)
+
+  # Essential: Scrolls the editor to the top
+  scrollToTop: ->
+    @setScrollTop(0)
+
+  # Essential: Scrolls the editor to the bottom
+  scrollToBottom: ->
+    @setScrollBottom(Infinity)
+
+  getScrollTop: ->
+    @component.getScrollTop()
+
+  getScrollLeft: ->
+    @component.getScrollLeft()
+
+  getScrollRight: ->
+    @component.getScrollRight()
+
+  getScrollBottom: ->
+    @component.getScrollBottom()
+
+  getScrollHeight: ->
+    @component.getScrollHeight()
+
+  getScrollWidth: ->
+    @component.getScrollWidth()
+
+  getVerticalScrollbarWidth: ->
+    @component.getVerticalScrollbarWidth()
+
+  getHorizontalScrollbarHeight: ->
+    @component.getHorizontalScrollbarHeight()
+
+  getVisibleRowRange: ->
+    @component.getVisibleRowRange()
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    not (endRow <= visibleStart or visibleEnd <= startRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    {start, end} = selection.getScreenRange()
+    @intersectsVisibleRowRange(start.row, end.row + 1)
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    @component.screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) ->
+    @component.pixelRectForScreenRange(screenRange)
+
+  pixelRangeForScreenRange: (screenRange) ->
+    @component.pixelRangeForScreenRange(screenRange)
+
+  setWidth: (width) ->
+    @style.width = (@component.getGutterWidth() + width) + "px"
+    @component.measureDimensions()
+
+  getWidth: ->
+    @offsetWidth - @component.getGutterWidth()
+
+  setHeight: (height) ->
+    @style.height = height + "px"
+    @component.measureDimensions()
+
+  getHeight: ->
+    @offsetHeight
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
@@ -299,6 +379,7 @@ atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
   'editor:delete-to-end-of-subword': -> @deleteToEndOfSubword()
   'editor:delete-line': -> @deleteLine()
   'editor:cut-to-end-of-line': -> @cutToEndOfLine()
+  'editor:cut-to-end-of-buffer-line': -> @cutToEndOfBufferLine()
   'editor:transpose': -> @transpose()
   'editor:upper-case': -> @upperCase()
   'editor:lower-case': -> @lowerCase()
