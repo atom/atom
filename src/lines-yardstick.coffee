@@ -1,5 +1,4 @@
 TokenIterator = require './token-iterator'
-AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 {Point} = require 'text-buffer'
 
 module.exports =
@@ -27,7 +26,7 @@ class LinesYardstick
 
     return new Point(row, 0) unless lineNode? and tokenizedLine?
 
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
+    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
     charIndex = 0
 
     @tokenIterator.reset(tokenizedLine)
@@ -87,7 +86,7 @@ class LinesYardstick
     return 0 unless lineNode?
 
     indexWithinTextNode = null
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
+    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
     charIndex = 0
 
     @tokenIterator.reset(tokenizedLine)
