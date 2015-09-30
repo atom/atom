@@ -160,6 +160,7 @@ class Atom extends Model
 
     Config = require './config'
     @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
+    @setConfigSchema()
 
     KeymapManager = require './keymap-extensions'
     @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
@@ -204,6 +205,9 @@ class Atom extends Model
     registerDefaultCommands = require './register-default-commands'
     registerDefaultCommands(@commands)
 
+  setConfigSchema: ->
+    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
+
   registerDeserializersAndViewProviders: ->
     Workspace = require './workspace'
     PaneContainer = require './pane-container'
@@ -240,6 +244,7 @@ class Atom extends Model
 
   reset: ->
     @config.reset()
+    @setConfigSchema()
 
   # Sets up the basic services that should be available in all modes
   # (both spec and application).
@@ -566,7 +571,8 @@ class Atom extends Model
     commandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
-    @loadConfig()
+    @config.load()
+
     @themes.loadBaseStylesheets()
 
     @setBodyPlatformClass()
@@ -746,10 +752,6 @@ class Atom extends Model
     @deserializePackageStates()
     @deserializeProject()
     @deserializeWorkspace()
-
-  loadConfig: ->
-    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
-    @config.load()
 
   loadThemes: ->
     @themes.load()
