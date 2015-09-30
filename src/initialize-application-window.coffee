@@ -18,7 +18,6 @@ Atom = require './atom'
 window.atom = Atom.loadOrCreate('editor')
 
 atom.displayWindow() unless isSpec
-atom.initialize()
 atom.startEditorWindow()
 
 # Workaround for focus getting cleared upon window creation

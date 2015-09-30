@@ -31,26 +31,6 @@ describe "the `atom` global", ->
       version = '36b5518'
       expect(atom.isReleasedVersion()).toBe false
 
-  describe "when an update becomes available", ->
-    subscription = null
-
-    afterEach ->
-      subscription?.dispose()
-
-    it "invokes onUpdateAvailable listeners", ->
-      updateAvailableHandler = jasmine.createSpy("update-available-handler")
-      subscription = atom.onUpdateAvailable updateAvailableHandler
-
-      autoUpdater = require('remote').require('auto-updater')
-      autoUpdater.emit 'update-downloaded', null, "notes", "version"
-
-      waitsFor ->
-        updateAvailableHandler.callCount > 0
-
-      runs ->
-        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
-        expect(releaseVersion).toBe 'version'
-
   describe "loading default config", ->
     it 'loads the default core config schema', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
