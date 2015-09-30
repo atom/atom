@@ -152,6 +152,7 @@ class Atom extends Model
   # Call .loadOrCreate instead
   constructor: (@state) ->
     {@mode} = @state
+    @loadTime = null
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
@@ -273,8 +274,6 @@ class Atom extends Model
     @displayWindow() unless @inSpecMode()
 
     @setBodyPlatformClass()
-
-    @loadTime = null
 
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
