@@ -254,25 +254,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    window.onerror = =>
-      @lastUncaughtError = Array::slice.call(arguments)
-      [message, url, line, column, originalError] = @lastUncaughtError
-
-      {line, column} = mapSourcePosition({source: url, line, column})
-
-      eventObject = {message, url, line, column, originalError}
-
-      openDevTools = true
-      eventObject.preventDefault = -> openDevTools = false
-
-      @emitter.emit 'will-throw-error', eventObject
-
-      if openDevTools
-        @openDevTools()
-        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
-
-      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
-
     @displayWindow() unless @inSpecMode()
 
     @setBodyPlatformClass()
@@ -599,6 +580,8 @@ class Atom extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
+    @installUncaughtErrorHandler()
+
     {safeMode} = @getLoadSettings()
 
     CommandInstaller = require './command-installer'
@@ -654,6 +637,30 @@ class Atom extends Model
     return unless @config.get('core.openEmptyEditorOnStart')
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
       @workspace.open(null)
+
+  installUncaughtErrorHandler: ->
+    @previousWindowErrorHandler = window.onerror
+    window.onerror = =>
+      @lastUncaughtError = Array::slice.call(arguments)
+      [message, url, line, column, originalError] = @lastUncaughtError
+
+      {line, column} = mapSourcePosition({source: url, line, column})
+
+      eventObject = {message, url, line, column, originalError}
+
+      openDevTools = true
+      eventObject.preventDefault = -> openDevTools = false
+
+      @emitter.emit 'will-throw-error', eventObject
+
+      if openDevTools
+        @openDevTools()
+        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
+
+  uninstallUncaughtErrorHandler: ->
+    window.onerror = @previousWindowErrorHandler
 
   ###
   Section: Messaging the User
