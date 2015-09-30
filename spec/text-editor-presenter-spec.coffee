@@ -2026,6 +2026,24 @@ describe "TextEditorPresenter", ->
               }
 
     describe ".height", ->
+      it "updates model's rows per page when it changes", ->
+        presenter = buildPresenter(explicitHeight: 50, lineHeightInPixels: 10, horizontalScrollbarHeight: 10)
+
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(4)
+
+        presenter.setExplicitHeight(100)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(9)
+
+        presenter.setHorizontalScrollbarHeight(0)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(10)
+
+        presenter.setLineHeight(5)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(20)
+
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
         expect(presenter.getState().height).toBe editor.getScreenLineCount() * 10
