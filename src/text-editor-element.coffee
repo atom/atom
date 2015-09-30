@@ -280,7 +280,7 @@ class TextEditorElement extends HTMLElement
     @component?.getHorizontalScrollbarHeight() or 0
 
   getVisibleRowRange: ->
-    @component?.getVisibleRowRange() or 0
+    @component?.getVisibleRowRange() or [0, 0]
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
