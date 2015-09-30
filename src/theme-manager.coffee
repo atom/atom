@@ -10,9 +10,6 @@ fs = require 'fs-plus'
 module.exports =
 class ThemeManager
   constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode, @config, @styleManager, @notificationManager, @viewRegistry}) ->
-    unless @packageManager
-      debugger
-
     @emitter = new Emitter
     @styleSheetDisposablesBySourcePath = {}
     @lessCache = null
