@@ -81,7 +81,9 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateReflowState()
 
-    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
+    if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
+      @updateTilesState()
+      @shouldUpdateTilesState = true
 
     @updating = false
     @state
@@ -101,7 +103,7 @@ class TextEditorPresenter
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
     @updateDecorations() if @shouldUpdateDecorations
-    @updateTilesState() if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
+    @updateTilesState() if @shouldUpdateTilesState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
     @updateLineNumberGutterState() if @shouldUpdateLineNumberGutterState
@@ -132,6 +134,7 @@ class TextEditorPresenter
     @shouldUpdateContentState = false
     @shouldUpdateDecorations = false
     @shouldUpdateLinesState = false
+    @shouldUpdateTilesState = false
     @shouldUpdateCursorsState = false
     @shouldUpdateOverlaysState = false
     @shouldUpdateLineNumberGutterState = false
@@ -149,6 +152,7 @@ class TextEditorPresenter
     @shouldUpdateContentState = true
     @shouldUpdateDecorations = true
     @shouldUpdateLinesState = true
+    @shouldUpdateTilesState = true
     @shouldUpdateCursorsState = true
     @shouldUpdateOverlaysState = true
     @shouldUpdateLineNumberGutterState = true
