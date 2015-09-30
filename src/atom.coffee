@@ -16,6 +16,20 @@ StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
 getWindowLoadSettings = require './get-window-load-settings'
 
+Workspace = require './workspace'
+PaneContainer = require './pane-container'
+PaneAxis = require './pane-axis'
+Pane = require './pane'
+Project = require './project'
+TextEditor = require './text-editor'
+TextBuffer = require 'text-buffer'
+Gutter = require './gutter'
+PaneElement = require './pane-element'
+PaneContainerElement = require './pane-container-element'
+PaneAxisElement = require './pane-axis-element'
+TextEditorElement = require './text-editor-element'
+{createGutterView} = require './gutter-component-helpers'
+
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
@@ -154,6 +168,11 @@ class Atom extends Model
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager()
     @deserializeTimings = {}
+    @registerDeserializers()
+
+    ViewRegistry = require './view-registry'
+    @views = new ViewRegistry
+    @registerViewProviders()
 
     NotificationManager = require './notification-manager'
     @notifications = new NotificationManager
@@ -172,9 +191,8 @@ class Atom extends Model
 
     CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
-
-    ViewRegistry = require './view-registry'
-    @views = new ViewRegistry
+    registerDefaultCommands = require './register-default-commands'
+    registerDefaultCommands(@commands)
 
     PackageManager = require './package-manager'
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config})
@@ -200,23 +218,10 @@ class Atom extends Model
     GrammarRegistry = require './grammar-registry'
     @grammars = new GrammarRegistry({@config})
 
-    @registerDeserializersAndViewProviders()
-
-    registerDefaultCommands = require './register-default-commands'
-    registerDefaultCommands(@commands)
-
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
-  registerDeserializersAndViewProviders: ->
-    Workspace = require './workspace'
-    PaneContainer = require './pane-container'
-    PaneAxis = require './pane-axis'
-    Pane = require './pane'
-    Project = require './project'
-    TextEditor = require './text-editor'
-    TextBuffer = require 'text-buffer'
-
+  registerDeserializers: ->
     @deserializers.add(Workspace)
     @deserializers.add(PaneContainer)
     @deserializers.add(PaneAxis)
@@ -225,13 +230,7 @@ class Atom extends Model
     @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
 
-    Gutter = require './gutter'
-    PaneElement = require './pane-element'
-    PaneContainerElement = require './pane-container-element'
-    PaneAxisElement = require './pane-axis-element'
-    TextEditorElement = require './text-editor-element'
-    {createGutterView} = require './gutter-component-helpers'
-
+  registerViewProviders: ->
     @views.addViewProvider PaneContainer, (model) ->
       new PaneContainerElement().initialize(model)
     @views.addViewProvider PaneAxis, (model) ->
