@@ -1,4 +1,4 @@
-{Emitter} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
@@ -15,9 +15,11 @@ class TextEditorElement extends HTMLElement
   tileSize: null
   focusOnAttach: false
   hasTiledRendering: true
+  logicalDisplayBuffer: true
 
   createdCallback: ->
     @emitter = new Emitter
+    @subscriptions = new CompositeDisposable
     @initializeContent()
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
@@ -56,6 +58,7 @@ class TextEditorElement extends HTMLElement
     @buildModel() unless @getModel()?
     atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
+    @listenForComponentEvents()
     @component.checkForVisibilityChange()
     if this is document.activeElement
       @focused()
@@ -63,7 +66,15 @@ class TextEditorElement extends HTMLElement
 
   detachedCallback: ->
     @unmountComponent()
+    @subscriptions.dispose()
+    @subscriptions = new CompositeDisposable
     @emitter.emit("did-detach")
+
+  listenForComponentEvents: ->
+    @subscriptions.add @component.onDidChangeScrollTop =>
+      @emitter.emit("did-change-scroll-top", arguments...)
+    @subscriptions.add @component.onDidChangeScrollLeft =>
+      @emitter.emit("did-change-scroll-left", arguments...)
 
   initialize: (model) ->
     @setModel(model)
@@ -219,10 +230,10 @@ class TextEditorElement extends HTMLElement
     @emitter.on("did-detach", callback)
 
   onDidChangeScrollTop: (callback) ->
-    @component.onDidChangeScrollTop(callback)
+    @emitter.on("did-change-scroll-top", callback)
 
   onDidChangeScrollLeft: (callback) ->
-    @component.onDidChangeScrollLeft(callback)
+    @emitter.on("did-change-scroll-left", callback)
 
   setScrollLeft: (scrollLeft) ->
     @component.setScrollLeft(scrollLeft)
@@ -245,31 +256,31 @@ class TextEditorElement extends HTMLElement
     @setScrollBottom(Infinity)
 
   getScrollTop: ->
-    @component.getScrollTop()
+    @component?.getScrollTop() or 0
 
   getScrollLeft: ->
-    @component.getScrollLeft()
+    @component?.getScrollLeft() or 0
 
   getScrollRight: ->
-    @component.getScrollRight()
+    @component?.getScrollRight() or 0
 
   getScrollBottom: ->
-    @component.getScrollBottom()
+    @component?.getScrollBottom() or 0
 
   getScrollHeight: ->
-    @component.getScrollHeight()
+    @component?.getScrollHeight() or 0
 
   getScrollWidth: ->
-    @component.getScrollWidth()
+    @component?.getScrollWidth() or 0
 
   getVerticalScrollbarWidth: ->
-    @component.getVerticalScrollbarWidth()
+    @component?.getVerticalScrollbarWidth() or 0
 
   getHorizontalScrollbarHeight: ->
-    @component.getHorizontalScrollbarHeight()
+    @component?.getHorizontalScrollbarHeight() or 0
 
   getVisibleRowRange: ->
-    @component.getVisibleRowRange()
+    @component?.getVisibleRowRange() or [0, 0]
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
