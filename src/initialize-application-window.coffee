@@ -4,7 +4,7 @@ path = require 'path'
 require './window'
 getWindowLoadSettings = require './get-window-load-settings'
 
-{devMode, resourcePath} = getWindowLoadSettings()
+{resourcePath, isSpec, devMode} = getWindowLoadSettings()
 
 # Add application-specific exports to module search path.
 exportsPath = path.join(resourcePath, 'exports')
@@ -16,6 +16,8 @@ process.env.NODE_ENV ?= 'production' unless devMode
 
 Atom = require './atom'
 window.atom = Atom.loadOrCreate('editor')
+
+atom.displayWindow() unless isSpec
 atom.initialize()
 atom.startEditorWindow()
 
