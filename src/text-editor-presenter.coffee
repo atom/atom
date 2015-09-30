@@ -72,6 +72,7 @@ class TextEditorPresenter
     @updateScrollPosition()
     @updateStartRow()
     @updateEndRow()
+    @updateRowsPerPage()
     @updateCommonGutterState()
     @updateReflowState()
 
@@ -641,6 +642,12 @@ class TextEditorPresenter
     endRow = startRow + visibleLinesCount
     @endRow = Math.min(@model.getScreenLineCount(), endRow)
 
+  updateRowsPerPage: ->
+    rowsPerPage = Math.floor(@getClientHeight() / @lineHeight)
+    if rowsPerPage isnt @rowsPerPage
+      @rowsPerPage = rowsPerPage
+      @model.setRowsPerPage(@rowsPerPage)
+
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
 
@@ -688,7 +695,6 @@ class TextEditorPresenter
 
     clientHeight = @height - @horizontalScrollbarHeight
     @model.setHeight(clientHeight, true)
-    @model.setRowsPerPage(Math.floor(clientHeight / @lineHeight))
 
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight

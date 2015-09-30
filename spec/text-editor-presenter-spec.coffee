@@ -2040,6 +2040,10 @@ describe "TextEditorPresenter", ->
         presenter.getState() # trigger state update
         expect(editor.getRowsPerPage()).toBe(10)
 
+        presenter.setLineHeight(5)
+        presenter.getState() # trigger state update
+        expect(editor.getRowsPerPage()).toBe(20)
+
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null, autoHeight: true)
         expect(presenter.getState().height).toBe editor.getScreenLineCount() * 10
