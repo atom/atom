@@ -3635,9 +3635,6 @@ describe "TextEditorComponent", ->
     event
 
   clientCoordinatesForScreenPosition = (screenPosition) ->
-    # TODO: Remove this line here when `pixelPositionForScreenPosition` will
-    # handle automatically screen row preparation for measurement.
-    wrapperNode.component.linesYardstick.prepareScreenRowsForMeasurement()
     positionOffset = wrapperNode.pixelPositionForScreenPosition(screenPosition)
     scrollViewClientRect = componentNode.querySelector('.scroll-view').getBoundingClientRect()
     clientX = scrollViewClientRect.left + positionOffset.left - wrapperNode.getScrollLeft()

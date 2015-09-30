@@ -12,6 +12,8 @@ class LinesYardstick
     @pixelPositionsByLineIdAndColumn = {}
 
   prepareScreenRowsForMeasurement: (screenRows) ->
+    return unless @presenter.isBatching()
+
     @presenter.setScreenRowsToMeasure(screenRows)
     @lineNodesProvider.updateSync(@presenter.getPreMeasurementState())
 
@@ -24,6 +26,8 @@ class LinesYardstick
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
+
+    @prepareScreenRowsForMeasurement([row])
 
     line = @model.tokenizedLineForScreenRow(row)
     lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
@@ -73,7 +77,8 @@ class LinesYardstick
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
-    baseCharacterWidth = @baseCharacterWidth
+
+    @prepareScreenRowsForMeasurement([targetRow])
 
     top = targetRow * @model.getLineHeightInPixels()
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
