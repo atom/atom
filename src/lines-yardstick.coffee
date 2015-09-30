@@ -6,6 +6,10 @@ class LinesYardstick
   constructor: (@model, @presenter, @lineNodesProvider) ->
     @tokenIterator = new TokenIterator
     @rangeForMeasurement = document.createRange()
+    @invalidateCache()
+
+  invalidateCache: ->
+    @pixelPositionsByLineIdAndColumn = {}
 
   prepareScreenRowsForMeasurement: (screenRows) ->
     @presenter.setScreenRowsToMeasure(screenRows)
@@ -21,15 +25,15 @@ class LinesYardstick
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
 
-    tokenizedLine = @model.tokenizedLineForScreenRow(row)
-    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(tokenizedLine.id, row)
+    line = @model.tokenizedLineForScreenRow(row)
+    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
 
-    return new Point(row, 0) unless lineNode? and tokenizedLine?
+    return new Point(row, 0) unless lineNode? and line?
 
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
     charIndex = 0
 
-    @tokenIterator.reset(tokenizedLine)
+    @tokenIterator.reset(line)
     while @tokenIterator.next()
       text = @tokenIterator.getText()
       textIndex = 0
@@ -77,19 +81,19 @@ class LinesYardstick
     {top, left}
 
   leftPixelPositionForScreenPosition: (row, column) ->
-    tokenizedLine = @model.tokenizedLineForScreenRow(row)
-    return 0 unless tokenizedLine?
+    line = @model.tokenizedLineForScreenRow(row)
+    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
 
-    lineNode =
-      @lineNodesProvider.lineNodeForLineIdAndScreenRow(tokenizedLine.id, row)
+    return 0 unless line? and lineNode?
 
-    return 0 unless lineNode?
+    if cachedPosition = @pixelPositionsByLineIdAndColumn[line.id]?[column]
+      return cachedPosition
 
     indexWithinTextNode = null
     iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
     charIndex = 0
 
-    @tokenIterator.reset(tokenizedLine)
+    @tokenIterator.reset(line)
     while @tokenIterator.next()
       break if foundIndexWithinTextNode?
 
@@ -126,7 +130,12 @@ class LinesYardstick
 
     if textNode?
       foundIndexWithinTextNode ?= textNode.textContent.length
-      @leftPixelPositionForCharInTextNode(lineNode, textNode, foundIndexWithinTextNode)
+      position = @leftPixelPositionForCharInTextNode(
+        lineNode, textNode, foundIndexWithinTextNode
+      )
+      @pixelPositionsByLineIdAndColumn[line.id] ?= {}
+      @pixelPositionsByLineIdAndColumn[line.id][column] = position
+      position
     else
       0
 

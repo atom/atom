@@ -560,7 +560,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @presenter.characterWidthsChanged()
+    @invalidateCharacterWidths()
 
   handleDragUntilMouseUp: (dragHandler) =>
     dragging = false
@@ -823,7 +823,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
-    @presenter.characterWidthsChanged()
+    @invalidateCharacterWidths()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -831,11 +831,15 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
-    @presenter.characterWidthsChanged()
+    @invalidateCharacterWidths()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
+    @invalidateCharacterWidths()
+
+  invalidateCharacterWidths: ->
+    @linesYardstick.invalidateCache()
     @presenter.characterWidthsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
