@@ -247,8 +247,6 @@ class Atom extends Model
   #
   # Call after this instance has been assigned to the `atom` global.
   initialize: ->
-    @displayWindow() unless @inSpecMode()
-
     @setBodyPlatformClass()
 
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -761,7 +759,6 @@ class Atom extends Model
 
   loadThemes: ->
     @themes.load()
-
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
