@@ -126,7 +126,6 @@ beforeEach ->
   # reset config before each spec; don't load or save from/to `config.json`
   spyOn(atom.config, 'load')
   spyOn(atom.config, 'save')
-  atom.loadConfig()
   atom.config.set "core.destroyEmptyPanes", false
   atom.config.set "editor.fontFamily", "Courier"
   atom.config.set "editor.fontSize", 16
@@ -157,8 +156,6 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.reset()
-
   atom.packages.deactivatePackages()
   atom.menu.template = []
   atom.contextMenu.clear()
@@ -175,6 +172,7 @@ afterEach ->
   atom.themes.removeStylesheet('global-editor-styles')
 
   delete atom.state.packageStates
+  atom.reset()
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 

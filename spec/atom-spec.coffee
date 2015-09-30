@@ -52,7 +52,7 @@ describe "the `atom` global", ->
         expect(releaseVersion).toBe 'version'
 
   describe "loading default config", ->
-    it 'loads the default core config', ->
+    it 'loads the default core config schema', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
       expect(atom.config.get('core.followSymlinks')).toBe true
       expect(atom.config.get('editor.showInvisibles')).toBe false
