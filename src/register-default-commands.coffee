@@ -1,3 +1,5 @@
+ipc = require 'ipc'
+
 module.exports = (commandRegistry) ->
   commandRegistry.add 'atom-workspace',
     'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
