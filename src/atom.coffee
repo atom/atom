@@ -294,7 +294,6 @@ class Atom extends Model
     if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
-    @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
     @windowEventHandler = new WindowEventHandler
 
   ###
@@ -771,12 +770,6 @@ class Atom extends Model
   loadThemes: ->
     @themes.load()
 
-  watchThemes: ->
-    @themes.onDidChangeActiveThemes =>
-      # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
-        pack.reloadStylesheets?()
-      return
 
   # Notify the browser project of the window's current project path
   watchProjectPath: ->

@@ -18,6 +18,8 @@ class ThemeManager
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
+    @packageManager.onDidActivateInitialPackages =>
+      @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
 
   ###
   Section: Event Subscription

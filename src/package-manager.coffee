@@ -456,3 +456,8 @@ class PackageManager
       [isSymLink, isDir] = values
       if not isSymLink and isDir
         fs.remove directory, ->
+
+  reloadActivePackageStyleSheets: ->
+    for pack in @getActivePackages() when pack.getType() isnt 'theme'
+      pack.reloadStylesheets?()
+    return
