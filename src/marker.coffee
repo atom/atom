@@ -368,6 +368,3 @@ class Marker
     @wasValid = isValid
 
     @emitter.emit 'did-change', changeEvent
-
-  getPixelRange: ->
-    @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)

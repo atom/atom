@@ -50,8 +50,10 @@ class TextEditorComponent
 
     @presenter = new TextEditorPresenter
       model: @editor
-      scrollTop: @editor.getScrollTop()
-      scrollLeft: @editor.getScrollLeft()
+      scrollTop: 0
+      scrollLeft: 0
+      scrollRow: @editor.getScrollRow()
+      scrollColumn: @editor.getScrollColumn()
       tileSize: tileSize
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
@@ -314,7 +316,7 @@ class TextEditorComponent
     inputNode.value = event.data if insertedRange
 
   onVerticalScroll: (scrollTop) =>
-    return if @updateRequested or scrollTop is @editor.getScrollTop()
+    return if @updateRequested or scrollTop is @presenter.getScrollTop()
 
     animationFramePending = @pendingScrollTop?
     @pendingScrollTop = scrollTop
@@ -323,15 +325,17 @@ class TextEditorComponent
         pendingScrollTop = @pendingScrollTop
         @pendingScrollTop = null
         @presenter.setScrollTop(pendingScrollTop)
+        @presenter.commitPendingScrollTopPosition()
 
   onHorizontalScroll: (scrollLeft) =>
-    return if @updateRequested or scrollLeft is @editor.getScrollLeft()
+    return if @updateRequested or scrollLeft is @presenter.getScrollLeft()
 
     animationFramePending = @pendingScrollLeft?
     @pendingScrollLeft = scrollLeft
     unless animationFramePending
       @requestAnimationFrame =>
         @presenter.setScrollLeft(@pendingScrollLeft)
+        @presenter.commitPendingScrollLeftPosition()
         @pendingScrollLeft = null
 
   onMouseWheel: (event) =>
@@ -350,20 +354,95 @@ class TextEditorComponent
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
       previousScrollLeft = @presenter.getScrollLeft()
-      @presenter.setScrollLeft(previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity))
-      event.preventDefault() unless previousScrollLeft is @presenter.getScrollLeft()
+      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity)
+
+      event.preventDefault() if @presenter.canScrollLeftTo(updatedScrollLeft)
+      @presenter.setScrollLeft(updatedScrollLeft)
     else
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
-      @presenter.setScrollTop(previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity))
-      event.preventDefault() unless previousScrollTop is @presenter.getScrollTop()
+      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity)
+
+      event.preventDefault() if @presenter.canScrollTopTo(updatedScrollTop)
+      @presenter.setScrollTop(updatedScrollTop)
 
   onScrollViewScroll: =>
     if @mounted
       console.warn "TextEditorScrollView scrolled when it shouldn't have."
       @scrollViewNode.scrollTop = 0
       @scrollViewNode.scrollLeft = 0
+
+  onDidChangeScrollTop: (callback) ->
+    @presenter.onDidChangeScrollTop(callback)
+
+  onDidChangeScrollLeft: (callback) ->
+    @presenter.onDidChangeScrollLeft(callback)
+
+  setScrollLeft: (scrollLeft) ->
+    @presenter.setScrollLeft(scrollLeft)
+
+  setScrollRight: (scrollRight) ->
+    @presenter.setScrollRight(scrollRight)
+
+  setScrollTop: (scrollTop) ->
+    @presenter.setScrollTop(scrollTop)
+
+  setScrollBottom: (scrollBottom) ->
+    @presenter.setScrollBottom(scrollBottom)
+
+  getScrollTop: ->
+    @presenter.getScrollTop()
+
+  getScrollLeft: ->
+    @presenter.getScrollLeft()
+
+  getScrollRight: ->
+    @presenter.getScrollRight()
+
+  getScrollBottom: ->
+    @presenter.getScrollBottom()
+
+  getScrollHeight: ->
+    @presenter.getScrollHeight()
+
+  getScrollWidth: ->
+    @presenter.getScrollWidth()
+
+  getVerticalScrollbarWidth: ->
+    @presenter.getVerticalScrollbarWidth()
+
+  getHorizontalScrollbarHeight: ->
+    @presenter.getHorizontalScrollbarHeight()
+
+  getVisibleRowRange: ->
+    @presenter.getVisibleRowRange()
+
+  pixelPositionForScreenPosition: (screenPosition) ->
+    position = @presenter.pixelPositionForScreenPosition(screenPosition)
+    position.top += @presenter.getScrollTop()
+    position.left += @presenter.getScrollLeft()
+    position
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    @presenter.screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) ->
+    rect = @presenter.pixelRectForScreenRange(screenRange)
+    rect.top += @presenter.getScrollTop()
+    rect.bottom += @presenter.getScrollTop()
+    rect.left += @presenter.getScrollLeft()
+    rect.right += @presenter.getScrollLeft()
+    rect
+
+  pixelRangeForScreenRange: (screenRange, clip=true) ->
+    {start, end} = Range.fromObject(screenRange)
+    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
+
+  pixelPositionForBufferPosition: (bufferPosition) ->
+    @pixelPositionForScreenPosition(
+      @editor.screenPositionForBufferPosition(bufferPosition)
+    )
 
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
@@ -546,9 +625,11 @@ class TextEditorComponent
 
       if mouseYDelta?
         @presenter.setScrollTop(@presenter.getScrollTop() + yDirection * scaleScrollDelta(mouseYDelta))
+        @presenter.commitPendingScrollTopPosition()
 
       if mouseXDelta?
         @presenter.setScrollLeft(@presenter.getScrollLeft() + xDirection * scaleScrollDelta(mouseXDelta))
+        @presenter.commitPendingScrollLeftPosition()
 
     scaleScrollDelta = (scrollDelta) ->
       Math.pow(scrollDelta / 2, 3) / 280
@@ -774,18 +855,21 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @editor.screenPositionForPixelPosition(pixelPosition)
+    @presenter.screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event
 
     linesClientRect ?= @linesComponent.getDomNode().getBoundingClientRect()
-    top = clientY - linesClientRect.top + @presenter.scrollTop
-    left = clientX - linesClientRect.left + @presenter.scrollLeft
-    bottom = linesClientRect.top + @presenter.scrollTop + linesClientRect.height - clientY
-    right = linesClientRect.left + @presenter.scrollLeft + linesClientRect.width - clientX
+    top = clientY - linesClientRect.top + @presenter.getRealScrollTop()
+    left = clientX - linesClientRect.left + @presenter.getRealScrollLeft()
+    bottom = linesClientRect.top + @presenter.getRealScrollTop() + linesClientRect.height - clientY
+    right = linesClientRect.left + @presenter.getRealScrollLeft() + linesClientRect.width - clientX
 
     {top, left, bottom, right}
+
+  getGutterWidth: ->
+    @presenter.getGutterWidth()
 
   getModel: ->
     @editor

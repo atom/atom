@@ -1028,10 +1028,6 @@ describe "Config", ->
         atom.config.setDefaults("foo.bar.baz", a: 2)
         expect(updatedCallback.callCount).toBe 1
 
-      it "sets a default when the setting's key contains an escaped dot", ->
-        atom.config.setDefaults("foo", 'a\\.b': 1, b: 2)
-        expect(atom.config.get("foo")).toEqual 'a\\.b': 1, b: 2
-
     describe ".setSchema(keyPath, schema)", ->
       it 'creates a properly nested schema', ->
         schema =

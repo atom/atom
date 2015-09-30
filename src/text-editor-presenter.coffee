@@ -14,7 +14,7 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
+    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -32,6 +32,7 @@ class TextEditorPresenter
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
     @transferMeasurementsToModel()
+    @transferMeasurementsFromModel()
     @observeModel()
     @observeConfig()
     @buildState()
@@ -50,14 +51,11 @@ class TextEditorPresenter
     @emitter.emit "did-update-state" if @isBatching()
 
   transferMeasurementsToModel: ->
-    @model.setHeight(@explicitHeight) if @explicitHeight?
-    @model.setWidth(@contentFrameWidth) if @contentFrameWidth?
     @model.setLineHeightInPixels(@lineHeight) if @lineHeight?
     @model.setDefaultCharWidth(@baseCharacterWidth) if @baseCharacterWidth?
-    @model.setScrollTop(@scrollTop) if @scrollTop?
-    @model.setScrollLeft(@scrollLeft) if @scrollLeft?
-    @model.setVerticalScrollbarWidth(@measuredVerticalScrollbarWidth) if @measuredVerticalScrollbarWidth?
-    @model.setHorizontalScrollbarHeight(@measuredHorizontalScrollbarHeight) if @measuredHorizontalScrollbarHeight?
+
+  transferMeasurementsFromModel: ->
+    @editorWidthInChars = @model.getEditorWidthInChars()
 
   # Private: Determines whether {TextEditorPresenter} is currently batching changes.
   # Returns a {Boolean}, `true` if is collecting changes, `false` if is applying them.
@@ -71,6 +69,7 @@ class TextEditorPresenter
 
     @updateContentDimensions()
     @updateScrollbarDimensions()
+    @updateScrollPosition()
     @updateStartRow()
     @updateEndRow()
     @updateCommonGutterState()
@@ -115,8 +114,6 @@ class TextEditorPresenter
 
   observeModel: ->
     @disposables.add @model.onDidChange =>
-      @updateContentDimensions()
-
       @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -162,8 +159,7 @@ class TextEditorPresenter
 
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
-    @disposables.add @model.onDidChangeScrollTop(@setScrollTop.bind(this))
-    @disposables.add @model.onDidChangeScrollLeft(@setScrollLeft.bind(this))
+    @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
@@ -235,6 +231,7 @@ class TextEditorPresenter
     @shouldUpdateLineNumbersState = true
 
     @updateContentDimensions()
+    @updateScrollPosition()
     @updateScrollbarDimensions()
     @updateStartRow()
     @updateEndRow()
@@ -690,6 +687,8 @@ class TextEditorPresenter
     return unless @height? and @horizontalScrollbarHeight?
 
     clientHeight = @height - @horizontalScrollbarHeight
+    @model.setHeight(clientHeight, true)
+
     unless @clientHeight is clientHeight
       @clientHeight = clientHeight
       @updateScrollHeight()
@@ -699,6 +698,8 @@ class TextEditorPresenter
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
 
     clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    @model.setWidth(clientWidth, true) unless @editorWidthInChars
+
     unless @clientWidth is clientWidth
       @clientWidth = clientWidth
       @updateScrollWidth()
@@ -708,6 +709,7 @@ class TextEditorPresenter
     scrollTop = @constrainScrollTop(@scrollTop)
     unless @scrollTop is scrollTop
       @scrollTop = scrollTop
+      @realScrollTop = @scrollTop
       @updateStartRow()
       @updateEndRow()
 
@@ -717,6 +719,7 @@ class TextEditorPresenter
 
   updateScrollLeft: ->
     @scrollLeft = @constrainScrollLeft(@scrollLeft)
+    @realScrollLeft = @scrollLeft
 
   constrainScrollLeft: (scrollLeft) ->
     return scrollLeft unless scrollLeft? and @scrollWidth? and @clientWidth?
@@ -809,25 +812,27 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setScrollTop: (scrollTop) ->
-    scrollTop = @constrainScrollTop(scrollTop)
+    return unless scrollTop?
 
-    unless @scrollTop is scrollTop or Number.isNaN(scrollTop)
-      @scrollTop = scrollTop
-      @model.setScrollTop(scrollTop)
-      @didStartScrolling()
-      @shouldUpdateVerticalScrollState = true
-      @shouldUpdateHiddenInputState = true
-      @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
-      @shouldUpdateCursorsState = true
-      @shouldUpdateLineNumbersState = true
-      @shouldUpdateCustomGutterDecorationState = true
-      @shouldUpdateOverlaysState = true
+    @pendingScrollLogicalPosition = null
+    @pendingScrollTop = scrollTop
 
-      @emitDidUpdateState()
+    @shouldUpdateVerticalScrollState = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateLinesState = true
+    @shouldUpdateCursorsState = true
+    @shouldUpdateLineNumbersState = true
+    @shouldUpdateCustomGutterDecorationState = true
+    @shouldUpdateOverlaysState = true
+
+    @emitDidUpdateState()
 
   getScrollTop: ->
     @scrollTop
+
+  getRealScrollTop: ->
+    @realScrollTop ? @scrollTop
 
   didStartScrolling: ->
     if @stoppedScrollingTimeoutId?
@@ -848,28 +853,58 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   setScrollLeft: (scrollLeft) ->
-    scrollLeft = @constrainScrollLeft(scrollLeft)
-    unless @scrollLeft is scrollLeft or Number.isNaN(scrollLeft)
-      oldScrollLeft = @scrollLeft
-      @scrollLeft = scrollLeft
-      @model.setScrollLeft(scrollLeft)
-      @shouldUpdateHorizontalScrollState = true
-      @shouldUpdateHiddenInputState = true
-      @shouldUpdateCursorsState = true
-      @shouldUpdateOverlaysState = true
-      @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true
+    return unless scrollLeft?
 
-      @emitDidUpdateState()
+    @pendingScrollLogicalPosition = null
+    @pendingScrollLeft = scrollLeft
+
+    @shouldUpdateHorizontalScrollState = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateCursorsState = true
+    @shouldUpdateOverlaysState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateLinesState = true
+
+    @emitDidUpdateState()
 
   getScrollLeft: ->
     @scrollLeft
+
+  getRealScrollLeft: ->
+    @realScrollLeft ? @scrollLeft
+
+  getClientHeight: ->
+    if @clientHeight
+      @clientHeight
+    else
+      @explicitHeight - @horizontalScrollbarHeight
+
+  getClientWidth: ->
+    if @clientWidth
+      @clientWidth
+    else
+      @contentFrameWidth - @verticalScrollbarWidth
+
+  getScrollBottom: -> @getScrollTop() + @getClientHeight()
+  setScrollBottom: (scrollBottom) ->
+    @setScrollTop(scrollBottom - @getClientHeight())
+    @getScrollBottom()
+
+  getScrollRight: -> @getScrollLeft() + @getClientWidth()
+  setScrollRight: (scrollRight) ->
+    @setScrollLeft(scrollRight - @getClientWidth())
+    @getScrollRight()
+
+  getScrollHeight: ->
+    @scrollHeight
+
+  getScrollWidth: ->
+    @scrollWidth
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
       oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
       @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
-      @model.setHorizontalScrollbarHeight(horizontalScrollbarHeight)
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -881,7 +916,6 @@ class TextEditorPresenter
     unless @measuredVerticalScrollbarWidth is verticalScrollbarWidth
       oldVerticalScrollbarWidth = @measuredVerticalScrollbarWidth
       @measuredVerticalScrollbarWidth = verticalScrollbarWidth
-      @model.setVerticalScrollbarWidth(verticalScrollbarWidth)
       @shouldUpdateScrollbarsState = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateHorizontalScrollState = true
@@ -899,7 +933,6 @@ class TextEditorPresenter
   setExplicitHeight: (explicitHeight) ->
     unless @explicitHeight is explicitHeight
       @explicitHeight = explicitHeight
-      @model.setHeight(explicitHeight)
       @updateHeight()
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
@@ -921,10 +954,10 @@ class TextEditorPresenter
       @updateEndRow()
 
   setContentFrameWidth: (contentFrameWidth) ->
-    unless @contentFrameWidth is contentFrameWidth
+    if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
       oldContentFrameWidth = @contentFrameWidth
       @contentFrameWidth = contentFrameWidth
-      @model.setWidth(contentFrameWidth)
+      @editorWidthInChars = null
       @updateScrollbarDimensions()
       @updateClientWidth()
       @shouldUpdateVerticalScrollState = true
@@ -981,6 +1014,9 @@ class TextEditorPresenter
     if @gutterWidth isnt gutterWidth
       @gutterWidth = gutterWidth
       @updateOverlaysState()
+
+  getGutterWidth: ->
+    @gutterWidth
 
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
@@ -1438,3 +1474,179 @@ class TextEditorPresenter
       @startBlinkingCursorsAfterDelay ?= _.debounce(@startBlinkingCursors, @getCursorBlinkResumeDelay())
       @startBlinkingCursorsAfterDelay()
       @emitDidUpdateState()
+
+  requestAutoscroll: (position) ->
+    @pendingScrollLogicalPosition = position
+    @pendingScrollTop = null
+    @pendingScrollLeft = null
+
+    @shouldUpdateCursorsState = true
+    @shouldUpdateCustomGutterDecorationState = true
+    @shouldUpdateDecorations = true
+    @shouldUpdateHiddenInputState = true
+    @shouldUpdateHorizontalScrollState = true
+    @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
+    @shouldUpdateOverlaysState = true
+    @shouldUpdateScrollPosition = true
+    @shouldUpdateVerticalScrollState = true
+
+    @emitDidUpdateState()
+
+  getVerticalScrollMarginInPixels: ->
+    @model.getVerticalScrollMargin() * @lineHeight
+
+  getHorizontalScrollMarginInPixels: ->
+    @model.getHorizontalScrollMargin() * @baseCharacterWidth
+
+  getVerticalScrollbarWidth: ->
+    @verticalScrollbarWidth
+
+  getHorizontalScrollbarHeight: ->
+    @horizontalScrollbarHeight
+
+  commitPendingLogicalScrollPosition: ->
+    return unless @pendingScrollLogicalPosition?
+
+    {screenRange, options} = @pendingScrollLogicalPosition
+
+    verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
+    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
+
+    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
+    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
+    bottom = endTop + endHeight
+    right = endLeft
+
+    top += @scrollTop
+    bottom += @scrollTop
+    left += @scrollLeft
+    right += @scrollLeft
+
+    if options?.center
+      desiredScrollCenter = (top + bottom) / 2
+      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
+        desiredScrollTop = desiredScrollCenter - @getClientHeight() / 2
+        desiredScrollBottom = desiredScrollCenter + @getClientHeight() / 2
+    else
+      desiredScrollTop = top - verticalScrollMarginInPixels
+      desiredScrollBottom = bottom + verticalScrollMarginInPixels
+
+    desiredScrollLeft = left - horizontalScrollMarginInPixels
+    desiredScrollRight = right + horizontalScrollMarginInPixels
+
+    if options?.reversed ? true
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
+
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+    else
+      if desiredScrollTop < @getScrollTop()
+        @setScrollTop(desiredScrollTop)
+      if desiredScrollBottom > @getScrollBottom()
+        @setScrollBottom(desiredScrollBottom)
+
+      if desiredScrollLeft < @getScrollLeft()
+        @setScrollLeft(desiredScrollLeft)
+      if desiredScrollRight > @getScrollRight()
+        @setScrollRight(desiredScrollRight)
+
+    @pendingScrollLogicalPosition = null
+
+  commitPendingScrollLeftPosition: ->
+    return unless @pendingScrollLeft?
+
+    scrollLeft = @constrainScrollLeft(@pendingScrollLeft)
+    if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
+      @realScrollLeft = scrollLeft
+      @scrollLeft = Math.round(scrollLeft)
+      @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
+      @model.setScrollColumn(@scrollColumn)
+
+      @emitter.emit 'did-change-scroll-left', @scrollLeft
+
+    @pendingScrollLeft = null
+
+  commitPendingScrollTopPosition: ->
+    return unless @pendingScrollTop?
+
+    scrollTop = @constrainScrollTop(@pendingScrollTop)
+    if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
+      @realScrollTop = scrollTop
+      @scrollTop = Math.round(scrollTop)
+      @scrollRow = Math.round(@scrollTop / @lineHeight)
+      @model.setScrollRow(@scrollRow)
+
+      @didStartScrolling()
+      @emitter.emit 'did-change-scroll-top', @scrollTop
+
+    @pendingScrollTop = null
+
+  restoreScrollPosition: ->
+    return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()
+
+    @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
+    @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
+
+    @hasRestoredScrollPosition = true
+
+  updateScrollPosition: ->
+    @restoreScrollPosition()
+    @commitPendingLogicalScrollPosition()
+    @commitPendingScrollLeftPosition()
+    @commitPendingScrollTopPosition()
+
+  canScrollLeftTo: (scrollLeft) ->
+    @scrollLeft isnt @constrainScrollLeft(scrollLeft)
+
+  canScrollTopTo: (scrollTop) ->
+    @scrollTop isnt @constrainScrollTop(scrollTop)
+
+  onDidChangeScrollTop: (callback) ->
+    @emitter.on 'did-change-scroll-top', callback
+
+  onDidChangeScrollLeft: (callback) ->
+    @emitter.on 'did-change-scroll-left', callback
+
+  getVisibleRowRange: ->
+    [@startRow, @endRow]
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    targetTop = pixelPosition.top
+    targetLeft = pixelPosition.left
+    defaultCharWidth = @baseCharacterWidth
+    row = Math.floor(targetTop / @lineHeight)
+    targetLeft = 0 if row < 0
+    targetLeft = Infinity if row > @model.getLastScreenRow()
+    row = Math.min(row, @model.getLastScreenRow())
+    row = Math.max(0, row)
+
+    left = 0
+    column = 0
+
+    iterator = @model.tokenizedLineForScreenRow(row).getTokenIterator()
+    while iterator.next()
+      charWidths = @getScopedCharacterWidths(iterator.getScopes())
+      value = iterator.getText()
+      valueIndex = 0
+      while valueIndex < value.length
+        if iterator.isPairedCharacter()
+          char = value
+          charLength = 2
+          valueIndex += 2
+        else
+          char = value[valueIndex]
+          charLength = 1
+          valueIndex++
+
+        charWidth = charWidths[char] ? defaultCharWidth
+        break if targetLeft <= left + (charWidth / 2)
+        left += charWidth
+        column += charLength
+
+    new Point(row, column)

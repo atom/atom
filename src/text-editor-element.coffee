@@ -181,7 +181,7 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel position.
   pixelPositionForBufferPosition: (bufferPosition) ->
-    @getModel().pixelPositionForBufferPosition(bufferPosition, true)
+    @component.pixelPositionForBufferPosition(bufferPosition)
 
   # Extended: Converts a screen position to a pixel position.
   #
@@ -190,21 +190,21 @@ class TextEditorElement extends HTMLElement
   #
   # Returns an {Object} with two values: `top` and `left`, representing the pixel positions.
   pixelPositionForScreenPosition: (screenPosition) ->
-    @getModel().pixelPositionForScreenPosition(screenPosition, true)
+    @component.pixelPositionForScreenPosition(screenPosition)
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # top of the editor.
   #
   # Returns a {Number}.
   getFirstVisibleScreenRow: ->
-    @getModel().getFirstVisibleScreenRow(true)
+    @getVisibleRowRange()[0]
 
   # Extended: Retrieves the number of the row that is visible and currently at the
   # bottom of the editor.
   #
   # Returns a {Number}.
   getLastVisibleScreenRow: ->
-    @getModel().getLastVisibleScreenRow(true)
+    @getVisibleRowRange()[1]
 
   # Extended: call the given `callback` when the editor is attached to the DOM.
   #
@@ -217,6 +217,90 @@ class TextEditorElement extends HTMLElement
   # * `callback` {Function}
   onDidDetach: (callback) ->
     @emitter.on("did-detach", callback)
+
+  onDidChangeScrollTop: (callback) ->
+    @component.onDidChangeScrollTop(callback)
+
+  onDidChangeScrollLeft: (callback) ->
+    @component.onDidChangeScrollLeft(callback)
+
+  setScrollLeft: (scrollLeft) ->
+    @component.setScrollLeft(scrollLeft)
+
+  setScrollRight: (scrollRight) ->
+    @component.setScrollRight(scrollRight)
+
+  setScrollTop: (scrollTop) ->
+    @component.setScrollTop(scrollTop)
+
+  setScrollBottom: (scrollBottom) ->
+    @component.setScrollBottom(scrollBottom)
+
+  # Essential: Scrolls the editor to the top
+  scrollToTop: ->
+    @setScrollTop(0)
+
+  # Essential: Scrolls the editor to the bottom
+  scrollToBottom: ->
+    @setScrollBottom(Infinity)
+
+  getScrollTop: ->
+    @component.getScrollTop()
+
+  getScrollLeft: ->
+    @component.getScrollLeft()
+
+  getScrollRight: ->
+    @component.getScrollRight()
+
+  getScrollBottom: ->
+    @component.getScrollBottom()
+
+  getScrollHeight: ->
+    @component.getScrollHeight()
+
+  getScrollWidth: ->
+    @component.getScrollWidth()
+
+  getVerticalScrollbarWidth: ->
+    @component.getVerticalScrollbarWidth()
+
+  getHorizontalScrollbarHeight: ->
+    @component.getHorizontalScrollbarHeight()
+
+  getVisibleRowRange: ->
+    @component.getVisibleRowRange()
+
+  intersectsVisibleRowRange: (startRow, endRow) ->
+    [visibleStart, visibleEnd] = @getVisibleRowRange()
+    not (endRow <= visibleStart or visibleEnd <= startRow)
+
+  selectionIntersectsVisibleRowRange: (selection) ->
+    {start, end} = selection.getScreenRange()
+    @intersectsVisibleRowRange(start.row, end.row + 1)
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    @component.screenPositionForPixelPosition(pixelPosition)
+
+  pixelRectForScreenRange: (screenRange) ->
+    @component.pixelRectForScreenRange(screenRange)
+
+  pixelRangeForScreenRange: (screenRange) ->
+    @component.pixelRangeForScreenRange(screenRange)
+
+  setWidth: (width) ->
+    @style.width = (@component.getGutterWidth() + width) + "px"
+    @component.measureDimensions()
+
+  getWidth: ->
+    @offsetWidth - @component.getGutterWidth()
+
+  setHeight: (height) ->
+    @style.height = height + "px"
+    @component.measureDimensions()
+
+  getHeight: ->
+    @offsetHeight
 
 stopEventPropagation = (commandListeners) ->
   newCommandListeners = {}
