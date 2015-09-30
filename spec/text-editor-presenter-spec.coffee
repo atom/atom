@@ -102,6 +102,30 @@ describe "TextEditorPresenter", ->
 
         expect(stateFn(presenter).tiles[12]).toBeUndefined()
 
+      it "includes state for tiles containing screen rows to measure", ->
+        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
+        presenter.setScreenRowsToMeasure([10, 12])
+
+        expect(stateFn(presenter).tiles[0]).toBeDefined()
+        expect(stateFn(presenter).tiles[2]).toBeDefined()
+        expect(stateFn(presenter).tiles[4]).toBeDefined()
+        expect(stateFn(presenter).tiles[6]).toBeDefined()
+        expect(stateFn(presenter).tiles[8]).toBeUndefined()
+        expect(stateFn(presenter).tiles[10]).toBeDefined()
+        expect(stateFn(presenter).tiles[12]).toBeDefined()
+
+      it "excludes invalid tiles for screen rows to measure", ->
+        presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
+        presenter.setScreenRowsToMeasure([20, 30]) # unexisting rows
+
+        expect(stateFn(presenter).tiles[0]).toBeDefined()
+        expect(stateFn(presenter).tiles[2]).toBeDefined()
+        expect(stateFn(presenter).tiles[4]).toBeDefined()
+        expect(stateFn(presenter).tiles[6]).toBeDefined()
+        expect(stateFn(presenter).tiles[8]).toBeUndefined()
+        expect(stateFn(presenter).tiles[10]).toBeUndefined()
+        expect(stateFn(presenter).tiles[12]).toBeUndefined()
+
       it "includes state for all tiles if no external ::explicitHeight is assigned", ->
         presenter = buildPresenter(explicitHeight: null, tileSize: 2)
         expect(stateFn(presenter).tiles[0]).toBeDefined()

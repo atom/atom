@@ -30,6 +30,7 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
+    @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
     @observeModel()
@@ -370,8 +371,8 @@ class TextEditorPresenter
     screenRows = [startRow...endRow]
     if longestScreenRow = @model.getLongestScreenRow()
       screenRows.push(longestScreenRow)
-    if @screenRowsToMeasure?
-      screenRows.push(@screenRowsToMeasure...)
+    for row in @screenRowsToMeasure when @constrainRow(row) is row
+      screenRows.push(row)
 
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
@@ -380,14 +381,6 @@ class TextEditorPresenter
     return if not screenRows? or screenRows.length is 0
 
     @screenRowsToMeasure = screenRows
-    @shouldUpdateLinesState = true
-    @shouldUpdateLineNumbersState = true
-    @shouldUpdateDecorations = true
-
-  clearScreenRowsToMeasure: ->
-    return if not screenRows? or screenRows.length is 0
-
-    @screenRowsToMeasure = []
     @shouldUpdateLinesState = true
     @shouldUpdateLineNumbersState = true
     @shouldUpdateDecorations = true
@@ -403,7 +396,7 @@ class TextEditorPresenter
     zIndex = 0
 
     for tileStartRow in [@tileForRow(endRow)..@tileForRow(startRow)] by -@tileSize
-      tileEndRow = Math.min(@model.getScreenLineCount(), tileStartRow + @tileSize)
+      tileEndRow = @constrainRow(tileStartRow + @tileSize)
       rowsWithinTile = []
 
       while screenRowIndex >= 0
