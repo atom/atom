@@ -171,6 +171,8 @@ class Atom extends Model
 
     KeymapManager = require './keymap-extensions'
     @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
+    @keymaps.subscribeToFileReadFailure()
+    @keymaps.loadBundledKeymaps()
 
     TooltipManager = require './tooltip-manager'
     @tooltips = new TooltipManager(keymapManager: @keymaps)
@@ -286,8 +288,6 @@ class Atom extends Model
 
     # Make react.js faster
     process.env.NODE_ENV ?= 'production' unless devMode
-
-    @keymaps.subscribeToFileReadFailure()
 
     document.head.appendChild(new StylesElement)
 
@@ -611,7 +611,6 @@ class Atom extends Model
       console.warn error.message if error?
 
     @loadConfig()
-    @keymaps.loadBundledKeymaps()
     @themes.loadBaseStylesheets()
     @packages.loadPackages()
     @deserializeEditorWindow()
