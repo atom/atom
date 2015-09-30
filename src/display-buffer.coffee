@@ -1,8 +1,6 @@
 _ = require 'underscore-plus'
-Serializable = require 'serializable'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
-Grim = require 'grim'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
@@ -18,12 +16,20 @@ class BufferToScreenConversionError extends Error
 
 module.exports =
 class DisplayBuffer extends Model
-  Serializable.includeInto(this)
-
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
   scopedCharacterWidthsChangeCount: 0
   changeCount: 0
+  softWrapped: null
+  editorWidthInChars: null
+  lineHeightInPixels: null
+  defaultCharWidth: null
+  height: null
+  width: null
+
+  @deserialize: (state) ->
+    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer)
+    new this(state)
 
   constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
     super
@@ -83,23 +89,16 @@ class DisplayBuffer extends Model
 
     @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'DisplayBuffer'
     id: @id
     softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
-    scrollTop: @scrollTop
-    scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
 
-  deserializeParams: (params) ->
-    params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
-    params
-
   copy: ->
     newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @largeFileMode})
-    newDisplayBuffer.setScrollTop(@getScrollTop())
-    newDisplayBuffer.setScrollLeft(@getScrollLeft())
 
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
@@ -126,19 +125,8 @@ class DisplayBuffer extends Model
   onDidChangeCharacterWidths: (callback) ->
     @emitter.on 'did-change-character-widths', callback
 
-  onDidChangeScrollTop: (callback) ->
-    @emitter.on 'did-change-scroll-top', callback
-
-  onDidChangeScrollLeft: (callback) ->
-    @emitter.on 'did-change-scroll-left', callback
-
-  observeScrollTop: (callback) ->
-    callback(@scrollTop)
-    @onDidChangeScrollTop(callback)
-
-  observeScrollLeft: (callback) ->
-    callback(@scrollLeft)
-    @onDidChangeScrollLeft(callback)
+  onDidRequestAutoscroll: (callback) ->
+    @emitter.on 'did-request-autoscroll', callback
 
   observeDecorations: (callback) ->
     callback(decoration) for decoration in @getDecorations()
@@ -157,11 +145,9 @@ class DisplayBuffer extends Model
     @emitter.on 'did-update-markers', callback
 
   emitDidChange: (eventProperties, refreshMarkers=true) ->
-    @emit 'changed', eventProperties if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', eventProperties
     if refreshMarkers
       @refreshMarkerScreenPositions()
-    @emit 'markers-updated' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-update-markers'
 
   updateWrappedScreenLines: ->
@@ -183,104 +169,23 @@ class DisplayBuffer extends Model
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getVerticalScrollMarginInPixels: -> @getVerticalScrollMargin() * @getLineHeightInPixels()
-
   getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getHorizontalScrollMarginInPixels: -> scrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
-
-  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
-  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
-
-  getVerticalScrollbarWidth: -> @verticalScrollbarWidth
-  setVerticalScrollbarWidth: (@verticalScrollbarWidth) -> @verticalScrollbarWidth
-
   getHeight: ->
-    if @height?
-      @height
-    else
-      if @horizontallyScrollable()
-        @getScrollHeight() + @getHorizontalScrollbarHeight()
-      else
-        @getScrollHeight()
+    @height
 
-  setHeight: (@height) -> @height
-
-  getClientHeight: (reentrant) ->
-    if @horizontallyScrollable(reentrant)
-      @getHeight() - @getHorizontalScrollbarHeight()
-    else
-      @getHeight()
-
-  getClientWidth: (reentrant) ->
-    if @verticallyScrollable(reentrant)
-      @getWidth() - @getVerticalScrollbarWidth()
-    else
-      @getWidth()
-
-  horizontallyScrollable: (reentrant) ->
-    return false unless @width?
-    return false if @isSoftWrapped()
-    if reentrant
-      @getScrollWidth() > @getWidth()
-    else
-      @getScrollWidth() > @getClientWidth(true)
-
-  verticallyScrollable: (reentrant) ->
-    return false unless @height?
-    if reentrant
-      @getScrollHeight() > @getHeight()
-    else
-      @getScrollHeight() > @getClientHeight(true)
+  setHeight: (@height) ->
+    @height
 
   getWidth: ->
-    if @width?
-      @width
-    else
-      if @verticallyScrollable()
-        @getScrollWidth() + @getVerticalScrollbarWidth()
-      else
-        @getScrollWidth()
+    @width
 
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
     @updateWrappedScreenLines() if newWidth isnt oldWidth and @isSoftWrapped()
-    @setScrollTop(@getScrollTop()) # Ensure scrollTop is still valid in case horizontal scrollbar disappeared
     @width
-
-  getScrollTop: -> @scrollTop
-  setScrollTop: (scrollTop) ->
-    scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
-    unless scrollTop is @scrollTop
-      @scrollTop = scrollTop
-      @emitter.emit 'did-change-scroll-top', @scrollTop
-    @scrollTop
-
-  getMaxScrollTop: ->
-    @getScrollHeight() - @getClientHeight()
-
-  getScrollBottom: -> @scrollTop + @getClientHeight()
-  setScrollBottom: (scrollBottom) ->
-    @setScrollTop(scrollBottom - @getClientHeight())
-    @getScrollBottom()
-
-  getScrollLeft: -> @scrollLeft
-  setScrollLeft: (scrollLeft) ->
-    scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
-    unless scrollLeft is @scrollLeft
-      @scrollLeft = scrollLeft
-      @emitter.emit 'did-change-scroll-left', @scrollLeft
-    @scrollLeft
-
-  getMaxScrollLeft: ->
-    @getScrollWidth() - @getClientWidth()
-
-  getScrollRight: -> @scrollLeft + @width
-  setScrollRight: (scrollRight) ->
-    @setScrollLeft(scrollRight - @width)
-    @getScrollRight()
 
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
@@ -289,7 +194,6 @@ class DisplayBuffer extends Model
   setDefaultCharWidth: (defaultCharWidth) ->
     if defaultCharWidth isnt @defaultCharWidth
       @defaultCharWidth = defaultCharWidth
-      @computeScrollWidth()
     defaultCharWidth
 
   getCursorWidth: -> 1
@@ -318,104 +222,20 @@ class DisplayBuffer extends Model
     @characterWidthsChanged() unless @batchingCharacterMeasurement
 
   characterWidthsChanged: ->
-    @computeScrollWidth()
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change-character-widths', @scopedCharacterWidthsChangeCount
 
   clearScopedCharWidths: ->
     @charWidthsByScope = {}
 
-  getScrollHeight: ->
-    lineHeight = @getLineHeightInPixels()
-    return 0 unless lineHeight > 0
-
-    scrollHeight = @getLineCount() * lineHeight
-    if @height? and @configSettings.scrollPastEnd
-      scrollHeight = scrollHeight + @height - (lineHeight * 3)
-
-    scrollHeight
-
-  getScrollWidth: ->
-    @scrollWidth
-
-  # Returns an {Array} of two numbers representing the first and the last visible rows.
-  getVisibleRowRange: ->
-    return [0, 0] unless @getLineHeightInPixels() > 0
-
-    startRow = Math.floor(@getScrollTop() / @getLineHeightInPixels())
-    endRow = Math.ceil((@getScrollTop() + @getHeight()) / @getLineHeightInPixels()) - 1
-    endRow = Math.min(@getLineCount(), endRow)
-
-    [startRow, endRow]
-
-  intersectsVisibleRowRange: (startRow, endRow) ->
-    [visibleStart, visibleEnd] = @getVisibleRowRange()
-    not (endRow <= visibleStart or visibleEnd <= startRow)
-
-  selectionIntersectsVisibleRowRange: (selection) ->
-    {start, end} = selection.getScreenRange()
-    @intersectsVisibleRowRange(start.row, end.row + 1)
-
-  scrollToScreenRange: (screenRange, options) ->
-    verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
-    horizontalScrollMarginInPixels = @getHorizontalScrollMarginInPixels()
-
-    {top, left} = @pixelRectForScreenRange(new Range(screenRange.start, screenRange.start))
-    {top: endTop, left: endLeft, height: endHeight} = @pixelRectForScreenRange(new Range(screenRange.end, screenRange.end))
-    bottom = endTop + endHeight
-    right = endLeft
-
-    if options?.center
-      desiredScrollCenter = (top + bottom) / 2
-      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
-        desiredScrollTop =  desiredScrollCenter - @getHeight() / 2
-        desiredScrollBottom =  desiredScrollCenter + @getHeight() / 2
-    else
-      desiredScrollTop = top - verticalScrollMarginInPixels
-      desiredScrollBottom = bottom + verticalScrollMarginInPixels
-
-    desiredScrollLeft = left - horizontalScrollMarginInPixels
-    desiredScrollRight = right + horizontalScrollMarginInPixels
-
-    if options?.reversed ? true
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-
-      if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
-      if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
-    else
-      if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop)
-      if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom)
-
-      if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft)
-      if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight)
+  scrollToScreenRange: (screenRange, options = {}) ->
+    scrollEvent = {screenRange, options}
+    @emitter.emit "did-request-autoscroll", scrollEvent
 
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
 
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition), options)
-
-  pixelRectForScreenRange: (screenRange) ->
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeightInPixels()
-      width = @getScrollWidth()
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @getLineHeightInPixels()
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}
 
   # Retrieves the current tab length.
   #
@@ -437,7 +257,6 @@ class DisplayBuffer extends Model
       @softWrapped = softWrapped
       @updateWrappedScreenLines()
       softWrapped = @isSoftWrapped()
-      @emit 'soft-wrap-changed', softWrapped if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-soft-wrapped', softWrapped
       softWrapped
     else
@@ -461,8 +280,7 @@ class DisplayBuffer extends Model
 
   # Returns the editor width in characters for soft wrap.
   getEditorWidthInChars: ->
-    width = @width ? @getScrollWidth()
-    width -= @getVerticalScrollbarWidth()
+    width = @getWidth()
     if width? and @defaultCharWidth > 0
       Math.max(0, Math.floor(width / @defaultCharWidth))
     else
@@ -673,80 +491,6 @@ class DisplayBuffer extends Model
     start = @bufferPositionForScreenPosition(screenRange.start)
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
-
-  pixelRangeForScreenRange: (screenRange, clip=true) ->
-    {start, end} = Range.fromObject(screenRange)
-    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
-
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @clipScreenPosition(screenPosition) if clip
-
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-    defaultCharWidth = @defaultCharWidth
-
-    top = targetRow * @lineHeightInPixels
-    left = 0
-    column = 0
-
-    iterator = @tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharWidths(iterator.getScopes())
-      valueIndex = 0
-      value = iterator.getText()
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        return {top, left} if column is targetColumn
-        left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column += charLength
-    {top, left}
-
-  screenPositionForPixelPosition: (pixelPosition) ->
-    targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    defaultCharWidth = @defaultCharWidth
-    row = Math.floor(targetTop / @getLineHeightInPixels())
-    targetLeft = 0 if row < 0
-    targetLeft = Infinity if row > @getLastRow()
-    row = Math.min(row, @getLastRow())
-    row = Math.max(0, row)
-
-    left = 0
-    column = 0
-
-    iterator = @tokenizedLineForScreenRow(row).getTokenIterator()
-    while iterator.next()
-      charWidths = @getScopedCharWidths(iterator.getScopes())
-      value = iterator.getText()
-      valueIndex = 0
-      while valueIndex < value.length
-        if iterator.isPairedCharacter()
-          char = value
-          charLength = 2
-          valueIndex += 2
-        else
-          char = value[valueIndex]
-          charLength = 1
-          valueIndex++
-
-        charWidth = charWidths[char] ? defaultCharWidth
-        break if targetLeft <= left + (charWidth / 2)
-        left += charWidth
-        column += charLength
-
-    new Point(row, column)
-
-  pixelPositionForBufferPosition: (bufferPosition) ->
-    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(bufferPosition))
 
   # Gets the number of screen lines.
   #
@@ -999,7 +743,6 @@ class DisplayBuffer extends Model
     @decorationsByMarkerId[marker.id].push(decoration)
     @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
     @decorationsById[decoration.id] = decoration
-    @emit 'decoration-added', decoration if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-add-decoration', decoration
     decoration
 
@@ -1011,7 +754,6 @@ class DisplayBuffer extends Model
     if index > -1
       decorations.splice(index, 1)
       delete @decorationsById[decoration.id]
-      @emit 'decoration-removed', decoration if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
       delete @overlayDecorationsById[decoration.id]
@@ -1189,7 +931,6 @@ class DisplayBuffer extends Model
     @changeCount = @tokenizedBuffer.changeCount
     {start, end, delta, bufferChange} = tokenizedBufferChange
     @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
-    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if delta < 0
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
     return if @largeFileMode
@@ -1294,13 +1035,6 @@ class DisplayBuffer extends Model
         @longestScreenRow = screenRow
         @maxLineLength = length
 
-    @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength
-
-  computeScrollWidth: ->
-    @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
-    @scrollWidth += 1 unless @isSoftWrapped()
-    @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
-
   handleBufferMarkerCreated: (textBufferMarker) =>
     if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
       fold = new Fold(this, textBufferMarker)
@@ -1310,7 +1044,6 @@ class DisplayBuffer extends Model
     if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', marker if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-create-marker', marker
 
   decorateFold: (fold) ->
@@ -1338,58 +1071,3 @@ class DisplayBuffer extends Model
 
     atom.assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
       error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
-
-if Grim.includeDeprecatedAPIs
-  DisplayBuffer.properties
-    softWrapped: null
-    editorWidthInChars: null
-    lineHeightInPixels: null
-    defaultCharWidth: null
-    height: null
-    width: null
-    scrollTop: 0
-    scrollLeft: 0
-    scrollWidth: 0
-    verticalScrollbarWidth: 15
-    horizontalScrollbarHeight: 15
-
-  EmitterMixin = require('emissary').Emitter
-
-  DisplayBuffer::on = (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChange instead")
-      when 'grammar-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeGrammar instead")
-      when 'soft-wrap-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeSoftWrap instead")
-      when 'character-widths-changed'
-        Grim.deprecate("Use DisplayBuffer::onDidChangeCharacterWidths instead")
-      when 'decoration-added'
-        Grim.deprecate("Use DisplayBuffer::onDidAddDecoration instead")
-      when 'decoration-removed'
-        Grim.deprecate("Use DisplayBuffer::onDidRemoveDecoration instead")
-      when 'decoration-changed'
-        Grim.deprecate("Use decoration.getMarker().onDidChange() instead")
-      when 'decoration-updated'
-        Grim.deprecate("Use Decoration::onDidChangeProperties instead")
-      when 'marker-created'
-        Grim.deprecate("Use Decoration::onDidCreateMarker instead")
-      when 'markers-updated'
-        Grim.deprecate("Use Decoration::onDidUpdateMarkers instead")
-      else
-        Grim.deprecate("DisplayBuffer::on is deprecated. Use event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
-else
-  DisplayBuffer::softWrapped = null
-  DisplayBuffer::editorWidthInChars = null
-  DisplayBuffer::lineHeightInPixels = null
-  DisplayBuffer::defaultCharWidth = null
-  DisplayBuffer::height = null
-  DisplayBuffer::width = null
-  DisplayBuffer::scrollTop = 0
-  DisplayBuffer::scrollLeft = 0
-  DisplayBuffer::scrollWidth = 0
-  DisplayBuffer::verticalScrollbarWidth = 15
-  DisplayBuffer::horizontalScrollbarHeight = 15

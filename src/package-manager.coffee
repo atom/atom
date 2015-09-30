@@ -3,8 +3,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 fs = require 'fs-plus'
-Q = require 'q'
-Grim = require 'grim'
 
 ServiceHub = require 'service-hub'
 Package = require './package'
@@ -328,18 +326,10 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    # TODO: remove after a few atom versions.
-    @uninstallAutocompletePlus()
-
     packagePaths = @getAvailablePackagePaths()
-
-    # TODO: remove after a few atom versions.
-    @migrateSublimeTabsSettings(packagePaths)
-
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
-    @emit 'loaded' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
@@ -355,7 +345,7 @@ class PackageManager
         @handleMetadataError(error, packagePath)
         return null
 
-      unless @isBundledPackage(metadata.name) or Grim.includeDeprecatedAPIs
+      unless @isBundledPackage(metadata.name)
         if @isDeprecatedPackage(metadata.name, metadata.version)
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
@@ -392,8 +382,7 @@ class PackageManager
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
-    Q.all(promises).then =>
-      @emit 'activated' if Grim.includeDeprecatedAPIs
+    Promise.all(promises).then =>
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
@@ -415,14 +404,14 @@ class PackageManager
   # Activate a single package by name
   activatePackage: (name) ->
     if pack = @getActivePackage(name)
-      Q(pack)
+      Promise.resolve(pack)
     else if pack = @loadPackage(name)
       pack.activate().then =>
         @activePackages[pack.name] = pack
         @emitter.emit 'did-activate-package', pack
         pack
     else
-      Q.reject(new Error("Failed to load package '#{name}'"))
+      Promise.reject(new Error("Failed to load package '#{name}'"))
 
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
@@ -456,35 +445,6 @@ class PackageManager
     message = "Failed to load the #{path.basename(packagePath)} package"
     atom.notifications.addError(message, {stack, detail, dismissable: true})
 
-  # TODO: remove these autocomplete-plus specific helpers after a few versions.
-  uninstallAutocompletePlus: ->
-    packageDir = null
-    devDir = path.join("dev", "packages")
-    for packageDirPath in @packageDirPaths
-      if not packageDirPath.endsWith(devDir)
-        packageDir = packageDirPath
-        break
-
-    if packageDir?
-      dirsToRemove = [
-        path.join(packageDir, 'autocomplete-plus')
-        path.join(packageDir, 'autocomplete-atom-api')
-        path.join(packageDir, 'autocomplete-css')
-        path.join(packageDir, 'autocomplete-html')
-        path.join(packageDir, 'autocomplete-snippets')
-      ]
-      for dirToRemove in dirsToRemove
-        @uninstallDirectory(dirToRemove)
-    return
-
-  # TODO: remove this after a few versions
-  migrateSublimeTabsSettings: (packagePaths) ->
-    return if Grim.includeDeprecatedAPIs
-    for packagePath in packagePaths when path.basename(packagePath) is 'sublime-tabs'
-      atom.config.removeAtKeyPath('core.disabledPackages', 'tree-view')
-      atom.config.removeAtKeyPath('core.disabledPackages', 'tabs')
-    return
-
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->
       fs.isSymbolicLink directory, (isSymLink) -> resolve(isSymLink)
@@ -496,25 +456,3 @@ class PackageManager
       [isSymLink, isDir] = values
       if not isSymLink and isDir
         fs.remove directory, ->
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(PackageManager)
-
-  PackageManager::on = (eventName) ->
-    switch eventName
-      when 'loaded'
-        Grim.deprecate 'Use PackageManager::onDidLoadInitialPackages instead'
-      when 'activated'
-        Grim.deprecate 'Use PackageManager::onDidActivateInitialPackages instead'
-      else
-        Grim.deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
-  PackageManager::onDidLoadAll = (callback) ->
-    Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
-    @onDidLoadInitialPackages(callback)
-
-  PackageManager::onDidActivateAll = (callback) ->
-    Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")
-    @onDidActivateInitialPackages(callback)

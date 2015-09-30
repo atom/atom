@@ -6,8 +6,6 @@ async = require 'async'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
-Q = require 'q'
-{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
@@ -15,7 +13,7 @@ BufferedProcess = require './buffered-process'
 
 packagesCache = require('../package.json')?._atomPackages ? {}
 
-# Loads and activates a package's main module and resources such as
+# Extended: Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
@@ -48,14 +46,6 @@ class Package
     metadata ?= {}
     unless typeof metadata.name is 'string' and metadata.name.length > 0
       metadata.name = packageName
-
-    if includeDeprecatedAPIs and metadata.stylesheetMain?
-      deprecate("Use the `mainStyleSheet` key instead of `stylesheetMain` in the `package.json` of `#{packageName}`", {packageName})
-      metadata.mainStyleSheet = metadata.stylesheetMain
-
-    if includeDeprecatedAPIs and metadata.stylesheets?
-      deprecate("Use the `styleSheets` key instead of `stylesheets` in the `package.json` of `#{packageName}`", {packageName})
-      metadata.styleSheets = metadata.stylesheets
 
     metadata
 
@@ -139,20 +129,21 @@ class Package
 
   activate: ->
     @grammarsPromise ?= @loadGrammars()
+    @activationPromise ?=
+      new Promise (resolve, reject) =>
+        @resolveActivationPromise = resolve
+        @rejectActivationPromise = reject
+        @measure 'activateTime', =>
+          try
+            @activateResources()
+            if @activationShouldBeDeferred()
+              @subscribeToDeferredActivation()
+            else
+              @activateNow()
+          catch error
+            @handleError("Failed to activate the #{@name} package", error)
 
-    unless @activationDeferred?
-      @activationDeferred = Q.defer()
-      @measure 'activateTime', =>
-        try
-          @activateResources()
-          if @activationShouldBeDeferred()
-            @subscribeToDeferredActivation()
-          else
-            @activateNow()
-        catch error
-          @handleError("Failed to activate the #{@name} package", error)
-
-    Q.all([@grammarsPromise, @settingsPromise, @activationDeferred.promise])
+    Promise.all([@grammarsPromise, @settingsPromise, @activationPromise])
 
   activateNow: ->
     try
@@ -165,7 +156,7 @@ class Package
     catch error
       @handleError("Failed to activate the #{@name} package", error)
 
-    @activationDeferred?.resolve()
+    @resolveActivationPromise?()
 
   activateConfig: ->
     return if @configActivated
@@ -174,11 +165,6 @@ class Package
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
         atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      else if @mainModule.configDefaults? and typeof @mainModule.configDefaults is 'object'
-        deprecate("""Use a config schema instead. See the configuration section
-        of https://atom.io/docs/latest/hacking-atom-package-word-count and
-        https://atom.io/docs/api/latest/Config for more details""", {packageName: @name})
-        atom.config.setDefaults(@name, @mainModule.configDefaults)
       @mainModule.activateConfig?()
     @configActivated = true
 
@@ -211,17 +197,6 @@ class Package
     for [menuPath, map] in @menus when map['context-menu']?
       try
         itemsBySelector = map['context-menu']
-
-        # Detect deprecated format for items object
-        for key, value of itemsBySelector
-          unless _.isArray(value)
-            deprecate("""
-              The context menu CSON format has changed. Please see
-              https://atom.io/docs/api/latest/ContextMenuManager#context-menu-cson-format
-              for more info.
-            """, {packageName: @name})
-            itemsBySelector = atom.contextMenu.convertLegacyItemsBySelector(itemsBySelector)
-
         @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
       catch error
         if error.code is 'EBADSELECTOR'
@@ -309,11 +284,7 @@ class Package
       [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
-    if fs.isDirectorySync(path.join(@path, 'stylesheets'))
-      deprecate("Store package style sheets in the `styles/` directory instead of `stylesheets/` in the `#{@name}` package", packageName: @name)
-      path.join(@path, 'stylesheets')
-    else
-      path.join(@path, 'styles')
+    path.join(@path, 'styles')
 
   getStylesheetPaths: ->
     stylesheetDirPath = @getStylesheetsPath()
@@ -345,7 +316,7 @@ class Package
     @grammarsActivated = true
 
   loadGrammars: ->
-    return Q() if @grammarsLoaded
+    return Promise.resolve() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
       atom.grammars.readGrammar grammarPath, (error, grammar) =>
@@ -360,14 +331,13 @@ class Package
           grammar.activate() if @grammarsActivated
         callback()
 
-    deferred = Q.defer()
-    grammarsDirPath = path.join(@path, 'grammars')
-    fs.exists grammarsDirPath, (grammarsDirExists) ->
-      return deferred.resolve() unless grammarsDirExists
+    new Promise (resolve) =>
+      grammarsDirPath = path.join(@path, 'grammars')
+      fs.exists grammarsDirPath, (grammarsDirExists) ->
+        return resolve() unless grammarsDirExists
 
-      fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
-        async.each grammarPaths, loadGrammar, -> deferred.resolve()
-    deferred.promise
+        fs.list grammarsDirPath, ['json', 'cson'], (error, grammarPaths=[]) ->
+          async.each grammarPaths, loadGrammar, -> resolve()
 
   loadSettings: ->
     @settings = []
@@ -383,20 +353,14 @@ class Package
           settings.activate() if @settingsActivated
         callback()
 
-    deferred = Q.defer()
-
-    if fs.isDirectorySync(path.join(@path, 'scoped-properties'))
-      settingsDirPath = path.join(@path, 'scoped-properties')
-      deprecate("Store package settings files in the `settings/` directory instead of `scoped-properties/`", packageName: @name)
-    else
+    new Promise (resolve) =>
       settingsDirPath = path.join(@path, 'settings')
 
-    fs.exists settingsDirPath, (settingsDirExists) ->
-      return deferred.resolve() unless settingsDirExists
+      fs.exists settingsDirPath, (settingsDirExists) ->
+        return resolve() unless settingsDirExists
 
-      fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
-        async.each settingsPaths, loadSettingsFile, -> deferred.resolve()
-    deferred.promise
+        fs.list settingsDirPath, ['json', 'cson'], (error, settingsPaths=[]) ->
+          async.each settingsPaths, loadSettingsFile, -> resolve()
 
   serialize: ->
     if @mainActivated
@@ -406,8 +370,10 @@ class Package
         console.error "Error serializing package '#{@name}'", e.stack
 
   deactivate: ->
-    @activationDeferred?.reject()
-    @activationDeferred = null
+    @rejectActivationPromise?()
+    @activationPromise = null
+    @resolveActivationPromise = null
+    @rejectActivationPromise = null
     @activationCommandSubscriptions?.dispose()
     @deactivateResources()
     @deactivateConfig()
@@ -418,7 +384,6 @@ class Package
         @mainActivated = false
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
-    @emit 'deactivated' if includeDeprecatedAPIs
     @emitter.emit 'did-deactivate'
 
   deactivateConfig: ->
@@ -533,31 +498,6 @@ class Package
           @activationCommands[selector].push(commands)
         else if _.isArray(commands)
           @activationCommands[selector].push(commands...)
-
-    if @metadata.activationEvents?
-      deprecate("""
-        Use `activationCommands` instead of `activationEvents` in your package.json
-        Commands should be grouped by selector as follows:
-        ```json
-          "activationCommands": {
-            "atom-workspace": ["foo:bar", "foo:baz"],
-            "atom-text-editor": ["foo:quux"]
-          }
-        ```
-      """, {packageName: @name})
-      if _.isArray(@metadata.activationEvents)
-        for eventName in @metadata.activationEvents
-          @activationCommands['atom-workspace'] ?= []
-          @activationCommands['atom-workspace'].push(eventName)
-      else if _.isString(@metadata.activationEvents)
-        eventName = @metadata.activationEvents
-        @activationCommands['atom-workspace'] ?= []
-        @activationCommands['atom-workspace'].push(eventName)
-      else
-        for eventName, selector of @metadata.activationEvents
-          selector ?= 'atom-workspace'
-          @activationCommands[selector] ?= []
-          @activationCommands[selector].push(eventName)
 
     @activationCommands
 
@@ -727,15 +667,3 @@ class Package
       stack = error.stack ? error
 
     atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
-
-if includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(Package)
-
-  Package::on = (eventName) ->
-    switch eventName
-      when 'deactivated'
-        deprecate 'Use Package::onDidDeactivate instead'
-      else
-        deprecate 'Package::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)

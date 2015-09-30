@@ -66,7 +66,7 @@ describe "Project", ->
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = atom.project.testSerialization()
+        deserializedProject = Project.deserialize(atom.project.serialize())
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
@@ -75,7 +75,7 @@ describe "Project", ->
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = atom.project.testSerialization()
+        deserializedProject = Project.deserialize(atom.project.serialize())
 
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
@@ -91,7 +91,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.mkdirSync(pathToOpen)
-        deserializedProject = atom.project.testSerialization()
+        deserializedProject = Project.deserialize(atom.project.serialize())
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
@@ -104,7 +104,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.chmodSync(pathToOpen, '000')
-        deserializedProject = atom.project.testSerialization()
+        deserializedProject = Project.deserialize(atom.project.serialize())
         expect(deserializedProject.getBuffers().length).toBe 0
 
   describe "when an editor is saved and the project has no path", ->
@@ -200,18 +200,6 @@ describe "Project", ->
         runs ->
           expect(editor.buffer.getPath()).toBeUndefined()
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
-
-    it "returns number of read bytes as progress indicator", ->
-      filePath = atom.project.getDirectories()[0]?.resolve 'a'
-      totalBytes = 0
-      promise = atom.project.open(filePath)
-      promise.progress (bytesRead) -> totalBytes = bytesRead
-
-      waitsForPromise ->
-        promise
-
-      runs ->
-        expect(totalBytes).toBe fs.statSync(filePath).size
 
   describe ".bufferForPath(path)", ->
     [buffer] = []
@@ -520,36 +508,3 @@ describe "Project", ->
 
       randomPath = path.join("some", "random", "path")
       expect(atom.project.contains(randomPath)).toBe false
-
-  describe ".eachBuffer(callback)", ->
-    beforeEach ->
-      jasmine.snapshotDeprecations()
-      atom.project.bufferForPathSync('a')
-
-    afterEach ->
-      jasmine.restoreDeprecationsSnapshot()
-
-    it "invokes the callback for existing buffer", ->
-      count = 0
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-      atom.project.eachBuffer(callback)
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.project.getBuffers()[0]
-
-    it "invokes the callback for new buffers", ->
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-
-      atom.project.eachBuffer(callback)
-      count = 0
-      callbackBuffer = null
-      atom.project.bufferForPathSync(require.resolve('./fixtures/sample.txt'))
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.project.getBuffers()[1]

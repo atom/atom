@@ -3,6 +3,7 @@ GitRepository = require '../src/git-repository'
 fs = require 'fs-plus'
 path = require 'path'
 Task = require '../src/task'
+Project = require '../src/project'
 
 copyRepository = ->
   workingDirPath = temp.mkdirSync('atom-working-dir')
@@ -276,7 +277,7 @@ describe "GitRepository", ->
         atom.workspace.open('file.txt')
 
       runs ->
-        project2 = atom.project.testSerialization()
+        project2 = Project.deserialize(atom.project.serialize())
         buffer = project2.getBuffers()[0]
 
       waitsFor ->

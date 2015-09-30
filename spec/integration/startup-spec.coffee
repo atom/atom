@@ -6,20 +6,21 @@ return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # run them on Travis.
 return if process.env.TRAVIS
 
-fs = require "fs"
+fs = require "fs-plus"
 path = require "path"
 temp = require("temp").track()
 runAtom = require "./helpers/start-atom"
 CSON = require "season"
 
 describe "Starting Atom", ->
-  [tempDirPath, otherTempDirPath, atomHome] = []
+  atomHome = temp.mkdirSync('atom-home')
+  [tempDirPath, otherTempDirPath] = []
 
   beforeEach ->
     jasmine.useRealClock()
-
-    atomHome = temp.mkdirSync('atom-home')
     fs.writeFileSync(path.join(atomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config.cson')))
+    fs.removeSync(path.join(atomHome, 'storage'))
+
     tempDirPath = temp.mkdirSync("empty-dir")
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
 
