@@ -8,6 +8,13 @@ temp = require "temp"
 describe "the `atom` global", ->
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
+      originalPosition = null
+      beforeEach ->
+        originalPosition = atom.getPosition()
+
+      afterEach ->
+        atom.setPosition(originalPosition.x, originalPosition.y)
+
       it 'sets the position of the window, and can retrieve the position just set', ->
         atom.setPosition(22, 45)
         expect(atom.getPosition()).toEqual x: 22, y: 45
