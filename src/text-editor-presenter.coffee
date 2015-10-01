@@ -82,8 +82,14 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateReflowState()
 
+    if @shouldUpdateDecorations
+      @fetchDecorations()
+      @updateLineDecorations()
+
     if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
       @updateTilesState()
+      @shouldUpdateLinesState = false
+      @shouldUpdateLineNumbersState = false
       @shouldUpdateTilesState = true
 
     @updating = false
@@ -105,7 +111,7 @@ class TextEditorPresenter
     @updateScrollbarsState() if @shouldUpdateScrollbarsState
     @updateHiddenInputState() if @shouldUpdateHiddenInputState
     @updateContentState() if @shouldUpdateContentState
-    @updateDecorations() if @shouldUpdateDecorations
+    @updateHighlightDecorations() if @shouldUpdateDecorations
     @updateTilesState() if @shouldUpdateTilesState
     @updateCursorsState() if @shouldUpdateCursorsState
     @updateOverlaysState() if @shouldUpdateOverlaysState
@@ -1195,22 +1201,34 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  updateDecorations: ->
-    @rangesByDecorationId = {}
-    @lineDecorationsByScreenRow = {}
-    @lineNumberDecorationsByScreenRow = {}
-    @customGutterDecorationsByGutterNameAndScreenRow = {}
-    @visibleHighlights = {}
+  fetchDecorations: ->
+    @decorations = []
 
     return unless 0 <= @startRow <= @endRow <= Infinity
 
     for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
       range = @model.getMarker(markerId).getScreenRange()
       for decoration in decorations
-        if decoration.isType('line') or decoration.isType('gutter')
-          @addToLineDecorationCaches(decoration, range)
-        else if decoration.isType('highlight')
-          @updateHighlightState(decoration, range)
+        @decorations.push({decoration, range})
+
+  updateLineDecorations: ->
+    @rangesByDecorationId = {}
+    @lineDecorationsByScreenRow = {}
+    @lineNumberDecorationsByScreenRow = {}
+    @customGutterDecorationsByGutterNameAndScreenRow = {}
+
+    for {decoration, range} in @decorations
+      if decoration.isType('line') or decoration.isType('gutter')
+        @addToLineDecorationCaches(decoration, range)
+
+    return
+
+  updateHighlightDecorations: ->
+    @visibleHighlights = {}
+
+    for {decoration, range} in @decorations
+      if decoration.isType('highlight')
+        @updateHighlightState(decoration, range)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights
