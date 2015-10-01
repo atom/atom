@@ -246,7 +246,7 @@
   },
   "autocomplete-jedi": {
     "hasAlternative": true,
-    "alternative": "autocomplete-plus-python-jedi"
+    "alternative": "autocomplete-python"
   },
   "autocomplete-paths": {
     "version": "<=1.0.1",
@@ -267,6 +267,10 @@
     "version": "<=0.0.9",
     "hasDeprecations": true,
     "latestHasDeprecations": true
+  },
+  "autocomplete-plus-python-jedi": {
+    "hasAlternative": true,
+    "alternative": "autocomplete-python"
   },
   "autocomplete-snippets": {
     "version": "<=1.0.0",
