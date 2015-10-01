@@ -558,8 +558,6 @@ class Atom extends Model
       console.warn error.message if error?
 
     @config.load()
-    @themes.loadBaseStylesheets()
-
     @setBodyPlatformClass()
     document.head.appendChild(new StylesElement)
     @windowEventHandler = new WindowEventHandler(this)

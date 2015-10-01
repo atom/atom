@@ -20,7 +20,6 @@ TextEditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
 clipboard = require '../src/safe-clipboard'
 
-atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
 atom.themes.initialLoadComplete = true
 
