@@ -83,6 +83,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "atom-eslint": {
+    "hasAlternative": true,
+    "alternative": "linter"
+  },
   "atom-faker": {
     "version": "<=0.2.0",
     "hasDeprecations": true,
