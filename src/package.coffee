@@ -1,5 +1,4 @@
 path = require 'path'
-normalizePackageData = null
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -11,44 +10,10 @@ ModuleCache = require './module-cache'
 ScopedProperties = require './scoped-properties'
 BufferedProcess = require './buffered-process'
 
-packagesCache = require('../package.json')?._atomPackages ? {}
-
 # Extended: Loads and activates a package's main module and resources such as
 # stylesheets, keymaps, grammar, editor properties, and menus.
 module.exports =
 class Package
-  @isBundledPackagePath: (packagePath) ->
-    if atom.packages.devMode
-      return false unless atom.packages.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
-
-    @resourcePathWithTrailingSlash ?= "#{atom.packages.resourcePath}#{path.sep}"
-    packagePath?.startsWith(@resourcePathWithTrailingSlash)
-
-  @normalizeMetadata: (metadata) ->
-    unless metadata?._id
-      normalizePackageData ?= require 'normalize-package-data'
-      normalizePackageData(metadata)
-      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
-        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')
-
-  @loadMetadata: (packagePath, ignoreErrors=false) ->
-    packageName = path.basename(packagePath)
-    if @isBundledPackagePath(packagePath)
-      metadata = packagesCache[packageName]?.metadata
-    unless metadata?
-      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
-        try
-          metadata = CSON.readFileSync(metadataPath)
-          @normalizeMetadata(metadata)
-        catch error
-          throw error unless ignoreErrors
-
-    metadata ?= {}
-    unless typeof metadata.name is 'string' and metadata.name.length > 0
-      metadata.name = packageName
-
-    metadata
-
   keymaps: null
   menus: null
   stylesheets: null
@@ -64,10 +29,10 @@ class Package
   Section: Construction
   ###
 
-  constructor: (@path, @metadata) ->
+  constructor: ({@path, @metadata, @packageManager}) ->
     @emitter = new Emitter
-    @metadata ?= Package.loadMetadata(@path)
-    @bundledPackage = Package.isBundledPackagePath(@path)
+    @metadata ?= @packageManager.loadPackageMetadata(@path)
+    @bundledPackage = @packageManager.isBundledPackagePath(@path)
     @name = @metadata?.name ? path.basename(@path)
     ModuleCache.add(@path, @metadata)
     @reset()
@@ -251,15 +216,15 @@ class Package
     return
 
   loadKeymaps: ->
-    if @bundledPackage and packagesCache[@name]?
-      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of packagesCache[@name].keymaps)
+    if @bundledPackage and @packageManager.packagesCache[@name]?
+      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
     return
 
   loadMenus: ->
-    if @bundledPackage and packagesCache[@name]?
-      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of packagesCache[@name].menus)
+    if @bundledPackage and @packageManager.packagesCache[@name]?
+      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of @packageManager.packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
     return
@@ -427,9 +392,9 @@ class Package
     return @mainModulePath if @resolvedMainModulePath
     @resolvedMainModulePath = true
 
-    if @bundledPackage and packagesCache[@name]?
-      if packagesCache[@name].main
-        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{packagesCache[@name].main}"
+    if @bundledPackage and @packageManager.packagesCache[@name]?
+      if @packageManager.packagesCache[@name].main
+        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{@packageManager.packagesCache[@name].main}"
       else
         @mainModulePath = null
     else
