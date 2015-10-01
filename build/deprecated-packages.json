@@ -96,6 +96,10 @@
     "hasAlternative": true,
     "alternative": "linter"
   },
+  "atom-go-format": {
+    "hasAlternative": true,
+    "alternative": "go-plus"
+  },
   "atom-grunt-configs": {
     "version": "<=0.1.0",
     "hasDeprecations": true,
