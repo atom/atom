@@ -143,6 +143,16 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(3).tokens[1].isHardTab).toBeTruthy()
 
       describe "when a line is wrapped", ->
+        it "marks it as soft-wrapped", ->
+          displayBuffer.setEditorWidthInChars(7)
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).softWrapped).toBeFalsy()
+          expect(displayBuffer.tokenizedLineForScreenRow(1).softWrapped).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(2).softWrapped).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(3).softWrapped).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(4).softWrapped).toBeTruthy()
+          expect(displayBuffer.tokenizedLineForScreenRow(5).softWrapped).toBeFalsy()
+
         it "breaks soft-wrap indentation into a token for each indentation level to support indent guides", ->
           tokenizedLine = displayBuffer.tokenizedLineForScreenRow(4)
 

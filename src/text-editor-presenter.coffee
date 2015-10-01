@@ -641,27 +641,22 @@ class TextEditorPresenter
       isVisible = isVisible and @showLineNumbers
     isVisible
 
-  isSoftWrappedRow: (bufferRow, screenRow) ->
-    return false if screenRow is 0
-
-    @model.bufferRowForScreenRow(screenRow - 1) is bufferRow
-
   updateLineNumbersState: (tileState, screenRows) ->
     tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
     for screenRow in screenRows
+      line = @model.tokenizedLineForScreenRow(screenRow)
       bufferRow = @model.bufferRowForScreenRow(screenRow)
-      softWrapped = @isSoftWrappedRow(bufferRow, screenRow)
+      softWrapped = line.softWrapped
       decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
       foldable = @model.isFoldableAtScreenRow(screenRow)
-      id = @model.tokenizedLineForScreenRow(screenRow).id
 
-      tileState.lineNumbers[id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
-      visibleLineNumberIds[id] = true
+      tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
+      visibleLineNumberIds[line.id] = true
 
-    for id of tileState.lineNumbers
-      delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
+    for lineId of tileState.lineNumbers
+      delete tileState.lineNumbers[lineId] unless visibleLineNumberIds[lineId]
 
     return
 
