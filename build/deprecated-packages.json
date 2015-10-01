@@ -1515,6 +1515,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "ternjs": {
+    "hasAlternative": true,
+    "alternative": "atom-ternjs"
+  },
   "test-status": {
     "version": "<=0.27.1",
     "hasDeprecations": true,
