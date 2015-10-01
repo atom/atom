@@ -1133,17 +1133,10 @@ class TextEditorPresenter
     @hasPixelRectRequirements() and @boundingClientRect? and @windowWidth and @windowHeight
 
   pixelRectForScreenRange: (screenRange) ->
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * @lineHeight
-      width = @scrollWidth
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @lineHeight
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}
+    rect = @linesYardstick.pixelRectForScreenRange(screenRange)
+    rect.top -= @getScrollTop()
+    rect.left -= @getScrollLeft()
+    rect
 
   observeDecoration: (decoration) ->
     decorationDisposables = new CompositeDisposable

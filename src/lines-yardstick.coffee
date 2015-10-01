@@ -165,3 +165,18 @@ class LinesYardstick
         @rangeForMeasurement.getBoundingClientRect().left
 
     position - lineNode.getBoundingClientRect().left
+
+  pixelRectForScreenRange: (screenRange) ->
+    lineHeight = @model.getLineHeightInPixels()
+
+    if screenRange.end.row > screenRange.start.row
+      top = @pixelPositionForScreenPosition(screenRange.start).top
+      left = 0
+      height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
+      width = @presenter.getScrollWidth()
+    else
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
+      height = lineHeight
+      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
+
+    {top, left, width, height}

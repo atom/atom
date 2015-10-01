@@ -418,21 +418,13 @@ class TextEditorComponent
     @presenter.getVisibleRowRange()
 
   pixelPositionForScreenPosition: (screenPosition) ->
-    position = @presenter.pixelPositionForScreenPosition(screenPosition)
-    position.top += @presenter.getScrollTop()
-    position.left += @presenter.getScrollLeft()
-    position
+    @linesYardstick.pixelPositionForScreenPosition(screenPosition)
 
   screenPositionForPixelPosition: (pixelPosition) ->
     @linesYardstick.screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
-    rect = @presenter.pixelRectForScreenRange(screenRange)
-    rect.top += @presenter.getScrollTop()
-    rect.bottom += @presenter.getScrollTop()
-    rect.left += @presenter.getScrollLeft()
-    rect.right += @presenter.getScrollLeft()
-    rect
+    @linesYardstick.pixelRectForScreenRange(screenRange)
 
   pixelRangeForScreenRange: (screenRange, clip=true) ->
     {start, end} = Range.fromObject(screenRange)
