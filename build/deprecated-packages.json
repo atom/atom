@@ -714,9 +714,8 @@
     "latestHasDeprecations": true
   },
   "highlight-css-color": {
-    "version": "<=1.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "alternative": "pigments"
   },
   "highlight-line": {
     "version": "<=0.9.3",
