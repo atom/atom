@@ -1272,6 +1272,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "remember-session": {
+    "hasAlternative": true,
+    "alternative": "core"
+  },
   "remote-atom": {
     "version": "<=1.2.0",
     "hasDeprecations": true,
