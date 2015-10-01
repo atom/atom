@@ -364,6 +364,9 @@ class TextEditorPresenter
   getEndTileRow: ->
     @constrainRow(@tileForRow(@endRow))
 
+  isValidScreenRow: (screenRow) ->
+    screenRow >= 0 and screenRow < @model.getScreenLineCount()
+
   getScreenRows: ->
     startRow = @getStartTileRow()
     endRow = @constrainRow(@getEndTileRow() + @tileSize)
@@ -371,10 +374,10 @@ class TextEditorPresenter
     screenRows = [startRow...endRow]
     if longestScreenRow = @model.getLongestScreenRow()
       screenRows.push(longestScreenRow)
-    if @screenRows?
-      screenRows.push(@screenRows...)
+    if @screenRowsToMeasure?
+      screenRows.push(@screenRowsToMeasure...)
 
-    screenRows = screenRows.filter (row) => @constrainRow(row) is row
+    screenRows = screenRows.filter @isValidScreenRow.bind(this)
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
 
@@ -397,7 +400,6 @@ class TextEditorPresenter
     zIndex = 0
 
     for tileStartRow in [@tileForRow(endRow)..@tileForRow(startRow)] by -@tileSize
-      tileEndRow = @constrainRow(tileStartRow + @tileSize)
       rowsWithinTile = []
 
       while screenRowIndex >= 0
