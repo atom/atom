@@ -126,6 +126,11 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[10]).toBeUndefined()
         expect(stateFn(presenter).tiles[12]).toBeUndefined()
 
+        presenter.setScreenRowsToMeasure([12])
+        buffer.deleteRows(12, 13)
+
+        expect(stateFn(presenter).tiles[12]).toBeUndefined()
+
       it "includes state for all tiles if no external ::explicitHeight is assigned", ->
         presenter = buildPresenter(explicitHeight: null, tileSize: 2)
         expect(stateFn(presenter).tiles[0]).toBeDefined()

@@ -371,9 +371,10 @@ class TextEditorPresenter
     screenRows = [startRow...endRow]
     if longestScreenRow = @model.getLongestScreenRow()
       screenRows.push(longestScreenRow)
-    for row in @screenRowsToMeasure when @constrainRow(row) is row
-      screenRows.push(row)
+    if @screenRows?
+      screenRows.push(@screenRows...)
 
+    screenRows = screenRows.filter (row) => @constrainRow(row) is row
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
 
