@@ -1,5 +1,4 @@
 require '../src/window'
-atom.restoreWindowDimensions()
 
 require 'jasmine-json'
 require '../vendor/jasmine-jquery'
@@ -31,9 +30,6 @@ commandsToRestore = atom.commands.getSnapshot()
 styleElementsToRestore = atom.styles.getSnapshot()
 
 window.addEventListener 'core:close', -> window.close()
-window.addEventListener 'beforeunload', ->
-  atom.storeWindowDimensions()
-  atom.saveSync()
 
 document.querySelector('html').style.overflow = 'auto'
 document.body.style.overflow = 'auto'
