@@ -151,16 +151,15 @@ describe "the `atom` global", ->
       spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
       spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
 
-      atom.mode = "editor"
       atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
       atom.saveSync.originalValue.call(atom)
 
-      atom1 = Atom.loadOrCreate("editor")
+      atom1 = Atom.loadOrCreate()
       expect(atom1.state.stuff).toBeUndefined()
 
       loadSettings.initialPaths = [dir2, dir1]
-      atom2 = Atom.loadOrCreate("editor")
+      atom2 = Atom.loadOrCreate()
       expect(atom2.state.stuff).toBe("cool")
 
   describe "openInitialEmptyEditorIfNecessary", ->

@@ -43,9 +43,9 @@ class Atom extends Model
   #   kind of environment you want to build.
   #
   # Returns an Atom instance, fully initialized
-  @loadOrCreate: (mode) ->
+  @loadOrCreate: ->
     startTime = Date.now()
-    atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
+    atom = @deserialize(@loadState()) ? new this({@version})
     atom.deserializeTimings.atom = Date.now() -  startTime
     atom
 
@@ -55,8 +55,8 @@ class Atom extends Model
 
   # Loads and returns the serialized state corresponding to this window
   # if it exists; otherwise returns undefined.
-  @loadState: (mode) ->
-    if stateKey = @getStateKey(@getLoadSettings().initialPaths, mode)
+  @loadState: ->
+    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
       if state = @getStorageFolder().load(stateKey)
         return state
 
@@ -68,10 +68,8 @@ class Atom extends Model
 
   # Returns the path where the state for the current window will be
   # located if it exists.
-  @getStateKey: (paths, mode) ->
-    if mode is 'spec'
-      'spec'
-    else if mode is 'editor' and paths?.length > 0
+  @getStateKey: (paths) ->
+    if paths?.length > 0
       sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
       "editor-#{sha1}"
     else
@@ -156,8 +154,9 @@ class Atom extends Model
   ###
 
   # Call .loadOrCreate instead
-  constructor: (@state) ->
-    {@mode} = @state
+  constructor: (@state={}) ->
+    @state.version ?= @constructor.version
+
     @loadTime = null
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
@@ -779,7 +778,7 @@ class Atom extends Model
     dialog.showSaveDialog currentWindow, options
 
   saveSync: ->
-    if storageKey = @constructor.getStateKey(@project?.getPaths(), @mode)
+    if storageKey = @constructor.getStateKey(@project?.getPaths())
       @constructor.getStorageFolder().store(storageKey, @state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
