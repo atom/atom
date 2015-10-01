@@ -269,9 +269,15 @@ class TextEditorComponent
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
-    @disposables.add atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
-    @disposables.add atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
-    @disposables.add atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
+    @disposables.add atom.config.onDidChange 'editor.fontSize', =>
+      @sampleFontStyling()
+      @invalidateCharacterWidths()
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', =>
+      @sampleFontStyling()
+      @invalidateCharacterWidths()
+    @disposables.add atom.config.onDidChange 'editor.lineHeight', =>
+      @sampleFontStyling()
+      @invalidateCharacterWidths()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
@@ -706,6 +712,7 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
+      @invalidateCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
