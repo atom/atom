@@ -550,10 +550,7 @@ class Atom extends Model
   startEditorWindow: ->
     @installUncaughtErrorHandler()
 
-    {safeMode} = @getLoadSettings()
-
     CommandInstaller = require './command-installer'
-
     commandInstaller = new CommandInstaller(@getVersion())
     commandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
@@ -561,7 +558,6 @@ class Atom extends Model
       console.warn error.message if error?
 
     @config.load()
-
     @themes.loadBaseStylesheets()
 
     @setBodyPlatformClass()
@@ -575,7 +571,7 @@ class Atom extends Model
 
     @packages.activate()
     @keymaps.loadUserKeymap()
-    @requireUserInitScript() unless safeMode
+    @requireUserInitScript() unless @getLoadSettings().safeMode
 
     @menu.update()
     @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
