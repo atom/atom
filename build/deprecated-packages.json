@@ -1007,9 +1007,8 @@
     "latestHasDeprecations": true
   },
   "max-tabs": {
-    "version": "<=0.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "alternative": "tidy-tabs"
   },
   "maximize-panes": {
     "version": "<=0.1.0",
