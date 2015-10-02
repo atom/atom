@@ -9,10 +9,7 @@ TextEditor = require './text-editor'
 PaneContainer = require './pane-container'
 Pane = require './pane'
 Panel = require './panel'
-PanelElement = require './panel-element'
 PanelContainer = require './panel-container'
-PanelContainerElement = require './panel-container-element'
-WorkspaceElement = require './workspace-element'
 Task = require './task'
 
 # Essential: Represents the state of the user interface for the entire window.
@@ -26,33 +23,22 @@ Task = require './task'
 #
 module.exports =
 class Workspace extends Model
-  @deserialize: (state) ->
-    return unless state?
-
-    for packageName in state.packagesWithActiveGrammars ? []
-      atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
-
-    paneContainer = new PaneContainer(config: atom.config)
-    paneContainer.deserialize(state.paneContainer, atom.deserializers)
-    state.paneContainer = paneContainer
-    new this(state)
-
   constructor: (params) ->
     super
 
-    @paneContainer = params?.paneContainer
-    @fullScreen = params?.fullScreen ? false
-    @destroyedItemURIs = params?.destroyedItemURIs ? []
+    {@packageManager, @config, @project, @grammarRegistry, @notificationManager} = params
+    {@setRepresentedFilename, @setDocumentEdited, @atomVersion} = params
 
     @emitter = new Emitter
     @openers = []
+    @destroyedItemURIs = []
 
-    @paneContainer ?= new PaneContainer(config: atom.config)
+    @paneContainer = new PaneContainer(config: @config)
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @directorySearchers = []
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
-    atom.packages.serviceHub.consume(
+    @packageManager.serviceHub.consume(
       'atom.directory-searcher',
       '^0.1.0',
       (provider) => @directorySearchers.unshift(provider))
@@ -65,53 +51,39 @@ class Workspace extends Model
       modal: new PanelContainer({location: 'modal'})
 
     @subscribeToActiveItem()
-
-    @addOpener (filePath) ->
-      switch filePath
-        when 'atom://.atom/stylesheet'
-          atom.project.open(atom.styles.getUserStyleSheetPath())
-        when 'atom://.atom/keymap'
-          atom.project.open(atom.keymaps.getUserKeymapPath())
-        when 'atom://.atom/config'
-          atom.project.open(atom.config.getUserConfigPath())
-        when 'atom://.atom/init-script'
-          atom.project.open(atom.getUserInitScriptPath())
-
-    atom.views.addViewProvider Workspace, (model) ->
-      new WorkspaceElement().initialize(model)
-
-    atom.views.addViewProvider PanelContainer, (model) ->
-      new PanelContainerElement().initialize(model)
-
-    atom.views.addViewProvider Panel, (model) ->
-      new PanelElement().initialize(model)
-
     @subscribeToFontSize()
 
   # Called by the Serializable mixin during serialization.
   serialize: ->
     deserializer: 'Workspace'
     paneContainer: @paneContainer.serialize()
-    fullScreen: atom.isFullScreen()
     packagesWithActiveGrammars: @getPackageNamesWithActiveGrammars()
+    destroyedItemURIs: @destroyedItemURIs.slice()
+
+  deserialize: (state, deserializerManager) ->
+    for packageName in state.packagesWithActiveGrammars ? []
+      @packageManager.getLoadedPackage(packageName)?.loadGrammarsSync()
+    if state.destroyedItemURIs?
+      @destroyedItemURIs = state.destroyedItemURIs
+    @paneContainer.deserialize(state.paneContainer, deserializerManager)
 
   getPackageNamesWithActiveGrammars: ->
     packageNames = []
-    addGrammar = ({includedGrammarScopes, packageName}={}) ->
+    addGrammar = ({includedGrammarScopes, packageName}={}) =>
       return unless packageName
       # Prevent cycles
       return if packageNames.indexOf(packageName) isnt -1
 
       packageNames.push(packageName)
       for scopeName in includedGrammarScopes ? []
-        addGrammar(atom.grammars.grammarForScopeName(scopeName))
+        addGrammar(@grammarRegistry.grammarForScopeName(scopeName))
       return
 
     editors = @getTextEditors()
     addGrammar(editor.getGrammar()) for editor in editors
 
     if editors.length > 0
-      for grammar in atom.grammars.getGrammars() when grammar.injectionSelector
+      for grammar in @grammarRegistry.getGrammars() when grammar.injectionSelector
         addGrammar(grammar)
 
     _.uniq(packageNames)
@@ -120,13 +92,13 @@ class Workspace extends Model
 
   installShellCommands: ->
     CommandInstaller = require('./command-installer')
-    commandInstaller = new CommandInstaller(atom.getVersion())
+    commandInstaller = new CommandInstaller(@atomVersion)
     commandInstaller.installShellCommandsInteractively()
 
   subscribeToActiveItem: ->
     @updateWindowTitle()
     @updateDocumentEdited()
-    atom.project.onDidChangePaths @updateWindowTitle
+    @project.onDidChangePaths @updateWindowTitle
 
     @observeActivePaneItem (item) =>
       @updateWindowTitle()
@@ -156,7 +128,7 @@ class Workspace extends Model
   # open.
   updateWindowTitle: =>
     appName = 'Atom'
-    projectPaths = atom.project?.getPaths() ? []
+    projectPaths = @project.getPaths() ? []
     if item = @getActivePaneItem()
       itemPath = item.getPath?()
       itemTitle = item.getTitle?()
@@ -167,19 +139,19 @@ class Workspace extends Model
 
     if item? and projectPath?
       document.title = "#{itemTitle} - #{projectPath} - #{appName}"
-      atom.setRepresentedFilename(itemPath ? projectPath)
+      @setRepresentedFilename(itemPath ? projectPath)
     else if projectPath?
       document.title = "#{projectPath} - #{appName}"
-      atom.setRepresentedFilename(projectPath)
+      @setRepresentedFilename(projectPath)
     else
       document.title = "#{itemTitle} - #{appName}"
-      atom.setRepresentedFilename("")
+      @setRepresentedFilename("")
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
   updateDocumentEdited: =>
     modified = @getActivePaneItem()?.isModified?() ? false
-    atom.setDocumentEdited(modified)
+    @setDocumentEdited(modified)
 
   ###
   Section: Event Subscription
@@ -377,7 +349,7 @@ class Workspace extends Model
   open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
-    uri = atom.project.resolvePath(uri)
+    uri = @project.resolvePath(uri)
 
     pane = @paneContainer.paneForURI(uri) if searchAllPanes
     pane ?= switch split
@@ -410,11 +382,11 @@ class Workspace extends Model
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
 
-    uri = atom.project.resolvePath(uri)
+    uri = @project.resolvePath(uri)
     item = @getActivePane().itemForURI(uri)
     if uri
       item ?= opener(uri, options) for opener in @getOpeners() when not item
-    item ?= atom.project.openSync(uri, {initialLine, initialColumn})
+    item ?= @project.openSync(uri, {initialLine, initialColumn})
 
     @getActivePane().activateItem(item)
     @itemOpened(item)
@@ -429,16 +401,16 @@ class Workspace extends Model
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
-      item ?= atom.project.open(uri, options)
+      item ?= @project.open(uri, options)
     catch error
       switch error.code
         when 'CANCELLED'
           return Promise.resolve()
         when 'EACCES'
-          atom.notifications.addWarning("Permission denied '#{error.path}'")
+          @notificationManager.addWarning("Permission denied '#{error.path}'")
           return Promise.resolve()
         when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL'
-          atom.notifications.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
+          @notificationManager.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
           return Promise.resolve()
         else
           throw error
@@ -617,20 +589,20 @@ class Workspace extends Model
 
   # Increase the editor font size by 1px.
   increaseFontSize: ->
-    atom.config.set("editor.fontSize", atom.config.get("editor.fontSize") + 1)
+    @config.set("editor.fontSize", @config.get("editor.fontSize") + 1)
 
   # Decrease the editor font size by 1px.
   decreaseFontSize: ->
-    fontSize = atom.config.get("editor.fontSize")
-    atom.config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+    fontSize = @config.get("editor.fontSize")
+    @config.set("editor.fontSize", fontSize - 1) if fontSize > 1
 
   # Restore to the window's original editor font size.
   resetFontSize: ->
     if @originalFontSize
-      atom.config.set("editor.fontSize", @originalFontSize)
+      @config.set("editor.fontSize", @originalFontSize)
 
   subscribeToFontSize: ->
-    atom.config.onDidChange 'editor.fontSize', ({oldValue}) =>
+    @config.onDidChange 'editor.fontSize', ({oldValue}) =>
       @originalFontSize ?= oldValue
 
   # Removes the item's uri from the list of potential items to reopen.
@@ -807,7 +779,7 @@ class Workspace extends Model
     # Find a searcher for every Directory in the project. Each searcher that is matched
     # will be associated with an Array of Directory objects in the Map.
     directoriesForSearcher = new Map()
-    for directory in atom.project.getDirectories()
+    for directory in @project.getDirectories()
       searcher = @defaultDirectorySearcher
       for directorySearcher in @directorySearchers
         if directorySearcher.canSearchDirectory(directory)
@@ -838,15 +810,15 @@ class Workspace extends Model
 
     # Kick off all of the searches and unify them into one Promise.
     allSearches = []
-    directoriesForSearcher.forEach (directories, searcher) ->
+    directoriesForSearcher.forEach (directories, searcher) =>
       searchOptions =
         inclusions: options.paths or []
         includeHidden: true
-        excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-        exclusions: atom.config.get('core.ignoredNames')
-        follow: atom.config.get('core.followSymlinks')
-        didMatch: (result) ->
-          iterator(result) unless atom.project.isPathModified(result.filePath)
+        excludeVcsIgnores: @config.get('core.excludeVcsIgnoredPaths')
+        exclusions: @config.get('core.ignoredNames')
+        follow: @config.get('core.followSymlinks')
+        didMatch: (result) =>
+          iterator(result) unless @project.isPathModified(result.filePath)
         didError: (error) ->
           iterator(null, error)
         didSearchPaths: (count) -> onPathsSearched(searcher, count)
@@ -854,9 +826,9 @@ class Workspace extends Model
       allSearches.push(directorySearcher)
     searchPromise = Promise.all(allSearches)
 
-    for buffer in atom.project.getBuffers() when buffer.isModified()
+    for buffer in @project.getBuffers() when buffer.isModified()
       filePath = buffer.getPath()
-      continue unless atom.project.contains(filePath)
+      continue unless @project.contains(filePath)
       matches = []
       buffer.scan regex, (match) -> matches.push match
       iterator {filePath, matches} if matches.length > 0
@@ -902,8 +874,8 @@ class Workspace extends Model
   #
   # Returns a `Promise`.
   replace: (regex, replacementText, filePaths, iterator) ->
-    new Promise (resolve, reject) ->
-      openPaths = (buffer.getPath() for buffer in atom.project.getBuffers())
+    new Promise (resolve, reject) =>
+      openPaths = (buffer.getPath() for buffer in @project.getBuffers())
       outOfProcessPaths = _.difference(filePaths, openPaths)
 
       inProcessFinished = not openPaths.length
@@ -922,7 +894,7 @@ class Workspace extends Model
         task.on 'replace:path-replaced', iterator
         task.on 'replace:file-error', (error) -> iterator(null, error)
 
-      for buffer in atom.project.getBuffers()
+      for buffer in @project.getBuffers()
         continue unless buffer.getPath() in filePaths
         replacements = buffer.replace(regex, replacementText, iterator)
         iterator({filePath: buffer.getPath(), replacements}) if replacements

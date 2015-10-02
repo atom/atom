@@ -87,7 +87,12 @@ beforeEach ->
   atom.packages.serviceHub = new ServiceHub
   atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
   atom.project.setPaths([projectPath])
-  atom.workspace = new Workspace()
+  atom.workspace = new Workspace({
+    config: atom.config, project: atom.project, packageManager: atom.packages,
+    grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+    setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
+    setDocumentEdited: atom.setDocumentEdited.bind(atom), atomVersion: atom.getVersion()
+  })
   atom.themes.workspace = atom.workspace
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
