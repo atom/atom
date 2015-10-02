@@ -666,15 +666,10 @@ class Atom extends Model
     @keymaps.defaultTarget = workspaceElement
     document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
-  deserializePackageStates: ->
-    @packages.packageStates = @state.packageStates ? {}
-    delete @state.packageStates
-
   deserializeEditorWindow: ->
     if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
-    @deserializePackageStates()
     @deserializeWorkspace()
 
   loadThemes: ->
@@ -735,6 +730,8 @@ class Atom extends Model
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
     @deserializeTimings.atom = Date.now() -  startTime
+
+    @packages.packageStates = @state.packageStates ? {}
 
     startTime = Date.now()
     @project.deserialize(@state.project, @deserializers) if @state.project?
