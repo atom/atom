@@ -145,29 +145,31 @@ describe "the `atom` global", ->
         expect(errors).toEqual []
 
   describe "saving and loading", ->
-    afterEach -> atom.mode = "spec"
-
     it "selects the state based on the current project paths", ->
-      Atom = atom.constructor
+      jasmine.unspy(atom, 'saveStateSync')
+      # jasmine.unspy(atom, 'loadStateSync')
+
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
-      loadSettings = _.extend Atom.getLoadSettings(),
+      loadSettings = _.extend atom.constructor.getLoadSettings(),
         initialPaths: [dir1]
         windowState: null
 
-      spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
+      spyOn(atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
 
       atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
-      atom.saveSync.originalValue.call(atom)
+      atom.saveStateSync()
 
-      atom1 = Atom.loadOrCreate()
-      expect(atom1.state.stuff).toBeUndefined()
+      atom.state = {}
+      atom.loadStateSync()
+      expect(atom.state.stuff).toBeUndefined()
 
       loadSettings.initialPaths = [dir2, dir1]
-      atom2 = Atom.loadOrCreate()
-      expect(atom2.state.stuff).toBe("cool")
+      atom.state = {}
+      atom.loadStateSync()
+      expect(atom.state.stuff).toBe("cool")
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -224,7 +226,7 @@ describe "the `atom` global", ->
       expect(atom.state.workspace).toEqual workspaceState
       expect(atom.state.grammars).toEqual grammarsState
       expect(atom.state.project).toEqual projectState
-      expect(atom.saveSync).toHaveBeenCalled()
+      expect(atom.saveStateSync).toHaveBeenCalled()
 
   describe "::removeEditorWindow()", ->
     it "unsubscribes from all buffers", ->

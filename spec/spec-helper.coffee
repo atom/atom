@@ -104,7 +104,7 @@ beforeEach ->
 
   serializedWindowState = null
 
-  spyOn(atom, 'saveSync')
+  spyOn(atom, 'saveStateSync')
   atom.grammars.clearGrammarOverrides()
 
   spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
@@ -170,7 +170,6 @@ afterEach ->
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
