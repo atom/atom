@@ -3,7 +3,7 @@ _ = require 'underscore-plus'
 
 windowLoadSettings = null
 
-module.exports = ->
+exports.getWindowLoadSettings = ->
   windowLoadSettings ?= JSON.parse(window.decodeURIComponent(window.location.hash.substr(1)))
   clone = _.deepClone(windowLoadSettings)
 
@@ -14,3 +14,7 @@ module.exports = ->
     remote.getCurrentWindow().loadSettings.windowState = value
 
   clone
+
+exports.setWindowLoadSettings = (settings) ->
+  windowLoadSettings = settings
+  location.hash = encodeURIComponent(JSON.stringify(settings))
