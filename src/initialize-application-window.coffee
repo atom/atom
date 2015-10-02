@@ -2,7 +2,7 @@
 
 path = require 'path'
 require './window'
-getWindowLoadSettings = require './get-window-load-settings'
+{getWindowLoadSettings} = require './window-load-settings-helpers'
 
 {resourcePath, isSpec, devMode} = getWindowLoadSettings()
 

@@ -14,7 +14,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
-getWindowLoadSettings = require './get-window-load-settings'
+{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
 Workspace = require './workspace'
 PaneContainer = require './pane-container'
@@ -278,8 +278,9 @@ class Atom extends Model
     getWindowLoadSettings()
 
   updateLoadSetting: (key, value) ->
-    @getLoadSettings()[key] = value
-    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
+    loadSettings = @getLoadSettings()
+    loadSettings[key] = value
+    setWindowLoadSettings(loadSettings)
 
   ###
   Section: Managing The Atom Window
