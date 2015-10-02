@@ -103,6 +103,23 @@ describe "LinesYardstick", ->
       expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 72, top: 28})
       expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 120, top: 70})
 
+    it "correctly handles RTL characters", ->
+      atom.styles.addStyleSheet """
+      * {
+        font-size: 14px;
+        font-family: monospace;
+      }
+      """
+
+      editor.setText("السلام عليكم")
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 0]).left).toBe 0
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 1]).left).toBe 8
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 2]).left).toBe 17
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 5]).left).toBe 34
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 7]).left).toBe 50
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 9]).left).toBe 67
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 11]).left).toBe 84
+
     describe "::screenPositionForPixelPosition(pixelPosition)", ->
       it "converts pixel positions to screen positions", ->
         atom.styles.addStyleSheet """
