@@ -1,6 +1,7 @@
 path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
+Project = require '../src/project'
 Pane = require '../src/pane'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
@@ -21,7 +22,8 @@ describe "Workspace", ->
       projectState = atom.project.serialize()
       atom.workspace.destroy()
       atom.project.destroy()
-      atom.project = atom.deserializers.deserialize(projectState)
+      atom.project = new Project()
+      atom.project.deserialize(projectState, atom.deserializers)
       atom.workspace = Workspace.deserialize(workspaceState)
 
     describe "when the workspace contains text editors", ->

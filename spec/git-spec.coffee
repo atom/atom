@@ -277,7 +277,8 @@ describe "GitRepository", ->
         atom.workspace.open('file.txt')
 
       runs ->
-        project2 = Project.deserialize(atom.project.serialize())
+        project2 = new Project()
+        project2.deserialize(atom.project.serialize(), atom.deserializers)
         buffer = project2.getBuffers()[0]
 
       waitsFor ->

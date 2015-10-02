@@ -21,23 +21,10 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  @deserialize: (state) ->
-    state.buffers = _.compact state.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          return unless error.code is 'ENOENT'
-
-      atom.deserializers.deserialize(bufferState)
-
-    new this(state)
-
-  constructor: ({path, paths, @buffers}={}) ->
+  constructor: ->
     @emitter = new Emitter
-    @buffers ?= []
+    @buffers = []
+    @paths = []
     @rootDirectories = []
     @repositories = []
 
@@ -68,11 +55,6 @@ class Project extends Model
           @setPaths(@getPaths())
       )
 
-    @subscribeToBuffer(buffer) for buffer in @buffers
-
-    paths ?= _.compact([path])
-    @setPaths(paths)
-
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
     @setPaths([])
@@ -84,6 +66,22 @@ class Project extends Model
   ###
   Section: Serialization
   ###
+
+  deserialize: (state, deserializerManager) ->
+    states.paths = [state.path] if state.path? # backward compatibility
+
+    @buffers = _.compact state.buffers.map (bufferState) ->
+      # Check that buffer's file path is accessible
+      return if fs.isDirectorySync(bufferState.filePath)
+      if bufferState.filePath
+        try
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
+        catch error
+          return unless error.code is 'ENOENT'
+      deserializerManager.deserialize(bufferState)
+
+    @subscribeToBuffer(buffer) for buffer in @buffers
+    @setPaths(state.paths)
 
   serialize: ->
     deserializer: 'Project'

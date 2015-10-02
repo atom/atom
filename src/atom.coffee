@@ -652,9 +652,9 @@ class Atom extends Model
 
   deserializeProject: ->
     Project = require './project'
-
     startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project()
+    @project = new Project()
+    @project.deserialize(@state.project, @deserializers) if @state.project?
     @deserializeTimings.project = Date.now() - startTime
 
   deserializeWorkspace: ->
