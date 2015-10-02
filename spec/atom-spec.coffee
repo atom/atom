@@ -151,7 +151,7 @@ describe "the `atom` global", ->
 
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
-      loadSettings = _.extend atom.constructor.getLoadSettings(),
+      loadSettings = _.extend atom.getLoadSettings(),
         initialPaths: [dir1]
         windowState: null
 
