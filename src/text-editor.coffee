@@ -547,6 +547,45 @@ class TextEditor extends Model
     else
       'untitled'
 
+  # Essential: Get unique title for display in other parts of the UI
+  # such as the window title.
+  #
+  # If the editor's buffer is unsaved, its title is "untitled"
+  # If the editor's buffer is saved, its unique title is formatted as one
+  # of the following,
+  # * "<filename>" when it is the only editing buffer with this file name.
+  # * "<unique-dir-prefix>/.../<filename>", where the "..." may be omitted
+  # if the the direct parent directory is already different.
+  #
+  # Returns a {String}
+  getUniqueTitle: ->
+    if sessionPath = @getPath()
+      title = @getTitle()
+
+      # find text editors with identical file name.
+      paths = []
+      for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
+        if textEditor.getTitle() is title
+          paths.push(textEditor.getPath())
+      if paths.length is 0
+        return title
+      fileName = path.basename(sessionPath)
+
+      # find the first directory in all these paths that is unique
+      nLevel = 0
+      while (_.some(paths, (apath) -> path.basename(apath) is path.basename(sessionPath)))
+        sessionPath = path.dirname(sessionPath)
+        paths = _.map(paths, (apath) -> path.dirname(apath))
+        nLevel += 1
+
+      directory = path.basename sessionPath
+      if nLevel > 1
+        path.join(directory, "...", fileName)
+      else
+        path.join(directory, fileName)
+    else
+      'untitled'
+
   # Essential: Get the editor's long title for display in other parts of the UI
   # such as the window title.
   #
