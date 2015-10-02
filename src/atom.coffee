@@ -140,7 +140,7 @@ class Atom extends Model
     CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
     registerDefaultCommands = require './register-default-commands'
-    registerDefaultCommands(@commands)
+    registerDefaultCommands(this)
 
     PackageManager = require './package-manager'
     @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config})
@@ -169,10 +169,13 @@ class Atom extends Model
     Project = require './project'
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm})
 
+    CommandInstaller = require './command-installer'
+    @commandInstaller = new CommandInstaller(@getVersion(), @confirm.bind(this))
+
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars,
       notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
-      setDocumentEdited: @setDocumentEdited.bind(this), atomVersion: @getVersion()
+      setDocumentEdited: @setDocumentEdited.bind(this)
     })
     @themes.workspace = @workspace
 
@@ -527,11 +530,9 @@ class Atom extends Model
   startEditorWindow: ->
     @installUncaughtErrorHandler()
 
-    CommandInstaller = require './command-installer'
-    commandInstaller = new CommandInstaller(@getVersion())
-    commandInstaller.installAtomCommand false, (error) ->
+    @commandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
-    commandInstaller.installApmCommand false, (error) ->
+    @commandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
     @config.load()

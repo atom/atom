@@ -1,7 +1,7 @@
 ipc = require 'ipc'
 
-module.exports = (commandRegistry) ->
-  commandRegistry.add 'atom-workspace',
+module.exports = (atom) ->
+  atom.commands.add 'atom-workspace',
     'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
     'pane:show-previous-item': -> @getModel().getActivePane().activatePreviousItem()
     'pane:show-item-1': -> @getModel().getActivePane().activateItemAtIndex(0)
@@ -61,9 +61,10 @@ module.exports = (commandRegistry) ->
     'core:save-as': -> @getModel().saveActivePaneItemAs()
 
   if process.platform is 'darwin'
-    commandRegistry.add 'atom-workspace', 'window:install-shell-commands', -> @getModel().installShellCommands()
+    atom.commands.add 'atom-workspace', 'window:install-shell-commands', ->
+      atom.commandInstaller.installShellCommandsInteractively()
 
-  commandRegistry.add 'atom-pane',
+  atom.commands.add 'atom-pane',
     'pane:save-items': -> @getModel().saveItems()
     'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
     'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
@@ -74,7 +75,7 @@ module.exports = (commandRegistry) ->
     'pane:increase-size': -> @getModel().increaseSize()
     'pane:decrease-size': -> @getModel().decreaseSize()
 
-  commandRegistry.add 'atom-text-editor', stopEventPropagation(
+  atom.commands.add 'atom-text-editor', stopEventPropagation(
     'core:undo': -> @undo()
     'core:redo': -> @redo()
     'core:move-left': -> @moveLeft()
@@ -115,7 +116,7 @@ module.exports = (commandRegistry) ->
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 
-  commandRegistry.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
+  atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
     'core:backspace': -> @backspace()
     'core:delete': -> @delete()
     'core:cut': -> @cutSelectedText()
@@ -138,7 +139,7 @@ module.exports = (commandRegistry) ->
     'editor:copy-selection': -> @copyOnlySelectedText()
   )
 
-  commandRegistry.add 'atom-text-editor:not([mini])', stopEventPropagation(
+  atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagation(
     'core:move-up': -> @moveUp()
     'core:move-down': -> @moveDown()
     'core:move-to-top': -> @moveToTop()
@@ -175,7 +176,7 @@ module.exports = (commandRegistry) ->
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
   )
 
-  commandRegistry.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
+  atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
     'editor:indent': -> @indent()
     'editor:auto-indent': -> @autoIndentSelectedRows()
     'editor:indent-selected-rows': -> @indentSelectedRows()
