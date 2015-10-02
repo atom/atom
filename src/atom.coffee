@@ -667,9 +667,6 @@ class Atom extends Model
     document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
   deserializeEditorWindow: ->
-    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
-      @grammars.grammarOverridesByPath = grammarOverridesByPath
-
     @deserializeWorkspace()
 
   loadThemes: ->
@@ -730,6 +727,9 @@ class Atom extends Model
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
     @deserializeTimings.atom = Date.now() -  startTime
+
+    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
+      @grammars.grammarOverridesByPath = grammarOverridesByPath
 
     @packages.packageStates = @state.packageStates ? {}
 
