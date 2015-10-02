@@ -22,6 +22,10 @@ try
     if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
       ipc.send('call-window-method', 'toggleDevTools')
 
+    # Reload: cmd-w / ctrl-w
+    if (event.metaKey or event.ctrlKey) and event.keyCode is 87
+      ipc.send('call-window-method', 'close')
+
   # Add 'exports' to module search path.
   exportsPath = path.join(atom.getLoadSettings().resourcePath, 'exports')
   require('module').globalPaths.push(exportsPath)
