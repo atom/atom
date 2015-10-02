@@ -37,53 +37,6 @@ module.exports =
 class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
 
-  # Load or create the Atom environment in the given mode.
-  #
-  # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
-  #   kind of environment you want to build.
-  #
-  # Returns an Atom instance, fully initialized
-  @loadOrCreate: ->
-    startTime = Date.now()
-    atom = @deserialize(@loadState()) ? new this({@version})
-    atom.deserializeTimings.atom = Date.now() -  startTime
-    atom
-
-  # Deserializes the Atom environment from a state object
-  @deserialize: (state) ->
-    new this(state) if state?.version is @version
-
-  # Loads and returns the serialized state corresponding to this window
-  # if it exists; otherwise returns undefined.
-  @loadState: ->
-    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-      if state = @getStorageFolder().load(stateKey)
-        return state
-
-    if windowState = @getLoadSettings().windowState
-      try
-        JSON.parse(@getLoadSettings().windowState)
-      catch error
-        console.warn "Error parsing window state: #{statePath} #{error.stack}", error
-
-  # Returns the path where the state for the current window will be
-  # located if it exists.
-  @getStateKey: (paths) ->
-    if paths?.length > 0
-      sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
-      "editor-#{sha1}"
-    else
-      null
-
-  # Get the directory path to Atom's configuration area.
-  #
-  # Returns the absolute path to ~/.atom
-  @getConfigDirPath: ->
-    @configDirPath ?= process.env.ATOM_HOME
-
-  @getStorageFolder: ->
-    @storageFolder ?= new StorageFolder(@getConfigDirPath())
-
   # Returns the load settings hash associated with the current window.
   @getLoadSettings: -> getWindowLoadSettings()
 
@@ -154,8 +107,8 @@ class Atom extends Model
   ###
 
   # Call .loadOrCreate instead
-  constructor: (@state={}) ->
-    @state.version ?= @constructor.version
+  constructor: ->
+    @state = {version: @constructor.version}
 
     @loadTime = null
     {devMode, safeMode, resourcePath} = @getLoadSettings()
@@ -317,12 +270,6 @@ class Atom extends Model
   # Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
-
-  # Public: Get the directory path to Atom's configuration area.
-  #
-  # Returns the absolute path to `~/.atom`.
-  getConfigDirPath: ->
-    @constructor.getConfigDirPath()
 
   # Public: Get the time taken to completely load the current window.
   #
@@ -586,7 +533,7 @@ class Atom extends Model
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
-    @saveSync()
+    @saveStateSync()
     @windowState = null
 
   removeEditorWindow: ->
@@ -777,11 +724,40 @@ class Atom extends Model
     options.defaultPath ?= @project?.getPaths()[0]
     dialog.showSaveDialog currentWindow, options
 
-  saveSync: ->
-    if storageKey = @constructor.getStateKey(@project?.getPaths())
-      @constructor.getStorageFolder().store(storageKey, @state)
+  saveStateSync: ->
+    if storageKey = @getStateKey(@project?.getPaths())
+      @getStorageFolder().store(storageKey, @state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
+
+  loadStateSync: ->
+    startTime = Date.now()
+
+    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+      if state = @getStorageFolder().load(stateKey)
+        @state = state
+
+    if not @state? and windowState = @getLoadSettings().windowState
+      try
+        if state = JSON.parse(@getLoadSettings().windowState)
+          @state = state
+      catch error
+        console.warn "Error parsing window state: #{statePath} #{error.stack}", error
+
+    @deserializeTimings.atom = Date.now() -  startTime
+
+  getStateKey: (paths) ->
+    if paths?.length > 0
+      sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
+      "editor-#{sha1}"
+    else
+      null
+
+  getConfigDirPath: ->
+    @configDirPath ?= process.env.ATOM_HOME
+
+  getStorageFolder: ->
+    @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   crashMainProcess: ->
     remote.process.crash()

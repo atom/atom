@@ -15,9 +15,10 @@ process.env.NODE_PATH = exportsPath
 process.env.NODE_ENV ?= 'production' unless devMode
 
 Atom = require './atom'
-window.atom = Atom.loadOrCreate('editor')
+window.atom = new Atom
 
-atom.displayWindow() unless isSpec
+atom.displayWindow()
+atom.loadStateSync()
 atom.startEditorWindow()
 
 # Workaround for focus getting cleared upon window creation

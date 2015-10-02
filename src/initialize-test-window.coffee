@@ -3,10 +3,15 @@ require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
 
 path = require 'path'
 
+
+ipc = require 'ipc'
+ipc.send('call-window-method', 'openDevTools')
+
+
 try
   require '../src/window'
   Atom = require '../src/atom'
-  window.atom = Atom.loadOrCreate('spec')
+  window.atom = new Atom
 
   # Show window synchronously so a focusout doesn't fire on input elements
   # that are focused in the very first spec run.
