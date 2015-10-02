@@ -475,7 +475,7 @@ class PackageManager
   loadPackageMetadata: (packagePath, ignoreErrors=false) ->
     packageName = path.basename(packagePath)
     if @isBundledPackagePath(packagePath)
-      metadata = packagesCache[packageName]?.metadata
+      metadata = @packagesCache[packageName]?.metadata
     unless metadata?
       if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
         try
