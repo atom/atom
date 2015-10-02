@@ -1,14 +1,10 @@
 # Start the crash reporter before anything else.
 require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
 
-path = require 'path'
-
-
-ipc = require 'ipc'
-ipc.send('call-window-method', 'openDevTools')
-
-
 try
+  path = require 'path'
+  ipc = require 'ipc'
+
   require '../src/window'
   Atom = require '../src/atom'
   window.atom = new Atom
@@ -16,6 +12,15 @@ try
   # Show window synchronously so a focusout doesn't fire on input elements
   # that are focused in the very first spec run.
   atom.getCurrentWindow().show() unless atom.getLoadSettings().headless
+
+  window.addEventListener 'keydown', (event) ->
+    # Reload: cmd-r / ctrl-r
+    if (event.metaKey or event.ctrlKey) and event.keyCode is 82
+      ipc.send('call-window-method', 'restart')
+
+    # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
+    if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
+      ipc.send('call-window-method', 'toggleDevTools')
 
   # Add 'exports' to module search path.
   exportsPath = path.join(atom.getLoadSettings().resourcePath, 'exports')
