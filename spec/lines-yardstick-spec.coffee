@@ -70,10 +70,10 @@ describe "LinesYardstick", ->
 
       expect(linesYardstick.pixelPositionForScreenPosition([0, 0])).toEqual({left: 0, top: 0})
       expect(linesYardstick.pixelPositionForScreenPosition([0, 1])).toEqual({left: 7, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).toEqual({left: 38, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 6])).toEqual({left: 42, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 9])).toEqual({left: 72, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, Infinity])).toEqual({left: 280, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).toEqual({left: 37.8046875, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 6])).toEqual({left: 43.20703125, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 9])).toEqual({left: 72.20703125, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([2, Infinity])).toEqual({left: 288.046875, top: 28})
 
     it "reuses already computed pixel positions unless it is invalidated", ->
       atom.styles.addStyleSheet """
@@ -83,9 +83,9 @@ describe "LinesYardstick", ->
       }
       """
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 20, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 60, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 100, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 19.203125, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 57.609375, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 95.609375, top: 70})
 
       atom.styles.addStyleSheet """
       * {
@@ -93,15 +93,15 @@ describe "LinesYardstick", ->
       }
       """
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 20, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 60, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 100, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 19.203125, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 57.609375, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 95.609375, top: 70})
 
       linesYardstick.invalidateCache()
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 24, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 72, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 120, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 24.00390625, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 72.01171875, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 120.01171875, top: 70})
 
     it "correctly handles RTL characters", ->
       atom.styles.addStyleSheet """
@@ -114,8 +114,8 @@ describe "LinesYardstick", ->
       editor.setText("السلام عليكم")
       expect(linesYardstick.pixelPositionForScreenPosition([0, 0]).left).toBe 0
       expect(linesYardstick.pixelPositionForScreenPosition([0, 1]).left).toBe 8
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 2]).left).toBe 17
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 5]).left).toBe 34
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 2]).left).toBe 16
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 5]).left).toBe 33
       expect(linesYardstick.pixelPositionForScreenPosition([0, 7]).left).toBe 50
       expect(linesYardstick.pixelPositionForScreenPosition([0, 9]).left).toBe 67
       expect(linesYardstick.pixelPositionForScreenPosition([0, 11]).left).toBe 84
@@ -133,13 +133,13 @@ describe "LinesYardstick", ->
         """
 
         expect(linesYardstick.screenPositionForPixelPosition({top: 0, left: 12.5})).toEqual([0, 2])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 14, left: 17.8})).toEqual([1, 3])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 14, left: 18.8})).toEqual([1, 3])
         expect(linesYardstick.screenPositionForPixelPosition({top: 28, left: 100})).toEqual([2, 14])
         expect(linesYardstick.screenPositionForPixelPosition({top: 32, left: 24.3})).toEqual([2, 3])
         expect(linesYardstick.screenPositionForPixelPosition({top: 46, left: 66.5})).toEqual([3, 9])
         expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 99.9})).toEqual([5, 14])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 221.5})).toEqual([5, 29])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 222})).toEqual([5, 30])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 224.4365234375})).toEqual([5, 29])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 225})).toEqual([5, 30])
 
       it "clips pixel positions above buffer start", ->
         expect(linesYardstick.screenPositionForPixelPosition(top: -Infinity, left: -Infinity)).toEqual [0, 0]

@@ -501,7 +501,7 @@ class TextEditorPresenter
     return unless cursor.isVisible() and @startRow <= screenRange.start.row < @endRow
 
     pixelRect = @pixelRectForScreenRange(screenRange)
-    pixelRect.width = @baseCharacterWidth if pixelRect.width is 0
+    pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
 
   updateOverlaysState: ->
@@ -1134,6 +1134,10 @@ class TextEditorPresenter
       @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
     position.top -= @getScrollTop()
     position.left -= @getScrollLeft()
+
+    position.top = Math.round(position.top)
+    position.left = Math.round(position.left)
+
     position
 
   hasPixelRectRequirements: ->
@@ -1146,6 +1150,12 @@ class TextEditorPresenter
     rect = @linesYardstick.pixelRectForScreenRange(screenRange)
     rect.top -= @getScrollTop()
     rect.left -= @getScrollLeft()
+
+    rect.top = Math.round(rect.top)
+    rect.left = Math.round(rect.left)
+    rect.width = Math.round(rect.width)
+    rect.height = Math.round(rect.height)
+
     rect
 
   observeDecoration: (decoration) ->
@@ -1507,10 +1517,10 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   getVerticalScrollMarginInPixels: ->
-    @model.getVerticalScrollMargin() * @lineHeight
+    Math.round(@model.getVerticalScrollMargin() * @lineHeight)
 
   getHorizontalScrollMarginInPixels: ->
-    @model.getHorizontalScrollMargin() * @baseCharacterWidth
+    Math.round(@model.getHorizontalScrollMargin() * @baseCharacterWidth)
 
   getVerticalScrollbarWidth: ->
     @verticalScrollbarWidth
