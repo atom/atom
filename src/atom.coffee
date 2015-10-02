@@ -174,6 +174,7 @@ class Atom extends Model
       notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
       setDocumentEdited: @setDocumentEdited.bind(this), atomVersion: @getVersion()
     })
+    @themes.workspace = @workspace
 
     @registerDefaultOpeners()
 
@@ -539,7 +540,10 @@ class Atom extends Model
     @windowEventHandler = new WindowEventHandler(this)
 
     @packages.loadPackages()
-    @deserializeEditorWindow()
+
+    workspaceElement = @views.getView(@workspace)
+    @keymaps.defaultTarget = workspaceElement
+    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
     @watchProjectPath()
 
@@ -688,19 +692,7 @@ class Atom extends Model
     false
 
   deserializeWorkspace: ->
-    Workspace = require './workspace'
 
-    startTime = Date.now()
-    @workspace.deserialize(@state.workspace, @deserializers)
-    @themes.workspace = @workspace
-    @deserializeTimings.workspace = Date.now() - startTime
-
-    workspaceElement = @views.getView(@workspace)
-    @keymaps.defaultTarget = workspaceElement
-    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
-
-  deserializeEditorWindow: ->
-    @deserializeWorkspace()
 
   loadThemes: ->
     @themes.load()
@@ -772,6 +764,10 @@ class Atom extends Model
     @project.deserialize(@state.project, @deserializers) if @state.project?
     @deserializeTimings.project = Date.now() - startTime
 
+    startTime = Date.now()
+    @workspace.deserialize(@state.workspace, @deserializers) if @state.workspace?
+    @deserializeTimings.workspace = Date.now() - startTime
+
   getStateKey: (paths) ->
     if paths?.length > 0
       sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
@@ -800,7 +796,7 @@ class Atom extends Model
       try
         require(userInitScriptPath) if fs.isFileSync(userInitScriptPath)
       catch error
-        atom.notifications.addError "Failed to load `#{userInitScriptPath}`",
+        @notifications.addError "Failed to load `#{userInitScriptPath}`",
           detail: error.message
           dismissable: true
 
