@@ -27,7 +27,7 @@ class Workspace extends Model
     super
 
     {@packageManager, @config, @project, @grammarRegistry, @notificationManager} = params
-    {@setRepresentedFilename, @setDocumentEdited, @atomVersion} = params
+    {@setRepresentedFilename, @setDocumentEdited} = params
 
     @emitter = new Emitter
     @openers = []
@@ -89,11 +89,6 @@ class Workspace extends Model
     _.uniq(packageNames)
 
   editorAdded: (editor) ->
-
-  installShellCommands: ->
-    CommandInstaller = require('./command-installer')
-    commandInstaller = new CommandInstaller(@atomVersion)
-    commandInstaller.installShellCommandsInteractively()
 
   subscribeToActiveItem: ->
     @updateWindowTitle()
