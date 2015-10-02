@@ -17,6 +17,8 @@ StorageFolder = require './storage-folder'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
 Workspace = require './workspace'
+PanelContainer = require './panel-container'
+Panel = require './panel'
 PaneContainer = require './pane-container'
 PaneAxis = require './pane-axis'
 Pane = require './pane'
@@ -24,9 +26,13 @@ Project = require './project'
 TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
-PaneElement = require './pane-element'
+
+WorkspaceElement = require './workspace-element'
+PanelContainerElement = require './panel-container-element'
+PanelElement = require './panel-element'
 PaneContainerElement = require './pane-container-element'
 PaneAxisElement = require './pane-axis-element'
+PaneElement = require './pane-element'
 TextEditorElement = require './text-editor-element'
 {createGutterView} = require './gutter-component-helpers'
 
@@ -163,6 +169,14 @@ class Atom extends Model
     Project = require './project'
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm})
 
+    @workspace = new Workspace({
+      @config, @project, packageManager: @packages, grammarRegistry: @grammars,
+      notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
+      setDocumentEdited: @setDocumentEdited.bind(this), atomVersion: @getVersion()
+    })
+
+    @registerDefaultOpeners()
+
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
@@ -176,6 +190,12 @@ class Atom extends Model
     @deserializers.add(TextBuffer)
 
   registerViewProviders: ->
+    @views.addViewProvider Workspace, (model) ->
+      new WorkspaceElement().initialize(model)
+    @views.addViewProvider PanelContainer, (model) ->
+      new PanelContainerElement().initialize(model)
+    @views.addViewProvider Panel, (model) ->
+      new PanelElement().initialize(model)
     @views.addViewProvider PaneContainer, (model) ->
       new PaneContainerElement().initialize(model)
     @views.addViewProvider PaneAxis, (model) ->
@@ -185,6 +205,18 @@ class Atom extends Model
     @views.addViewProvider TextEditor, (model) ->
       new TextEditorElement().initialize(model)
     @views.addViewProvider(Gutter, createGutterView)
+
+  registerDefaultOpeners: ->
+    @workspace.addOpener (filePath) ->
+      switch filePath
+        when 'atom://.atom/stylesheet'
+          @project.open(@styles.getUserStyleSheetPath())
+        when 'atom://.atom/keymap'
+          @project.open(@keymaps.getUserKeymapPath())
+        when 'atom://.atom/config'
+          @project.open(@config.getUserConfigPath())
+        when 'atom://.atom/init-script'
+          @project.open(@getUserInitScriptPath())
 
   reset: ->
     @config.reset()
@@ -531,6 +563,7 @@ class Atom extends Model
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
+    @state.fullScreen = @isFullScreen()
     @saveStateSync()
     @windowState = null
 
@@ -658,7 +691,7 @@ class Atom extends Model
     Workspace = require './workspace'
 
     startTime = Date.now()
-    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
+    @workspace.deserialize(@state.workspace, @deserializers)
     @themes.workspace = @workspace
     @deserializeTimings.workspace = Date.now() - startTime
 
@@ -730,6 +763,8 @@ class Atom extends Model
 
     if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
+
+    @setFullScreen(@state.fullScreen)
 
     @packages.packageStates = @state.packageStates ? {}
 

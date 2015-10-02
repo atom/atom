@@ -9,11 +9,17 @@ fstream = require 'fstream'
 fs = require 'fs-plus'
 
 describe "Workspace", ->
-  workspace = null
+  [workspace, setDocumentEdited] = []
 
   beforeEach ->
+    setDocumentEdited = jasmine.createSpy('setDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
-    atom.workspace = workspace = new Workspace
+    atom.workspace = workspace = new Workspace({
+      config: atom.config, project: atom.project, packageManager: atom.packages,
+      grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+      setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
+      setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+    })
     waits(1)
 
   describe "serialization", ->
@@ -24,7 +30,13 @@ describe "Workspace", ->
       atom.project.destroy()
       atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       atom.project.deserialize(projectState, atom.deserializers)
-      atom.workspace = Workspace.deserialize(workspaceState)
+      atom.workspace = new Workspace({
+        config: atom.config, project: atom.project, packageManager: atom.packages,
+        grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+        setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
+        setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+      })
+      atom.workspace.deserialize(workspaceState, atom.deserializers)
 
     describe "when the workspace contains text editors", ->
       it "constructs the view with the same panes", ->
@@ -616,7 +628,13 @@ describe "Workspace", ->
       spyOn(jsPackage, 'loadGrammarsSync')
       spyOn(coffeePackage, 'loadGrammarsSync')
 
-      workspace2 = Workspace.deserialize(state)
+      workspace2 = new Workspace({
+        config: atom.config, project: atom.project, packageManager: atom.packages,
+        grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+        setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
+        setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+      })
+      workspace2.deserialize(state, atom.deserializers)
       expect(jsPackage.loadGrammarsSync.callCount).toBe 1
       expect(coffeePackage.loadGrammarsSync.callCount).toBe 1
 
@@ -668,7 +686,13 @@ describe "Workspace", ->
 
       it "updates the title to contain the project's path", ->
         document.title = null
-        workspace2 = Workspace.deserialize(atom.workspace.serialize())
+        workspace2 = new Workspace({
+          config: atom.config, project: atom.project, packageManager: atom.packages,
+          grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+          setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
+          setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+        })
+        workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = atom.workspace.getActivePaneItem()
         expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()
@@ -681,15 +705,14 @@ describe "Workspace", ->
       waitsForPromise -> atom.workspace.open('b')
       runs ->
         [item1, item2] = atom.workspace.getPaneItems()
-        spyOn(atom, 'setDocumentEdited')
 
-    it "calls atom.setDocumentEdited when the active item changes", ->
+    it "calls setDocumentEdited when the active item changes", ->
       expect(atom.workspace.getActivePaneItem()).toBe item2
       item1.insertText('a')
       expect(item1.isModified()).toBe true
       atom.workspace.getActivePane().activateNextItem()
 
-      expect(atom.setDocumentEdited).toHaveBeenCalledWith(true)
+      expect(setDocumentEdited).toHaveBeenCalledWith(true)
 
     it "calls atom.setDocumentEdited when the active item's modified status changes", ->
       expect(atom.workspace.getActivePaneItem()).toBe item2
@@ -697,13 +720,13 @@ describe "Workspace", ->
       advanceClock(item2.getBuffer().getStoppedChangingDelay())
 
       expect(item2.isModified()).toBe true
-      expect(atom.setDocumentEdited).toHaveBeenCalledWith(true)
+      expect(setDocumentEdited).toHaveBeenCalledWith(true)
 
       item2.undo()
       advanceClock(item2.getBuffer().getStoppedChangingDelay())
 
       expect(item2.isModified()).toBe false
-      expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)
+      expect(setDocumentEdited).toHaveBeenCalledWith(false)
 
   describe "adding panels", ->
     class TestItem
