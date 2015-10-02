@@ -312,22 +312,31 @@ window.fakeSetInterval = (callback, ms) ->
   id = ++window.intervalCount
   action = ->
     callback()
-    window.intervalTimeouts[id] = window.fakeSetTimeout(action, ms)
-  window.intervalTimeouts[id] = window.fakeSetTimeout(action, ms)
+    window.intervalTimeouts[id].nextInvokeWhen += ms
+    window.intervalTimeouts[id].fakeSetTimeoutID =
+      window.fakeSetTimeout(action, window.intervalTimeouts[id].nextInvokeWhen - window.now)
+
+  window.intervalTimeouts[id] = {
+    fakeSetTimeoutID: window.fakeSetTimeout(action, ms)
+    nextInvokeWhen: window.now + ms
+  }
   id
 
 window.fakeClearInterval = (idToClear) ->
-  window.fakeClearTimeout(@intervalTimeouts[idToClear])
+  window.fakeClearTimeout(@intervalTimeouts[idToClear].fakeSetTimeoutID)
 
 window.advanceClock = (delta=1) ->
   window.now += delta
-  callbacks = []
 
-  window.timeouts = window.timeouts.filter ([id, strikeTime, callback]) ->
-    if strikeTime <= window.now
-      callbacks.push(callback)
-      false
-    else
-      true
+  while true
+    callbacks = []
 
-  callback() for callback in callbacks
+    window.timeouts = window.timeouts.filter ([id, strikeTime, callback]) ->
+      if strikeTime <= window.now
+        callbacks.push(callback)
+        false
+      else
+        true
+
+    callback() for callback in callbacks
+    break if callbacks.length is 0
