@@ -12,8 +12,9 @@ describe "PaneContainer", ->
         @deserialize: -> new this
         serialize: -> deserializer: 'Item'
 
-      pane1A = new Pane(items: [new Item])
-      containerA = new PaneContainer(root: pane1A)
+      containerA = new PaneContainer(config: atom.config)
+      pane1A = containerA.getActivePane()
+      pane1A.addItem(new Item)
       pane2A = pane1A.splitRight(items: [new Item])
       pane3A = pane2A.splitDown(items: [new Item])
       pane3A.focus()
@@ -21,7 +22,8 @@ describe "PaneContainer", ->
     it "preserves the focused pane across serialization", ->
       expect(pane3A.focused).toBe true
 
-      containerB = PaneContainer.deserialize(containerA.serialize())
+      containerB = new PaneContainer(config: atom.config)
+      containerB.deserialize(containerA.serialize(), atom.deserializers)
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(pane3B.focused).toBe true
 
@@ -29,7 +31,8 @@ describe "PaneContainer", ->
       pane3A.activate()
       expect(containerA.getActivePane()).toBe pane3A
 
-      containerB = PaneContainer.deserialize(containerA.serialize())
+      containerB = new PaneContainer(config: atom.config)
+      containerB.deserialize(containerA.serialize(), atom.deserializers)
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(containerB.getActivePane()).toBe pane3B
 
@@ -37,7 +40,8 @@ describe "PaneContainer", ->
       pane3A.activate()
       state = containerA.serialize()
       state.activePaneId = -22
-      containerB = atom.deserializers.deserialize(state)
+      containerB = new PaneContainer(config: atom.config)
+      containerB.deserialize(state, atom.deserializers)
       expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
 
     describe "if there are empty panes after deserialization", ->
@@ -47,7 +51,8 @@ describe "PaneContainer", ->
       describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
         it "leaves the empty panes intact", ->
           state = containerA.serialize()
-          containerB = atom.deserializers.deserialize(state)
+          containerB = new PaneContainer(config: atom.config)
+          containerB.deserialize(state, atom.deserializers)
           [leftPane, column] = containerB.getRoot().getChildren()
           [topPane, bottomPane] = column.getChildren()
 
@@ -60,14 +65,15 @@ describe "PaneContainer", ->
           atom.config.set('core.destroyEmptyPanes', true)
 
           state = containerA.serialize()
-          containerB = atom.deserializers.deserialize(state)
+          containerB = new PaneContainer(config: atom.config)
+          containerB.deserialize(state, atom.deserializers)
           [leftPane, rightPane] = containerB.getRoot().getChildren()
 
           expect(leftPane.getItems().length).toBe 1
           expect(rightPane.getItems().length).toBe 1
 
   it "does not allow the root pane to be destroyed", ->
-    container = new PaneContainer
+    container = new PaneContainer(config: atom.config)
     container.getRoot().destroy()
     expect(container.getRoot()).toBeDefined()
     expect(container.getRoot().isDestroyed()).toBe false
@@ -76,7 +82,7 @@ describe "PaneContainer", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       pane1 = container.getRoot()
 
     it "returns the first pane if no pane has been made active", ->
@@ -105,7 +111,8 @@ describe "PaneContainer", ->
     [container, pane1, pane2, observed] = []
 
     beforeEach ->
-      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container = new PaneContainer(config: atom.config)
+      container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object, new Object])
       [pane1, pane2] = container.getPanes()
 
@@ -124,7 +131,7 @@ describe "PaneContainer", ->
 
   describe "::observePanes()", ->
     it "invokes observers with all current and future panes", ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -138,7 +145,8 @@ describe "PaneContainer", ->
 
   describe "::observePaneItems()", ->
     it "invokes observers with all current and future pane items", ->
-      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container = new PaneContainer(config: atom.config)
+      container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object])
       [pane1, pane2] = container.getPanes()
       observed = []
@@ -157,7 +165,7 @@ describe "PaneContainer", ->
         shouldPromptToSave: -> true
         getURI: -> 'test'
 
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
       pane1.addItem(new TestItem)
@@ -177,7 +185,7 @@ describe "PaneContainer", ->
 
   describe "::onDidAddPane(callback)", ->
     it "invokes the given callback when panes are added", ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       events = []
       container.onDidAddPane (event) -> events.push(event)
 
@@ -194,7 +202,7 @@ describe "PaneContainer", ->
         destroy: -> @_isDestroyed = true
         isDestroyed: -> @_isDestroyed
 
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       events = []
       container.onWillDestroyPane (event) ->
         itemsDestroyed = (item.isDestroyed() for item in event.pane.getItems())
@@ -210,7 +218,7 @@ describe "PaneContainer", ->
 
   describe "::onDidDestroyPane(callback)", ->
     it "invokes the given callback when panes are destroyed", ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       events = []
       container.onDidDestroyPane (event) -> events.push(event)
 
@@ -225,7 +233,7 @@ describe "PaneContainer", ->
 
   describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       pane1 = container.getRoot()
       item1 = new Object
       item2 = new Object
@@ -252,7 +260,7 @@ describe "PaneContainer", ->
 
   describe "::saveAll()", ->
     it "saves all open pane items", ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       pane1 = container.getRoot()
       pane2 = pane1.splitRight()
 

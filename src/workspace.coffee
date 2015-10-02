@@ -32,7 +32,9 @@ class Workspace extends Model
     for packageName in state.packagesWithActiveGrammars ? []
       atom.packages.getLoadedPackage(packageName)?.loadGrammarsSync()
 
-    state.paneContainer = PaneContainer.deserialize(state.paneContainer)
+    paneContainer = new PaneContainer(config: atom.config)
+    paneContainer.deserialize(state.paneContainer, atom.deserializers)
+    state.paneContainer = paneContainer
     new this(state)
 
   constructor: (params) ->
@@ -45,7 +47,7 @@ class Workspace extends Model
     @emitter = new Emitter
     @openers = []
 
-    @paneContainer ?= new PaneContainer()
+    @paneContainer ?= new PaneContainer(config: atom.config)
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @directorySearchers = []
