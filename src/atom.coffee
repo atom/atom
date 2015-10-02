@@ -160,6 +160,9 @@ class Atom extends Model
     GrammarRegistry = require './grammar-registry'
     @grammars = new GrammarRegistry({@config})
 
+    Project = require './project'
+    @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm})
+
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
@@ -651,13 +654,6 @@ class Atom extends Model
 
     false
 
-  deserializeProject: ->
-    Project = require './project'
-    startTime = Date.now()
-    @project = new Project()
-    @project.deserialize(@state.project, @deserializers) if @state.project?
-    @deserializeTimings.project = Date.now() - startTime
-
   deserializeWorkspace: ->
     Workspace = require './workspace'
 
@@ -679,7 +675,6 @@ class Atom extends Model
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
     @deserializePackageStates()
-    @deserializeProject()
     @deserializeWorkspace()
 
   loadThemes: ->
@@ -740,6 +735,10 @@ class Atom extends Model
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
     @deserializeTimings.atom = Date.now() -  startTime
+
+    startTime = Date.now()
+    @project.deserialize(@state.project, @deserializers) if @state.project?
+    @deserializeTimings.project = Date.now() - startTime
 
   getStateKey: (paths) ->
     if paths?.length > 0

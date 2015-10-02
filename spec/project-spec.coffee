@@ -67,7 +67,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
 
-        deserializedProject = new Project()
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
         deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 
@@ -77,7 +77,7 @@ describe "Project", ->
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = new Project
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
         deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
 
         expect(deserializedProject.getBuffers().length).toBe 1
@@ -94,7 +94,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.mkdirSync(pathToOpen)
-        deserializedProject = new Project
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
         deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 
@@ -108,7 +108,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.chmodSync(pathToOpen, '000')
-        deserializedProject = new Project()
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
         deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 

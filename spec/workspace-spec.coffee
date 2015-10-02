@@ -22,7 +22,7 @@ describe "Workspace", ->
       projectState = atom.project.serialize()
       atom.workspace.destroy()
       atom.project.destroy()
-      atom.project = new Project()
+      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       atom.project.deserialize(projectState, atom.deserializers)
       atom.workspace = Workspace.deserialize(workspaceState)
 

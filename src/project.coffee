@@ -21,7 +21,7 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ->
+  constructor: ({@confirm, @notificationManager, packageManager}) ->
     @emitter = new Emitter
     @buffers = []
     @paths = []
@@ -30,7 +30,7 @@ class Project extends Model
 
     @directoryProviders = []
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
-    atom.packages.serviceHub.consume(
+    packageManager.serviceHub.consume(
       'atom.directory-provider',
       '^0.1.0',
       (provider) => @directoryProviders.unshift(provider))
@@ -42,7 +42,7 @@ class Project extends Model
     @repositoryPromisesByPath = new Map()
 
     @repositoryProviders = [new GitRepositoryProvider(this)]
-    atom.packages.serviceHub.consume(
+    packageManager.serviceHub.consume(
       'atom.repository-provider',
       '^0.1.0',
       (provider) =>
@@ -417,9 +417,9 @@ class Project extends Model
 
   subscribeToBuffer: (buffer) ->
     buffer.onDidDestroy => @removeBuffer(buffer)
-    buffer.onWillThrowWatchError ({error, handle}) ->
+    buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
-      atom.notifications.addWarning """
+      @notificationManager.addWarning """
         Unable to read file after file `#{error.eventType}` event.
         Make sure you have permission to access `#{buffer.getPath()}`.
         """,
