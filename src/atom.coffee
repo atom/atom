@@ -37,16 +37,6 @@ module.exports =
 class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
 
-  # Returns the load settings hash associated with the current window.
-  @getLoadSettings: -> getWindowLoadSettings()
-
-  @updateLoadSetting: (key, value) ->
-    @getLoadSettings()[key] = value
-    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
-
-  @getCurrentWindow: ->
-    remote.getCurrentWindow()
-
   workspaceParentSelectorctor: 'body'
   lastUncaughtError: null
 
@@ -285,7 +275,11 @@ class Atom extends Model
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @constructor.getLoadSettings()
+    getWindowLoadSettings()
+
+  updateLoadSetting: (key, value) ->
+    @getLoadSettings()[key] = value
+    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
 
   ###
   Section: Managing The Atom Window
@@ -354,7 +348,7 @@ class Atom extends Model
 
   # Extended: Get the current window
   getCurrentWindow: ->
-    @constructor.getCurrentWindow()
+    remote.getCurrentWindow()
 
   # Extended: Move current window to the center of the screen.
   center: ->
@@ -693,7 +687,7 @@ class Atom extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
-      @constructor.updateLoadSetting('initialPaths', @project.getPaths())
+      @updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
     app = remote.require('app')
