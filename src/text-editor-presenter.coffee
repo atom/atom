@@ -395,6 +395,12 @@ class TextEditorPresenter
     @shouldUpdateLineNumbersState = true
     @shouldUpdateDecorations = true
 
+  clearScreenRowsToMeasure: ->
+    @screenRowsToMeasure = []
+    @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
+    @shouldUpdateDecorations = true
+
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 

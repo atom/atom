@@ -33,6 +33,7 @@ describe "LinesYardstick", ->
       mockPresenter =
         isBatching: -> true
         setScreenRowsToMeasure: (screenRows) -> screenRowsToMeasure = screenRows
+        clearScreenRowsToMeasure: -> setScreenRowsToMeasure = []
         getPreMeasurementState: ->
           state = {}
           for screenRow in screenRowsToMeasure

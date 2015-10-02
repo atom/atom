@@ -17,6 +17,9 @@ class LinesYardstick
     @presenter.setScreenRowsToMeasure(screenRows)
     @lineNodesProvider.updateSync(@presenter.getPreMeasurementState())
 
+  clearScreenRowsForMeasurement: ->
+    @presenter.clearScreenRowsToMeasure()
+
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
@@ -75,6 +78,8 @@ class LinesYardstick
         previousColumn = column
         column += charLength
 
+    @clearScreenRowsForMeasurement()
+
     if targetLeft <= previousLeft + (charWidth / 2)
       new Point(row, previousColumn)
     else
@@ -91,6 +96,8 @@ class LinesYardstick
 
     top = targetRow * @model.getLineHeightInPixels()
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
+
+    @clearScreenRowsForMeasurement()
 
     {top, left}
 
