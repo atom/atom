@@ -1095,6 +1095,9 @@ describe "Workspace", ->
               search: (directory, regex, options) -> fakeSearch = new FakeSearch(options)
             })
 
+            waitsFor ->
+              atom.workspace.directorySearchers.length > 0
+
           it "can override the DefaultDirectorySearcher on a per-directory basis", ->
             foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
             numPathsSearchedInDir2 = 1
