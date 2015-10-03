@@ -55,7 +55,6 @@ GutterContainer = require './gutter-container'
 module.exports =
 class TextEditor extends Model
   callDisplayBufferCreatedHook: false
-  registerEditor: false
   buffer: null
   languageMode: null
   cursors: null
@@ -76,8 +75,7 @@ class TextEditor extends Model
 
     state.displayBuffer = displayBuffer
     state.config = atomEnvironment.config
-    staet.notificationManager = atomEnvironment.notifications
-    state.registerEditor = true
+    state.notificationManager = atomEnvironment.notifications
     new this(state)
 
   constructor: (params={}) ->
@@ -85,9 +83,8 @@ class TextEditor extends Model
 
     {
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
-      softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
-      @notificationManager
+      softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
+      lineNumberGutterVisible, largeFileMode, @config, @notificationManager
     } = params
 
     @emitter = new Emitter
@@ -121,8 +118,6 @@ class TextEditor extends Model
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
-
-    atom.workspace?.editorAdded(this) if registerEditor
 
   serialize: ->
     deserializer: 'TextEditor'
@@ -465,7 +460,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      registerEditor: true, @config, @notificationManager
+      @config, @notificationManager
     })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
