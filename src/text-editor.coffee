@@ -90,6 +90,12 @@ class TextEditor extends Model
       @viewRegistry, @project
     } = params
 
+    throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
+    throw new Error("Must pass a notificationManager parameter when constructing TextEditors") unless @notificationManager?
+    throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
+    throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
+    throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
+
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
