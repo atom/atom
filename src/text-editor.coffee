@@ -66,7 +66,7 @@ class TextEditor extends Model
 
   @deserialize: (state, atomEnvironment) ->
     try
-      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer)
+      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer, atomEnvironment)
     catch error
       if error.syscall is 'read'
         return # Error reading the file, don't deserialize an editor for it
@@ -103,7 +103,7 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
+    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode, @config})
     @buffer = @displayBuffer.buffer
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
