@@ -3,6 +3,8 @@
 #####[Atom](https://atom.io)  The hackable text editor
 
 ##Software Process
+After approaching some of the most active contributors we got a response about the software process in use.
+
 > I'd say we follow an agile methodology, but it's pretty loose. Test driven development, rapid iteration, occasional pair programming but not much.
 > - Nathan Sobo
 
