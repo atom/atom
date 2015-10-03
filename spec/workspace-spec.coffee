@@ -17,6 +17,7 @@ describe "Workspace", ->
     atom.workspace = workspace = new Workspace({
       config: atom.config, project: atom.project, packageManager: atom.packages,
       grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+      clipboard: atom.clipboard, viewRegistry: atom.views,
       setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
       setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
     })
@@ -33,8 +34,9 @@ describe "Workspace", ->
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+        clipboard: atom.clipboard, viewRegistry: atom.views,
         setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-        setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+        setDocumentEdited: setDocumentEdited
       })
       atom.workspace.deserialize(workspaceState, atom.deserializers)
 
@@ -631,6 +633,7 @@ describe "Workspace", ->
       workspace2 = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+        clipboard: atom.clipboard, viewRegistry: atom.views,
         setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
         setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
       })
@@ -689,6 +692,7 @@ describe "Workspace", ->
         workspace2 = new Workspace({
           config: atom.config, project: atom.project, packageManager: atom.packages,
           grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+          clipboard: atom.clipboard, viewRegistry: atom.views,
           setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
           setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
         })
