@@ -28,7 +28,8 @@ class Workspace extends Model
 
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
-      @clipboard, @viewRegistry, @setRepresentedFilename, @setDocumentEdited, @assert
+      @clipboard, @viewRegistry, @grammarRegistry, @setRepresentedFilename,
+      @setDocumentEdited, @assert
     } = params
 
     debugger unless @assert?
@@ -460,7 +461,11 @@ class Workspace extends Model
       @buildTextEditor(_.extend({buffer, largeFileMode}, options))
 
   buildTextEditor: (params) ->
-    new TextEditor(_.extend({@config, @notificationManager, @clipboard, @viewRegistry, @project, @assert}, params))
+    params = _.extend({
+      @config, @notificationManager, @clipboard, @viewRegistry, @grammarRegistry,
+      @project, @assert
+    }, params)
+    new TextEditor(params)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

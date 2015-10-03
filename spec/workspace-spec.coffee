@@ -17,7 +17,7 @@ describe "Workspace", ->
     atom.workspace = workspace = new Workspace({
       config: atom.config, project: atom.project, packageManager: atom.packages,
       grammarRegistry: atom.grammars, notificationManager: atom.notifications,
-      clipboard: atom.clipboard, viewRegistry: atom.views,
+      clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
       setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
       setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
       assert: atom.assert.bind(atom)
@@ -35,7 +35,7 @@ describe "Workspace", ->
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, notificationManager: atom.notifications,
-        clipboard: atom.clipboard, viewRegistry: atom.views,
+        clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
         setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
         setDocumentEdited: setDocumentEdited, assert: atom.assert.bind(atom)
       })
@@ -634,7 +634,7 @@ describe "Workspace", ->
       workspace2 = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, notificationManager: atom.notifications,
-        clipboard: atom.clipboard, viewRegistry: atom.views,
+        clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
         setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
         setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
         assert: atom.assert.bind(atom)
@@ -694,7 +694,7 @@ describe "Workspace", ->
         workspace2 = new Workspace({
           config: atom.config, project: atom.project, packageManager: atom.packages,
           grammarRegistry: atom.grammars, notificationManager: atom.notifications,
-          clipboard: atom.clipboard, viewRegistry: atom.views,
+          clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
           setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
           setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
           assert: atom.assert.bind(atom)

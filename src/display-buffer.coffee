@@ -31,16 +31,22 @@ class DisplayBuffer extends Model
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
+    state.grammarRegistry = atomEnvironment.grammars
     new this(state)
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode, @config, @assert}={}) ->
+  constructor: (params={}) ->
     super
+
+    {
+      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles,
+      @largeFileMode, @config, @assert, @grammarRegistry
+    } = params
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
     @tokenizedBuffer ?= new TokenizedBuffer({
-      tabLength, buffer, ignoreInvisibles, @largeFileMode, @config
+      tabLength, buffer, ignoreInvisibles, @largeFileMode, @config, @grammarRegistry
     })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -103,7 +109,7 @@ class DisplayBuffer extends Model
 
   copy: ->
     newDisplayBuffer = new DisplayBuffer({
-      @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert
+      @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert, @grammarRegistry
     })
 
     for marker in @findMarkers(displayBufferId: @id)

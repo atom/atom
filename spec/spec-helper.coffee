@@ -92,7 +92,8 @@ beforeEach ->
     grammarRegistry: atom.grammars, notificationManager: atom.notifications,
     setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
     setDocumentEdited: atom.setDocumentEdited.bind(atom), atomVersion: atom.getVersion(),
-    clipboard: atom.clipboard, viewRegistry: atom.views, assert: atom.assert.bind(atom)
+    clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+    assert: atom.assert.bind(atom)
   })
   atom.themes.workspace = atom.workspace
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
