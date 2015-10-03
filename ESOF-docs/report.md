@@ -17,4 +17,5 @@ The first commit was made in [Aug 19, 2011](https://github.com/atom/atom/commit/
 As of late September, 2015, there has been an effort to refine the testing environment
 >which has been around since the very first day of Atom development
 > - Chris Wanstrath  
+
 [Chris' pull request](https://github.com/atom/atom/pull/8968) and Git User [bolinfest's pull request](https://github.com/atom/atom/pull/8917).
