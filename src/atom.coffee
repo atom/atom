@@ -176,7 +176,7 @@ class Atom extends Model
       @config, @project, packageManager: @packages, grammarRegistry: @grammars,
       notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
       setDocumentEdited: @setDocumentEdited.bind(this), @clipboard, viewRegistry: @views,
-      assert: @assert.bind(this)
+      grammarRegistry: @grammars, assert: @assert.bind(this)
     })
     @themes.workspace = @workspace
 
