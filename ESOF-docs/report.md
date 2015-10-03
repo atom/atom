@@ -1,11 +1,12 @@
-# ESOF _Engenharia de Software_
+# Engenharia de Software (__ESOF__)
 ##Project
-[Atom](https://atom.io)  The hackable text editor
-####Software Process
+#####[Atom](https://atom.io)  The hackable text editor
+
+##Software Process
 > I'd say we follow an agile methodology, but it's pretty loose. Test driven development, rapid iteration, occasional pair programming but not much.
 > - Nathan Sobo
 
-The agile methodology:
+##### The agile methodology:
 * Focus on the code rather than the design
 * Iterative approach to software development
 * Deliver working software quickly and evolve quickly to meet changing requirements
@@ -16,6 +17,7 @@ The first commit was made on [Aug 19, 2011](https://github.com/atom/atom/commit/
 
 As of late September, 2015, there has been an effort to refine the **testing environment**
 >which has been around since the very first day of Atom development
+
 > - Nathan Sobo
 
-[Nathan' pull request](https://github.com/atom/atom/pull/8968) and Git User [bolinfest's pull request](https://github.com/atom/atom/pull/8917).
+[Nathan's pull request](https://github.com/atom/atom/pull/8968) and Git User [bolinfest's pull request](https://github.com/atom/atom/pull/8917).
