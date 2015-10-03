@@ -175,7 +175,7 @@ class Atom extends Model
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars,
       notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
-      setDocumentEdited: @setDocumentEdited.bind(this), @clipboard
+      setDocumentEdited: @setDocumentEdited.bind(this), @clipboard, viewRegistry: @views
     })
     @themes.workspace = @workspace
 
