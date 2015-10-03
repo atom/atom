@@ -30,9 +30,10 @@ class DisplayBuffer extends Model
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer)
     state.config = atomEnvironment.config
+    state.assert = atomEnvironment.assert
     new this(state)
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode, @config}={}) ->
+  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode, @config, @assert}={}) ->
     super
 
     @emitter = new Emitter
@@ -99,7 +100,9 @@ class DisplayBuffer extends Model
     largeFileMode: @largeFileMode
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @largeFileMode, @config})
+    newDisplayBuffer = new DisplayBuffer({
+      @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert
+    })
 
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
@@ -1067,8 +1070,8 @@ class DisplayBuffer extends Model
     tokenizedLinesCount = @tokenizedBuffer.getLineCount()
     bufferLinesCount = @buffer.getLineCount()
 
-    atom.assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
+    @assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
       error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
 
-    atom.assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
+    @assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
       error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
