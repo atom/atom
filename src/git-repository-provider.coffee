@@ -1,5 +1,16 @@
 fs = require 'fs'
+{Directory} = require 'pathwatcher'
 GitRepository = require './git-repository'
+
+# Returns the .gitdir path in the agnostic Git symlink .git file given, or
+# null if the path is not a valid gitfile.
+#
+# * `gitFile` {String} path of gitfile to parse
+gitFileRegex = RegExp "^gitdir: (.+)"
+pathFromGitFile = (gitFile) ->
+  try
+    gitFileBuff = fs.readFileSync(gitFile, 'utf8')
+    return gitFileBuff?.match(gitFileRegex)[1]
 
 # Checks whether a valid `.git` directory is contained within the given
 # directory or one of its ancestors. If so, a Directory that corresponds to the
@@ -11,6 +22,9 @@ findGitDirectorySync = (directory) ->
   # can return cached values rather than always returning new objects:
   # getParent(), getFile(), getSubdirectory().
   gitDir = directory.getSubdirectory('.git')
+  gitDirPath = pathFromGitFile(gitDir.getPath?())
+  if gitDirPath
+    gitDir = new Directory(directory.resolve(gitDirPath))
   if gitDir.existsSync?() and isValidGitDirectorySync gitDir
     gitDir
   else if directory.isRoot()

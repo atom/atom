@@ -76,11 +76,11 @@ class WindowEventHandler
     atom.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
 
-  handleDrop: (evenDocumentt) ->
+  handleDrop: (event) ->
     event.preventDefault()
     event.stopPropagation()
 
-  handleDragover: (Documentevent) ->
+  handleDragover: (event) ->
     event.preventDefault()
     event.stopPropagation()
     event.dataTransfer.dropEffect = 'none'

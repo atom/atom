@@ -1258,7 +1258,7 @@ class TextEditor extends Model
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
-  # There are three types of supported decorations:
+  # The following are the supported decorations types:
   #
   # * __line__: Adds your CSS `class` to the line nodes within the range
   #     marked by the marker
@@ -1274,36 +1274,46 @@ class TextEditor extends Model
   #       <div class="region"></div>
   #     </div>
   #     ```
+  # * __overlay__: Positions the view associated with the given item at the head
+  #     or tail of the given `Marker`.
+  # * __gutter__: A decoration that tracks a {Marker} in a {Gutter}. Gutter
+  #     decorations are created by calling {Gutter::decorateMarker} on the
+  #     desired `Gutter` instance.
   #
   # ## Arguments
   #
   # * `marker` A {Marker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
   #   `{type: 'line-number', class: 'linter-error'}`
-  #   * `type` There are a few supported decoration types: `line-number`, `line`,
-  #     `highlight`, and `overlay`. The behavior of the types are as follows:
-  #     * `line-number` Adds the given `class` to the line numbers overlapping the
-  #       rows spanned by the marker.
+  #   * `type` There are several supported decoration types. The behavior of the
+  #     types are as follows:
   #     * `line` Adds the given `class` to the lines overlapping the rows
-  #        spanned by the marker.
+  #        spanned by the `Marker`.
+  #     * `line-number` Adds the given `class` to the line numbers overlapping
+  #       the rows spanned by the `Marker`.
   #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the marker.
+  #       to 3 nested regions that fill the area spanned by the `Marker`.
   #     * `overlay` Positions the view associated with the given item at the
-  #       head or tail of the given marker, depending on the `position`
+  #       head or tail of the given `Marker`, depending on the `position`
   #       property.
+  #     * `gutter` Tracks a {Marker} in a {Gutter}. Created by calling
+  #       {Gutter::decorateMarker} on the desired `Gutter` instance.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
+  #   * `item` (optional) An {HTMLElement} or a model {Object} with a
+  #     corresponding view registered. Only applicable to the `gutter` and
+  #     `overlay` types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
-  #     the head of the marker. Only applicable to the `line` and `line-number`
-  #     types.
-  #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
-  #     the associated marker is empty. Only applicable to the `line` and
+  #     the head of the `Marker`. Only applicable to the `line` and
   #     `line-number` types.
+  #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
+  #     the associated `Marker` is empty. Only applicable to the `gutter`,
+  #     `line`, and `line-number` types.
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
-  #     if the associated marker is non-empty.  Only applicable to the `line`
-  #     and `line-number` types.
+  #     if the associated `Marker` is non-empty. Only applicable to the
+  #     `gutter`, `line`, and `line-number` types.
   #   * `position` (optional) Only applicable to decorations of type `overlay`,
-  #     controls where the overlay view is positioned relative to the marker.
+  #     controls where the overlay view is positioned relative to the `Marker`.
   #     Values can be `'head'` (the default), or `'tail'`.
   #
   # Returns a {Decoration} object
