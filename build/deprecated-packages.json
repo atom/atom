@@ -83,6 +83,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "atom-eslint": {
+    "hasAlternative": true,
+    "alternative": "linter"
+  },
   "atom-faker": {
     "version": "<=0.2.0",
     "hasDeprecations": true,
@@ -91,6 +95,10 @@
   "atom-flake8": {
     "hasAlternative": true,
     "alternative": "linter"
+  },
+  "atom-go-format": {
+    "hasAlternative": true,
+    "alternative": "go-plus"
   },
   "atom-grunt-configs": {
     "version": "<=0.1.0",
@@ -238,7 +246,7 @@
   },
   "autocomplete-jedi": {
     "hasAlternative": true,
-    "alternative": "autocomplete-plus-python-jedi"
+    "alternative": "autocomplete-python"
   },
   "autocomplete-paths": {
     "version": "<=1.0.1",
@@ -259,6 +267,10 @@
     "version": "<=0.0.9",
     "hasDeprecations": true,
     "latestHasDeprecations": true
+  },
+  "autocomplete-plus-python-jedi": {
+    "hasAlternative": true,
+    "alternative": "autocomplete-python"
   },
   "autocomplete-snippets": {
     "version": "<=1.0.0",
@@ -702,9 +714,8 @@
     "latestHasDeprecations": true
   },
   "highlight-css-color": {
-    "version": "<=1.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "alternative": "pigments"
   },
   "highlight-line": {
     "version": "<=0.9.3",
@@ -996,9 +1007,8 @@
     "latestHasDeprecations": true
   },
   "max-tabs": {
-    "version": "<=0.3.0",
-    "hasDeprecations": true,
-    "latestHasDeprecations": true
+    "hasAlternative": true,
+    "alternative": "tidy-tabs"
   },
   "maximize-panes": {
     "version": "<=0.1.0",
@@ -1044,6 +1054,10 @@
     "version": "<=0.1.0",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "nbsp-detect": {
+    "hasAlternative": true,
+    "alternative": "core"
   },
   "node-debugger": {
     "version": "<=0.2.3",
@@ -1256,6 +1270,10 @@
     "version": "<=0.3.0",
     "hasDeprecations": true,
     "latestHasDeprecations": true
+  },
+  "remember-session": {
+    "hasAlternative": true,
+    "alternative": "core"
   },
   "remote-atom": {
     "version": "<=1.2.0",
@@ -1499,6 +1517,10 @@
     "version": "<=1.6.4",
     "hasDeprecations": true,
     "latestHasDeprecations": false
+  },
+  "ternjs": {
+    "hasAlternative": true,
+    "alternative": "atom-ternjs"
   },
   "test-status": {
     "version": "<=0.27.1",
