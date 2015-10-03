@@ -65,7 +65,7 @@ class TextEditor extends Model
   selectionFlashDuration: 500
   gutterContainer: null
 
-  @deserialize: (state) ->
+  @deserialize: (state, atomEnvironment) ->
     try
       displayBuffer = DisplayBuffer.deserialize(state.displayBuffer)
     catch error
@@ -75,11 +75,18 @@ class TextEditor extends Model
         throw error
 
     state.displayBuffer = displayBuffer
+    state.config = atomEnvironment.config
     state.registerEditor = true
     new this(state)
 
-  constructor: ({@softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
+  constructor: (params={}) ->
     super
+
+    {
+      @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
+      softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation,
+      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config
+    } = params
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
@@ -105,7 +112,7 @@ class TextEditor extends Model
 
     @languageMode = new LanguageMode(this)
 
-    @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
+    @setEncoding(@config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
@@ -146,7 +153,7 @@ class TextEditor extends Model
 
   subscribeToTabTypeConfig: ->
     @tabTypeSubscription?.dispose()
-    @tabTypeSubscription = atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
+    @tabTypeSubscription = @config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
       @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   destroyed: ->
@@ -454,7 +461,10 @@ class TextEditor extends Model
   copy: ->
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new TextEditor({@buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
+    newEditor = new TextEditor({
+      @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
+      registerEditor: true, @config
+    })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
@@ -592,14 +602,14 @@ class TextEditor extends Model
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save(backup: atom.config.get('editor.backUpBeforeSaving'))
+  save: -> @buffer.save(backup: @config.get('editor.backUpBeforeSaving'))
 
   # Essential: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: atom.config.get('editor.backUpBeforeSaving'))
+  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: @config.get('editor.backUpBeforeSaving'))
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
@@ -746,7 +756,7 @@ class TextEditor extends Model
     return false unless @emitWillInsertTextEvent(text)
 
     groupingInterval = if options.groupUndo
-      atom.config.get('editor.undoGroupingInterval')
+      @config.get('editor.undoGroupingInterval')
     else
       0
 
@@ -2380,10 +2390,10 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}
   shouldUseSoftTabs: ({defaultValue}) ->
-    tabType = atom.config.get('editor.tabType', scope: @getRootScopeDescriptor())
+    tabType = @config.get('editor.tabType', scope: @getRootScopeDescriptor())
     switch tabType
       when 'auto'
-        @usesSoftTabs() ? defaultValue ? atom.config.get('editor.softTabs') ? true
+        @usesSoftTabs() ? defaultValue ? @config.get('editor.softTabs') ? true
       when 'hard'
         false
       when 'soft'
@@ -2906,10 +2916,10 @@ class TextEditor extends Model
   ###
 
   shouldAutoIndent: ->
-    atom.config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
+    @config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
 
   shouldAutoIndentOnPaste: ->
-    atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
+    @config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
 
   ###
   Section: Event Handlers

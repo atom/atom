@@ -99,7 +99,7 @@ class TextEditorElement extends HTMLElement
     @model ? @buildModel()
 
   buildModel: ->
-    @setModel(new TextEditor(
+    @setModel(atom.workspace.buildTextEditor(
       buffer: new TextBuffer(@textContent)
       softWrapped: false
       tabLength: 2
