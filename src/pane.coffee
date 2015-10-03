@@ -29,7 +29,6 @@ class Pane extends Model
   constructor: (params) ->
     super
 
-    @container = params?.container
     @activeItem = params?.activeItem
     @focused = params?.focused
 
@@ -59,7 +58,7 @@ class Pane extends Model
   getContainer: -> @container
 
   setContainer: (container) ->
-    unless container is @container
+    if container and container isnt @container
       @container = container
       container.didAddPane({pane: this})
 
