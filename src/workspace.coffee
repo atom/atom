@@ -88,8 +88,6 @@ class Workspace extends Model
 
     _.uniq(packageNames)
 
-  editorAdded: (editor) ->
-
   subscribeToActiveItem: ->
     @updateWindowTitle()
     @updateDocumentEdited()
