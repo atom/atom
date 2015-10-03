@@ -28,8 +28,10 @@ class Workspace extends Model
 
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
-      @clipboard, @viewRegistry, @setRepresentedFilename, @setDocumentEdited
+      @clipboard, @viewRegistry, @setRepresentedFilename, @setDocumentEdited, @assert
     } = params
+
+    debugger unless @assert?
 
     @emitter = new Emitter
     @openers = []
@@ -458,7 +460,7 @@ class Workspace extends Model
       @buildTextEditor(_.extend({buffer, largeFileMode}, options))
 
   buildTextEditor: (params) ->
-    new TextEditor(_.extend({@config, @notificationManager, @clipboard, @viewRegistry, @project}, params))
+    new TextEditor(_.extend({@config, @notificationManager, @clipboard, @viewRegistry, @project, @assert}, params))
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

@@ -21,7 +21,7 @@ class TokenizedBuffer extends Model
   configSettings: null
   changeCount: 0
 
-  @deserialize: (state) ->
+  @deserialize: (state, atomEnvironment) ->
     state.buffer = atom.project.bufferForPathSync(state.bufferPath)
     new this(state)
 

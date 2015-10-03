@@ -19,7 +19,8 @@ describe "Workspace", ->
       grammarRegistry: atom.grammars, notificationManager: atom.notifications,
       clipboard: atom.clipboard, viewRegistry: atom.views,
       setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-      setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+      setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
+      assert: atom.assert.bind(atom)
     })
     waits(1)
 
@@ -36,7 +37,7 @@ describe "Workspace", ->
         grammarRegistry: atom.grammars, notificationManager: atom.notifications,
         clipboard: atom.clipboard, viewRegistry: atom.views,
         setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-        setDocumentEdited: setDocumentEdited
+        setDocumentEdited: setDocumentEdited, assert: atom.assert.bind(atom)
       })
       atom.workspace.deserialize(workspaceState, atom.deserializers)
 
@@ -635,7 +636,8 @@ describe "Workspace", ->
         grammarRegistry: atom.grammars, notificationManager: atom.notifications,
         clipboard: atom.clipboard, viewRegistry: atom.views,
         setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-        setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+        setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
+        assert: atom.assert.bind(atom)
       })
       workspace2.deserialize(state, atom.deserializers)
       expect(jsPackage.loadGrammarsSync.callCount).toBe 1
@@ -694,7 +696,8 @@ describe "Workspace", ->
           grammarRegistry: atom.grammars, notificationManager: atom.notifications,
           clipboard: atom.clipboard, viewRegistry: atom.views,
           setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-          setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion()
+          setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
+          assert: atom.assert.bind(atom)
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = atom.workspace.getActivePaneItem()
