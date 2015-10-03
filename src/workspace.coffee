@@ -458,7 +458,7 @@ class Workspace extends Model
       @buildTextEditor(_.extend({buffer, largeFileMode}, options))
 
   buildTextEditor: (params) ->
-    new TextEditor(_.extend({@config, @notificationManager, @clipboard, @viewRegistry}, params))
+    new TextEditor(_.extend({@config, @notificationManager, @clipboard, @viewRegistry, @project}, params))
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
