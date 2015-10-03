@@ -87,7 +87,7 @@ class TextEditor extends Model
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
       lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @clipboard,
-      @viewRegistry
+      @viewRegistry, @project
     } = params
 
     @emitter = new Emitter
@@ -133,8 +133,8 @@ class TextEditor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @disposables.add @buffer.onDidChangePath =>
-      unless atom.project.getPaths().length > 0
-        atom.project.setPaths([path.dirname(@getPath())])
+      unless @project.getPaths().length > 0
+        @project.setPaths([path.dirname(@getPath())])
       @emitter.emit 'did-change-title', @getTitle()
       @emitter.emit 'did-change-path', @getPath()
     @disposables.add @buffer.onDidChangeEncoding =>
@@ -463,7 +463,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      @config, @notificationManager, @clipboard, @viewRegistry
+      @config, @notificationManager, @clipboard, @viewRegistry, @project
     })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
@@ -565,7 +565,7 @@ class TextEditor extends Model
   getLongTitle: ->
     if sessionPath = @getPath()
       fileName = path.basename(sessionPath)
-      directory = atom.project.relativize(path.dirname(sessionPath))
+      directory = @project.relativize(path.dirname(sessionPath))
       directory = if directory.length > 0 then directory else path.basename(path.dirname(sessionPath))
       "#{fileName} - #{directory}"
     else
@@ -625,7 +625,7 @@ class TextEditor extends Model
 
   checkoutHeadRevision: ->
     if filePath = this.getPath()
-      atom.project.repositoryForDirectory(new Directory(path.dirname(filePath)))
+      @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
         .then (repository) =>
           repository?.checkoutHeadForEditor(this)
     else
