@@ -76,6 +76,7 @@ class TextEditor extends Model
     state.displayBuffer = displayBuffer
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
+    state.packageManager = atomEnvironment.packages
     state.clipboard = atomEnvironment.clipboard
     state.viewRegistry = atomEnvironment.views
     state.grammarRegistry = atomEnvironment.grammars
@@ -89,12 +90,13 @@ class TextEditor extends Model
     {
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
-      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @clipboard,
-      @viewRegistry, @grammarRegistry, @project, @assert
+      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a notificationManager parameter when constructing TextEditors") unless @notificationManager?
+    throw new Error("Must pass a packageManager parameter when constructing TextEditors") unless @packageManager?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
@@ -109,7 +111,7 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
       buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode,
-      @config, @assert, @grammarRegistry
+      @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
 
@@ -477,8 +479,8 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      @config, @notificationManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert
+      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
+      @grammarRegistry, @project, @assert
     })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)

@@ -27,7 +27,9 @@ describe "TokenizedBuffer", ->
   describe "when the buffer is destroyed", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       startTokenizing(tokenizedBuffer)
 
     it "stops tokenization", ->
@@ -39,7 +41,9 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       startTokenizing(tokenizedBuffer)
       tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
@@ -345,7 +349,9 @@ describe "TokenizedBuffer", ->
 
       runs ->
         buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-        tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+        })
         startTokenizing(tokenizedBuffer)
 
     afterEach ->
@@ -450,7 +456,9 @@ describe "TokenizedBuffer", ->
           'abc\uD835\uDF97def'
           //\uD835\uDF97xyz
         """
-        tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+        })
         fullyTokenize(tokenizedBuffer)
 
     afterEach ->
@@ -544,7 +552,9 @@ describe "TokenizedBuffer", ->
       runs ->
         buffer = atom.project.bufferForPathSync()
         buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
-        tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+        })
         tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('test.erb'))
         fullyTokenize(tokenizedBuffer)
 
@@ -566,7 +576,9 @@ describe "TokenizedBuffer", ->
 
     it "returns the correct token (regression)", ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
@@ -575,7 +587,10 @@ describe "TokenizedBuffer", ->
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars,
+        packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
 
     describe "when the selector does not match the token at the position", ->
@@ -595,7 +610,9 @@ describe "TokenizedBuffer", ->
     it "updates the tab length of the tokenized lines", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)
@@ -604,7 +621,9 @@ describe "TokenizedBuffer", ->
     it "does not allow the tab length to be less than 1", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 1)
@@ -617,7 +636,9 @@ describe "TokenizedBuffer", ->
 
     it "updates the tokens with the appropriate invisible characters", ->
       buffer = new TextBuffer(text: "  \t a line with tabs\tand \tspaces \t ")
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
 
       atom.config.set("editor.showInvisibles", true)
@@ -630,7 +651,9 @@ describe "TokenizedBuffer", ->
 
     it "assigns endOfLineInvisibles to tokenized lines", ->
       buffer = new TextBuffer(text: "a line that ends in a carriage-return-line-feed \r\na line that ends in just a line-feed\na line with no ending")
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
 
       atom.config.set('editor.showInvisibles', true)
       atom.config.set("editor.invisibles", cr: 'R', eol: 'N')
@@ -651,7 +674,9 @@ describe "TokenizedBuffer", ->
   describe "leading and trailing whitespace", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
 
     it "assigns ::firstNonWhitespaceIndex on tokens that have leading whitespace", ->
@@ -709,7 +734,9 @@ describe "TokenizedBuffer", ->
   describe ".indentLevel on tokenized lines", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
 
     describe "when the line is non-empty", ->
@@ -804,7 +831,9 @@ describe "TokenizedBuffer", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.insert [10, 0], "  // multi-line\n  // comment\n  // block\n"
       buffer.insert [0, 0], "// multi-line\n// comment\n// block\n"
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       fullyTokenize(tokenizedBuffer)
       tokenizedBuffer.onDidChange (change) ->
         delete change.bufferChange
@@ -881,7 +910,9 @@ describe "TokenizedBuffer", ->
       buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
       buffer.setText('a\nb\nc')
 
-      tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      })
       tokenizeCallback = jasmine.createSpy('onDidTokenize')
       tokenizedBuffer.onDidTokenize(tokenizeCallback)
 

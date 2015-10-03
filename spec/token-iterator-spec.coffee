@@ -24,7 +24,9 @@ describe "TokenIterator", ->
       end x
       x
     """)
-    tokenizedBuffer = new TokenizedBuffer({buffer, config: atom.config, grammarRegistry: atom.grammars})
+    tokenizedBuffer = new TokenizedBuffer({
+      buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+    })
     tokenizedBuffer.setGrammar(grammar)
 
     tokenIterator = tokenizedBuffer.tokenizedLineForRow(1).getTokenIterator()

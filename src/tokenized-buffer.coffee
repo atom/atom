@@ -25,11 +25,13 @@ class TokenizedBuffer extends Model
     state.buffer = atom.project.bufferForPathSync(state.bufferPath)
     state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
+    state.packageManager = atomEnvironment.packages
     new this(state)
 
   constructor: (params) ->
     {
-      @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config, @grammarRegistry
+      @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
+      @grammarRegistry, @packageManager
     } = params
 
     @emitter = new Emitter
@@ -106,7 +108,7 @@ class TokenizedBuffer extends Model
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-    atom.packages.triggerActivationHook("#{grammar.packageName}:grammar-used")
+    @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
     @emitter.emit 'did-change-grammar', grammar
 
   getGrammarSelectionContent: ->
