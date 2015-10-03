@@ -1,5 +1,6 @@
 # Engenharia de Software (__ESOF__)
-##Project #####[Atom](https://atom.io)  The hackable text editor
+##Project
+#####[Atom](https://atom.io)  The hackable text editor
 
 ####Software Process
 > I'd say we follow an agile methodology, but it's pretty loose. Test driven development, rapid iteration, occasional pair programming but not much.
