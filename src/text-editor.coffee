@@ -78,6 +78,7 @@ class TextEditor extends Model
     state.notificationManager = atomEnvironment.notifications
     state.clipboard = atomEnvironment.clipboard
     state.viewRegistry = atomEnvironment.views
+    state.project = atomEnvironment.project
     new this(state)
 
   constructor: (params={}) ->
