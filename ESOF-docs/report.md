@@ -4,7 +4,7 @@
 
 ##Software Process
 > I'd say we follow an agile methodology, but it's pretty loose. Test driven development, rapid iteration, occasional pair programming but not much.
-> &#45 NAME OF THE PERSON
+> `-` NAME OF THE PERSON
 
 ##### The agile methodology:
 * Focus on the code rather than the design
@@ -17,6 +17,6 @@ The first commit was made on [Aug 19, 2011](https://github.com/atom/atom/commit/
 
 As of late September, 2015, there has been an effort to refine the **testing environment**
 >which has been around since the very first day of Atom development
-> &#45 Nathan Sobo
+> `-` Nathan Sobo
 
 [Nathan's pull request](https://github.com/atom/atom/pull/8968) and Git User [bolinfest's pull request](https://github.com/atom/atom/pull/8917).
