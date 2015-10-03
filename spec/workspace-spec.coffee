@@ -981,7 +981,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('a').then (o) ->
+          atom.workspace.open('a').then (o) ->
             editor = o
             editor.setText("Elephant")
 
@@ -999,7 +999,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open(temp.openSync().path).then (o) ->
+          atom.workspace.open(temp.openSync().path).then (o) ->
             editor = o
             editor.setText("Elephant")
 
@@ -1221,7 +1221,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('sample.js').then (o) -> editor = o
+          atom.workspace.open('sample.js').then (o) -> editor = o
 
         runs ->
           expect(editor.isModified()).toBeFalsy()
@@ -1242,7 +1242,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('sample-with-comments.js').then (o) -> editor = o
+          atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
 
         waitsForPromise ->
           atom.workspace.replace /items/gi, 'items', [commentFilePath], (result) ->
@@ -1257,7 +1257,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('sample.js').then (o) -> editor = o
+          atom.workspace.open('sample.js').then (o) -> editor = o
 
         runs ->
           editor.buffer.setTextInRange([[0, 0], [0, 0]], 'omg')

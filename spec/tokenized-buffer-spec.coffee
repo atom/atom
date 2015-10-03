@@ -487,7 +487,7 @@ describe "TokenizedBuffer", ->
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor = o
+        atom.workspace.open('sample.js').then (o) -> editor = o
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
@@ -500,7 +500,7 @@ describe "TokenizedBuffer", ->
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor = o
+        atom.workspace.open('sample.js').then (o) -> editor = o
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
@@ -518,7 +518,7 @@ describe "TokenizedBuffer", ->
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('coffee.coffee').then (o) -> editor = o
+        atom.workspace.open('coffee.coffee').then (o) -> editor = o
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
@@ -905,7 +905,7 @@ describe "TokenizedBuffer", ->
         registration = atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', -> called = true)
 
       waitsForPromise ->
-        atom.project.open('sample.js', autoIndent: false).then (o) ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) ->
           editor = o
 
       waitsForPromise ->
