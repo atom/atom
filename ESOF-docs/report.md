@@ -4,7 +4,7 @@
 
 ##Software Process
 > I'd say we follow an agile methodology, but it's pretty loose. Test driven development, rapid iteration, occasional pair programming but not much.
-> - NAME OF THE PERSON
+> - Nathan Sobo
 
 ##### The agile methodology:
 * Focus on the code rather than the design
