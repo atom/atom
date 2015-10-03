@@ -31,7 +31,7 @@ describe "TextEditor", ->
 
       runs ->
         fs.mkdirSync(pathToOpen)
-        expect(TextEditor.deserialize(editor1.serialize())).toBeUndefined()
+        expect(TextEditor.deserialize(editor1.serialize(), atom)).toBeUndefined()
 
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = TextEditor.deserialize(editor.serialize())
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -52,7 +52,7 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
-      editor2 = TextEditor.deserialize(editor.serialize())
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(previousInvisibles).toBeDefined()
       expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
@@ -62,7 +62,7 @@ describe "TextEditor", ->
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
-      editor2 = TextEditor.deserialize(state)
+      editor2 = TextEditor.deserialize(state, atom)
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
@@ -4411,11 +4411,10 @@ describe "TextEditor", ->
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
-      TextBuffer = require 'text-buffer'
-      newEditor = new TextEditor
-        buffer: new TextBuffer
+      newEditor = atom.workspace.buildTextEditor(
         mini: true
         placeholderText: 'yep'
+      )
       expect(newEditor.getPlaceholderText()).toBe 'yep'
 
     it 'models placeholderText and emits an event when changed', ->
@@ -4443,7 +4442,7 @@ describe "TextEditor", ->
 
     describe "when there's no repository for the editor's file", ->
       it "doesn't do anything", ->
-        editor = new TextEditor({})
+        editor = atom.workspace.buildTextEditor()
         editor.setText("stuff")
         editor.checkoutHeadRevision()
 

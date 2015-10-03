@@ -17,7 +17,7 @@ describe "TextEditorPresenter", ->
       spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
 
       buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-      editor = new TextEditor({buffer})
+      editor = atom.workspace.buildTextEditor({buffer})
       waitsForPromise -> buffer.load()
 
     afterEach ->
@@ -2804,7 +2804,7 @@ describe "TextEditorPresenter", ->
 
     performSetup = ->
       buffer = new TextBuffer
-      editor = new TextEditor({buffer})
+      editor = atom.workspace.buildTextEditor({buffer})
       editor.setEditorWidthInChars(80)
       presenterParams =
         model: editor
