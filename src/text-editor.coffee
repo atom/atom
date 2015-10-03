@@ -76,6 +76,7 @@ class TextEditor extends Model
 
     state.displayBuffer = displayBuffer
     state.config = atomEnvironment.config
+    staet.notificationManager = atomEnvironment.notifications
     state.registerEditor = true
     new this(state)
 
@@ -85,7 +86,8 @@ class TextEditor extends Model
     {
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config
+      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
+      @notificationManager
     } = params
 
     @emitter = new Emitter
@@ -463,7 +465,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      registerEditor: true, @config
+      registerEditor: true, @config, @notificationManager
     })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
@@ -2569,7 +2571,7 @@ class TextEditor extends Model
     list = list.map (item) -> "* #{item}"
     content = "Scopes at Cursor\n#{list.join('\n')}"
 
-    atom.notifications.addInfo(content, dismissable: true)
+    @notificationManager.addInfo(content, dismissable: true)
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
