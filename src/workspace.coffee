@@ -396,7 +396,7 @@ class Workspace extends Model
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
-      item ?= @project.open(uri, options)
+      item ?= @openTextFile(uri, options)
     catch error
       switch error.code
         when 'CANCELLED'
@@ -430,6 +430,35 @@ class Workspace extends Model
         index = pane.getActiveItemIndex()
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
+
+  openTextFile: (uri, options) ->
+    filePath = @project.resolvePath(uri)
+
+    if filePath?
+      try
+        fs.closeSync(fs.openSync(filePath, 'r'))
+      catch error
+        # allow ENOENT errors to create an editor for paths that dont exist
+        throw error unless error.code is 'ENOENT'
+
+    fileSize = fs.getSizeSync(filePath)
+
+    largeFileMode = fileSize >= 2 * 1048576 # 2MB
+    if fileSize >= 20 * 1048576 # 20MB
+      choice = atom.confirm
+        message: 'Atom will be unresponsive during the loading of very large files.'
+        detailedMessage: "Do you still want to load this file?"
+        buttons: ["Proceed", "Cancel"]
+      if choice is 1
+        error = new Error
+        error.code = 'CANCELLED'
+        throw error
+
+    @project.bufferForPath(filePath, options).then (buffer) =>
+      @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+
+  buildTextEditor: (params) ->
+    new TextEditor(params)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

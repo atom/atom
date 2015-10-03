@@ -211,16 +211,16 @@ class Atom extends Model
     @views.addViewProvider(Gutter, createGutterView)
 
   registerDefaultOpeners: ->
-    @workspace.addOpener (filePath) ->
-      switch filePath
+    @workspace.addOpener (uri) ->
+      switch uri
         when 'atom://.atom/stylesheet'
-          @project.open(@styles.getUserStyleSheetPath())
+          @workspace.open(@styles.getUserStyleSheetPath())
         when 'atom://.atom/keymap'
-          @project.open(@keymaps.getUserKeymapPath())
+          @workspace.open(@keymaps.getUserKeymapPath())
         when 'atom://.atom/config'
-          @project.open(@config.getUserConfigPath())
+          @workspace.open(@config.getUserConfigPath())
         when 'atom://.atom/init-script'
-          @project.open(@getUserInitScriptPath())
+          @workspace.open(@getUserInitScriptPath())
 
   reset: ->
     @config.reset()

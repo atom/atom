@@ -287,40 +287,6 @@ class Project extends Model
   Section: Private
   ###
 
-  # Given a path to a file, this constructs and associates a new
-  # {TextEditor}, showing the file.
-  #
-  # * `filePath` The {String} path of the file to associate with.
-  # * `options` Options that you can pass to the {TextEditor} constructor.
-  #
-  # Returns a promise that resolves to an {TextEditor}.
-  open: (filePath, options={}) ->
-    filePath = @resolvePath(filePath)
-
-    if filePath?
-      try
-        fs.closeSync(fs.openSync(filePath, 'r'))
-      catch error
-        # allow ENOENT errors to create an editor for paths that dont exist
-        throw error unless error.code is 'ENOENT'
-
-    absoluteFilePath = @resolvePath(filePath)
-
-    fileSize = fs.getSizeSync(absoluteFilePath)
-
-    if fileSize >= 20 * 1048576 # 20MB
-      choice = atom.confirm
-        message: 'Atom will be unresponsive during the loading of very large files.'
-        detailedMessage: "Do you still want to load this file?"
-        buttons: ["Proceed", "Cancel"]
-      if choice is 1
-        error = new Error
-        error.code = 'CANCELLED'
-        throw error
-
-    @bufferForPath(absoluteFilePath).then (buffer) =>
-      @buildEditorForBuffer(buffer, _.extend({fileSize}, options))
-
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
   #
@@ -399,11 +365,6 @@ class Project extends Model
   removeBufferAtIndex: (index, options={}) ->
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
-
-  buildEditorForBuffer: (buffer, editorOptions) ->
-    largeFileMode = editorOptions.fileSize >= 2 * 1048576 # 2MB
-    editor = new TextEditor(_.extend({buffer, largeFileMode, registerEditor: true}, editorOptions))
-    editor
 
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
