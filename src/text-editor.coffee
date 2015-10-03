@@ -76,6 +76,7 @@ class TextEditor extends Model
     state.displayBuffer = displayBuffer
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
+    state.clipboard = atomEnvironment.clipboard
     new this(state)
 
   constructor: (params={}) ->
@@ -84,7 +85,7 @@ class TextEditor extends Model
     {
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
-      lineNumberGutterVisible, largeFileMode, @config, @notificationManager
+      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @clipboard
     } = params
 
     @emitter = new Emitter
@@ -460,7 +461,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      @config, @notificationManager
+      @config, @notificationManager, @clipboard
     })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
@@ -590,7 +591,7 @@ class TextEditor extends Model
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
     if filePath = @getPath()
-      atom.clipboard.write(filePath)
+      @clipboard.write(filePath)
 
   ###
   Section: File Operations
@@ -2618,7 +2619,7 @@ class TextEditor extends Model
   #
   # * `options` (optional) See {Selection::insertText}.
   pasteText: (options={}) ->
-    {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
+    {text: clipboardText, metadata} = @clipboard.readWithMetadata()
     return false unless @emitWillInsertTextEvent(clipboardText)
 
     metadata ?= {}
