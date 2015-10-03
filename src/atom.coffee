@@ -114,7 +114,7 @@ class Atom extends Model
     @disposables = new CompositeDisposable
 
     DeserializerManager = require './deserializer-manager'
-    @deserializers = new DeserializerManager()
+    @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
     @registerDeserializers()
 
