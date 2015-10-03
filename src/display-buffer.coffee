@@ -28,7 +28,7 @@ class DisplayBuffer extends Model
   width: null
 
   @deserialize: (state, atomEnvironment) ->
-    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer)
+    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
     new this(state)
@@ -39,7 +39,9 @@ class DisplayBuffer extends Model
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles, @largeFileMode})
+    @tokenizedBuffer ?= new TokenizedBuffer({
+      tabLength, buffer, ignoreInvisibles, @largeFileMode, @config
+    })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}

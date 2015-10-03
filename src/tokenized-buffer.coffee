@@ -23,9 +23,10 @@ class TokenizedBuffer extends Model
 
   @deserialize: (state, atomEnvironment) ->
     state.buffer = atom.project.bufferForPathSync(state.bufferPath)
+    state.config = atomEnvironment.config
     new this(state)
 
-  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
+  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config}) ->
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator
@@ -81,19 +82,19 @@ class TokenizedBuffer extends Model
 
     scopeOptions = {scope: @rootScopeDescriptor}
     @configSettings =
-      tabLength: atom.config.get('editor.tabLength', scopeOptions)
-      invisibles: atom.config.get('editor.invisibles', scopeOptions)
-      showInvisibles: atom.config.get('editor.showInvisibles', scopeOptions)
+      tabLength: @config.get('editor.tabLength', scopeOptions)
+      invisibles: @config.get('editor.invisibles', scopeOptions)
+      showInvisibles: @config.get('editor.showInvisibles', scopeOptions)
 
     if @configSubscriptions?
       @configSubscriptions.dispose()
       @disposables.remove(@configSubscriptions)
     @configSubscriptions = new CompositeDisposable
-    @configSubscriptions.add atom.config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
+    @configSubscriptions.add @config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
     ['invisibles', 'showInvisibles'].forEach (key) =>
-      @configSubscriptions.add atom.config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
+      @configSubscriptions.add @config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
         oldInvisibles = @getInvisiblesToShow()
         @configSettings[key] = newValue
         @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
