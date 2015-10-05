@@ -14,8 +14,8 @@ process.env.NODE_PATH = exportsPath
 # Make React faster
 process.env.NODE_ENV ?= 'production' unless devMode
 
-Atom = require './atom'
-window.atom = new Atom
+AtomEnvironment = require './atom-environment'
+window.atom = new AtomEnvironment
 
 atom.displayWindow()
 atom.loadStateSync()

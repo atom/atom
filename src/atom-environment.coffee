@@ -40,7 +40,7 @@ TextEditorElement = require './text-editor-element'
 #
 # An instance of this class is always available as the `atom` global.
 module.exports =
-class Atom extends Model
+class AtomEnvironment extends Model
   @version: 1  # Increment this when the serialization format changes
 
   workspaceParentSelectorctor: 'body'

@@ -6,8 +6,8 @@ try
   ipc = require 'ipc'
 
   require '../src/window'
-  Atom = require '../src/atom'
-  window.atom = new Atom
+  AtomEnvironment = require '../src/atom-environment'
+  window.atom = new AtomEnvironment
 
   # Show window synchronously so a focusout doesn't fire on input elements
   # that are focused in the very first spec run.
