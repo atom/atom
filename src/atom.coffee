@@ -119,7 +119,7 @@ class Atom extends Model
     @registerDeserializers()
 
     ViewRegistry = require './view-registry'
-    @views = new ViewRegistry
+    @views = new ViewRegistry(this)
     @registerViewProviders()
 
     NotificationManager = require './notification-manager'
@@ -199,8 +199,8 @@ class Atom extends Model
       new WorkspaceElement().initialize(model)
     @views.addViewProvider PanelContainer, (model) ->
       new PanelContainerElement().initialize(model)
-    @views.addViewProvider Panel, (model) ->
-      new PanelElement().initialize(model)
+    @views.addViewProvider Panel, (model, env) ->
+      new PanelElement().initialize(model, env)
     @views.addViewProvider PaneContainer, (model) ->
       new PaneContainerElement().initialize(model)
     @views.addViewProvider PaneAxis, (model) ->
