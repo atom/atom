@@ -29,6 +29,10 @@ class AtomWindow
       'web-preferences':
         'direct-write': true
         'subpixel-font-scaling': false
+
+    if @isSpec
+      options['web-preferences']['page-visibility'] = true
+
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if process.platform is 'linux'
