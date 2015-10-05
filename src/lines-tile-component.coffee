@@ -49,10 +49,6 @@ class LinesTileComponent
       @domNode.style.zIndex = @newTileState.zIndex
       @oldTileState.zIndex = @newTileState.zIndex
 
-    if @newTileState.visibility isnt @oldTileState.visibility
-      @domNode.style.visibility = @newTileState.visibility
-      @oldTileState.visibility = @newTileState.visibility
-
     if @newTileState.display isnt @oldTileState.display
       @domNode.style.display = @newTileState.display
       @oldTileState.display = @newTileState.display

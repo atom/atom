@@ -54,6 +54,7 @@ class LinesComponent extends TiledComponent
         @placeholderTextDiv.classList.add('placeholder-text')
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
+      @oldState.placeholderText = @newState.placeholderText
 
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
