@@ -339,7 +339,7 @@ class Pane extends Model
   # the pane's view.
   activateItem: (item) ->
     if item?
-      @addItem(item)
+      @addItem(item, @getActiveItemIndex() + 1, false)
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -350,17 +350,17 @@ class Pane extends Model
   #   If omitted, the item is added after the current active item.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1) ->
+  addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
     if typeof item.onDidDestroy is 'function'
-      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, true)
+      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
 
     @items.splice(index, 0, item)
-    @emitter.emit 'did-add-item', {item, index}
+    @emitter.emit 'did-add-item', {item, index, moved}
     @setActiveItem(item) unless @getActiveItem()?
     item
 
@@ -375,14 +375,14 @@ class Pane extends Model
   # Returns an {Array} of added items.
   addItems: (items, index=@getActiveItemIndex() + 1) ->
     items = items.filter (item) => not (item in @items)
-    @addItem(item, index + i) for item, i in items
+    @addItem(item, index + i, false) for item, i in items
     items
 
-  removeItem: (item, destroyed=false) ->
+  removeItem: (item, moved) ->
     index = @items.indexOf(item)
     return if index is -1
 
-    @emitter.emit 'will-remove-item', {item, index, destroyed}
+    @emitter.emit 'will-remove-item', {item, index, destroyed: !moved, moved}
     @unsubscribeFromItem(item)
 
     if item is @activeItem
@@ -393,8 +393,8 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emitter.emit 'did-remove-item', {item, index, destroyed}
-    @container?.didDestroyPaneItem({item, index, pane: this}) if destroyed
+    @emitter.emit 'did-remove-item', {item, index, destroyed: !moved, moved}
+    @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Move the given item to the given index.
@@ -414,8 +414,8 @@ class Pane extends Model
   # * `index` {Number} indicating the index to which to move the item in the
   #   given pane.
   moveItemToPane: (item, pane, index) ->
-    @removeItem(item)
-    pane.addItem(item, index)
+    @removeItem(item, true)
+    pane.addItem(item, index, true)
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
@@ -435,7 +435,7 @@ class Pane extends Model
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
-        @removeItem(item, true)
+        @removeItem(item, false)
         item.destroy?()
         true
       else
