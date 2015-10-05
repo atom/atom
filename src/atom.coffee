@@ -195,8 +195,8 @@ class Atom extends Model
     @deserializers.add(TextBuffer)
 
   registerViewProviders: ->
-    @views.addViewProvider Workspace, (model) ->
-      new WorkspaceElement().initialize(model)
+    @views.addViewProvider Workspace, (model, env) ->
+      new WorkspaceElement().initialize(model, env)
     @views.addViewProvider PanelContainer, (model) ->
       new PanelContainerElement().initialize(model)
     @views.addViewProvider Panel, (model, env) ->
