@@ -60,3 +60,6 @@ class DeserializerManager
 
     name = state.get?('deserializer') ? state.deserializer
     @deserializers[name]
+
+  clear: ->
+    @deserializers = {}

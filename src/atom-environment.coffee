@@ -224,6 +224,9 @@ class AtomEnvironment extends Model
           @workspace.open(@getUserInitScriptPath())
 
   reset: ->
+    @deserializers.clear()
+    @registerDefaultDeserializers()
+
     @config.clear()
     @setConfigSchema()
 
