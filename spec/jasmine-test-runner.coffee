@@ -5,7 +5,9 @@ path = require 'path'
 ipc = require 'ipc'
 StylesElement = require '../src/styles-element'
 
-module.exports = ({logFile, headless, testPaths}) ->
+module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
+  window.atom = buildAtomEnvironment()
+
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
 
