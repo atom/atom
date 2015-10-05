@@ -382,7 +382,7 @@ class Pane extends Model
     index = @items.indexOf(item)
     return if index is -1
 
-    @emitter.emit 'will-remove-item', {item, index, destroyed: !moved, moved}
+    @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
 
     if item is @activeItem
@@ -393,7 +393,7 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emitter.emit 'did-remove-item', {item, index, destroyed: !moved, moved}
+    @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
     @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
