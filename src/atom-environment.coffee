@@ -15,6 +15,7 @@ WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+registerDefaultCommands = require './register-default-commands'
 
 Workspace = require './workspace'
 PanelContainer = require './panel-container'
@@ -116,11 +117,11 @@ class AtomEnvironment extends Model
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
-    @registerDeserializers()
+    @registerDefaultDeserializers()
 
     ViewRegistry = require './view-registry'
     @views = new ViewRegistry(this)
-    @registerViewProviders()
+    @registerDefaultViewProviders()
 
     NotificationManager = require './notification-manager'
     @notifications = new NotificationManager
@@ -139,7 +140,6 @@ class AtomEnvironment extends Model
 
     CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
-    registerDefaultCommands = require './register-default-commands'
     registerDefaultCommands(this)
 
     PackageManager = require './package-manager'
@@ -185,7 +185,7 @@ class AtomEnvironment extends Model
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
-  registerDeserializers: ->
+  registerDefaultDeserializers: ->
     @deserializers.add(Workspace)
     @deserializers.add(PaneContainer)
     @deserializers.add(PaneAxis)
@@ -194,7 +194,7 @@ class AtomEnvironment extends Model
     @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
 
-  registerViewProviders: ->
+  registerDefaultViewProviders: ->
     @views.addViewProvider Workspace, (model, env) ->
       new WorkspaceElement().initialize(model, env)
     @views.addViewProvider PanelContainer, (model) ->
@@ -224,7 +224,7 @@ class AtomEnvironment extends Model
           @workspace.open(@getUserInitScriptPath())
 
   reset: ->
-    @config.reset()
+    @config.clear()
     @setConfigSchema()
 
     @keymaps.clear()

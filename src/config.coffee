@@ -334,9 +334,9 @@ class Config
   constructor: ({@configDirPath, @resourcePath, @notificationManager}={}) ->
     @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
     @configFilePath ?= path.join(@configDirPath, 'config.cson')
-    @reset()
+    @clear()
 
-  reset: ->
+  clear: ->
     @emitter = new Emitter
     @schema =
       type: 'object'
