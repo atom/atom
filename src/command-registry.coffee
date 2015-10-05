@@ -45,6 +45,9 @@ SequenceCount = 0
 module.exports =
 class CommandRegistry
   constructor: (@rootNode) ->
+    @clear()
+
+  clear: ->
     @registeredCommands = {}
     @selectorBasedListenersByCommandName = {}
     @inlineListenersByCommandName = {}

@@ -233,6 +233,9 @@ class AtomEnvironment extends Model
     @keymaps.clear()
     @keymaps.loadBundledKeymaps()
 
+    @commands.clear()
+    registerDefaultCommands(this)
+
   ###
   Section: Event Subscription
   ###
