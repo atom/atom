@@ -128,7 +128,7 @@ class TextEditor extends Model
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
 
-    @languageMode = new LanguageMode(this)
+    @languageMode = new LanguageMode(this, @config)
 
     @setEncoding(@config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
