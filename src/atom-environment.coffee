@@ -227,6 +227,9 @@ class AtomEnvironment extends Model
     @config.reset()
     @setConfigSchema()
 
+    @keymaps.clear()
+    @keymaps.loadBundledKeymaps()
+
   ###
   Section: Event Subscription
   ###

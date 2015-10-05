@@ -96,7 +96,6 @@ beforeEach ->
     assert: atom.assert.bind(atom)
   })
   atom.themes.workspace = atom.workspace
-  atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
   atom.views.clearDocumentRequests()
