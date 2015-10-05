@@ -20,7 +20,7 @@ class LinesYardstick
   clearScreenRowsForMeasurement: ->
     @presenter.clearScreenRowsToMeasure()
 
-  screenPositionForPixelPosition: (pixelPosition) ->
+  screenPositionForPixelPosition: (pixelPosition, measureVisibleLinesOnly) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
@@ -30,7 +30,7 @@ class LinesYardstick
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
 
-    @prepareScreenRowsForMeasurement([row])
+    @prepareScreenRowsForMeasurement([row]) unless measureVisibleLinesOnly
 
     line = @model.tokenizedLineForScreenRow(row)
     lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
@@ -78,26 +78,26 @@ class LinesYardstick
         previousColumn = column
         column += charLength
 
-    @clearScreenRowsForMeasurement()
+    @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
 
     if targetLeft <= previousLeft + (charWidth / 2)
       new Point(row, previousColumn)
     else
       new Point(row, column)
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+  pixelPositionForScreenPosition: (screenPosition, clip=true, measureVisibleLinesOnly) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
-    @prepareScreenRowsForMeasurement([targetRow])
+    @prepareScreenRowsForMeasurement([targetRow]) unless measureVisibleLinesOnly
 
     top = targetRow * @model.getLineHeightInPixels()
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
-    @clearScreenRowsForMeasurement()
+    @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
 
     {top, left}
 

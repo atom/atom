@@ -423,14 +423,14 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForScreenPosition: (screenPosition) ->
-    @linesYardstick.pixelPositionForScreenPosition(screenPosition)
+  pixelPositionForScreenPosition: ->
+    @linesYardstick.pixelPositionForScreenPosition(arguments...)
 
-  screenPositionForPixelPosition: (pixelPosition) ->
-    @linesYardstick.screenPositionForPixelPosition(pixelPosition)
+  screenPositionForPixelPosition: ->
+    @linesYardstick.screenPositionForPixelPosition(arguments...)
 
-  pixelRectForScreenRange: (screenRange) ->
-    @linesYardstick.pixelRectForScreenRange(screenRange)
+  pixelRectForScreenRange: ->
+    @linesYardstick.pixelRectForScreenRange(arguments...)
 
   pixelRangeForScreenRange: (screenRange, clip=true) ->
     {start, end} = Range.fromObject(screenRange)
@@ -850,7 +850,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @screenPositionForPixelPosition(pixelPosition)
+    @screenPositionForPixelPosition(pixelPosition, true)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event

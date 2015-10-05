@@ -44,8 +44,7 @@ describe "LinesYardstick", ->
       mockLineNodesProvider =
         updateSync: (state) -> availableScreenRows = state
         lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
-          if availableScreenRows[lineId] isnt screenRow
-            throw new Error("No line node found!")
+          return if availableScreenRows[lineId] isnt screenRow
 
           buildLineNode(screenRow)
 
@@ -120,6 +119,18 @@ describe "LinesYardstick", ->
       expect(linesYardstick.pixelPositionForScreenPosition([0, 9]).left).toBe 67
       expect(linesYardstick.pixelPositionForScreenPosition([0, 11]).left).toBe 84
 
+    it "doesn't measure invisible lines if it is explicitly told so", ->
+      atom.styles.addStyleSheet """
+      * {
+        font-size: 12px;
+        font-family: monospace;
+      }
+      """
+
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 0], true, true)).toEqual({left: 0, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 1], true, true)).toEqual({left: 0, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 5], true, true)).toEqual({left: 0, top: 0})
+
     describe "::screenPositionForPixelPosition(pixelPosition)", ->
       it "converts pixel positions to screen positions", ->
         atom.styles.addStyleSheet """
@@ -152,3 +163,15 @@ describe "LinesYardstick", ->
         expect(linesYardstick.screenPositionForPixelPosition(top: Infinity, left: Infinity)).toEqual [12, 2]
         expect(linesYardstick.screenPositionForPixelPosition(top: (editor.getLastScreenRow() + 1) * 14, left: 0)).toEqual [12, 2]
         expect(linesYardstick.screenPositionForPixelPosition(top: editor.getLastScreenRow() * 14, left: 0)).toEqual [12, 0]
+
+      it "doesn't measure invisible lines if it is explicitly told so", ->
+        atom.styles.addStyleSheet """
+        * {
+          font-size: 12px;
+          font-family: monospace;
+        }
+        """
+
+        expect(linesYardstick.screenPositionForPixelPosition({top: 0, left: 13}, true)).toEqual([0, 0])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 14, left: 20}, true)).toEqual([1, 0])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 28, left: 100}, true)).toEqual([2, 0])
