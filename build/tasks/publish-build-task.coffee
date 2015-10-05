@@ -6,6 +6,7 @@ async = require 'async'
 fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
+{convertVersion} = require 'grunt-electron-installer'
 
 grunt = null
 
@@ -76,12 +77,8 @@ getAssets = ->
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
+      nupkgVersion = convertVersion(version)
       assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
-
-      # NuGet packages can't have dots in their pre-release name, so we remove
-      # those dots in `grunt-electron-installer` when generating the package.
-      nupkgVersion = version.replace(/\.(\d+)$/, '$1')
-
       for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{nupkgVersion}-full.nupkg", "atom-#{nupkgVersion}-delta.nupkg"]
         cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
