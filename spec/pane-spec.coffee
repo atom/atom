@@ -103,7 +103,7 @@ describe "Pane", ->
 
       item = new Item("C")
       pane.addItem(item, 1)
-      expect(events).toEqual [{item, index: 1}]
+      expect(events).toEqual [{item, index: 1, moved: false}]
 
     it "throws an exception if the item is already present on a pane", ->
       item = new Item("A")
@@ -223,13 +223,13 @@ describe "Pane", ->
       events = []
       pane.onWillRemoveItem (event) -> events.push(event)
       pane.destroyItem(item2)
-      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
+      expect(events).toEqual [{item: item2, index: 1, moved: false, destroyed: true}]
 
     it "invokes ::onDidRemoveItem() observers", ->
       events = []
       pane.onDidRemoveItem (event) -> events.push(event)
       pane.destroyItem(item2)
-      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
+      expect(events).toEqual [{item: item2, index: 1, moved: false, destroyed: true}]
 
     describe "when the destroyed item is the active item and is the first item", ->
       it "activates the next item", ->
@@ -517,14 +517,20 @@ describe "Pane", ->
       pane1.onWillRemoveItem (event) -> events.push(event)
       pane1.moveItemToPane(item2, pane2, 1)
 
-      expect(events).toEqual [{item: item2, index: 1, destroyed: false}]
+      expect(events).toEqual [{item: item2, index: 1, moved: true, destroyed: false}]
 
     it "invokes ::onDidRemoveItem() observers", ->
       events = []
       pane1.onDidRemoveItem (event) -> events.push(event)
       pane1.moveItemToPane(item2, pane2, 1)
 
-      expect(events).toEqual [{item: item2, index: 1, destroyed: false}]
+      expect(events).toEqual [{item: item2, index: 1, moved: true, destroyed: false}]
+
+    it "does not invoke ::onDidAddPaneItem observers on the container", ->
+      addedItems = []
+      container.onDidAddPaneItem (item) -> addedItems.push(item)
+      pane1.moveItemToPane(item2, pane2, 1)
+      expect(addedItems).toEqual []
 
     describe "when the moved item the last item in the source pane", ->
       beforeEach ->
