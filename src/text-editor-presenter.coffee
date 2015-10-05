@@ -1128,7 +1128,7 @@ class TextEditorPresenter
 
   pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     position =
-      @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
+      @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip, true)
     position.top -= @getScrollTop()
     position.left -= @getScrollLeft()
 
@@ -1144,7 +1144,7 @@ class TextEditorPresenter
     @hasPixelRectRequirements() and @boundingClientRect? and @windowWidth and @windowHeight
 
   pixelRectForScreenRange: (screenRange) ->
-    rect = @linesYardstick.pixelRectForScreenRange(screenRange)
+    rect = @linesYardstick.pixelRectForScreenRange(screenRange, true)
     rect.top -= @getScrollTop()
     rect.left -= @getScrollLeft()
 

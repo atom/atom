@@ -31,7 +31,6 @@ describe "LinesYardstick", ->
         lineNode
 
       mockPresenter =
-        isBatching: -> true
         setScreenRowsToMeasure: (screenRows) -> screenRowsToMeasure = screenRows
         clearScreenRowsToMeasure: -> setScreenRowsToMeasure = []
         getPreMeasurementState: ->

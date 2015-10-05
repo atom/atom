@@ -12,8 +12,6 @@ class LinesYardstick
     @pixelPositionsByLineIdAndColumn = {}
 
   prepareScreenRowsForMeasurement: (screenRows) ->
-    return unless @presenter.isBatching()
-
     @presenter.setScreenRowsToMeasure(screenRows)
     @lineNodesProvider.updateSync(@presenter.getPreMeasurementState())
 
@@ -173,17 +171,17 @@ class LinesYardstick
 
     left + width - offset
 
-  pixelRectForScreenRange: (screenRange) ->
+  pixelRectForScreenRange: (screenRange, measureVisibleLinesOnly) ->
     lineHeight = @model.getLineHeightInPixels()
 
     if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
+      top = @pixelPositionForScreenPosition(screenRange.start, true, measureVisibleLinesOnly).top
       left = 0
       height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
       width = @presenter.getScrollWidth()
     else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
+      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false, measureVisibleLinesOnly)
       height = lineHeight
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
+      width = @pixelPositionForScreenPosition(screenRange.end, false, measureVisibleLinesOnly).left - left
 
     {top, left, width, height}
