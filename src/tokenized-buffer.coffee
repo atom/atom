@@ -37,7 +37,7 @@ class TokenizedBuffer extends Model
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
-    @tokenIterator = new TokenIterator
+    @tokenIterator = new TokenIterator({@grammarRegistry})
 
     @disposables.add @grammarRegistry.onDidAddGrammar(@grammarAddedOrUpdated)
     @disposables.add @grammarRegistry.onDidUpdateGrammar(@grammarAddedOrUpdated)

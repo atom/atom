@@ -41,7 +41,7 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
@@ -85,7 +85,7 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})

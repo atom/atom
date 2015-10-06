@@ -13,8 +13,8 @@ cloneObject = (object) ->
 
 module.exports =
 class LinesTileComponent
-  constructor: ({@presenter, @id, @domElementPool, @assert}) ->
-    @tokenIterator = new TokenIterator
+  constructor: ({@presenter, @id, @domElementPool, @assert, grammars}) ->
+    @tokenIterator = new TokenIterator(grammarRegistry: grammars)
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}

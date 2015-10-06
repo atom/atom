@@ -27,6 +27,7 @@ class TextEditorElement extends HTMLElement
     @assert = atom.assert
     @views = atom.views
     @styles = atom.styles
+    @grammars = atom.grammars
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -86,13 +87,14 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles}) ->
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}) ->
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
     throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
     throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
+    throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
 
     @setModel(model)
     this
@@ -140,6 +142,7 @@ class TextEditorElement extends HTMLElement
       config: @config
       workspace: @workspace
       assert: @assert
+      grammars: @grammars
     )
     @rootElement.appendChild(@component.getDomNode())
 
