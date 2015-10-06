@@ -1,5 +1,9 @@
 global.shellStartTime = Date.now()
 
+process.on 'uncaughtException', (error={}) ->
+  console.log(error.message) if error.message?
+  console.log(error.stack) if error.stack?
+
 crashReporter = require 'crash-reporter'
 app = require 'app'
 fs = require 'fs-plus'
@@ -10,10 +14,12 @@ console.log = require 'nslog'
 start = ->
   args = parseCommandLine()
 
-  setupUncaughtExceptionHandler()
   setupAtomHome(args)
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
+
+  # NB: This prevents Win10 from showing dupe items in the taskbar
+  app.setAppUserModelId('com.squirrel.atom.atom')
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
@@ -41,11 +47,6 @@ normalizeDriveLetterName = (filePath) ->
     filePath.replace /^([a-z]):/, ([driveLetter]) -> driveLetter.toUpperCase() + ":"
   else
     filePath
-
-setupUncaughtExceptionHandler = ->
-  process.on 'uncaughtException', (error={}) ->
-    console.log(error.message) if error.message?
-    console.log(error.stack) if error.stack?
 
 handleStartupEventWithSquirrel = ->
   return false unless process.platform is 'win32'

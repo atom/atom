@@ -15,9 +15,17 @@ module.exports = (grunt) ->
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
-      cp 'atom-shell/Atom.app', shellAppDir, filter: /default_app/
+      cp 'electron/Electron.app', shellAppDir, filter: /default_app/
+      fs.renameSync path.join(shellAppDir, 'Contents', 'MacOS', 'Electron'), path.join(shellAppDir, 'Contents', 'MacOS', 'Atom')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Electron Helper.app'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Electron Helper'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
     else
-      cp 'atom-shell', shellAppDir, filter: /default_app/
+      cp 'electron', shellAppDir, filter: /default_app/
+
+      if process.platform is 'win32'
+        fs.renameSync path.join(shellAppDir, 'electron.exe'), path.join(shellAppDir, 'atom.exe')
+      else
+        fs.renameSync path.join(shellAppDir, 'electron'), path.join(shellAppDir, 'atom')
 
     mkdir appDir
 
@@ -29,10 +37,8 @@ module.exports = (grunt) ->
     packageNames = []
     packageDirectories = []
     nonPackageDirectories = [
-      'benchmark'
       'dot-atom'
       'vendor'
-      'resources'
     ]
 
     {devDependencies} = grunt.file.readJSON('package.json')
@@ -78,18 +84,11 @@ module.exports = (grunt) ->
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
       path.join('vendor', 'apm')
-      path.join('resources', 'linux')
-      path.join('resources', 'mac')
-      path.join('resources', 'win')
 
       # These are only require in dev mode when the grammar isn't precompiled
       path.join('snippets', 'node_modules', 'loophole')
       path.join('snippets', 'node_modules', 'pegjs')
       path.join('snippets', 'node_modules', '.bin', 'pegjs')
-
-      # These aren't needed since WeakMap is built-in
-      path.join('emissary', 'node_modules', 'es6-weak-map')
-      path.join('property-accessors', 'node_modules', 'es6-weak-map')
 
       '.DS_Store'
       '.jshintrc'
@@ -142,19 +141,14 @@ module.exports = (grunt) ->
 
     testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}_*te?sts?_*#{_.escapeRegExp(path.sep)}")
     exampleFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}examples?#{_.escapeRegExp(path.sep)}")
-    benchmarkFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}benchmarks?#{_.escapeRegExp(path.sep)}")
 
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
     filterNodeModule = (pathToCopy) ->
-      return true if benchmarkFolderPattern.test(pathToCopy)
-
       pathToCopy = path.resolve(pathToCopy)
       nodeModulesFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
     packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
     filterPackage = (pathToCopy) ->
-      return true if benchmarkFolderPattern.test(pathToCopy)
-
       pathToCopy = path.resolve(pathToCopy)
       packageFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
@@ -171,10 +165,14 @@ module.exports = (grunt) ->
     if process.platform isnt 'win32'
       fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.resolve(appDir, '..', 'new-app', 'apm', 'node_modules', '.bin', 'apm'))
 
+    channel = grunt.config.get('atom.channel')
+
+    cp path.join('resources', 'app-icons', channel, 'png', '1024.png'), path.join(appDir, 'resources', 'atom.png')
+
     if process.platform is 'darwin'
-      grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
-        unless /.+\.plist/.test(sourcePath)
-          grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
+      cp path.join('resources', 'app-icons', channel, 'atom.icns'), path.resolve(appDir, '..', 'atom.icns')
+      cp path.join('resources', 'mac', 'file.icns'), path.resolve(appDir, '..', 'file.icns')
+      cp path.join('resources', 'mac', 'speakeasy.pem'), path.resolve(appDir, '..', 'speakeasy.pem')
 
     if process.platform is 'win32'
       cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'resources', 'cli', 'atom.cmd')
@@ -183,9 +181,10 @@ module.exports = (grunt) ->
       cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
 
     if process.platform is 'linux'
-      cp path.join('resources', 'linux', 'icons'), path.join(buildDir, 'icons')
+      cp path.join('resources', 'app-icons', channel, 'png'), path.join(buildDir, 'icons')
 
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
+    dependencies.push('disable-autoupdate') if grunt.config.get('atom.disableAutoUpdate')
     grunt.task.run(dependencies...)

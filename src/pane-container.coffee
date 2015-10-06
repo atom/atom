@@ -1,7 +1,5 @@
 {find, flatten} = require 'underscore-plus'
-Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
-Serializable = require 'serializable'
 Gutter = require './gutter'
 Model = require './model'
 Pane = require './pane'
@@ -10,17 +8,23 @@ ItemRegistry = require './item-registry'
 module.exports =
 class PaneContainer extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
 
   @version: 1
 
   root: null
 
+  @deserialize: (state) ->
+    container = Object.create(@prototype) # allows us to pass a self reference to our child before invoking constructor
+    state.root = atom.deserializers.deserialize(state.root, {container})
+    state.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
+    state.activePane = find state.root.getPanes(), (pane) -> pane.id is state.activePaneId
+    @call(container, state) # run constructor
+    container
+
   constructor: (params) ->
     super
 
-    unless Grim.includeDeprecatedAPIs
-      @activePane = params?.activePane
+    @activePane = params?.activePane
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -35,13 +39,9 @@ class PaneContainer extends Model
     @monitorActivePaneItem()
     @monitorPaneItems()
 
-  deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root, container: this)
-    params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
-    params.activePane = find params.root.getPanes(), (pane) -> pane.id is params.activePaneId
-    params
-
-  serializeParams: (params) ->
+  serialize: (params) ->
+    deserializer: 'PaneContainer'
+    version: @constructor.version
     root: @root?.serialize()
     activePaneId: @activePane.id
 
@@ -222,12 +222,3 @@ class PaneContainer extends Model
 
   removedPaneItem: (item) ->
     @itemRegistry.removeItem(item)
-
-if Grim.includeDeprecatedAPIs
-  PaneContainer.properties
-    activePane: null
-
-  PaneContainer.behavior 'activePaneItem', ->
-    @$activePane
-      .switch((activePane) -> activePane?.$activeItem)
-      .distinctUntilChanged()

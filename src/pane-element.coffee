@@ -1,8 +1,5 @@
 path = require 'path'
 {CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
-{$, callAttachHooks, callRemoveHooks} = require './space-pen-extensions'
-PaneView = null
 
 class PaneElement extends HTMLElement
   attached: false
@@ -14,7 +11,6 @@ class PaneElement extends HTMLElement
 
     @initializeContent()
     @subscribeToDOMEvents()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
     @attached = true
@@ -55,10 +51,6 @@ class PaneElement extends HTMLElement
     @addEventListener 'dragover', handleDragOver
     @addEventListener 'drop', handleDrop
 
-  createSpacePenShim: ->
-    PaneView ?= require './pane-view'
-    @__spacePenView = new PaneView(this)
-
   initialize: (@model) ->
     @subscriptions.add @model.onDidActivate(@activated.bind(this))
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))
@@ -66,8 +58,6 @@ class PaneElement extends HTMLElement
     @subscriptions.add @model.onDidRemoveItem(@itemRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@paneDestroyed.bind(this))
     @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
-
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
@@ -96,7 +86,6 @@ class PaneElement extends HTMLElement
 
     unless @itemViews.contains(itemView)
       @itemViews.appendChild(itemView)
-      callAttachHooks(itemView)
 
     for child in @itemViews.children
       if child is itemView
@@ -121,7 +110,6 @@ class PaneElement extends HTMLElement
 
   itemRemoved: ({item, index, destroyed}) ->
     if viewToRemove = atom.views.getView(item)
-      callRemoveHooks(viewToRemove) if destroyed
       viewToRemove.remove()
 
   paneDestroyed: ->

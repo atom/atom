@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
-Grim = require 'grim'
 Model = require './model'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
@@ -61,18 +60,6 @@ class Cursor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeVisibility: (callback) ->
     @emitter.on 'did-change-visibility', callback
-
-  on: (eventName) ->
-    return unless Grim.includeDeprecatedAPIs
-
-    switch eventName
-      when 'moved'
-        Grim.deprecate("Use Cursor::onDidChangePosition instead")
-      when 'destroyed'
-        Grim.deprecate("Use Cursor::onDidDestroy instead")
-      else
-        Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
-    super
 
   ###
   Section: Managing Cursor Position
@@ -578,7 +565,6 @@ class Cursor extends Model
   setVisible: (visible) ->
     if @visible isnt visible
       @visible = visible
-      @emit 'visibility-changed', @visible if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-visibility', @visible
 
   # Public: Returns the visibility of the cursor.
@@ -698,12 +684,3 @@ class Cursor extends Model
         position = range.start
         stop()
     position
-
-if Grim.includeDeprecatedAPIs
-  Cursor::getScopes = ->
-    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
-    @getScopeDescriptor().getScopesArray()
-
-  Cursor::getMoveNextWordBoundaryBufferPosition = (options) ->
-    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
-    @getNextWordBoundaryBufferPosition(options)
