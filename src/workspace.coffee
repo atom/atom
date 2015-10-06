@@ -32,8 +32,6 @@ class Workspace extends Model
       @setDocumentEdited, @assert, @confirm
     } = params
 
-    debugger unless @assert?
-
     @emitter = new Emitter
     @openers = []
     @destroyedItemURIs = []

@@ -22,7 +22,6 @@ describe "TextEditorComponent", ->
       nextAnimationFrame = noAnimationFrame
 
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) ->
-        debugger if global.debug
         nextAnimationFrame = ->
           nextAnimationFrame = noAnimationFrame
           fn()
