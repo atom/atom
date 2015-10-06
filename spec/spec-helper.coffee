@@ -89,7 +89,7 @@ beforeEach ->
   atom.project.setPaths([projectPath])
   atom.workspace = new Workspace({
     config: atom.config, project: atom.project, packageManager: atom.packages,
-    grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+    notificationManager: atom.notifications,
     setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
     setDocumentEdited: atom.setDocumentEdited.bind(atom), atomVersion: atom.getVersion(),
     clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
