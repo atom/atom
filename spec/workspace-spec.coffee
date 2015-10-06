@@ -12,6 +12,8 @@ describe "Workspace", ->
   [workspace, setDocumentEdited] = []
 
   beforeEach ->
+    spyOn(atom, 'confirm')
+
     setDocumentEdited = jasmine.createSpy('setDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     atom.workspace = workspace = new Workspace({
@@ -20,7 +22,7 @@ describe "Workspace", ->
       clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
       setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
       setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
-      assert: atom.assert.bind(atom)
+      assert: atom.assert.bind(atom), confirm: atom.confirm.bind(atom)
     })
     waits(1)
 
@@ -350,7 +352,7 @@ describe "Workspace", ->
     describe "when the file is over 20MB", ->
       it "prompts the user to make sure they want to open a file this big", ->
         spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
-        spyOn(atom, 'confirm').andCallFake -> selectedButtonIndex
+        atom.confirm.andCallFake -> selectedButtonIndex
         selectedButtonIndex = 1 # cancel
 
         editor = null

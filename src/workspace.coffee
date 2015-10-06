@@ -29,7 +29,7 @@ class Workspace extends Model
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
       @clipboard, @viewRegistry, @grammarRegistry, @setRepresentedFilename,
-      @setDocumentEdited, @assert
+      @setDocumentEdited, @assert, @confirm
     } = params
 
     debugger unless @assert?
@@ -448,7 +448,7 @@ class Workspace extends Model
 
     largeFileMode = fileSize >= 2 * 1048576 # 2MB
     if fileSize >= 20 * 1048576 # 20MB
-      choice = atom.confirm
+      choice = @confirm
         message: 'Atom will be unresponsive during the loading of very large files.'
         detailedMessage: "Do you still want to load this file?"
         buttons: ["Proceed", "Cancel"]
