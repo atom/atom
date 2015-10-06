@@ -80,7 +80,7 @@ class GitRepository
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
 
-    {@project, refreshOnWindowFocus} = options
+    {@project, @config, @confirm, refreshOnWindowFocus} = options
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
@@ -452,8 +452,8 @@ class GitRepository
       editor.buffer.reload() if editor.buffer.isModified()
       @checkoutHead(filePath)
 
-    if atom.config.get('editor.confirmCheckoutHeadRevision')
-      atom.confirm
+    if @config.get('editor.confirmCheckoutHeadRevision')
+      @confirm
         message: 'Confirm Checkout HEAD Revision'
         detailedMessage: "Are you sure you want to discard all changes to \"#{fileName}\" since the last Git commit?"
         buttons:

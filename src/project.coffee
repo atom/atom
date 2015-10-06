@@ -21,7 +21,7 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ({@confirm, @notificationManager, packageManager}) ->
+  constructor: ({@confirm, @notificationManager, packageManager, config}) ->
     @emitter = new Emitter
     @buffers = []
     @paths = []
@@ -41,7 +41,7 @@ class Project extends Model
     # the same real path, so it is not a good key.
     @repositoryPromisesByPath = new Map()
 
-    @repositoryProviders = [new GitRepositoryProvider(this)]
+    @repositoryProviders = [new GitRepositoryProvider(this, config, confirm)]
     packageManager.serviceHub.consume(
       'atom.repository-provider',
       '^0.1.0',

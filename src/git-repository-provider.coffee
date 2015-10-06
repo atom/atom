@@ -48,7 +48,7 @@ isValidGitDirectorySync = (directory) ->
 module.exports =
 class GitRepositoryProvider
 
-  constructor: (@project) ->
+  constructor: (@project, @config, @confirm) ->
     # Keys are real paths that end in `.git`.
     # Values are the corresponding GitRepository objects.
     @pathToRepository = {}
@@ -75,7 +75,7 @@ class GitRepositoryProvider
     gitDirPath = gitDir.getPath()
     repo = @pathToRepository[gitDirPath]
     unless repo
-      repo = GitRepository.open(gitDirPath, project: @project)
+      repo = GitRepository.open(gitDirPath, {@project, @config, @confirm})
       return null unless repo
       repo.onDidDestroy(=> delete @pathToRepository[gitDirPath])
       @pathToRepository[gitDirPath] = repo

@@ -85,7 +85,7 @@ beforeEach ->
   documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.packages.serviceHub = new ServiceHub
-  atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+  atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, config: atom.config, confirm: atom.confirm})
   atom.project.setPaths([projectPath])
   atom.workspace = new Workspace({
     config: atom.config, project: atom.project, packageManager: atom.packages,

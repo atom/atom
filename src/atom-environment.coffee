@@ -171,7 +171,7 @@ class AtomEnvironment extends Model
     @clipboard = new Clipboard()
 
     Project = require './project'
-    @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm})
+    @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm, @config})
 
     CommandInstaller = require './command-installer'
     @commandInstaller = new CommandInstaller(@getVersion(), @confirm.bind(this))
