@@ -107,17 +107,20 @@ class LineNumbersTileComponent
     lineNumberNode
 
   setLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
+    @domElementPool.freeDescendants(lineNumberNode)
+
     {maxLineNumberDigits} = @newState
 
     if softWrapped
       lineNumber = "•"
     else
       lineNumber = (bufferRow + 1).toString()
-
     padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
+
+    textNode = @domElementPool.buildText(padding + lineNumber)
     iconRight = @domElementPool.buildElement("div", "icon-right")
 
-    lineNumberNode.textContent = padding + lineNumber
+    lineNumberNode.appendChild(textNode)
     lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->

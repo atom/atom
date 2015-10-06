@@ -34,9 +34,12 @@ class DOMElementPool
 
   freeElementAndDescendants: (element) ->
     @free(element)
-    for index in [element.childNodes.length - 1..0] by -1
-      child = element.childNodes[index]
-      @freeElementAndDescendants(child)
+    @freeDescendants(element)
+
+  freeDescendants: (element) ->
+    for descendant in element.childNodes by -1
+      @free(descendant)
+      @freeDescendants(descendant)
     return
 
   free: (element) ->
