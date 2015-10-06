@@ -13,7 +13,7 @@ cloneObject = (object) ->
 
 module.exports =
 class LinesTileComponent
-  constructor: ({@presenter, @id, @domElementPool}) ->
+  constructor: ({@presenter, @id, @domElementPool, @assert}) ->
     @tokenIterator = new TokenIterator
     @measuredLines = new Set
     @lineNodesByLineId = {}
@@ -361,7 +361,7 @@ class LinesTileComponent
             rangeForMeasurement.setEnd(textNode, i + charLength)
           else
             rangeForMeasurement.setEnd(textNode, textNodeLength)
-            atom.assert false, "Expected index to be less than the length of text node while measuring", (error) =>
+            @assert false, "Expected index to be less than the length of text node while measuring", (error) =>
               editor = @presenter.model
               screenRow = tokenizedLine.screenRow
               bufferRow = editor.bufferRowForScreenRow(screenRow)
