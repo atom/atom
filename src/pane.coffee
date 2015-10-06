@@ -10,8 +10,6 @@ TextEditor = require './text-editor'
 # the default configuration, tabs are also displayed for each item.
 module.exports =
 class Pane extends Model
-  atom.deserializers.add(this)
-
   container: undefined
   activeItem: undefined
   focused: false
@@ -31,7 +29,6 @@ class Pane extends Model
   constructor: (params) ->
     super
 
-    @container = params?.container
     @activeItem = params?.activeItem
     @focused = params?.focused
 
@@ -61,7 +58,7 @@ class Pane extends Model
   getContainer: -> @container
 
   setContainer: (container) ->
-    unless container is @container
+    if container and container isnt @container
       @container = container
       container.didAddPane({pane: this})
 

@@ -1,6 +1,4 @@
 require '../src/window'
-atom.initialize()
-atom.restoreWindowDimensions()
 
 require 'jasmine-json'
 require '../vendor/jasmine-jquery'
@@ -10,7 +8,6 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
 
-Config = require '../src/config'
 {Point} = require 'text-buffer'
 Project = require '../src/project'
 Workspace = require '../src/workspace'
@@ -22,7 +19,6 @@ TextEditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
 clipboard = require '../src/safe-clipboard'
 
-atom.themes.loadBaseStylesheets()
 atom.themes.requireStylesheet '../static/jasmine'
 atom.themes.initialLoadComplete = true
 
@@ -34,9 +30,6 @@ commandsToRestore = atom.commands.getSnapshot()
 styleElementsToRestore = atom.styles.getSnapshot()
 
 window.addEventListener 'core:close', -> window.close()
-window.addEventListener 'beforeunload', ->
-  atom.storeWindowDimensions()
-  atom.saveSync()
 
 document.querySelector('html').style.overflow = 'auto'
 document.body.style.overflow = 'auto'
@@ -92,8 +85,17 @@ beforeEach ->
   documentTitle = null
   projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
   atom.packages.serviceHub = new ServiceHub
-  atom.project = new Project(paths: [projectPath])
-  atom.workspace = new Workspace()
+  atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+  atom.project.setPaths([projectPath])
+  atom.workspace = new Workspace({
+    config: atom.config, project: atom.project, packageManager: atom.packages,
+    grammarRegistry: atom.grammars, notificationManager: atom.notifications,
+    setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
+    setDocumentEdited: atom.setDocumentEdited.bind(atom), atomVersion: atom.getVersion(),
+    clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+    assert: atom.assert.bind(atom)
+  })
+  atom.themes.workspace = atom.workspace
   atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
   atom.commands.restoreSnapshot(commandsToRestore)
   atom.styles.restoreSnapshot(styleElementsToRestore)
@@ -110,7 +112,7 @@ beforeEach ->
 
   serializedWindowState = null
 
-  spyOn(atom, 'saveSync')
+  spyOn(atom, 'saveStateSync')
   atom.grammars.clearGrammarOverrides()
 
   spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
@@ -124,22 +126,19 @@ beforeEach ->
   spyOn(atom.menu, 'sendToBrowserProcess')
 
   # reset config before each spec; don't load or save from/to `config.json`
-  spyOn(Config::, 'load')
-  spyOn(Config::, 'save')
-  config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
-  atom.config = config
-  atom.loadConfig()
-  config.set "core.destroyEmptyPanes", false
-  config.set "editor.fontFamily", "Courier"
-  config.set "editor.fontSize", 16
-  config.set "editor.autoIndent", false
-  config.set "core.disabledPackages", ["package-that-throws-an-exception",
+  spyOn(atom.config, 'load')
+  spyOn(atom.config, 'save')
+  atom.config.set "core.destroyEmptyPanes", false
+  atom.config.set "editor.fontFamily", "Courier"
+  atom.config.set "editor.fontSize", 16
+  atom.config.set "editor.autoIndent", false
+  atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  config.set "editor.useShadowDOM", true
+  atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
-  config.load.reset()
-  config.save.reset()
+  atom.config.load.reset()
+  atom.config.save.reset()
 
   # make editor display updates synchronous
   TextEditorElement::setUpdatedSynchronously(true)
@@ -166,6 +165,7 @@ afterEach ->
 
   atom.workspace?.destroy()
   atom.workspace = null
+  atom.themes.workspace = null
   delete atom.state.workspace
 
   atom.project?.destroy()
@@ -174,10 +174,10 @@ afterEach ->
   atom.themes.removeStylesheet('global-editor-styles')
 
   delete atom.state.packageStates
+  atom.reset()
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 

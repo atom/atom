@@ -4,8 +4,8 @@ describe "PaneElement", ->
   [paneElement, container, pane] = []
 
   beforeEach ->
-    container = new PaneContainer
-    pane = container.getRoot()
+    container = new PaneContainer(config: atom.config)
+    pane = container.getActivePane()
     paneElement = atom.views.getView(pane)
 
   describe "when the pane's active status changes", ->

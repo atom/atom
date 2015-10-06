@@ -8,7 +8,7 @@ listen = require './delegated-listener'
 # Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
-  constructor: ->
+  constructor: (@atomEnv) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
@@ -28,17 +28,17 @@ class WindowEventHandler
     @subscriptions.add listen(document, 'click', 'a', @handleLinkClick)
     @subscriptions.add listen(document, 'submit', 'form', @handleFormSubmit)
 
-    @subscriptions.add atom.commands.add window,
+    @subscriptions.add @atomEnv.commands.add window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
       'window:close': @handleWindowClose
       'window:reload': @handleWindowReload
       'window:toggle-dev-tools': @handleWindowToggleDevTools
 
     if process.platform in ['win32', 'linux']
-      @subscriptions.add atom.commands.add window,
+      @subscriptions.add @atomEnv.commands.add window,
         'window:toggle-menu-bar': @handleWindowToggleMenuBar
 
-    @subscriptions.add atom.commands.add document,
+    @subscriptions.add @atomEnv.commands.add document,
       'core:focus-next': @handleFocusNext
       'core:focus-previous': @handleFocusPrevious
 
@@ -48,9 +48,9 @@ class WindowEventHandler
   # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     bindCommandToAction = (command, action) =>
-      @addEventListener document, command, (event) ->
+      @addEventListener document, command, (event) =>
         if event.target.webkitMatchesSelector('.native-key-bindings')
-          atom.getCurrentWindow().webContents[action]()
+          @atomEnv.getCurrentWindow().webContents[action]()
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')
@@ -72,8 +72,8 @@ class WindowEventHandler
     target.addEventListener(eventName, handler)
     @subscriptions.add(new Disposable(-> target.removeEventListener(eventName, handler)))
 
-  handleDocumentKeydown: (event) ->
-    atom.keymaps.handleKeyboardEvent(event)
+  handleDocumentKeydown: (event) =>
+    @atomEnv.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
 
   handleDrop: (event) ->
@@ -134,80 +134,80 @@ class WindowEventHandler
     else if highestElement?
       highestElement.focus()
 
-  handleIPCMessage: (message, detail) ->
+  handleIPCMessage: (message, detail) =>
     switch message
       when 'open-locations'
-        needsProjectPaths = atom.project?.getPaths().length is 0
+        needsProjectPaths = @atomEnv.project?.getPaths().length is 0
 
         for {pathToOpen, initialLine, initialColumn} in detail
           if pathToOpen? and needsProjectPaths
             if fs.existsSync(pathToOpen)
-              atom.project.addPath(pathToOpen)
+              @atomEnv.project.addPath(pathToOpen)
             else if fs.existsSync(path.dirname(pathToOpen))
-              atom.project.addPath(path.dirname(pathToOpen))
+              @atomEnv.project.addPath(path.dirname(pathToOpen))
             else
-              atom.project.addPath(pathToOpen)
+              @atomEnv.project.addPath(pathToOpen)
 
           unless fs.isDirectorySync(pathToOpen)
-            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
+            @atomEnv.workspace?.open(pathToOpen, {initialLine, initialColumn})
         return
       when 'update-available'
-        atom.updateAvailable(detail)
+        @atomEnv.updateAvailable(detail)
 
-  handleIPCCommand: (command, args...) ->
+  handleIPCCommand: (command, args...) =>
     activeElement = document.activeElement
     # Use the workspace element view if body has focus
-    if activeElement is document.body and workspaceElement = atom.views.getView(atom.workspace)
+    if activeElement is document.body and workspaceElement = @atomEnv.views.getView(@atomEnv.workspace)
       activeElement = workspaceElement
 
-    atom.commands.dispatch(activeElement, command, args[0])
+    @atomEnv.commands.dispatch(activeElement, command, args[0])
 
-  handleIPCContextCommand: (command, args...) ->
-    atom.commands.dispatch(atom.contextMenu.activeElement, command, args)
+  handleIPCContextCommand: (command, args...) =>
+    @atomEnv.commands.dispatch(@atomEnv.contextMenu.activeElement, command, args)
 
   handleWindowFocus: ->
     document.body.classList.remove('is-blurred')
 
-  handleWindowBlur: ->
+  handleWindowBlur: =>
     document.body.classList.add('is-blurred')
-    atom.storeDefaultWindowDimensions()
+    @atomEnv.storeDefaultWindowDimensions()
 
   handleWindowBeforeunload: =>
-    confirmed = atom.workspace?.confirmClose(windowCloseRequested: true)
-    atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
+    confirmed = @atomEnv.workspace?.confirmClose(windowCloseRequested: true)
+    @atomEnv.hide() if confirmed and not @reloadRequested and @atomEnv.getCurrentWindow().isWebViewFocused()
     @reloadRequested = false
 
-    atom.storeDefaultWindowDimensions()
-    atom.storeWindowDimensions()
+    @atomEnv.storeDefaultWindowDimensions()
+    @atomEnv.storeWindowDimensions()
     if confirmed
-      atom.unloadEditorWindow()
+      @atomEnv.unloadEditorWindow()
     else
       ipc.send('cancel-window-close')
 
     confirmed
 
-  handleWindowUnload: ->
-    atom.removeEditorWindow()
+  handleWindowUnload: =>
+    @atomEnv.removeEditorWindow()
 
-  handleWindowToggleFullScreen: ->
-    atom.toggleFullScreen()
+  handleWindowToggleFullScreen: =>
+    @atomEnv.toggleFullScreen()
 
-  handleWindowClose: ->
-    atom.close()
+  handleWindowClose: =>
+    @atomEnv.close()
 
-  handleWindowReload: ->
+  handleWindowReload: =>
     @reloadRequested = true
-    atom.reload()
+    @atomEnv.reload()
 
-  handleWindowToggleDevTools: ->
-    atom.toggleDevTools()
+  handleWindowToggleDevTools: =>
+    @atomEnv.toggleDevTools()
 
-  handleWindowToggleMenuBar: ->
-    atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
+  handleWindowToggleMenuBar: =>
+    @atomEnv.config.set('core.autoHideMenuBar', not @atomEnv.config.get('core.autoHideMenuBar'))
 
-    if atom.config.get('core.autoHideMenuBar')
+    if @atomEnv.config.get('core.autoHideMenuBar')
       detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
-      atom.notifications.addInfo('Menu bar hidden', {detail})
+      @atomEnv.notifications.addInfo('Menu bar hidden', {detail})
 
   handleLinkClick: (event) ->
     event.preventDefault()
@@ -219,6 +219,6 @@ class WindowEventHandler
     # Prevent form submits from changing the current window's URL
     event.preventDefault()
 
-  handleDocumentContextmenu: (event) ->
+  handleDocumentContextmenu: (event) =>
     event.preventDefault()
-    atom.contextMenu.showForEvent(event)
+    @atomEnv.contextMenu.showForEvent(event)

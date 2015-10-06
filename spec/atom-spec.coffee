@@ -8,6 +8,13 @@ temp = require "temp"
 describe "the `atom` global", ->
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
+      originalPosition = null
+      beforeEach ->
+        originalPosition = atom.getPosition()
+
+      afterEach ->
+        atom.setPosition(originalPosition.x, originalPosition.y)
+
       it 'sets the position of the window, and can retrieve the position just set', ->
         atom.setPosition(22, 45)
         expect(atom.getPosition()).toEqual x: 22, y: 45
@@ -31,28 +38,8 @@ describe "the `atom` global", ->
       version = '36b5518'
       expect(atom.isReleasedVersion()).toBe false
 
-  describe "when an update becomes available", ->
-    subscription = null
-
-    afterEach ->
-      subscription?.dispose()
-
-    it "invokes onUpdateAvailable listeners", ->
-      updateAvailableHandler = jasmine.createSpy("update-available-handler")
-      subscription = atom.onUpdateAvailable updateAvailableHandler
-
-      autoUpdater = require('remote').require('auto-updater')
-      autoUpdater.emit 'update-downloaded', null, "notes", "version"
-
-      waitsFor ->
-        updateAvailableHandler.callCount > 0
-
-      runs ->
-        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
-        expect(releaseVersion).toBe 'version'
-
   describe "loading default config", ->
-    it 'loads the default core config', ->
+    it 'loads the default core config schema', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
       expect(atom.config.get('core.followSymlinks')).toBe true
       expect(atom.config.get('editor.showInvisibles')).toBe false
@@ -61,6 +48,10 @@ describe "the `atom` global", ->
     beforeEach ->
       spyOn atom, 'openDevTools'
       spyOn atom, 'executeJavaScriptInDevTools'
+      atom.installUncaughtErrorHandler()
+
+    afterEach: ->
+      atom.uninstallUncaughtErrorHandler()
 
     it "will open the dev tools when an error is triggered", ->
       try
@@ -154,30 +145,31 @@ describe "the `atom` global", ->
         expect(errors).toEqual []
 
   describe "saving and loading", ->
-    afterEach -> atom.mode = "spec"
-
     it "selects the state based on the current project paths", ->
-      Atom = atom.constructor
+      jasmine.unspy(atom, 'saveStateSync')
+      # jasmine.unspy(atom, 'loadStateSync')
+
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
-      loadSettings = _.extend Atom.getLoadSettings(),
+      loadSettings = _.extend atom.getLoadSettings(),
         initialPaths: [dir1]
         windowState: null
 
-      spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
+      spyOn(atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
 
-      atom.mode = "editor"
       atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
-      atom.saveSync.originalValue.call(atom)
+      atom.saveStateSync()
 
-      atom1 = Atom.loadOrCreate("editor")
-      expect(atom1.state.stuff).toBeUndefined()
+      atom.state = {}
+      atom.loadStateSync()
+      expect(atom.state.stuff).toBeUndefined()
 
       loadSettings.initialPaths = [dir2, dir1]
-      atom2 = Atom.loadOrCreate("editor")
-      expect(atom2.state.stuff).toBe("cool")
+      atom.state = {}
+      atom.loadStateSync()
+      expect(atom.state.stuff).toBe("cool")
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -226,15 +218,15 @@ describe "the `atom` global", ->
   describe "::unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       workspaceState = atom.workspace.serialize()
-      syntaxState = atom.grammars.serialize()
+      grammarsState = {grammarOverridesByPath: atom.grammars.grammarOverridesByPath}
       projectState = atom.project.serialize()
 
       atom.unloadEditorWindow()
 
       expect(atom.state.workspace).toEqual workspaceState
-      expect(atom.state.grammars).toEqual syntaxState
+      expect(atom.state.grammars).toEqual grammarsState
       expect(atom.state.project).toEqual projectState
-      expect(atom.saveSync).toHaveBeenCalled()
+      expect(atom.saveStateSync).toHaveBeenCalled()
 
   describe "::removeEditorWindow()", ->
     it "unsubscribes from all buffers", ->

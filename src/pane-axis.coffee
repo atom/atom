@@ -4,8 +4,6 @@ Model = require './model'
 
 module.exports =
 class PaneAxis extends Model
-  atom.deserializers.add(this)
-
   parent: null
   container: null
   orientation: null
@@ -13,10 +11,10 @@ class PaneAxis extends Model
   @deserialize: (state, params) ->
     container = params?.container
     state.container = container
-    state.children = state.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
+    state.children = state.children.map (childState) -> atom.deserializers.deserialize(childState)
     new this(state)
 
-  constructor: ({@container, @orientation, children, flexScale}={}) ->
+  constructor: ({@orientation, children, flexScale}={}) ->
     @emitter = new Emitter
     @subscriptionsByChild = new WeakMap
     @subscriptions = new CompositeDisposable
@@ -43,7 +41,10 @@ class PaneAxis extends Model
 
   getContainer: -> @container
 
-  setContainer: (@container) -> @container
+  setContainer: (container) ->
+    if container and container isnt @container
+      @container = container
+      child.setContainer(container) for child in @children
 
   getOrientation: -> @orientation
 

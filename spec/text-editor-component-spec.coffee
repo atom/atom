@@ -27,7 +27,7 @@ describe "TextEditorComponent", ->
           fn()
 
     waitsForPromise ->
-      atom.project.open('sample.js').then (o) -> editor = o
+      atom.workspace.open('sample.js').then (o) -> editor = o
 
     runs ->
       contentNode = document.querySelector('#jasmine-content')
@@ -3194,7 +3194,7 @@ describe "TextEditorComponent", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
       waitsForPromise ->
-        atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+        atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
     afterEach: ->
       atom.packages.deactivatePackages()

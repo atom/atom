@@ -14,6 +14,27 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
+{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+
+Workspace = require './workspace'
+PanelContainer = require './panel-container'
+Panel = require './panel'
+PaneContainer = require './pane-container'
+PaneAxis = require './pane-axis'
+Pane = require './pane'
+Project = require './project'
+TextEditor = require './text-editor'
+TextBuffer = require 'text-buffer'
+Gutter = require './gutter'
+
+WorkspaceElement = require './workspace-element'
+PanelContainerElement = require './panel-container-element'
+PanelElement = require './panel-element'
+PaneContainerElement = require './pane-container-element'
+PaneAxisElement = require './pane-axis-element'
+PaneElement = require './pane-element'
+TextEditorElement = require './text-editor-element'
+{createGutterView} = require './gutter-component-helpers'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -21,74 +42,6 @@ StorageFolder = require './storage-folder'
 module.exports =
 class Atom extends Model
   @version: 1  # Increment this when the serialization format changes
-
-  # Load or create the Atom environment in the given mode.
-  #
-  # * `mode` A {String} mode that is either 'editor' or 'spec' depending on the
-  #   kind of environment you want to build.
-  #
-  # Returns an Atom instance, fully initialized
-  @loadOrCreate: (mode) ->
-    startTime = Date.now()
-    atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
-    atom.deserializeTimings.atom = Date.now() -  startTime
-    atom
-
-  # Deserializes the Atom environment from a state object
-  @deserialize: (state) ->
-    new this(state) if state?.version is @version
-
-  # Loads and returns the serialized state corresponding to this window
-  # if it exists; otherwise returns undefined.
-  @loadState: (mode) ->
-    if stateKey = @getStateKey(@getLoadSettings().initialPaths, mode)
-      if state = @getStorageFolder().load(stateKey)
-        return state
-
-    if windowState = @getLoadSettings().windowState
-      try
-        JSON.parse(@getLoadSettings().windowState)
-      catch error
-        console.warn "Error parsing window state: #{statePath} #{error.stack}", error
-
-  # Returns the path where the state for the current window will be
-  # located if it exists.
-  @getStateKey: (paths, mode) ->
-    if mode is 'spec'
-      'spec'
-    else if mode is 'editor' and paths?.length > 0
-      sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
-      "editor-#{sha1}"
-    else
-      null
-
-  # Get the directory path to Atom's configuration area.
-  #
-  # Returns the absolute path to ~/.atom
-  @getConfigDirPath: ->
-    @configDirPath ?= process.env.ATOM_HOME
-
-  @getStorageFolder: ->
-    @storageFolder ?= new StorageFolder(@getConfigDirPath())
-
-  # Returns the load settings hash associated with the current window.
-  @getLoadSettings: ->
-    @loadSettings ?= JSON.parse(decodeURIComponent(location.hash.substr(1)))
-    cloned = _.deepClone(@loadSettings)
-    # The loadSettings.windowState could be large, request it only when needed.
-    cloned.__defineGetter__ 'windowState', =>
-      @getCurrentWindow().loadSettings.windowState
-    cloned.__defineSetter__ 'windowState', (value) =>
-      @getCurrentWindow().loadSettings.windowState = value
-    cloned
-
-  @updateLoadSetting: (key, value) ->
-    @getLoadSettings()
-    @loadSettings[key] = value
-    location.hash = encodeURIComponent(JSON.stringify(@loadSettings))
-
-  @getCurrentWindow: ->
-    remote.getCurrentWindow()
 
   workspaceParentSelectorctor: 'body'
   lastUncaughtError: null
@@ -150,122 +103,129 @@ class Atom extends Model
   ###
 
   # Call .loadOrCreate instead
-  constructor: (@state) ->
-    @emitter = new Emitter
-    @disposables = new CompositeDisposable
-    {@mode} = @state
-    DeserializerManager = require './deserializer-manager'
-    @deserializers = new DeserializerManager()
-    @deserializeTimings = {}
-
-  # Sets up the basic services that should be available in all modes
-  # (both spec and application).
-  #
-  # Call after this instance has been assigned to the `atom` global.
-  initialize: ->
-    window.onerror = =>
-      @lastUncaughtError = Array::slice.call(arguments)
-      [message, url, line, column, originalError] = @lastUncaughtError
-
-      {line, column} = mapSourcePosition({source: url, line, column})
-
-      eventObject = {message, url, line, column, originalError}
-
-      openDevTools = true
-      eventObject.preventDefault = -> openDevTools = false
-
-      @emitter.emit 'will-throw-error', eventObject
-
-      if openDevTools
-        @openDevTools()
-        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
-
-      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
-
-    @disposables?.dispose()
-    @disposables = new CompositeDisposable
-
-    @displayWindow() unless @inSpecMode()
-
-    @setBodyPlatformClass()
+  constructor: ->
+    @state = {version: @constructor.version}
 
     @loadTime = null
-
-    Config = require './config'
-    KeymapManager = require './keymap-extensions'
-    ViewRegistry = require './view-registry'
-    CommandRegistry = require './command-registry'
-    TooltipManager = require './tooltip-manager'
-    NotificationManager = require './notification-manager'
-    PackageManager = require './package-manager'
-    Clipboard = require './clipboard'
-    GrammarRegistry = require './grammar-registry'
-    ThemeManager = require './theme-manager'
-    StyleManager = require './style-manager'
-    ContextMenuManager = require './context-menu-manager'
-    MenuManager = require './menu-manager'
     {devMode, safeMode, resourcePath} = @getLoadSettings()
     configDirPath = @getConfigDirPath()
 
-    # Add 'exports' to module search path.
-    exportsPath = path.join(resourcePath, 'exports')
-    require('module').globalPaths.push(exportsPath)
-    # Still set NODE_PATH since tasks may need it.
-    process.env.NODE_PATH = exportsPath
+    @emitter = new Emitter
+    @disposables = new CompositeDisposable
 
-    # Make react.js faster
-    process.env.NODE_ENV ?= 'production' unless devMode
+    DeserializerManager = require './deserializer-manager'
+    @deserializers = new DeserializerManager(this)
+    @deserializeTimings = {}
+    @registerDeserializers()
 
-    @config = new Config({configDirPath, resourcePath})
-    @keymaps = new KeymapManager({configDirPath, resourcePath})
-    @keymaps.subscribeToFileReadFailure()
-    @tooltips = new TooltipManager
-    @notifications = new NotificationManager
-    @commands = new CommandRegistry
-    @views = new ViewRegistry
+    ViewRegistry = require './view-registry'
+    @views = new ViewRegistry(this)
     @registerViewProviders()
-    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode})
-    @styles = new StyleManager
-    document.head.appendChild(new StylesElement)
-    @themes = new ThemeManager({packageManager: @packages, configDirPath, resourcePath, safeMode})
-    @contextMenu = new ContextMenuManager({resourcePath, devMode})
-    @menu = new MenuManager({resourcePath})
+
+    NotificationManager = require './notification-manager'
+    @notifications = new NotificationManager
+
+    Config = require './config'
+    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
+    @setConfigSchema()
+
+    KeymapManager = require './keymap-extensions'
+    @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
+    @keymaps.subscribeToFileReadFailure()
+    @keymaps.loadBundledKeymaps()
+
+    TooltipManager = require './tooltip-manager'
+    @tooltips = new TooltipManager(keymapManager: @keymaps)
+
+    CommandRegistry = require './command-registry'
+    @commands = new CommandRegistry
+    registerDefaultCommands = require './register-default-commands'
+    registerDefaultCommands(this)
+
+    PackageManager = require './package-manager'
+    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config})
+
+    StyleManager = require './style-manager'
+    @styles = new StyleManager({configDirPath})
+
+    ThemeManager = require './theme-manager'
+    @themes = new ThemeManager({
+      packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
+      styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
+    })
+
+    MenuManager = require './menu-manager'
+    @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
+
+    ContextMenuManager = require './context-menu-manager'
+    @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
+
+    Clipboard = require './clipboard'
     @clipboard = new Clipboard()
-    @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
-    @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
+
+    GrammarRegistry = require './grammar-registry'
+    @grammars = new GrammarRegistry({@config})
 
     Project = require './project'
-    TextBuffer = require 'text-buffer'
+    @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm})
+
+    CommandInstaller = require './command-installer'
+    @commandInstaller = new CommandInstaller(@getVersion(), @confirm.bind(this))
+
+    @workspace = new Workspace({
+      @config, @project, packageManager: @packages, grammarRegistry: @grammars,
+      notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
+      setDocumentEdited: @setDocumentEdited.bind(this), @clipboard, viewRegistry: @views,
+      grammarRegistry: @grammars, assert: @assert.bind(this)
+    })
+    @themes.workspace = @workspace
+
+    @registerDefaultOpeners()
+
+  setConfigSchema: ->
+    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
+
+  registerDeserializers: ->
+    @deserializers.add(Workspace)
+    @deserializers.add(PaneContainer)
+    @deserializers.add(PaneAxis)
+    @deserializers.add(Pane)
+    @deserializers.add(Project)
+    @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
-    TokenizedBuffer = require './tokenized-buffer'
-    DisplayBuffer = require './display-buffer'
-    TextEditor = require './text-editor'
 
-    @windowEventHandler = new WindowEventHandler
-
-  # Register the core views as early as possible in case they are needed for
-  # package deserialization.
   registerViewProviders: ->
-    Gutter = require './gutter'
-    Pane = require './pane'
-    PaneElement = require './pane-element'
-    PaneContainer = require './pane-container'
-    PaneContainerElement = require './pane-container-element'
-    PaneAxis = require './pane-axis'
-    PaneAxisElement = require './pane-axis-element'
-    TextEditor = require './text-editor'
-    TextEditorElement = require './text-editor-element'
-    {createGutterView} = require './gutter-component-helpers'
-
-    atom.views.addViewProvider PaneContainer, (model) ->
+    @views.addViewProvider Workspace, (model, env) ->
+      new WorkspaceElement().initialize(model, env)
+    @views.addViewProvider PanelContainer, (model) ->
+      new PanelContainerElement().initialize(model)
+    @views.addViewProvider Panel, (model, env) ->
+      new PanelElement().initialize(model, env)
+    @views.addViewProvider PaneContainer, (model) ->
       new PaneContainerElement().initialize(model)
-    atom.views.addViewProvider PaneAxis, (model) ->
+    @views.addViewProvider PaneAxis, (model) ->
       new PaneAxisElement().initialize(model)
-    atom.views.addViewProvider Pane, (model) ->
+    @views.addViewProvider Pane, (model) ->
       new PaneElement().initialize(model)
-    atom.views.addViewProvider TextEditor, (model) ->
+    @views.addViewProvider TextEditor, (model) ->
       new TextEditorElement().initialize(model)
-    atom.views.addViewProvider(Gutter, createGutterView)
+    @views.addViewProvider(Gutter, createGutterView)
+
+  registerDefaultOpeners: ->
+    @workspace.addOpener (uri) ->
+      switch uri
+        when 'atom://.atom/stylesheet'
+          @workspace.open(@styles.getUserStyleSheetPath())
+        when 'atom://.atom/keymap'
+          @workspace.open(@keymaps.getUserKeymapPath())
+        when 'atom://.atom/config'
+          @workspace.open(@config.getUserConfigPath())
+        when 'atom://.atom/init-script'
+          @workspace.open(@getUserInitScriptPath())
+
+  reset: ->
+    @config.reset()
+    @setConfigSchema()
 
   ###
   Section: Event Subscription
@@ -341,12 +301,6 @@ class Atom extends Model
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix
 
-  # Public: Get the directory path to Atom's configuration area.
-  #
-  # Returns the absolute path to `~/.atom`.
-  getConfigDirPath: ->
-    @constructor.getConfigDirPath()
-
   # Public: Get the time taken to completely load the current window.
   #
   # This time include things like loading and activating packages, creating
@@ -361,7 +315,12 @@ class Atom extends Model
   #
   # Returns an {Object} containing all the load setting key/value pairs.
   getLoadSettings: ->
-    @constructor.getLoadSettings()
+    getWindowLoadSettings()
+
+  updateLoadSetting: (key, value) ->
+    loadSettings = @getLoadSettings()
+    loadSettings[key] = value
+    setWindowLoadSettings(loadSettings)
 
   ###
   Section: Managing The Atom Window
@@ -430,7 +389,7 @@ class Atom extends Model
 
   # Extended: Get the current window
   getCurrentWindow: ->
-    @constructor.getCurrentWindow()
+    remote.getCurrentWindow()
 
   # Extended: Move current window to the center of the screen.
   center: ->
@@ -570,27 +529,29 @@ class Atom extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
-    {safeMode} = @getLoadSettings()
+    @installUncaughtErrorHandler()
 
-    CommandInstaller = require './command-installer'
-
-    commandInstaller = new CommandInstaller(@getVersion())
-    commandInstaller.installAtomCommand false, (error) ->
+    @commandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
-    commandInstaller.installApmCommand false, (error) ->
+    @commandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
-    @loadConfig()
-    @keymaps.loadBundledKeymaps()
-    @themes.loadBaseStylesheets()
+    @config.load()
+    @setBodyPlatformClass()
+    document.head.appendChild(new StylesElement)
+    @windowEventHandler = new WindowEventHandler(this)
+
     @packages.loadPackages()
-    @deserializeEditorWindow()
+
+    workspaceElement = @views.getView(@workspace)
+    @keymaps.defaultTarget = workspaceElement
+    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
     @watchProjectPath()
 
     @packages.activate()
     @keymaps.loadUserKeymap()
-    @requireUserInitScript() unless safeMode
+    @requireUserInitScript() unless @getLoadSettings().safeMode
 
     @menu.update()
     @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
@@ -603,12 +564,13 @@ class Atom extends Model
     return if not @project
 
     @storeWindowBackground()
-    @state.grammars = @grammars.serialize()
+    @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
     @state.project = @project.serialize()
     @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
     @state.packageStates = @packages.packageStates
-    @saveSync()
+    @state.fullScreen = @isFullScreen()
+    @saveStateSync()
     @windowState = null
 
   removeEditorWindow: ->
@@ -616,6 +578,7 @@ class Atom extends Model
 
     @workspace?.destroy()
     @workspace = null
+    @themes.workspace = null
     @project?.destroy()
     @project = null
 
@@ -625,6 +588,30 @@ class Atom extends Model
     return unless @config.get('core.openEmptyEditorOnStart')
     if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
       @workspace.open(null)
+
+  installUncaughtErrorHandler: ->
+    @previousWindowErrorHandler = window.onerror
+    window.onerror = =>
+      @lastUncaughtError = Array::slice.call(arguments)
+      [message, url, line, column, originalError] = @lastUncaughtError
+
+      {line, column} = mapSourcePosition({source: url, line, column})
+
+      eventObject = {message, url, line, column, originalError}
+
+      openDevTools = true
+      eventObject.preventDefault = -> openDevTools = false
+
+      @emitter.emit 'will-throw-error', eventObject
+
+      if openDevTools
+        @openDevTools()
+        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+
+      @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
+
+  uninstallUncaughtErrorHandler: ->
+    window.onerror = @previousWindowErrorHandler
 
   ###
   Section: Messaging the User
@@ -706,51 +693,16 @@ class Atom extends Model
 
     false
 
-  deserializeProject: ->
-    Project = require './project'
-
-    startTime = Date.now()
-    @project ?= @deserializers.deserialize(@state.project) ? new Project()
-    @deserializeTimings.project = Date.now() - startTime
-
   deserializeWorkspace: ->
-    Workspace = require './workspace'
 
-    startTime = Date.now()
-    @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-    @deserializeTimings.workspace = Date.now() - startTime
-
-    workspaceElement = @views.getView(@workspace)
-    @keymaps.defaultTarget = workspaceElement
-    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
-
-  deserializePackageStates: ->
-    @packages.packageStates = @state.packageStates ? {}
-    delete @state.packageStates
-
-  deserializeEditorWindow: ->
-    @deserializePackageStates()
-    @deserializeProject()
-    @deserializeWorkspace()
-
-  loadConfig: ->
-    @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
-    @config.load()
 
   loadThemes: ->
     @themes.load()
 
-  watchThemes: ->
-    @themes.onDidChangeActiveThemes =>
-      # Only reload stylesheets from non-theme packages
-      for pack in @packages.getActivePackages() when pack.getType() isnt 'theme'
-        pack.reloadStylesheets?()
-      return
-
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
-      @constructor.updateLoadSetting('initialPaths', @project.getPaths())
+      @updateLoadSetting('initialPaths', @project.getPaths())
 
   exit: (status) ->
     app = remote.require('app')
@@ -781,11 +733,55 @@ class Atom extends Model
     options.defaultPath ?= @project?.getPaths()[0]
     dialog.showSaveDialog currentWindow, options
 
-  saveSync: ->
-    if storageKey = @constructor.getStateKey(@project?.getPaths(), @mode)
-      @constructor.getStorageFolder().store(storageKey, @state)
+  saveStateSync: ->
+    if storageKey = @getStateKey(@project?.getPaths())
+      @getStorageFolder().store(storageKey, @state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
+
+  loadStateSync: ->
+    startTime = Date.now()
+
+    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+      if state = @getStorageFolder().load(stateKey)
+        @state = state
+
+    if not @state? and windowState = @getLoadSettings().windowState
+      try
+        if state = JSON.parse(@getLoadSettings().windowState)
+          @state = state
+      catch error
+        console.warn "Error parsing window state: #{statePath} #{error.stack}", error
+
+    @deserializeTimings.atom = Date.now() -  startTime
+
+    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
+      @grammars.grammarOverridesByPath = grammarOverridesByPath
+
+    @setFullScreen(@state.fullScreen)
+
+    @packages.packageStates = @state.packageStates ? {}
+
+    startTime = Date.now()
+    @project.deserialize(@state.project, @deserializers) if @state.project?
+    @deserializeTimings.project = Date.now() - startTime
+
+    startTime = Date.now()
+    @workspace.deserialize(@state.workspace, @deserializers) if @state.workspace?
+    @deserializeTimings.workspace = Date.now() - startTime
+
+  getStateKey: (paths) ->
+    if paths?.length > 0
+      sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
+      "editor-#{sha1}"
+    else
+      null
+
+  getConfigDirPath: ->
+    @configDirPath ?= process.env.ATOM_HOME
+
+  getStorageFolder: ->
+    @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   crashMainProcess: ->
     remote.process.crash()
@@ -802,7 +798,7 @@ class Atom extends Model
       try
         require(userInitScriptPath) if fs.isFileSync(userInitScriptPath)
       catch error
-        atom.notifications.addError "Failed to load `#{userInitScriptPath}`",
+        @notifications.addError "Failed to load `#{userInitScriptPath}`",
           detail: error.message
           dismissable: true
 

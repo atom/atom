@@ -38,8 +38,8 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(root: new Pane)
-      container.getRoot().splitRight()
+      container = new PaneContainer(config: atom.config)
+      container.getActivePane().splitRight()
       [pane1, pane2] = container.getPanes()
 
     it "changes the active pane on the container", ->
@@ -107,8 +107,9 @@ describe "Pane", ->
 
     it "throws an exception if the item is already present on a pane", ->
       item = new Item("A")
-      pane1 = new Pane(items: [item])
-      container = new PaneContainer(root: pane1)
+      container = new PaneContainer(config: atom.config)
+      pane1 = container.getActivePane()
+      pane1.addItem(item)
       pane2 = pane1.splitRight()
       expect(-> pane2.addItem(item)).toThrow()
 
@@ -501,8 +502,9 @@ describe "Pane", ->
     [item1, item2, item3, item4, item5] = []
 
     beforeEach ->
-      pane1 = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
-      container = new PaneContainer(root: pane1)
+      container = new PaneContainer(config: atom.config)
+      pane1 = container.getActivePane()
+      pane1.addItems([new Item("A"), new Item("B"), new Item("C")])
       pane2 = pane1.splitRight(items: [new Item("D"), new Item("E")])
       [item1, item2, item3] = pane1.getItems()
       [item4, item5] = pane2.getItems()
@@ -553,8 +555,9 @@ describe "Pane", ->
     [pane1, container] = []
 
     beforeEach ->
-      pane1 = new Pane(items: [new Item("A")])
-      container = new PaneContainer(root: pane1)
+      container = new PaneContainer(config: atom.config)
+      pane1 = container.getActivePane()
+      pane1.addItem(new Item("A"))
 
     describe "::splitLeft(params)", ->
       describe "when the parent is the container root", ->
@@ -685,7 +688,7 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer
+      container = new PaneContainer(config: atom.config)
       pane1 = container.root
       pane1.addItems([new Item("A"), new Item("B")])
       pane2 = pane1.splitRight()

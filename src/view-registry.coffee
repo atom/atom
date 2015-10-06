@@ -49,7 +49,7 @@ class ViewRegistry
   debouncedPerformDocumentPoll: null
   minimumPollInterval: 200
 
-  constructor: ->
+  constructor: (@atomEnvironment) ->
     @views = new WeakMap
     @providers = []
     @documentWriters = []
@@ -159,7 +159,7 @@ class ViewRegistry
     else if object?.jquery
       object[0]
     else if provider = @findProvider(object)
-      element = provider.createView?(object)
+      element = provider.createView?(object, @atomEnvironment)
       unless element?
         element = new provider.viewConstructor
         element.initialize?(object) ? element.setModel?(object)

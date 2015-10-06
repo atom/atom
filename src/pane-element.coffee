@@ -123,30 +123,4 @@ class PaneElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-atom.commands.add 'atom-workspace',
-  'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
-  'pane:show-previous-item': -> @getModel().getActivePane().activatePreviousItem()
-  'pane:show-item-1': -> @getModel().getActivePane().activateItemAtIndex(0)
-  'pane:show-item-2': -> @getModel().getActivePane().activateItemAtIndex(1)
-  'pane:show-item-3': -> @getModel().getActivePane().activateItemAtIndex(2)
-  'pane:show-item-4': -> @getModel().getActivePane().activateItemAtIndex(3)
-  'pane:show-item-5': -> @getModel().getActivePane().activateItemAtIndex(4)
-  'pane:show-item-6': -> @getModel().getActivePane().activateItemAtIndex(5)
-  'pane:show-item-7': -> @getModel().getActivePane().activateItemAtIndex(6)
-  'pane:show-item-8': -> @getModel().getActivePane().activateItemAtIndex(7)
-  'pane:show-item-9': -> @getModel().getActivePane().activateItemAtIndex(8)
-  'pane:move-item-right': -> @getModel().getActivePane().moveItemRight()
-  'pane:move-item-left': -> @getModel().getActivePane().moveItemLeft()
-
-atom.commands.add 'atom-pane',
-  'pane:save-items': -> @getModel().saveItems()
-  'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
-  'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
-  'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
-  'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
-  'pane:close': -> @getModel().close()
-  'pane:close-other-items': -> @getModel().destroyInactiveItems()
-  'pane:increase-size': -> @getModel().increaseSize()
-  'pane:decrease-size': -> @getModel().decreaseSize()
-
 module.exports = PaneElement = document.registerElement 'atom-pane', prototype: PaneElement.prototype

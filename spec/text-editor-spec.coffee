@@ -12,7 +12,7 @@ describe "TextEditor", ->
 
   beforeEach ->
     waitsForPromise ->
-      atom.project.open('sample.js', autoIndent: false).then (o) -> editor = o
+      atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
 
     runs ->
       buffer = editor.buffer
@@ -27,11 +27,11 @@ describe "TextEditor", ->
       editor1 = null
 
       waitsForPromise ->
-        atom.project.open(pathToOpen).then (o) -> editor1 = o
+        atom.workspace.open(pathToOpen).then (o) -> editor1 = o
 
       runs ->
         fs.mkdirSync(pathToOpen)
-        expect(TextEditor.deserialize(editor1.serialize())).toBeUndefined()
+        expect(TextEditor.deserialize(editor1.serialize(), atom)).toBeUndefined()
 
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = TextEditor.deserialize(editor.serialize())
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -52,7 +52,7 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
-      editor2 = TextEditor.deserialize(editor.serialize())
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(previousInvisibles).toBeDefined()
       expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
@@ -62,7 +62,7 @@ describe "TextEditor", ->
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
-      editor2 = TextEditor.deserialize(state)
+      editor2 = TextEditor.deserialize(state, atom)
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
@@ -71,7 +71,7 @@ describe "TextEditor", ->
       editor = null
 
       waitsForPromise ->
-        atom.workspace.open('sample.js', largeFileMode: true).then (o) -> editor = o
+        atom.workspace.openTextFile('sample.js', largeFileMode: true).then (o) -> editor = o
 
       runs ->
         buffer = editor.getBuffer()
@@ -1331,7 +1331,7 @@ describe "TextEditor", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-coffee-script')
           waitsForPromise ->
-            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+            atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         it 'selects the correct surrounding word for the given scoped setting', ->
           coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
@@ -1533,7 +1533,7 @@ describe "TextEditor", ->
 
         it "takes atomic tokens into account", ->
           waitsForPromise ->
-            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+            atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
 
           runs ->
             editor.setSelectedBufferRange([[2, 1], [2, 3]])
@@ -1644,7 +1644,7 @@ describe "TextEditor", ->
 
         it "takes atomic tokens into account", ->
           waitsForPromise ->
-            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+            atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
 
           runs ->
             editor.setSelectedBufferRange([[3, 1], [3, 2]])
@@ -1769,9 +1769,11 @@ describe "TextEditor", ->
     it "does not share selections between different edit sessions for the same buffer", ->
       editor2 = null
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor2 = o
+        atom.workspace.getActivePane().splitRight()
+        atom.workspace.open(editor.getPath()).then (o) => editor2 = o
 
       runs ->
+        expect(editor2.getText()).toBe(editor.getText())
         editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
         editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
         expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
@@ -3673,7 +3675,7 @@ describe "TextEditor", ->
         editor.destroy()
 
         waitsForPromise ->
-          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+          atom.workspace.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe true
@@ -3746,7 +3748,7 @@ describe "TextEditor", ->
         editor.destroy()
 
         waitsForPromise ->
-          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+          atom.workspace.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe true
@@ -3801,7 +3803,7 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
         waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
       afterEach: ->
         atom.packages.deactivatePackages()
@@ -4004,7 +4006,7 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
         waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         runs ->
           atom.config.set('editor.autoIndent', true, scopeSelector: '.source.js')
@@ -4154,7 +4156,8 @@ describe "TextEditor", ->
 
       editor2 = null
       waitsForPromise ->
-        atom.project.open('sample.js', autoIndent: false).then (o) -> editor2 = o
+        atom.workspace.getActivePane().splitRight()
+        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor2 = o
 
       runs ->
         expect(editor.shouldPromptToSave()).toBeFalsy()
@@ -4408,11 +4411,10 @@ describe "TextEditor", ->
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
-      TextBuffer = require 'text-buffer'
-      newEditor = new TextEditor
-        buffer: new TextBuffer
+      newEditor = atom.workspace.buildTextEditor(
         mini: true
         placeholderText: 'yep'
+      )
       expect(newEditor.getPlaceholderText()).toBe 'yep'
 
     it 'models placeholderText and emits an event when changed', ->
@@ -4440,7 +4442,7 @@ describe "TextEditor", ->
 
     describe "when there's no repository for the editor's file", ->
       it "doesn't do anything", ->
-        editor = new TextEditor({})
+        editor = atom.workspace.buildTextEditor()
         editor.setText("stuff")
         editor.checkoutHeadRevision()
 

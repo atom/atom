@@ -17,35 +17,20 @@ GitRepositoryProvider = require './git-repository-provider'
 # An instance of this class is always available as the `atom.project` global.
 module.exports =
 class Project extends Model
-  atom.deserializers.add(this)
-
   ###
   Section: Construction and Destruction
   ###
 
-  @deserialize: (state) ->
-    state.buffers = _.compact state.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          return unless error.code is 'ENOENT'
-
-      atom.deserializers.deserialize(bufferState)
-
-    new this(state)
-
-  constructor: ({path, paths, @buffers}={}) ->
+  constructor: ({@confirm, @notificationManager, packageManager}) ->
     @emitter = new Emitter
-    @buffers ?= []
+    @buffers = []
+    @paths = []
     @rootDirectories = []
     @repositories = []
 
     @directoryProviders = []
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
-    atom.packages.serviceHub.consume(
+    packageManager.serviceHub.consume(
       'atom.directory-provider',
       '^0.1.0',
       (provider) => @directoryProviders.unshift(provider))
@@ -57,7 +42,7 @@ class Project extends Model
     @repositoryPromisesByPath = new Map()
 
     @repositoryProviders = [new GitRepositoryProvider(this)]
-    atom.packages.serviceHub.consume(
+    packageManager.serviceHub.consume(
       'atom.repository-provider',
       '^0.1.0',
       (provider) =>
@@ -70,11 +55,6 @@ class Project extends Model
           @setPaths(@getPaths())
       )
 
-    @subscribeToBuffer(buffer) for buffer in @buffers
-
-    paths ?= _.compact([path])
-    @setPaths(paths)
-
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
     @setPaths([])
@@ -86,6 +66,22 @@ class Project extends Model
   ###
   Section: Serialization
   ###
+
+  deserialize: (state, deserializerManager) ->
+    states.paths = [state.path] if state.path? # backward compatibility
+
+    @buffers = _.compact state.buffers.map (bufferState) ->
+      # Check that buffer's file path is accessible
+      return if fs.isDirectorySync(bufferState.filePath)
+      if bufferState.filePath
+        try
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
+        catch error
+          return unless error.code is 'ENOENT'
+      deserializerManager.deserialize(bufferState)
+
+    @subscribeToBuffer(buffer) for buffer in @buffers
+    @setPaths(state.paths)
 
   serialize: ->
     deserializer: 'Project'
@@ -291,40 +287,6 @@ class Project extends Model
   Section: Private
   ###
 
-  # Given a path to a file, this constructs and associates a new
-  # {TextEditor}, showing the file.
-  #
-  # * `filePath` The {String} path of the file to associate with.
-  # * `options` Options that you can pass to the {TextEditor} constructor.
-  #
-  # Returns a promise that resolves to an {TextEditor}.
-  open: (filePath, options={}) ->
-    filePath = @resolvePath(filePath)
-
-    if filePath?
-      try
-        fs.closeSync(fs.openSync(filePath, 'r'))
-      catch error
-        # allow ENOENT errors to create an editor for paths that dont exist
-        throw error unless error.code is 'ENOENT'
-
-    absoluteFilePath = @resolvePath(filePath)
-
-    fileSize = fs.getSizeSync(absoluteFilePath)
-
-    if fileSize >= 20 * 1048576 # 20MB
-      choice = atom.confirm
-        message: 'Atom will be unresponsive during the loading of very large files.'
-        detailedMessage: "Do you still want to load this file?"
-        buttons: ["Proceed", "Cancel"]
-      if choice is 1
-        error = new Error
-        error.code = 'CANCELLED'
-        throw error
-
-    @bufferForPath(absoluteFilePath).then (buffer) =>
-      @buildEditorForBuffer(buffer, _.extend({fileSize}, options))
-
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
   #
@@ -404,11 +366,6 @@ class Project extends Model
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
 
-  buildEditorForBuffer: (buffer, editorOptions) ->
-    largeFileMode = editorOptions.fileSize >= 2 * 1048576 # 2MB
-    editor = new TextEditor(_.extend({buffer, largeFileMode, registerEditor: true}, editorOptions))
-    editor
-
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -421,9 +378,9 @@ class Project extends Model
 
   subscribeToBuffer: (buffer) ->
     buffer.onDidDestroy => @removeBuffer(buffer)
-    buffer.onWillThrowWatchError ({error, handle}) ->
+    buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
-      atom.notifications.addWarning """
+      @notificationManager.addWarning """
         Unable to read file after file `#{error.eventType}` event.
         Make sure you have permission to access `#{buffer.getPath()}`.
         """,

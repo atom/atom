@@ -5,7 +5,7 @@ describe "Selection", ->
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
-    editor = new TextEditor(buffer: buffer, tabLength: 2)
+    editor = atom.workspace.buildTextEditor(buffer: buffer, tabLength: 2)
     selection = editor.getLastSelection()
 
   afterEach ->

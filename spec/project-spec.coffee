@@ -66,16 +66,19 @@ describe "Project", ->
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = Project.deserialize(atom.project.serialize())
+
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
       waitsForPromise ->
-        atom.project.open('a')
+        atom.workspace.open('a')
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = Project.deserialize(atom.project.serialize())
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
 
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
@@ -86,12 +89,13 @@ describe "Project", ->
       pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
 
       waitsForPromise ->
-        atom.project.open(pathToOpen)
+        atom.workspace.open(pathToOpen)
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.mkdirSync(pathToOpen)
-        deserializedProject = Project.deserialize(atom.project.serialize())
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
@@ -99,12 +103,13 @@ describe "Project", ->
       fs.writeFileSync(pathToOpen, '')
 
       waitsForPromise ->
-        atom.project.open(pathToOpen)
+        atom.workspace.open(pathToOpen)
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.chmodSync(pathToOpen, '000')
-        deserializedProject = Project.deserialize(atom.project.serialize())
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 
   describe "when an editor is saved and the project has no path", ->
@@ -115,7 +120,7 @@ describe "Project", ->
       editor = null
 
       waitsForPromise ->
-        atom.project.open().then (o) -> editor = o
+        atom.workspace.open().then (o) -> editor = o
 
       runs ->
         editor.saveAs(tempFile)
@@ -125,7 +130,7 @@ describe "Project", ->
     editor = null
     beforeEach ->
       waitsForPromise ->
-        atom.project.open(require.resolve('./fixtures/dir/a')).then (o) -> editor = o
+        atom.workspace.open(require.resolve('./fixtures/dir/a')).then (o) -> editor = o
 
     it "creates a warning notification", ->
       atom.notifications.onDidAddNotification noteSpy = jasmine.createSpy()
@@ -156,7 +161,7 @@ describe "Project", ->
       it "returns a new edit session for the given path and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
-          atom.project.open(absolutePath).then (o) -> editor = o
+          atom.workspace.open(absolutePath).then (o) -> editor = o
 
         runs ->
           expect(editor.buffer.getPath()).toBe absolutePath
@@ -166,7 +171,7 @@ describe "Project", ->
       it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
-          atom.project.open(absolutePath).then (o) -> editor = o
+          atom.workspace.open(absolutePath).then (o) -> editor = o
 
         runs ->
           expect(editor.buffer.getPath()).toBe absolutePath
@@ -177,17 +182,17 @@ describe "Project", ->
         editor = null
 
         waitsForPromise ->
-          atom.project.open(absolutePath).then (o) -> editor = o
+          atom.workspace.open(absolutePath).then (o) -> editor = o
 
         runs ->
           newBufferHandler.reset()
 
         waitsForPromise ->
-          atom.project.open(absolutePath).then ({buffer}) ->
+          atom.workspace.open(absolutePath).then ({buffer}) ->
             expect(buffer).toBe editor.buffer
 
         waitsForPromise ->
-          atom.project.open('a').then ({buffer}) ->
+          atom.workspace.open('a').then ({buffer}) ->
             expect(buffer).toBe editor.buffer
             expect(newBufferHandler).not.toHaveBeenCalled()
 
@@ -195,7 +200,7 @@ describe "Project", ->
       it "returns a new edit session and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
-          atom.project.open().then (o) -> editor = o
+          atom.workspace.open().then (o) -> editor = o
 
         runs ->
           expect(editor.buffer.getPath()).toBeUndefined()

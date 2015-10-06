@@ -9,7 +9,7 @@ path = require 'path'
 # which clone and attach style elements in different contexts.
 module.exports =
 class StyleManager
-  constructor: ->
+  constructor: ({@configDirPath}) ->
     @emitter = new Emitter
     @styleElements = []
     @styleElementsBySourcePath = {}
@@ -162,8 +162,8 @@ class StyleManager
   #
   # Returns a {String}.
   getUserStyleSheetPath: ->
-    stylesheetPath = fs.resolve(path.join(atom.getConfigDirPath(), 'styles'), ['css', 'less'])
+    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
     if fs.isFileSync(stylesheetPath)
       stylesheetPath
     else
-      path.join(atom.getConfigDirPath(), 'styles.less')
+      path.join(@configDirPath, 'styles.less')

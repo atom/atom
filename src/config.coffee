@@ -331,7 +331,12 @@ class Config
     value
 
   # Created during initialization, available as `atom.config`
-  constructor: ({@configDirPath, @resourcePath}={}) ->
+  constructor: ({@configDirPath, @resourcePath, @notificationManager}={}) ->
+    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
+    @configFilePath ?= path.join(@configDirPath, 'config.cson')
+    @reset()
+
+  reset: ->
     @emitter = new Emitter
     @schema =
       type: 'object'
@@ -340,11 +345,8 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @configFileHasErrors = false
-    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
     @savePending = false
-
     @requestLoad = _.debounce(@loadUserConfig, 100)
     @requestSave = =>
       @savePending = true
@@ -779,7 +781,7 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    atom.notifications.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
     allSettings = {'*': @settings}
