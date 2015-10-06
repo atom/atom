@@ -29,7 +29,7 @@ class Package
   Section: Construction
   ###
 
-  constructor: ({@path, @metadata, @packageManager}) ->
+  constructor: ({@path, @metadata, @packageManager, @config, @styleManager}) ->
     @emitter = new Emitter
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
@@ -54,10 +54,10 @@ class Package
   ###
 
   enable: ->
-    atom.config.removeAtKeyPath('core.disabledPackages', @name)
+    @config.removeAtKeyPath('core.disabledPackages', @name)
 
   disable: ->
-    atom.config.pushAtKeyPath('core.disabledPackages', @name)
+    @config.pushAtKeyPath('core.disabledPackages', @name)
 
   isTheme: ->
     @metadata?.theme?
@@ -114,7 +114,7 @@ class Package
       @activateConfig()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
-        @mainModule.activate?(atom.packages.getPackageState(@name) ? {})
+        @mainModule.activate?(@packageManager.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
     catch error
@@ -128,7 +128,7 @@ class Package
     @requireMainModule() unless @mainModule?
     if @mainModule?
       if @mainModule.config? and typeof @mainModule.config is 'object'
-        atom.config.setSchema @name, {type: 'object', properties: @mainModule.config}
+        @config.setSchema @name, {type: 'object', properties: @mainModule.config}
       @mainModule.activateConfig?()
     @configActivated = true
 
@@ -146,13 +146,13 @@ class Package
       else
         context = undefined
 
-      @stylesheetDisposables.add(atom.styles.addStyleSheet(source, {sourcePath, priority, context}))
+      @stylesheetDisposables.add(@styleManager.addStyleSheet(source, {sourcePath, priority, context}))
     @stylesheetsActivated = true
 
   activateResources: ->
     @activationDisposables = new CompositeDisposable
 
-    keymapIsDisabled = _.include(atom.config.get("core.packagesWithKeymapsDisabled") ? [], @name)
+    keymapIsDisabled = _.include(@config.get("core.packagesWithKeymapsDisabled") ? [], @name)
     if keymapIsDisabled
       @deactivateKeymaps()
     else
@@ -207,24 +207,24 @@ class Package
       for version, methodName of versions
         if typeof @mainModule[methodName] is 'function'
           servicesByVersion[version] = @mainModule[methodName]()
-      @activationDisposables.add atom.packages.serviceHub.provide(name, servicesByVersion)
+      @activationDisposables.add @packageManager.serviceHub.provide(name, servicesByVersion)
 
     for name, {versions} of @metadata.consumedServices
       for version, methodName of versions
         if typeof @mainModule[methodName] is 'function'
-          @activationDisposables.add atom.packages.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
+          @activationDisposables.add @packageManager.serviceHub.consume(name, version, @mainModule[methodName].bind(@mainModule))
     return
 
   loadKeymaps: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?
-      @keymaps = (["#{atom.packages.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
+      @keymaps = (["#{@packageManager.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
     else
       @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
     return
 
   loadMenus: ->
     if @bundledPackage and @packageManager.packagesCache[@name]?
-      @menus = (["#{atom.packages.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of @packageManager.packagesCache[@name].menus)
+      @menus = (["#{@packageManager.resourcePath}#{path.sep}#{menuPath}", menuObject] for menuPath, menuObject of @packageManager.packagesCache[@name].menus)
     else
       @menus = @getMenuPaths().map (menuPath) -> [menuPath, CSON.readFileSync(menuPath) ? {}]
     return
@@ -394,7 +394,7 @@ class Package
 
     if @bundledPackage and @packageManager.packagesCache[@name]?
       if @packageManager.packagesCache[@name].main
-        @mainModulePath = "#{atom.packages.resourcePath}#{path.sep}#{@packageManager.packagesCache[@name].main}"
+        @mainModulePath = "#{@packageManager.resourcePath}#{path.sep}#{@packageManager.packagesCache[@name].main}"
       else
         @mainModulePath = null
     else
@@ -467,7 +467,7 @@ class Package
     @activationHookSubscriptions = new CompositeDisposable
     for hook in @getActivationHooks()
       do (hook) =>
-        @activationHookSubscriptions.add(atom.packages.onDidTriggerActivationHook(hook, => @activateNow())) if hook? and _.isString(hook) and hook.trim().length > 0
+        @activationHookSubscriptions.add(@packageManager.onDidTriggerActivationHook(hook, => @activateNow())) if hook? and _.isString(hook) and hook.trim().length > 0
 
     return
 
@@ -529,7 +529,7 @@ class Package
   isCompatible: ->
     return @compatible if @compatible?
 
-    if @path.indexOf(path.join(atom.packages.resourcePath, 'node_modules') + path.sep) is 0
+    if @path.indexOf(path.join(@packageManager.resourcePath, 'node_modules') + path.sep) is 0
       # Bundled packages are always considered compatible
       @compatible = true
     else if @getMainModulePath()
@@ -565,7 +565,7 @@ class Package
     stderr = ''
     stdout = ''
     new BufferedProcess({
-      command: atom.packages.getApmPath()
+      command: @packageManager.getApmPath()
       args: ['rebuild', '--no-color']
       options: {cwd: @path}
       stderr: (output) -> stderr += output

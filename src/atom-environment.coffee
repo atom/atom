@@ -142,11 +142,11 @@ class AtomEnvironment extends Model
     @commands = new CommandRegistry
     registerDefaultCommands(this)
 
-    PackageManager = require './package-manager'
-    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config})
-
     StyleManager = require './style-manager'
     @styles = new StyleManager({configDirPath})
+
+    PackageManager = require './package-manager'
+    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles})
 
     ThemeManager = require './theme-manager'
     @themes = new ThemeManager({

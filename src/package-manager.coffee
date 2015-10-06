@@ -28,7 +28,7 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath, @config}) ->
+  constructor: ({configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager}) ->
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
@@ -354,9 +354,9 @@ class PackageManager
           return null
 
       if metadata.theme
-        pack = new ThemePackage({path: packagePath, metadata, packageManager: this})
+        pack = new ThemePackage({path: packagePath, metadata, packageManager: this, @config, @styleManager})
       else
-        pack = new Package({path: packagePath, metadata, packageManager: this})
+        pack = new Package({path: packagePath, metadata, packageManager: this, @config, @styleManager})
       pack.load()
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
