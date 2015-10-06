@@ -71,10 +71,10 @@ class TextEditorComponent
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', 'atom-overlay')
       @domNode.appendChild(insertionPoint)
-      @overlayManager = new OverlayManager(@presenter, @hostElement)
+      @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
     else
       @domNode.classList.add('editor-contents')
-      @overlayManager = new OverlayManager(@presenter, @domNode)
+      @overlayManager = new OverlayManager(@presenter, @domNode, @views)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
