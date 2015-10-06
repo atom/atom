@@ -99,7 +99,6 @@ beforeEach ->
     assert: atom.assert.bind(atom)
   })
   atom.themes.workspace = atom.workspace
-  atom.views.clearDocumentRequests()
 
   atom.workspaceParentSelectorctor = '#jasmine-content'
 
