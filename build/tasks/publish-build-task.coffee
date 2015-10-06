@@ -121,7 +121,7 @@ zipAssets = (buildDir, assets, callback) ->
     if process.platform is 'win32'
       zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourcePath}"
     else
-      zipCommand = "zip -r --symlinks #{assetName} #{sourcePath}"
+      zipCommand = "zip -r --symlinks '#{assetName}' '#{sourcePath}'"
     options = {cwd: directory, maxBuffer: Infinity}
     child_process.exec zipCommand, options, (error, stdout, stderr) ->
       logError("Zipping #{sourcePath} failed", error, stderr) if error?
