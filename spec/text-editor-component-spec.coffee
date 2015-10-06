@@ -22,6 +22,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame = noAnimationFrame
 
       spyOn(window, 'requestAnimationFrame').andCallFake (fn) ->
+        debugger if global.debug
         nextAnimationFrame = ->
           nextAnimationFrame = noAnimationFrame
           fn()
@@ -53,6 +54,10 @@ describe "TextEditorComponent", ->
 
       component.measureDimensions()
       nextAnimationFrame()
+
+    # Mutating the DOM in the previous frame causes a document poll; clear it here
+    waits 0
+    runs -> nextAnimationFrame()
 
   afterEach ->
     contentNode.style.width = ''

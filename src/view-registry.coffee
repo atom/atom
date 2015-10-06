@@ -50,14 +50,14 @@ class ViewRegistry
   minimumPollInterval: 200
 
   constructor: (@atomEnvironment) ->
+    @observer = new MutationObserver(@requestDocumentPoll)
+    @clear()
+
+  clear: ->
     @views = new WeakMap
     @providers = []
-    @documentWriters = []
-    @documentReaders = []
-    @documentPollers = []
-
-    @observer = new MutationObserver(@requestDocumentPoll)
     @debouncedPerformDocumentPoll = _.throttle(@performDocumentPoll, @minimumPollInterval).bind(this)
+    @clearDocumentRequests()
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.

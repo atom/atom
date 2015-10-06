@@ -226,6 +226,9 @@ class AtomEnvironment extends Model
     @deserializers.clear()
     @registerDefaultDeserializers()
 
+    @views.clear()
+    @registerDefaultViewProviders()
+
     @config.clear()
     @setConfigSchema()
 
