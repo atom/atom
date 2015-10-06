@@ -307,7 +307,7 @@ class Package
     @settings = []
 
     loadSettingsFile = (settingsPath, callback) =>
-      ScopedProperties.load settingsPath, (error, settings) =>
+      ScopedProperties.load settingsPath, @config, (error, settings) =>
         if error?
           detail = "#{error.message} in #{settingsPath}"
           stack = "#{error.stack}\n  at #{settingsPath}:1:1"
