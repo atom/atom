@@ -151,21 +151,21 @@ class LinesTileComponent
         indentGuide = @domElementPool.buildElement("span", "indent-guide")
         for j in [0...tabLength]
           if invisible = endOfLineInvisibles?[invisibleIndex++]
-            indentGuide.appendChild(
-              @domElementPool.buildElement("span", "invisible-character", invisible)
-            )
+            invisibleSpan = @domElementPool.buildElement("span", "invisible-character")
+            invisibleSpan.appendChild(@domElementPool.buildText(invisible))
+            indentGuide.appendChild(invisibleSpan)
           else
-            indentGuide.insertAdjacentText("beforeend", " ")
+            indentGuide.appendChild(@domElementPool.buildText(" "))
         lineNode.appendChild(indentGuide)
 
       while invisibleIndex < endOfLineInvisibles?.length
         invisible = endOfLineInvisibles[invisibleIndex++]
-        lineNode.appendChild(
-          @domElementPool.buildElement("span", "invisible-character", invisible)
-        )
+        invisibleSpan = @domElementPool.buildElement("span", "invisible-character")
+        invisibleSpan.appendChild(@domElementPool.buildText(invisible))
+        lineNode.appendChild(invisibleSpan)
     else
       unless @appendEndOfLineNodes(id, lineNode)
-        lineNode.textContent = "\u00a0"
+        lineNode.appendChild(@domElementPool.buildText("\u00a0"))
 
   setLineInnerNodes: (id, lineNode) ->
     lineState = @newTileState.lines[id]
@@ -213,11 +213,12 @@ class LinesTileComponent
 
   appendTokenNodes: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, scopeNode) ->
     if isHardTab
-      hardTabNode = @domElementPool.buildElement("span", "hard-tab", tokenText)
+      hardTabNode = @domElementPool.buildElement("span", "hard-tab")
       hardTabNode.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
       hardTabNode.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
       hardTabNode.classList.add("indent-guide") if hasIndentGuide
       hardTabNode.classList.add("invisible-character") if hasInvisibleCharacters
+      hardTabNode.appendChild(@domElementPool.buildText(tokenText))
 
       scopeNode.appendChild(hardTabNode)
     else
@@ -228,26 +229,24 @@ class LinesTileComponent
       trailingWhitespaceNode = null
 
       if firstNonWhitespaceIndex?
-        leadingWhitespaceNode = @domElementPool.buildElement(
-          "span",
-          "leading-whitespace",
-          tokenText.substring(0, firstNonWhitespaceIndex)
-        )
+        leadingWhitespaceNode = @domElementPool.buildElement("span", "leading-whitespace")
         leadingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide
         leadingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+        leadingWhitespaceNode.appendChild(
+          @domElementPool.buildText(tokenText.substring(0, firstNonWhitespaceIndex))
+        )
 
         startIndex = firstNonWhitespaceIndex
 
       if firstTrailingWhitespaceIndex?
         tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
 
-        trailingWhitespaceNode = @domElementPool.buildElement(
-          "span",
-          "trailing-whitespace",
-          tokenText.substring(firstTrailingWhitespaceIndex)
-        )
+        trailingWhitespaceNode = @domElementPool.buildElement("span", "trailing-whitespace")
         trailingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
         trailingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+        trailingWhitespaceNode.appendChild(
+          @domElementPool.buildText(tokenText.substring(firstTrailingWhitespaceIndex))
+        )
 
         endIndex = firstTrailingWhitespaceIndex
 
@@ -255,11 +254,18 @@ class LinesTileComponent
 
       if tokenText.length > MaxTokenLength
         while startIndex < endIndex
-          text = @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
-          scopeNode.appendChild(@domElementPool.buildElement("span", null, text))
+          textNode = @domElementPool.buildText(
+            @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
+          )
+          textSpan = @domElementPool.buildElement("span")
+
+          textSpan.appendChild(textNode)
+          scopeNode.appendChild(textSpan)
           startIndex += MaxTokenLength
       else
-        scopeNode.insertAdjacentText("beforeend", @sliceText(tokenText, startIndex, endIndex))
+        scopeNode.appendChild(
+          @domElementPool.buildText(@sliceText(tokenText, startIndex, endIndex))
+        )
 
       scopeNode.appendChild(trailingWhitespaceNode) if trailingWhitespaceNode?
 
@@ -275,9 +281,9 @@ class LinesTileComponent
     if endOfLineInvisibles?
       for invisible in endOfLineInvisibles
         hasInvisibles = true
-        lineNode.appendChild(
-          @domElementPool.buildElement("span", "invisible-character", invisible)
-        )
+        invisibleSpan = @domElementPool.buildElement("span", "invisible-character")
+        invisibleSpan.appendChild(@domElementPool.buildText(invisible))
+        lineNode.appendChild(invisibleSpan)
 
     hasInvisibles
 
