@@ -197,8 +197,8 @@ class AtomEnvironment extends Model
   registerDefaultViewProviders: ->
     @views.addViewProvider Workspace, (model, env) ->
       new WorkspaceElement().initialize(model, env)
-    @views.addViewProvider PanelContainer, (model) ->
-      new PanelContainerElement().initialize(model)
+    @views.addViewProvider PanelContainer, (model, env) ->
+      new PanelContainerElement().initialize(model, env)
     @views.addViewProvider Panel, (model, env) ->
       new PanelElement().initialize(model, env)
     @views.addViewProvider PaneContainer, (model) ->
