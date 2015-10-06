@@ -25,7 +25,7 @@ describe "TokenIterator", ->
       x
     """)
     tokenizedBuffer = new TokenizedBuffer({
-      buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages
+      buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
     })
     tokenizedBuffer.setGrammar(grammar)
 

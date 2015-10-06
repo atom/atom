@@ -22,16 +22,17 @@ class TokenizedBuffer extends Model
   changeCount: 0
 
   @deserialize: (state, atomEnvironment) ->
-    state.buffer = atom.project.bufferForPathSync(state.bufferPath)
+    state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
     state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
     state.packageManager = atomEnvironment.packages
+    state.assert = atomEnvironment.assert
     new this(state)
 
   constructor: (params) ->
     {
       @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
-      @grammarRegistry, @packageManager
+      @grammarRegistry, @packageManager, @assert
     } = params
 
     @emitter = new Emitter
@@ -299,7 +300,7 @@ class TokenizedBuffer extends Model
     # undefined. This should paper over the problem but we want to figure out
     # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    atom.assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
+    @assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
       error.metadata = {
         row: row
         rowCount: @tokenizedLines.length
@@ -399,7 +400,7 @@ class TokenizedBuffer extends Model
         loop
           break if scopes.pop() is matchingStartTag
           if scopes.length is 0
-            atom.assert false, "Encountered an unmatched scope end tag.", (error) =>
+            @assert false, "Encountered an unmatched scope end tag.", (error) =>
               error.metadata = {
                 grammarScopeName: @grammar.scopeName
                 unmatchedEndTag: @grammar.scopeForId(tag)

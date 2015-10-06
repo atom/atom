@@ -48,7 +48,7 @@ class DisplayBuffer extends Model
 
     @tokenizedBuffer ?= new TokenizedBuffer({
       tabLength, buffer, ignoreInvisibles, @largeFileMode, @config,
-      @grammarRegistry, @packageManager
+      @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
