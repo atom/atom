@@ -203,8 +203,8 @@ class AtomEnvironment extends Model
       new PanelElement().initialize(model, env)
     @views.addViewProvider PaneContainer, (model, env) ->
       new PaneContainerElement().initialize(model, env)
-    @views.addViewProvider PaneAxis, (model) ->
-      new PaneAxisElement().initialize(model)
+    @views.addViewProvider PaneAxis, (model, env) ->
+      new PaneAxisElement().initialize(model, env)
     @views.addViewProvider Pane, (model) ->
       new PaneElement().initialize(model)
     @views.addViewProvider TextEditor, (model, env) ->

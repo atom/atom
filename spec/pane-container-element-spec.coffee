@@ -9,7 +9,7 @@ describe "PaneContainerElement", ->
         child.nodeName.toLowerCase() for child in paneAxisElement.children
 
       paneAxis = new PaneAxis
-      paneAxisElement = new PaneAxisElement().initialize(paneAxis)
+      paneAxisElement = new PaneAxisElement().initialize(paneAxis, atom)
 
       expect(childTagNames()).toEqual []
 
