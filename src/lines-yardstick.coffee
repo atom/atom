@@ -35,7 +35,7 @@ class LinesYardstick
 
     return new Point(row, 0) unless lineNode? and line?
 
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
+    textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
     column = 0
     previousColumn = 0
     previousLeft = 0
@@ -55,13 +55,13 @@ class LinesYardstick
           textIndex++
 
         unless textNode?
-          textNode = iterator.nextNode()
+          textNode = textNodes.shift()
           textNodeLength = textNode.textContent.length
           textNodeIndex = 0
           nextTextNodeIndex = textNodeLength
 
         while nextTextNodeIndex <= column
-          textNode = iterator.nextNode()
+          textNode = textNodes.shift()
           textNodeLength = textNode.textContent.length
           textNodeIndex = nextTextNodeIndex
           nextTextNodeIndex = textNodeIndex + textNodeLength
@@ -108,8 +108,8 @@ class LinesYardstick
     if cachedPosition = @pixelPositionsByLineIdAndColumn[line.id]?[column]
       return cachedPosition
 
+    textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
     indexWithinTextNode = null
-    iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
     charIndex = 0
 
     @tokenIterator.reset(line)
@@ -130,13 +130,13 @@ class LinesYardstick
           textIndex++
 
         unless textNode?
-          textNode = iterator.nextNode()
+          textNode = textNodes.shift()
           textNodeLength = textNode.textContent.length
           textNodeIndex = 0
           nextTextNodeIndex = textNodeLength
 
         while nextTextNodeIndex <= charIndex
-          textNode = iterator.nextNode()
+          textNode = textNodes.shift()
           textNodeLength = textNode.textContent.length
           textNodeIndex = nextTextNodeIndex
           nextTextNodeIndex = textNodeIndex + textNodeLength

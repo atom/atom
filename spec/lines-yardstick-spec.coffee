@@ -1,4 +1,5 @@
 LinesYardstick = require "../src/lines-yardstick"
+{toArray} = require 'underscore-plus'
 
 describe "LinesYardstick", ->
   [editor, mockPresenter, mockLineNodesProvider, createdLineNodes, linesYardstick] = []
@@ -46,6 +47,13 @@ describe "LinesYardstick", ->
           return if availableScreenRows[lineId] isnt screenRow
 
           buildLineNode(screenRow)
+        textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
+          lineNode = @lineNodeForLineIdAndScreenRow(lineId, screenRow)
+          textNodes = []
+          for span in lineNode.children
+            for textNode in span.childNodes
+              textNodes.push(textNode)
+          textNodes
 
       editor.setLineHeightInPixels(14)
       linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider)
