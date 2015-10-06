@@ -210,11 +210,11 @@ class PaneContainer extends Model
       for item, index in pane.getItems()
         @addedPaneItem(item, pane, index)
 
-      pane.onDidAddItem ({item, index}) =>
-        @addedPaneItem(item, pane, index)
+      pane.onDidAddItem ({item, index, moved}) =>
+        @addedPaneItem(item, pane, index) unless moved
 
-      pane.onDidRemoveItem ({item}) =>
-        @removedPaneItem(item)
+      pane.onDidRemoveItem ({item, moved}) =>
+        @removedPaneItem(item) unless moved
 
   addedPaneItem: (item, pane, index) ->
     @itemRegistry.addItem(item)
