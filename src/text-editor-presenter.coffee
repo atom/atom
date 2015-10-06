@@ -657,18 +657,35 @@ class TextEditorPresenter
     tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
-    for screenRow in screenRows
-      line = @model.tokenizedLineForScreenRow(screenRow)
-      bufferRow = @model.bufferRowForScreenRow(screenRow)
-      softWrapped = line.softWrapped
-      decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-      foldable = @model.isFoldableAtScreenRow(screenRow)
+    startRow = screenRows[screenRows.length - 1]
+    endRow = Math.min(screenRows[0] + 1, @model.getScreenLineCount())
 
-      tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
-      visibleLineNumberIds[line.id] = true
+    if startRow > 0
+      rowBeforeStartRow = startRow - 1
+      lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
+    else
+      lastBufferRow = null
 
-    for lineId of tileState.lineNumbers
-      delete tileState.lineNumbers[lineId] unless visibleLineNumberIds[lineId]
+    if endRow > startRow
+      bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
+      for bufferRow, i in bufferRows
+        if bufferRow is lastBufferRow
+          softWrapped = true
+        else
+          lastBufferRow = bufferRow
+          softWrapped = false
+
+        screenRow = startRow + i
+        line = @model.tokenizedLineForScreenRow(screenRow)
+        softWrapped = line.softWrapped
+        decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+        foldable = @model.isFoldableAtScreenRow(screenRow)
+
+        tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
+        visibleLineNumberIds[line.id] = true
+
+    for id of tileState.lineNumbers
+      delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
 
