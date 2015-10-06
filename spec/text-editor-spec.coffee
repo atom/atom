@@ -1770,7 +1770,7 @@ describe "TextEditor", ->
       editor2 = null
       waitsForPromise ->
         atom.workspace.getActivePane().splitRight()
-        atom.workspace.open(editor.getPath()).then (o) => editor2 = o
+        atom.workspace.open(editor.getPath()).then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getText()).toBe(editor.getText())
