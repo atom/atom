@@ -21,7 +21,7 @@ class HighlightsComponent
     # remove highlights
     for id of @oldState
       unless newState[id]?
-        @highlightNodesById[id].remove()
+        @domElementPool.freeElementAndDescendants(@highlightNodesById[id])
         delete @highlightNodesById[id]
         delete @regionNodesByHighlightId[id]
         delete @oldState[id]
@@ -66,7 +66,7 @@ class HighlightsComponent
     # remove regions
     while oldHighlightState.regions.length > newHighlightState.regions.length
       oldHighlightState.regions.pop()
-      @regionNodesByHighlightId[id][oldHighlightState.regions.length].remove()
+      @domElementPool.freeElementAndDescendants(@regionNodesByHighlightId[id][oldHighlightState.regions.length])
       delete @regionNodesByHighlightId[id][oldHighlightState.regions.length]
 
     # add or update regions
