@@ -458,6 +458,9 @@ class Workspace extends Model
     @project.bufferForPath(filePath, options).then (buffer) =>
       @buildTextEditor(_.extend({buffer, largeFileMode}, options))
 
+  # Extended: Create a new text editor.
+  #
+  # Returns a {TextEditor}.
   buildTextEditor: (params) ->
     params = _.extend({
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
