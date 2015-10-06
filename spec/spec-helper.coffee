@@ -27,7 +27,6 @@ atom.themes.initialLoadComplete = true
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
-atom.keymaps.loadBundledKeymaps()
 
 window.addEventListener 'core:close', -> window.close()
 
