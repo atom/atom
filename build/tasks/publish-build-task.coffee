@@ -68,17 +68,19 @@ getAssets = ->
 
   {version} = grunt.file.readJSON('package.json')
   buildDir = grunt.config.get('atom.buildDir')
+  appName = grunt.config.get('atom.appName')
+  appFileName = grunt.config.get('atom.appFileName')
 
   switch process.platform
     when 'darwin'
       [
-        {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+        {assetName: 'atom-mac.zip', sourcePath: appName}
         {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
       nupkgVersion = convertVersion(version)
-      assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
+      assets = [{assetName: 'atom-windows.zip', sourcePath: appName}]
       for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{nupkgVersion}-full.nupkg", "atom-#{nupkgVersion}-delta.nupkg"]
         cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
@@ -90,7 +92,7 @@ getAssets = ->
         arch = 'amd64'
 
       # Check for a Debian build
-      sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
+      sourcePath = "#{buildDir}/#{appFileName}-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
 
       # Check for a Fedora build
@@ -119,7 +121,7 @@ zipAssets = (buildDir, assets, callback) ->
     if process.platform is 'win32'
       zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourcePath}"
     else
-      zipCommand = "zip -r --symlinks #{assetName} #{sourcePath}"
+      zipCommand = "zip -r --symlinks '#{assetName}' '#{sourcePath}'"
     options = {cwd: directory, maxBuffer: Infinity}
     child_process.exec zipCommand, options, (error, stdout, stderr) ->
       logError("Zipping #{sourcePath} failed", error, stderr) if error?
