@@ -44,14 +44,17 @@ class PaneElement extends HTMLElement
       event.stopPropagation()
       @getModel().activate()
       pathsToOpen = Array::map.call event.dataTransfer.files, (file) -> file.path
-      atom.open({pathsToOpen}) if pathsToOpen.length > 0
+      @open({pathsToOpen}) if pathsToOpen.length > 0
 
     @addEventListener 'focus', handleFocus, true
     @addEventListener 'blur', handleBlur, true
     @addEventListener 'dragover', handleDragOver
     @addEventListener 'drop', handleDrop
 
-  initialize: (@model) ->
+  initialize: (@model, {@views, @open}) ->
+    throw new Error("Must pass a views parameter when initializing PaneElements") unless @views?
+    throw new Error("Must pass a open parameter when initializing PaneElements") unless @open?
+
     @subscriptions.add @model.onDidActivate(@activated.bind(this))
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))
     @subscriptions.add @model.observeActiveItem(@activeItemChanged.bind(this))
@@ -78,7 +81,7 @@ class PaneElement extends HTMLElement
     return unless item?
 
     hasFocus = @hasFocus()
-    itemView = atom.views.getView(item)
+    itemView = @views.getView(item)
 
     if itemPath = item.getPath?()
       @dataset.activeItemName = path.basename(itemPath)
@@ -109,7 +112,7 @@ class PaneElement extends HTMLElement
       itemView.style.display = 'none'
 
   itemRemoved: ({item, index, destroyed}) ->
-    if viewToRemove = atom.views.getView(item)
+    if viewToRemove = @views.getView(item)
       viewToRemove.remove()
 
   paneDestroyed: ->
@@ -118,7 +121,7 @@ class PaneElement extends HTMLElement
   flexScaleChanged: (flexScale) ->
     @style.flexGrow = flexScale
 
-  getActiveView: -> atom.views.getView(@model.getActiveItem())
+  getActiveView: -> @views.getView(@model.getActiveItem())
 
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)

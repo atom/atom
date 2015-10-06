@@ -4,6 +4,8 @@ describe "PaneElement", ->
   [paneElement, container, pane] = []
 
   beforeEach ->
+    spyOn(atom, "open")
+
     container = new PaneContainer(config: atom.config)
     pane = container.getActivePane()
     paneElement = atom.views.getView(pane)
@@ -183,7 +185,6 @@ describe "PaneElement", ->
 
     describe "when a file is dragged to the pane", ->
       it "opens it", ->
-        spyOn(atom, "open")
         event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
         paneElement.dispatchEvent(event)
         expect(atom.open.callCount).toBe 1
@@ -191,7 +192,6 @@ describe "PaneElement", ->
 
     describe "when a non-file is dragged to the pane", ->
       it "does nothing", ->
-        spyOn(atom, "open")
         event = buildDragEvent("drop", [])
         paneElement.dispatchEvent(event)
         expect(atom.open).not.toHaveBeenCalled()
