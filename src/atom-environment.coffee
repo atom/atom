@@ -176,7 +176,7 @@ class AtomEnvironment extends Model
       @config, @project, packageManager: @packages, grammarRegistry: @grammars,
       notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
       setDocumentEdited: @setDocumentEdited.bind(this), @clipboard, viewRegistry: @views,
-      grammarRegistry: @grammars, assert: @assert.bind(this)
+      assert: @assert.bind(this)
     })
     @themes.workspace = @workspace
 
