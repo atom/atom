@@ -547,7 +547,10 @@ class AtomEnvironment extends Model
 
     @config.load()
     @setBodyPlatformClass()
-    document.head.appendChild(new StylesElement)
+
+    stylesElement = new StylesElement
+    stylesElement.initialize(this)
+    document.head.appendChild(stylesElement)
     @windowEventHandler = new WindowEventHandler(this)
 
     @packages.loadPackages()

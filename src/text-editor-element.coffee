@@ -4,6 +4,7 @@ Path = require 'path'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
+StylesElement = require './styles-element'
 
 ShadowStyleSheet = null
 
@@ -25,6 +26,7 @@ class TextEditorElement extends HTMLElement
     @workspace = atom.workspace
     @assert = atom.assert
     @views = atom.views
+    @styles = atom.styles
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -46,9 +48,9 @@ class TextEditorElement extends HTMLElement
       @createShadowRoot()
 
       @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-      @stylesElement = document.createElement('atom-styles')
+      @stylesElement = new StylesElement
+      @stylesElement.initialize({@styles})
       @stylesElement.setAttribute('context', 'atom-text-editor')
-      @stylesElement.initialize()
 
       @rootElement = document.createElement('div')
       @rootElement.classList.add('editor--private')
@@ -84,12 +86,13 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert}) ->
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles}) ->
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
     throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
+    throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
 
     @setModel(model)
     this

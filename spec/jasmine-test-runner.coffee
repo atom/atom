@@ -25,7 +25,11 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
 
   jasmineContent = document.createElement('div')
   jasmineContent.setAttribute('id', 'jasmine-content')
-  document.head.appendChild(new StylesElement)
+
+  stylesElement = new StylesElement
+  stylesElement.initialize(atom)
+
+  document.head.appendChild(stylesElement)
   document.body.appendChild(jasmineContent)
 
   jasmineEnv.execute()
