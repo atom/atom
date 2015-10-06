@@ -19,12 +19,6 @@ _ = require 'underscore-plus'
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
-DefaultSocketPath =
-  if process.platform is 'win32'
-    '\\\\.\\pipe\\atom-sock'
-  else
-    path.join(os.tmpdir(), "atom-#{process.env.USER}.sock")
-
 # The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
@@ -36,7 +30,11 @@ class AtomApplication
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
-    options.socketPath ?= DefaultSocketPath
+    unless options.socketPath?
+      if process.platform is 'win32'
+        options.socketPath = '\\\\.\\pipe\\atom-sock'
+      else
+        options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
     createAtomApplication = -> new AtomApplication(options)
 
