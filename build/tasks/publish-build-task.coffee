@@ -119,7 +119,7 @@ logError = (message, error, details) ->
 zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourcePath, assetName, callback) ->
     if process.platform is 'win32'
-      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourcePath}"
+      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} \"#{sourcePath}\""
     else
       zipCommand = "zip -r --symlinks '#{assetName}' '#{sourcePath}'"
     options = {cwd: directory, maxBuffer: Infinity}
