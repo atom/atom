@@ -19,7 +19,10 @@ TextEditorComponent = require '../src/text-editor-component'
 pathwatcher = require 'pathwatcher'
 clipboard = require '../src/safe-clipboard'
 
-atom.themes.requireStylesheet '../static/jasmine'
+jasmineStyle = document.createElement('style')
+jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
+document.head.appendChild(jasmineStyle)
+
 atom.themes.initialLoadComplete = true
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
@@ -96,7 +99,6 @@ beforeEach ->
     assert: atom.assert.bind(atom)
   })
   atom.themes.workspace = atom.workspace
-  atom.styles.restoreSnapshot(styleElementsToRestore)
   atom.views.clearDocumentRequests()
 
   atom.workspaceParentSelectorctor = '#jasmine-content'

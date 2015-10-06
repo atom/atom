@@ -156,6 +156,7 @@ class AtomEnvironment extends Model
       packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
       styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
     })
+    @initialStyleElements = @styles.getSnapshot()
 
     MenuManager = require './menu-manager'
     @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
@@ -241,6 +242,8 @@ class AtomEnvironment extends Model
 
     @commands.clear()
     registerDefaultCommands(this)
+
+    @styles.restoreSnapshot(@initialStyleElements)
 
   ###
   Section: Event Subscription
