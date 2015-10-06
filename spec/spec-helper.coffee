@@ -28,8 +28,6 @@ atom.themes.initialLoadComplete = true
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 
-window.addEventListener 'core:close', -> window.close()
-
 document.querySelector('html').style.overflow = 'auto'
 document.body.style.overflow = 'auto'
 
