@@ -14,7 +14,7 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
+    {@model, @config, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -169,9 +169,9 @@ class TextEditorPresenter
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
 
-    @scrollPastEnd = atom.config.get('editor.scrollPastEnd', configParams)
-    @showLineNumbers = atom.config.get('editor.showLineNumbers', configParams)
-    @showIndentGuide = atom.config.get('editor.showIndentGuide', configParams)
+    @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
+    @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
+    @showIndentGuide = @config.get('editor.showIndentGuide', configParams)
 
     if @configDisposables?
       @configDisposables?.dispose()
@@ -180,19 +180,19 @@ class TextEditorPresenter
     @configDisposables = new CompositeDisposable
     @disposables.add(@configDisposables)
 
-    @configDisposables.add atom.config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
+    @configDisposables.add @config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
       @showIndentGuide = newValue
       @shouldUpdateContentState = true
 
       @emitDidUpdateState()
-    @configDisposables.add atom.config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
+    @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
       @scrollPastEnd = newValue
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
       @updateScrollHeight()
 
       @emitDidUpdateState()
-    @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
+    @configDisposables.add @config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true

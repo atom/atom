@@ -35,7 +35,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode = new TextEditorElement()
       wrapperNode.tileSize = tileSize
-      wrapperNode.initialize(editor)
+      wrapperNode.initialize(editor, atom)
       wrapperNode.setUpdatedSynchronously(false)
       jasmine.attachToDOM(wrapperNode)
 
@@ -2902,7 +2902,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode = new TextEditorElement()
         wrapperNode.tileSize = tileSize
-        wrapperNode.initialize(editor)
+        wrapperNode.initialize(editor, atom)
         hiddenParent.appendChild(wrapperNode)
 
         {component} = wrapperNode

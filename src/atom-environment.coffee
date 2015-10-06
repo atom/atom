@@ -207,8 +207,8 @@ class AtomEnvironment extends Model
       new PaneAxisElement().initialize(model)
     @views.addViewProvider Pane, (model) ->
       new PaneElement().initialize(model)
-    @views.addViewProvider TextEditor, (model) ->
-      new TextEditorElement().initialize(model)
+    @views.addViewProvider TextEditor, (model, env) ->
+      new TextEditorElement().initialize(model, env)
     @views.addViewProvider(Gutter, createGutterView)
 
   registerDefaultOpeners: ->

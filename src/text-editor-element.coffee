@@ -16,24 +16,32 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
+  alreadySetUp: false
 
   createdCallback: ->
+    # Use globals when the following instance variables aren't set.
+    @config = atom.config
+    @themes = atom.themes
+    @workspace = atom.workspace
+    @assert = atom.assert
+    @views = atom.views
+
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
-    @initializeContent()
+
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
-  initializeContent: (attributes) ->
     @classList.add('editor')
     @setAttribute('tabindex', -1)
 
-    if atom.config.get('editor.useShadowDOM')
+  initializeContent: (attributes) ->
+    if @config.get('editor.useShadowDOM')
       @useShadowDOM = true
 
       unless ShadowStyleSheet?
         ShadowStyleSheet = document.createElement('style')
-        ShadowStyleSheet.textContent = atom.themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+        ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
 
       @createShadowRoot()
 
@@ -56,7 +64,7 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
-    atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
+    @assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
     @listenForComponentEvents()
     @component.checkForVisibilityChange()
@@ -76,7 +84,13 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model) ->
+  initialize: (model, {@views, @config, @themes, @workspace, @assert}) ->
+    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
+    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
+    throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
+    throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
+    throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
+
     @setModel(model)
     this
 
@@ -85,6 +99,7 @@ class TextEditorElement extends HTMLElement
     return if model.isDestroyed()
 
     @model = model
+    @initializeContent()
     @mountComponent()
     @addGrammarScopeAttribute()
     @addMiniAttribute() if @model.isMini()
@@ -99,7 +114,7 @@ class TextEditorElement extends HTMLElement
     @model ? @buildModel()
 
   buildModel: ->
-    @setModel(atom.workspace.buildTextEditor(
+    @setModel(@workspace.buildTextEditor(
       buffer: new TextBuffer(@textContent)
       softWrapped: false
       tabLength: 2
@@ -117,6 +132,11 @@ class TextEditorElement extends HTMLElement
       editor: @model
       tileSize: @tileSize
       useShadowDOM: @useShadowDOM
+      views: @views
+      themes: @themes
+      config: @config
+      workspace: @workspace
+      assert: @assert
     )
     @rootElement.appendChild(@component.getDomNode())
 

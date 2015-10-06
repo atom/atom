@@ -39,6 +39,7 @@ describe "TextEditorPresenter", ->
         verticalScrollbarWidth: 10
         scrollTop: 0
         scrollLeft: 0
+        config: atom.config
 
       new TextEditorPresenter(params)
 
