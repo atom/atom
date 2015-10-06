@@ -71,7 +71,7 @@ describe "MenuManager", ->
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       atom.keymaps.add 'test', 'atom-text-editor': 'ctrl-b': 'unset!'
 
-      waits 1
+      waits 50
 
       runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
 
