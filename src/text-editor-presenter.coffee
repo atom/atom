@@ -677,7 +677,6 @@ class TextEditorPresenter
 
         screenRow = startRow + i
         line = @model.tokenizedLineForScreenRow(screenRow)
-        softWrapped = line.softWrapped
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 

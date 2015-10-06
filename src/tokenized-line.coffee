@@ -34,7 +34,6 @@ class TokenizedLine
   lineIsWhitespaceOnly: false
   firstNonWhitespaceIndex: 0
   foldable: false
-  softWrapped: false
 
   constructor: (properties) ->
     @id = idCounter++
@@ -421,7 +420,6 @@ class TokenizedLine
     leftFragment.tabLength = @tabLength
     leftFragment.firstNonWhitespaceIndex = Math.min(column, @firstNonWhitespaceIndex)
     leftFragment.firstTrailingWhitespaceIndex = Math.min(column, @firstTrailingWhitespaceIndex)
-    leftFragment.softWrapped = @softWrapped
 
     rightFragment = new TokenizedLine
     rightFragment.tokenIterator = @tokenIterator
@@ -439,7 +437,6 @@ class TokenizedLine
     rightFragment.endOfLineInvisibles = @endOfLineInvisibles
     rightFragment.firstNonWhitespaceIndex = Math.max(softWrapIndent, @firstNonWhitespaceIndex - column + softWrapIndent)
     rightFragment.firstTrailingWhitespaceIndex = Math.max(softWrapIndent, @firstTrailingWhitespaceIndex - column + softWrapIndent)
-    rightFragment.softWrapped = true
 
     [leftFragment, rightFragment]
 
