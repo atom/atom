@@ -163,6 +163,10 @@ class AtomEnvironment extends Model
     ContextMenuManager = require './context-menu-manager'
     @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
 
+    @packages.setMenuManager(@menu)
+    @packages.setContextMenuManager(@contextMenu)
+    @packages.setThemeManager(@themes)
+
     Clipboard = require './clipboard'
     @clipboard = new Clipboard()
 

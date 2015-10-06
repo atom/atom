@@ -46,6 +46,12 @@ class PackageManager
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
 
+  setContextMenuManager: (@contextMenuManager) ->
+
+  setMenuManager: (@menuManager) ->
+
+  setThemeManager: (@themeManager) ->
+
   ###
   Section: Event Subscription
   ###
@@ -355,7 +361,7 @@ class PackageManager
 
       options = {
         path: packagePath, metadata, packageManager: this,
-        @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry
+        @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
       }
       if metadata.theme
         pack = new ThemePackage(options)

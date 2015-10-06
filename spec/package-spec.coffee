@@ -4,7 +4,7 @@ ThemePackage = require '../src/theme-package'
 
 describe "Package", ->
   build = (constructor, path) ->
-    new constructor(path: path, packageManager: atom.packages, config: atom.config, styleManager: atom.styles, notificationManager: atom.notifications, keymapManager: atom.keymaps, commandRegistry: atom.command, grammarRegistry: atom.grammars, inDevMode: atom.inDevMode)
+    new constructor(path: path, packageManager: atom.packages, config: atom.config, styleManager: atom.styles, notificationManager: atom.notifications, keymapManager: atom.keymaps, commandRegistry: atom.command, grammarRegistry: atom.grammars, themeManager: atom.themes, menuManager: atom.menu, contextMenuManager: atom.contextMenu, inDevMode: atom.inDevMode)
 
   buildPackage = (packagePath) -> build(Package, packagePath)
 

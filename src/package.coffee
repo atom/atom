@@ -29,7 +29,7 @@ class Package
   Section: Construction
   ###
 
-  constructor: ({@path, @metadata, @packageManager, @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry}) ->
+  constructor: ({@path, @metadata, @packageManager, @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry, @themeManager, @menuManager, @contextMenuManager}) ->
     @emitter = new Emitter
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
@@ -161,14 +161,14 @@ class Package
     for [menuPath, map] in @menus when map['context-menu']?
       try
         itemsBySelector = map['context-menu']
-        @activationDisposables.add(atom.contextMenu.add(itemsBySelector))
+        @activationDisposables.add(@contextMenuManager.add(itemsBySelector))
       catch error
         if error.code is 'EBADSELECTOR'
           error.message += " in #{menuPath}"
           error.stack += "\n  at #{menuPath}:1:1"
         throw error
 
-    @activationDisposables.add(atom.menu.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
+    @activationDisposables.add(@menuManager.add(map['menu'])) for [menuPath, map] in @menus when map['menu']?
 
     unless @grammarsActivated
       grammar.activate() for grammar in @grammars
@@ -183,7 +183,7 @@ class Package
     @keymapDisposables = new CompositeDisposable()
 
     @keymapDisposables.add(@keymapManager.add(keymapPath, map)) for [keymapPath, map] in @keymaps
-    atom.menu.update()
+    @menuManager.update()
 
     @keymapActivated = true
 
@@ -191,7 +191,7 @@ class Package
     return if not @keymapActivated
 
     @keymapDisposables?.dispose()
-    atom.menu.update()
+    @menuManager.update()
 
     @keymapActivated = false
 
@@ -244,8 +244,8 @@ class Package
       fs.listSync(menusDirPath, ['cson', 'json'])
 
   loadStylesheets: ->
-    @stylesheets = @getStylesheetPaths().map (stylesheetPath) ->
-      [stylesheetPath, atom.themes.loadStylesheet(stylesheetPath, true)]
+    @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
+      [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
 
   getStylesheetsPath: ->
     path.join(@path, 'styles')
