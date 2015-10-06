@@ -17,14 +17,15 @@ class DOMElementPool
     @freedElements.delete(element)
     element
 
-  buildElement: (tagName, className, textContent = "") ->
+  buildElement: (tagName, className) ->
     factory = -> document.createElement(tagName)
     reset = (element) ->
       delete element.dataset[dataId] for dataId of element.dataset
-      element.removeAttribute("class")
       element.removeAttribute("style")
-      element.className = className if className?
-      element.textContent = textContent
+      if className?
+        element.className = className
+      else
+        element.removeAttribute("class")
     @build(tagName, factory, reset)
 
   buildText: (textContent) ->
