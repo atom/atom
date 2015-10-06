@@ -2250,7 +2250,7 @@ class TextEditor extends Model
     unless marker.getProperties().preserveFolds
       @destroyFoldsContainingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
-    selection = new Selection(_.extend({editor: this, marker, cursor}, options))
+    selection = new Selection(_.extend({editor: this, marker, cursor, @clipboard}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
