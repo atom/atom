@@ -28,9 +28,6 @@ atom.themes.initialLoadComplete = true
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 atom.keymaps.loadBundledKeymaps()
-keyBindingsToRestore = atom.keymaps.getKeyBindings()
-commandsToRestore = atom.commands.getSnapshot()
-styleElementsToRestore = atom.styles.getSnapshot()
 
 window.addEventListener 'core:close', -> window.close()
 
