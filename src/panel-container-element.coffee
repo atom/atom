@@ -16,7 +16,7 @@ class PanelContainerElement extends HTMLElement
   getModel: -> @model
 
   panelAdded: ({panel, index}) ->
-    panelElement = atom.views.getView(panel)
+    panelElement = @views.getView(panel)
     panelElement.classList.add(@model.getLocation())
     if @model.isModal()
       panelElement.classList.add("overlay", "from-top")
@@ -35,7 +35,7 @@ class PanelContainerElement extends HTMLElement
         @hideAllPanelsExcept(panel) if visible
 
   panelRemoved: ({panel, index}) ->
-    @removeChild(atom.views.getView(panel))
+    @removeChild(@views.getView(panel))
 
   destroyed: ->
     @subscriptions.dispose()
