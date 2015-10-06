@@ -28,7 +28,7 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager}) ->
+  constructor: ({configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager, @notificationManager, @inDevMode, @keymapManager, @commandRegistry, @grammarRegistry}) ->
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
@@ -353,10 +353,14 @@ class PackageManager
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
+      options = {
+        path: packagePath, metadata, packageManager: this,
+        @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry
+      }
       if metadata.theme
-        pack = new ThemePackage({path: packagePath, metadata, packageManager: this, @config, @styleManager})
+        pack = new ThemePackage(options)
       else
-        pack = new Package({path: packagePath, metadata, packageManager: this, @config, @styleManager})
+        pack = new Package(options)
       pack.load()
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
@@ -446,7 +450,7 @@ class PackageManager
     detail = "#{error.message} in #{metadataPath}"
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
-    atom.notifications.addError(message, {stack, detail, dismissable: true})
+    @notificationManager.addError(message, {stack, detail, dismissable: true})
 
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->

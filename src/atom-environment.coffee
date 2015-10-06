@@ -142,11 +142,14 @@ class AtomEnvironment extends Model
     @commands = new CommandRegistry
     registerDefaultCommands(this)
 
+    GrammarRegistry = require './grammar-registry'
+    @grammars = new GrammarRegistry({@config})
+
     StyleManager = require './style-manager'
     @styles = new StyleManager({configDirPath})
 
     PackageManager = require './package-manager'
-    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles})
+    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles, commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications, grammarRegistry: @grammars, inDevMode: @inDevMode.bind(this)})
 
     ThemeManager = require './theme-manager'
     @themes = new ThemeManager({
@@ -162,9 +165,6 @@ class AtomEnvironment extends Model
 
     Clipboard = require './clipboard'
     @clipboard = new Clipboard()
-
-    GrammarRegistry = require './grammar-registry'
-    @grammars = new GrammarRegistry({@config})
 
     Project = require './project'
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm})

@@ -29,7 +29,7 @@ class Package
   Section: Construction
   ###
 
-  constructor: ({@path, @metadata, @packageManager, @config, @styleManager}) ->
+  constructor: ({@path, @metadata, @packageManager, @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry}) ->
     @emitter = new Emitter
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
@@ -182,7 +182,7 @@ class Package
 
     @keymapDisposables = new CompositeDisposable()
 
-    @keymapDisposables.add(atom.keymaps.add(keymapPath, map)) for [keymapPath, map] in @keymaps
+    @keymapDisposables.add(@keymapManager.add(keymapPath, map)) for [keymapPath, map] in @keymaps
     atom.menu.update()
 
     @keymapActivated = true
@@ -268,7 +268,7 @@ class Package
     grammarPaths = fs.listSync(grammarsDirPath, ['json', 'cson'])
     for grammarPath in grammarPaths
       try
-        grammar = atom.grammars.readGrammarSync(grammarPath)
+        grammar = @grammarRegistry.readGrammarSync(grammarPath)
         grammar.packageName = @name
         grammar.bundledPackage = @bundledPackage
         @grammars.push(grammar)
@@ -283,11 +283,11 @@ class Package
     return Promise.resolve() if @grammarsLoaded
 
     loadGrammar = (grammarPath, callback) =>
-      atom.grammars.readGrammar grammarPath, (error, grammar) =>
+      @grammarRegistry.readGrammar grammarPath, (error, grammar) =>
         if error?
           detail = "#{error.message} in #{grammarPath}"
           stack = "#{error.stack}\n  at #{grammarPath}:1:1"
-          atom.notifications.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
+          @notificationManager.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
         else
           grammar.packageName = @name
           grammar.bundledPackage = @bundledPackage
@@ -311,7 +311,7 @@ class Package
         if error?
           detail = "#{error.message} in #{settingsPath}"
           stack = "#{error.stack}\n  at #{settingsPath}:1:1"
-          atom.notifications.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
+          @notificationManager.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
         else
           @settings.push(settings)
           settings.activate() if @settingsActivated
@@ -428,7 +428,7 @@ class Package
           # Add dummy command so it appears in menu.
           # The real command will be registered on package activation
           try
-            @activationCommandSubscriptions.add atom.commands.add selector, command, ->
+            @activationCommandSubscriptions.add @commandRegistry.add selector, command, ->
           catch error
             if error.code is 'EBADSELECTOR'
               metadataPath = path.join(@path, 'package.json')
@@ -436,7 +436,7 @@ class Package
               error.stack += "\n  at #{metadataPath}:1:1"
             throw error
 
-          @activationCommandSubscriptions.add atom.commands.onWillDispatch (event) =>
+          @activationCommandSubscriptions.add @commandRegistry.onWillDispatch (event) =>
             return unless event.type is command
             currentTarget = event.target
             while currentTarget
@@ -587,7 +587,7 @@ class Package
   # This information is cached in local storage on a per package/version basis
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
-    unless atom.inDevMode()
+    unless @inDevMode()
       try
         if arrayAsString = global.localStorage.getItem(@getIncompatibleNativeModulesStorageKey())
           return JSON.parse(arrayAsString)
@@ -628,4 +628,4 @@ class Package
       detail = error.message
       stack = error.stack ? error
 
-    atom.notifications.addFatalError(message, {stack, detail, dismissable: true})
+    @notificationManager.addFatalError(message, {stack, detail, dismissable: true})
