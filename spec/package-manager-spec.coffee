@@ -770,8 +770,6 @@ describe "PackageManager", ->
       atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
 
-      GrammarRegistry = require '../src/grammar-registry'
-      atom.grammars = window.syntax = new GrammarRegistry(config: atom.config)
       jasmine.restoreDeprecationsSnapshot()
 
     it "activates all the packages, and none of the themes", ->
