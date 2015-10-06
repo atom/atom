@@ -8,10 +8,9 @@ class PaneAxis extends Model
   container: null
   orientation: null
 
-  @deserialize: (state, params) ->
-    container = params?.container
-    state.container = container
-    state.children = state.children.map (childState) -> atom.deserializers.deserialize(childState)
+  @deserialize: (state, {deserializers}) ->
+    state.children = state.children.map (childState) ->
+      deserializers.deserialize(childState)
     new this(state)
 
   constructor: ({@orientation, children, flexScale}={}) ->

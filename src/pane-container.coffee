@@ -31,7 +31,7 @@ class PaneContainer extends Model
 
   deserialize: (state, deserializerManager) ->
     return unless state.version is @serializationVersion
-    @setRoot(deserializerManager.deserialize(state.root, {container: this}))
+    @setRoot(deserializerManager.deserialize(state.root))
     activePane = find @getRoot().getPanes(), (pane) -> pane.id is state.activePaneId
     @setActivePane(activePane ? @getPanes()[0])
     @destroyEmptyPanes() if @config.get('core.destroyEmptyPanes')

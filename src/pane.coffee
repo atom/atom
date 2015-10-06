@@ -14,16 +14,14 @@ class Pane extends Model
   activeItem: undefined
   focused: false
 
-  @deserialize: (state, params) ->
+  @deserialize: (state, {deserializers}) ->
     {items, activeItemURI, activeItemUri} = state
-    state.container = params?.container
     activeItemURI ?= activeItemUri
-    state.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
     state.activeItem = find state.items, (item) ->
       if typeof item.getURI is 'function'
         itemURI = item.getURI()
       itemURI is activeItemURI
-
     new this(state)
 
   constructor: (params) ->
