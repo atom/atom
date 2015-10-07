@@ -119,6 +119,12 @@ class TextEditorComponent
     @gutterContainerComponent?.destroy()
     @domElementPool.clear()
 
+    @verticalScrollbarComponent.destroy()
+    @horizontalScrollbarComponent.destroy()
+
+    @onVerticalScroll = null
+    @onHorizontalScroll = null
+
   getDomNode: ->
     @domNode
 
@@ -563,7 +569,7 @@ class TextEditorComponent
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
 
-  handleDragUntilMouseUp: (dragHandler) =>
+  handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
     lastMousePosition = {}
     animationLoop = =>
