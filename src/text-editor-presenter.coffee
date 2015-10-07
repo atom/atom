@@ -129,7 +129,7 @@ class TextEditorPresenter
       @shouldUpdateCustomGutterDecorationState = true
       @emitDidUpdateState()
 
-    @model.onDidUpdateMarkers =>
+    @disposables.add @model.onDidUpdateMarkers =>
       @shouldUpdateLinesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateDecorations = true
