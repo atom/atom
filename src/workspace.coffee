@@ -36,7 +36,7 @@ class Workspace extends Model
     @openers = []
     @destroyedItemURIs = []
 
-    @paneContainer = new PaneContainer(config: @config)
+    @paneContainer = new PaneContainer({@config, @confirm})
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @directorySearchers = []
@@ -414,7 +414,7 @@ class Workspace extends Model
     Promise.resolve(item)
       .then (item) =>
         if not pane
-          pane = new Pane(items: [item])
+          pane = new Pane({items: [item], @config, @confirm})
           @paneContainer.root = pane
         @itemOpened(item)
         pane.activateItem(item)

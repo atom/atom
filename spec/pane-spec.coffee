@@ -38,7 +38,7 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       container.getActivePane().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -107,7 +107,7 @@ describe "Pane", ->
 
     it "throws an exception if the item is already present on a pane", ->
       item = new Item("A")
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       pane1 = container.getActivePane()
       pane1.addItem(item)
       pane2 = pane1.splitRight()
@@ -502,7 +502,7 @@ describe "Pane", ->
     [item1, item2, item3, item4, item5] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       pane1 = container.getActivePane()
       pane1.addItems([new Item("A"), new Item("B"), new Item("C")])
       pane2 = pane1.splitRight(items: [new Item("D"), new Item("E")])
@@ -555,7 +555,7 @@ describe "Pane", ->
     [pane1, container] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       pane1 = container.getActivePane()
       pane1.addItem(new Item("A"))
 
@@ -688,7 +688,7 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       pane1 = container.root
       pane1.addItems([new Item("A"), new Item("B")])
       pane2 = pane1.splitRight()

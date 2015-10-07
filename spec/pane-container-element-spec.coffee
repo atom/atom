@@ -42,7 +42,7 @@ describe "PaneContainerElement", ->
       ]
 
     it "transfers focus to the next pane if a focused pane is removed", ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       containerElement = atom.views.getView(container)
       leftPane = container.getActivePane()
       leftPaneElement = atom.views.getView(leftPane)
@@ -58,7 +58,7 @@ describe "PaneContainerElement", ->
 
   describe "when a pane is split", ->
     it "builds appropriately-oriented atom-pane-axis elements", ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       containerElement = atom.views.getView(container)
 
       pane1 = container.getActivePane()
@@ -84,7 +84,7 @@ describe "PaneContainerElement", ->
     [container, containerElement] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       containerElement = atom.views.getView(container)
       document.querySelector('#jasmine-content').appendChild(containerElement)
 
@@ -201,7 +201,7 @@ describe "PaneContainerElement", ->
     [leftPane, rightPane] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       leftPane = container.getActivePane()
       rightPane = leftPane.splitRight()
 
@@ -252,7 +252,7 @@ describe "PaneContainerElement", ->
         element.tabIndex = -1
         element
 
-      container = new PaneContainer(config: atom.config)
+      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       pane1 = container.getActivePane()
       pane1.activateItem(buildElement('1'))
       pane4 = pane1.splitDown(items: [buildElement('4')])
