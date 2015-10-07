@@ -122,8 +122,6 @@ class TextEditorComponent
     @verticalScrollbarComponent.destroy()
     @horizontalScrollbarComponent.destroy()
 
-    @verticalScrollbarComponent = null
-    @horizontalScrollbarComponent = null
     @onVerticalScroll = null
     @onHorizontalScroll = null
 
