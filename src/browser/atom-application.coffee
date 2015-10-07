@@ -512,11 +512,12 @@ class AtomApplication
       process.stderr.write 'Error: Specify at least one test path\n\n'
       process.exit(1)
 
+    legacyTestRunnerPath = @resolveLegacyTestRunnerPath()
     testRunnerPath = @resolveTestRunnerPath(testPaths[0])
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, testPaths, logFile, safeMode})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'
@@ -531,6 +532,9 @@ class AtomApplication
           process.stderr.write "Error: Could not resolve test runner path '#{packageMetadata.atomTestRunner}'"
           process.exit(1)
 
+    @resolveLegacyTestRunnerPath()
+
+  resolveLegacyTestRunnerPath: ->
     try
       require.resolve(path.resolve(@devResourcePath, 'spec', 'jasmine-test-runner'))
     catch error

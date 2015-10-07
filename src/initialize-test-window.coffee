@@ -32,12 +32,14 @@ try
 
   document.title = "Spec Suite"
 
+  legacyTestRunner = require(getWindowLoadSettings().legacyTestRunnerPath)
   testRunner = require(getWindowLoadSettings().testRunnerPath)
   testRunner({
     logFile: getWindowLoadSettings().logFile
     headless: getWindowLoadSettings().headless
     testPaths: getWindowLoadSettings().testPaths
     buildAtomEnvironment: -> new AtomEnvironment
+    legacyTestRunner: legacyTestRunner
   })
 
 catch error
