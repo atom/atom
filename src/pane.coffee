@@ -508,7 +508,8 @@ class Pane extends Model
       @saveItemAs(item, nextAction)
 
   # Public: Prompt the user for a location and save the active item with the
-  # path they select.
+  # path they select. It will attempt to use item.showSaveDialogSync; otherwise,
+  # it will fall back to atom.showSaveDialogSync.
   #
   # * `item` The item to save.
   # * `nextAction` (optional) {Function} which will be called after the item is
@@ -516,15 +517,29 @@ class Pane extends Model
   saveItemAs: (item, nextAction) ->
     return unless item?.saveAs?
 
+    @showSaveDialog(item).then((newItemPath) =>
+      if newItemPath
+        try
+          item.saveAs(newItemPath)
+        catch error
+          @handleSaveError(error, item)
+        nextAction?()
+    ).catch( (error) ->
+      if error then throw error else nextAction?()
+    )
+
+  # Private: Shows a save dialog, if the Active item implements showSaveDialog,
+  # it will call it, otherwise it will call the default atom.showSaveDialogSync
+  #
+  # * `item` The item to save.
+  # returns a {Promise}
+  showSaveDialog: (item) ->
     saveOptions = item.getSaveDialogOptions?() ? {}
     saveOptions.defaultPath ?= item.getPath()
-    newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
-    if newItemPath
-      try
-        item.saveAs(newItemPath)
-      catch error
-        @handleSaveError(error, item)
-      nextAction?()
+    if item.showSaveDialog
+      return item.showSaveDialog(saveOptions)
+    else
+      Promise.resolve( @applicationDelegate.showSaveDialog(saveOptions))
 
   # Public: Save all items.
   saveItems: ->

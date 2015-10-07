@@ -290,15 +290,17 @@ describe "Pane", ->
         describe "when the item has no uri", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
             itemURI = null
-
             showSaveDialog.andReturn("/selected/path")
             confirm.andReturn(0)
+            spyOn(pane, 'saveItemAs')
             pane.destroyItem(item1)
-
-            expect(showSaveDialog).toHaveBeenCalled()
-            expect(item1.saveAs).toHaveBeenCalledWith("/selected/path")
-            expect(item1 in pane.getItems()).toBe false
-            expect(item1.isDestroyed()).toBe true
+            setTimeout( ->
+              expect(showSaveDialog).toHaveBeenCalled()
+              expect(pane.saveItemAs).toHaveBeenCalled()
+              expect(item1.saveAs).toHaveBeenCalledWith("/selected/path")
+              expect(item1 in pane.getItems()).toBe false
+              expect(item1.isDestroyed()).toBe true
+            , 500)
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
@@ -384,6 +386,27 @@ describe "Pane", ->
       pane.destroyInactiveItems()
       expect(pane.getItems()).toEqual [item2]
 
+  describe "::showSaveDialog()", ->
+    pane = null
+    item =  null
+
+    beforeEach ->
+      item = new Item("A")
+      pane = new Pane(items: [item], applicationDelegate: atom.applicationDelegate)
+      atom.applicationDelegate.showSaveDialog = jasmine.createSpy("atom.showSaveDialog")
+
+    describe "when the item implements a showSaveDialog method", ->
+      it "calls item.showSaveDialog", ->
+        item.showSaveDialog = jasmine.createSpy("item.showSaveDialog")
+        pane.showSaveDialog(item)
+        expect(item.showSaveDialog).toHaveBeenCalled()
+        expect(atom.applicationDelegate.showSaveDialog.callCount).toEqual(0)
+
+    describe "when the item doesn't implement a showSaveDialog method", ->
+      it "calls atom.showSaveDialog", ->
+        pane.showSaveDialog(item)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+
   describe "::saveActiveItem()", ->
     pane = null
 
@@ -408,9 +431,12 @@ describe "Pane", ->
 
     describe "when the current item has no uri", ->
       describe "when the current item has a saveAs method", ->
-        it "opens a save dialog and saves the current item as the selected path", ->
+        beforeEach ->
           pane.getActiveItem().saveAs = jasmine.createSpy("saveAs")
-          pane.saveActiveItem()
+          waitsForPromise ->
+            pane.saveActiveItem()
+
+        it "opens a save dialog and saves the current item as the selected path", ->
           expect(showSaveDialog).toHaveBeenCalled()
           expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
 
@@ -424,15 +450,16 @@ describe "Pane", ->
       notificationSpy = null
       beforeEach ->
         atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
-
-      it "creates a notification", ->
         pane.getActiveItem().saveAs = ->
           error = new Error("EACCES, permission denied '/foo'")
           error.path = '/foo'
           error.code = 'EACCES'
           throw error
+        waitsForPromise( ->
+          pane.saveActiveItem()
+        )
 
-        pane.saveActiveItem()
+      it "creates a notification",  ->
         expect(notificationSpy).toHaveBeenCalled()
         notification = notificationSpy.mostRecentCall.args[0]
         expect(notification.getType()).toBe 'warning'
@@ -447,12 +474,27 @@ describe "Pane", ->
       showSaveDialog.andReturn('/selected/path')
 
     describe "when the current item has a saveAs method", ->
-      it "opens the save dialog and calls saveAs on the item with the selected path", ->
+
+      beforeEach ->
         pane.getActiveItem().path = __filename
         pane.getActiveItem().saveAs = jasmine.createSpy("saveAs")
-        pane.saveActiveItemAs()
-        expect(showSaveDialog).toHaveBeenCalledWith(defaultPath: __filename)
-        expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
+
+      describe "when the current item has a saveAs method", ->
+        it "opens the save dialog and calls saveAs on the item with the selected path", ->
+          pane.getActiveItem().path = __filename
+          pane.saveActiveItemAs(->
+            expect(showSaveDialog).toHaveBeenCalledWith(defaultPath: __filename)
+            expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
+          )
+
+      describe "when the current item does not have a saveAs method", ->
+        it "does nothing", ->
+          pane.getActiveItem().saveAs = undefined
+          expect(pane.getActiveItem().saveAs).toBeUndefined()
+          pane.saveActiveItemAs( ->
+            expect(showSaveDialog).not.toHaveBeenCalled()
+          )
+
 
     describe "when the current item does not have a saveAs method", ->
       it "does nothing", ->
@@ -464,15 +506,15 @@ describe "Pane", ->
       notificationSpy = null
       beforeEach ->
         atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
-
-      it "creates a notification", ->
         pane.getActiveItem().saveAs = ->
           error = new Error("EACCES, permission denied '/foo'")
           error.path = '/foo'
           error.code = 'EACCES'
           throw error
+        waitsForPromise ->
+          pane.saveActiveItemAs()
 
-        pane.saveActiveItemAs()
+      it "creates a notification", ->
         expect(notificationSpy).toHaveBeenCalled()
         notification = notificationSpy.mostRecentCall.args[0]
         expect(notification.getType()).toBe 'warning'
