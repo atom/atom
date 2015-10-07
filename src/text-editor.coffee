@@ -849,7 +849,7 @@ class TextEditor extends Model
     selection = @getSelectedBufferRange()
     lastRow = @buffer.getLastRow()
     return if selection.end.row is lastRow
-    return if selection.end.row is lastRow - 1 and @buffer.getLastLine() is ''
+    return if selection.end.row is lastRow - 1 and @buffer.getLastLine() is '' and selection.end.column isnt 0
 
     @transact =>
       foldedRows = []
