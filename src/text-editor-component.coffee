@@ -119,6 +119,14 @@ class TextEditorComponent
     @gutterContainerComponent?.destroy()
     @domElementPool.clear()
 
+    @verticalScrollbarComponent.destroy()
+    @horizontalScrollbarComponent.destroy()
+
+    @verticalScrollbarComponent = null
+    @horizontalScrollbarComponent = null
+    @onVerticalScroll = null
+    @onHorizontalScroll = null
+
   getDomNode: ->
     @domNode
 
