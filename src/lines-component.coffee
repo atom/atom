@@ -13,7 +13,7 @@ module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @hostElement, @useShadowDOM, visible, @domElementPool}) ->
+  constructor: ({@presenter, @useShadowDOM, @domElementPool}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
@@ -54,6 +54,7 @@ class LinesComponent extends TiledComponent
         @placeholderTextDiv.classList.add('placeholder-text')
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
+      @oldState.placeholderText = @newState.placeholderText
 
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
@@ -82,21 +83,10 @@ class LinesComponent extends TiledComponent
     @presenter.setLineHeight(lineHeightInPixels)
     @presenter.setBaseCharacterWidth(charWidth)
 
-  remeasureCharacterWidths: ->
-    return unless @presenter.baseCharacterWidth
+  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+    @getComponentForTile(tile)?.lineNodeForLineId(lineId)
 
-    @clearScopedCharWidths()
-    @measureCharactersInNewLines()
-
-  measureCharactersInNewLines: ->
-    @presenter.batchCharacterMeasurement =>
-      for id, component of @componentsByTileId
-        component.measureCharactersInNewLines()
-
-      return
-
-  clearScopedCharWidths: ->
-    for id, component of @componentsByTileId
-      component.clearMeasurements()
-
-    @presenter.clearScopedCharacterWidths()
+  textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+    @getComponentForTile(tile)?.textNodesForLineId(lineId)

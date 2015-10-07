@@ -12,6 +12,7 @@ ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
+LinesYardstick = require './lines-yardstick'
 
 module.exports =
 class TextEditorComponent
@@ -29,7 +30,6 @@ class TextEditorComponent
   inputEnabled: true
   measureScrollbarsWhenShown: true
   measureLineHeightAndDefaultCharWidthWhenShown: true
-  remeasureCharacterWidthsWhenShown: false
   stylingChangeAnimationFrameRequested: false
   gutterComponent: null
   mounted: true
@@ -79,13 +79,14 @@ class TextEditorComponent
     @scrollViewNode.classList.add('scroll-view')
     @domNode.appendChild(@scrollViewNode)
 
-    @mountGutterContainerComponent() if @presenter.getState().gutters.length
-
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
+
+    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent)
+    @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
     @scrollViewNode.appendChild(@horizontalScrollbarComponent.getDomNode())
@@ -173,7 +174,6 @@ class TextEditorComponent
       @updateParentViewMiniClass()
 
   readAfterUpdateSync: =>
-    @linesComponent.measureCharactersInNewLines() if @isVisible() and not @newState.content.scrollingVertically
     @overlayManager?.measureOverlays()
 
   mountGutterContainerComponent: ->
@@ -188,7 +188,6 @@ class TextEditorComponent
     @measureWindowSize()
     @measureDimensions()
     @measureLineHeightAndDefaultCharWidth() if @measureLineHeightAndDefaultCharWidthWhenShown
-    @remeasureCharacterWidths() if @remeasureCharacterWidthsWhenShown
     @editor.setVisible(true)
     @performedInitialMeasurement = true
     @updatesPaused = false
@@ -276,9 +275,15 @@ class TextEditorComponent
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
-    @disposables.add atom.config.onDidChange 'editor.fontSize', @sampleFontStyling
-    @disposables.add atom.config.onDidChange 'editor.fontFamily', @sampleFontStyling
-    @disposables.add atom.config.onDidChange 'editor.lineHeight', @sampleFontStyling
+    @disposables.add atom.config.onDidChange 'editor.fontSize', =>
+      @sampleFontStyling()
+      @invalidateCharacterWidths()
+    @disposables.add atom.config.onDidChange 'editor.fontFamily', =>
+      @sampleFontStyling()
+      @invalidateCharacterWidths()
+    @disposables.add atom.config.onDidChange 'editor.lineHeight', =>
+      @sampleFontStyling()
+      @invalidateCharacterWidths()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
@@ -424,22 +429,14 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForScreenPosition: (screenPosition) ->
-    position = @presenter.pixelPositionForScreenPosition(screenPosition)
-    position.top += @presenter.getScrollTop()
-    position.left += @presenter.getScrollLeft()
-    position
+  pixelPositionForScreenPosition: ->
+    @linesYardstick.pixelPositionForScreenPosition(arguments...)
 
-  screenPositionForPixelPosition: (pixelPosition) ->
-    @presenter.screenPositionForPixelPosition(pixelPosition)
+  screenPositionForPixelPosition: ->
+    @linesYardstick.screenPositionForPixelPosition(arguments...)
 
-  pixelRectForScreenRange: (screenRange) ->
-    rect = @presenter.pixelRectForScreenRange(screenRange)
-    rect.top += @presenter.getScrollTop()
-    rect.bottom += @presenter.getScrollTop()
-    rect.left += @presenter.getScrollLeft()
-    rect.right += @presenter.getScrollLeft()
-    rect
+  pixelRectForScreenRange: ->
+    @linesYardstick.pixelRectForScreenRange(arguments...)
 
   pixelRangeForScreenRange: (screenRange, clip=true) ->
     {start, end} = Range.fromObject(screenRange)
@@ -567,7 +564,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @remeasureCharacterWidths()
+    @invalidateCharacterWidths()
 
   handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
@@ -721,9 +718,7 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
-
-    if (@fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily) and @performedInitialMeasurement
-      @remeasureCharacterWidths()
+      @invalidateCharacterWidths()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
@@ -741,13 +736,6 @@ class TextEditorComponent
       @linesComponent.measureLineHeightAndDefaultCharWidth()
     else
       @measureLineHeightAndDefaultCharWidthWhenShown = true
-
-  remeasureCharacterWidths: ->
-    if @isVisible()
-      @remeasureCharacterWidthsWhenShown = false
-      @linesComponent.remeasureCharacterWidths()
-    else
-      @remeasureCharacterWidthsWhenShown = true
 
   measureScrollbars: ->
     @measureScrollbarsWhenShown = false
@@ -840,6 +828,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
+    @invalidateCharacterWidths()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -847,10 +836,16 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
+    @invalidateCharacterWidths()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
+    @invalidateCharacterWidths()
+
+  invalidateCharacterWidths: ->
+    @linesYardstick.invalidateCache()
+    @presenter.characterWidthsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
     atom.config.set("editor.showIndentGuide", showIndentGuide)
@@ -861,7 +856,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @presenter.screenPositionForPixelPosition(pixelPosition)
+    @screenPositionForPixelPosition(pixelPosition, true)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event

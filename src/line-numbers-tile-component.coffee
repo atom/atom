@@ -7,7 +7,7 @@ class LineNumbersTileComponent
 
   constructor: ({@id, @domElementPool}) ->
     @lineNumberNodesById = {}
-    @domNode = @domElementPool.build("div")
+    @domNode = @domElementPool.buildElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
@@ -99,7 +99,7 @@ class LineNumbersTileComponent
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
 
     className = @buildLineNumberClassName(lineNumberState)
-    lineNumberNode = @domElementPool.build("div", className)
+    lineNumberNode = @domElementPool.buildElement("div", className)
     lineNumberNode.dataset.screenRow = screenRow
     lineNumberNode.dataset.bufferRow = bufferRow
 
@@ -107,17 +107,20 @@ class LineNumbersTileComponent
     lineNumberNode
 
   setLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
+    @domElementPool.freeDescendants(lineNumberNode)
+
     {maxLineNumberDigits} = @newState
 
     if softWrapped
       lineNumber = "•"
     else
       lineNumber = (bufferRow + 1).toString()
-
     padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
-    iconRight = @domElementPool.build("div", "icon-right")
 
-    lineNumberNode.textContent = padding + lineNumber
+    textNode = @domElementPool.buildText(padding + lineNumber)
+    iconRight = @domElementPool.buildElement("div", "icon-right")
+
+    lineNumberNode.appendChild(textNode)
     lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->
