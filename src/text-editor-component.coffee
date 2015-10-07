@@ -563,7 +563,7 @@ class TextEditorComponent
     @sampleBackgroundColors()
     @remeasureCharacterWidths()
 
-  handleDragUntilMouseUp: (dragHandler) =>
+  handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
     lastMousePosition = {}
     animationLoop = =>
