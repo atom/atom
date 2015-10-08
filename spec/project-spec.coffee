@@ -16,7 +16,7 @@ describe "Project", ->
     # Wait for project's service consumers to be asynchronously added
     waits(1)
 
-  describe "when a new repository-provider is added", ->
+  describe "when a repository-provider service is provided", ->
     it "uses it to create repositories for any directories that need one", ->
       projectPath = temp.mkdirSync('atom-project')
       atom.project.setPaths([projectPath])
@@ -53,6 +53,19 @@ describe "Project", ->
         "atom.repository-provider", "0.1.0", repositoryProvider)
 
       expect(atom.project.getRepositories()).toBe repositories
+
+    it "stops using it to create repositories when the service is removed", ->
+      atom.project.setPaths([])
+
+      disposable = atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", {
+        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
+        repositoryForDirectorySync: (directory) -> {destroy: -> null}
+      })
+
+      disposable.dispose()
+
+      atom.project.addPath(temp.mkdirSync('atom-project'))
+      expect(atom.project.getRepositories()).toEqual [null]
 
   describe "serialization", ->
     deserializedProject = null

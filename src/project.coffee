@@ -3,7 +3,7 @@ url = require 'url'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-{Emitter} = require 'event-kit'
+{Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
 
 DefaultDirectoryProvider = require './default-directory-provider'
@@ -53,7 +53,10 @@ class Project extends Model
         # @repositoryProviders has been updated.
         if null in @repositories
           @setPaths(@getPaths())
-      )
+
+        new Disposable =>
+          @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
+    )
 
   destroyed: ->
     buffer.destroy() for buffer in @getBuffers()
