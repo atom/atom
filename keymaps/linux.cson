@@ -51,6 +51,8 @@
   'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-pageup': 'pane:show-previous-item'
   'ctrl-pagedown': 'pane:show-next-item'
+  'ctrl-up': 'core:move-up'
+  'ctrl-down': 'core:move-down'
   'ctrl-shift-up': 'core:move-up'
   'ctrl-shift-down': 'core:move-down'
   'ctrl-=': 'window:increase-font-size'
@@ -140,6 +142,10 @@
   'ctrl-k ctrl-7': 'editor:fold-at-indent-level-7'
   'ctrl-k ctrl-8': 'editor:fold-at-indent-level-8'
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
+
+'atom-workspace atom-pane':
+  'ctrl-alt-=': 'pane:increase-size'
+  'ctrl-alt--': 'pane:decrease-size'
 
 # allow standard input fields to work correctly
 'body .native-key-bindings':

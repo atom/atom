@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
-Grim = require 'grim'
 
 # Essential: Represents a buffer annotation that remains logically stationary
 # even as the buffer changes. This is used to represent cursors, folds, snippet
@@ -67,10 +66,20 @@ class Marker
     @bufferMarker.destroy()
     @disposables.dispose()
 
-  # Essential: Creates and returns a new {Marker} with the same properties as this
-  # marker.
+  # Essential: Creates and returns a new {Marker} with the same properties as
+  # this marker.
   #
-  # * `properties` {Object}
+  # {Selection} markers (markers with a custom property `type: "selection"`)
+  # should be copied with a different `type` value, for example with
+  # `marker.copy({type: null})`. Otherwise, the new marker's selection will
+  # be merged with this marker's selection, and a `null` value will be
+  # returned.
+  #
+  # * `properties` (optional) {Object} properties to associate with the new
+  # marker. The new marker's properties are computed by extending this marker's
+  # properties with `properties`.
+  #
+  # Returns a {Marker}.
   copy: (properties) ->
     @displayBuffer.getMarker(@bufferMarker.copy(properties).id)
 
@@ -82,10 +91,14 @@ class Marker
   #
   # * `callback` {Function} to be called when the marker changes.
   #   * `event` {Object} with the following keys:
-  #     * `oldHeadPosition` {Point} representing the former head position
-  #     * `newHeadPosition` {Point} representing the new head position
-  #     * `oldTailPosition` {Point} representing the former tail position
-  #     * `newTailPosition` {Point} representing the new tail position
+  #     * `oldHeadBufferPosition` {Point} representing the former head buffer position
+  #     * `newHeadBufferPosition` {Point} representing the new head buffer position
+  #     * `oldTailBufferPosition` {Point} representing the former tail buffer position
+  #     * `newTailBufferPosition` {Point} representing the new tail buffer position
+  #     * `oldHeadScreenPosition` {Point} representing the former head screen position
+  #     * `newHeadScreenPosition` {Point} representing the new head screen position
+  #     * `oldTailScreenPosition` {Point} representing the former tail screen position
+  #     * `newTailScreenPosition` {Point} representing the new tail screen position
   #     * `wasValid` {Boolean} indicating whether the marker was valid before the change
   #     * `isValid` {Boolean} indicating whether the marker is now valid
   #     * `hadTail` {Boolean} indicating whether the marker had a tail before the change
@@ -321,7 +334,6 @@ class Marker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
-    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -355,35 +367,4 @@ class Marker
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
 
-    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', changeEvent
-
-  getPixelRange: ->
-    @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(Marker)
-
-  Marker::on = (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use Marker::onDidChange instead")
-      when 'destroyed'
-        Grim.deprecate("Use Marker::onDidDestroy instead")
-      else
-        Grim.deprecate("Marker::on is deprecated. Use documented event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
-
-  Marker::getAttributes = ->
-    Grim.deprecate 'Use Marker::getProperties instead'
-    @getProperties()
-
-  Marker::setAttributes = (properties) ->
-    Grim.deprecate 'Use Marker::setProperties instead'
-    @setProperties(properties)
-
-  Marker::matchesAttributes = (attributes) ->
-    Grim.deprecate 'Use Marker::matchesProperties instead'
-    @matchesProperties(attributes)

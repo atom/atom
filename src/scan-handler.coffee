@@ -28,7 +28,7 @@ module.exports = (rootPaths, regexSource, options) ->
     (rootPath, next) ->
       options2 = _.extend {}, options,
         inclusions: processPaths(rootPath, options.inclusions)
-        exclusions: processPaths(rootPath, options.exclusions)
+        globalExclusions: processPaths(rootPath, options.globalExclusions)
 
       scanner = new PathScanner(rootPath, options2)
 

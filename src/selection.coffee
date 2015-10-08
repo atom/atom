@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Grim = require 'grim'
 Model = require './model'
 
 NonWhitespaceRegExp = /\S/
@@ -22,14 +21,8 @@ class Selection extends Model
     @cursor.selection = this
     @decoration = @editor.decorateMarker(@marker, type: 'highlight', class: 'selection')
 
-    @marker.onDidChange (e) => @screenRangeChanged(e)
-    @marker.onDidDestroy =>
-      unless @editor.isDestroyed()
-        @destroyed = true
-        @editor.removeSelection(this)
-        @emit 'destroyed' if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-destroy'
-        @emitter.dispose()
+    @marker.onDidChange (e) => @markerDidChange(e)
+    @marker.onDidDestroy => @markerDidDestroy()
 
   destroy: ->
     @marker.destroy()
@@ -190,7 +183,7 @@ class Selection extends Model
   # position.
   #
   # * `position` An instance of {Point}, with a given `row` and `column`.
-  selectToScreenPosition: (position) ->
+  selectToScreenPosition: (position, options) ->
     position = Point.fromObject(position)
 
     @modifySelection =>
@@ -198,14 +191,14 @@ class Selection extends Model
         if position.isLessThan(@initialScreenRange.start)
           @marker.setScreenRange([position, @initialScreenRange.end], reversed: true)
         else
-          @marker.setScreenRange([@initialScreenRange.start, position])
+          @marker.setScreenRange([@initialScreenRange.start, position], reversed: false)
       else
-        @cursor.setScreenPosition(position)
+        @cursor.setScreenPosition(position, options)
 
       if @linewise
-        @expandOverLine()
+        @expandOverLine(options)
       else if @wordwise
-        @expandOverWord()
+        @expandOverWord(options)
 
   # Public: Selects the text from the current cursor position to a given buffer
   # position.
@@ -263,9 +256,14 @@ class Selection extends Model
     @modifySelection => @cursor.moveToFirstCharacterOfLine()
 
   # Public: Selects all the text from the current cursor position to the end of
-  # the line.
+  # the screen line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfScreenLine()
+
+  # Public: Selects all the text from the current cursor position to the end of
+  # the buffer line.
+  selectToEndOfBufferLine: ->
+    @modifySelection => @cursor.moveToEndOfLine()
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the word.
@@ -311,27 +309,32 @@ class Selection extends Model
   # Public: Modifies the selection to encompass the current word.
   #
   # Returns a {Range}.
-  selectWord: ->
-    options = {}
+  selectWord: (options={}) ->
     options.wordRegex = /[\t ]*/ if @cursor.isSurroundedByWhitespace()
     if @cursor.isBetweenWordAndNonWord()
       options.includeNonWordCharacters = false
 
-    @setBufferRange(@cursor.getCurrentWordBufferRange(options))
+    @setBufferRange(@cursor.getCurrentWordBufferRange(options), options)
     @wordwise = true
     @initialScreenRange = @getScreenRange()
 
   # Public: Expands the newest selection to include the entire word on which
   # the cursors rests.
-  expandOverWord: ->
-    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
+  expandOverWord: (options) ->
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()), autoscroll: false)
+    @cursor.autoscroll() if options?.autoscroll ? true
 
   # Public: Selects an entire line in the buffer.
   #
   # * `row` The line {Number} to select (default: the row of the cursor).
-  selectLine: (row=@cursor.getBufferPosition().row) ->
-    range = @editor.bufferRangeForBufferRow(row, includeNewline: true)
-    @setBufferRange(@getBufferRange().union(range), autoscroll: true)
+  selectLine: (row, options) ->
+    if row?
+      @setBufferRange(@editor.bufferRangeForBufferRow(row, includeNewline: true), options)
+    else
+      startRange = @editor.bufferRangeForBufferRow(@marker.getStartBufferPosition().row)
+      endRange = @editor.bufferRangeForBufferRow(@marker.getEndBufferPosition().row, includeNewline: true)
+      @setBufferRange(startRange.union(endRange), options)
+
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
@@ -340,9 +343,10 @@ class Selection extends Model
   # the cursor currently rests.
   #
   # It also includes the newline character.
-  expandOverLine: ->
+  expandOverLine: (options) ->
     range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
-    @setBufferRange(range)
+    @setBufferRange(range, autoscroll: false)
+    @cursor.autoscroll() if options?.autoscroll ? true
 
   ###
   Section: Modifying the selected text
@@ -572,9 +576,14 @@ class Selection extends Model
   toggleLineComments: ->
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
-  # Public: Cuts the selection until the end of the line.
+  # Public: Cuts the selection until the end of the screen line.
   cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
+    @cut(maintainClipboard)
+
+  # Public: Cuts the selection until the end of the buffer line.
+  cutToEndOfBufferLine: (maintainClipboard) ->
+    @selectToEndOfBufferLine() if @isEmpty()
     @cut(maintainClipboard)
 
   # Public: Copies the selection to the clipboard and then deletes it.
@@ -752,20 +761,48 @@ class Selection extends Model
   Section: Private Utilities
   ###
 
-  screenRangeChanged: (e) ->
-    {oldHeadBufferPosition, oldTailBufferPosition} = e
-    {oldHeadScreenPosition, oldTailScreenPosition} = e
+  markerDidChange: (e) ->
+    {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
+    {oldHeadScreenPosition, oldTailScreenPosition, newHeadScreenPosition} = e
+    {textChanged} = e
 
-    eventObject =
+    @cursor.updateVisibility()
+
+    unless oldHeadScreenPosition.isEqual(newHeadScreenPosition)
+      @cursor.goalColumn = null
+      cursorMovedEvent = {
+        oldBufferPosition: oldHeadBufferPosition
+        oldScreenPosition: oldHeadScreenPosition
+        newBufferPosition: newHeadBufferPosition
+        newScreenPosition: newHeadScreenPosition
+        textChanged: textChanged
+        cursor: @cursor
+      }
+      @cursor.emitter.emit('did-change-position', cursorMovedEvent)
+      @editor.cursorMoved(cursorMovedEvent)
+
+    @emitter.emit 'did-change-range'
+    @editor.selectionRangeChanged(
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
       newBufferRange: @getBufferRange()
       newScreenRange: @getScreenRange()
       selection: this
+    )
 
-    @emit 'screen-range-changed', @getScreenRange() if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-range'
-    @editor.selectionRangeChanged(eventObject)
+  markerDidDestroy: ->
+    return if @editor.isDestroyed()
+
+    @destroyed = true
+    @cursor.destroyed = true
+
+    @editor.removeSelection(this)
+
+    @cursor.emitter.emit 'did-destroy'
+    @emitter.emit 'did-destroy'
+
+    @cursor.emitter.dispose()
+    @emitter.dispose()
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
@@ -798,25 +835,3 @@ class Selection extends Model
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
-
-if Grim.includeDeprecatedAPIs
-  Selection::on = (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-      else
-        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  Selection::backspaceToBeginningOfWord = ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  Selection::backspaceToBeginningOfLine = ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()

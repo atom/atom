@@ -1,6 +1,7 @@
 path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
+GrammarRegistry = require '../src/grammar-registry'
 
 describe "the `grammars` global", ->
   beforeEach ->
@@ -16,6 +17,9 @@ describe "the `grammars` global", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-ruby')
 
+    waitsForPromise ->
+      atom.packages.activatePackage('language-git')
+
   afterEach ->
     atom.packages.deactivatePackages()
     atom.packages.unloadPackages()
@@ -30,6 +34,30 @@ describe "the `grammars` global", ->
       expect(grammars2.selectGrammar(filePath).name).toBe 'Ruby'
 
   describe ".selectGrammar(filePath)", ->
+    it "always returns a grammar", ->
+      registry = new GrammarRegistry()
+      expect(registry.selectGrammar().scopeName).toBe 'text.plain.null-grammar'
+
+    it "selects the text.plain grammar over the null grammar", ->
+      expect(atom.grammars.selectGrammar('test.txt').scopeName).toBe 'text.plain'
+
+    it "selects a grammar based on the file path case insensitively", ->
+      expect(atom.grammars.selectGrammar('/tmp/source.coffee').scopeName).toBe 'source.coffee'
+      expect(atom.grammars.selectGrammar('/tmp/source.COFFEE').scopeName).toBe 'source.coffee'
+
+    describe "on Windows", ->
+      originalPlatform = null
+
+      beforeEach ->
+        originalPlatform = process.platform
+        Object.defineProperty process, 'platform', value: 'win32'
+
+      afterEach ->
+        Object.defineProperty process, 'platform', value: originalPlatform
+
+      it "normalizes back slashes to forward slashes when matching the fileTypes", ->
+        expect(atom.grammars.selectGrammar('something\\.git\\config').scopeName).toBe 'source.git-config'
+
     it "can use the filePath to load the correct grammar based on the grammar's filetype", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-git')
@@ -109,6 +137,23 @@ describe "the `grammars` global", ->
         expect(-> atom.grammars.selectGrammar(null, '#!/usr/bin/ruby')).not.toThrow()
         expect(-> atom.grammars.selectGrammar(null, '')).not.toThrow()
         expect(-> atom.grammars.selectGrammar(null, null)).not.toThrow()
+
+    describe "when the user has custom grammar file types", ->
+      it "considers the custom file types as well as those defined in the grammar", ->
+        atom.config.set('core.customFileTypes', 'source.ruby': ['Cheffile'])
+        expect(atom.grammars.selectGrammar('build/Cheffile', 'cookbook "postgres"').scopeName).toBe 'source.ruby'
+
+      it "favors user-defined file types over built-in ones of equal length", ->
+        atom.config.set('core.customFileTypes',
+          'source.coffee': ['Rakefile'],
+          'source.ruby': ['Cakefile']
+        )
+        expect(atom.grammars.selectGrammar('Rakefile', '').scopeName).toBe 'source.coffee'
+        expect(atom.grammars.selectGrammar('Cakefile', '').scopeName).toBe 'source.ruby'
+
+      it "favors grammars with matching first-line-regexps even if custom file types match the file", ->
+        atom.config.set('core.customFileTypes', 'source.ruby': ['bootstrap'])
+        expect(atom.grammars.selectGrammar('bootstrap', '#!/usr/bin/env node').scopeName).toBe 'source.js'
 
   describe ".removeGrammar(grammar)", ->
     it "removes the grammar, so it won't be returned by selectGrammar", ->

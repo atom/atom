@@ -10,7 +10,7 @@ class DirectorySearch
       inclusions: options.inclusions
       includeHidden: options.includeHidden
       excludeVcsIgnores: options.excludeVcsIgnores
-      exclusions: options.exclusions
+      globalExclusions: options.exclusions
       follow: options.follow
     @task = new Task(require.resolve('./scan-handler'))
     @task.on 'scan:result-found', options.didMatch
@@ -18,7 +18,9 @@ class DirectorySearch
     @task.on 'scan:paths-searched', options.didSearchPaths
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
-      @task.start(rootPaths, regex.source, scanHandlerOptions, resolve)
+      @task.start rootPaths, regex.source, scanHandlerOptions, =>
+        @task.terminate()
+        resolve()
 
   # Public: Implementation of `then()` to satisfy the *thenable* contract.
   # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
@@ -89,6 +91,7 @@ class DefaultDirectorySearcher
           reject()
     return {
       then: promise.then.bind(promise)
+      catch: promise.catch.bind(promise)
       cancel: ->
         isCancelled = true
         directorySearch.cancel()

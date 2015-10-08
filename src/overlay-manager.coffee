@@ -27,11 +27,12 @@ class OverlayManager
     contentMargin = parseInt(getComputedStyle(itemView)['margin-left']) ? 0
     @presenter.setOverlayDimensions(decorationId, itemView.offsetWidth, itemView.offsetHeight, contentMargin)
 
-  renderOverlay: (state, decorationId, {item, pixelPosition}) ->
+  renderOverlay: (state, decorationId, {item, pixelPosition, class: klass}) ->
     itemView = atom.views.getView(item)
     cachedOverlay = @overlaysById[decorationId]
     unless overlayNode = cachedOverlay?.overlayNode
       overlayNode = document.createElement('atom-overlay')
+      overlayNode.classList.add(klass) if klass?
       @container.appendChild(overlayNode)
       @overlaysById[decorationId] = cachedOverlay = {overlayNode, itemView}
 

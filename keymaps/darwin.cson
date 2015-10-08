@@ -23,6 +23,8 @@
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
+  'ctrl-up': 'core:move-up'
+  'ctrl-down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
   'ctrl-alt-cmd-l': 'window:reload'
@@ -178,6 +180,10 @@
   'cmd-k cmd-7': 'editor:fold-at-indent-level-7'
   'cmd-k cmd-8': 'editor:fold-at-indent-level-8'
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
+
+'atom-workspace atom-pane':
+  'cmd-alt-=': 'pane:increase-size'
+  'cmd-alt--': 'pane:decrease-size'
 
 # allow standard input fields to work correctly
 'body .native-key-bindings':

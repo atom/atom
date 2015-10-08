@@ -115,6 +115,15 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(dispatchedEvent)
       expect(dispatchedEvent.abortKeyBinding).toHaveBeenCalled()
 
+    it "copies non-standard properties from the original event to the synthetic event", ->
+      syntheticEvent = null
+      registry.add '.child', 'command', (event) -> syntheticEvent = event
+
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      dispatchedEvent.nonStandardProperty = 'testing'
+      grandchild.dispatchEvent(dispatchedEvent)
+      expect(syntheticEvent.nonStandardProperty).toBe 'testing'
+
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []
 
@@ -147,6 +156,28 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
+
+    it "invokes callbacks registered with ::onWillDispatch and ::onDidDispatch", ->
+      sequence = []
+
+      registry.onDidDispatch (event) ->
+        sequence.push ['onDidDispatch', event]
+
+      registry.add '.grandchild', 'command', (event) ->
+        sequence.push ['listener', event]
+
+      registry.onWillDispatch (event) ->
+        sequence.push ['onWillDispatch', event]
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+
+      expect(sequence[0][0]).toBe 'onWillDispatch'
+      expect(sequence[1][0]).toBe 'listener'
+      expect(sequence[2][0]).toBe 'onDidDispatch'
+
+      expect(sequence[0][1] is sequence[1][1] is sequence[2][1]).toBe true
+      expect(sequence[0][1].constructor).toBe CustomEvent
+      expect(sequence[0][1].target).toBe grandchild
 
   describe "::add(selector, commandName, callback)", ->
     it "throws an error when called with an invalid selector", ->

@@ -80,7 +80,7 @@ class NotificationManager
 
   # Public: Get all the notifications.
   #
-  # Returns an {Array} of {Notifications}s.
+  # Returns an {Array} of {Notification}s.
   getNotifications: -> @notifications.slice()
 
   ###

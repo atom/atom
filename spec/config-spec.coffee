@@ -2,7 +2,6 @@ path = require 'path'
 temp = require 'temp'
 CSON = require 'season'
 fs = require 'fs-plus'
-Grim = require 'grim'
 
 describe "Config", ->
   dotAtomPath = null
@@ -364,16 +363,6 @@ describe "Config", ->
         expect(atom.config.save).not.toHaveBeenCalled()
         expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 55
 
-      it "deprecates passing a scope selector as the first argument", ->
-        atom.config.setDefaults("foo", bar: baz: 10)
-        atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
-
-        spyOn(Grim, 'deprecate')
-        atom.config.unset('.source.coffee', 'foo.bar.baz')
-        expect(Grim.deprecate).toHaveBeenCalled()
-
-        expect(atom.config.get('foo.bar.baz', scope: ['.source.coffee'])).toBe 10
-
   describe ".onDidChange(keyPath, {scope})", ->
     [observeHandler, observeSubscription] = []
 
@@ -458,15 +447,6 @@ describe "Config", ->
         expect(changeSpy).toHaveBeenCalledWith({oldValue: 12, newValue: undefined})
         changeSpy.reset()
 
-      it 'deprecates using a scope descriptor as an optional first argument', ->
-        keyPath = "foo.bar.baz"
-        spyOn(Grim, 'deprecate')
-        atom.config.onDidChange [".source.coffee", ".string.quoted.double.coffee"], keyPath, changeSpy = jasmine.createSpy()
-        expect(Grim.deprecate).toHaveBeenCalled()
-
-        atom.config.set("foo.bar.baz", 12)
-        expect(changeSpy).toHaveBeenCalledWith({oldValue: undefined, newValue: 12})
-
   describe ".observe(keyPath, {scope})", ->
     [observeHandler, observeSubscription] = []
 
@@ -530,16 +510,6 @@ describe "Config", ->
       it "allows settings to be observed in a specific scope", ->
         atom.config.observe("foo.bar.baz", scope: [".some.scope"], observeHandler)
         atom.config.observe("foo.bar.baz", scope: [".another.scope"], otherHandler)
-
-        atom.config.set('foo.bar.baz', "value 2", scopeSelector: ".some")
-        expect(observeHandler).toHaveBeenCalledWith("value 2")
-        expect(otherHandler).not.toHaveBeenCalledWith("value 2")
-
-      it "deprecates using a scope descriptor as the first argument", ->
-        spyOn(Grim, 'deprecate')
-        atom.config.observe([".some.scope"], "foo.bar.baz", observeHandler)
-        atom.config.observe([".another.scope"], "foo.bar.baz", otherHandler)
-        expect(Grim.deprecate).toHaveBeenCalled()
 
         atom.config.set('foo.bar.baz', "value 2", scopeSelector: ".some")
         expect(observeHandler).toHaveBeenCalledWith("value 2")
@@ -1058,10 +1028,6 @@ describe "Config", ->
         atom.config.setDefaults("foo.bar.baz", a: 2)
         expect(updatedCallback.callCount).toBe 1
 
-      it "sets a default when the setting's key contains an escaped dot", ->
-        atom.config.setDefaults("foo", 'a\\.b': 1, b: 2)
-        expect(atom.config.get("foo")).toEqual 'a\\.b': 1, b: 2
-
     describe ".setSchema(keyPath, schema)", ->
       it 'creates a properly nested schema', ->
         schema =
@@ -1110,6 +1076,24 @@ describe "Config", ->
           nestedObject:
             superNestedInt: 36
 
+        expect(atom.config.get("foo")).toEqual {
+          bar:
+            anInt: 12
+            anObject:
+              nestedInt: 24
+              nestedObject:
+                superNestedInt: 36
+        }
+        atom.config.set("foo.bar.anObject.nestedObject.superNestedInt", 37)
+        expect(atom.config.get("foo")).toEqual {
+          bar:
+            anInt: 12
+            anObject:
+              nestedInt: 24
+              nestedObject:
+                superNestedInt: 37
+        }
+
       it 'can set a non-object schema', ->
         schema =
           type: 'integer'
@@ -1142,8 +1126,8 @@ describe "Config", ->
           type: 'integer'
           default: 12
 
-        expect(atom.config.getSchema('foo.baz')).toBeUndefined()
-        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBeUndefined()
+        expect(atom.config.getSchema('foo.baz')).toEqual {type: 'any'}
+        expect(atom.config.getSchema('foo.bar.anInt.baz')).toBe(null)
 
       it "respects the schema for scoped settings", ->
         schema =
@@ -1380,6 +1364,10 @@ describe "Config", ->
           expect(atom.config.set('foo.bar.aString', nope: 'nope')).toBe false
           expect(atom.config.get('foo.bar.aString')).toBe 'ok'
 
+        it 'does not allow setting children of that key-path', ->
+          expect(atom.config.set('foo.bar.aString.something', 123)).toBe false
+          expect(atom.config.get('foo.bar.aString')).toBe 'ok'
+
         describe 'when the schema has a "maximumLength" key', ->
           it "trims the string to be no longer than the specified maximum", ->
             schema =
@@ -1425,6 +1413,47 @@ describe "Config", ->
           expect(atom.config.get('foo.bar.anInt')).toEqual 12
           expect(atom.config.get('foo.bar.nestedObject.nestedBool')).toEqual true
 
+        describe "when the value has additionalProperties set to false", ->
+          it 'does not allow other properties to be set on the object', ->
+            atom.config.setSchema('foo.bar',
+              type: 'object'
+              properties:
+                anInt:
+                  type: 'integer'
+                  default: 12
+              additionalProperties: false
+            )
+
+            expect(atom.config.set('foo.bar', {anInt: 5, somethingElse: 'ok'})).toBe true
+            expect(atom.config.get('foo.bar.anInt')).toBe 5
+            expect(atom.config.get('foo.bar.somethingElse')).toBeUndefined()
+
+            expect(atom.config.set('foo.bar.somethingElse', {anInt: 5})).toBe false
+            expect(atom.config.get('foo.bar.somethingElse')).toBeUndefined()
+
+        describe 'when the value has an additionalProperties schema', ->
+          it 'validates properties of the object against that schema', ->
+            atom.config.setSchema('foo.bar',
+              type: 'object'
+              properties:
+                anInt:
+                  type: 'integer'
+                  default: 12
+              additionalProperties:
+                type: 'string'
+            )
+
+            expect(atom.config.set('foo.bar', {anInt: 5, somethingElse: 'ok'})).toBe true
+            expect(atom.config.get('foo.bar.anInt')).toBe 5
+            expect(atom.config.get('foo.bar.somethingElse')).toBe 'ok'
+
+            expect(atom.config.set('foo.bar.somethingElse', 7)).toBe false
+            expect(atom.config.get('foo.bar.somethingElse')).toBe 'ok'
+
+            expect(atom.config.set('foo.bar', {anInt: 6, somethingElse: 7})).toBe true
+            expect(atom.config.get('foo.bar.anInt')).toBe 6
+            expect(atom.config.get('foo.bar.somethingElse')).toBe undefined
+
       describe 'when the value has an "array" type', ->
         beforeEach ->
           schema =
@@ -1437,6 +1466,11 @@ describe "Config", ->
         it 'converts an array of strings to an array of ints', ->
           atom.config.set 'foo.bar', ['2', '3', '4']
           expect(atom.config.get('foo.bar')).toEqual  [2, 3, 4]
+
+        it 'does not allow setting children of that key-path', ->
+          expect(atom.config.set('foo.bar.child', 123)).toBe false
+          expect(atom.config.set('foo.bar.child.grandchild', 123)).toBe false
+          expect(atom.config.get('foo.bar')).toEqual [1, 2, 3]
 
       describe 'when the value has a "color" type', ->
         beforeEach ->

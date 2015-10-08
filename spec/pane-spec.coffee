@@ -1,4 +1,4 @@
-{Model} = require 'theorist'
+{Emitter} = require 'event-kit'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
@@ -6,13 +6,17 @@ PaneContainer = require '../src/pane-container'
 describe "Pane", ->
   deserializerDisposable = null
 
-  class Item extends Model
+  class Item
     @deserialize: ({name, uri}) -> new this(name, uri)
-    constructor: (@name, @uri) ->
+    constructor: (@name, @uri) -> @emitter = new Emitter
+    destroyed: false
     getURI: -> @uri
     getPath: -> @path
     serialize: -> {deserializer: 'Item', @name, @uri}
     isEqual: (other) -> @name is other?.name
+    onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
+    destroy: -> @destroyed = true; @emitter.emit('did-destroy')
+    isDestroyed: -> @destroyed
 
   beforeEach ->
     deserializerDisposable = atom.deserializers.add(Item)
@@ -99,7 +103,7 @@ describe "Pane", ->
 
       item = new Item("C")
       pane.addItem(item, 1)
-      expect(events).toEqual [{item, index: 1}]
+      expect(events).toEqual [{item, index: 1, moved: false}]
 
     it "throws an exception if the item is already present on a pane", ->
       item = new Item("A")
@@ -219,13 +223,13 @@ describe "Pane", ->
       events = []
       pane.onWillRemoveItem (event) -> events.push(event)
       pane.destroyItem(item2)
-      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
+      expect(events).toEqual [{item: item2, index: 1, moved: false, destroyed: true}]
 
     it "invokes ::onDidRemoveItem() observers", ->
       events = []
       pane.onDidRemoveItem (event) -> events.push(event)
       pane.destroyItem(item2)
-      expect(events).toEqual [{item: item2, index: 1, destroyed: true}]
+      expect(events).toEqual [{item: item2, index: 1, moved: false, destroyed: true}]
 
     describe "when the destroyed item is the active item and is the first item", ->
       it "activates the next item", ->
@@ -513,14 +517,20 @@ describe "Pane", ->
       pane1.onWillRemoveItem (event) -> events.push(event)
       pane1.moveItemToPane(item2, pane2, 1)
 
-      expect(events).toEqual [{item: item2, index: 1, destroyed: false}]
+      expect(events).toEqual [{item: item2, index: 1, moved: true, destroyed: false}]
 
     it "invokes ::onDidRemoveItem() observers", ->
       events = []
       pane1.onDidRemoveItem (event) -> events.push(event)
       pane1.moveItemToPane(item2, pane2, 1)
 
-      expect(events).toEqual [{item: item2, index: 1, destroyed: false}]
+      expect(events).toEqual [{item: item2, index: 1, moved: true, destroyed: false}]
+
+    it "does not invoke ::onDidAddPaneItem observers on the container", ->
+      addedItems = []
+      container.onDidAddPaneItem (item) -> addedItems.push(item)
+      pane1.moveItemToPane(item2, pane2, 1)
+      expect(addedItems).toEqual []
 
     describe "when the moved item the last item in the source pane", ->
       beforeEach ->
@@ -680,6 +690,13 @@ describe "Pane", ->
       pane1.addItems([new Item("A"), new Item("B")])
       pane2 = pane1.splitRight()
 
+    it "invokes ::onWillDestroy observers before destroying items", ->
+      itemsDestroyed = null
+      pane1.onWillDestroy ->
+        itemsDestroyed = (item.isDestroyed() for item in pane1.getItems())
+      pane1.destroy()
+      expect(itemsDestroyed).toEqual([false, false])
+
     it "destroys the pane's destroyable items", ->
       [item1, item2] = pane1.getItems()
       pane1.destroy()
@@ -721,12 +738,12 @@ describe "Pane", ->
       pane = new Pane(params)
 
     it "can serialize and deserialize the pane and all its items", ->
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.getItems()).toEqual pane.getItems()
 
     it "restores the active item on deserialization", ->
       pane.activateItemAtIndex(1)
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
 
     it "does not include items that cannot be deserialized", ->
@@ -734,11 +751,11 @@ describe "Pane", ->
       unserializable = {}
       pane.activateItem(unserializable)
 
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.getActiveItem()).toEqual pane.itemAtIndex(0)
       expect(newPane.getItems().length).toBe pane.getItems().length - 1
 
     it "includes the pane's focus state in the serialized state", ->
       pane.focus()
-      newPane = pane.testSerialization()
+      newPane = Pane.deserialize(pane.serialize())
       expect(newPane.focused).toBe true

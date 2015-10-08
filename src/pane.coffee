@@ -1,7 +1,5 @@
 {find, compact, extend, last} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Serializable = require 'serializable'
-Grim = require 'grim'
 Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
@@ -13,14 +11,29 @@ TextEditor = require './text-editor'
 module.exports =
 class Pane extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
+
+  container: undefined
+  activeItem: undefined
+  focused: false
+
+  @deserialize: (state, params) ->
+    {items, activeItemURI, activeItemUri} = state
+    state.container = params?.container
+    activeItemURI ?= activeItemUri
+    state.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    state.activeItem = find state.items, (item) ->
+      if typeof item.getURI is 'function'
+        itemURI = item.getURI()
+      itemURI is activeItemURI
+
+    new this(state)
 
   constructor: (params) ->
     super
 
-    unless Grim.includeDeprecatedAPIs
-      @container = params?.container
-      @activeItem = params?.activeItem
+    @container = params?.container
+    @activeItem = params?.activeItem
+    @focused = params?.focused
 
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
@@ -30,32 +43,16 @@ class Pane extends Model
     @setActiveItem(@items[0]) unless @getActiveItem()?
     @setFlexScale(params?.flexScale ? 1)
 
-  # Called by the Serializable mixin during serialization.
-  serializeParams: ->
+  serialize: ->
     if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
-    else if Grim.includeDeprecatedAPIs and typeof @activeItem?.getUri is 'function'
-      activeItemURI = @activeItem.getUri()
 
+    deserializer: 'Pane'
     id: @id
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemURI: activeItemURI
     focused: @focused
     flexScale: @flexScale
-
-  # Called by the Serializable mixin during deserialization.
-  deserializeParams: (params) ->
-    {items, activeItemURI, activeItemUri} = params
-    activeItemURI ?= activeItemUri
-    params.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
-    params.activeItem = find params.items, (item) ->
-      if typeof item.getURI is 'function'
-        itemURI = item.getURI()
-      else if Grim.includeDeprecatedAPIs and typeof item.getUri is 'function'
-        itemURI = item.getUri()
-
-      itemURI is activeItemURI
-    params
 
   getParent: -> @parent
 
@@ -73,25 +70,35 @@ class Pane extends Model
     @flexScale
 
   getFlexScale: -> @flexScale
+
+  increaseSize: -> @setFlexScale(@getFlexScale() * 1.1)
+
+  decreaseSize: -> @setFlexScale(@getFlexScale() / 1.1)
+
   ###
   Section: Event Subscription
   ###
 
-  # Public: Invoke the given callback when the pane resize
+  # Public: Invoke the given callback when the pane resizes
   #
-  # the callback will be invoked when pane's flexScale property changes
+  # The callback will be invoked when pane's flexScale property changes.
+  # Use {::getFlexScale} to get the current value.
   #
   # * `callback` {Function} to be called when the pane is resized
+  #   * `flexScale` {Number} representing the panes `flex-grow`; ability for a
+  #     flex item to grow if necessary.
   #
   # Returns a {Disposable} on which '.dispose()' can be called to unsubscribe.
   onDidChangeFlexScale: (callback) ->
     @emitter.on 'did-change-flex-scale', callback
 
-  # Public: Invoke the given callback with all current and future items.
+  # Public: Invoke the given callback with the current and future values of
+  # {::getFlexScale}.
   #
-  # * `callback` {Function} to be called with current and future items.
-  #   * `item` An item that is present in {::getItems} at the time of
-  #     subscription or that is added at some later time.
+  # * `callback` {Function} to be called with the current and future values of
+  #   the {::getFlexScale} property.
+  #   * `flexScale` {Number} representing the panes `flex-grow`; ability for a
+  #     flex item to grow if necessary.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeFlexScale: (callback) ->
@@ -108,6 +115,14 @@ class Pane extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidActivate: (callback) ->
     @emitter.on 'did-activate', callback
+
+  # Public: Invoke the given callback before the pane is destroyed.
+  #
+  # * `callback` {Function} to be called before the pane is destroyed.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onWillDestroy: (callback) ->
+    @emitter.on 'will-destroy', callback
 
   # Public: Invoke the given callback when the pane is destroyed.
   #
@@ -324,7 +339,7 @@ class Pane extends Model
   # the pane's view.
   activateItem: (item) ->
     if item?
-      @addItem(item)
+      @addItem(item, @getActiveItemIndex() + 1, false)
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -335,19 +350,17 @@ class Pane extends Model
   #   If omitted, the item is added after the current active item.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1) ->
+  addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
+    throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
     if typeof item.onDidDestroy is 'function'
-      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, true)
-    else if Grim.includeDeprecatedAPIs and typeof item.on is 'function'
-      @subscribe item, 'destroyed', => @removeItem(item, true)
+      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
 
     @items.splice(index, 0, item)
-    @emit 'item-added', item, index if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-add-item', {item, index}
+    @emitter.emit 'did-add-item', {item, index, moved}
     @setActiveItem(item) unless @getActiveItem()?
     item
 
@@ -362,17 +375,14 @@ class Pane extends Model
   # Returns an {Array} of added items.
   addItems: (items, index=@getActiveItemIndex() + 1) ->
     items = items.filter (item) => not (item in @items)
-    @addItem(item, index + i) for item, i in items
+    @addItem(item, index + i, false) for item, i in items
     items
 
-  removeItem: (item, destroyed=false) ->
+  removeItem: (item, moved) ->
     index = @items.indexOf(item)
     return if index is -1
 
-    @emitter.emit 'will-remove-item', {item, index, destroyed}
-
-    if Grim.includeDeprecatedAPIs and typeof item.on is 'function'
-      @unsubscribe item
+    @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
 
     if item is @activeItem
@@ -383,9 +393,8 @@ class Pane extends Model
       else
         @activatePreviousItem()
     @items.splice(index, 1)
-    @emit 'item-removed', item, index, destroyed if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-remove-item', {item, index, destroyed}
-    @container?.didDestroyPaneItem({item, index, pane: this}) if destroyed
+    @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
+    @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
     @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
 
   # Public: Move the given item to the given index.
@@ -396,7 +405,6 @@ class Pane extends Model
     oldIndex = @items.indexOf(item)
     @items.splice(oldIndex, 1)
     @items.splice(newIndex, 0, item)
-    @emit 'item-moved', item, newIndex if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-move-item', {item, oldIndex, newIndex}
 
   # Public: Move the given item to the given index on another pane.
@@ -406,8 +414,8 @@ class Pane extends Model
   # * `index` {Number} indicating the index to which to move the item in the
   #   given pane.
   moveItemToPane: (item, pane, index) ->
-    @removeItem(item)
-    pane.addItem(item, index)
+    @removeItem(item, true)
+    pane.addItem(item, index, true)
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
@@ -424,11 +432,10 @@ class Pane extends Model
   destroyItem: (item) ->
     index = @items.indexOf(item)
     if index isnt -1
-      @emit 'before-item-destroyed', item if Grim.includeDeprecatedAPIs
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
-        @removeItem(item, true)
+        @removeItem(item, false)
         item.destroy?()
         true
       else
@@ -535,6 +542,8 @@ class Pane extends Model
 
   # Public: Activate the first item that matches the given URI.
   #
+  # * `uri` {String} containing a URI.
+  #
   # Returns a {Boolean} indicating whether an item matching the URI was found.
   activateItemForURI: (uri) ->
     if item = @itemForURI(uri)
@@ -562,7 +571,6 @@ class Pane extends Model
     throw new Error("Pane has been destroyed") if @isDestroyed()
 
     @container?.setActivePane(this)
-    @emit 'activated' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-activate'
 
   # Public: Close the pane and destroy all its items.
@@ -573,6 +581,8 @@ class Pane extends Model
     if @container?.isAlive() and @container.getPanes().length is 1
       @destroyItems()
     else
+      @emitter.emit 'will-destroy'
+      @container?.willDestroyPane(pane: this)
       super
 
   # Called by model superclass.
@@ -700,6 +710,8 @@ class Pane extends Model
       addWarningWithPath('Unable to save file: I/O error writing file')
     else if error.code is 'EINTR'
       addWarningWithPath('Unable to save file: Interrupted system call')
+    else if error.code is 'ECONNRESET'
+      addWarningWithPath('Unable to save file: Connection reset')
     else if error.code is 'ESPIPE'
       addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
@@ -707,60 +719,3 @@ class Pane extends Model
       atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
     else
       throw error
-
-if Grim.includeDeprecatedAPIs
-  Pane.properties
-    container: undefined
-    activeItem: undefined
-    focused: false
-
-  Pane.behavior 'active', ->
-    @$container
-      .switch((container) -> container?.$activePane)
-      .map((activePane) => activePane is this)
-      .distinctUntilChanged()
-
-  Pane::on = (eventName) ->
-    switch eventName
-      when 'activated'
-        Grim.deprecate("Use Pane::onDidActivate instead")
-      when 'destroyed'
-        Grim.deprecate("Use Pane::onDidDestroy instead")
-      when 'item-added'
-        Grim.deprecate("Use Pane::onDidAddItem instead")
-      when 'item-removed'
-        Grim.deprecate("Use Pane::onDidRemoveItem instead")
-      when 'item-moved'
-        Grim.deprecate("Use Pane::onDidMoveItem instead")
-      when 'before-item-destroyed'
-        Grim.deprecate("Use Pane::onWillDestroyItem instead")
-      else
-        Grim.deprecate("Subscribing via ::on is deprecated. Use documented event subscription methods instead.")
-    super
-
-  Pane::behavior = (behaviorName) ->
-    switch behaviorName
-      when 'active'
-        Grim.deprecate("The $active behavior property is deprecated. Use ::observeActive or ::onDidChangeActive instead.")
-      when 'container'
-        Grim.deprecate("The $container behavior property is deprecated.")
-      when 'activeItem'
-        Grim.deprecate("The $activeItem behavior property is deprecated. Use ::observeActiveItem or ::onDidChangeActiveItem instead.")
-      when 'focused'
-        Grim.deprecate("The $focused behavior property is deprecated.")
-      else
-        Grim.deprecate("Pane::behavior is deprecated. Use event subscription methods instead.")
-
-    super
-
-  Pane::itemForUri = (uri) ->
-    Grim.deprecate("Use `::itemForURI` instead.")
-    @itemForURI(uri)
-
-  Pane::activateItemForUri = (uri) ->
-    Grim.deprecate("Use `::activateItemForURI` instead.")
-    @activateItemForURI(uri)
-else
-  Pane::container = undefined
-  Pane::activeItem = undefined
-  Pane::focused = undefined

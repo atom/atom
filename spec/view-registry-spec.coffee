@@ -1,5 +1,4 @@
 ViewRegistry = require '../src/view-registry'
-{View} = require '../src/space-pen-extensions'
 
 describe "ViewRegistry", ->
   registry = null
@@ -7,21 +6,22 @@ describe "ViewRegistry", ->
   beforeEach ->
     registry = new ViewRegistry
 
+  afterEach ->
+    registry.clearDocumentRequests()
+
   describe "::getView(object)", ->
     describe "when passed a DOM node", ->
       it "returns the given DOM node", ->
         node = document.createElement('div')
         expect(registry.getView(node)).toBe node
 
-    describe "when passed a SpacePen view", ->
-      it "returns the root node of the view with a .spacePenView property pointing at the SpacePen view", ->
-        class TestView extends View
-          @content: -> @div "Hello"
+    describe "when passed an object with an element property", ->
+      it "returns the element property if it's an instance of HTMLElement", ->
+        class TestComponent
+          constructor: -> @element = document.createElement('div')
 
-        view = new TestView
-        node = registry.getView(view)
-        expect(node.textContent).toBe "Hello"
-        expect(node.spacePenView).toBe view
+        component = new TestComponent
+        expect(registry.getView(component)).toBe component.element
 
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
@@ -48,30 +48,8 @@ describe "ViewRegistry", ->
           expect(view2.model).toBe subclassModel
 
       describe "when no view provider is registered for the object's constructor", ->
-        describe "when the object has a .getViewClass() method", ->
-          it "builds an instance of the view class with the model, then returns its root node with a __spacePenView property pointing at the view", ->
-            class TestView extends View
-              @content: (model) -> @div model.name
-              initialize: (@model) ->
-
-            class TestModel
-              constructor: (@name) ->
-              getViewClass: -> TestView
-
-            model = new TestModel("hello")
-            node = registry.getView(model)
-
-            expect(node.textContent).toBe "hello"
-            view = node.spacePenView
-            expect(view instanceof TestView).toBe true
-            expect(view.model).toBe model
-
-            # returns the same DOM node for repeated calls
-            expect(registry.getView(model)).toBe node
-
-        describe "when the object has no .getViewClass() method", ->
-          it "throws an exception", ->
-            expect(-> registry.getView(new Object)).toThrow()
+        it "throws an exception", ->
+          expect(-> registry.getView(new Object)).toThrow()
 
   describe "::addViewProvider(providerSpec)", ->
     it "returns a disposable that can be used to remove the provider", ->
@@ -158,13 +136,13 @@ describe "ViewRegistry", ->
       registry.updateDocument -> events.push('write')
       registry.readDocument -> events.push('read')
 
-      advanceClock(registry.documentPollingInterval)
+      window.dispatchEvent(new UIEvent('resize'))
       expect(events).toEqual []
 
       frameRequests[0]()
       expect(events).toEqual ['write', 'read', 'poll']
 
-      advanceClock(registry.documentPollingInterval)
+      window.dispatchEvent(new UIEvent('resize'))
       expect(events).toEqual ['write', 'read', 'poll', 'poll']
 
     it "polls the document after updating when ::pollAfterNextUpdate() has been called", ->
@@ -183,25 +161,51 @@ describe "ViewRegistry", ->
       expect(events).toEqual ['write', 'read', 'poll']
 
   describe "::pollDocument(fn)", ->
-    it "calls all registered reader functions on an interval until they are disabled via a returned disposable", ->
-      spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+    [testElement, testStyleSheet, disposable1, disposable2, events] = []
+
+    beforeEach ->
+      testElement = document.createElement('div')
+      testStyleSheet = document.createElement('style')
+      testStyleSheet.textContent = 'body {}'
+      jasmineContent = document.getElementById('jasmine-content')
+      jasmineContent.appendChild(testElement)
+      jasmineContent.appendChild(testStyleSheet)
 
       events = []
       disposable1 = registry.pollDocument -> events.push('poll 1')
       disposable2 = registry.pollDocument -> events.push('poll 2')
 
+    it "calls all registered polling functions after document or stylesheet changes until they are disabled via a returned disposable", ->
+      jasmine.useRealClock()
       expect(events).toEqual []
 
-      advanceClock(registry.documentPollingInterval)
+      testElement.style.width = '400px'
+
+      waitsFor "events to occur in response to DOM mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 1', 'poll 2']
+        events.length = 0
+
+        testStyleSheet.textContent = 'body {color: #333;}'
+
+      waitsFor "events to occur in reponse to style sheet mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 1', 'poll 2']
+        events.length = 0
+
+        disposable1.dispose()
+        testElement.style.color = '#fff'
+
+      waitsFor "more events to occur in response to DOM mutation", -> events.length > 0
+
+      runs ->
+        expect(events).toEqual ['poll 2']
+
+    it "calls all registered polling functions when the window resizes", ->
+      expect(events).toEqual []
+
+      window.dispatchEvent(new UIEvent('resize'))
+
       expect(events).toEqual ['poll 1', 'poll 2']
-
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2']
-
-      disposable1.dispose()
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']
-
-      disposable2.dispose()
-      advanceClock(registry.documentPollingInterval)
-      expect(events).toEqual ['poll 1', 'poll 2', 'poll 1', 'poll 2', 'poll 2']

@@ -1,19 +1,12 @@
 {Emitter} = require 'event-kit'
 
-# Public: This class represents a gutter within a TextEditor.
-
 DefaultPriority = -100
 
+# Extended: Represents a gutter within a {TextEditor}.
+#
+# See {TextEditor::addGutter} for information on creating a gutter.
 module.exports =
 class Gutter
-  # * `gutterContainer` The {GutterContainer} object to which this gutter belongs.
-  # * `options` An {Object} with the following fields:
-  #   * `name` (required) A unique {String} to identify this gutter.
-  #   * `priority` (optional) A {Number} that determines stacking order between
-  #       gutters. Lower priority items are forced closer to the edges of the
-  #       window. (default: -100)
-  #   * `visible` (optional) {Boolean} specifying whether the gutter is visible
-  #       initially after being created. (default: true)
   constructor: (gutterContainer, options) ->
     @gutterContainer = gutterContainer
     @name = options?.name
@@ -22,6 +15,11 @@ class Gutter
 
     @emitter = new Emitter
 
+  ###
+  Section: Gutter Destruction
+  ###
+
+  # Essential: Destroys the gutter.
   destroy: ->
     if @name is 'line-number'
       throw new Error('The line-number gutter cannot be destroyed.')
@@ -30,40 +28,62 @@ class Gutter
       @emitter.emit 'did-destroy'
       @emitter.dispose()
 
-  hide: ->
-    if @visible
-      @visible = false
-      @emitter.emit 'did-change-visible', this
+  ###
+  Section: Event Subscription
+  ###
 
-  show: ->
-    if not @visible
-      @visible = true
-      @emitter.emit 'did-change-visible', this
-
-  isVisible: ->
-    @visible
-
-  # * `marker` (required) A Marker object.
-  # * `options` (optional) An object with the following fields:
-  #   * `class` (optional)
-  #   * `item` (optional) A model {Object} with a corresponding view registered,
-  #     or an {HTMLElement}.
-  decorateMarker: (marker, options) ->
-    @gutterContainer.addGutterDecoration(this, marker, options)
-
-  # Calls your `callback` when the {Gutter}'s' visibility changes.
+  # Essential: Calls your `callback` when the gutter's visibility changes.
   #
   # * `callback` {Function}
-  #  * `gutter` The {Gutter} whose visibility changed.
+  #  * `gutter` The gutter whose visibility changed.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeVisible: (callback) ->
     @emitter.on 'did-change-visible', callback
 
-  # Calls your `callback` when the {Gutter} is destroyed
+  # Essential: Calls your `callback` when the gutter is destroyed.
   #
   # * `callback` {Function}
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
     @emitter.on 'did-destroy', callback
+
+  ###
+  Section: Visibility
+  ###
+
+  # Essential: Hide the gutter.
+  hide: ->
+    if @visible
+      @visible = false
+      @emitter.emit 'did-change-visible', this
+
+  # Essential: Show the gutter.
+  show: ->
+    if not @visible
+      @visible = true
+      @emitter.emit 'did-change-visible', this
+
+  # Essential: Determine whether the gutter is visible.
+  #
+  # Returns a {Boolean}.
+  isVisible: ->
+    @visible
+
+  # Essential: Add a decoration that tracks a {Marker}. When the marker moves,
+  # is invalidated, or is destroyed, the decoration will be updated to reflect
+  # the marker's state.
+  #
+  # ## Arguments
+  #
+  # * `marker` A {Marker} you want this decoration to follow.
+  # * `decorationParams` An {Object} representing the decoration. It is passed
+  #   to {TextEditor::decorateMarker} as its `decorationParams` and so supports
+  #   all options documented there.
+  #   * `type` __Caveat__: set to `'line-number'` if this is the line-number
+  #     gutter, `'gutter'` otherwise. This cannot be overridden.
+  #
+  # Returns a {Decoration} object
+  decorateMarker: (marker, options) ->
+    @gutterContainer.addGutterDecoration(this, marker, options)

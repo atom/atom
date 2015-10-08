@@ -23,15 +23,12 @@ class AtomWindow
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
-    # Normalize to make sure drive letter case is consistent on Windows
-    @resourcePath = path.normalize(@resourcePath) if @resourcePath
-
     options =
       show: false
       title: 'Atom'
       'web-preferences':
         'direct-write': true
-        'subpixel-font-scaling': false
+        'subpixel-font-scaling': true
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if process.platform is 'linux'

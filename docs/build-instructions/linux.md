@@ -7,7 +7,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
   * [Git](http://git-scm.com/)
-  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x)
+  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x or 2.x)
   * [npm](https://www.npmjs.com/) v1.4.x (bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
@@ -17,19 +17,19 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ### Ubuntu / Debian
 
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
-* Instructions for  [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
+* Instructions for  [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
   * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
   * Use `which node` to check if it is available.
   * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
 ### Fedora / CentOS / RHEL
 
-* `sudo yum --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
-* Instructions for [Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#fedora).
+* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
 
 ### Arch
 
-* `sudo pacman -S gconf base-devel git nodejs libgnome-keyring python2`
+* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware

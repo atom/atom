@@ -2,18 +2,14 @@ _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 {ScopeSelector} = require 'first-mate'
-Serializable = require 'serializable'
 Model = require './model'
 TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
-Grim = require 'grim'
 
 module.exports =
 class TokenizedBuffer extends Model
-  Serializable.includeInto(this)
-
   grammar: null
   currentGrammarScore: null
   buffer: null
@@ -24,6 +20,10 @@ class TokenizedBuffer extends Model
   visible: false
   configSettings: null
   changeCount: 0
+
+  @deserialize: (state) ->
+    state.buffer = atom.project.bufferForPathSync(state.bufferPath)
+    new this(state)
 
   constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
     @emitter = new Emitter
@@ -41,15 +41,12 @@ class TokenizedBuffer extends Model
   destroyed: ->
     @disposables.dispose()
 
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'TokenizedBuffer'
     bufferPath: @buffer.getPath()
     tabLength: @tabLength
     ignoreInvisibles: @ignoreInvisibles
     largeFileMode: @largeFileMode
-
-  deserializeParams: (params) ->
-    params.buffer = atom.project.bufferForPathSync(params.bufferPath)
-    params
 
   observeGrammar: (callback) ->
     callback(@grammar)
@@ -68,7 +65,7 @@ class TokenizedBuffer extends Model
     if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
-      newScore = grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
+      newScore = atom.grammars.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
@@ -76,7 +73,7 @@ class TokenizedBuffer extends Model
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-    @currentGrammarScore = score ? grammar.getScore(@buffer.getPath(), @getGrammarSelectionContent())
+    @currentGrammarScore = score ? atom.grammars.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
@@ -128,7 +125,6 @@ class TokenizedBuffer extends Model
     @invalidateRow(0)
     @fullyTokenized = false
     event = {start: 0, end: lastRow, delta: 0}
-    @emit 'changed', event if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
@@ -191,7 +187,6 @@ class TokenizedBuffer extends Model
       [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
 
       event = {start: startRow, end: endRow, delta: 0}
-      @emit 'changed', event if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change', event
 
     if @firstInvalidRow()?
@@ -201,7 +196,6 @@ class TokenizedBuffer extends Model
 
   markTokenizationComplete: ->
     unless @fullyTokenized
-      @emit 'tokenized' if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-tokenize'
     @fullyTokenized = true
 
@@ -255,7 +249,6 @@ class TokenizedBuffer extends Model
     end -= delta
 
     event = {start, end, delta, bufferChange: e}
-    @emit 'changed', event if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', event
 
   retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
@@ -394,20 +387,21 @@ class TokenizedBuffer extends Model
       if (tag % 2) is -1
         scopes.push(tag)
       else
-        expectedScope = tag + 1
-        poppedScope = scopes.pop()
-        unless poppedScope is expectedScope
-          error = new Error("Encountered an invalid scope end id. Popped #{poppedScope}, expected to pop #{expectedScope}.")
-          error.metadata = {
-            grammarScopeName: @grammar.scopeName
-          }
-          path = require 'path'
-          error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
-          error.privateMetadata = {
-            filePath: @buffer.getPath()
-            fileContents: @buffer.getText()
-          }
-          throw error
+        matchingStartTag = tag + 1
+        loop
+          break if scopes.pop() is matchingStartTag
+          if scopes.length is 0
+            atom.assert false, "Encountered an unmatched scope end tag.", (error) =>
+              error.metadata = {
+                grammarScopeName: @grammar.scopeName
+                unmatchedEndTag: @grammar.scopeForId(tag)
+              }
+              path = require 'path'
+              error.privateMetadataDescription = "The contents of `#{path.basename(@buffer.getPath())}`"
+              error.privateMetadata = {
+                filePath: @buffer.getPath()
+                fileContents: @buffer.getText()
+              }
     scopes
 
   indentLevelForRow: (bufferRow) ->
@@ -489,7 +483,7 @@ class TokenizedBuffer extends Model
           scopes.pop()
       else
         endColumn = startColumn + tag
-        if endColumn > position.column
+        if endColumn >= position.column
           break
         else
           startColumn = endColumn
@@ -537,22 +531,6 @@ class TokenizedBuffer extends Model
       line = @tokenizedLineForRow(row).text
       console.log row, line, line.length
     return
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-
-  TokenizedBuffer::on = (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use TokenizedBuffer::onDidChange instead")
-      when 'grammar-changed'
-        Grim.deprecate("Use TokenizedBuffer::onDidChangeGrammar instead")
-      when 'tokenized'
-        Grim.deprecate("Use TokenizedBuffer::onDidTokenize instead")
-      else
-        Grim.deprecate("TokenizedBuffer::on is deprecated. Use event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
 
 selectorMatchesAnyScope = (selector, scopes) ->
   targetClasses = selector.replace(/^\./, '').split('.')

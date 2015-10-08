@@ -11,8 +11,8 @@ Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https:/
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
 
-This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to uphold this code.
-[code-of-conduct]: http://todogroup.org/opencodeofconduct/#Atom/opensource@github.com
+This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
+By participating, you are expected to uphold this code. Please report unacceptable behavior to atom@github.com.
 
 ## Documentation
 

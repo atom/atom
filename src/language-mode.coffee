@@ -234,14 +234,15 @@ class LanguageMode
   #
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow, options) ->
+    line = @buffer.lineForRow(bufferRow)
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)
-    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
-    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
-  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->
     iterator = tokenizedLine.getTokenIterator()
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
@@ -250,27 +251,23 @@ class LanguageMode
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
 
-    currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    return currentIndentLevel unless increaseIndentRegex
-
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
     else
       precedingRow = bufferRow - 1
-      return currentIndentLevel if precedingRow < 0
+      return 0 if precedingRow < 0
 
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    return desiredIndentLevel if @buffer.isRowBlank(precedingRow)
+    return desiredIndentLevel unless increaseIndentRegex
 
     unless @editor.isBufferRowCommented(precedingRow)
       precedingLine = @buffer.lineForRow(precedingRow)
       desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
       desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
 
-    unless @editor.isBufferRowCommented(bufferRow)
-      bufferLine = @buffer.lineForRow(bufferRow)
-      desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(bufferLine)
+    unless @buffer.isRowBlank(precedingRow)
+      desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
 
     Math.max(desiredIndentLevel, 0)
 

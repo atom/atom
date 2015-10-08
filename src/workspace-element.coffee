@@ -3,8 +3,6 @@ path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
-{callAttachHooks} = require 'space-pen'
-WorkspaceView = null
 
 module.exports =
 class WorkspaceElement extends HTMLElement
@@ -12,23 +10,16 @@ class WorkspaceElement extends HTMLElement
 
   createdCallback: ->
     @subscriptions = new CompositeDisposable
-    @initializeGlobalTextEditorStyleSheet()
     @initializeContent()
     @observeScrollbarStyle()
     @observeTextEditorFontConfig()
-    @createSpacePenShim() if Grim.includeDeprecatedAPIs
 
   attachedCallback: ->
-    callAttachHooks(this) if Grim.includeDeprecatedAPIs
     @focus()
 
   detachedCallback: ->
     @subscriptions.dispose()
     @model.destroy()
-
-  initializeGlobalTextEditorStyleSheet: ->
-    atom.styles.addStyleSheet('atom-text-editor {}', sourcePath: 'global-text-editor-styles')
-    @globalTextEditorStyleSheet = document.head.querySelector('style[source-path="global-text-editor-styles"]').sheet
 
   initializeContent: ->
     @classList.add 'workspace'
@@ -54,13 +45,20 @@ class WorkspaceElement extends HTMLElement
           @classList.add("scrollbars-visible-when-scrolling")
 
   observeTextEditorFontConfig: ->
-    @subscriptions.add atom.config.observe 'editor.fontSize', @setTextEditorFontSize.bind(this)
-    @subscriptions.add atom.config.observe 'editor.fontFamily', @setTextEditorFontFamily.bind(this)
-    @subscriptions.add atom.config.observe 'editor.lineHeight', @setTextEditorLineHeight.bind(this)
+    @updateGlobalTextEditorStyleSheet()
+    @subscriptions.add atom.config.onDidChange 'editor.fontSize', @updateGlobalTextEditorStyleSheet.bind(this)
+    @subscriptions.add atom.config.onDidChange 'editor.fontFamily', @updateGlobalTextEditorStyleSheet.bind(this)
+    @subscriptions.add atom.config.onDidChange 'editor.lineHeight', @updateGlobalTextEditorStyleSheet.bind(this)
 
-  createSpacePenShim: ->
-    WorkspaceView ?= require './workspace-view'
-    @__spacePenView = new WorkspaceView(this)
+  updateGlobalTextEditorStyleSheet: ->
+    styleSheetSource = """
+      atom-text-editor {
+        font-size: #{atom.config.get('editor.fontSize')}px;
+        font-family: #{atom.config.get('editor.fontFamily')};
+        line-height: #{atom.config.get('editor.lineHeight')};
+      }
+    """
+    atom.styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
 
   initialize: (@model) ->
     @paneContainer = atom.views.getView(@model.paneContainer)
@@ -82,24 +80,9 @@ class WorkspaceElement extends HTMLElement
 
     @appendChild(@panelContainers.modal)
 
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   getModel: -> @model
-
-  setTextEditorFontSize: (fontSize) ->
-    @updateGlobalEditorStyle('font-size', fontSize + 'px')
-
-  setTextEditorFontFamily: (fontFamily) ->
-    @updateGlobalEditorStyle('font-family', fontFamily)
-
-  setTextEditorLineHeight: (lineHeight) ->
-    @updateGlobalEditorStyle('line-height', lineHeight)
-
-  updateGlobalEditorStyle: (property, value) ->
-    editorRule = @globalTextEditorStyleSheet.cssRules[0]
-    editorRule.style[property] = value
-    atom.themes.emitter.emit 'did-update-stylesheet', @globalTextEditorStyleSheet
 
   handleFocus: (event) ->
     @model.getActivePane().activate()
@@ -125,7 +108,6 @@ atom.commands.add 'atom-workspace',
   'window:reset-font-size': -> @getModel().resetFontSize()
   'application:about': -> ipc.send('command', 'application:about')
   'application:run-all-specs': -> ipc.send('command', 'application:run-all-specs')
-  'application:run-benchmarks': -> ipc.send('command', 'application:run-benchmarks')
   'application:show-preferences': -> ipc.send('command', 'application:show-settings')
   'application:show-settings': -> ipc.send('command', 'application:show-settings')
   'application:quit': -> ipc.send('command', 'application:quit')

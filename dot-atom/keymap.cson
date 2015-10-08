@@ -2,7 +2,8 @@
 #
 # Atom keymaps work similarly to style sheets. Just as style sheets use
 # selectors to apply styles to elements, Atom keymaps use selectors to associate
-# keystrokes with events in specific contexts.
+# keystrokes with events in specific contexts. Unlike style sheets however,
+# each selector can only be declared once.
 #
 # You can create a new keybinding in this file by typing "key" and then hitting
 # tab.
@@ -21,5 +22,6 @@
 # * https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 #
 # This file uses CoffeeScript Object Notation (CSON).
-# If you are unfamiliar with CSON, you can read more about it here:
-# https://github.com/bevry/cson#what-is-cson
+# If you are unfamiliar with CSON, you can read more about it in the 
+# Atom Flight Manual:
+# https://atom.io/docs/latest/using-atom-basic-customization#cson

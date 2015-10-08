@@ -8,6 +8,8 @@
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
+  'ctrl-up': 'core:move-up'
+  'ctrl-down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
   'ctrl-alt-r': 'window:reload'
@@ -34,11 +36,12 @@
   'ctrl-z': 'core:undo'
   'ctrl-shift-z': 'core:redo'
   'ctrl-y': 'core:redo'
+  'shift-delete': 'core:cut'
+  'ctrl-insert': 'core:copy'
+  'shift-insert': 'core:paste'
   'ctrl-x': 'core:cut'
   'ctrl-c': 'core:copy'
   'ctrl-v': 'core:paste'
-  'ctrl-insert': 'core:copy'
-  'shift-insert': 'core:paste'
   'shift-up': 'core:select-up'
   'shift-down': 'core:select-down'
   'shift-left': 'core:select-left'
@@ -46,7 +49,6 @@
   'shift-pageup': 'core:select-page-up'
   'shift-pagedown': 'core:select-page-down'
   'delete': 'core:delete'
-  'shift-delete': 'core:cut'
   'pageup': 'core:page-up'
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
@@ -144,6 +146,10 @@
   'ctrl-k ctrl-7': 'editor:fold-at-indent-level-7'
   'ctrl-k ctrl-8': 'editor:fold-at-indent-level-8'
   'ctrl-k ctrl-9': 'editor:fold-at-indent-level-9'
+
+'atom-workspace atom-pane':
+  'ctrl-alt-=': 'pane:increase-size'
+  'ctrl-alt--': 'pane:decrease-size'
 
 # allow standard input fields to work correctly
 'body .native-key-bindings':
