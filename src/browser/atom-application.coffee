@@ -65,7 +65,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @timeout} = options
 
     global.atomApplication = this
 
@@ -87,9 +87,9 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup, timeout}) ->
     if test
-      @runTests({headless: true, @resourcePath, executedFrom, specDirectory, pathsToOpen, logFile})
+      @runTests({headless: true, @resourcePath, executedFrom, specDirectory, pathsToOpen, logFile, timeout})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -493,7 +493,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runTests: ({headless, resourcePath, executedFrom, specDirectory, pathsToOpen, logFile, safeMode}) ->
+  runTests: ({headless, resourcePath, executedFrom, specDirectory, pathsToOpen, logFile, safeMode, timeout}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -517,7 +517,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, timeout})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'

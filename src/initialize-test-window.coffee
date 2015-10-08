@@ -5,6 +5,7 @@ try
   path = require 'path'
   ipc = require 'ipc'
   remote = require 'remote'
+  app = remote.require('app')
   {getWindowLoadSettings} = require './window-load-settings-helpers'
   AtomEnvironment = require '../src/atom-environment'
 
@@ -32,6 +33,12 @@ try
 
   document.title = "Spec Suite"
 
+  timeoutCop = null
+  if timeout = getWindowLoadSettings().timeout
+    ChildProcess = remote.require("child_process")
+    timeoutCop = ChildProcess.fork(require.resolve('./timeout-cop'), [remote.process.pid, timeout])
+    app.on "will-exit", -> timeoutCop.kill()
+
   legacyTestRunner = require(getWindowLoadSettings().legacyTestRunnerPath)
   testRunner = require(getWindowLoadSettings().testRunnerPath)
   testRunner({
@@ -41,11 +48,9 @@ try
     buildAtomEnvironment: -> new AtomEnvironment
     legacyTestRunner: legacyTestRunner
   })
-
 catch error
   if getWindowLoadSettings().headless
     console.error(error.stack ? error)
-    app = remote.require('app')
     app.emit('will-exit')
     remote.process.exit(status)
   else
