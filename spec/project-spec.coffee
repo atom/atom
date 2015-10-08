@@ -159,8 +159,10 @@ describe "Project", ->
       existsSync: -> @path.endsWith('does-exist')
       contains: (filePath) -> filePath.startsWith(@path)
 
+    serviceDisposable = null
+
     beforeEach ->
-      atom.packages.serviceHub.provide("atom.directory-provider", "0.1.0", {
+      serviceDisposable = atom.packages.serviceHub.provide("atom.directory-provider", "0.1.0", {
         directoryForURISync: (uri) ->
           if uri.startsWith("ssh://")
             new DummyDirectory(uri)
@@ -203,6 +205,11 @@ describe "Project", ->
       directories = atom.project.getDirectories()
       expect(directories[3].getPath()).toBe otherRemotePath
       expect(directories[3] instanceof DummyDirectory).toBe true
+
+    it "stops using the provider when the service is removed", ->
+      serviceDisposable.dispose()
+      atom.project.setPaths(["ssh://foreign-directory:8080/does-exist"])
+      expect(atom.project.getDirectories()[0] instanceof Directory).toBe true
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []

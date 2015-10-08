@@ -33,7 +33,11 @@ class Project extends Model
     packageManager.serviceHub.consume(
       'atom.directory-provider',
       '^0.1.0',
-      (provider) => @directoryProviders.unshift(provider))
+      (provider) =>
+        @directoryProviders.unshift(provider)
+        new Disposable =>
+          @directoryProviders.splice(@directoryProviders.indexOf(provider), 1)
+    )
 
     # Mapping from the real path of a {Directory} to a {Promise} that resolves
     # to either a {Repository} or null. Ideally, the {Directory} would be used
