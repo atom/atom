@@ -154,8 +154,6 @@ afterEach ->
   atom.project?.destroy()
   atom.project = null
 
-  atom.themes.removeStylesheet('global-editor-styles')
-
   delete atom.state.packageStates
   atom.reset()
 
