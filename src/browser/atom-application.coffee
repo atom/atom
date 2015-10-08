@@ -87,9 +87,9 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup, timeout}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout}) ->
     if test
-      @runTests({headless: true, @resourcePath, executedFrom, specDirectory, pathsToOpen, logFile, timeout})
+      @runTests({headless: true, @resourcePath, executedFrom, pathsToOpen, logFile, timeout})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -251,8 +251,8 @@ class AtomApplication
       win = BrowserWindow.fromWebContents(event.sender)
       @applicationMenu.update(win, template, keystrokesByCommand)
 
-    ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runTests({resourcePath: @devResourcePath, specDirectory: specDirectory, headless: false})
+    ipc.on 'run-package-specs', (event, packageSpecPath) =>
+      @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -493,7 +493,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runTests: ({headless, resourcePath, executedFrom, specDirectory, pathsToOpen, logFile, safeMode, timeout}) ->
+  runTests: ({headless, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -503,7 +503,6 @@ class AtomApplication
       windowInitializationScript = require.resolve(path.resolve(__dirname, '..', '..', 'src', 'initialize-test-window'))
 
     testPaths = []
-    testPaths.push(specDirectory) if specDirectory?
     if pathsToOpen?
       for pathToOpen in pathsToOpen
         testPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)))

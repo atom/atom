@@ -99,7 +99,6 @@ parseCommandLine = ->
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
-  options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which to run package specs (default: Atom\'s spec directory).')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
@@ -123,7 +122,6 @@ parseCommandLine = ->
   pathsToOpen = args._
   test = args['test']
   timeout = args['timeout']
-  specDirectory = args['spec-directory']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
@@ -135,18 +133,7 @@ parseCommandLine = ->
   if args['resource-path']
     devMode = true
     resourcePath = args['resource-path']
-  else
-    # Set resourcePath based on the specDirectory if running specs on atom core
-    if specDirectory?
-      packageDirectoryPath = path.join(specDirectory, '..')
-      packageManifestPath = path.join(packageDirectoryPath, 'package.json')
-      if fs.statSyncNoException(packageManifestPath)
-        try
-          packageManifest = JSON.parse(fs.readFileSync(packageManifestPath))
-          resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
-
-    if devMode
-      resourcePath ?= devResourcePath
+    resourcePath ?= devResourcePath if devMode
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
@@ -159,7 +146,7 @@ parseCommandLine = ->
   devResourcePath = normalizeDriveLetterName(devResourcePath)
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
-   version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
+   version, pidToKillWhenClosed, devMode, safeMode, newWindow,
    logFile, socketPath, profileStartup, timeout}
 
 start()

@@ -68,19 +68,13 @@ specPackagePath = null
 specProjectPath = null
 isCoreSpec = false
 
-{specDirectory, resourcePath} = atom.getLoadSettings()
+{resourcePath} = atom.getLoadSettings()
 
-if specDirectory
-  specPackagePath = path.resolve(specDirectory, '..')
-  try
-    specPackageName = JSON.parse(fs.readFileSync(path.join(specPackagePath, 'package.json')))?.name
-  specProjectPath = path.join(specDirectory, 'fixtures')
-
-isCoreSpec = specDirectory is fs.realpathSync(__dirname)
 
 beforeEach ->
   documentTitle = null
-  projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
+
+  projectPath = path.join(@specDirectory, 'fixtures')
   atom.packages.serviceHub = new ServiceHub
   atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, config: atom.config, confirm: atom.confirm})
   atom.project.setPaths([projectPath])
