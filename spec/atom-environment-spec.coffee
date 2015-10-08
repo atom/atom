@@ -5,7 +5,7 @@ ThemeManager = require '../src/theme-manager'
 _ = require "underscore-plus"
 temp = require "temp"
 
-describe "the `atom` global", ->
+describe "AtomEnvironment", ->
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
       originalPosition = null
@@ -130,7 +130,7 @@ describe "the `atom` global", ->
         expect(result).toBe false
         expect(errors.length).toBe 1
         expect(errors[0].message).toBe "Assertion failed: a == b"
-        expect(errors[0].stack).toContain('atom-spec')
+        expect(errors[0].stack).toContain('atom-environment-spec')
 
       describe "if passed a callback function", ->
         it "calls the callback with the assertion failure's error object", ->
