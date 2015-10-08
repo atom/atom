@@ -16,57 +16,6 @@ describe "Project", ->
     # Wait for project's service consumers to be asynchronously added
     waits(1)
 
-  describe "when a repository-provider service is provided", ->
-    it "uses it to create repositories for any directories that need one", ->
-      projectPath = temp.mkdirSync('atom-project')
-      atom.project.setPaths([projectPath])
-      expect(atom.project.getRepositories()).toEqual [null]
-      expect(atom.project.repositoryProviders.length).toEqual 1
-
-      dummyRepository = {destroy: -> null}
-
-      atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", {
-        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
-        repositoryForDirectorySync: (directory) -> dummyRepository
-      })
-
-      repository = null
-
-      waitsFor "repository to be updated", ->
-        repository = atom.project.getRepositories()[0]
-
-      runs ->
-        expect(repository).toBe dummyRepository
-
-    it "does not create any new repositories if every directory has a repository", ->
-      repositories = atom.project.getRepositories()
-      expect(repositories.length).toEqual 1
-      [repository] = repositories
-      expect(repository).toBeTruthy()
-
-      # Register a new RepositoryProvider.
-      dummyRepository = destroy: ->
-      repositoryProvider =
-        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
-        repositoryForDirectorySync: (directory) -> dummyRepository
-      atom.packages.serviceHub.provide(
-        "atom.repository-provider", "0.1.0", repositoryProvider)
-
-      expect(atom.project.getRepositories()).toBe repositories
-
-    it "stops using it to create repositories when the service is removed", ->
-      atom.project.setPaths([])
-
-      disposable = atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", {
-        repositoryForDirectory: (directory) -> Promise.resolve(dummyRepository)
-        repositoryForDirectorySync: (directory) -> {destroy: -> null}
-      })
-
-      disposable.dispose()
-
-      atom.project.addPath(temp.mkdirSync('atom-project'))
-      expect(atom.project.getRepositories()).toEqual [null]
-
   describe "serialization", ->
     deserializedProject = null
 
@@ -161,6 +110,99 @@ describe "Project", ->
       expect(notification.getDetail()).toBe 'SomeError'
       expect(notification.getMessage()).toContain '`resurrect`'
       expect(notification.getMessage()).toContain 'fixtures/dir/a'
+
+  describe "when a custom repository-provider service is provided", ->
+    [fakeRepositoryProvider, fakeRepository] = []
+
+    beforeEach ->
+      fakeRepository = {destroy: -> null}
+      fakeRepositoryProvider = {
+        repositoryForDirectory: (directory) -> Promise.resolve(fakeRepository)
+        repositoryForDirectorySync: (directory) -> fakeRepository
+      }
+
+    it "uses it to create repositories for any directories that need one", ->
+      projectPath = temp.mkdirSync('atom-project')
+      atom.project.setPaths([projectPath])
+      expect(atom.project.getRepositories()).toEqual [null]
+
+      atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", fakeRepositoryProvider)
+      waitsFor -> atom.project.repositoryProviders.length > 1
+      runs -> atom.project.getRepositories()[0] is fakeRepository
+
+    it "does not create any new repositories if every directory has a repository", ->
+      repositories = atom.project.getRepositories()
+      expect(repositories.length).toEqual 1
+      expect(repositories[0]).toBeTruthy()
+
+      atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", fakeRepositoryProvider)
+      waitsFor -> atom.project.repositoryProviders.length > 1
+      runs -> expect(atom.project.getRepositories()).toBe repositories
+
+    it "stops using it to create repositories when the service is removed", ->
+      atom.project.setPaths([])
+
+      disposable = atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", fakeRepositoryProvider)
+      waitsFor -> atom.project.repositoryProviders.length > 1
+      runs ->
+        disposable.dispose()
+        atom.project.addPath(temp.mkdirSync('atom-project'))
+        expect(atom.project.getRepositories()).toEqual [null]
+
+  describe "when a custom directory-provider service is provided", ->
+    class DummyDirectory
+      constructor: (@path) ->
+      getPath: -> @path
+      getFile: -> {existsSync: -> false}
+      getSubdirectory: -> {existsSync: -> false}
+      isRoot: -> true
+      existsSync: -> @path.endsWith('does-exist')
+      contains: (filePath) -> filePath.startsWith(@path)
+
+    beforeEach ->
+      atom.packages.serviceHub.provide("atom.directory-provider", "0.1.0", {
+        directoryForURISync: (uri) ->
+          if uri.startsWith("ssh://")
+            new DummyDirectory(uri)
+          else
+            null
+      })
+
+      waitsFor ->
+        atom.project.directoryProviders.length > 0
+
+    it "uses the provider's custom directories for any paths that it handles", ->
+      localPath = temp.mkdirSync('local-path')
+      remotePath = "ssh://foreign-directory:8080/does-exist"
+
+      atom.project.setPaths([localPath, remotePath])
+
+      directories = atom.project.getDirectories()
+      expect(directories[0].getPath()).toBe localPath
+      expect(directories[0] instanceof Directory).toBe true
+      expect(directories[1].getPath()).toBe remotePath
+      expect(directories[1] instanceof DummyDirectory).toBe true
+
+      # It does not add new remote paths if their directories do not exist
+      # and they are contained by existing remote paths.
+      childRemotePath = remotePath + "/subdirectory/that/does-not-exist"
+      atom.project.addPath(childRemotePath)
+      expect(atom.project.getDirectories().length).toBe 2
+
+      # It does add new remote paths if their directories exist.
+      childRemotePath = remotePath + "/subdirectory/that/does-exist"
+      atom.project.addPath(childRemotePath)
+      directories = atom.project.getDirectories()
+      expect(directories[2].getPath()).toBe childRemotePath
+      expect(directories[2] instanceof DummyDirectory).toBe true
+
+      # It does add new remote paths to be added if they are not contained by
+      # previous remote paths.
+      otherRemotePath = "ssh://other-foreign-directory:8080/"
+      atom.project.addPath(otherRemotePath)
+      directories = atom.project.getDirectories()
+      expect(directories[3].getPath()).toBe otherRemotePath
+      expect(directories[3] instanceof DummyDirectory).toBe true
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []
@@ -322,76 +364,6 @@ describe "Project", ->
       directories = atom.project.getDirectories()
       expect(directories.length).toBe 1
       expect(directories[0].getPath()).toBe path.normalize(nonLocalFsDirectory)
-
-    describe "when a custom directory provider has been added", ->
-      describe "when custom provider handles the given path", ->
-        it "creates a directory using that provider", ->
-          class DummyDirectory
-            constructor: (@path) ->
-            getPath: -> @path
-            getFile: -> {existsSync: -> false}
-            getSubdirectory: -> {existsSync: -> false}
-            isRoot: -> true
-            existsSync: -> /does-exist/.test(@path)
-            off: ->
-            contains: (filePath) -> filePath.startsWith(@path)
-
-          atom.packages.serviceHub.provide("atom.directory-provider", "0.1.0", {
-            directoryForURISync: (uri) ->
-              if uri.startsWith("ssh://")
-                new DummyDirectory(uri)
-              else
-                null
-          })
-
-          waitsFor ->
-            atom.project.directoryProviders.length > 0
-
-          runs ->
-            localPath = temp.mkdirSync('local-path')
-            remotePath = "ssh://foreign-directory:8080/exists"
-
-            atom.project.setPaths([localPath, remotePath])
-
-            directories = atom.project.getDirectories()
-            expect(directories[0].getPath()).toBe localPath
-            expect(directories[0] instanceof Directory).toBe true
-            expect(directories[1].getPath()).toBe remotePath
-            expect(directories[1] instanceof DummyDirectory).toBe true
-
-            # Make sure that DummyDirectory.contains() is honored.
-            remotePathSubdirectory = remotePath + "a/subdirectory"
-            atom.project.addPath(remotePathSubdirectory)
-            expect(atom.project.getDirectories().length).toBe 2
-
-            # Make sure that a new DummyDirectory that is not contained by the first
-            # DummyDirectory can be added.
-            otherRemotePath = "ssh://other-foreign-directory:8080/"
-            atom.project.addPath(otherRemotePath)
-            newDirectories = atom.project.getDirectories()
-            expect(newDirectories.length).toBe 3
-            otherDummyDirectory = newDirectories[2]
-            expect(otherDummyDirectory.getPath()).toBe otherRemotePath
-            expect(otherDummyDirectory instanceof DummyDirectory).toBe true
-
-      describe "when a custom provider does not handle the path", ->
-        it "creates a local directory for the path", ->
-          directoryProvider =
-            directoryForURISync: (uri) -> null
-            directoryForURI: (uri) -> throw new Error("This should not be called.")
-
-          atom.packages.serviceHub.provide(
-            "atom.directory-provider", "0.1.0", directoryProvider)
-
-          waitsFor ->
-            atom.project.directoryProviders.length > 0
-
-          runs ->
-            tmp = temp.mkdirSync()
-            atom.project.setPaths([tmp])
-            directories = atom.project.getDirectories()
-            expect(directories.length).toBe 1
-            expect(directories[0].getPath()).toBe tmp
 
   describe ".addPath(path)", ->
     it "calls callbacks registered with ::onDidChangePaths", ->
