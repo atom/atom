@@ -253,6 +253,8 @@ class AtomEnvironment extends Model
 
     @contextMenu.clear()
 
+    @packages.serviceHub.clear()
+
   ###
   Section: Event Subscription
   ###

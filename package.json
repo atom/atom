@@ -48,7 +48,7 @@
     "scrollbar-style": "^3.2",
     "season": "^5.3",
     "semver": "^4.3.3",
-    "service-hub": "^0.6.2",
+    "service-hub": "^0.7.0",
     "source-map-support": "^0.3.2",
     "stacktrace-parser": "0.1.1",
     "temp": "0.8.1",
