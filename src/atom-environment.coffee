@@ -249,6 +249,10 @@ class AtomEnvironment extends Model
 
     @clipboard.reset()
 
+    @notifications.clear()
+
+    @contextMenu.clear()
+
   ###
   Section: Event Subscription
   ###

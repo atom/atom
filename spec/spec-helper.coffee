@@ -70,7 +70,6 @@ isCoreSpec = false
 
 {resourcePath} = atom.getLoadSettings()
 
-
 beforeEach ->
   documentTitle = null
 
@@ -146,8 +145,6 @@ beforeEach ->
 
 afterEach ->
   atom.packages.deactivatePackages()
-  atom.contextMenu.clear()
-  atom.notifications.clear()
 
   atom.workspace?.destroy()
   atom.workspace = null
