@@ -331,31 +331,35 @@ describe "Project", ->
                 null
           })
 
-          localPath = temp.mkdirSync('local-path')
-          remotePath = "ssh://foreign-directory:8080/exists"
+          waitsFor ->
+            atom.project.directoryProviders.length > 0
 
-          atom.project.setPaths([localPath, remotePath])
+          runs ->
+            localPath = temp.mkdirSync('local-path')
+            remotePath = "ssh://foreign-directory:8080/exists"
 
-          directories = atom.project.getDirectories()
-          expect(directories[0].getPath()).toBe localPath
-          expect(directories[0] instanceof Directory).toBe true
-          expect(directories[1].getPath()).toBe remotePath
-          expect(directories[1] instanceof DummyDirectory).toBe true
+            atom.project.setPaths([localPath, remotePath])
 
-          # Make sure that DummyDirectory.contains() is honored.
-          remotePathSubdirectory = remotePath + "a/subdirectory"
-          atom.project.addPath(remotePathSubdirectory)
-          expect(atom.project.getDirectories().length).toBe 2
+            directories = atom.project.getDirectories()
+            expect(directories[0].getPath()).toBe localPath
+            expect(directories[0] instanceof Directory).toBe true
+            expect(directories[1].getPath()).toBe remotePath
+            expect(directories[1] instanceof DummyDirectory).toBe true
 
-          # Make sure that a new DummyDirectory that is not contained by the first
-          # DummyDirectory can be added.
-          otherRemotePath = "ssh://other-foreign-directory:8080/"
-          atom.project.addPath(otherRemotePath)
-          newDirectories = atom.project.getDirectories()
-          expect(newDirectories.length).toBe 3
-          otherDummyDirectory = newDirectories[2]
-          expect(otherDummyDirectory.getPath()).toBe otherRemotePath
-          expect(otherDummyDirectory instanceof DummyDirectory).toBe true
+            # Make sure that DummyDirectory.contains() is honored.
+            remotePathSubdirectory = remotePath + "a/subdirectory"
+            atom.project.addPath(remotePathSubdirectory)
+            expect(atom.project.getDirectories().length).toBe 2
+
+            # Make sure that a new DummyDirectory that is not contained by the first
+            # DummyDirectory can be added.
+            otherRemotePath = "ssh://other-foreign-directory:8080/"
+            atom.project.addPath(otherRemotePath)
+            newDirectories = atom.project.getDirectories()
+            expect(newDirectories.length).toBe 3
+            otherDummyDirectory = newDirectories[2]
+            expect(otherDummyDirectory.getPath()).toBe otherRemotePath
+            expect(otherDummyDirectory instanceof DummyDirectory).toBe true
 
       describe "when a custom provider does not handle the path", ->
         it "creates a local directory for the path", ->
@@ -366,11 +370,15 @@ describe "Project", ->
           atom.packages.serviceHub.provide(
             "atom.directory-provider", "0.1.0", directoryProvider)
 
-          tmp = temp.mkdirSync()
-          atom.project.setPaths([tmp])
-          directories = atom.project.getDirectories()
-          expect(directories.length).toBe 1
-          expect(directories[0].getPath()).toBe tmp
+          waitsFor ->
+            atom.project.directoryProviders.length > 0
+
+          runs ->
+            tmp = temp.mkdirSync()
+            atom.project.setPaths([tmp])
+            directories = atom.project.getDirectories()
+            expect(directories.length).toBe 1
+            expect(directories[0].getPath()).toBe tmp
 
   describe ".addPath(path)", ->
     it "calls callbacks registered with ::onDidChangePaths", ->
