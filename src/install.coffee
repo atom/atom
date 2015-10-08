@@ -72,7 +72,7 @@ class Install extends Command
     env.NODE_TLS_REJECT_UNAUTHORIZED = 0 unless useStrictSsl
 
     # Pass through configured proxy to node-gyp
-    proxy = @npm.config.get('https-proxy') or @npm.config.get('proxy')
+    proxy = @npm.config.get('https-proxy') or @npm.config.get('proxy') or env.HTTPS_PROXY or env.HTTP_PROXY
     installNodeArgs.push("--proxy=#{proxy}") if proxy
 
     opts = {env, cwd: @atomDirectory}
