@@ -1572,6 +1572,10 @@ describe "Config", ->
                 items:
                   type: 'string'
                   enum: ['one', 'two', 'three']
+              str_options:
+                type: 'string'
+                default: 'one'
+                enum: [['one', 'One'], 'two', ['three', 'Three']]
 
           atom.config.setSchema('foo.bar', schema)
 
@@ -1595,3 +1599,145 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
           expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
+
+        it 'will honor the enum when specified as an array', ->
+          expect(atom.config.set('foo.bar.str_options', 'one')).toBe true
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'one'
+
+          expect(atom.config.set('foo.bar.str_options', 'two')).toBe true
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
+
+          expect(atom.config.set('foo.bar.str_options', 'One')).toBe false
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
+
+  describe "Deprecated Methods", ->
+    describe ".getDefault(keyPath)", ->
+      it "returns a clone of the default value", ->
+        atom.config.setDefaults("foo", same: 1, changes: 1)
+
+        spyOn(Grim, 'deprecate')
+        expect(atom.config.getDefault('foo.same')).toBe 1
+        expect(atom.config.getDefault('foo.changes')).toBe 1
+        expect(Grim.deprecate.callCount).toBe 2
+
+        atom.config.set('foo.same', 2)
+        atom.config.set('foo.changes', 3)
+
+        expect(atom.config.getDefault('foo.same')).toBe 1
+        expect(atom.config.getDefault('foo.changes')).toBe 1
+        expect(Grim.deprecate.callCount).toBe 4
+
+        initialDefaultValue = [1, 2, 3]
+        atom.config.setDefaults("foo", bar: initialDefaultValue)
+        expect(atom.config.getDefault('foo.bar')).toEqual initialDefaultValue
+        expect(atom.config.getDefault('foo.bar')).not.toBe initialDefaultValue
+        expect(Grim.deprecate.callCount).toBe 6
+
+      describe "when scoped settings are used", ->
+        it "returns the global default when no scoped default set", ->
+          atom.config.setDefaults("foo", bar: baz: 10)
+
+          spyOn(Grim, 'deprecate')
+          expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 10
+          expect(Grim.deprecate).toHaveBeenCalled()
+
+        it "returns the scoped settings not including the user's config file", ->
+          atom.config.setDefaults("foo", bar: baz: 10)
+          atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "some-source")
+
+          spyOn(Grim, 'deprecate')
+          expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+          expect(Grim.deprecate.callCount).toBe 1
+
+          atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
+          expect(atom.config.getDefault('.source.coffee', 'foo.bar.baz')).toBe 42
+          expect(Grim.deprecate.callCount).toBe 2
+
+    describe ".isDefault(keyPath)", ->
+      it "returns true when the value of the key path is its default value", ->
+        atom.config.setDefaults("foo", same: 1, changes: 1)
+
+        spyOn(Grim, 'deprecate')
+        expect(atom.config.isDefault('foo.same')).toBe true
+        expect(atom.config.isDefault('foo.changes')).toBe true
+        expect(Grim.deprecate.callCount).toBe 2
+
+        atom.config.set('foo.same', 2)
+        atom.config.set('foo.changes', 3)
+
+        expect(atom.config.isDefault('foo.same')).toBe false
+        expect(atom.config.isDefault('foo.changes')).toBe false
+        expect(Grim.deprecate.callCount).toBe 4
+
+      describe "when scoped settings are used", ->
+        it "returns false when a scoped setting was set by the user", ->
+          spyOn(Grim, 'deprecate')
+          expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+          expect(Grim.deprecate.callCount).toBe 1
+
+          atom.config.set("foo.bar.baz", 42, scopeSelector: ".source.coffee", source: "something-else")
+          expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe true
+          expect(Grim.deprecate.callCount).toBe 2
+
+          atom.config.set('foo.bar.baz', 55, scopeSelector: '.source.coffee')
+          expect(atom.config.isDefault('.source.coffee', 'foo.bar.baz')).toBe false
+          expect(Grim.deprecate.callCount).toBe 3
+
+    describe ".toggle(keyPath)", ->
+      beforeEach ->
+        jasmine.snapshotDeprecations()
+
+      afterEach ->
+        jasmine.restoreDeprecationsSnapshot()
+
+      it "negates the boolean value of the current key path value", ->
+        atom.config.set('foo.a', 1)
+        atom.config.toggle('foo.a')
+        expect(atom.config.get('foo.a')).toBe false
+
+        atom.config.set('foo.a', '')
+        atom.config.toggle('foo.a')
+        expect(atom.config.get('foo.a')).toBe true
+
+        atom.config.set('foo.a', null)
+        atom.config.toggle('foo.a')
+        expect(atom.config.get('foo.a')).toBe true
+
+        atom.config.set('foo.a', true)
+        atom.config.toggle('foo.a')
+        expect(atom.config.get('foo.a')).toBe false
+
+    describe ".getSettings()", ->
+      it "returns all settings including defaults", ->
+        atom.config.setDefaults("foo", bar: baz: 10)
+        atom.config.set("foo.ok", 12)
+
+        jasmine.snapshotDeprecations()
+        expect(atom.config.getSettings().foo).toEqual
+          ok: 12
+          bar:
+            baz: 10
+        jasmine.restoreDeprecationsSnapshot()
+
+    describe ".getPositiveInt(keyPath, defaultValue)", ->
+      beforeEach ->
+        jasmine.snapshotDeprecations()
+
+      afterEach ->
+        jasmine.restoreDeprecationsSnapshot()
+
+      it "returns the proper coerced value", ->
+        atom.config.set('editor.preferredLineLength', 0)
+        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
+
+      it "returns the proper coerced value", ->
+        atom.config.set('editor.preferredLineLength', -1234)
+        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 1
+
+      it "returns the default value when a string is passed in", ->
+        atom.config.set('editor.preferredLineLength', 'abcd')
+        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
+
+      it "returns the default value when null is passed in", ->
+        atom.config.set('editor.preferredLineLength', null)
+        expect(atom.config.getPositiveInt('editor.preferredLineLength', 80)).toBe 80
