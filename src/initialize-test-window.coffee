@@ -33,7 +33,6 @@ try
 
   document.title = "Spec Suite"
 
-  timeoutCop = null
   if timeout = getWindowLoadSettings().timeout
     ChildProcess = remote.require("child_process")
     timeoutCop = ChildProcess.fork(require.resolve('./timeout-cop'), [remote.process.pid, timeout])
