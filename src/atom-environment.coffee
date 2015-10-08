@@ -216,7 +216,7 @@ class AtomEnvironment extends Model
     @views.addViewProvider(Gutter, createGutterView)
 
   registerDefaultOpeners: ->
-    @workspace.addOpener (uri) ->
+    @workspace.addOpener (uri) =>
       switch uri
         when 'atom://.atom/stylesheet'
           @workspace.open(@styles.getUserStyleSheetPath())
