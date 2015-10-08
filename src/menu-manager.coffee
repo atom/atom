@@ -96,6 +96,10 @@ class MenuManager
     @unmerge(@template, item) for item in items
     @update()
 
+  clear: ->
+    @template = []
+    @update()
+
   # Should the binding for the given selector be included in the menu
   # commands.
   #

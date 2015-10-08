@@ -245,6 +245,8 @@ class AtomEnvironment extends Model
 
     @styles.restoreSnapshot(@initialStyleElements)
 
+    @menu.clear()
+
   ###
   Section: Event Subscription
   ###
