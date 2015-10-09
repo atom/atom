@@ -147,7 +147,6 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Automatically indent the cursor when inserting a newline.'
-        type: 'boolean'
       autoIndentOnPaste:
         type: 'boolean'
         default: true
