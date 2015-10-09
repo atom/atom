@@ -115,7 +115,7 @@ module.exports = (atom) ->
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 
-  atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
+  atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(atom.config,
     'core:backspace': -> @backspace()
     'core:delete': -> @delete()
     'core:cut': -> @cutSelectedText()
@@ -175,7 +175,7 @@ module.exports = (atom) ->
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
   )
 
-  atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
+  atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(atom.config,
     'editor:indent': -> @indent()
     'editor:auto-indent': -> @autoIndentSelectedRows()
     'editor:indent-selected-rows': -> @indentSelectedRows()
@@ -200,13 +200,13 @@ stopEventPropagation = (commandListeners) ->
         commandListener.call(@getModel(), event)
   newCommandListeners
 
-stopEventPropagationAndGroupUndo = (commandListeners) ->
+stopEventPropagationAndGroupUndo = (config, commandListeners) ->
   newCommandListeners = {}
   for commandName, commandListener of commandListeners
     do (commandListener) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
         model = @getModel()
-        model.transact atom.config.get('editor.undoGroupingInterval'), ->
+        model.transact config.get('editor.undoGroupingInterval'), ->
           commandListener.call(model, event)
   newCommandListeners
