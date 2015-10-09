@@ -9,7 +9,6 @@ Grim = require 'grim'
 KeymapManager = require '../src/keymap-extensions'
 
 {Point} = require 'text-buffer'
-Project = require '../src/project'
 Workspace = require '../src/workspace'
 ServiceHub = require 'service-hub'
 TextEditor = require '../src/text-editor'
@@ -73,9 +72,8 @@ isCoreSpec = false
 beforeEach ->
   documentTitle = null
 
-  projectPath = path.join(@specDirectory, 'fixtures')
-  atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, config: atom.config, confirm: atom.confirm})
-  atom.project.setPaths([projectPath])
+  atom.project.setPaths([path.join(@specDirectory, 'fixtures')])
+
   atom.workspace = new Workspace({
     config: atom.config, project: atom.project, packageManager: atom.packages,
     notificationManager: atom.notifications,
@@ -149,9 +147,6 @@ afterEach ->
   atom.workspace = null
   atom.themes.workspace = null
   delete atom.state.workspace
-
-  atom.project?.destroy()
-  atom.project = null
 
   delete atom.state.packageStates
   atom.reset()

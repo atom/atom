@@ -27,44 +27,21 @@ class Project extends Model
     @paths = []
     @rootDirectories = []
     @repositories = []
-
     @directoryProviders = []
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
-    packageManager.serviceHub.consume(
-      'atom.directory-provider',
-      '^0.1.0',
-      (provider) =>
-        @directoryProviders.unshift(provider)
-        new Disposable =>
-          @directoryProviders.splice(@directoryProviders.indexOf(provider), 1)
-    )
-
-    # Mapping from the real path of a {Directory} to a {Promise} that resolves
-    # to either a {Repository} or null. Ideally, the {Directory} would be used
-    # as the key; however, there can be multiple {Directory} objects created for
-    # the same real path, so it is not a good key.
     @repositoryPromisesByPath = new Map()
-
     @repositoryProviders = [new GitRepositoryProvider(this, config, confirm)]
-    packageManager.serviceHub.consume(
-      'atom.repository-provider',
-      '^0.1.0',
-      (provider) =>
-        @repositoryProviders.push(provider)
-
-        # If a path in getPaths() does not have a corresponding Repository, try
-        # to assign one by running through setPaths() again now that
-        # @repositoryProviders has been updated.
-        if null in @repositories
-          @setPaths(@getPaths())
-
-        new Disposable =>
-          @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
-    )
+    @consumeServices(packageManager)
 
   destroyed: ->
-    buffer.destroy() for buffer in @getBuffers()
+    buffer.destroy() for buffer in @buffers
     @setPaths([])
+
+  reset: (packageManager) ->
+    buffer.destroy() for buffer in @buffers
+    @buffers = []
+    @setPaths([])
+    @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
@@ -293,6 +270,26 @@ class Project extends Model
   ###
   Section: Private
   ###
+
+  consumeServices: ({serviceHub}) ->
+    serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      (provider) =>
+        @directoryProviders.unshift(provider)
+        new Disposable =>
+          @directoryProviders.splice(@directoryProviders.indexOf(provider), 1)
+    )
+
+    serviceHub.consume(
+      'atom.repository-provider',
+      '^0.1.0',
+      (provider) =>
+        @repositoryProviders.push(provider)
+        @setPaths(@getPaths()) if null in @repositories
+        new Disposable =>
+          @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
+    )
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.

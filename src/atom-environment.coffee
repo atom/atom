@@ -255,6 +255,8 @@ class AtomEnvironment extends Model
 
     @packages.serviceHub.clear()
 
+    @project.reset(@packages)
+
   destroy: ->
     return if not @project
 
