@@ -589,6 +589,8 @@ class AtomEnvironment extends Model
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
+    @commands.attach(window)
+
     @openInitialEmptyEditorIfNecessary()
 
   unloadEditorWindow: ->

@@ -44,7 +44,8 @@ SequenceCount = 0
 # ```
 module.exports =
 class CommandRegistry
-  constructor: (@rootNode) ->
+  constructor: ->
+    @rootNode = null
     @clear()
 
   clear: ->
@@ -53,9 +54,13 @@ class CommandRegistry
     @inlineListenersByCommandName = {}
     @emitter = new Emitter
 
+  attach: (@rootNode) ->
+    @commandRegistered(command) for command of @selectorBasedListenersByCommandName
+    @commandRegistered(command) for command of @inlineListenersByCommandName
+
   destroy: ->
     for commandName of @registeredCommands
-      window.removeEventListener(commandName, @handleCommandEvent, true)
+      @rootNode.removeEventListener(commandName, @handleCommandEvent, true)
     return
 
   # Public: Add one or more command listeners associated with a selector.
@@ -256,8 +261,8 @@ class CommandRegistry
     matched
 
   commandRegistered: (commandName) ->
-    unless @registeredCommands[commandName]
-      window.addEventListener(commandName, @handleCommandEvent, true)
+    if @rootNode? and not @registeredCommands[commandName]
+      @rootNode.addEventListener(commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
 
 class SelectorBasedListener

@@ -32,6 +32,8 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   document.head.appendChild(stylesElement)
   document.body.appendChild(jasmineContent)
 
+  atom.commands.attach(window)
+
   jasmineEnv.execute()
 
 disableFocusMethods = ->
