@@ -497,6 +497,13 @@ class AtomApplication
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
+    timeout = Number.parseFloat(timeout)
+    unless Number.isNaN(timeout)
+      timeoutHandler = ->
+        console.log "The test suite has timed out because it has been running for more than #{timeout} minutes."
+        process.exit(124) # Use the same exit code as the UNIX timeout util.
+      setTimeout(timeoutHandler, timeout * 60 * 1000)
+
     try
       windowInitializationScript = require.resolve(path.resolve(@devResourcePath, 'src', 'initialize-test-window'))
     catch error
@@ -516,7 +523,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, timeout})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'
