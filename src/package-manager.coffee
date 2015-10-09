@@ -52,6 +52,11 @@ class PackageManager
 
   setThemeManager: (@themeManager) ->
 
+  reset: ->
+    @serviceHub.clear()
+    @deactivatePackages()
+    @packageStates = {}
+
   ###
   Section: Event Subscription
   ###

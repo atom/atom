@@ -253,9 +253,11 @@ class AtomEnvironment extends Model
 
     @contextMenu.clear()
 
-    @packages.serviceHub.clear()
+    @packages.reset()
 
     @project.reset(@packages)
+
+    @state.packageStates = {}
 
   destroy: ->
     return if not @project

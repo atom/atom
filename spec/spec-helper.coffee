@@ -91,8 +91,6 @@ beforeEach ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
-  atom.packages.packageStates = {}
-
   serializedWindowState = null
 
   spyOn(atom, 'saveStateSync')
@@ -141,14 +139,11 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.packages.deactivatePackages()
-
   atom.workspace?.destroy()
   atom.workspace = null
   atom.themes.workspace = null
   delete atom.state.workspace
 
-  delete atom.state.packageStates
   atom.reset()
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
