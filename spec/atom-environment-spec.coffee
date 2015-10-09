@@ -1,9 +1,9 @@
-Exec = require('child_process').exec
+_ = require "underscore-plus"
 path = require 'path'
+temp = require 'temp'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
-_ = require "underscore-plus"
-temp = require "temp"
+AtomEnvironment = require '../src/atom-environment'
 
 describe "AtomEnvironment", ->
   describe 'window sizing methods', ->
@@ -217,28 +217,33 @@ describe "AtomEnvironment", ->
 
   describe "::unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      workspaceState = atom.workspace.serialize()
-      grammarsState = {grammarOverridesByPath: atom.grammars.grammarOverridesByPath}
-      projectState = atom.project.serialize()
+      atomEnvironment = new AtomEnvironment
+      spyOn(atomEnvironment, 'saveStateSync')
 
-      atom.unloadEditorWindow()
+      workspaceState = atomEnvironment.workspace.serialize()
+      grammarsState = {grammarOverridesByPath: atomEnvironment.grammars.grammarOverridesByPath}
+      projectState = atomEnvironment.project.serialize()
 
-      expect(atom.state.workspace).toEqual workspaceState
-      expect(atom.state.grammars).toEqual grammarsState
-      expect(atom.state.project).toEqual projectState
-      expect(atom.saveStateSync).toHaveBeenCalled()
+      atomEnvironment.unloadEditorWindow()
 
-  describe "::removeEditorWindow()", ->
+      expect(atomEnvironment.state.workspace).toEqual workspaceState
+      expect(atomEnvironment.state.grammars).toEqual grammarsState
+      expect(atomEnvironment.state.project).toEqual projectState
+      expect(atomEnvironment.saveStateSync).toHaveBeenCalled()
+
+  describe "::destroy()", ->
     it "unsubscribes from all buffers", ->
+      atomEnvironment = new AtomEnvironment
+
       waitsForPromise ->
-        atom.workspace.open("sample.js")
+        atomEnvironment.workspace.open("sample.js")
 
       runs ->
-        buffer = atom.workspace.getActivePaneItem().buffer
-        pane = atom.workspace.getActivePane()
+        buffer = atomEnvironment.workspace.getActivePaneItem().buffer
+        pane = atomEnvironment.workspace.getActivePane()
         pane.splitRight(copyActiveItem: true)
-        expect(atom.workspace.getTextEditors().length).toBe 2
+        expect(atomEnvironment.workspace.getTextEditors().length).toBe 2
 
-        atom.removeEditorWindow()
+        atomEnvironment.destroy()
 
         expect(buffer.getSubscriptionCount()).toBe 0

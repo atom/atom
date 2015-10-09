@@ -255,6 +255,17 @@ class AtomEnvironment extends Model
 
     @packages.serviceHub.clear()
 
+  destroy: ->
+    return if not @project
+
+    @workspace?.destroy()
+    @workspace = null
+    @themes.workspace = null
+    @project?.destroy()
+    @project = null
+
+    @windowEventHandler?.unsubscribe()
+
   ###
   Section: Event Subscription
   ###
@@ -604,18 +615,6 @@ class AtomEnvironment extends Model
     @state.packageStates = @packages.packageStates
     @state.fullScreen = @isFullScreen()
     @saveStateSync()
-    @windowState = null
-
-  removeEditorWindow: ->
-    return if not @project
-
-    @workspace?.destroy()
-    @workspace = null
-    @themes.workspace = null
-    @project?.destroy()
-    @project = null
-
-    @windowEventHandler?.unsubscribe()
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')

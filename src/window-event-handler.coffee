@@ -187,7 +187,7 @@ class WindowEventHandler
     confirmed
 
   handleWindowUnload: =>
-    @atomEnv.removeEditorWindow()
+    @atomEnv.destroy()
 
   handleWindowToggleFullScreen: =>
     @atomEnv.toggleFullScreen()
