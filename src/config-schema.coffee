@@ -17,7 +17,7 @@ module.exports =
         type: 'boolean'
         default: true
         title: 'Exclude VCS Ignored Paths'
-        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, project\'s using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+        description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
       followSymlinks:
         type: 'boolean'
         default: true
@@ -177,7 +177,7 @@ module.exports =
         type: 'string'
         default: 'auto'
         enum: ['auto', 'soft', 'hard']
-        description: 'Determine character inserted when Tab key is pressed. Possible values: "auto", "soft" and "hard". When set to "soft" or "hard", soft tabs (spaces) or hard tabs (tab characters) are used. When set to "auto", the editor auto-detects the tab type based on the contents of the buffer, or uses the value of the Soft Tabs config setting if auto-dection fails.'
+        description: 'Determine character inserted when Tab key is pressed. Possible values: "auto", "soft" and "hard". When set to "soft" or "hard", soft tabs (spaces) or hard tabs (tab characters) are used. When set to "auto", the editor auto-detects the tab type based on the contents of the buffer, or uses the value of the Soft Tabs config setting if auto-detection fails.'
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
