@@ -117,30 +117,24 @@ class AtomEnvironment extends Model
     DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
-    @registerDefaultDeserializers()
 
     ViewRegistry = require './view-registry'
     @views = new ViewRegistry(this)
-    @registerDefaultViewProviders()
 
     NotificationManager = require './notification-manager'
     @notifications = new NotificationManager
 
     Config = require './config'
     @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
-    @setConfigSchema()
 
     KeymapManager = require './keymap-extensions'
     @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
-    @keymaps.subscribeToFileReadFailure()
-    @keymaps.loadBundledKeymaps()
 
     TooltipManager = require './tooltip-manager'
     @tooltips = new TooltipManager(keymapManager: @keymaps)
 
     CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
-    registerDefaultCommands(this)
 
     GrammarRegistry = require './grammar-registry'
     @grammars = new GrammarRegistry({@config})
@@ -156,7 +150,6 @@ class AtomEnvironment extends Model
       packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
       styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
     })
-    @initialStyleElements = @styles.getSnapshot()
 
     MenuManager = require './menu-manager'
     @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
@@ -184,7 +177,15 @@ class AtomEnvironment extends Model
     })
     @themes.workspace = @workspace
 
+    @initialStyleElements = @styles.getSnapshot()
+
+    @setConfigSchema()
+    @keymaps.subscribeToFileReadFailure()
+    @keymaps.loadBundledKeymaps()
+    registerDefaultCommands(this)
     @registerDefaultOpeners()
+    @registerDefaultDeserializers()
+    @registerDefaultViewProviders()
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
