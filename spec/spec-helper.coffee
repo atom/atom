@@ -6,16 +6,14 @@ path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Grim = require 'grim'
-KeymapManager = require '../src/keymap-extensions'
+pathwatcher = require 'pathwatcher'
 
 {Point} = require 'text-buffer'
 Workspace = require '../src/workspace'
-ServiceHub = require 'service-hub'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TokenizedBuffer = require '../src/tokenized-buffer'
 TextEditorComponent = require '../src/text-editor-component'
-pathwatcher = require 'pathwatcher'
 clipboard = require '../src/safe-clipboard'
 
 jasmineStyle = document.createElement('style')
