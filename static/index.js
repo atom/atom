@@ -13,9 +13,6 @@
         console.error('Unhandled promise rejection %o with error: %o', promise, error)
       })
 
-      // Ensure ATOM_HOME is always set before anything else is required
-      setupAtomHome()
-
       // Normalize to make sure drive letter case is consistent on Windows
       process.resourcesPath = path.normalize(process.resourcesPath)
 
@@ -78,24 +75,6 @@
 
     require(loadSettings.bootstrapScript)
     require('ipc').sendChannel('window-command', 'window:loaded')
-  }
-
-  function setupAtomHome () {
-    if (!process.env.ATOM_HOME) {
-      var home
-      if (process.platform === 'win32') {
-        home = process.env.USERPROFILE
-      } else {
-        home = process.env.HOME
-      }
-      var atomHome = path.join(home, '.atom')
-      try {
-        atomHome = fs.realpathSync(atomHome)
-      } catch (error) {
-        // Ignore since the path might just not exist yet.
-      }
-      process.env.ATOM_HOME = atomHome
-    }
   }
 
   function setupCsonCache (cacheDir) {
