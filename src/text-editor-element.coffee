@@ -49,7 +49,7 @@ class TextEditorElement extends HTMLElement
 
       @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
       @stylesElement = new StylesElement
-      @stylesElement.initialize({@styles})
+      @stylesElement.initialize(@styles)
       @stylesElement.setAttribute('context', 'atom-text-editor')
 
       @rootElement = document.createElement('div')

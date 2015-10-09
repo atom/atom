@@ -32,19 +32,19 @@ class StylesElement extends HTMLElement
   attributeChangedCallback: (attrName, oldVal, newVal) ->
     @contextChanged() if attrName is 'context'
 
-  initialize: ({@styles}) ->
-    throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
+  initialize: (@styleManager) ->
+    throw new Error("Must pass a styleManager parameter when initializing a StylesElement") unless @styleManager?
 
-    @subscriptions.add @styles.observeStyleElements(@styleElementAdded.bind(this))
-    @subscriptions.add @styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
-    @subscriptions.add @styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
+    @subscriptions.add @styleManager.observeStyleElements(@styleElementAdded.bind(this))
+    @subscriptions.add @styleManager.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
+    @subscriptions.add @styleManager.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
 
   contextChanged: ->
     return unless @subscriptions?
 
     @styleElementRemoved(child) for child in Array::slice.call(@children)
     @context = @getAttribute('context')
-    @styleElementAdded(styleElement) for styleElement in @styles.getStyleElements()
+    @styleElementAdded(styleElement) for styleElement in @styleManager.getStyleElements()
     return
 
   styleElementAdded: (styleElement) ->

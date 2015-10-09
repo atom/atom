@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 ipc = require 'ipc'
-StylesElement = require '../src/styles-element'
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window.atom = buildAtomEnvironment()
@@ -26,10 +25,7 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   jasmineContent = document.createElement('div')
   jasmineContent.setAttribute('id', 'jasmine-content')
 
-  stylesElement = new StylesElement
-  stylesElement.initialize(atom)
-
-  document.head.appendChild(stylesElement)
+  document.head.appendChild(atom.styles.buildStylesElement())
   document.body.appendChild(jasmineContent)
 
   atom.commands.attach(window)

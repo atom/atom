@@ -1,6 +1,7 @@
 fs = require 'fs-plus'
 path = require 'path'
 {Emitter, Disposable} = require 'event-kit'
+StylesElement = require './styles-element'
 
 # Extended: A singleton instance of this class available via `atom.styles`,
 # which you can use to globally query and observe the set of active style
@@ -153,6 +154,11 @@ class StyleManager
       @addStyleElement(styleElement) unless styleElement in existingStyleElements
 
     return
+
+  buildStylesElement: ->
+    stylesElement = new StylesElement
+    stylesElement.initialize(this)
+    stylesElement
 
   ###
   Section: Paths
