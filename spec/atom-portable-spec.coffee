@@ -4,7 +4,7 @@ temp = require "temp"
 rimraf = require "rimraf"
 AtomPortable = require "../src/browser/atom-portable"
 
-fdescribe "Portable Mode", ->
+describe "Portable Mode", ->
   describe "Windows", ->
     platform = "win32"
 
