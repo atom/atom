@@ -126,6 +126,7 @@ class AtomEnvironment extends Model
 
     Config = require './config'
     @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
+    @setConfigSchema()
 
     KeymapManager = require './keymap-extensions'
     @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
@@ -177,11 +178,12 @@ class AtomEnvironment extends Model
     })
     @themes.workspace = @workspace
 
+    @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
 
-    @setConfigSchema()
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
+
     registerDefaultCommands(this)
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
@@ -585,6 +587,7 @@ class AtomEnvironment extends Model
 
     stylesElement = new StylesElement
     stylesElement.initialize(this)
+
     document.head.appendChild(stylesElement)
     @windowEventHandler = new WindowEventHandler(this)
 

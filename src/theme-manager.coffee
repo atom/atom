@@ -17,7 +17,6 @@ class ThemeManager
     @packageManager.registerPackageActivator(this, ['theme'])
     @packageManager.onDidActivateInitialPackages =>
       @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
-    @loadBaseStylesheets()
 
   ###
   Section: Event Subscription
