@@ -57,23 +57,13 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-isPortableInstall = (args) ->
-  return false unless process.platform is 'win32'
-  return false unless (process and process.type)
-  return false if args.devMode or args.testMode
-
-  ourPath = process.execPath.toLowerCase()
-  return (ourPath.indexOf(process.env.LOCALAPPDATA.toLowerCase()) is 0)
-
 setupAtomHome = (args) ->
   return if process.env.ATOM_HOME
-
   atomHome = path.join(app.getHomeDir(), '.atom')
-  try
-    atomHome = fs.realpathSync(atomHome)
-    fs.statSync(atomHome)
-  catch
-    atomHome = path.join(path.dirname(process.execPath), '.atom') if isPortableInstall(args)
+  AtomPortable = require './atom-portable'
+  atomHome = AtomPortable.portableAtomHomePath() if AtomPortable.isPortableInstall process.platform, process.env.ATOM_HOME
+  atomHome = fs.realpathSync(atomHome)
+  fs.statSync(atomHome)
 
   process.env.ATOM_HOME = atomHome
 
