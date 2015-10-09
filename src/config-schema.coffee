@@ -97,7 +97,7 @@ module.exports =
           'windows866'
         ]
       openEmptyEditorOnStart:
-        description: 'Automatically open an empty editor when on startup.'
+        description: 'Automatically open an empty editor on startup.'
         type: 'boolean'
         default: true
 
