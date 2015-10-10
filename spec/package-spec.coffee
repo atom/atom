@@ -10,7 +10,7 @@ describe "Package", ->
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,
       menuManager: atom.menu, contextMenuManager: atom.contextMenu,
-      inDevMode: false
+      devMode: false
     )
 
   buildPackage = (packagePath) -> build(Package, packagePath)

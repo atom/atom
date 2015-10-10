@@ -28,7 +28,12 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager, @notificationManager, @inDevMode, @keymapManager, @commandRegistry, @grammarRegistry}) ->
+  constructor: (params) ->
+    {
+      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
+      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry
+    } = params
+
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
@@ -365,8 +370,9 @@ class PackageManager
           return null
 
       options = {
-        path: packagePath, metadata, packageManager: this,
-        @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
+        path: packagePath, metadata, packageManager: this, @config, @styleManager,
+        @commandRegistry, @keymapManager, @devMode, @notificationManager,
+        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
       }
       if metadata.theme
         pack = new ThemePackage(options)

@@ -29,7 +29,13 @@ class Package
   Section: Construction
   ###
 
-  constructor: ({@path, @metadata, @packageManager, @config, @styleManager, @commandRegistry, @keymapManager, @inDevMode, @notificationManager, @grammarRegistry, @themeManager, @menuManager, @contextMenuManager}) ->
+  constructor: (params) ->
+    {
+      @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
+      @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
+      @menuManager, @contextMenuManager
+    } = params
+
     @emitter = new Emitter
     @metadata ?= @packageManager.loadPackageMetadata(@path)
     @bundledPackage = @packageManager.isBundledPackagePath(@path)
@@ -587,7 +593,7 @@ class Package
   # This information is cached in local storage on a per package/version basis
   # to minimize the impact on startup time.
   getIncompatibleNativeModules: ->
-    unless @inDevMode
+    unless @devMode
       try
         if arrayAsString = global.localStorage.getItem(@getIncompatibleNativeModulesStorageKey())
           return JSON.parse(arrayAsString)
