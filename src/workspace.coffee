@@ -29,14 +29,14 @@ class Workspace extends Model
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
       @clipboard, @viewRegistry, @grammarRegistry, @setRepresentedFilename,
-      @setDocumentEdited, @assert, @confirm
+      @setDocumentEdited, @assert, @confirm, deserializerManager
     } = params
 
     @emitter = new Emitter
     @openers = []
     @destroyedItemURIs = []
 
-    @paneContainer = new PaneContainer({@config, @confirm})
+    @paneContainer = new PaneContainer({@config, @confirm, @notificationManager, deserializerManager})
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @directorySearchers = []

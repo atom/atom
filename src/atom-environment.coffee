@@ -172,7 +172,7 @@ class AtomEnvironment extends Model
     @commandInstaller = new CommandInstaller(@getVersion(), @confirm.bind(this))
 
     @workspace = new Workspace({
-      @config, @project, packageManager: @packages, grammarRegistry: @grammars,
+      @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
       setDocumentEdited: @setDocumentEdited.bind(this), @clipboard, viewRegistry: @views, assert: @assert.bind(this), confirm: @confirm.bind(this)
     })

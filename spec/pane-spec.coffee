@@ -1,10 +1,11 @@
+{extend} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
-  deserializerDisposable = null
+  [confirm, deserializerDisposable] = []
 
   class Item
     @deserialize: ({name, uri}) -> new this(name, uri)
@@ -19,18 +20,27 @@ describe "Pane", ->
     isDestroyed: -> @destroyed
 
   beforeEach ->
+    confirm = jasmine.createSpy('confirm')
     deserializerDisposable = atom.deserializers.add(Item)
 
   afterEach ->
     deserializerDisposable.dispose()
 
+  paneParams = (params) ->
+    extend({
+      confirm: confirm,
+      config: atom.config,
+      deserializerManager: atom.deserializers,
+      notificationManager: atom.notifications
+    }, params)
+
   describe "construction", ->
     it "sets the active item to the first item", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
     it "compacts the items array", ->
-      pane = new Pane(items: [undefined, new Item("A"), null, new Item("B")])
+      pane = new Pane(paneParams(items: [undefined, new Item("A"), null, new Item("B")]))
       expect(pane.getItems().length).toBe 2
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
@@ -38,7 +48,7 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(config: atom.config, confirm: confirm)
       container.getActivePane().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -76,14 +86,14 @@ describe "Pane", ->
 
   describe "::addItem(item, index)", ->
     it "adds the item at the given index", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       [item1, item2] = pane.getItems()
       item3 = new Item("C")
       pane.addItem(item3, 1)
       expect(pane.getItems()).toEqual [item1, item3, item2]
 
     it "adds the item after the active item if no index is provided", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
       pane.activateItem(item2)
       item4 = new Item("D")
@@ -91,13 +101,13 @@ describe "Pane", ->
       expect(pane.getItems()).toEqual [item1, item2, item4, item3]
 
     it "sets the active item after adding the first item", ->
-      pane = new Pane
+      pane = new Pane(paneParams())
       item = new Item("A")
       pane.addItem(item)
       expect(pane.getActiveItem()).toBe item
 
     it "invokes ::onDidAddItem() observers", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       events = []
       pane.onDidAddItem (event) -> events.push(event)
 
@@ -107,14 +117,14 @@ describe "Pane", ->
 
     it "throws an exception if the item is already present on a pane", ->
       item = new Item("A")
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(config: atom.config, confirm: confirm)
       pane1 = container.getActivePane()
       pane1.addItem(item)
       pane2 = pane1.splitRight()
       expect(-> pane2.addItem(item)).toThrow()
 
     it "throws an exception if the item isn't an object", ->
-      pane = new Pane(items: [])
+      pane = new Pane(paneParams(items: []))
       expect(-> pane.addItem(null)).toThrow()
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
@@ -123,7 +133,7 @@ describe "Pane", ->
     pane = null
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
 
     it "changes the active item to the current item", ->
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
@@ -144,7 +154,7 @@ describe "Pane", ->
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
 
       expect(pane.getActiveItem()).toBe item1
@@ -159,7 +169,7 @@ describe "Pane", ->
 
   describe "::moveItemRight() and ::moveItemLeft()", ->
     it "moves the active item to the right and left, without looping around at either end", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
 
       pane.activateItemAtIndex(0)
@@ -177,7 +187,7 @@ describe "Pane", ->
 
   describe "::activateItemAtIndex(index)", ->
     it "activates the item at the given index", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
       pane.activateItemAtIndex(2)
       expect(pane.getActiveItem()).toBe item3
@@ -196,7 +206,7 @@ describe "Pane", ->
     [pane, item1, item2, item3] = []
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
 
     it "removes the item from the items list and destroyes it", ->
@@ -260,7 +270,7 @@ describe "Pane", ->
         describe "when the item has a uri", ->
           it "saves the item before destroying it", ->
             itemURI = "test"
-            spyOn(atom, 'confirm').andReturn(0)
+            confirm.andReturn(0)
             pane.destroyItem(item1)
 
             expect(item1.save).toHaveBeenCalled()
@@ -272,7 +282,7 @@ describe "Pane", ->
             itemURI = null
 
             spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
-            spyOn(atom, 'confirm').andReturn(0)
+            confirm.andReturn(0)
             pane.destroyItem(item1)
 
             expect(atom.showSaveDialogSync).toHaveBeenCalled()
@@ -282,7 +292,7 @@ describe "Pane", ->
 
       describe "if the [Don't Save] option is selected", ->
         it "removes and destroys the item without saving it", ->
-          spyOn(atom, 'confirm').andReturn(2)
+          confirm.andReturn(2)
           pane.destroyItem(item1)
 
           expect(item1.save).not.toHaveBeenCalled()
@@ -291,7 +301,7 @@ describe "Pane", ->
 
       describe "if the [Cancel] option is selected", ->
         it "does not save, remove, or destroy the item", ->
-          spyOn(atom, 'confirm').andReturn(1)
+          confirm.andReturn(1)
           pane.destroyItem(item1)
 
           expect(item1.save).not.toHaveBeenCalled()
@@ -316,19 +326,19 @@ describe "Pane", ->
 
   describe "::destroyActiveItem()", ->
     it "destroys the active item", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       activeItem = pane.getActiveItem()
       pane.destroyActiveItem()
       expect(activeItem.isDestroyed()).toBe true
       expect(activeItem in pane.getItems()).toBe false
 
     it "does not throw an exception if there are no more items", ->
-      pane = new Pane
+      pane = new Pane(paneParams())
       pane.destroyActiveItem()
 
   describe "::destroyItems()", ->
     it "destroys all items", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
       pane.destroyItems()
       expect(item1.isDestroyed()).toBe true
@@ -338,7 +348,7 @@ describe "Pane", ->
 
   describe "::observeItems()", ->
     it "invokes the observer with all current and future items", ->
-      pane = new Pane(items: [new Item, new Item])
+      pane = new Pane(paneParams(items: [new Item, new Item]))
       [item1, item2] = pane.getItems()
 
       observed = []
@@ -351,14 +361,14 @@ describe "Pane", ->
 
   describe "when an item emits a destroyed event", ->
     it "removes it from the list of items", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
       pane.itemAtIndex(1).destroy()
       expect(pane.getItems()).toEqual [item1, item3]
 
   describe "::destroyInactiveItems()", ->
     it "destroys all items but the active item", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
       pane.activateItem(item2)
       pane.destroyInactiveItems()
@@ -368,7 +378,7 @@ describe "Pane", ->
     pane = null
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A")])
+      pane = new Pane(paneParams(items: [new Item("A")]))
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
 
     describe "when the active item has a uri", ->
@@ -423,7 +433,7 @@ describe "Pane", ->
     pane = null
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A")])
+      pane = new Pane(paneParams(items: [new Item("A")]))
       spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
 
     describe "when the current item has a saveAs method", ->
@@ -461,7 +471,7 @@ describe "Pane", ->
 
   describe "::itemForURI(uri)", ->
     it "returns the item for which a call to .getURI() returns the given uri", ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")]))
       [item1, item2, item3] = pane.getItems()
       item1.uri = "a"
       item2.uri = "b"
@@ -473,7 +483,7 @@ describe "Pane", ->
     [pane, item1, item2, item3, item4] = []
 
     beforeEach ->
-      pane = new Pane(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D")]))
       [item1, item2, item3, item4] = pane.getItems()
 
     it "moves the item to the given index and invokes ::onDidMoveItem observers", ->
@@ -502,7 +512,7 @@ describe "Pane", ->
     [item1, item2, item3, item4, item5] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(config: atom.config, confirm: confirm)
       pane1 = container.getActivePane()
       pane1.addItems([new Item("A"), new Item("B"), new Item("C")])
       pane2 = pane1.splitRight(items: [new Item("D"), new Item("E")])
@@ -555,7 +565,7 @@ describe "Pane", ->
     [pane1, container] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(config: atom.config, confirm: confirm, deserializerManager: atom.deserializers)
       pane1 = container.getActivePane()
       pane1.addItem(new Item("A"))
 
@@ -655,32 +665,32 @@ describe "Pane", ->
 
   describe "::close()", ->
     it "prompts to save unsaved items before destroying the pane", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       [item1, item2] = pane.getItems()
 
       item1.shouldPromptToSave = -> true
       item1.getURI = -> "/test/path"
       item1.save = jasmine.createSpy("save")
 
-      spyOn(atom, 'confirm').andReturn(0)
+      confirm.andReturn(0)
       pane.close()
 
-      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirm).toHaveBeenCalled()
       expect(item1.save).toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe true
 
     it "does not destroy the pane if cancel is called", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       [item1, item2] = pane.getItems()
 
       item1.shouldPromptToSave = -> true
       item1.getURI = -> "/test/path"
       item1.save = jasmine.createSpy("save")
 
-      spyOn(atom, 'confirm').andReturn(1)
+      confirm.andReturn(1)
       pane.close()
 
-      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirm).toHaveBeenCalled()
       expect(item1.save).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe false
 
@@ -688,7 +698,7 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+      container = new PaneContainer(config: atom.config, confirm: confirm)
       pane1 = container.root
       pane1.addItems([new Item("A"), new Item("B")])
       pane2 = pane1.splitRight()
@@ -735,10 +745,10 @@ describe "Pane", ->
     pane = null
 
     beforeEach ->
-      params =
+      pane = new Pane(paneParams(
         items: [new Item("A", "a"), new Item("B", "b"), new Item("C", "c")]
         flexScale: 2
-      pane = new Pane(params)
+      ))
 
     it "can serialize and deserialize the pane and all its items", ->
       newPane = Pane.deserialize(pane.serialize(), atom)

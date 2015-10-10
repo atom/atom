@@ -14,7 +14,7 @@ class Pane extends Model
   activeItem: undefined
   focused: false
 
-  @deserialize: (state, {deserializers}) ->
+  @deserialize: (state, {deserializers, config, notifications, confirm}) ->
     {items, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
@@ -22,13 +22,20 @@ class Pane extends Model
       if typeof item.getURI is 'function'
         itemURI = item.getURI()
       itemURI is activeItemURI
-    new this(state)
+    new Pane(extend(state, {
+      deserializerManager: deserializers,
+      notificationManager: notifications,
+      confirm: confirm,
+      config: config
+    }))
 
   constructor: (params) ->
     super
 
-    @activeItem = params?.activeItem
-    @focused = params?.focused
+    {
+      @activeItem, @focused, @confirm, @notificationManager, @config,
+      @deserializerManager
+    } = params
 
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
@@ -390,7 +397,7 @@ class Pane extends Model
     @items.splice(index, 1)
     @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
     @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
-    @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
+    @destroy() if @items.length is 0 and @config.get('core.destroyEmptyPanes')
 
   # Public: Move the given item to the given index.
   #
@@ -456,7 +463,7 @@ class Pane extends Model
     else
       return true
 
-    chosen = atom.confirm
+    chosen = @confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
@@ -549,7 +556,7 @@ class Pane extends Model
 
   copyActiveItem: ->
     if @activeItem?
-      @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
+      @activeItem.copy?() ? @deserializerManager.deserialize(@activeItem.serialize())
 
   ###
   Section: Lifecycle
@@ -641,7 +648,7 @@ class Pane extends Model
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
       @setFlexScale(1)
 
-    newPane = new @constructor(params)
+    newPane = new Pane(extend({@confirm, @deserializerManager, @config}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
@@ -683,12 +690,12 @@ class Pane extends Model
 
   handleSaveError: (error, item) ->
     itemPath = error.path ? item?.getPath?()
-    addWarningWithPath = (message, options) ->
+    addWarningWithPath = (message, options) =>
       message = "#{message} '#{itemPath}'" if itemPath
-      atom.notifications.addWarning(message, options)
+      @notificationManager.addWarning(message, options)
 
     if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
-      atom.notifications.addWarning("Unable to save file: #{error.message}")
+      @notificationManager.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES'
       addWarningWithPath('Unable to save file: Permission denied')
     else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST']
@@ -711,6 +718,6 @@ class Pane extends Model
       addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
-      atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
+      @notificationManager.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
     else
       throw error
