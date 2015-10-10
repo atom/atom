@@ -144,7 +144,11 @@ class AtomEnvironment extends Model
     @styles = new StyleManager({configDirPath})
 
     PackageManager = require './package-manager'
-    @packages = new PackageManager({devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles, commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications, grammarRegistry: @grammars, inDevMode: @inDevMode.bind(this)})
+    @packages = new PackageManager({
+      devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
+      commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
+      grammarRegistry: @grammars, inDevMode: @inDevMode()
+    })
 
     ThemeManager = require './theme-manager'
     @themes = new ThemeManager({

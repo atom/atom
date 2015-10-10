@@ -4,7 +4,14 @@ ThemePackage = require '../src/theme-package'
 
 describe "Package", ->
   build = (constructor, path) ->
-    new constructor(path: path, packageManager: atom.packages, config: atom.config, styleManager: atom.styles, notificationManager: atom.notifications, keymapManager: atom.keymaps, commandRegistry: atom.command, grammarRegistry: atom.grammars, themeManager: atom.themes, menuManager: atom.menu, contextMenuManager: atom.contextMenu, inDevMode: atom.inDevMode)
+    new constructor(
+      path: path, packageManager: atom.packages, config: atom.config,
+      styleManager: atom.styles, notificationManager: atom.notifications,
+      keymapManager: atom.keymaps, commandRegistry: atom.command,
+      grammarRegistry: atom.grammars, themeManager: atom.themes,
+      menuManager: atom.menu, contextMenuManager: atom.contextMenu,
+      inDevMode: false
+    )
 
   buildPackage = (packagePath) -> build(Package, packagePath)
 
@@ -12,7 +19,6 @@ describe "Package", ->
 
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
-      spyOn(atom, 'inDevMode').andReturn(false)
       items = {}
       spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
       spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
@@ -48,7 +54,6 @@ describe "Package", ->
 
   describe "::rebuild()", ->
     beforeEach ->
-      spyOn(atom, 'inDevMode').andReturn(false)
       items = {}
       spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
       spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
