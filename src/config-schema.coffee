@@ -45,6 +45,9 @@ module.exports =
       audioBeep:
         type: 'boolean'
         default: true
+      autoUpdate:
+        type: 'boolean'
+        default: true
       destroyEmptyPanes:
         type: 'boolean'
         default: true

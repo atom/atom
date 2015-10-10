@@ -24,8 +24,9 @@ class AutoUpdateManager
     else
       @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
       @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+    if atom.config.get("core.autoUpdate")
+      process.nextTick => @setupAutoUpdater()
 
-    process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
     if process.platform is 'win32'
