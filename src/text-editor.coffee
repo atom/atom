@@ -842,6 +842,7 @@ class TextEditor extends Model
         @foldBufferRow(foldedRow)
 
       @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true, autoscroll: true)
+      @autoIndentSelectedRows() if @shouldAutoIndent()
 
   # Move lines intersecting the most recent selection down by one row in screen
   # coordinates.
@@ -898,6 +899,7 @@ class TextEditor extends Model
         @foldBufferRow(foldedRow)
 
       @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
+      @autoIndentSelectedRows() if @shouldAutoIndent()
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
