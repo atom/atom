@@ -238,9 +238,6 @@ class AtomEnvironment extends Model
     @deserializers.clear()
     @registerDefaultDeserializers()
 
-    @views.clear()
-    @registerDefaultViewProviders()
-
     @config.clear()
     @setConfigSchema()
 
@@ -263,6 +260,9 @@ class AtomEnvironment extends Model
     @packages.reset()
 
     @project.reset(@packages)
+
+    @views.clear()
+    @registerDefaultViewProviders()
 
     @state.packageStates = {}
 
