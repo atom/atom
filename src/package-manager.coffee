@@ -411,7 +411,6 @@ class PackageManager
       promises = promises.concat(activator.activatePackages(packages))
     Promise.all(promises).then =>
       @triggerDeferredActivationHooks()
-      @emit 'activated' if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
