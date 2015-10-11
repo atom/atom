@@ -336,6 +336,8 @@ class Workspace extends Model
   #     item will be opened in the rightmost pane of the current active pane's row.
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     containing pane. Defaults to `true`.
+  #   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
+  #     on containing pane. Defaults to `true`.
   #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
   #     activate an existing item for the given URI on any pane.
   #     If `false`, only the active pane will be searched for
@@ -374,9 +376,12 @@ class Workspace extends Model
   #     initially. Defaults to `0`.
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     the containing pane. Defaults to `true`.
+  #   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
+  #     on containing pane. Defaults to `true`.
   openSync: (uri='', options={}) ->
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
+    activateItem = options.activateItem ? true
 
     uri = @project.resolvePath(uri)
     item = @getActivePane().itemForURI(uri)
@@ -384,13 +389,14 @@ class Workspace extends Model
       item ?= opener(uri, options) for opener in @getOpeners() when not item
     item ?= @project.openSync(uri, {initialLine, initialColumn})
 
-    @getActivePane().activateItem(item)
+    @getActivePane().activateItem(item) if activateItem
     @itemOpened(item)
     @getActivePane().activate() if activatePane
     item
 
   openURIInPane: (uri, pane, options={}) ->
     activatePane = options.activatePane ? true
+    activateItem = options.activateItem ? true
 
     if uri?
       item = pane.itemForURI(uri)
@@ -417,7 +423,7 @@ class Workspace extends Model
           pane = new Pane({items: [item], @config, @confirm})
           @paneContainer.root = pane
         @itemOpened(item)
-        pane.activateItem(item)
+        pane.activateItem(item) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
