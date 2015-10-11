@@ -78,7 +78,7 @@ beforeEach ->
     setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
     setDocumentEdited: atom.setDocumentEdited.bind(atom), atomVersion: atom.getVersion(),
     clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-    assert: atom.assert.bind(atom)
+    assert: atom.assert.bind(atom), deserializerManager: atom.deserializers
   })
   atom.themes.workspace = atom.workspace
 
