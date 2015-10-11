@@ -5,7 +5,7 @@ module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
   getVersion = (callback) ->
-    onBuildMachine = process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
+    onBuildMachine = process.env.JANKY_SHA1 and process.env.JANKY_BRANCH in ['stable', 'beta']
     inRepository = fs.existsSync(path.resolve(__dirname, '..', '..', '.git'))
     {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
     if onBuildMachine or not inRepository

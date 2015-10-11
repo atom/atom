@@ -1,4 +1,3 @@
-{$} = require '../src/space-pen-extensions'
 path = require 'path'
 Package = require '../src/package'
 ThemePackage = require '../src/theme-package'
@@ -18,6 +17,16 @@ describe "Package", ->
       expect(pack.isCompatible()).toBe false
       expect(pack.incompatibleModules[0].name).toBe 'native-module'
       expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
+
+    it "utilizes _atomModuleCache if present to determine the package's native dependencies", ->
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-ignored-incompatible-native-module')
+      pack = new Package(packagePath)
+      expect(pack.getNativeModuleDependencyPaths().length).toBe(1) # doesn't see the incompatible module
+      expect(pack.isCompatible()).toBe true
+
+      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-cached-incompatible-native-module')
+      pack = new Package(packagePath)
+      expect(pack.isCompatible()).toBe false
 
     it "caches the incompatible native modules in local storage", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
@@ -96,54 +105,55 @@ describe "Package", ->
       expect(pack.getIncompatibleNativeModules().length).toBe(0)
 
   describe "theme", ->
-    theme = null
+    [editorElement, theme] = []
 
     beforeEach ->
-      $("#jasmine-content").append $("<atom-text-editor></atom-text-editor>")
+      editorElement = document.createElement('atom-text-editor')
+      jasmine.attachToDOM(editorElement)
 
     afterEach ->
       theme.deactivate() if theme?
 
     describe "when the theme contains a single style file", ->
       it "loads and applies css", ->
-        expect($("atom-text-editor").css("padding-bottom")).not.toBe "1234px"
+        expect(getComputedStyle(editorElement).paddingBottom).not.toBe "1234px"
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-index-css')
         theme = new ThemePackage(themePath)
         theme.activate()
-        expect($("atom-text-editor").css("padding-top")).toBe "1234px"
+        expect(getComputedStyle(editorElement).paddingTop).toBe "1234px"
 
       it "parses, loads and applies less", ->
-        expect($("atom-text-editor").css("padding-bottom")).not.toBe "1234px"
+        expect(getComputedStyle(editorElement).paddingBottom).not.toBe "1234px"
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-index-less')
         theme = new ThemePackage(themePath)
         theme.activate()
-        expect($("atom-text-editor").css("padding-top")).toBe "4321px"
+        expect(getComputedStyle(editorElement).paddingTop).toBe "4321px"
 
     describe "when the theme contains a package.json file", ->
       it "loads and applies stylesheets from package.json in the correct order", ->
-        expect($("atom-text-editor").css("padding-top")).not.toBe("101px")
-        expect($("atom-text-editor").css("padding-right")).not.toBe("102px")
-        expect($("atom-text-editor").css("padding-bottom")).not.toBe("103px")
+        expect(getComputedStyle(editorElement).paddingTop).not.toBe("101px")
+        expect(getComputedStyle(editorElement).paddingRight).not.toBe("102px")
+        expect(getComputedStyle(editorElement).paddingBottom).not.toBe("103px")
 
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-package-file')
         theme = new ThemePackage(themePath)
         theme.activate()
-        expect($("atom-text-editor").css("padding-top")).toBe("101px")
-        expect($("atom-text-editor").css("padding-right")).toBe("102px")
-        expect($("atom-text-editor").css("padding-bottom")).toBe("103px")
+        expect(getComputedStyle(editorElement).paddingTop).toBe("101px")
+        expect(getComputedStyle(editorElement).paddingRight).toBe("102px")
+        expect(getComputedStyle(editorElement).paddingBottom).toBe("103px")
 
     describe "when the theme does not contain a package.json file and is a directory", ->
       it "loads all stylesheet files in the directory", ->
-        expect($("atom-text-editor").css("padding-top")).not.toBe "10px"
-        expect($("atom-text-editor").css("padding-right")).not.toBe "20px"
-        expect($("atom-text-editor").css("padding-bottom")).not.toBe "30px"
+        expect(getComputedStyle(editorElement).paddingTop).not.toBe "10px"
+        expect(getComputedStyle(editorElement).paddingRight).not.toBe "20px"
+        expect(getComputedStyle(editorElement).paddingBottom).not.toBe "30px"
 
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-without-package-file')
         theme = new ThemePackage(themePath)
         theme.activate()
-        expect($("atom-text-editor").css("padding-top")).toBe "10px"
-        expect($("atom-text-editor").css("padding-right")).toBe "20px"
-        expect($("atom-text-editor").css("padding-bottom")).toBe "30px"
+        expect(getComputedStyle(editorElement).paddingTop).toBe "10px"
+        expect(getComputedStyle(editorElement).paddingRight).toBe "20px"
+        expect(getComputedStyle(editorElement).paddingBottom).toBe "30px"
 
     describe "reloading a theme", ->
       beforeEach ->

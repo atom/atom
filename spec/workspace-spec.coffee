@@ -2,12 +2,10 @@ path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
 Pane = require '../src/pane'
-{View} = require '../src/space-pen-extensions'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
 fstream = require 'fstream'
 fs = require 'fs-plus'
-Grim = require 'grim'
 
 describe "Workspace", ->
   workspace = null
@@ -16,6 +14,64 @@ describe "Workspace", ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
     atom.workspace = workspace = new Workspace
     waits(1)
+
+  describe "serialization", ->
+    simulateReload = ->
+      workspaceState = atom.workspace.serialize()
+      projectState = atom.project.serialize()
+      atom.workspace.destroy()
+      atom.project.destroy()
+      atom.project = atom.deserializers.deserialize(projectState)
+      atom.workspace = Workspace.deserialize(workspaceState)
+
+    describe "when the workspace contains text editors", ->
+      it "constructs the view with the same panes", ->
+        pane1 = atom.workspace.getActivePane()
+        pane2 = pane1.splitRight(copyActiveItem: true)
+        pane3 = pane2.splitRight(copyActiveItem: true)
+        pane4 = null
+
+        waitsForPromise ->
+          atom.workspace.open('b').then (editor) ->
+            pane2.activateItem(editor.copy())
+
+        waitsForPromise ->
+          atom.workspace.open('../sample.js').then (editor) ->
+            pane3.activateItem(editor)
+
+        runs ->
+          pane3.activeItem.setCursorScreenPosition([2, 4])
+          pane4 = pane2.splitDown()
+
+        waitsForPromise ->
+          atom.workspace.open('../sample.txt').then (editor) ->
+            pane4.activateItem(editor)
+
+        runs ->
+          pane4.getActiveItem().setCursorScreenPosition([0, 2])
+          pane2.activate()
+
+          simulateReload()
+
+          expect(atom.workspace.getTextEditors().length).toBe 4
+          [editor1, editor2, editor3, editor4] = atom.workspace.getTextEditors()
+
+          expect(editor1.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
+          expect(editor2.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
+          expect(editor2.getCursorScreenPosition()).toEqual [0, 2]
+          expect(editor3.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
+          expect(editor4.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
+          expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
+
+          expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
+          expect(document.title).toBe "#{path.basename(editor3.getPath())} - #{atom.project.getPaths()[0]} - Atom"
+
+    describe "where there are no open panes or editors", ->
+      it "constructs the view with no open editors", ->
+        atom.workspace.getActivePane().destroy()
+        expect(atom.workspace.getTextEditors().length).toBe 0
+        simulateReload()
+        expect(atom.workspace.getTextEditors().length).toBe 0
 
   describe "::open(uri, options)", ->
     openEvents = null
@@ -326,21 +382,6 @@ describe "Workspace", ->
       runs ->
         expect(newEditorHandler.argsForCall[0][0].textEditor).toBe editor
 
-    it "records a deprecation warning on the appropriate package if the item has a ::getUri method instead of ::getURI", ->
-      jasmine.snapshotDeprecations()
-
-      waitsForPromise -> atom.packages.activatePackage('package-with-deprecated-pane-item-method')
-
-      waitsForPromise ->
-        atom.workspace.open("test")
-
-      runs ->
-        deprecations = Grim.getDeprecations()
-        expect(deprecations.length).toBe 1
-        expect(deprecations[0].message).toBe "Pane item with class `TestItem` should implement `::getURI` instead of `::getUri`."
-        expect(deprecations[0].getStacks()[0].metadata.packageName).toBe "package-with-deprecated-pane-item-method"
-        jasmine.restoreDeprecationsSnapshot()
-
     describe "when there is an error opening the file", ->
       notificationSpy = null
       beforeEach ->
@@ -625,7 +666,7 @@ describe "Workspace", ->
 
       it "updates the title to contain the project's path", ->
         document.title = null
-        workspace2 = atom.workspace.testSerialization()
+        workspace2 = Workspace.deserialize(atom.workspace.serialize())
         item = atom.workspace.getActivePaneItem()
         expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()
@@ -1065,11 +1106,16 @@ describe "Workspace", ->
 
           it "can be cancelled when the object returned by scan() has its cancel() method invoked", ->
             thenable = atom.workspace.scan /aaaa/, ->
-            expect(fakeSearch.cancelled).toBe(undefined)
-            thenable.cancel()
-            expect(fakeSearch.cancelled).toBe(true)
-
             resultOfPromiseSearch = null
+
+            waitsFor 'fakeSearch to be defined', -> fakeSearch?
+
+            runs ->
+              expect(fakeSearch.cancelled).toBe(undefined)
+              thenable.cancel()
+              expect(fakeSearch.cancelled).toBe(true)
+
+
             waitsForPromise ->
               thenable.then (promiseResult) -> resultOfPromiseSearch = promiseResult
 
@@ -1077,15 +1123,28 @@ describe "Workspace", ->
               expect(resultOfPromiseSearch).toBe('cancelled')
 
           it "will have the side-effect of failing the overall search if it fails", ->
-            cancelableSearch = atom.workspace.scan /aaaa/, ->
-            fakeSearch.hoistedReject()
+            # This provider's search should be cancelled when the first provider fails
+            fakeSearch2 = null
+            atom.packages.serviceHub.provide('atom.directory-searcher', '0.1.0', {
+              canSearchDirectory: (directory) -> directory.getPath() is dir2
+              search: (directory, regex, options) -> fakeSearch2 = new FakeSearch(options)
+            })
 
             didReject = false
+            promise = cancelableSearch = atom.workspace.scan /aaaa/, ->
+            waitsFor 'fakeSearch to be defined', -> fakeSearch?
+
+            runs ->
+              fakeSearch.hoistedReject()
+
             waitsForPromise ->
               cancelableSearch.catch -> didReject = true
 
+            waitsFor (done) -> promise.then(null, done)
+
             runs ->
               expect(didReject).toBe(true)
+              expect(fakeSearch2.cancelled).toBe true # Cancels other ongoing searches
 
   describe "::replace(regex, replacementText, paths, iterator)", ->
     [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
@@ -1267,3 +1326,32 @@ describe "Workspace", ->
 
         save = -> atom.workspace.saveActivePaneItem()
         expect(save).toThrow()
+
+  describe "::destroyActivePaneItemOrEmptyPane", ->
+    beforeEach ->
+      waitsForPromise -> atom.workspace.open()
+
+    it "closes the active pane item until all that remains is a single empty pane", ->
+      atom.config.set('core.destroyEmptyPanes', false)
+
+      pane1 = atom.workspace.getActivePane()
+      pane2 = pane1.splitRight(copyActiveItem: true)
+
+      expect(atom.workspace.getPanes().length).toBe 2
+      expect(pane2.getItems().length).toBe 1
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+
+      expect(atom.workspace.getPanes().length).toBe 2
+      expect(pane2.getItems().length).toBe 0
+
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+
+      expect(atom.workspace.getPanes().length).toBe 1
+      expect(pane1.getItems().length).toBe 1
+
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      expect(atom.workspace.getPanes().length).toBe 1
+      expect(pane1.getItems().length).toBe 0
+
+      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      expect(atom.workspace.getPanes().length).toBe 1

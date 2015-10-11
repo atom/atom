@@ -11,7 +11,7 @@ describe "GitRepositoryProvider", ->
       it "returns a Promise that resolves to a GitRepository", ->
         waitsForPromise ->
           provider = new GitRepositoryProvider atom.project
-          directory = new Directory path.join(__dirname, 'fixtures/git/master.git')
+          directory = new Directory path.join(__dirname, 'fixtures', 'git', 'master.git')
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
@@ -24,11 +24,11 @@ describe "GitRepositoryProvider", ->
         secondRepo = null
 
         waitsForPromise ->
-          directory = new Directory path.join(__dirname, 'fixtures/git/master.git')
+          directory = new Directory path.join(__dirname, 'fixtures', 'git', 'master.git')
           provider.repositoryForDirectory(directory).then (result) -> firstRepo = result
 
         waitsForPromise ->
-          directory = new Directory path.join(__dirname, 'fixtures/git/master.git/objects')
+          directory = new Directory path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects')
           provider.repositoryForDirectory(directory).then (result) -> secondRepo = result
 
         runs ->
@@ -55,6 +55,21 @@ describe "GitRepositoryProvider", ->
           directory = new Directory dirPath
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBe null
+
+    describe "when specified a Directory with a valid gitfile-linked repository", ->
+      it "returns a Promise that resolves to a GitRepository", ->
+        waitsForPromise ->
+          provider = new GitRepositoryProvider atom.project
+          gitDirPath = path.join(__dirname, 'fixtures', 'git', 'master.git')
+          workDirPath = temp.mkdirSync('git-workdir')
+          fs.writeFileSync(path.join(workDirPath, '.git'), 'gitdir: ' + gitDirPath+'\n')
+
+          directory = new Directory workDirPath
+          provider.repositoryForDirectory(directory).then (result) ->
+            expect(result).toBeInstanceOf GitRepository
+            expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
+            expect(result.statusTask).toBeTruthy()
+            expect(result.getType()).toBe 'git'
 
     describe "when specified a Directory without existsSync()", ->
       directory = null

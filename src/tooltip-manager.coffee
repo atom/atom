@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
-{Disposable} = require 'event-kit'
-{$} = require './space-pen-extensions'
+{Disposable, CompositeDisposable} = require 'event-kit'
+Tooltip = null
 
 # Essential: Associates tooltips with HTML elements or selectors.
 #
@@ -71,7 +71,12 @@ class TooltipManager
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # tooltip.
   add: (target, options) ->
-    requireBootstrapTooltip()
+    if target.jquery
+      disposable = new CompositeDisposable
+      disposable.add @add(element, options) for element in target
+      return disposable
+
+    Tooltip ?= require './tooltip'
 
     {keyBindingCommand, keyBindingTarget} = options
 
@@ -83,15 +88,20 @@ class TooltipManager
       else if keystroke?
         options.title = getKeystroke(bindings)
 
-    $target = $(target)
-    $target.tooltip(_.defaults(options, @defaults))
+    tooltip = new Tooltip(target, _.defaults(options, @defaults))
 
-    new Disposable ->
-      tooltip = $target.data('bs.tooltip')
-      if tooltip?
-        tooltip.leave(currentTarget: target)
-        tooltip.hide()
-      $target.tooltip('destroy')
+    hideTooltip = ->
+      tooltip.leave(currentTarget: target)
+      tooltip.hide()
+
+    window.addEventListener('resize', hideTooltip)
+
+    disposable = new Disposable ->
+      window.removeEventListener('resize', hideTooltip)
+      hideTooltip()
+      tooltip.destroy()
+
+    disposable
 
 humanizeKeystrokes = (keystroke) ->
   keystrokes = keystroke.split(' ')
@@ -101,7 +111,3 @@ humanizeKeystrokes = (keystroke) ->
 getKeystroke = (bindings) ->
   if bindings?.length
     "<span class=\"keystroke\">#{humanizeKeystrokes(bindings[0].keystrokes)}</span>"
-  else
-
-requireBootstrapTooltip = _.once ->
-  atom.requireWithGlobals('bootstrap/js/tooltip', {jQuery: $})

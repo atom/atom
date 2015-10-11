@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
-Grim = require 'grim'
 
 # Essential: Represents a buffer annotation that remains logically stationary
 # even as the buffer changes. This is used to represent cursors, folds, snippet
@@ -335,7 +334,6 @@ class Marker
 
   destroyed: ->
     delete @displayBuffer.markers[@id]
-    @emit 'destroyed' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -369,35 +367,4 @@ class Marker
     @oldTailScreenPosition = newTailScreenPosition
     @wasValid = isValid
 
-    @emit 'changed', changeEvent if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-change', changeEvent
-
-  getPixelRange: ->
-    @displayBuffer.pixelRangeForScreenRange(@getScreenRange(), false)
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(Marker)
-
-  Marker::on = (eventName) ->
-    switch eventName
-      when 'changed'
-        Grim.deprecate("Use Marker::onDidChange instead")
-      when 'destroyed'
-        Grim.deprecate("Use Marker::onDidDestroy instead")
-      else
-        Grim.deprecate("Marker::on is deprecated. Use documented event subscription methods instead.")
-
-    EmitterMixin::on.apply(this, arguments)
-
-  Marker::getAttributes = ->
-    Grim.deprecate 'Use Marker::getProperties instead'
-    @getProperties()
-
-  Marker::setAttributes = (properties) ->
-    Grim.deprecate 'Use Marker::setProperties instead'
-    @setProperties(properties)
-
-  Marker::matchesAttributes = (attributes) ->
-    Grim.deprecate 'Use Marker::matchesProperties instead'
-    @matchesProperties(attributes)

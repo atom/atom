@@ -23,8 +23,6 @@ module.exports = (grunt) ->
   importFallbackVariables = (lessFilePath) ->
     if lessFilePath.indexOf('static') is 0
       false
-    else if lessFilePath.indexOf('atom-space-pen-views') isnt -1
-      false
     else
       true
 

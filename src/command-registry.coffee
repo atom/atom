@@ -1,7 +1,6 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 _ = require 'underscore-plus'
-{$} = require './space-pen-extensions'
 
 SequenceCount = 0
 
@@ -138,8 +137,6 @@ class CommandRegistry
   #  * `name` The name of the command. For example, `user:insert-date`.
   #  * `displayName` The display name of the command. For example,
   #    `User: Insert Date`.
-  #  * `jQuery` Present if the command was registered with the legacy
-  #    `$::command` method.
   findCommands: ({target}) ->
     commandNames = new Set
     commands = []
@@ -226,6 +223,9 @@ class CommandRegistry
       immediatePropagationStopped = true
     Object.defineProperty dispatchedEvent, 'abortKeyBinding', value: ->
       event.abortKeyBinding?()
+
+    for key in Object.keys(event)
+      dispatchedEvent[key] = event[key]
 
     @emitter.emit 'will-dispatch', dispatchedEvent
 

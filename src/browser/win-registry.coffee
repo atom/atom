@@ -40,9 +40,9 @@ exports.installContextMenu = (callback) ->
   installMenu = (keyPath, arg, callback) ->
     args = [keyPath, '/ve', '/d', 'Open with Atom']
     addToRegistry args, ->
-      args = [keyPath, '/v', 'Icon', '/d', process.execPath]
+      args = [keyPath, '/v', 'Icon', '/d', "\"#{process.execPath}\""]
       addToRegistry args, ->
-        args = ["#{keyPath}\\command", '/ve', '/d', "#{process.execPath} \"#{arg}\""]
+        args = ["#{keyPath}\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
         addToRegistry(args, callback)
 
   installMenu fileKeyPath, '%1', ->
