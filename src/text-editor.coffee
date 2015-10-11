@@ -885,9 +885,16 @@ class TextEditor extends Model
           linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
         # If selected line range is followed by a fold, one line below on screen
-        # could be multiple lines in the buffer.
-        followingScreenRow = @screenRowForBufferRow(linesRange.end.row) + 1
-        followingBufferRow = @bufferRowForScreenRow(followingScreenRow)
+        # could be multiple lines in the buffer. But at the same time, if the
+        # next buffer row is wrapped, one line in the buffer can represent many
+        # screen rows.
+        [nextBufferRowScreenStart, nextBufferRowScreenEnd] = @displayBuffer.rowMap.screenRowRangeForBufferRow(linesRange.end.row)
+        if nextBufferRowScreenEnd - nextBufferRowScreenStart > 1
+          followingScreenRow = nextBufferRowScreenEnd
+          followingBufferRow = @bufferRowForScreenRow(followingScreenRow)
+        else
+          followingScreenRow = @screenRowForBufferRow(linesRange.end.row) + 1
+          followingBufferRow = @bufferRowForScreenRow(followingScreenRow)
         insertDelta = followingBufferRow - linesRange.end.row
 
         # Any folds in the text that is moved will need to be re-created.

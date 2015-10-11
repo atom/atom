@@ -2075,6 +2075,27 @@ describe "TextEditor", ->
             expect(editor.getSelectedBufferRanges()).toEqual [[[4, 12], [4, 13]], [[4, 2], [4, 9]]]
             expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
 
+        describe "when the selections are above a wrapped line", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setEditorWidthInChars(80)
+            editor.setText("""
+            1
+            2
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+            3
+            4
+            """)
+
+          it 'moves the lines past the soft wrapped line', ->
+            editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 0]]])
+
+            editor.moveLineDown()
+
+            expect(editor.lineTextForBufferRow(0)).not.toBe "2"
+            expect(editor.lineTextForBufferRow(1)).toBe "1"
+            expect(editor.lineTextForBufferRow(2)).toBe "2"
+
     describe ".insertText(text)", ->
       describe "when there is a single selection", ->
         beforeEach ->
