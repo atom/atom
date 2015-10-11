@@ -1,5 +1,6 @@
 fs = require 'fs-plus'
 path = require 'path'
+_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
   cp: (source, destination, {filter}={}) ->
@@ -66,3 +67,7 @@ module.exports = (grunt) ->
       engines?.atom?
     catch error
       false
+
+  fillTemplate: (templatePath, outputPath, data) ->
+    content = _.template(String(fs.readFileSync(templatePath)))(data)
+    grunt.file.write(outputPath, content)

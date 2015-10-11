@@ -243,3 +243,61 @@ describe "TextEditorElement", ->
       expect(element.hasAttribute('mini')).toBe true
       element.getModel().setMini(false)
       expect(element.hasAttribute('mini')).toBe false
+
+  describe "events", ->
+    element = null
+
+    beforeEach ->
+      element = new TextEditorElement
+      element.getModel().setText("lorem\nipsum\ndolor\nsit\namet")
+      element.setUpdatedSynchronously(true)
+      element.setHeight(20)
+      element.setWidth(20)
+
+    describe "::onDidChangeScrollTop(callback)", ->
+      it "triggers even when subscribing before attaching the element", ->
+        positions = []
+        subscription1 = element.onDidChangeScrollTop (p) -> positions.push(p)
+        jasmine.attachToDOM(element)
+        subscription2 = element.onDidChangeScrollTop (p) -> positions.push(p)
+
+        positions.length = 0
+        element.setScrollTop(10)
+        expect(positions).toEqual([10, 10])
+
+        element.remove()
+        jasmine.attachToDOM(element)
+
+        positions.length = 0
+        element.setScrollTop(20)
+        expect(positions).toEqual([20, 20])
+
+        subscription1.dispose()
+
+        positions.length = 0
+        element.setScrollTop(30)
+        expect(positions).toEqual([30])
+
+    describe "::onDidChangeScrollLeft(callback)", ->
+      it "triggers even when subscribing before attaching the element", ->
+        positions = []
+        subscription1 = element.onDidChangeScrollLeft (p) -> positions.push(p)
+        jasmine.attachToDOM(element)
+        subscription2 = element.onDidChangeScrollLeft (p) -> positions.push(p)
+
+        positions.length = 0
+        element.setScrollLeft(10)
+        expect(positions).toEqual([10, 10])
+
+        element.remove()
+        jasmine.attachToDOM(element)
+
+        positions.length = 0
+        element.setScrollLeft(20)
+        expect(positions).toEqual([20, 20])
+
+        subscription1.dispose()
+
+        positions.length = 0
+        element.setScrollLeft(30)
+        expect(positions).toEqual([30])

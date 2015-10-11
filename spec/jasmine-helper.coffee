@@ -1,8 +1,6 @@
 fs = require 'fs'
 
 module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
-  {$, $$} = require '../src/space-pen-extensions'
-
   window[key] = value for key, value of require '../vendor/jasmine'
 
   {TerminalReporter} = require 'jasmine-tagged'
@@ -25,7 +23,7 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
         log(str)
       onComplete: (runner) ->
         fs.closeSync(logStream) if logStream?
-        if process.env.JANKY_SHA1
+        if process.env.JANKY_SHA1 or process.env.CI
           grim = require 'grim'
 
           if grim.getDeprecationsLength() > 0
@@ -47,7 +45,9 @@ module.exports.runSpecSuite = (specSuite, logFile, logErrors=true) ->
   jasmineEnv.addReporter(timeReporter)
   jasmineEnv.setIncludedTags([process.platform])
 
-  $('body').append $$ -> @div id: 'jasmine-content'
+  jasmineContent = document.createElement('div')
+  jasmineContent.setAttribute('id', 'jasmine-content')
+  document.body.appendChild(jasmineContent)
 
   jasmineEnv.execute()
 

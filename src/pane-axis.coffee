@@ -1,16 +1,20 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 {flatten} = require 'underscore-plus'
-Serializable = require 'serializable'
 Model = require './model'
 
 module.exports =
 class PaneAxis extends Model
   atom.deserializers.add(this)
-  Serializable.includeInto(this)
 
   parent: null
   container: null
   orientation: null
+
+  @deserialize: (state, params) ->
+    container = params?.container
+    state.container = container
+    state.children = state.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
+    new this(state)
 
   constructor: ({@container, @orientation, children, flexScale}={}) ->
     @emitter = new Emitter
@@ -21,12 +25,8 @@ class PaneAxis extends Model
       @addChild(child) for child in children
     @flexScale = flexScale ? 1
 
-  deserializeParams: (params) ->
-    {container} = params
-    params.children = params.children.map (childState) -> atom.deserializers.deserialize(childState, {container})
-    params
-
-  serializeParams: ->
+  serialize: ->
+    deserializer: 'PaneAxis'
     children: @children.map (child) -> child.serialize()
     orientation: @orientation
     flexScale: @flexScale

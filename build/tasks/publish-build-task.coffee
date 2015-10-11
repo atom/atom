@@ -6,6 +6,7 @@ async = require 'async'
 fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
+{convertVersion} = require 'grunt-electron-installer'
 
 grunt = null
 
@@ -22,7 +23,7 @@ module.exports = (gruntObject) ->
   grunt.registerTask 'publish-build', 'Publish the built app', ->
     tasks = []
     tasks.push('build-docs', 'prepare-docs') if process.platform is 'darwin'
-    tasks.push('upload-assets') if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH is 'master'
+    tasks.push('upload-assets')
     grunt.task.run(tasks)
 
   grunt.registerTask 'prepare-docs', 'Move api.json to atom-api.json', ->
@@ -31,6 +32,15 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
+    branchName = process.env.JANKY_BRANCH
+    switch branchName
+      when 'stable'
+        isPrerelease = false
+      when 'beta'
+        isPrerelease = true
+      else
+        return
+
     doneCallback = @async()
     startTime = Date.now()
     done = (args...) ->
@@ -46,7 +56,7 @@ module.exports = (gruntObject) ->
 
     zipAssets buildDir, assets, (error) ->
       return done(error) if error?
-      getAtomDraftRelease (error, release) ->
+      getAtomDraftRelease isPrerelease, branchName, (error, release) ->
         return done(error) if error?
         assetNames = (asset.assetName for asset in assets)
         deleteExistingAssets release, assetNames, (error) ->
@@ -58,17 +68,20 @@ getAssets = ->
 
   {version} = grunt.file.readJSON('package.json')
   buildDir = grunt.config.get('atom.buildDir')
+  appName = grunt.config.get('atom.appName')
+  appFileName = grunt.config.get('atom.appFileName')
 
   switch process.platform
     when 'darwin'
       [
-        {assetName: 'atom-mac.zip', sourcePath: 'Atom.app'}
+        {assetName: 'atom-mac.zip', sourcePath: appName}
         {assetName: 'atom-mac-symbols.zip', sourcePath: 'Atom.breakpad.syms'}
         {assetName: 'atom-api.json', sourcePath: 'atom-api.json'}
       ]
     when 'win32'
-      assets = [{assetName: 'atom-windows.zip', sourcePath: 'Atom'}]
-      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{version}-full.nupkg", "atom-#{version}-delta.nupkg"]
+      nupkgVersion = convertVersion(version)
+      assets = [{assetName: 'atom-windows.zip', sourcePath: appName}]
+      for squirrelAsset in ['AtomSetup.exe', 'RELEASES', "atom-#{nupkgVersion}-full.nupkg", "atom-#{nupkgVersion}-delta.nupkg"]
         cp path.join(buildDir, 'installer', squirrelAsset), path.join(buildDir, squirrelAsset)
         assets.push({assetName: squirrelAsset, sourcePath: assetName})
       assets
@@ -79,7 +92,7 @@ getAssets = ->
         arch = 'amd64'
 
       # Check for a Debian build
-      sourcePath = "#{buildDir}/atom-#{version}-#{arch}.deb"
+      sourcePath = "#{buildDir}/#{appFileName}-#{version}-#{arch}.deb"
       assetName = "atom-#{arch}.deb"
 
       # Check for a Fedora build
@@ -106,9 +119,9 @@ logError = (message, error, details) ->
 zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourcePath, assetName, callback) ->
     if process.platform is 'win32'
-      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} #{sourcePath}"
+      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} \"#{sourcePath}\""
     else
-      zipCommand = "zip -r --symlinks #{assetName} #{sourcePath}"
+      zipCommand = "zip -r --symlinks '#{assetName}' '#{sourcePath}'"
     options = {cwd: directory, maxBuffer: Infinity}
     child_process.exec zipCommand, options, (error, stdout, stderr) ->
       logError("Zipping #{sourcePath} failed", error, stderr) if error?
@@ -120,9 +133,9 @@ zipAssets = (buildDir, assets, callback) ->
     tasks.push(zip.bind(this, buildDir, sourcePath, assetName))
   async.parallel(tasks, callback)
 
-getAtomDraftRelease = (callback) ->
+getAtomDraftRelease = (isPrerelease, branchName, callback) ->
   atomRepo = new GitHub({repo: 'atom/atom', token})
-  atomRepo.getReleases (error, releases=[]) ->
+  atomRepo.getReleases {prerelease: isPrerelease}, (error, releases=[]) ->
     if error?
       logError('Fetching atom/atom releases failed', error, releases)
       callback(error)
@@ -142,9 +155,9 @@ getAtomDraftRelease = (callback) ->
             firstDraft.assets = assets
             callback(null, firstDraft)
       else
-        createAtomDraftRelease(callback)
+        createAtomDraftRelease(isPrerelease, branchName, callback)
 
-createAtomDraftRelease = (callback) ->
+createAtomDraftRelease = (isPrerelease, branchName, callback) ->
   {version} = require('../../package.json')
   options =
     uri: 'https://api.github.com/repos/atom/atom/releases'
@@ -152,6 +165,8 @@ createAtomDraftRelease = (callback) ->
     headers: defaultHeaders
     json:
       tag_name: "v#{version}"
+      prerelease: isPrerelease
+      target_commitish: branchName
       name: version
       draft: true
       body: """

@@ -6,12 +6,11 @@ remote = require 'remote'
 shell = require 'shell'
 
 _ = require 'underscore-plus'
-{deprecate, includeDeprecatedAPIs} = require 'grim'
+{deprecate} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
-{$} = require './space-pen-extensions'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
@@ -33,38 +32,6 @@ class Atom extends Model
     startTime = Date.now()
     atom = @deserialize(@loadState(mode)) ? new this({mode, @version})
     atom.deserializeTimings.atom = Date.now() -  startTime
-
-    if includeDeprecatedAPIs
-      workspaceViewDeprecationMessage = """
-        atom.workspaceView is no longer available.
-        In most cases you will not need the view. See the Workspace docs for
-        alternatives: https://atom.io/docs/api/latest/Workspace.
-        If you do need the view, please use `atom.views.getView(atom.workspace)`,
-        which returns an HTMLElement.
-      """
-
-      serviceHubDeprecationMessage = """
-        atom.services is no longer available. To register service providers and
-        consumers, use the `providedServices` and `consumedServices` fields in
-        your package's package.json.
-      """
-
-      Object.defineProperty atom, 'workspaceView',
-        get: ->
-          deprecate(workspaceViewDeprecationMessage)
-          atom.__workspaceView
-        set: (newValue) ->
-          deprecate(workspaceViewDeprecationMessage)
-          atom.__workspaceView = newValue
-
-      Object.defineProperty atom, 'services',
-        get: ->
-          deprecate(serviceHubDeprecationMessage)
-          atom.packages.serviceHub
-        set: (newValue) ->
-          deprecate(serviceHubDeprecationMessage)
-          atom.packages.serviceHub = newValue
-
     atom
 
   # Deserializes the Atom environment from a state object
@@ -123,7 +90,7 @@ class Atom extends Model
   @getCurrentWindow: ->
     remote.getCurrentWindow()
 
-  workspaceViewParentSelector: 'body'
+  workspaceParentSelectorctor: 'body'
   lastUncaughtError: null
 
   ###
@@ -213,7 +180,6 @@ class Atom extends Model
         @openDevTools()
         @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
-      @emit 'uncaught-error', arguments... if includeDeprecatedAPIs
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
     @disposables?.dispose()
@@ -252,10 +218,6 @@ class Atom extends Model
 
     @config = new Config({configDirPath, resourcePath})
     @keymaps = new KeymapManager({configDirPath, resourcePath})
-
-    if includeDeprecatedAPIs
-      @keymap = @keymaps # Deprecated
-
     @keymaps.subscribeToFileReadFailure()
     @tooltips = new TooltipManager
     @notifications = new NotificationManager
@@ -269,14 +231,7 @@ class Atom extends Model
     @contextMenu = new ContextMenuManager({resourcePath, devMode})
     @menu = new MenuManager({resourcePath})
     @clipboard = new Clipboard()
-
     @grammars = @deserializers.deserialize(@state.grammars ? @state.syntax) ? new GrammarRegistry()
-
-    if includeDeprecatedAPIs
-      Object.defineProperty this, 'syntax', get: ->
-        deprecate "The atom.syntax global is deprecated. Use atom.grammars instead."
-        @grammars
-
     @disposables.add @packages.onDidActivateInitialPackages => @watchThemes()
 
     Project = require './project'
@@ -484,7 +439,7 @@ class Atom extends Model
   # Extended: Focus the current window.
   focus: ->
     ipc.send('call-window-method', 'focus')
-    $(window).focus()
+    window.focus()
 
   # Extended: Show the current window.
   show: ->
@@ -501,10 +456,6 @@ class Atom extends Model
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
     @getCurrentWindow().isMaximized()
-
-  isMaximixed: ->
-    deprecate "Use atom.isMaximized() instead"
-    @isMaximized()
 
   maximize: ->
     ipc.send('call-window-method', 'maximize')
@@ -622,9 +573,11 @@ class Atom extends Model
     {safeMode} = @getLoadSettings()
 
     CommandInstaller = require './command-installer'
-    CommandInstaller.installAtomCommand false, (error) ->
+
+    commandInstaller = new CommandInstaller(@getVersion())
+    commandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
-    CommandInstaller.installApmCommand false, (error) ->
+    commandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
     @loadConfig()
@@ -680,7 +633,6 @@ class Atom extends Model
   # Essential: Visually and audibly trigger a beep.
   beep: ->
     shell.beep() if @config.get('core.audioBeep')
-    @__workspaceView?.trigger 'beep'
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
@@ -761,24 +713,16 @@ class Atom extends Model
     @project ?= @deserializers.deserialize(@state.project) ? new Project()
     @deserializeTimings.project = Date.now() - startTime
 
-  deserializeWorkspaceView: ->
+  deserializeWorkspace: ->
     Workspace = require './workspace'
-
-    if includeDeprecatedAPIs
-      WorkspaceView = require './workspace-view'
 
     startTime = Date.now()
     @workspace = Workspace.deserialize(@state.workspace) ? new Workspace
-
-    workspaceElement = @views.getView(@workspace)
-
-    if includeDeprecatedAPIs
-      @__workspaceView = workspaceElement.__spacePenView
-
     @deserializeTimings.workspace = Date.now() - startTime
 
+    workspaceElement = @views.getView(@workspace)
     @keymaps.defaultTarget = workspaceElement
-    document.querySelector(@workspaceViewParentSelector).appendChild(workspaceElement)
+    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
   deserializePackageStates: ->
     @packages.packageStates = @state.packageStates ? {}
@@ -787,7 +731,7 @@ class Atom extends Model
   deserializeEditorWindow: ->
     @deserializePackageStates()
     @deserializeProject()
-    @deserializeWorkspaceView()
+    @deserializeWorkspace()
 
   loadConfig: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
@@ -897,11 +841,7 @@ class Atom extends Model
     ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
     ipc.send('call-window-method', 'setMenuBarVisibility', not autoHide)
 
-if includeDeprecatedAPIs
-  # Deprecated: Callers should be converted to use atom.deserializers
-  Atom::registerRepresentationClass = ->
-    deprecate("Callers should be converted to use atom.deserializers")
-
-  # Deprecated: Callers should be converted to use atom.deserializers
-  Atom::registerRepresentationClasses = ->
-    deprecate("Callers should be converted to use atom.deserializers")
+# Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
+Promise.prototype.done = (callback) ->
+  deprecate("Atom now uses ES6 Promises instead of Q. Call promise.then instead of promise.done")
+  @then(callback)
