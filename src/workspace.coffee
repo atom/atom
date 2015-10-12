@@ -566,6 +566,19 @@ class Workspace extends Model
   confirmClose: (options) ->
     @paneContainer.confirmClose(options)
 
+  # Create a duplicate view of the active pane item if it is an {TextEditor}.
+  #
+  # Adds a copy of the active item to the active pane if the item is an
+  # {TextEditor}, then sets the copy as the active item. Returns the new
+  # {TextEditor} or 'undefined' if the current active item is not an
+  # {TextEditor}.
+  newViewForActiveTextEditor: ->
+    newItem = @getActiveTextEditor()?.copy()
+    if newItem
+      @getActivePane().addItem(newItem)
+      @getActivePane().setActiveItem(newItem)
+    newItem
+
   # Save the active pane item.
   #
   # If the active pane item currently has a URI according to the item's
