@@ -114,7 +114,7 @@ describe "TextEditor", ->
       atom.config.set('core.fileEncoding', 'utf16le')
 
       waitsForPromise ->
-        atom.workspace.open('a').then (o) -> editor1 = o
+        atom.workspace.open('dir/a').then (o) -> editor1 = o
 
       runs ->
         expect(editor1.getTabLength()).toBe 4
@@ -128,7 +128,7 @@ describe "TextEditor", ->
         atom.config.set('core.fileEncoding', 'macroman')
 
       waitsForPromise ->
-        atom.workspace.open('b').then (o) -> editor2 = o
+        atom.workspace.open('dir/b').then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getTabLength()).toBe 8
@@ -144,13 +144,13 @@ describe "TextEditor", ->
       atom.config.set('core.fileEncoding', 'macroman', scopeSelector: '.js')
 
       waitsForPromise ->
-        atom.workspace.open('a').then (o) -> editor1 = o
+        atom.workspace.open('dir/a').then (o) -> editor1 = o
 
       runs ->
         expect(editor1.getEncoding()).toBe 'utf16le'
 
       waitsForPromise ->
-        atom.workspace.open('test.js').then (o) -> editor2 = o
+        atom.workspace.open('sample-with-comments.js').then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getEncoding()).toBe 'macroman'
