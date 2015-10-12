@@ -863,6 +863,7 @@ class TextEditor extends Model
     selections = selections.reverse()
 
     @transact =>
+      @consolidateSelections()
       newSelectionRanges = []
 
       while selections.length > 0
