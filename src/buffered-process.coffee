@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 ChildProcess = require 'child_process'
 {Emitter} = require 'event-kit'
 path = require 'path'
+psTree = require 'ps-tree'
 
 # Extended: A wrapper which provides standard error/output line buffering for
 # Node's ChildProcess.
@@ -159,6 +160,20 @@ class BufferedProcess
           process.kill(pid)
       @killProcess()
 
+  # Kill all child processes spawned by a spawned child process
+  #
+  # Uses ps-tree, so it works on *nix systems only
+  killOnNix: ->
+    return unless @process?
+
+    parentPid = @process.pid
+    psTree parentPid, (err, children) =>
+      pidsToKill = children.map (p) -> p.PID
+      for pid in pidsToKill
+        try
+          process.kill(pid)
+      @killProcess()
+
   killProcess: ->
     @process?.kill()
     @process = null
@@ -187,7 +202,7 @@ class BufferedProcess
     if process.platform is 'win32'
       @killOnWindows()
     else
-      @killProcess()
+      @killOnNix()
 
     undefined
 
