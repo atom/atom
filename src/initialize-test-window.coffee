@@ -30,6 +30,10 @@ try
   require('module').globalPaths.push(exportsPath)
   process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
 
+  # Shim process stdout and stderr so that they can be logged out to console.
+  process.stdout = remote.process.stdout
+  process.stderr = remote.process.stderr
+
   document.title = "Spec Suite"
 
   legacyTestRunner = require(getWindowLoadSettings().legacyTestRunnerPath)
