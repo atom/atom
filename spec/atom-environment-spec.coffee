@@ -213,7 +213,7 @@ describe "AtomEnvironment", ->
 
   describe "::unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      atomEnvironment = new AtomEnvironment
+      atomEnvironment = new AtomEnvironment(setRepresentedFilename: ->)
       spyOn(atomEnvironment, 'saveStateSync')
 
       workspaceState = atomEnvironment.workspace.serialize()
@@ -229,7 +229,7 @@ describe "AtomEnvironment", ->
 
   describe "::destroy()", ->
     it "unsubscribes from all buffers", ->
-      atomEnvironment = new AtomEnvironment
+      atomEnvironment = new AtomEnvironment(setRepresentedFilename: ->)
 
       waitsForPromise ->
         atomEnvironment.workspace.open("sample.js")

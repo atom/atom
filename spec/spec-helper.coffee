@@ -28,12 +28,6 @@ atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 document.querySelector('html').style.overflow = 'auto'
 document.body.style.overflow = 'auto'
 
-# Allow document.title to be assigned in specs without screwing up spec window title
-documentTitle = null
-Object.defineProperty document, 'title',
-  get: -> documentTitle
-  set: (title) -> documentTitle = title
-
 Set.prototype.jasmineToString = ->
   result = "Set {"
   first = true
@@ -112,7 +106,6 @@ beforeEach ->
   # make editor display updates synchronous
   TextEditorElement::setUpdatedSynchronously(true)
 
-  spyOn(atom, "setRepresentedFilename")
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 

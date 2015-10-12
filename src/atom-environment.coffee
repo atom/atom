@@ -104,7 +104,10 @@ class AtomEnvironment extends Model
   ###
 
   # Call .loadOrCreate instead
-  constructor: ->
+  constructor: (params={}) ->
+    {setRepresentedFilename} = params
+    @setRepresentedFilename = setRepresentedFilename if setRepresentedFilename?
+
     @state = {version: @constructor.version}
 
     @loadTime = null

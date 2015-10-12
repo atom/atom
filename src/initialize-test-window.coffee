@@ -42,7 +42,7 @@ try
     logFile: getWindowLoadSettings().logFile
     headless: getWindowLoadSettings().headless
     testPaths: getWindowLoadSettings().testPaths
-    buildAtomEnvironment: -> new AtomEnvironment
+    buildAtomEnvironment: (params) -> new AtomEnvironment(params)
     legacyTestRunner: legacyTestRunner
   })
 catch error

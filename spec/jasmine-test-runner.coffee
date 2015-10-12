@@ -5,10 +5,16 @@ path = require 'path'
 ipc = require 'ipc'
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
-  window.atom = buildAtomEnvironment()
-
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
+
+  # Allow document.title to be assigned in specs without screwing up spec window title
+  documentTitle = null
+  Object.defineProperty document, 'title',
+    get: -> documentTitle
+    set: (title) -> documentTitle = title
+
+  window.atom = buildAtomEnvironment({setRepresentedFilename: jasmine.createSpy('setRepresentedFilename')})
 
   require './spec-helper'
   disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI
