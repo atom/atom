@@ -193,6 +193,8 @@ class AtomEnvironment extends Model
     @registerDefaultDeserializers()
     @registerDefaultViewProviders()
 
+    @installUncaughtErrorHandler()
+
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
@@ -579,8 +581,6 @@ class AtomEnvironment extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
-    @installUncaughtErrorHandler()
-
     @commandInstaller.installAtomCommand false, (error) ->
       console.warn error.message if error?
     @commandInstaller.installApmCommand false, (error) ->

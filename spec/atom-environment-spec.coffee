@@ -48,10 +48,6 @@ describe "AtomEnvironment", ->
     beforeEach ->
       spyOn atom, 'openDevTools'
       spyOn atom, 'executeJavaScriptInDevTools'
-      atom.installUncaughtErrorHandler()
-
-    afterEach: ->
-      atom.uninstallUncaughtErrorHandler()
 
     it "will open the dev tools when an error is triggered", ->
       try
