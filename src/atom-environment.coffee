@@ -261,6 +261,9 @@ class AtomEnvironment extends Model
 
     @packages.reset()
 
+    # TODO: reset workspace after de-activating packages, but *before* resetting
+    # @project.
+
     @project.reset(@packages)
 
     @views.clear()
