@@ -72,8 +72,6 @@ beforeEach ->
 
   atom.project.setPaths([path.join(@specDirectory, 'fixtures')])
 
-  atom.themes.workspace = atom.workspace
-
   atom.workspaceParentSelectorctor = '#jasmine-content'
 
   window.resetTimeouts()
@@ -132,8 +130,6 @@ afterEach ->
   # unless jasmine.getEnv().currentSpec.results().passed()
   #   jasmine.getEnv().specFilter = -> false
   #
-  atom.themes.workspace = null
-
   atom.reset()
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
