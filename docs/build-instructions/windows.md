@@ -20,7 +20,7 @@
   * [Visual Studio Express 2013 or 2015 for Windows Desktop](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_2)
     * For VS 2015, be sure to customize the installation to include Visual C++. It's not installed by default.
     * Some have experienced issues with Node locating C++ on VS 2015. If so, try VS 2013.
-  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x or 2.x)
+  * [node.js](http://nodejs.org/download/) (0.10.x, 0.12.x or 4.x) or [io.js](https://iojs.org) (1.x or 2.x)
   * [Python](https://www.python.org/downloads/) v2.7.x (required by [node-gyp](https://github.com/TooTallNate/node-gyp))
   * [GitHub Desktop](http://desktop.github.com/)
 
