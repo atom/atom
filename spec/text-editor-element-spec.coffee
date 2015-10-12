@@ -1,5 +1,6 @@
 TextEditorElement = require '../src/text-editor-element'
 TextEditor = require '../src/text-editor'
+{Disposable} = require 'event-kit'
 
 # The rest of text-editor-component-spec will be moved to this file when React
 # is eliminated. This covers only concerns related to the wrapper element for now
@@ -159,6 +160,7 @@ describe "TextEditorElement", ->
         initialThemeLoadComplete
       spyOn(atom.themes, 'onDidChangeActiveThemes').andCallFake (fn) ->
         themeReloadCallback = fn
+        new Disposable
 
       atom.config.set("editor.useShadowDOM", false)
 
