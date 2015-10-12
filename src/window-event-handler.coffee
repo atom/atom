@@ -16,9 +16,10 @@ class WindowEventHandler
     @on(ipc, 'command', @handleIPCCommand)
     @on(ipc, 'context-command', @handleIPCContextCommand)
 
+    @previousOnbeforeunloadHandler = window.onbeforeunload
+    window.onbeforeunload = @handleWindowBeforeunload
     @addEventListener(window, 'focus', @handleWindowFocus)
     @addEventListener(window, 'blur', @handleWindowBlur)
-    @addEventListener(window, 'beforeunload', @handleWindowBeforeunload)
     @addEventListener(window, 'unload', @handleWindowUnload)
 
     @addEventListener(document, 'keydown', @handleDocumentKeydown)
@@ -60,6 +61,7 @@ class WindowEventHandler
     bindCommandToAction('core:cut', 'cut')
 
   unsubscribe: ->
+    window.onbeforeunload = @previousOnbeforeunloadHandler
     @subscriptions.dispose()
 
   on: (target, eventName, handler) ->
