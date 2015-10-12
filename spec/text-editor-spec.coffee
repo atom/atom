@@ -2004,7 +2004,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-        describe "when there are multiple selections and the following row is a folded row", ->
+        describe "when the following row is a folded row", ->
           it "moves the lines spanned by the selection to the following row, but preserves the folded code", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
