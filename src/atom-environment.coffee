@@ -185,9 +185,6 @@ class AtomEnvironment extends Model
     })
     @themes.workspace = @workspace
 
-    @themes.loadBaseStylesheets()
-    @initialStyleElements = @styles.getSnapshot()
-
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
 
@@ -239,7 +236,7 @@ class AtomEnvironment extends Model
         when 'atom://.atom/init-script'
           @workspace.open(@getUserInitScriptPath())
 
-  reset: ->
+  reset: (params) ->
     @deserializers.clear()
     @registerDefaultDeserializers()
 
@@ -252,7 +249,7 @@ class AtomEnvironment extends Model
     @commands.clear()
     registerDefaultCommands(this)
 
-    @styles.restoreSnapshot(@initialStyleElements)
+    @styles.restoreSnapshot(params?.stylesSnapshot ? [])
 
     @menu.clear()
 
@@ -594,6 +591,7 @@ class AtomEnvironment extends Model
       console.warn error.message if error?
 
     @config.load()
+    @themes.loadBaseStylesheets()
     @setBodyPlatformClass()
 
     document.head.appendChild(@styles.buildStylesElement())
