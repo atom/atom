@@ -38,7 +38,10 @@ class Project extends Model
     @setPaths([])
 
   reset: (packageManager) ->
-    buffer.destroy() for buffer in @buffers
+    @emitter.dispose()
+    @emitter = new Emitter
+
+    buffer?.destroy() for buffer in @buffers
     @buffers = []
     @setPaths([])
     @consumeServices(packageManager)
