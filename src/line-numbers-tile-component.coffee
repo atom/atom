@@ -1,18 +1,19 @@
 _ = require 'underscore-plus'
-WrapperDiv = document.createElement('div')
 
 module.exports =
 class LineNumbersTileComponent
-  @createDummy: ->
-    new LineNumbersTileComponent({id: -1})
+  @createDummy: (domElementPool) ->
+    new LineNumbersTileComponent({id: -1, domElementPool})
 
-  constructor: ({@id}) ->
+  constructor: ({@id, @domElementPool}) ->
     @lineNumberNodesById = {}
-    @domNode = document.createElement("div")
-    @domNode.classList.add("tile")
+    @domNode = @domElementPool.buildElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
     @domNode.style.top = 0 # Cover the space occupied by a dummy lineNumber
+
+  destroy: ->
+    @domElementPool.freeElementAndDescendants(@domNode)
 
   getDomNode: ->
     @domNode
@@ -47,7 +48,9 @@ class LineNumbersTileComponent
       @oldTileState.zIndex = @newTileState.zIndex
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
-      node.remove() for id, node of @lineNumberNodesById
+      for id, node of @lineNumberNodesById
+        @domElementPool.freeElementAndDescendants(node)
+
       @oldState.tiles[@id] = {lineNumbers: {}}
       @oldTileState = @oldState.tiles[@id]
       @lineNumberNodesById = {}
@@ -57,11 +60,11 @@ class LineNumbersTileComponent
 
   updateLineNumbers: ->
     newLineNumberIds = null
-    newLineNumbersHTML = null
+    newLineNumberNodes = null
 
     for id, lineNumberState of @oldTileState.lineNumbers
       unless @newTileState.lineNumbers.hasOwnProperty(id)
-        @lineNumberNodesById[id].remove()
+        @domElementPool.freeElementAndDescendants(@lineNumberNodesById[id])
         delete @lineNumberNodesById[id]
         delete @oldTileState.lineNumbers[id]
 
@@ -70,45 +73,55 @@ class LineNumbersTileComponent
         @updateLineNumberNode(id, lineNumberState)
       else
         newLineNumberIds ?= []
-        newLineNumbersHTML ?= ""
+        newLineNumberNodes ?= []
         newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
+        newLineNumberNodes.push(@buildLineNumberNode(lineNumberState))
         @oldTileState.lineNumbers[id] = _.clone(lineNumberState)
 
-    if newLineNumberIds?
-      WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = _.toArray(WrapperDiv.children)
+    return unless newLineNumberIds?
 
-      node = @domNode
-      for id, i in newLineNumberIds
-        lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[id] = lineNumberNode
-        node.appendChild(lineNumberNode)
+    for id, i in newLineNumberIds
+      lineNumberNode = newLineNumberNodes[i]
+      @lineNumberNodesById[id] = lineNumberNode
+      if nextNode = @findNodeNextTo(lineNumberNode)
+        @domNode.insertBefore(lineNumberNode, nextNode)
+      else
+        @domNode.appendChild(lineNumberNode)
 
+  findNodeNextTo: (node) ->
+    for nextNode in @domNode.children
+      return nextNode if @screenRowForNode(node) < @screenRowForNode(nextNode)
     return
 
-  buildLineNumberHTML: (lineNumberState) ->
+  screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
+
+  buildLineNumberNode: (lineNumberState) ->
     {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
-    if screenRow?
-      style = "position: absolute; top: #{top}px; z-index: #{zIndex};"
-    else
-      style = "visibility: hidden;"
+
     className = @buildLineNumberClassName(lineNumberState)
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
+    lineNumberNode = @domElementPool.buildElement("div", className)
+    lineNumberNode.dataset.screenRow = screenRow
+    lineNumberNode.dataset.bufferRow = bufferRow
 
-    "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
+    @setLineNumberInnerNodes(bufferRow, softWrapped, lineNumberNode)
+    lineNumberNode
 
-  buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
+  setLineNumberInnerNodes: (bufferRow, softWrapped, lineNumberNode) ->
+    @domElementPool.freeDescendants(lineNumberNode)
+
     {maxLineNumberDigits} = @newState
 
     if softWrapped
       lineNumber = "•"
     else
       lineNumber = (bufferRow + 1).toString()
+    padding = _.multiplyString("\u00a0", maxLineNumberDigits - lineNumber.length)
 
-    padding = _.multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-    iconHTML = '<div class="icon-right"></div>'
-    padding + lineNumber + iconHTML
+    textNode = @domElementPool.buildText(padding + lineNumber)
+    iconRight = @domElementPool.buildElement("div", "icon-right")
+
+    lineNumberNode.appendChild(textNode)
+    lineNumberNode.appendChild(iconRight)
 
   updateLineNumberNode: (lineNumberId, newLineNumberState) ->
     oldLineNumberState = @oldTileState.lineNumbers[lineNumberId]
@@ -119,18 +132,15 @@ class LineNumbersTileComponent
       oldLineNumberState.foldable = newLineNumberState.foldable
       oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
 
-    unless oldLineNumberState.top is newLineNumberState.top
-      node.style.top = newLineNumberState.top + 'px'
+    unless oldLineNumberState.screenRow is newLineNumberState.screenRow and oldLineNumberState.bufferRow is newLineNumberState.bufferRow
+      @setLineNumberInnerNodes(newLineNumberState.bufferRow, newLineNumberState.softWrapped, node)
       node.dataset.screenRow = newLineNumberState.screenRow
-      oldLineNumberState.top = newLineNumberState.top
+      node.dataset.bufferRow = newLineNumberState.bufferRow
       oldLineNumberState.screenRow = newLineNumberState.screenRow
-
-    unless oldLineNumberState.zIndex is newLineNumberState.zIndex
-      node.style.zIndex = newLineNumberState.zIndex
-      oldLineNumberState.zIndex = newLineNumberState.zIndex
+      oldLineNumberState.bufferRow = newLineNumberState.bufferRow
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
-    className = "line-number line-number-#{bufferRow}"
+    className = "line-number"
     className += " " + decorationClasses.join(' ') if decorationClasses?
     className += " foldable" if foldable and not softWrapped
     className

@@ -98,7 +98,6 @@ class CustomGutterComponent
       delete @decorationItemsById[decorationId]
 
       if newItem
-        # `item` should be either an HTMLElement or a space-pen View.
         newItemNode = null
         if newItem instanceof HTMLElement
           newItemNode = newItem

@@ -12,6 +12,7 @@ module.exports = (grunt) ->
     rm require('../src/less-compile-cache').cacheDir
     rm path.join(tmpdir, 'atom-cached-atom-shells')
     rm 'atom-shell'
+    rm 'electron'
 
   grunt.registerTask 'clean', 'Delete all the build files', ->
     homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']

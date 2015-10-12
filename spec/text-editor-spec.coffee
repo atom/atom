@@ -31,7 +31,7 @@ describe "TextEditor", ->
 
       runs ->
         fs.mkdirSync(pathToOpen)
-        expect(editor1.testSerialization()).toBeUndefined()
+        expect(TextEditor.deserialize(editor1.serialize())).toBeUndefined()
 
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = editor.testSerialization()
+      editor2 = TextEditor.deserialize(editor.serialize())
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -52,7 +52,7 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
-      editor2 = editor.testSerialization()
+      editor2 = TextEditor.deserialize(editor.serialize())
 
       expect(previousInvisibles).toBeDefined()
       expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
@@ -909,118 +909,6 @@ describe "TextEditor", ->
           cursor2 = editor.addCursorAtBufferPosition([1, 4])
           expect(cursor2.marker).toBe cursor1.marker
 
-    describe "autoscroll", ->
-      beforeEach ->
-        editor.setVerticalScrollMargin(2)
-        editor.setHorizontalScrollMargin(2)
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHorizontalScrollbarHeight(0)
-        editor.setHeight(5.5 * 10)
-        editor.setWidth(5.5 * 10)
-
-      it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
-        expect(editor.getScrollTop()).toBe 0
-        expect(editor.getScrollBottom()).toBe 5.5 * 10
-
-        editor.setCursorScreenPosition([2, 0])
-        expect(editor.getScrollBottom()).toBe 5.5 * 10
-
-        editor.moveDown()
-        expect(editor.getScrollBottom()).toBe 6 * 10
-
-        editor.moveDown()
-        expect(editor.getScrollBottom()).toBe 7 * 10
-
-      it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
-        editor.setCursorScreenPosition([11, 0])
-        editor.setScrollBottom(editor.getScrollHeight())
-
-        editor.moveUp()
-        expect(editor.getScrollBottom()).toBe editor.getScrollHeight()
-
-        editor.moveUp()
-        expect(editor.getScrollTop()).toBe 7 * 10
-
-        editor.moveUp()
-        expect(editor.getScrollTop()).toBe 6 * 10
-
-      it "scrolls right when the last cursor gets closer than ::horizontalScrollMargin to the right of the editor", ->
-        expect(editor.getScrollLeft()).toBe 0
-        expect(editor.getScrollRight()).toBe 5.5 * 10
-
-        editor.setCursorScreenPosition([0, 2])
-        expect(editor.getScrollRight()).toBe 5.5 * 10
-
-        editor.moveRight()
-        expect(editor.getScrollRight()).toBe 6 * 10
-
-        editor.moveRight()
-        expect(editor.getScrollRight()).toBe 7 * 10
-
-      it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
-        editor.setScrollRight(editor.getScrollWidth())
-        expect(editor.getScrollRight()).toBe editor.getScrollWidth()
-        editor.setCursorScreenPosition([6, 62], autoscroll: false)
-
-        editor.moveLeft()
-        expect(editor.getScrollLeft()).toBe 59 * 10
-
-        editor.moveLeft()
-        expect(editor.getScrollLeft()).toBe 58 * 10
-
-      it "scrolls down when inserting lines makes the document longer than the editor's height", ->
-        editor.setCursorScreenPosition([13, Infinity])
-        editor.insertNewline()
-        expect(editor.getScrollBottom()).toBe 14 * 10
-        editor.insertNewline()
-        expect(editor.getScrollBottom()).toBe 15 * 10
-
-      it "autoscrolls to the cursor when it moves due to undo", ->
-        editor.insertText('abc')
-        editor.setScrollTop(Infinity)
-        editor.undo()
-        expect(editor.getScrollTop()).toBe 0
-
-      it "doesn't scroll when the cursor moves into the visible area", ->
-        editor.setCursorBufferPosition([0, 0])
-        editor.setScrollTop(40)
-        expect(editor.getVisibleRowRange()).toEqual([4, 9])
-        editor.setCursorBufferPosition([6, 0])
-        expect(editor.getScrollTop()).toBe 40
-
-      it "honors the autoscroll option on cursor and selection manipulation methods", ->
-        expect(editor.getScrollTop()).toBe 0
-        editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setCursorScreenPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setCursorBufferPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.clearSelections(autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.addSelectionForScreenRange([[0, 0], [0, 4]])
-
-        editor.getCursors()[0].setScreenPosition([11, 11], autoscroll: true)
-        expect(editor.getScrollTop()).toBeGreaterThan 0
-        editor.getCursors()[0].setBufferPosition([0, 0], autoscroll: true)
-        expect(editor.getScrollTop()).toBe 0
-        editor.getSelections()[0].setScreenRange([[11, 0], [11, 4]], autoscroll: true)
-        expect(editor.getScrollTop()).toBeGreaterThan 0
-        editor.getSelections()[0].setBufferRange([[0, 0], [0, 4]], autoscroll: true)
-        expect(editor.getScrollTop()).toBe 0
-
     describe '.logCursorScope()', ->
       beforeEach ->
         spyOn(atom.notifications, 'addInfo')
@@ -1284,7 +1172,7 @@ describe "TextEditor", ->
         expect(selection2.isReversed()).toBeFalsy()
 
     describe ".selectLinesContainingCursors()", ->
-      it "selects the entire line (including newlines) at given row", ->
+      it "selects to the entire line (including newlines) at given row", ->
         editor.setCursorScreenPosition([1, 2])
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [2, 0]]
@@ -1299,19 +1187,12 @@ describe "TextEditor", ->
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual [[0, 0], [2, 0]]
 
-      it "autoscrolls to the selection", ->
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(50)
-        editor.setWidth(50)
-        editor.setHorizontalScrollbarHeight(0)
-        editor.setCursorScreenPosition([5, 6])
-
-        editor.scrollToTop()
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.selectLinesContainingCursors()
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
+      describe "when the selection spans multiple row", ->
+        it "selects from the beginning of the first line to the last line", ->
+          selection = editor.getLastSelection()
+          selection.setBufferRange [[1, 10], [3, 20]]
+          editor.selectLinesContainingCursors()
+          expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
 
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
@@ -1565,30 +1446,6 @@ describe "TextEditor", ->
         expect(selection1).toBe selection
         expect(selection1.getScreenRange()).toEqual [[2, 2], [3, 4]]
 
-    describe ".setSelectedBufferRange(range)", ->
-      it "autoscrolls the selection if it is last unless the 'autoscroll' option is false", ->
-        editor.setVerticalScrollMargin(2)
-        editor.setHorizontalScrollMargin(2)
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(70)
-        editor.setWidth(100)
-        editor.setHorizontalScrollbarHeight(0)
-
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.setSelectedBufferRange([[5, 6], [6, 8]])
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
-        expect(editor.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
-
-        editor.setSelectedBufferRange([[0, 0], [0, 0]])
-        expect(editor.getScrollTop()).toBe 0
-        expect(editor.getScrollLeft()).toBe 0
-
-        editor.setSelectedBufferRange([[6, 6], [6, 8]])
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
-        expect(editor.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
-
     describe ".selectMarker(marker)", ->
       describe "if the marker is valid", ->
         it "selects the marker's range and returns the selected range", ->
@@ -1607,17 +1464,6 @@ describe "TextEditor", ->
       it "adds a selection for the specified buffer range", ->
         editor.addSelectionForBufferRange([[3, 4], [5, 6]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 0]], [[3, 4], [5, 6]]]
-
-      it "autoscrolls to the added selection if needed", ->
-        editor.setVerticalScrollMargin(2)
-        editor.setHorizontalScrollMargin(2)
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(80)
-        editor.setWidth(100)
-        editor.addSelectionForBufferRange([[8, 10], [8, 15]])
-        expect(editor.getScrollBottom()).toBe (9 * 10) + (2 * 10)
-        expect(editor.getScrollRight()).toBe (15 * 10) + (2 * 10)
 
     describe ".addSelectionBelow()", ->
       describe "when the selection is non-empty", ->
@@ -1883,7 +1729,7 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
 
     describe ".consolidateSelections()", ->
-      it "destroys all selections but the most recent, returning true if any selections were destroyed", ->
+      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
         editor.setSelectedBufferRange([[3, 16], [3, 21]])
         selection1 = editor.getLastSelection()
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
@@ -1891,10 +1737,10 @@ describe "TextEditor", ->
 
         expect(editor.getSelections()).toEqual [selection1, selection2, selection3]
         expect(editor.consolidateSelections()).toBeTruthy()
-        expect(editor.getSelections()).toEqual [selection3]
-        expect(selection3.isEmpty()).toBeFalsy()
+        expect(editor.getSelections()).toEqual [selection1]
+        expect(selection1.isEmpty()).toBeFalsy()
         expect(editor.consolidateSelections()).toBeFalsy()
-        expect(editor.getSelections()).toEqual [selection3]
+        expect(editor.getSelections()).toEqual [selection1]
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
@@ -2130,7 +1976,7 @@ describe "TextEditor", ->
 
               expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
 
-        describe "when the slecetion spans multiple lines", ->
+        describe "when the selection spans multiple lines", ->
           it "moves the lines spanned by the selection to the following row", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
@@ -2158,7 +2004,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-        describe "when there are multiple selections and the following row is a folded row", ->
+        describe "when the following row is a folded row", ->
           it "moves the lines spanned by the selection to the following row, but preserves the folded code", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
@@ -2198,8 +2044,8 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(5)).toBe "      current < pivot ? left.push(current) : right.push(current);"
               expect(editor.lineTextForBufferRow(6)).toBe "      current = items.shift();"
 
-          describe "when there is a fold", ->
-            it "moves all lines that spanned by a selection to preceding row, preserving all folds", ->
+          describe "when there is a fold below one of the selected row", ->
+            it "moves all lines spanned by a selection to the following row, preserving the fold", ->
               editor.createFold(4, 7)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2221,6 +2067,29 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(9)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
+          describe "when there is a fold below a group of multiple selections without any lines with no selection in-between", ->
+            it "moves all the lines below the fold, preserving the fold", ->
+              editor.createFold(4, 7)
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.setSelectedBufferRanges([[[2, 2], [2, 6]], [[3, 0], [3, 4]]])
+              editor.moveLineDown()
+
+              expect(editor.getSelectedBufferRanges()).toEqual [[[7, 0], [7, 4]], [[6, 2], [6, 6]]]
+              expect(editor.lineTextForBufferRow(2)).toBe "    while(items.length > 0) {"
+              expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
+              expect(editor.lineTextForBufferRow(6)).toBe "    if (items.length <= 1) return items;"
+              expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
         describe "when some of the selections span the same lines", ->
           it "moves lines that contain multiple selections correctly", ->
             editor.setSelectedBufferRanges([[[3, 2], [3, 9]], [[3, 12], [3, 13]]])
@@ -2228,6 +2097,27 @@ describe "TextEditor", ->
 
             expect(editor.getSelectedBufferRanges()).toEqual [[[4, 12], [4, 13]], [[4, 2], [4, 9]]]
             expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+
+        describe "when the selections are above a wrapped line", ->
+          beforeEach ->
+            editor.setSoftWrapped(true)
+            editor.setEditorWidthInChars(80)
+            editor.setText("""
+            1
+            2
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
+            3
+            4
+            """)
+
+          it 'moves the lines past the soft wrapped line', ->
+            editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 0]]])
+
+            editor.moveLineDown()
+
+            expect(editor.lineTextForBufferRow(0)).not.toBe "2"
+            expect(editor.lineTextForBufferRow(1)).toBe "1"
+            expect(editor.lineTextForBufferRow(2)).toBe "2"
 
     describe ".insertText(text)", ->
       describe "when there is a single selection", ->
@@ -2266,16 +2156,6 @@ describe "TextEditor", ->
 
             expect(cursor1.getBufferPosition()).toEqual [1, 5]
             expect(cursor2.getBufferPosition()).toEqual [2, 7]
-
-          it "autoscrolls to the last cursor", ->
-            editor.setCursorScreenPosition([1, 2])
-            editor.addCursorAtScreenPosition([10, 4])
-            editor.setLineHeightInPixels(10)
-            editor.setHeight(50)
-
-            expect(editor.getScrollTop()).toBe 0
-            editor.insertText('a')
-            expect(editor.getScrollTop()).toBe 80
 
       describe "when there are multiple non-empty selections", ->
         describe "when the selections are on the same line", ->
@@ -3189,6 +3069,32 @@ describe "TextEditor", ->
               expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
               expect(buffer.lineForRow(3)).toBe '    var pivot = item'
               expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+
+      describe ".cutToEndOfBufferLine()", ->
+        beforeEach ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(10)
+
+        describe "when nothing is selected", ->
+          it "cuts up to the end of the buffer line", ->
+            editor.setCursorBufferPosition([2, 20])
+            editor.addCursorAtBufferPosition([3, 20])
+
+            editor.cutToEndOfBufferLine()
+
+            expect(buffer.lineForRow(2)).toBe '    if (items.length'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(atom.clipboard.read()).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+
+        describe "when text is selected", ->
+          it "only cuts the selected text, not to the end of the buffer line", ->
+            editor.setSelectedBufferRanges([[[2, 20], [2, 30]], [[3, 20], [3, 20]]])
+
+            editor.cutToEndOfBufferLine()
+
+            expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
@@ -4120,19 +4026,6 @@ describe "TextEditor", ->
         runs ->
           expect(editor.softTabs).toBe false
 
-      it "uses hard tabs in Makefile files", ->
-        # FIXME remove once this is handled by a scoped setting in the
-        # language-make package
-
-        waitsForPromise ->
-          atom.packages.activatePackage('language-make')
-
-        waitsForPromise ->
-          atom.project.open('Makefile').then (o) -> editor = o
-
-        runs ->
-          expect(editor.softTabs).toBe false
-
     describe "when editor.tabType is 'hard'", ->
       beforeEach ->
         atom.config.set('editor.tabType', 'hard')
@@ -4812,30 +4705,10 @@ describe "TextEditor", ->
       editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]])
       expect(editor.getText()).toBe '     '
 
-  describe ".scrollToCursorPosition()", ->
-    it "scrolls the last cursor into view, centering around the cursor if possible and the 'center' option isn't false", ->
-      editor.setCursorScreenPosition([8, 8])
-      editor.setLineHeightInPixels(10)
-      editor.setDefaultCharWidth(10)
-      editor.setHeight(60)
-      editor.setWidth(130)
-      editor.setHorizontalScrollbarHeight(0)
-      expect(editor.getScrollTop()).toBe 0
-      expect(editor.getScrollLeft()).toBe 0
-
-      editor.scrollToCursorPosition()
-      expect(editor.getScrollTop()).toBe (8.5 * 10) - 30
-      expect(editor.getScrollBottom()).toBe (8.5 * 10) + 30
-      expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
-
-      editor.setScrollTop(0)
-      editor.scrollToCursorPosition(center: false)
-      expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
-
   describe ".pageUp/Down()", ->
     it "moves the cursor down one page length", ->
-      editor.setLineHeightInPixels(10)
-      editor.setHeight(50)
+      editor.setRowsPerPage(5)
+
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.pageDown()
@@ -4852,9 +4725,8 @@ describe "TextEditor", ->
 
   describe ".selectPageUp/Down()", ->
     it "selects one screen height of text up or down", ->
-      editor.setLineHeightInPixels(10)
-      editor.setHeight(50)
-      expect(editor.getScrollHeight()).toBe 130
+      editor.setRowsPerPage(5)
+
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.selectPageDown()
@@ -5243,18 +5115,6 @@ describe "TextEditor", ->
 
     beforeEach ->
       marker = editor.markBufferRange([[1, 0], [1, 0]])
-
-    it "casts 'gutter' type to 'line-number' unless a gutter name is specified.", ->
-      jasmine.snapshotDeprecations()
-
-      lineNumberDecoration = editor.decorateMarker(marker, {type: 'gutter'})
-      customGutterDecoration = editor.decorateMarker(marker, {type: 'gutter', gutterName: 'custom'})
-      expect(lineNumberDecoration.getProperties().type).toBe 'line-number'
-      expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
-      expect(customGutterDecoration.getProperties().type).toBe 'gutter'
-      expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
-
-      jasmine.restoreDeprecationsSnapshot()
 
     it 'reflects an added decoration when one of its custom gutters is decorated.', ->
       gutter = editor.addGutter {'name': 'custom-gutter'}
