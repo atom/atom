@@ -9,6 +9,8 @@ module.exports =
 class PaneContainer extends Model
   serializationVersion: 1
   root: null
+  stoppedChangingActivePaneItemDelay: 100
+  stoppedChangingActivePaneItemTimeout: null
 
   constructor: (params) ->
     super
@@ -72,6 +74,9 @@ class PaneContainer extends Model
 
   onDidChangeActivePaneItem: (fn) ->
     @emitter.on 'did-change-active-pane-item', fn
+
+  onDidStopChangingActivePaneItem: (fn) ->
+    @emitter.on 'did-stop-changing-active-pane-item', fn
 
   observeActivePaneItem: (fn) ->
     fn(@getActivePaneItem())
@@ -180,12 +185,18 @@ class PaneContainer extends Model
 
   # Called by Model superclass when destroyed
   destroyed: ->
+    @cancelStoppedChangingActivePaneItemTimeout()
     pane.destroy() for pane in @getPanes()
     @subscriptions.dispose()
     @emitter.dispose()
 
+  cancelStoppedChangingActivePaneItemTimeout: ->
+    if @stoppedChangingActivePaneItemTimeout?
+      clearTimeout(@stoppedChangingActivePaneItemTimeout)
+
   monitorActivePaneItem: ->
     childSubscription = null
+
     @subscriptions.add @observeActivePane (activePane) =>
       if childSubscription?
         @subscriptions.remove(childSubscription)
@@ -193,6 +204,14 @@ class PaneContainer extends Model
 
       childSubscription = activePane.observeActiveItem (activeItem) =>
         @emitter.emit 'did-change-active-pane-item', activeItem
+        @cancelStoppedChangingActivePaneItemTimeout()
+        stoppedChangingActivePaneItemCallback = =>
+          @stoppedChangingActivePaneItemTimeout = null
+          @emitter.emit 'did-stop-changing-active-pane-item', activeItem
+        @stoppedChangingActivePaneItemTimeout =
+          setTimeout(
+            stoppedChangingActivePaneItemCallback,
+            @stoppedChangingActivePaneItemDelay)
 
       @subscriptions.add(childSubscription)
 

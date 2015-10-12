@@ -205,11 +205,34 @@ class Workspace extends Model
 
   # Essential: Invoke the given callback when the active pane item changes.
   #
+  # Because observers are invoked synchronously, it's important not to perform
+  # any expensive operations via this method. Consider
+  # {::onDidStopChangingActivePaneItem} to delay operations until after changes
+  # stop occurring.
+  #
   # * `callback` {Function} to be called when the active pane item changes.
   #   * `item` The active pane item.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
+  onDidChangeActivePaneItem: (callback) ->
+    @paneContainer.onDidChangeActivePaneItem(callback)
+
+  # Essential: Invoke the given callback when the active pane item stops
+  # changing.
+  #
+  # Observers are called asynchronously 100ms after the last active pane item
+  # change. Handling changes here rather than in the synchronous
+  # {::onDidChangeActivePaneItem} prevents unneeded work if the user is quickly
+  # changing or closing tabs and ensures critical UI feedback, like changing the
+  # highlighted tab, gets priority over work that can be done asynchronously.
+  #
+  # * `callback` {Function} to be called when the active pane item stopts
+  #   changing.
+  #   * `item` The active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidStopChangingActivePaneItem: (callback) ->
+    @paneContainer.onDidStopChangingActivePaneItem(callback)
 
   # Essential: Invoke the given callback with the current active pane item and
   # with all future active pane items in the workspace.
