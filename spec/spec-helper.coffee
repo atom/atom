@@ -72,14 +72,6 @@ beforeEach ->
 
   atom.project.setPaths([path.join(@specDirectory, 'fixtures')])
 
-  atom.workspace = new Workspace({
-    config: atom.config, project: atom.project, packageManager: atom.packages,
-    notificationManager: atom.notifications,
-    setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-    setDocumentEdited: atom.setDocumentEdited.bind(atom), atomVersion: atom.getVersion(),
-    clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-    assert: atom.assert.bind(atom), deserializerManager: atom.deserializers
-  })
   atom.themes.workspace = atom.workspace
 
   atom.workspaceParentSelectorctor = '#jasmine-content'
@@ -137,10 +129,10 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.workspace?.destroy()
-  atom.workspace = null
+  # unless jasmine.getEnv().currentSpec.results().passed()
+  #   jasmine.getEnv().specFilter = -> false
+  #
   atom.themes.workspace = null
-  delete atom.state.workspace
 
   atom.reset()
 

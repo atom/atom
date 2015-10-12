@@ -12,18 +12,11 @@ describe "Workspace", ->
   [workspace, setDocumentEdited] = []
 
   beforeEach ->
-    spyOn(atom, 'confirm')
-
-    setDocumentEdited = jasmine.createSpy('setDocumentEdited')
+    workspace = atom.workspace
+    workspace.resetFontSize()
+    spyOn(workspace, "confirm")
+    setDocumentEdited = spyOn(workspace, 'setDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
-    atom.workspace = workspace = new Workspace({
-      config: atom.config, project: atom.project, packageManager: atom.packages,
-      notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-      clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-      setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-      setDocumentEdited: setDocumentEdited, atomVersion: atom.getVersion(),
-      assert: atom.assert.bind(atom), confirm: atom.confirm.bind(atom)
-    })
     waits(1)
 
   describe "serialization", ->
@@ -32,14 +25,16 @@ describe "Workspace", ->
       projectState = atom.project.serialize()
       atom.workspace.destroy()
       atom.project.destroy()
-      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom)})
       atom.project.deserialize(projectState, atom.deserializers)
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
-        notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-        clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-        setRepresentedFilename: jasmine.createSpy('setRepresentedFilename'),
-        setDocumentEdited: setDocumentEdited, assert: atom.assert.bind(atom)
+        grammarRegistry: atom.grammars, deserializerManager: atom.deserializers,
+        notificationManager: atom.notifications, clipboard: atom.clipboard,
+        setRepresentedFilename: atom.setRepresentedFilename.bind(atom),
+        setDocumentEdited: atom.setDocumentEdited.bind(atom),
+        viewRegistry: atom.views, assert: atom.assert.bind(atom),
+        confirm: atom.confirm.bind(atom)
       })
       atom.workspace.deserialize(workspaceState, atom.deserializers)
 
@@ -352,7 +347,8 @@ describe "Workspace", ->
     describe "when the file is over 20MB", ->
       it "prompts the user to make sure they want to open a file this big", ->
         spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
-        atom.confirm.andCallFake -> selectedButtonIndex
+        workspace.confirm.andCallFake -> selectedButtonIndex
+        atom.workspace.confirm()
         selectedButtonIndex = 1 # cancel
 
         editor = null
@@ -361,16 +357,16 @@ describe "Workspace", ->
 
         runs ->
           expect(editor).toBeUndefined()
-          expect(atom.confirm).toHaveBeenCalled()
+          expect(workspace.confirm).toHaveBeenCalled()
 
-          atom.confirm.reset()
+          workspace.confirm.reset()
           selectedButtonIndex = 0 # open the file
 
         waitsForPromise ->
           workspace.open('sample.js').then (e) -> editor = e
 
         runs ->
-          expect(atom.confirm).toHaveBeenCalled()
+          expect(workspace.confirm).toHaveBeenCalled()
           expect(editor.displayBuffer.largeFileMode).toBe true
 
     describe "when passed a path that matches a custom opener", ->

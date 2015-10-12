@@ -29,22 +29,18 @@ class Workspace extends Model
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
       @clipboard, @viewRegistry, @grammarRegistry, @setRepresentedFilename,
-      @setDocumentEdited, @assert, @confirm, deserializerManager
+      @setDocumentEdited, @assert, @confirm, @deserializerManager
     } = params
 
     @emitter = new Emitter
     @openers = []
     @destroyedItemURIs = []
 
-    @paneContainer = new PaneContainer({@config, @confirm, @notificationManager, deserializerManager})
+    @paneContainer = new PaneContainer({@config, @confirm, @notificationManager, @deserializerManager})
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
-    @directorySearchers = []
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
-    @packageManager.serviceHub.consume(
-      'atom.directory-searcher',
-      '^0.1.0',
-      (provider) => @directorySearchers.unshift(provider))
+    @consumeServices(@packageManager)
 
     @panelContainers =
       top: new PanelContainer({location: 'top'})
@@ -55,6 +51,38 @@ class Workspace extends Model
 
     @subscribeToActiveItem()
     @subscribeToFontSize()
+
+  reset: (@packageManager) ->
+    @emitter.dispose()
+    @emitter = new Emitter
+
+    @paneContainer.destroy()
+    panelContainer.destroy() for panelContainer in @panelContainers
+
+    @paneContainer = new PaneContainer({@config, @confirm, @notificationManager, @deserializerManager})
+    @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
+
+    @panelContainers =
+      top: new PanelContainer({location: 'top'})
+      left: new PanelContainer({location: 'left'})
+      right: new PanelContainer({location: 'right'})
+      bottom: new PanelContainer({location: 'bottom'})
+      modal: new PanelContainer({location: 'modal'})
+
+    @originalFontSize = null
+    @openers = []
+    @destroyedItemURIs = []
+    @consumeServices(@packageManager)
+
+    @subscribeToActiveItem()
+    @subscribeToFontSize()
+
+  consumeServices: ({serviceHub}) ->
+    @directorySearchers = []
+    serviceHub.consume(
+      'atom.directory-searcher',
+      '^0.1.0',
+      (provider) => @directorySearchers.unshift(provider))
 
   # Called by the Serializable mixin during serialization.
   serialize: ->

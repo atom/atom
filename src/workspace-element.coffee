@@ -13,7 +13,6 @@ class WorkspaceElement extends HTMLElement
 
   detachedCallback: ->
     @subscriptions.dispose()
-    @model.destroy()
 
   initializeContent: ->
     @classList.add 'workspace'

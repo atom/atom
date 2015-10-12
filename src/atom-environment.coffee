@@ -261,8 +261,8 @@ class AtomEnvironment extends Model
 
     @packages.reset()
 
-    # TODO: reset workspace after de-activating packages, but *before* resetting
-    # @project.
+    @workspace.reset(@packages)
+    @registerDefaultOpeners()
 
     @project.reset(@packages)
 
@@ -270,6 +270,7 @@ class AtomEnvironment extends Model
     @registerDefaultViewProviders()
 
     @state.packageStates = {}
+    delete @state.workspace
 
   destroy: ->
     return if not @project
