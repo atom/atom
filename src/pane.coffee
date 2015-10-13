@@ -14,7 +14,9 @@ class Pane extends Model
   activeItem: undefined
   focused: false
 
-  @deserialize: (state, {deserializers, config, notifications, confirm}) ->
+  @deserialize: (state, atomEnvironment) ->
+    {deserializers, config, notifications} = atomEnvironment
+    confirm = atomEnvironment.confirm.bind(atomEnvironment)
     {items, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
