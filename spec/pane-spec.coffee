@@ -550,11 +550,31 @@ describe "Pane", ->
           expect(item4.isDestroyed()).toBe false
 
   describe "split methods", ->
-    [pane1, container] = []
+    [pane1, container, editor, scrollTop, textPane] = []
+
+    setEditorEnvironment = (editor) ->
+      editor.setVerticalScrollMargin(2)
+      editor.setHorizontalScrollMargin(2)
+      editor.setLineHeightInPixels(10)
+      editor.setDefaultCharWidth(10)
+      editor.setHeight(70)
+      editor.setWidth(100)
+      editor.setHorizontalScrollbarHeight(0)
 
     beforeEach ->
       pane1 = new Pane(items: [new Item("A")])
       container = new PaneContainer(root: pane1)
+      sampleTXTPath = atom.project.getDirectories()[0].resolve("two-hundred.txt")
+
+      waitsForPromise ->
+        atom.workspace.open(sampleTXTPath).then (_editor) ->
+          editor = _editor
+          setEditorEnvironment editor
+          # FIXME
+          # Even after I could set height and scroll
+          editor.setCursorBufferPosition([100, 0])
+          scrollTop = editor.getScrollTop()
+          textPane = atom.workspace.paneForItem(editor)
 
     describe "::splitLeft(params)", ->
       describe "when the parent is the container root", ->
@@ -568,6 +588,16 @@ describe "Pane", ->
         it "duplicates the active item", ->
           pane2 = pane1.splitLeft(copyActiveItem: true)
           expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
+
+      describe "when `activate: false` is passed in the params", ->
+        it "won't activate newPane", ->
+          pane2 = pane1.splitLeft(activate: false)
+          expect(container.getActivePane()).toEqual pane1
+
+      describe "when `syncScrollRatio: true` is passed in the params", ->
+        it "sync scrollRatio to newPane", ->
+          pane2 = textPane.splitLeft(copyActiveItem: true, syncScrollRatio: true)
+          # expect(pane2.getActiveEditor().getScrollTop()).toEqual scrollTop
 
       describe "when the parent is a column", ->
         it "replaces itself with a row and inserts a new pane to the left of itself", ->
@@ -591,6 +621,16 @@ describe "Pane", ->
           pane2 = pane1.splitRight(copyActiveItem: true)
           expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
 
+      describe "when `activate: false` is passed in the params", ->
+        it "won't activate newPane", ->
+          pane2 = pane1.splitRight(activate: false)
+          expect(container.getActivePane()).toEqual pane1
+
+      describe "when `syncScrollRatio: true` is passed in the params", ->
+        it "sync scrollRatio to newPane", ->
+          pane2 = textPane.splitRight(copyActiveItem: true, syncScrollRatio: true)
+          # expect(pane2.getActiveEditor().getScrollTop()).toEqual scrollTop
+
       describe "when the parent is a column", ->
         it "replaces itself with a row and inserts a new pane to the right of itself", ->
           pane1.splitDown()
@@ -613,6 +653,17 @@ describe "Pane", ->
           pane2 = pane1.splitUp(copyActiveItem: true)
           expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
 
+      describe "when `activate: false` is passed in the params", ->
+        it "won't activate newPane", ->
+          pane2 = pane1.splitUp(activate: false)
+          expect(container.getActivePane()).toEqual pane1
+
+      describe "when `syncScrollRatio: true` is passed in the params", ->
+        it "sync scrollRatio to newPane", ->
+          pane2 = textPane.splitUp(copyActiveItem: true, syncScrollRatio: true)
+          scrollTop1 = textPane.getActiveEditor().getScrollTop()
+          # expect(pane2.getActiveEditor().getScrollTop()).toEqual scrollTop1
+
       describe "when the parent is a row", ->
         it "replaces itself with a column and inserts a new pane above itself", ->
           pane1.splitRight()
@@ -634,6 +685,17 @@ describe "Pane", ->
         it "duplicates the active item", ->
           pane2 = pane1.splitDown(copyActiveItem: true)
           expect(pane2.getActiveItem()).toEqual pane1.getActiveItem()
+
+      describe "when `activate: false` is passed in the params", ->
+        it "won't activate newPane", ->
+          pane2 = pane1.splitDown(activate: false)
+          expect(container.getActivePane()).toEqual pane1
+
+      describe "when `syncScrollRatio: true` is passed in the params", ->
+        it "sync scrollRatio to newPane", ->
+          pane2 = textPane.splitDown(copyActiveItem: true, syncScrollRatio: true)
+          scrollTop1 = textPane.getActiveEditor().getScrollTop()
+          # expect(pane2.getActiveEditor().getScrollTop()).toEqual scrollTop1
 
       describe "when the parent is a row", ->
         it "replaces itself with a column and inserts a new pane below itself", ->
