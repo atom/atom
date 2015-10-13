@@ -371,11 +371,6 @@ class AtomEnvironment extends Model
   getLoadSettings: ->
     getWindowLoadSettings()
 
-  updateLoadSetting: (key, value) ->
-    loadSettings = @getLoadSettings()
-    loadSettings[key] = value
-    setWindowLoadSettings(loadSettings)
-
   ###
   Section: Managing The Atom Window
   ###
@@ -746,7 +741,7 @@ class AtomEnvironment extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
-      @updateLoadSetting('initialPaths', @project.getPaths())
+      @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
   setDocumentEdited: (edited) ->
     @applicationDelegate.setWindowDocumentEdited?(edited)
@@ -762,12 +757,6 @@ class AtomEnvironment extends Model
     callback(showSaveDialogSync())
 
   showSaveDialogSync: (options={}) ->
-    if _.isString(options)
-      options = defaultPath: options
-    else
-      options = _.clone(options)
-    options.title ?= 'Save File'
-    options.defaultPath ?= @project?.getPaths()[0]
     @applicationDelegate.showSaveDialog(options)
 
   saveStateSync: ->

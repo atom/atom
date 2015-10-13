@@ -1,7 +1,9 @@
+_ = require 'underscore-plus'
 ipc = require 'ipc'
 remote = require 'remote'
 shell = require 'shell'
 {Disposable} = require 'event-kit'
+{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
 module.exports =
 class ApplicationDelegate
@@ -77,6 +79,11 @@ class ApplicationDelegate
   setRepresentedFilename: (filename) ->
     remote.getCurrentWindow().setRepresentedFilename(filename)
 
+  setRepresentedDirectoryPaths: (paths) ->
+    loadSettings = getWindowLoadSettings()
+    loadSettings['initialPaths'] = value
+    setWindowLoadSettings(loadSettings)
+
   setAutoHideWindowMenuBar: (autoHide) ->
     remote.getCurrentWindow().setAutoHideMenuBar(autoHide)
 
@@ -92,6 +99,12 @@ class ApplicationDelegate
     dialog.showMessageBox remote.getCurrentWindow(), params
 
   showSaveDialog: (params) ->
+    if _.isString(params)
+      params = defaultPath: params
+    else
+      params = _.clone(params)
+    params.title ?= 'Save File'
+    params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
     dialog = remote.require('dialog')
     dialog.showSaveDialog remote.getCurrentWindow(), params
 
