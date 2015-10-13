@@ -5,7 +5,11 @@ module.exports =
 class AtomPortable
   @portableAtomHomePath: ->
     execDirectoryPath = path.dirname(process.execPath)
-    return path.join(execDirectoryPath, "../.atom")
+    return path.join(execDirectoryPath, "../.atom/")
+
+  @setPortable: (existingAtomHome) ->
+    fs.copySync(existingAtomHome, @portableAtomHomePath())
+
   @isPortableInstall: (platform, environmentAtomHome) ->
     return false unless platform is 'win32'
     return false if environmentAtomHome
