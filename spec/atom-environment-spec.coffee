@@ -249,3 +249,60 @@ describe "AtomEnvironment", ->
         atomEnvironment.destroy()
 
         expect(buffer.getSubscriptionCount()).toBe 0
+
+  describe "::openLocations(locations) (called via IPC from browser process)", ->
+    beforeEach ->
+      spyOn(atom.workspace, 'open')
+      atom.project.setPaths([])
+
+    describe "when the opened path exists", ->
+      it "adds it to the project's paths", ->
+        pathToOpen = __filename
+        atom.openLocations([{pathToOpen}])
+        expect(atom.project.getPaths()[0]).toBe __dirname
+
+    describe "when the opened path does not exist but its parent directory does", ->
+      it "adds the parent directory to the project paths", ->
+        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+        atom.openLocations([{pathToOpen}])
+        expect(atom.project.getPaths()[0]).toBe __dirname
+
+    describe "when the opened path is a file", ->
+      it "opens it in the workspace", ->
+        pathToOpen = __filename
+        atom.openLocations([{pathToOpen}])
+        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
+    describe "when the opened path is a directory", ->
+      it "does not open it in the workspace", ->
+        pathToOpen = __dirname
+        atom.openLocations([{pathToOpen}])
+        expect(atom.workspace.open.callCount).toBe 0
+
+    describe "when the opened path is a uri", ->
+      it "adds it to the project's paths as is", ->
+        pathToOpen = 'remote://server:7644/some/dir/path'
+        atom.openLocations([{pathToOpen}])
+        expect(atom.project.getPaths()[0]).toBe pathToOpen
+
+  describe "::updateAvailable(info) (called via IPC from browser process)", ->
+    subscription = null
+
+    afterEach ->
+      subscription?.dispose()
+
+    it "invokes onUpdateAvailable listeners", ->
+      atom.listenForUpdates()
+
+      updateAvailableHandler = jasmine.createSpy("update-available-handler")
+      subscription = atom.onUpdateAvailable updateAvailableHandler
+
+      autoUpdater = require('remote').require('auto-updater')
+      autoUpdater.emit 'update-downloaded', null, "notes", "version"
+
+      waitsFor ->
+        updateAvailableHandler.callCount > 0
+
+      runs ->
+        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
+        expect(releaseVersion).toBe 'version'

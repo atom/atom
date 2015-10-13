@@ -582,9 +582,9 @@ class AtomEnvironment extends Model
       console.warn error.message if error?
 
     @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
-    @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
     @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
     @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+    @listenForUpdates()
 
     @config.load()
     @themes.loadBaseStylesheets()
@@ -860,6 +860,9 @@ class AtomEnvironment extends Model
 
   updateAvailable: (details) ->
     @emitter.emit 'update-available', details
+
+  listenForUpdates: ->
+    @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
 
   setBodyPlatformClass: ->
     document.body.classList.add("platform-#{process.platform}")

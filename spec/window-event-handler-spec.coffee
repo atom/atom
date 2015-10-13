@@ -18,7 +18,7 @@ describe "WindowEventHandler", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    windowEventHandler = new WindowEventHandler(atom)
+    windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate})
     projectPath = atom.project.getPaths()[0]
 
   afterEach ->
@@ -188,62 +188,6 @@ describe "WindowEventHandler", ->
         elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
         expect(document.activeElement.tabIndex).toBe 7
 
-  describe "the window:open-locations event", ->
-    beforeEach ->
-      spyOn(atom.workspace, 'open')
-      atom.project.setPaths([])
-
-    describe "when the opened path exists", ->
-      it "adds it to the project's paths", ->
-        pathToOpen = __filename
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.project.getPaths().length is 1
-
-        runs ->
-          expect(atom.project.getPaths()[0]).toBe __dirname
-
-    describe "when the opened path does not exist but its parent directory does", ->
-      it "adds the parent directory to the project paths", ->
-        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.project.getPaths().length is 1
-
-        runs ->
-          expect(atom.project.getPaths()[0]).toBe __dirname
-
-    describe "when the opened path is a file", ->
-      it "opens it in the workspace", ->
-        pathToOpen = __filename
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.workspace.open.callCount is 1
-
-        runs ->
-          expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
-
-
-    describe "when the opened path is a directory", ->
-      it "does not open it in the workspace", ->
-        pathToOpen = __dirname
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.workspace.open.callCount).toBe 0
-
-    describe "when the opened path is a uri", ->
-      it "adds it to the project's paths as is", ->
-        pathToOpen = 'remote://server:7644/some/dir/path'
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.project.getPaths().length is 1
-
-        runs ->
-          expect(atom.project.getPaths()[0]).toBe pathToOpen
-
   describe "when keydown events occur on the document", ->
     it "dispatches the event via the KeymapManager and CommandRegistry", ->
       dispatchedCommands = []
@@ -256,23 +200,3 @@ describe "WindowEventHandler", ->
 
       expect(dispatchedCommands.length).toBe 1
       expect(dispatchedCommands[0].type).toBe 'foo-command'
-
-  describe "when an update becomes available", ->
-    subscription = null
-
-    afterEach ->
-      subscription?.dispose()
-
-    it "invokes onUpdateAvailable listeners", ->
-      updateAvailableHandler = jasmine.createSpy("update-available-handler")
-      subscription = atom.onUpdateAvailable updateAvailableHandler
-
-      autoUpdater = require('remote').require('auto-updater')
-      autoUpdater.emit 'update-downloaded', null, "notes", "version"
-
-      waitsFor ->
-        updateAvailableHandler.callCount > 0
-
-      runs ->
-        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
-        expect(releaseVersion).toBe 'version'
