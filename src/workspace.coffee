@@ -850,13 +850,14 @@ class Workspace extends Model
   Section: Searching and Replacing
   ###
 
-  # Public: Performs a search across all the files in the workspace.
+  # Public: Performs a search across all files in the workspace.
   #
   # * `regex` {RegExp} to search with.
-  # * `options` (optional) {Object} (default: {})
-  #   * `paths` An {Array} of glob patterns to search within
-  #   * `onPathsSearched` (optional) {Function}
-  # * `iterator` {Function} callback on each file found
+  # * `options` (optional) {Object}
+  #   * `paths` An {Array} of glob patterns to search within.
+  #   * `onPathsSearched` (optional) {Function} to be periodically called
+  #     with number of paths searched.
+  # * `iterator` {Function} callback on each file found.
   #
   # Returns a `Promise` with a `cancel()` method that will cancel all
   # of the underlying searches that were started as part of this scan.
@@ -956,10 +957,10 @@ class Workspace extends Model
   # Public: Performs a replace across all the specified files in the project.
   #
   # * `regex` A {RegExp} to search with.
-  # * `replacementText` Text to replace all matches of regex with
-  # * `filePaths` List of file path strings to run the replace on.
+  # * `replacementText` {String} to replace all matches of regex with.
+  # * `filePaths` An {Array} of file path strings to run the replace on.
   # * `iterator` A {Function} callback on each file with replacements:
-  #   * `options` {Object} with keys `filePath` and `replacements`
+  #   * `options` {Object} with keys `filePath` and `replacements`.
   #
   # Returns a `Promise`.
   replace: (regex, replacementText, filePaths, iterator) ->

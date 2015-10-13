@@ -95,7 +95,7 @@
     "image-view": "0.55.0",
     "incompatible-packages": "0.25.0",
     "keybinding-resolver": "0.33.0",
-    "line-ending-selector": "0.0.5",
+    "line-ending-selector": "0.1.0",
     "link": "0.31.0",
     "markdown-preview": "0.155.0",
     "metrics": "0.52.0",

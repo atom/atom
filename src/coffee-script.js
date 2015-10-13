@@ -29,6 +29,10 @@ exports.compile = function (sourceCode, filePath) {
     Error.prepareStackTrace = previousPrepareStackTrace
   }
 
+  if (process.platform === 'win32') {
+    filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/')
+  }
+
   var output = CoffeeScript.compile(sourceCode, {
     filename: filePath,
     sourceFiles: [filePath],
