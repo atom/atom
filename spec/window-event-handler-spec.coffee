@@ -10,7 +10,7 @@ describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
 
   beforeEach ->
-    atom.windowEventHandler.unsubscribe()
+    atom.uninstallWindowEventHandler()
     spyOn(atom, 'hide')
     initialPath = atom.project.getPaths()[0]
     spyOn(atom, 'getLoadSettings').andCallFake ->
@@ -23,6 +23,7 @@ describe "WindowEventHandler", ->
 
   afterEach ->
     windowEventHandler.unsubscribe()
+    atom.installWindowEventHandler()
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->

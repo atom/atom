@@ -227,6 +227,8 @@ describe "AtomEnvironment", ->
       expect(atomEnvironment.state.project).toEqual projectState
       expect(atomEnvironment.saveStateSync).toHaveBeenCalled()
 
+      atomEnvironment.destroy()
+
   describe "::destroy()", ->
     it "unsubscribes from all buffers", ->
       atomEnvironment = new AtomEnvironment(setRepresentedFilename: ->)

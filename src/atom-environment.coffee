@@ -194,7 +194,7 @@ class AtomEnvironment extends Model
     @registerDefaultViewProviders()
 
     @installUncaughtErrorHandler()
-    @windowEventHandler = new WindowEventHandler(this)
+    @installWindowEventHandler()
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
@@ -284,7 +284,7 @@ class AtomEnvironment extends Model
     @project?.destroy()
     @project = null
 
-    @windowEventHandler?.unsubscribe()
+    @uninstallWindowEventHandler()
 
   ###
   Section: Event Subscription
@@ -660,6 +660,12 @@ class AtomEnvironment extends Model
 
   uninstallUncaughtErrorHandler: ->
     window.onerror = @previousWindowErrorHandler
+
+  installWindowEventHandler: ->
+    @windowEventHandler = new WindowEventHandler(this)
+
+  uninstallWindowEventHandler: ->
+    @windowEventHandler?.unsubscribe()
 
   ###
   Section: Messaging the User
