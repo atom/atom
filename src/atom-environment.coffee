@@ -747,9 +747,6 @@ class AtomEnvironment extends Model
 
     false
 
-  deserializeWorkspace: ->
-
-
   loadThemes: ->
     @themes.load()
 

@@ -56,11 +56,6 @@ if process.env.CI
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
-specPackageName = null
-specPackagePath = null
-specProjectPath = null
-isCoreSpec = false
-
 {resourcePath} = atom.getLoadSettings()
 
 beforeEach ->
@@ -75,17 +70,10 @@ beforeEach ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
-  serializedWindowState = null
-
   spyOn(atom, 'saveStateSync')
   atom.grammars.clearGrammarOverrides()
 
-  spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
-    if specPackageName and packageName is specPackageName
-      resolvePackagePath(specPackagePath)
-    else
-      resolvePackagePath(packageName)
-  resolvePackagePath = _.bind(spy.originalValue, atom.packages)
+  spyOn(atom.packages, 'resolvePackagePath').andCallThrough()
 
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
@@ -122,9 +110,6 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  # unless jasmine.getEnv().currentSpec.results().passed()
-  #   jasmine.getEnv().specFilter = -> false
-  #
   atom.reset(stylesSnapshot: initialStyleElements)
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
