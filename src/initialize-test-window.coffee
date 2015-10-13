@@ -1,10 +1,14 @@
 # Start the crash reporter before anything else.
 require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
+remote = require 'remote'
+
+exitWithStatusCode = (status) =>
+  remote.require('app').emit('will-exit')
+  remote.process.exit(status)
 
 try
   path = require 'path'
   ipc = require 'ipc'
-  remote = require 'remote'
   {getWindowLoadSettings} = require './window-load-settings-helpers'
   AtomEnvironment = require '../src/atom-environment'
 
@@ -38,17 +42,18 @@ try
 
   legacyTestRunner = require(getWindowLoadSettings().legacyTestRunnerPath)
   testRunner = require(getWindowLoadSettings().testRunnerPath)
-  testRunner({
+  promise = testRunner({
     logFile: getWindowLoadSettings().logFile
     headless: getWindowLoadSettings().headless
     testPaths: getWindowLoadSettings().testPaths
     buildAtomEnvironment: (params) -> new AtomEnvironment(params)
     legacyTestRunner: legacyTestRunner
   })
+
+  promise.then(exitWithStatusCode) if getWindowLoadSettings().headless
 catch error
   if getWindowLoadSettings().headless
     console.error(error.stack ? error)
-    remote.require('app').emit('will-exit')
-    remote.process.exit(status)
+    exitWithStatusCode(1)
   else
     throw error

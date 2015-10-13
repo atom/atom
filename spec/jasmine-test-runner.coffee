@@ -22,8 +22,10 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
 
   setSpecType('user')
 
+  resolveWithExitCode = null
+  promise = new Promise (resolve, reject) -> resolveWithExitCode = resolve
   jasmineEnv = jasmine.getEnv()
-  jasmineEnv.addReporter(buildReporter({logFile, headless}))
+  jasmineEnv.addReporter(buildReporter({logFile, headless, resolveWithExitCode}))
   TimeReporter = require './time-reporter'
   jasmineEnv.addReporter(new TimeReporter())
   jasmineEnv.setIncludedTags([process.platform])
@@ -37,6 +39,7 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   atom.commands.attach(window)
 
   jasmineEnv.execute()
+  promise
 
 disableFocusMethods = ->
   ['fdescribe', 'ffdescribe', 'fffdescribe', 'fit', 'ffit', 'fffit'].forEach (methodName) ->
@@ -68,14 +71,14 @@ setSpecType = (specType) ->
 setSpecDirectory = (specDirectory) ->
   setSpecField('specDirectory', specDirectory)
 
-buildReporter = ({logFile, headless}) ->
+buildReporter = ({logFile, headless, resolveWithExitCode}) ->
   if headless
-    buildTerminalReporter(logFile)
+    buildTerminalReporter(logFile, resolveWithExitCode)
   else
     AtomReporter = require './atom-reporter'
     reporter = new AtomReporter()
 
-buildTerminalReporter = (logFile) ->
+buildTerminalReporter = (logFile, resolveWithExitCode) ->
   logStream = fs.openSync(logFile, 'w') if logFile?
   log = (str) ->
     if logStream?
@@ -94,9 +97,10 @@ buildTerminalReporter = (logFile) ->
 
         if grim.getDeprecationsLength() > 0
           grim.logDeprecations()
-          return atom.exit(1)
+          resolveWithExitCode(1)
+          return
 
       if runner.results().failedCount > 0
-        atom.exit(1)
+        resolveWithExitCode(1)
       else
-        atom.exit(0)
+        resolveWithExitCode(0)
