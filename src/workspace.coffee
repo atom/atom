@@ -49,8 +49,7 @@ class Workspace extends Model
       bottom: new PanelContainer({location: 'bottom'})
       modal: new PanelContainer({location: 'modal'})
 
-    @subscribeToActiveItem()
-    @subscribeToFontSize()
+    @subscribeToEvents()
 
   reset: (@packageManager) ->
     @emitter.dispose()
@@ -74,6 +73,7 @@ class Workspace extends Model
     @destroyedItemURIs = []
     @consumeServices(@packageManager)
 
+  subscribeToEvents: ->
     @subscribeToActiveItem()
     @subscribeToFontSize()
 

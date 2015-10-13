@@ -261,10 +261,12 @@ class AtomEnvironment extends Model
 
     @packages.reset()
 
-    @project.reset(@packages)
-
     @workspace.reset(@packages)
     @registerDefaultOpeners()
+
+    @project.reset(@packages)
+
+    @workspace.subscribeToEvents()
 
     @views.clear()
     @registerDefaultViewProviders()
