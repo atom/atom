@@ -497,12 +497,12 @@ class AtomApplication
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
-    timeout = Number.parseFloat(timeout)
-    unless Number.isNaN(timeout)
+    timeoutInSeconds = Number.parseFloat(timeout)
+    unless Number.isNaN(timeoutInSeconds)
       timeoutHandler = ->
-        console.log "The test suite has timed out because it has been running for more than #{timeout} minutes."
+        console.log "The test suite has timed out because it has been running for more than #{timeoutInSeconds} seconds."
         process.exit(124) # Use the same exit code as the UNIX timeout util.
-      setTimeout(timeoutHandler, timeout * 60 * 1000)
+      setTimeout(timeoutHandler, timeoutInSeconds * 1000)
 
     try
       windowInitializationScript = require.resolve(path.resolve(@devResourcePath, 'src', 'initialize-test-window'))
