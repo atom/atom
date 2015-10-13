@@ -65,6 +65,8 @@ class AtomApplication
   constructor: (options) ->
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
 
+    @socketPath = null if options.test
+
     global.atomApplication = this
 
     @pidsToOpenWindows = {}
@@ -130,6 +132,7 @@ class AtomApplication
   # the other launches will just pass their information to this server and then
   # close immediately.
   listenForArgumentsFromNewProcess: ->
+    return unless @socketPath?
     @deleteSocketFile()
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
@@ -139,7 +142,7 @@ class AtomApplication
     server.on 'error', (error) -> console.error 'Application server failed', error
 
   deleteSocketFile: ->
-    return if process.platform is 'win32'
+    return if process.platform is 'win32' or not @socketPath?
 
     if fs.existsSync(@socketPath)
       try
