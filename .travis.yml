@@ -6,7 +6,9 @@ notifications:
     on_failure: change
 
 node_js:
-  - 0.10
+  - stable
+  - v4.2
+  - v0.10
 
 git:
   depth: 10
