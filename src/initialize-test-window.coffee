@@ -3,7 +3,7 @@ require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
 remote = require 'remote'
 
 exitWithStatusCode = (status) =>
-  remote.require('app').emit('will-exit')
+  remote.require('app').emit('will-quit')
   remote.process.exit(status)
 
 try
@@ -11,6 +11,7 @@ try
   ipc = require 'ipc'
   {getWindowLoadSettings} = require './window-load-settings-helpers'
   AtomEnvironment = require '../src/atom-environment'
+  ApplicationDelegate = require '../src/application-delegate'
 
   # Show window synchronously so a focusout doesn't fire on input elements
   # that are focused in the very first spec run.
@@ -47,6 +48,7 @@ try
     headless: getWindowLoadSettings().headless
     testPaths: getWindowLoadSettings().testPaths
     buildAtomEnvironment: (params) -> new AtomEnvironment(params)
+    buildDefaultApplicationDelegate: (params) -> new ApplicationDelegate()
     legacyTestRunner: legacyTestRunner
   })
 

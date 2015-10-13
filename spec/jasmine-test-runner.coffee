@@ -14,7 +14,11 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
     get: -> documentTitle
     set: (title) -> documentTitle = title
 
-  window.atom = buildAtomEnvironment({setRepresentedFilename: jasmine.createSpy('setRepresentedFilename')})
+  ApplicationDelegate = require '../src/application-delegate'
+  applicationDelegate = new ApplicationDelegate()
+  applicationDelegate.setWindowRepresentedFilename = ->
+  applicationDelegate.setWindowDocumentEdited = ->
+  window.atom = buildAtomEnvironment({applicationDelegate})
 
   require './spec-helper'
   disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI

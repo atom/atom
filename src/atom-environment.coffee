@@ -1,9 +1,5 @@
 crypto = require 'crypto'
-ipc = require 'ipc'
-os = require 'os'
 path = require 'path'
-remote = require 'remote'
-shell = require 'shell'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -105,8 +101,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {setRepresentedFilename} = params
-    @setRepresentedFilename = setRepresentedFilename if setRepresentedFilename?
+    {@applicationDelegate} = params
 
     @state = {version: @constructor.version}
 
@@ -390,7 +385,7 @@ class AtomEnvironment extends Model
   # Calling this method without an options parameter will open a prompt to pick
   # a file/folder to open in the new window.
   #
-  # * `options` An {Object} with the following keys:
+  # * `params` An {Object} with the following keys:
   #   * `pathsToOpen`  An {Array} of {String} paths to open.
   #   * `newWindow` A {Boolean}, true to always open a new window instead of
   #     reusing existing windows depending on the paths to open.
@@ -399,8 +394,8 @@ class AtomEnvironment extends Model
   #     repository and also loads all the packages in ~/.atom/dev/packages
   #   * `safeMode` A {Boolean}, true to open the window in safe mode. Safe
   #     mode prevents all packages installed to ~/.atom/packages from loading.
-  open: (options) ->
-    ipc.send('open', options)
+  open: (params) ->
+    @applicationDelegate.open(params)
 
   # Extended: Prompt the user to select one or more folders.
   #
@@ -408,83 +403,77 @@ class AtomEnvironment extends Model
   #   * `paths` An {Array} of {String} paths that the user selected, or `null`
   #     if the user dismissed the dialog.
   pickFolder: (callback) ->
-    responseChannel = "atom-pick-folder-response"
-    ipc.on responseChannel, (path) ->
-      ipc.removeAllListeners(responseChannel)
-      callback(path)
-    ipc.send("pick-folder", responseChannel)
+    @applicationDelegate.pickFolder(callback)
 
   # Essential: Close the current window.
   close: ->
-    @getCurrentWindow().close()
+    @applicationDelegate.closeWindow()
 
   # Essential: Get the size of current window.
   #
   # Returns an {Object} in the format `{width: 1000, height: 700}`
   getSize: ->
-    [width, height] = @getCurrentWindow().getSize()
-    {width, height}
+    @applicationDelegate.getWindowSize()
 
   # Essential: Set the size of current window.
   #
   # * `width` The {Number} of pixels.
   # * `height` The {Number} of pixels.
   setSize: (width, height) ->
-    @getCurrentWindow().setSize(width, height)
+    @applicationDelegate.setWindowSize(width, height)
 
   # Essential: Get the position of current window.
   #
   # Returns an {Object} in the format `{x: 10, y: 20}`
   getPosition: ->
-    [x, y] = @getCurrentWindow().getPosition()
-    {x, y}
+    @applicationDelegate.getWindowPosition()
 
   # Essential: Set the position of current window.
   #
   # * `x` The {Number} of pixels.
   # * `y` The {Number} of pixels.
   setPosition: (x, y) ->
-    ipc.send('call-window-method', 'setPosition', x, y)
+    @applicationDelegate.setWindowPosition(x, y)
 
   # Extended: Get the current window
   getCurrentWindow: ->
-    remote.getCurrentWindow()
+    @applicationDelegate.getCurrentWindow()
 
   # Extended: Move current window to the center of the screen.
   center: ->
-    ipc.send('call-window-method', 'center')
+    @applicationDelegate.centerWindow()
 
   # Extended: Focus the current window.
   focus: ->
-    ipc.send('call-window-method', 'focus')
+    @applicationDelegate.focusWindow()
     window.focus()
 
   # Extended: Show the current window.
   show: ->
-    ipc.send('call-window-method', 'show')
+    @applicationDelegate.showWindow()
 
   # Extended: Hide the current window.
   hide: ->
-    ipc.send('call-window-method', 'hide')
+    @applicationDelegate.hideWindow()
 
   # Extended: Reload the current window.
   reload: ->
-    ipc.send('call-window-method', 'restart')
+    @applicationDelegate.restartWindow()
 
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
-    @getCurrentWindow().isMaximized()
+    @applicationDelegate.isWindowMaximized()
 
   maximize: ->
-    ipc.send('call-window-method', 'maximize')
+    @applicationDelegate.maximizeWindow()
 
   # Extended: Returns a {Boolean} that is `true` if the current window is in full screen mode.
   isFullScreen: ->
-    @getCurrentWindow().isFullScreen()
+    @applicationDelegate.isWindowFullScreen()
 
   # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
-    ipc.send('call-window-method', 'setFullScreen', fullScreen)
+    @applicationDelegate.setWindowFullScreen(fullScreen)
     if fullScreen
       document.body.classList.add("fullscreen")
     else
@@ -564,8 +553,7 @@ class AtomEnvironment extends Model
     if @isValidDimensions(dimensions)
       dimensions
     else
-      screen = remote.require 'screen'
-      {width, height} = screen.getPrimaryDisplay().workAreaSize
+      {width, height} = @applicationDelegate.getPrimaryDisplayWorkAreaSize()
       {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
@@ -673,7 +661,7 @@ class AtomEnvironment extends Model
 
   # Essential: Visually and audibly trigger a beep.
   beep: ->
-    shell.beep() if @config.get('core.audioBeep')
+    @applicationDelegate.playBeepSound() if @config.get('core.audioBeep')
     @emitter.emit 'did-beep'
 
   # Essential: A flexible way to open a dialog akin to an alert dialog.
@@ -703,12 +691,12 @@ class AtomEnvironment extends Model
     else
       buttonLabels = Object.keys(buttons)
 
-    dialog = remote.require('dialog')
-    chosen = dialog.showMessageBox @getCurrentWindow(),
+    chosen = @applicationDelegate.showMessageDialog(
       type: 'info'
       message: message
       detail: detailedMessage
       buttons: buttonLabels
+    )
 
     if _.isArray(buttons)
       chosen
@@ -722,15 +710,15 @@ class AtomEnvironment extends Model
 
   # Extended: Open the dev tools for the current window.
   openDevTools: ->
-    ipc.send('call-window-method', 'openDevTools')
+    @applicationDelegate.openWindowDevTools()
 
   # Extended: Toggle the visibility of the dev tools for the current window.
   toggleDevTools: ->
-    ipc.send('call-window-method', 'toggleDevTools')
+    @applicationDelegate.toggleWindowDevTools()
 
   # Extended: Execute code in dev tools.
   executeJavaScriptInDevTools: (code) ->
-    ipc.send('call-window-method', 'executeJavaScriptInDevTools', code)
+    @applicationDelegate.executeJavaScriptInWindowDevTools(code)
 
   ###
   Section: Private
@@ -755,16 +743,11 @@ class AtomEnvironment extends Model
     @disposables.add @project.onDidChangePaths =>
       @updateLoadSetting('initialPaths', @project.getPaths())
 
-  exit: (status) ->
-    app = remote.require('app')
-    app.emit('will-exit')
-    remote.process.exit(status)
-
   setDocumentEdited: (edited) ->
-    ipc.send('call-window-method', 'setDocumentEdited', edited)
+    @applicationDelegate.setWindowDocumentEdited?(edited)
 
   setRepresentedFilename: (filename) ->
-    ipc.send('call-window-method', 'setRepresentedFilename', filename)
+    @applicationDelegate.setWindowRepresentedFilename?(filename)
 
   addProjectFolder: ->
     @pickFolder (selectedPaths = []) =>
@@ -778,11 +761,9 @@ class AtomEnvironment extends Model
       options = defaultPath: options
     else
       options = _.clone(options)
-    currentWindow = @getCurrentWindow()
-    dialog = remote.require('dialog')
     options.title ?= 'Save File'
     options.defaultPath ?= @project?.getPaths()[0]
-    dialog.showSaveDialog currentWindow, options
+    @applicationDelegate.showSaveDialog(options)
 
   saveStateSync: ->
     if storageKey = @getStateKey(@project?.getPaths())
@@ -834,12 +815,6 @@ class AtomEnvironment extends Model
   getStorageFolder: ->
     @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
-  crashMainProcess: ->
-    remote.process.crash()
-
-  crashRenderProcess: ->
-    process.crash()
-
   getUserInitScriptPath: ->
     initScriptPath = fs.resolve(@getConfigDirPath(), 'init', ['js', 'coffee'])
     initScriptPath ? path.join(@getConfigDirPath(), 'init.coffee')
@@ -885,8 +860,8 @@ class AtomEnvironment extends Model
     document.body.classList.add("platform-#{process.platform}")
 
   setAutoHideMenuBar: (autoHide) ->
-    ipc.send('call-window-method', 'setAutoHideMenuBar', autoHide)
-    ipc.send('call-window-method', 'setMenuBarVisibility', not autoHide)
+    @applicationDelegate.setAutoHideWindowMenuBar(autoHide)
+    @applicationDelegate.setWindowMenuBarVisibility(not autoHide)
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->

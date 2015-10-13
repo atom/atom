@@ -216,11 +216,6 @@ class AtomApplication
       @killAllProcesses()
       @deleteSocketFile()
 
-    app.on 'will-exit', =>
-      @saveState(false)
-      @killAllProcesses()
-      @deleteSocketFile()
-
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
       @openPath({pathToOpen})
