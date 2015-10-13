@@ -10,6 +10,7 @@ describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
 
   beforeEach ->
+    atom.windowEventHandler.unsubscribe()
     spyOn(atom, 'hide')
     initialPath = atom.project.getPaths()[0]
     spyOn(atom, 'getLoadSettings').andCallFake ->

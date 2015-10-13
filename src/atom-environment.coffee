@@ -194,6 +194,7 @@ class AtomEnvironment extends Model
     @registerDefaultViewProviders()
 
     @installUncaughtErrorHandler()
+    @windowEventHandler = new WindowEventHandler(this)
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
@@ -597,7 +598,6 @@ class AtomEnvironment extends Model
     @setBodyPlatformClass()
 
     document.head.appendChild(@styles.buildStylesElement())
-    @windowEventHandler = new WindowEventHandler(this)
 
     @packages.loadPackages()
 
