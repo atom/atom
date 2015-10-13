@@ -581,6 +581,11 @@ class AtomEnvironment extends Model
     @commandInstaller.installApmCommand false, (error) ->
       console.warn error.message if error?
 
+    @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
+    @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
+    @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
+    @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+
     @config.load()
     @themes.loadBaseStylesheets()
     @setBodyPlatformClass()
@@ -862,6 +867,33 @@ class AtomEnvironment extends Model
   setAutoHideMenuBar: (autoHide) ->
     @applicationDelegate.setAutoHideWindowMenuBar(autoHide)
     @applicationDelegate.setWindowMenuBarVisibility(not autoHide)
+
+  dispatchApplicationMenuCommand: (command, arg) ->
+    activeElement = document.activeElement
+    # Use the workspace element if body has focus
+    if activeElement is document.body and workspaceElement = @views.getView(@workspace)
+      activeElement = workspaceElement
+    @commands.dispatch(activeElement, command, arg)
+
+  dispatchContextMenuCommand: (command, args...) ->
+    @commands.dispatch(@contextMenu.activeElement, command, args)
+
+  openLocations: (locations) ->
+    needsProjectPaths = @project?.getPaths().length is 0
+
+    for {pathToOpen, initialLine, initialColumn} in locations
+      if pathToOpen? and needsProjectPaths
+        if fs.existsSync(pathToOpen)
+          @project.addPath(pathToOpen)
+        else if fs.existsSync(path.dirname(pathToOpen))
+          @project.addPath(path.dirname(pathToOpen))
+        else
+          @project.addPath(pathToOpen)
+
+      unless fs.isDirectorySync(pathToOpen)
+        @workspace?.open(pathToOpen, {initialLine, initialColumn})
+
+    return
 
 # Preserve this deprecation until 2.0. Sorry. Should have removed Q sooner.
 Promise.prototype.done = (callback) ->

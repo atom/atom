@@ -12,10 +12,6 @@ class WindowEventHandler
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
-    @on(ipc, 'message', @handleIPCMessage)
-    @on(ipc, 'command', @handleIPCCommand)
-    @on(ipc, 'context-command', @handleIPCContextCommand)
-
     @addEventListener(window, 'focus', @handleWindowFocus)
     @addEventListener(window, 'blur', @handleWindowBlur)
     @addEventListener(window, 'beforeunload', @handleWindowBeforeunload)
@@ -133,37 +129,6 @@ class WindowEventHandler
       previousElement.focus()
     else if highestElement?
       highestElement.focus()
-
-  handleIPCMessage: (message, detail) =>
-    switch message
-      when 'open-locations'
-        needsProjectPaths = @atomEnvironment.project?.getPaths().length is 0
-
-        for {pathToOpen, initialLine, initialColumn} in detail
-          if pathToOpen? and needsProjectPaths
-            if fs.existsSync(pathToOpen)
-              @atomEnvironment.project.addPath(pathToOpen)
-            else if fs.existsSync(path.dirname(pathToOpen))
-              @atomEnvironment.project.addPath(path.dirname(pathToOpen))
-            else
-              @atomEnvironment.project.addPath(pathToOpen)
-
-          unless fs.isDirectorySync(pathToOpen)
-            @atomEnvironment.workspace?.open(pathToOpen, {initialLine, initialColumn})
-        return
-      when 'update-available'
-        @atomEnvironment.updateAvailable(detail)
-
-  handleIPCCommand: (command, args...) =>
-    activeElement = document.activeElement
-    # Use the workspace element view if body has focus
-    if activeElement is document.body and workspaceElement = @atomEnvironment.views.getView(@atomEnvironment.workspace)
-      activeElement = workspaceElement
-
-    @atomEnvironment.commands.dispatch(activeElement, command, args[0])
-
-  handleIPCContextCommand: (command, args...) =>
-    @atomEnvironment.commands.dispatch(@atomEnvironment.contextMenu.activeElement, command, args)
 
   handleWindowFocus: ->
     document.body.classList.remove('is-blurred')

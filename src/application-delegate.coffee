@@ -1,12 +1,14 @@
+ipc = require 'ipc'
 remote = require 'remote'
 shell = require 'shell'
+{Disposable} = require 'event-kit'
 
 module.exports =
 class ApplicationDelegate
   open: (params) ->
     ipc.send('open', params)
 
-  pickFolder: ->
+  pickFolder: (callback) ->
     responseChannel = "atom-pick-folder-response"
     ipc.on responseChannel, (path) ->
       ipc.removeAllListeners(responseChannel)
@@ -95,3 +97,31 @@ class ApplicationDelegate
 
   playBeepSound: ->
     shell.beep()
+
+  onDidOpenLocations: (callback) ->
+    outerCallback = (message, detail) ->
+      if message is 'open-locations'
+        callback(detail)
+
+    ipc.on('message', outerCallback)
+    new Disposable ->
+      ipc.removeEventListener('message', outerCallback)
+
+  onUpdateAvailable: (callback) ->
+    outerCallback = (message, detail) ->
+      if message is 'update-available'
+        callback(detail)
+
+    ipc.on('message', outerCallback)
+    new Disposable ->
+      ipc.removeEventListener('message', outerCallback)
+
+  onApplicationMenuCommand: (callback) ->
+    ipc.on('command', callback)
+    new Disposable ->
+      ipc.removeEventListener('command', callback)
+
+  onContextMenuCommand: (callback) ->
+    ipc.on('context-command', callback)
+    new Disposable ->
+      ipc.removeEventListener('context-command', callback)
