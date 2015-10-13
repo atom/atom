@@ -25,4 +25,4 @@ done
 
 binDir=`pwd -P`
 builtin cd "$initialCwd"
-"$binDir/$nodeBin" --harmony_collections "$binDir/../lib/cli.js" "$@"
+"$binDir/$nodeBin" "$binDir/../lib/cli.js" "$@"
