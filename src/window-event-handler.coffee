@@ -8,7 +8,7 @@ listen = require './delegated-listener'
 # Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
-  constructor: (@atomEnv) ->
+  constructor: ({@atomEnvironment}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
@@ -28,17 +28,17 @@ class WindowEventHandler
     @subscriptions.add listen(document, 'click', 'a', @handleLinkClick)
     @subscriptions.add listen(document, 'submit', 'form', @handleFormSubmit)
 
-    @subscriptions.add @atomEnv.commands.add window,
+    @subscriptions.add @atomEnvironment.commands.add window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
       'window:close': @handleWindowClose
       'window:reload': @handleWindowReload
       'window:toggle-dev-tools': @handleWindowToggleDevTools
 
     if process.platform in ['win32', 'linux']
-      @subscriptions.add @atomEnv.commands.add window,
+      @subscriptions.add @atomEnvironment.commands.add window,
         'window:toggle-menu-bar': @handleWindowToggleMenuBar
 
-    @subscriptions.add @atomEnv.commands.add document,
+    @subscriptions.add @atomEnvironment.commands.add document,
       'core:focus-next': @handleFocusNext
       'core:focus-previous': @handleFocusPrevious
 
@@ -50,7 +50,7 @@ class WindowEventHandler
     bindCommandToAction = (command, action) =>
       @addEventListener document, command, (event) =>
         if event.target.webkitMatchesSelector('.native-key-bindings')
-          @atomEnv.getCurrentWindow().webContents[action]()
+          @atomEnvironment.getCurrentWindow().webContents[action]()
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')
@@ -73,7 +73,7 @@ class WindowEventHandler
     @subscriptions.add(new Disposable(-> target.removeEventListener(eventName, handler)))
 
   handleDocumentKeydown: (event) =>
-    @atomEnv.keymaps.handleKeyboardEvent(event)
+    @atomEnvironment.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
 
   handleDrop: (event) ->
@@ -137,77 +137,77 @@ class WindowEventHandler
   handleIPCMessage: (message, detail) =>
     switch message
       when 'open-locations'
-        needsProjectPaths = @atomEnv.project?.getPaths().length is 0
+        needsProjectPaths = @atomEnvironment.project?.getPaths().length is 0
 
         for {pathToOpen, initialLine, initialColumn} in detail
           if pathToOpen? and needsProjectPaths
             if fs.existsSync(pathToOpen)
-              @atomEnv.project.addPath(pathToOpen)
+              @atomEnvironment.project.addPath(pathToOpen)
             else if fs.existsSync(path.dirname(pathToOpen))
-              @atomEnv.project.addPath(path.dirname(pathToOpen))
+              @atomEnvironment.project.addPath(path.dirname(pathToOpen))
             else
-              @atomEnv.project.addPath(pathToOpen)
+              @atomEnvironment.project.addPath(pathToOpen)
 
           unless fs.isDirectorySync(pathToOpen)
-            @atomEnv.workspace?.open(pathToOpen, {initialLine, initialColumn})
+            @atomEnvironment.workspace?.open(pathToOpen, {initialLine, initialColumn})
         return
       when 'update-available'
-        @atomEnv.updateAvailable(detail)
+        @atomEnvironment.updateAvailable(detail)
 
   handleIPCCommand: (command, args...) =>
     activeElement = document.activeElement
     # Use the workspace element view if body has focus
-    if activeElement is document.body and workspaceElement = @atomEnv.views.getView(@atomEnv.workspace)
+    if activeElement is document.body and workspaceElement = @atomEnvironment.views.getView(@atomEnvironment.workspace)
       activeElement = workspaceElement
 
-    @atomEnv.commands.dispatch(activeElement, command, args[0])
+    @atomEnvironment.commands.dispatch(activeElement, command, args[0])
 
   handleIPCContextCommand: (command, args...) =>
-    @atomEnv.commands.dispatch(@atomEnv.contextMenu.activeElement, command, args)
+    @atomEnvironment.commands.dispatch(@atomEnvironment.contextMenu.activeElement, command, args)
 
   handleWindowFocus: ->
     document.body.classList.remove('is-blurred')
 
   handleWindowBlur: =>
     document.body.classList.add('is-blurred')
-    @atomEnv.storeDefaultWindowDimensions()
+    @atomEnvironment.storeDefaultWindowDimensions()
 
   handleWindowBeforeunload: =>
-    confirmed = @atomEnv.workspace?.confirmClose(windowCloseRequested: true)
-    @atomEnv.hide() if confirmed and not @reloadRequested and @atomEnv.getCurrentWindow().isWebViewFocused()
+    confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)
+    @atomEnvironment.hide() if confirmed and not @reloadRequested and @atomEnvironment.getCurrentWindow().isWebViewFocused()
     @reloadRequested = false
 
-    @atomEnv.storeDefaultWindowDimensions()
-    @atomEnv.storeWindowDimensions()
+    @atomEnvironment.storeDefaultWindowDimensions()
+    @atomEnvironment.storeWindowDimensions()
     if confirmed
-      @atomEnv.unloadEditorWindow()
+      @atomEnvironment.unloadEditorWindow()
     else
       ipc.send('cancel-window-close')
 
     confirmed
 
   handleWindowUnload: =>
-    @atomEnv.destroy()
+    @atomEnvironment.destroy()
 
   handleWindowToggleFullScreen: =>
-    @atomEnv.toggleFullScreen()
+    @atomEnvironment.toggleFullScreen()
 
   handleWindowClose: =>
-    @atomEnv.close()
+    @atomEnvironment.close()
 
   handleWindowReload: =>
     @reloadRequested = true
-    @atomEnv.reload()
+    @atomEnvironment.reload()
 
   handleWindowToggleDevTools: =>
-    @atomEnv.toggleDevTools()
+    @atomEnvironment.toggleDevTools()
 
   handleWindowToggleMenuBar: =>
-    @atomEnv.config.set('core.autoHideMenuBar', not @atomEnv.config.get('core.autoHideMenuBar'))
+    @atomEnvironment.config.set('core.autoHideMenuBar', not @atomEnvironment.config.get('core.autoHideMenuBar'))
 
-    if @atomEnv.config.get('core.autoHideMenuBar')
+    if @atomEnvironment.config.get('core.autoHideMenuBar')
       detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
-      @atomEnv.notifications.addInfo('Menu bar hidden', {detail})
+      @atomEnvironment.notifications.addInfo('Menu bar hidden', {detail})
 
   handleLinkClick: (event) ->
     event.preventDefault()
@@ -221,4 +221,4 @@ class WindowEventHandler
 
   handleDocumentContextmenu: (event) =>
     event.preventDefault()
-    @atomEnv.contextMenu.showForEvent(event)
+    @atomEnvironment.contextMenu.showForEvent(event)

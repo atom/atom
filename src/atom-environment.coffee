@@ -650,7 +650,7 @@ class AtomEnvironment extends Model
     window.onerror = @previousWindowErrorHandler
 
   installWindowEventHandler: ->
-    @windowEventHandler = new WindowEventHandler(this)
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
 
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
