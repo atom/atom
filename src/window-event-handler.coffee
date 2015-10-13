@@ -1,14 +1,12 @@
 path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
-ipc = require 'ipc'
-shell = require 'shell'
 fs = require 'fs-plus'
 listen = require './delegated-listener'
 
 # Handles low-level events related to the window.
 module.exports =
 class WindowEventHandler
-  constructor: ({@atomEnvironment}) ->
+  constructor: ({@atomEnvironment, @applicationDelegate}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
@@ -46,7 +44,7 @@ class WindowEventHandler
     bindCommandToAction = (command, action) =>
       @addEventListener document, command, (event) =>
         if event.target.webkitMatchesSelector('.native-key-bindings')
-          @atomEnvironment.getCurrentWindow().webContents[action]()
+          @applicationDelegate.getCurrentWindow().webContents[action]()
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')
@@ -147,7 +145,7 @@ class WindowEventHandler
     if confirmed
       @atomEnvironment.unloadEditorWindow()
     else
-      ipc.send('cancel-window-close')
+      @applicationDelegate.didCancelWindowUnload()
 
     confirmed
 
@@ -176,9 +174,9 @@ class WindowEventHandler
 
   handleLinkClick: (event) ->
     event.preventDefault()
-    location = event.currentTarget?.getAttribute('href')
-    if location and location[0] isnt '#' and /^https?:\/\//.test(location)
-      shell.openExternal(location)
+    uri = event.currentTarget?.getAttribute('href')
+    if uri and uri[0] isnt '#' and /^https?:\/\//.test(uri)
+      @applicationDelegate.openExternal(uri)
 
   handleFormSubmit: (event) ->
     # Prevent form submits from changing the current window's URL

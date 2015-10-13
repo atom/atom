@@ -264,7 +264,7 @@ class AtomApplication
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
 
-    ipc.on 'cancel-window-close', =>
+    ipc.on 'did-cancel-window-unload', =>
       @quitting = false
 
     clipboard = require '../safe-clipboard'

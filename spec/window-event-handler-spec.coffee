@@ -65,13 +65,13 @@ describe "WindowEventHandler", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(true)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipc.send).not.toHaveBeenCalledWith('cancel-window-close')
+        expect(ipc.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
 
       it "cancels the unload if the user selects cancel", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(false)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipc.send).toHaveBeenCalledWith('cancel-window-close')
+        expect(ipc.send).toHaveBeenCalledWith('did-cancel-window-unload')
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->

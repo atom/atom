@@ -125,3 +125,9 @@ class ApplicationDelegate
     ipc.on('context-command', callback)
     new Disposable ->
       ipc.removeEventListener('context-command', callback)
+
+  didCancelWindowUnload: ->
+    ipc.send('did-cancel-window-unload')
+
+  openExternal: (url) ->
+    shell.openExternal(url)
