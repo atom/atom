@@ -40,7 +40,6 @@ module.exports =
 class AtomEnvironment extends Model
   @version: 1  # Increment this when the serialization format changes
 
-  workspaceParentSelectorctor: 'body'
   lastUncaughtError: null
 
   ###
@@ -593,7 +592,7 @@ class AtomEnvironment extends Model
 
     workspaceElement = @views.getView(@workspace)
     @keymaps.defaultTarget = workspaceElement
-    @document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
+    @document.body.appendChild(workspaceElement)
 
     @watchProjectPath()
 

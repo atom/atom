@@ -63,8 +63,6 @@ beforeEach ->
 
   atom.project.setPaths([path.join(@specDirectory, 'fixtures')])
 
-  atom.workspaceParentSelectorctor = '#jasmine-content'
-
   window.resetTimeouts()
   spyOn(_._, "now").andCallFake -> window.now
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
