@@ -37,7 +37,7 @@ class PackageManager
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
-    unless safeMode
+    if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
       @packageDirPaths.push(path.join(configDirPath, "packages"))

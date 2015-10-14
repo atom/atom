@@ -332,8 +332,9 @@ class Config
 
   # Created during initialization, available as `atom.config`
   constructor: ({@configDirPath, @resourcePath, @notificationManager}={}) ->
-    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(@configDirPath, 'config.cson')
+    if @configDirPath?
+      @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
+      @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @clear()
 
   clear: ->
@@ -355,6 +356,8 @@ class Config
       @savePending = false
       @save()
     debouncedSave = _.debounce(save, 100)
+
+  shouldNotAccessFileSystem: -> not @configDirPath?
 
   ###
   Section: Config Subscription
@@ -726,7 +729,7 @@ class Config
   ###
 
   initializeConfigDirectory: (done) ->
-    return if fs.existsSync(@configDirPath)
+    return if fs.existsSync(@configDirPath) or @shouldNotAccessFileSystem()
 
     fs.makeTreeSync(@configDirPath)
 
@@ -742,6 +745,8 @@ class Config
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
   loadUserConfig: ->
+    return if @shouldNotAccessFileSystem()
+
     unless fs.existsSync(@configFilePath)
       fs.makeTreeSync(path.dirname(@configFilePath))
       CSON.writeFileSync(@configFilePath, {})
@@ -765,6 +770,8 @@ class Config
       @notifyFailure(message, detail)
 
   observeUserConfig: ->
+    return if @shouldNotAccessFileSystem()
+
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
         @requestLoad() if eventType is 'change' and @watchSubscription?
@@ -784,6 +791,8 @@ class Config
     @notificationManager.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
+    return if @shouldNotAccessFileSystem()
+
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
     try

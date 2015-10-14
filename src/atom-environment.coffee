@@ -105,8 +105,7 @@ class AtomEnvironment extends Model
     @state = {version: @constructor.version}
 
     @loadTime = null
-    {devMode, safeMode, resourcePath} = @getLoadSettings()
-    configDirPath = @getConfigDirPath()
+    {devMode, safeMode, resourcePath, configDirPath} = @getLoadSettings()
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
@@ -178,6 +177,16 @@ class AtomEnvironment extends Model
       notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
     @themes.workspace = @workspace
+
+    @config.load()
+
+    @themes.loadBaseStylesheets()
+    @initialStyleElements = @styles.getSnapshot()
+    @themes.initialLoadComplete = true
+    @setBodyPlatformClass()
+
+    @stylesElement = @styles.buildStylesElement()
+    @document.head.appendChild(@stylesElement)
 
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
@@ -260,7 +269,7 @@ class AtomEnvironment extends Model
 
     @grammars.clear()
 
-    @styles.restoreSnapshot(params?.stylesSnapshot ? [])
+    @styles.restoreSnapshot(@initialStyleElements)
 
     @menu.clear()
 
@@ -295,6 +304,7 @@ class AtomEnvironment extends Model
     @project?.destroy()
     @project = null
     @commands.clear()
+    @stylesElement.remove()
 
     @uninstallWindowEventHandler()
 
@@ -597,12 +607,6 @@ class AtomEnvironment extends Model
     @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
     @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
     @listenForUpdates()
-
-    @config.load()
-    @themes.loadBaseStylesheets()
-    @setBodyPlatformClass()
-
-    @document.head.appendChild(@styles.buildStylesElement())
 
     @packages.loadPackages()
 

@@ -168,6 +168,8 @@ class StyleManager
   #
   # Returns a {String}.
   getUserStyleSheetPath: ->
+    return "" unless @configDirPath?
+
     stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
     if fs.isFileSync(stylesheetPath)
       stylesheetPath

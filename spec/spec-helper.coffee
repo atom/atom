@@ -20,10 +20,6 @@ jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
 document.head.appendChild(jasmineStyle)
 
-atom.themes.loadBaseStylesheets()
-initialStyleElements = atom.styles.getSnapshot()
-atom.themes.initialLoadComplete = true
-
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
 
@@ -107,7 +103,7 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.reset(stylesSnapshot: initialStyleElements)
+  atom.reset()
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 

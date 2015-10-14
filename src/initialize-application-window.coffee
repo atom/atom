@@ -16,7 +16,7 @@ process.env.NODE_ENV ?= 'production' unless devMode
 
 AtomEnvironment = require './atom-environment'
 ApplicationDelegate = require './application-delegate'
-window.atom = new AtomEnvironment({applicationDelegate: new ApplicationDelegate, window, document})
+window.atom = new AtomEnvironment({applicationDelegate: new ApplicationDelegate, window, document, configDirPath: process.env.ATOM_HOME})
 
 atom.displayWindow()
 atom.loadStateSync()
