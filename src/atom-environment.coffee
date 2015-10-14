@@ -574,8 +574,8 @@ class AtomEnvironment extends Model
     return if @inSpecMode()
 
     workspaceElement = @views.getView(@workspace)
-    backgroundColor = window.getComputedStyle(workspaceElement)['background-color']
-    window.localStorage.setItem('atom:window-background-color', backgroundColor)
+    backgroundColor = @window.getComputedStyle(workspaceElement)['background-color']
+    @window.localStorage.setItem('atom:window-background-color', backgroundColor)
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
