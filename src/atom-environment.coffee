@@ -443,7 +443,7 @@ class AtomEnvironment extends Model
   # Extended: Focus the current window.
   focus: ->
     @applicationDelegate.focusWindow()
-    window.focus()
+    @window.focus()
 
   # Extended: Show the current window.
   show: ->
