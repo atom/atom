@@ -82,6 +82,7 @@ class TextEditor extends Model
     state.grammarRegistry = atomEnvironment.grammars
     state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
+    state.applicationDelegate = atomEnvironment.applicationDelegate
     new this(state)
 
   constructor: (params={}) ->
@@ -91,7 +92,7 @@ class TextEditor extends Model
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
       lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -480,7 +481,7 @@ class TextEditor extends Model
     newEditor = new TextEditor({
       @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert
+      @grammarRegistry, @project, @assert, @applicationDelegate
     })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
@@ -642,9 +643,20 @@ class TextEditor extends Model
 
   checkoutHeadRevision: ->
     if filePath = this.getPath()
-      @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
-        .then (repository) =>
-          repository?.checkoutHeadForEditor(this)
+      checkoutHead = =>
+        @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
+          .then (repository) =>
+            repository?.checkoutHeadForEditor(this)
+
+      if @config.get('editor.confirmCheckoutHeadRevision')
+        @applicationDelegate.confirm
+          message: 'Confirm Checkout HEAD Revision'
+          detailedMessage: "Are you sure you want to discard all changes to \"#{path.basename(filePath)}\" since the last Git commit?"
+          buttons:
+            OK: checkoutHead
+            Cancel: null
+      else
+        checkoutHead()
     else
       Promise.resolve(false)
 

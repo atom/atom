@@ -21,7 +21,7 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ({@confirm, @notificationManager, packageManager, config}) ->
+  constructor: ({@notificationManager, packageManager, config}) ->
     @emitter = new Emitter
     @buffers = []
     @paths = []
@@ -30,7 +30,7 @@ class Project extends Model
     @directoryProviders = []
     @defaultDirectoryProvider = new DefaultDirectoryProvider()
     @repositoryPromisesByPath = new Map()
-    @repositoryProviders = [new GitRepositoryProvider(this, config, confirm)]
+    @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @consumeServices(packageManager)
 
   destroyed: ->
