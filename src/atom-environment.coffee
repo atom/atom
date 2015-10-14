@@ -267,8 +267,6 @@ class AtomEnvironment extends Model
     @commands.clear()
     @registerDefaultCommands()
 
-    @grammars.clear()
-
     @styles.restoreSnapshot(@initialStyleElements)
 
     @menu.clear()
@@ -287,6 +285,8 @@ class AtomEnvironment extends Model
     @project.reset(@packages)
 
     @workspace.subscribeToEvents()
+
+    @grammars.clear()
 
     @views.clear()
     @registerDefaultViewProviders()
