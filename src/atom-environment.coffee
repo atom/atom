@@ -191,6 +191,8 @@ class AtomEnvironment extends Model
     @installUncaughtErrorHandler()
     @installWindowEventHandler()
 
+    @observeAutoHideMenuBar()
+
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
@@ -237,6 +239,11 @@ class AtomEnvironment extends Model
 
   registerDefaultTargetForKeymaps: ->
     @keymaps.defaultTarget = @views.getView(@workspace)
+
+  observeAutoHideMenuBar: ->
+    @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
+      @setAutoHideMenuBar(newValue)
+    @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
   reset: (params) ->
     @deserializers.clear()
@@ -606,9 +613,6 @@ class AtomEnvironment extends Model
     @requireUserInitScript() unless @getLoadSettings().safeMode
 
     @menu.update()
-    @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
-      @setAutoHideMenuBar(newValue)
-    @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
     @openInitialEmptyEditorIfNecessary()
 
