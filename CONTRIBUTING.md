@@ -13,7 +13,7 @@ By participating, you are expected to uphold this code. Please report unacceptab
 #### Table Of Contents
 
 * [Submitting Issues](#submitting-issues)
-* [Making your first contribution](#making-your-first-contribution)
+* [Your First Contribution](#your-first-contribution`)
 * [Pull Requests](#pull-requests)
 * [Git Commit Messages](#git-commit-messages)
 * [CoffeeScript Styleguide](#coffeescript-styleguide)
@@ -61,7 +61,7 @@ you're having an issue with Atom core, open an issue on this repository.
 For more information on how to work with Atom's official packages, see
 [Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md)
 
-## Making your first contribution
+## Your First Contribution
 
 Unsure where to begin contributing to Atom? You can start by looking through these `beginner` and `help-wanted` issues:
 
