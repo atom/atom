@@ -100,12 +100,12 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document} = params
+    {@applicationDelegate, @window, @document, configDirPath} = params
 
     @state = {version: @constructor.version}
 
     @loadTime = null
-    {devMode, safeMode, resourcePath, configDirPath} = @getLoadSettings()
+    {devMode, safeMode, resourcePath} = @getLoadSettings()
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
