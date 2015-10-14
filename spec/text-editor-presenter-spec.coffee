@@ -724,7 +724,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollTop", ->
-        it "doesn't get stuck when setting a non-integer position in an event listener", ->
+        it "doesn't get stuck when repeatedly setting the same non-integer position in a scroll event listener", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
           expect(presenter.getState().content.scrollTop).toBe(0)
 
@@ -851,7 +851,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
-        it "doesn't get stuck when setting a non-integer position in an event listener", ->
+        it "doesn't get stuck when repeatedly setting the same non-integer position in a scroll event listener", ->
           presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 10)
           expect(presenter.getState().content.scrollLeft).toBe(0)
 
