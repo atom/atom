@@ -684,25 +684,8 @@ class AtomEnvironment extends Model
   #     button names and the values are callbacks to invoke when clicked.
   #
   # Returns the chosen button index {Number} if the buttons option was an array.
-  confirm: ({message, detailedMessage, buttons}={}) ->
-    buttons ?= {}
-    if _.isArray(buttons)
-      buttonLabels = buttons
-    else
-      buttonLabels = Object.keys(buttons)
-
-    chosen = @applicationDelegate.showMessageDialog(
-      type: 'info'
-      message: message
-      detail: detailedMessage
-      buttons: buttonLabels
-    )
-
-    if _.isArray(buttons)
-      chosen
-    else
-      callback = buttons[buttonLabels[chosen]]
-      callback?()
+  confirm: (params={}) ->
+    @applicationDelegate.confirm(params)
 
   ###
   Section: Managing the Dev Tools

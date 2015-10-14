@@ -94,9 +94,28 @@ class ApplicationDelegate
     screen = remote.require 'screen'
     screen.getPrimaryDisplay().workAreaSize
 
-  showMessageDialog: (params) ->
+  confirm: ({message, detailedMessage, buttons}) ->
+    buttons ?= {}
+    if _.isArray(buttons)
+      buttonLabels = buttons
+    else
+      buttonLabels = Object.keys(buttons)
+
     dialog = remote.require('dialog')
-    dialog.showMessageBox remote.getCurrentWindow(), params
+    chosen = dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'info'
+      message: message
+      detail: detailedMessage
+      buttons: buttonLabels
+    })
+
+    if _.isArray(buttons)
+      chosen
+    else
+      callback = buttons[buttonLabels[chosen]]
+      callback?()
+
+  showMessageDialog: (params) ->
 
   showSaveDialog: (params) ->
     if _.isString(params)
