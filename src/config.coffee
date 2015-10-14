@@ -5,7 +5,10 @@ CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
-{pushKeyPath, splitKeyPath, getValueAtKeyPath, setValueAtKeyPath} = require 'key-path-helpers'
+{
+  getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
+  pushKeyPath, splitKeyPath,
+} = require 'key-path-helpers'
 
 Color = require './color'
 ScopedPropertyStore = require 'scoped-property-store'
@@ -832,12 +835,16 @@ class Config
 
   setRawValue: (keyPath, value) ->
     defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
-    value = undefined if _.isEqual(defaultValue, value)
-
-    if keyPath?
-      setValueAtKeyPath(@settings, keyPath, value)
+    if _.isEqual(defaultValue, value)
+      if keyPath?
+        deleteValueAtKeyPath(@settings, keyPath)
+      else
+        @settings = null
     else
-      @settings = value
+      if keyPath?
+        setValueAtKeyPath(@settings, keyPath, value)
+      else
+        @settings = value
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
