@@ -10,7 +10,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 Workspace = require './workspace'
