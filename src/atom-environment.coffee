@@ -254,7 +254,7 @@ class AtomEnvironment extends Model
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
 
-  reset: (params) ->
+  reset: ->
     @deserializers.clear()
     @registerDefaultDeserializers()
 
