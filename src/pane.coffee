@@ -14,9 +14,7 @@ class Pane extends Model
   activeItem: undefined
   focused: false
 
-  @deserialize: (state, atomEnvironment) ->
-    {deserializers, config, notifications} = atomEnvironment
-    confirm = atomEnvironment.confirm.bind(atomEnvironment)
+  @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
     {items, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
@@ -27,15 +25,14 @@ class Pane extends Model
     new Pane(extend(state, {
       deserializerManager: deserializers,
       notificationManager: notifications,
-      confirm: confirm,
-      config: config
+      config, applicationDelegate
     }))
 
   constructor: (params) ->
     super
 
     {
-      @activeItem, @focused, @confirm, @notificationManager, @config,
+      @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
       @deserializerManager
     } = params
 
@@ -465,7 +462,7 @@ class Pane extends Model
     else
       return true
 
-    chosen = @confirm
+    chosen = @applicationDelegate.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
@@ -518,7 +515,7 @@ class Pane extends Model
 
     saveOptions = item.getSaveDialogOptions?() ? {}
     saveOptions.defaultPath ?= item.getPath()
-    newItemPath = atom.showSaveDialogSync(saveOptions)
+    newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
       try
         item.saveAs(newItemPath)
@@ -650,7 +647,7 @@ class Pane extends Model
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
       @setFlexScale(1)
 
-    newPane = new Pane(extend({@confirm, @deserializerManager, @config}, params))
+    newPane = new Pane(extend({@applicationDelegate, @deserializerManager, @config}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)

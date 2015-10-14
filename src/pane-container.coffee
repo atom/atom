@@ -15,12 +15,12 @@ class PaneContainer extends Model
   constructor: (params) ->
     super
 
-    {@config, notificationManager, deserializerManager, confirm} = params
+    {@config, applicationDelegate, notificationManager, deserializerManager} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
     @itemRegistry = new ItemRegistry
 
-    @setRoot(new Pane({container: this, @config, notificationManager, deserializerManager, confirm}))
+    @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager}))
     @setActivePane(@getRoot())
     @monitorActivePaneItem()
     @monitorPaneItems()

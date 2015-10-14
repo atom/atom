@@ -5,7 +5,7 @@ PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->
-  [confirm, deserializerDisposable] = []
+  [confirm, showSaveDialog, deserializerDisposable] = []
 
   class Item
     @deserialize: ({name, uri}) -> new this(name, uri)
@@ -20,7 +20,8 @@ describe "Pane", ->
     isDestroyed: -> @destroyed
 
   beforeEach ->
-    confirm = jasmine.createSpy('confirm')
+    confirm = spyOn(atom.applicationDelegate, 'confirm')
+    showSaveDialog = spyOn(atom.applicationDelegate, 'showSaveDialog')
     deserializerDisposable = atom.deserializers.add(Item)
 
   afterEach ->
@@ -28,7 +29,7 @@ describe "Pane", ->
 
   paneParams = (params) ->
     extend({
-      confirm: confirm,
+      applicationDelegate: atom.applicationDelegate,
       config: atom.config,
       deserializerManager: atom.deserializers,
       notificationManager: atom.notifications
@@ -48,7 +49,7 @@ describe "Pane", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer(config: atom.config, confirm: confirm)
+      container = new PaneContainer(config: atom.config, applicationDelegate: atom.applicationDelegate)
       container.getActivePane().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -117,7 +118,7 @@ describe "Pane", ->
 
     it "throws an exception if the item is already present on a pane", ->
       item = new Item("A")
-      container = new PaneContainer(config: atom.config, confirm: confirm)
+      container = new PaneContainer(config: atom.config, applicationDelegate: atom.applicationDelegate)
       pane1 = container.getActivePane()
       pane1.addItem(item)
       pane2 = pane1.splitRight()
@@ -281,11 +282,11 @@ describe "Pane", ->
           it "presents a save-as dialog, then saves the item with the given uri before removing and destroying it", ->
             itemURI = null
 
-            spyOn(atom, 'showSaveDialogSync').andReturn("/selected/path")
+            showSaveDialog.andReturn("/selected/path")
             confirm.andReturn(0)
             pane.destroyItem(item1)
 
-            expect(atom.showSaveDialogSync).toHaveBeenCalled()
+            expect(showSaveDialog).toHaveBeenCalled()
             expect(item1.saveAs).toHaveBeenCalledWith("/selected/path")
             expect(item1 in pane.getItems()).toBe false
             expect(item1.isDestroyed()).toBe true
@@ -379,7 +380,7 @@ describe "Pane", ->
 
     beforeEach ->
       pane = new Pane(paneParams(items: [new Item("A")]))
-      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
+      showSaveDialog.andReturn('/selected/path')
 
     describe "when the active item has a uri", ->
       beforeEach ->
@@ -401,14 +402,14 @@ describe "Pane", ->
         it "opens a save dialog and saves the current item as the selected path", ->
           pane.getActiveItem().saveAs = jasmine.createSpy("saveAs")
           pane.saveActiveItem()
-          expect(atom.showSaveDialogSync).toHaveBeenCalled()
+          expect(showSaveDialog).toHaveBeenCalled()
           expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
 
       describe "when the current item has no saveAs method", ->
         it "does nothing", ->
           expect(pane.getActiveItem().saveAs).toBeUndefined()
           pane.saveActiveItem()
-          expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
+          expect(showSaveDialog).not.toHaveBeenCalled()
 
     describe "when the item's saveAs method throws a well-known IO error", ->
       notificationSpy = null
@@ -434,21 +435,21 @@ describe "Pane", ->
 
     beforeEach ->
       pane = new Pane(paneParams(items: [new Item("A")]))
-      spyOn(atom, 'showSaveDialogSync').andReturn('/selected/path')
+      showSaveDialog.andReturn('/selected/path')
 
     describe "when the current item has a saveAs method", ->
       it "opens the save dialog and calls saveAs on the item with the selected path", ->
         pane.getActiveItem().path = __filename
         pane.getActiveItem().saveAs = jasmine.createSpy("saveAs")
         pane.saveActiveItemAs()
-        expect(atom.showSaveDialogSync).toHaveBeenCalledWith(defaultPath: __filename)
+        expect(showSaveDialog).toHaveBeenCalledWith(defaultPath: __filename)
         expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
 
     describe "when the current item does not have a saveAs method", ->
       it "does nothing", ->
         expect(pane.getActiveItem().saveAs).toBeUndefined()
         pane.saveActiveItemAs()
-        expect(atom.showSaveDialogSync).not.toHaveBeenCalled()
+        expect(showSaveDialog).not.toHaveBeenCalled()
 
     describe "when the item's saveAs method throws a well-known IO error", ->
       notificationSpy = null

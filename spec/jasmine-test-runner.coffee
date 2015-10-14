@@ -16,7 +16,7 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
 
   ApplicationDelegate = require '../src/application-delegate'
   applicationDelegate = new ApplicationDelegate()
-  applicationDelegate.setWindowRepresentedFilename = ->
+  applicationDelegate.setRepresentedFilename = ->
   applicationDelegate.setWindowDocumentEdited = ->
   window.atom = buildAtomEnvironment({applicationDelegate})
 

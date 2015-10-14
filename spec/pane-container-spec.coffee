@@ -5,11 +5,11 @@ describe "PaneContainer", ->
   [confirm, params] = []
 
   beforeEach ->
-    confirm = jasmine.createSpy('confirm').andReturn(0)
+    confirm = spyOn(atom.applicationDelegate, 'confirm').andReturn(0)
     params = {
       config: atom.config,
-      confirm: confirm,
       deserializerManager: atom.deserializers
+      applicationDelegate: atom.applicationDelegate
     }
 
   describe "serialization", ->

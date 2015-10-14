@@ -175,8 +175,7 @@ class AtomEnvironment extends Model
 
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
-      notificationManager: @notifications, setRepresentedFilename: @setRepresentedFilename.bind(this),
-      setDocumentEdited: @setDocumentEdited.bind(this), @clipboard, viewRegistry: @views, assert: @assert.bind(this), confirm: @confirm.bind(this)
+      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
     @themes.workspace = @workspace
 

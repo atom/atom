@@ -28,15 +28,15 @@ class Workspace extends Model
 
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @setRepresentedFilename,
-      @setDocumentEdited, @assert, @confirm, @deserializerManager
+      @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
+      @deserializerManager
     } = params
 
     @emitter = new Emitter
     @openers = []
     @destroyedItemURIs = []
 
-    @paneContainer = new PaneContainer({@config, @confirm, @notificationManager, @deserializerManager})
+    @paneContainer = new PaneContainer({@config, @applicationDelegate, @notificationManager, @deserializerManager})
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
@@ -58,7 +58,7 @@ class Workspace extends Model
     @paneContainer.destroy()
     panelContainer.destroy() for panelContainer in @panelContainers
 
-    @paneContainer = new PaneContainer({@config, @confirm, @notificationManager, @deserializerManager})
+    @paneContainer = new PaneContainer({@config, @applicationDelegate, @notificationManager, @deserializerManager})
     @paneContainer.onDidDestroyPaneItem(@didDestroyPaneItem)
 
     @panelContainers =
@@ -163,19 +163,19 @@ class Workspace extends Model
 
     if item? and projectPath?
       document.title = "#{itemTitle} - #{projectPath} - #{appName}"
-      @setRepresentedFilename(itemPath ? projectPath)
+      @applicationDelegate.setRepresentedFilename(itemPath ? projectPath)
     else if projectPath?
       document.title = "#{projectPath} - #{appName}"
-      @setRepresentedFilename(projectPath)
+      @applicationDelegate.setRepresentedFilename(projectPath)
     else
       document.title = "#{itemTitle} - #{appName}"
-      @setRepresentedFilename("")
+      @applicationDelegate.setRepresentedFilename("")
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
   updateDocumentEdited: =>
     modified = @getActivePaneItem()?.isModified?() ? false
-    @setDocumentEdited(modified)
+    @applicationDelegate.setWindowDocumentEdited(modified)
 
   ###
   Section: Event Subscription
@@ -470,9 +470,6 @@ class Workspace extends Model
 
     Promise.resolve(item)
       .then (item) =>
-        if not pane
-          pane = new Pane({items: [item], @config, @confirm})
-          @paneContainer.root = pane
         @itemOpened(item)
         pane.activateItem(item) if activateItem
         pane.activate() if activatePane
@@ -503,7 +500,7 @@ class Workspace extends Model
 
     largeFileMode = fileSize >= 2 * 1048576 # 2MB
     if fileSize >= 20 * 1048576 # 20MB
-      choice = @confirm
+      choice = @applicationDelegate.confirm
         message: 'Atom will be unresponsive during the loading of very large files.'
         detailedMessage: "Do you still want to load this file?"
         buttons: ["Proceed", "Cancel"]
@@ -521,7 +518,7 @@ class Workspace extends Model
   buildTextEditor: (params) ->
     params = _.extend({
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert
+      @grammarRegistry, @project, @assert, @applicationDelegate
     }, params)
     new TextEditor(params)
 

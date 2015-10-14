@@ -213,9 +213,7 @@ describe "AtomEnvironment", ->
 
   describe "::unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      atomEnvironment = new AtomEnvironment(applicationDelegate: {
-        isWindowFullScreen: -> false
-      })
+      atomEnvironment = new AtomEnvironment(applicationDelegate: atom.applicationDelegate)
       spyOn(atomEnvironment, 'saveStateSync')
 
       workspaceState = atomEnvironment.workspace.serialize()
@@ -233,9 +231,7 @@ describe "AtomEnvironment", ->
 
   describe "::destroy()", ->
     it "unsubscribes from all buffers", ->
-      atomEnvironment = new AtomEnvironment(applicationDelegate: {
-        isWindowFullScreen: -> false
-      })
+      atomEnvironment = new AtomEnvironment(applicationDelegate: atom.applicationDelegate)
 
       waitsForPromise ->
         atomEnvironment.workspace.open("sample.js")
