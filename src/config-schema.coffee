@@ -177,7 +177,7 @@ module.exports =
         type: 'string'
         default: 'auto'
         enum: ['auto', 'soft', 'hard']
-        description: 'Determine character inserted when Tab key is pressed. Possible values: "auto", "soft" and "hard". When set to "soft" or "hard", soft tabs (spaces) or hard tabs (tab characters) are used. When set to "auto", the editor auto-detects the tab type based on the contents of the buffer, or uses the value of the Soft Tabs config setting if auto-detection fails.'
+        description: 'Determine character inserted when Tab key is pressed. Possible values: "auto", "soft" and "hard". When set to "soft" or "hard", soft tabs (spaces) or hard tabs (tab characters) are used. When set to "auto", the editor auto-detects the tab type based on the contents of the buffer (it uses the first leading whitespace on a non-comment line), or uses the value of the Soft Tabs config setting if auto-detection fails.'
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
