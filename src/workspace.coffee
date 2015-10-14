@@ -209,11 +209,34 @@ class Workspace extends Model
 
   # Essential: Invoke the given callback when the active pane item changes.
   #
+  # Because observers are invoked synchronously, it's important not to perform
+  # any expensive operations via this method. Consider
+  # {::onDidStopChangingActivePaneItem} to delay operations until after changes
+  # stop occurring.
+  #
   # * `callback` {Function} to be called when the active pane item changes.
   #   * `item` The active pane item.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePaneItem: (callback) -> @paneContainer.onDidChangeActivePaneItem(callback)
+  onDidChangeActivePaneItem: (callback) ->
+    @paneContainer.onDidChangeActivePaneItem(callback)
+
+  # Essential: Invoke the given callback when the active pane item stops
+  # changing.
+  #
+  # Observers are called asynchronously 100ms after the last active pane item
+  # change. Handling changes here rather than in the synchronous
+  # {::onDidChangeActivePaneItem} prevents unneeded work if the user is quickly
+  # changing or closing tabs and ensures critical UI feedback, like changing the
+  # highlighted tab, gets priority over work that can be done asynchronously.
+  #
+  # * `callback` {Function} to be called when the active pane item stopts
+  #   changing.
+  #   * `item` The active pane item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidStopChangingActivePaneItem: (callback) ->
+    @paneContainer.onDidStopChangingActivePaneItem(callback)
 
   # Essential: Invoke the given callback with the current active pane item and
   # with all future active pane items in the workspace.
@@ -789,13 +812,14 @@ class Workspace extends Model
   Section: Searching and Replacing
   ###
 
-  # Public: Performs a search across all the files in the workspace.
+  # Public: Performs a search across all files in the workspace.
   #
   # * `regex` {RegExp} to search with.
-  # * `options` (optional) {Object} (default: {})
-  #   * `paths` An {Array} of glob patterns to search within
-  #   * `onPathsSearched` (optional) {Function}
-  # * `iterator` {Function} callback on each file found
+  # * `options` (optional) {Object}
+  #   * `paths` An {Array} of glob patterns to search within.
+  #   * `onPathsSearched` (optional) {Function} to be periodically called
+  #     with number of paths searched.
+  # * `iterator` {Function} callback on each file found.
   #
   # Returns a `Promise` with a `cancel()` method that will cancel all
   # of the underlying searches that were started as part of this scan.
@@ -895,10 +919,10 @@ class Workspace extends Model
   # Public: Performs a replace across all the specified files in the project.
   #
   # * `regex` A {RegExp} to search with.
-  # * `replacementText` Text to replace all matches of regex with
-  # * `filePaths` List of file path strings to run the replace on.
+  # * `replacementText` {String} to replace all matches of regex with.
+  # * `filePaths` An {Array} of file path strings to run the replace on.
   # * `iterator` A {Function} callback on each file with replacements:
-  #   * `options` {Object} with keys `filePath` and `replacements`
+  #   * `options` {Object} with keys `filePath` and `replacements`.
   #
   # Returns a `Promise`.
   replace: (regex, replacementText, filePaths, iterator) ->

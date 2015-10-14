@@ -114,9 +114,6 @@ The name and version will be fetched from the `package.json`
 file in the specified repository. The authenticating user *must* have access
 to the indicated repository.
 
-When a package is created, a release hook is registered with GitHub for package
-version creation.
-
 Parameters:
 
 - **repository** - String. The repository containing the plugin, in the form "owner/repo"

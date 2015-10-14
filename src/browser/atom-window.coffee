@@ -28,7 +28,7 @@ class AtomWindow
       title: 'Atom'
       'web-preferences':
         'direct-write': true
-        'subpixel-font-scaling': false
+        'subpixel-font-scaling': true
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if process.platform is 'linux'
@@ -141,6 +141,8 @@ class AtomWindow
       switch chosen
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
+
+    @browserWindow.webContents.on 'will-navigate', (event) -> event.preventDefault()
 
     @setupContextMenu()
 

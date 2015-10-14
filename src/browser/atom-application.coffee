@@ -19,12 +19,6 @@ _ = require 'underscore-plus'
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 
-DefaultSocketPath =
-  if process.platform is 'win32'
-    '\\\\.\\pipe\\atom-sock'
-  else
-    path.join(os.tmpdir(), "atom-#{process.env.USER}.sock")
-
 # The application's singleton class.
 #
 # It's the entry point into the Atom application and maintains the global state
@@ -36,7 +30,11 @@ class AtomApplication
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
-    options.socketPath ?= DefaultSocketPath
+    unless options.socketPath?
+      if process.platform is 'win32'
+        options.socketPath = '\\\\.\\pipe\\atom-sock'
+      else
+        options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
     createAtomApplication = -> new AtomApplication(options)
 
@@ -66,6 +64,8 @@ class AtomApplication
 
   constructor: (options) ->
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
+
+    @socketPath = null if options.test
 
     global.atomApplication = this
 
@@ -132,6 +132,7 @@ class AtomApplication
   # the other launches will just pass their information to this server and then
   # close immediately.
   listenForArgumentsFromNewProcess: ->
+    return unless @socketPath?
     @deleteSocketFile()
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
@@ -141,7 +142,7 @@ class AtomApplication
     server.on 'error', (error) -> console.error 'Application server failed', error
 
   deleteSocketFile: ->
-    return if process.platform is 'win32'
+    return if process.platform is 'win32' or not @socketPath?
 
     if fs.existsSync(@socketPath)
       try

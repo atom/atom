@@ -19,7 +19,8 @@ class LinesTileComponent
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
-    @domNode = @domElementPool.build("div")
+    @textNodesByLineId = {}
+    @domNode = @domElementPool.buildElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
 
@@ -80,6 +81,7 @@ class LinesTileComponent
   removeLineNode: (id) ->
     @domElementPool.freeElementAndDescendants(@lineNodesByLineId[id])
     delete @lineNodesByLineId[id]
+    delete @textNodesByLineId[id]
     delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
     delete @screenRowsByLineId[id]
     delete @oldTileState.lines[id]
@@ -126,19 +128,21 @@ class LinesTileComponent
     {width} = @newState
     {screenRow, tokens, text, top, lineEnding, fold, isSoftWrapped, indentLevel, decorationClasses} = @newTileState.lines[id]
 
-    lineNode = @domElementPool.build("div", "line")
+    lineNode = @domElementPool.buildElement("div", "line")
     lineNode.dataset.screenRow = screenRow
 
     if decorationClasses?
       for decorationClass in decorationClasses
         lineNode.classList.add(decorationClass)
 
+    @currentLineTextNodes = []
     if text is ""
       @setEmptyLineInnerNodes(id, lineNode)
     else
       @setLineInnerNodes(id, lineNode)
+    @textNodesByLineId[id] = @currentLineTextNodes
 
-    lineNode.appendChild(@domElementPool.build("span", "fold-marker")) if fold
+    lineNode.appendChild(@domElementPool.buildElement("span", "fold-marker")) if fold
     lineNode
 
   setEmptyLineInnerNodes: (id, lineNode) ->
@@ -148,24 +152,36 @@ class LinesTileComponent
     if indentGuidesVisible and indentLevel > 0
       invisibleIndex = 0
       for i in [0...indentLevel]
-        indentGuide = @domElementPool.build("span", "indent-guide")
+        indentGuide = @domElementPool.buildElement("span", "indent-guide")
         for j in [0...tabLength]
           if invisible = endOfLineInvisibles?[invisibleIndex++]
-            indentGuide.appendChild(
-              @domElementPool.build("span", "invisible-character", invisible)
-            )
+            invisibleSpan = @domElementPool.buildElement("span", "invisible-character")
+            textNode = @domElementPool.buildText(invisible)
+            invisibleSpan.appendChild(textNode)
+            indentGuide.appendChild(invisibleSpan)
+
+            @currentLineTextNodes.push(textNode)
           else
-            indentGuide.insertAdjacentText("beforeend", " ")
+            textNode = @domElementPool.buildText(" ")
+            indentGuide.appendChild(textNode)
+
+            @currentLineTextNodes.push(textNode)
         lineNode.appendChild(indentGuide)
 
       while invisibleIndex < endOfLineInvisibles?.length
         invisible = endOfLineInvisibles[invisibleIndex++]
-        lineNode.appendChild(
-          @domElementPool.build("span", "invisible-character", invisible)
-        )
+        invisibleSpan = @domElementPool.buildElement("span", "invisible-character")
+        textNode = @domElementPool.buildText(invisible)
+        invisibleSpan.appendChild(textNode)
+        lineNode.appendChild(invisibleSpan)
+
+        @currentLineTextNodes.push(textNode)
     else
       unless @appendEndOfLineNodes(id, lineNode)
-        lineNode.textContent = "\u00a0"
+        textNode = @domElementPool.buildText("\u00a0")
+        lineNode.appendChild(textNode)
+
+        @currentLineTextNodes.push(textNode)
 
   setLineInnerNodes: (id, lineNode) ->
     lineState = @newTileState.lines[id]
@@ -180,7 +196,7 @@ class LinesTileComponent
         openScopeNode = openScopeNode.parentElement
 
       for scope in @tokenIterator.getScopeStarts()
-        newScopeNode = @domElementPool.build("span", scope.replace(/\.+/g, ' '))
+        newScopeNode = @domElementPool.buildElement("span", scope.replace(/\.+/g, ' '))
         openScopeNode.appendChild(newScopeNode)
         openScopeNode = newScopeNode
 
@@ -213,55 +229,70 @@ class LinesTileComponent
 
   appendTokenNodes: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, scopeNode) ->
     if isHardTab
-      hardTabNode = @domElementPool.build("span", "hard-tab", tokenText)
+      textNode = @domElementPool.buildText(tokenText)
+      hardTabNode = @domElementPool.buildElement("span", "hard-tab")
       hardTabNode.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
       hardTabNode.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
       hardTabNode.classList.add("indent-guide") if hasIndentGuide
       hardTabNode.classList.add("invisible-character") if hasInvisibleCharacters
+      hardTabNode.appendChild(textNode)
 
       scopeNode.appendChild(hardTabNode)
+      @currentLineTextNodes.push(textNode)
     else
       startIndex = 0
       endIndex = tokenText.length
 
       leadingWhitespaceNode = null
+      leadingWhitespaceTextNode = null
       trailingWhitespaceNode = null
+      trailingWhitespaceTextNode = null
 
       if firstNonWhitespaceIndex?
-        leadingWhitespaceNode = @domElementPool.build(
-          "span",
-          "leading-whitespace",
-          tokenText.substring(0, firstNonWhitespaceIndex)
-        )
+        leadingWhitespaceTextNode =
+          @domElementPool.buildText(tokenText.substring(0, firstNonWhitespaceIndex))
+        leadingWhitespaceNode = @domElementPool.buildElement("span", "leading-whitespace")
         leadingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide
         leadingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+        leadingWhitespaceNode.appendChild(leadingWhitespaceTextNode)
 
         startIndex = firstNonWhitespaceIndex
 
       if firstTrailingWhitespaceIndex?
         tokenIsOnlyWhitespace = firstTrailingWhitespaceIndex is 0
 
-        trailingWhitespaceNode = @domElementPool.build(
-          "span",
-          "trailing-whitespace",
-          tokenText.substring(firstTrailingWhitespaceIndex)
-        )
+        trailingWhitespaceTextNode =
+          @domElementPool.buildText(tokenText.substring(firstTrailingWhitespaceIndex))
+        trailingWhitespaceNode = @domElementPool.buildElement("span", "trailing-whitespace")
         trailingWhitespaceNode.classList.add("indent-guide") if hasIndentGuide and not firstNonWhitespaceIndex? and tokenIsOnlyWhitespace
         trailingWhitespaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+        trailingWhitespaceNode.appendChild(trailingWhitespaceTextNode)
 
         endIndex = firstTrailingWhitespaceIndex
 
-      scopeNode.appendChild(leadingWhitespaceNode) if leadingWhitespaceNode?
+      if leadingWhitespaceNode?
+        scopeNode.appendChild(leadingWhitespaceNode)
+        @currentLineTextNodes.push(leadingWhitespaceTextNode)
 
       if tokenText.length > MaxTokenLength
         while startIndex < endIndex
-          text = @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
-          scopeNode.appendChild(@domElementPool.build("span", null, text))
-          startIndex += MaxTokenLength
-      else
-        scopeNode.insertAdjacentText("beforeend", @sliceText(tokenText, startIndex, endIndex))
+          textNode = @domElementPool.buildText(
+            @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
+          )
+          textSpan = @domElementPool.buildElement("span")
 
-      scopeNode.appendChild(trailingWhitespaceNode) if trailingWhitespaceNode?
+          textSpan.appendChild(textNode)
+          scopeNode.appendChild(textSpan)
+          startIndex += MaxTokenLength
+          @currentLineTextNodes.push(textNode)
+      else
+        textNode = @domElementPool.buildText(@sliceText(tokenText, startIndex, endIndex))
+        scopeNode.appendChild(textNode)
+        @currentLineTextNodes.push(textNode)
+
+      if trailingWhitespaceNode?
+        scopeNode.appendChild(trailingWhitespaceNode)
+        @currentLineTextNodes.push(trailingWhitespaceTextNode)
 
   sliceText: (tokenText, startIndex, endIndex) ->
     if startIndex? and endIndex? and startIndex > 0 or endIndex < tokenText.length
@@ -275,9 +306,12 @@ class LinesTileComponent
     if endOfLineInvisibles?
       for invisible in endOfLineInvisibles
         hasInvisibles = true
-        lineNode.appendChild(
-          @domElementPool.build("span", "invisible-character", invisible)
-        )
+        invisibleSpan = @domElementPool.buildElement("span", "invisible-character")
+        textNode = @domElementPool.buildText(invisible)
+        invisibleSpan.appendChild(textNode)
+        lineNode.appendChild(invisibleSpan)
+
+        @currentLineTextNodes.push(textNode)
 
     hasInvisibles
 
@@ -306,88 +340,13 @@ class LinesTileComponent
       lineNode.dataset.screenRow = newLineState.screenRow
       oldLineState.screenRow = newLineState.screenRow
       @lineIdsByScreenRow[newLineState.screenRow] = id
+      @screenRowsByLineId[id] = newLineState.screenRow
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
 
-  measureCharactersInNewLines: ->
-    for id, lineState of @oldTileState.lines
-      unless @measuredLines.has(id)
-        lineNode = @lineNodesByLineId[id]
-        @measureCharactersInLine(id, lineState, lineNode)
-    return
+  lineNodeForLineId: (lineId) ->
+    @lineNodesByLineId[lineId]
 
-  measureCharactersInLine: (lineId, tokenizedLine, lineNode) ->
-    rangeForMeasurement = null
-    iterator = null
-    charIndex = 0
-
-    @tokenIterator.reset(tokenizedLine)
-    while @tokenIterator.next()
-      scopes = @tokenIterator.getScopes()
-      text = @tokenIterator.getText()
-      charWidths = @presenter.getScopedCharacterWidths(scopes)
-
-      textIndex = 0
-      while textIndex < text.length
-        if @tokenIterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          textIndex += 2
-        else
-          char = text[textIndex]
-          charLength = 1
-          textIndex++
-
-        unless charWidths[char]?
-          unless textNode?
-            rangeForMeasurement ?= document.createRange()
-            iterator =  document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT, AcceptFilter)
-            textNode = iterator.nextNode()
-            textNodeLength = textNode.textContent.length
-            textNodeIndex = 0
-            nextTextNodeIndex = textNodeLength
-
-          while nextTextNodeIndex <= charIndex
-            textNode = iterator.nextNode()
-            textNodeLength = textNode.textContent.length
-            textNodeIndex = nextTextNodeIndex
-            nextTextNodeIndex = textNodeIndex + textNodeLength
-
-          i = charIndex - textNodeIndex
-          rangeForMeasurement.setStart(textNode, i)
-
-          if i + charLength <= textNodeLength
-            rangeForMeasurement.setEnd(textNode, i + charLength)
-          else
-            rangeForMeasurement.setEnd(textNode, textNodeLength)
-            atom.assert false, "Expected index to be less than the length of text node while measuring", (error) =>
-              editor = @presenter.model
-              screenRow = tokenizedLine.screenRow
-              bufferRow = editor.bufferRowForScreenRow(screenRow)
-
-              error.metadata = {
-                grammarScopeName: editor.getGrammar().scopeName
-                screenRow: screenRow
-                bufferRow: bufferRow
-                softWrapped: editor.isSoftWrapped()
-                softTabs: editor.getSoftTabs()
-                i: i
-                charLength: charLength
-                textNodeLength: textNode.length
-              }
-              error.privateMetadataDescription = "The contents of line #{bufferRow + 1}."
-              error.privateMetadata = {
-                lineText: editor.lineTextForBufferRow(bufferRow)
-              }
-              error.privateMetadataRequestName = "measured-line-text"
-
-          charWidth = rangeForMeasurement.getBoundingClientRect().width
-          @presenter.setScopedCharacterWidth(scopes, char, charWidth)
-
-        charIndex += charLength
-
-    @measuredLines.add(lineId)
-
-  clearMeasurements: ->
-    @measuredLines.clear()
+  textNodesForLineId: (lineId) ->
+    @textNodesByLineId[lineId].slice()
