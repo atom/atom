@@ -7,6 +7,8 @@ describe "Config", ->
   dotAtomPath = null
 
   beforeEach ->
+    spyOn(atom.config, "load")
+    spyOn(atom.config, "save")
     dotAtomPath = temp.path('dot-atom-dir')
     atom.config.configDirPath = dotAtomPath
     atom.config.configFilePath = path.join(atom.config.configDirPath, "atom.config.cson")

@@ -71,9 +71,7 @@ beforeEach ->
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
 
-  # reset config before each spec; don't load or save from/to `config.json`
-  spyOn(atom.config, 'load')
-  spyOn(atom.config, 'save')
+  # reset config before each spec
   atom.config.set "core.destroyEmptyPanes", false
   atom.config.set "editor.fontFamily", "Courier"
   atom.config.set "editor.fontSize", 16
@@ -83,8 +81,6 @@ beforeEach ->
   atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
-  atom.config.load.reset()
-  atom.config.save.reset()
 
   # make editor display updates synchronous
   TextEditorElement::setUpdatedSynchronously(true)
