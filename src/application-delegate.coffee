@@ -81,7 +81,7 @@ class ApplicationDelegate
 
   setRepresentedDirectoryPaths: (paths) ->
     loadSettings = getWindowLoadSettings()
-    loadSettings['initialPaths'] = value
+    loadSettings['initialPaths'] = paths
     setWindowLoadSettings(loadSettings)
 
   setAutoHideWindowMenuBar: (autoHide) ->
