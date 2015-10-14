@@ -17,14 +17,8 @@ class AutoUpdateManager
 
   constructor: (@version, @testMode, @disabled) ->
     @state = IdleState
-    if process.platform is 'win32'
-      # Squirrel for Windows can't handle query params
-      # https://github.com/Squirrel/Squirrel.Windows/issues/132
-      @feedUrl = 'https://atom.io/api/updates'
-    else
-      @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
-      @feedUrl = "https://atom.io/api/updates?version=#{@version}"
-
+    @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
+    @feedUrl = "https://atom.io/api/updates?version=#{@version}"
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
