@@ -17,7 +17,7 @@ try
   # that are focused in the very first spec run.
   remote.getCurrentWindow().show() unless getWindowLoadSettings().headless
 
-  window.addEventListener 'keydown', (event) ->
+  handleKeydown = (event) ->
     # Reload: cmd-r / ctrl-r
     if (event.metaKey or event.ctrlKey) and event.keyCode is 82
       ipc.send('call-window-method', 'restart')
@@ -29,6 +29,8 @@ try
     # Reload: cmd-w / ctrl-w
     if (event.metaKey or event.ctrlKey) and event.keyCode is 87
       ipc.send('call-window-method', 'close')
+
+  window.addEventListener('keydown', handleKeydown, true)
 
   # Add 'exports' to module search path.
   exportsPath = path.join(getWindowLoadSettings().resourcePath, 'exports')
