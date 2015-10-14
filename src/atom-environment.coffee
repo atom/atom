@@ -133,6 +133,7 @@ class AtomEnvironment extends Model
 
     CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
+    @commands.attach(@window)
 
     GrammarRegistry = require './grammar-registry'
     @grammars = new GrammarRegistry({@config})
@@ -606,8 +607,6 @@ class AtomEnvironment extends Model
     @disposables.add @config.onDidChange 'core.autoHideMenuBar', ({newValue}) =>
       @setAutoHideMenuBar(newValue)
     @setAutoHideMenuBar(true) if @config.get('core.autoHideMenuBar')
-
-    @commands.attach(window)
 
     @openInitialEmptyEditorIfNecessary()
 
