@@ -26,7 +26,7 @@ symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
 
 module.exports =
 class CommandInstaller
-  constructor: (@appVersion, @confirm) ->
+  constructor: (@appVersion, @applicationDelegate) ->
 
   getInstallDirectory: ->
     "/usr/local/bin"
@@ -36,7 +36,7 @@ class CommandInstaller
 
   installShellCommandsInteractively: ->
     showErrorDialog = (error) ->
-      @confirm
+      @applicationDelegate.confirm
         message: "Failed to install shell commands"
         detailedMessage: error.message
 
@@ -48,7 +48,7 @@ class CommandInstaller
           if error?
             showErrorDialog(error)
           else
-            @confirm
+            @applicationDelegate.confirm
               message: "Commands installed."
               detailedMessage: "The shell commands `atom` and `apm` are installed."
 

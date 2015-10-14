@@ -171,7 +171,7 @@ class AtomEnvironment extends Model
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @confirm, @config})
 
     CommandInstaller = require './command-installer'
-    @commandInstaller = new CommandInstaller(@getVersion(), @confirm.bind(this))
+    @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
