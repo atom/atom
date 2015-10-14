@@ -243,6 +243,15 @@ class Atom extends Model
 
     @windowEventHandler = new WindowEventHandler
 
+    checkPortableHomeWritable = ->
+      responseChannel = "check-portable-home-writable-response"
+      ipc.on responseChannel, (response) ->
+        ipc.removeAllListeners(responseChannel)
+        atom.notifications.addWarning(response.message) if not response.writable
+      ipc.send('check-portable-home-writable', responseChannel)
+
+    checkPortableHomeWritable()
+
   # Register the core views as early as possible in case they are needed for
   # package deserialization.
   registerViewProviders: ->
