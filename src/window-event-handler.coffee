@@ -3,17 +3,17 @@ path = require 'path'
 fs = require 'fs-plus'
 listen = require './delegated-listener'
 
-# Handles low-level events related to the window.
+# Handles low-level events related to the @window.
 module.exports =
 class WindowEventHandler
-  constructor: ({@atomEnvironment, @applicationDelegate}) ->
+  constructor: ({@atomEnvironment, @applicationDelegate, @window}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
-    @previousOnbeforeunloadHandler = window.onbeforeunload
-    window.onbeforeunload = @handleWindowBeforeunload
-    @addEventListener(window, 'focus', @handleWindowFocus)
-    @addEventListener(window, 'blur', @handleWindowBlur)
+    @previousOnbeforeunloadHandler = @window.onbeforeunload
+    @window.onbeforeunload = @handleWindowBeforeunload
+    @addEventListener(@window, 'focus', @handleWindowFocus)
+    @addEventListener(@window, 'blur', @handleWindowBlur)
 
     @addEventListener(document, 'keydown', @handleDocumentKeydown)
     @addEventListener(document, 'drop', @handleDocumentDrop)
@@ -22,15 +22,15 @@ class WindowEventHandler
     @subscriptions.add listen(document, 'click', 'a', @handleLinkClick)
     @subscriptions.add listen(document, 'submit', 'form', @handleFormSubmit)
 
-    @subscriptions.add @atomEnvironment.commands.add window,
+    @subscriptions.add @atomEnvironment.commands.add @window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
       'window:close': @handleWindowClose
       'window:reload': @handleWindowReload
       'window:toggle-dev-tools': @handleWindowToggleDevTools
 
     if process.platform in ['win32', 'linux']
-      @subscriptions.add @atomEnvironment.commands.add window,
-        'window:toggle-menu-bar': @handleWindowToggleMenuBar
+      @subscriptions.add @atomEnvironment.commands.add @window,
+        '@window:toggle-menu-bar': @handleWindowToggleMenuBar
 
     @subscriptions.add @atomEnvironment.commands.add document,
       'core:focus-next': @handleFocusNext
@@ -54,7 +54,7 @@ class WindowEventHandler
     bindCommandToAction('core:cut', 'cut')
 
   unsubscribe: ->
-    window.onbeforeunload = @previousOnbeforeunloadHandler
+    @window.onbeforeunload = @previousOnbeforeunloadHandler
     @subscriptions.dispose()
 
   on: (target, eventName, handler) ->

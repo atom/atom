@@ -101,7 +101,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate} = params
+    {@applicationDelegate, @window} = params
 
     @state = {version: @constructor.version}
 
@@ -652,7 +652,7 @@ class AtomEnvironment extends Model
     window.onerror = @previousWindowErrorHandler
 
   installWindowEventHandler: ->
-    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate})
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate, @window})
 
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
