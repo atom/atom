@@ -186,6 +186,7 @@ class AtomEnvironment extends Model
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
     @registerDefaultViewProviders()
+    @registerDefaultTargetForKeymaps()
 
     @installUncaughtErrorHandler()
     @installWindowEventHandler()
@@ -233,6 +234,9 @@ class AtomEnvironment extends Model
           @workspace.open(@config.getUserConfigPath())
         when 'atom://.atom/init-script'
           @workspace.open(@getUserInitScriptPath())
+
+  registerDefaultTargetForKeymaps: ->
+    @keymaps.defaultTarget = @views.getView(@workspace)
 
   reset: (params) ->
     @deserializers.clear()
@@ -593,9 +597,7 @@ class AtomEnvironment extends Model
 
     @packages.loadPackages()
 
-    workspaceElement = @views.getView(@workspace)
-    @keymaps.defaultTarget = workspaceElement
-    @document.body.appendChild(workspaceElement)
+    @document.body.appendChild(@views.getView(@workspace))
 
     @watchProjectPath()
 
