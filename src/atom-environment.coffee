@@ -246,6 +246,8 @@ class AtomEnvironment extends Model
     @commands.clear()
     @registerDefaultCommands()
 
+    @grammars.clear()
+
     @styles.restoreSnapshot(params?.stylesSnapshot ? [])
 
     @menu.clear()

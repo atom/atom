@@ -69,7 +69,6 @@ beforeEach ->
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
   spyOn(atom, 'saveStateSync')
-  atom.grammars.clearGrammarOverrides()
 
   spyOn(atom.packages, 'resolvePackagePath').andCallThrough()
 

@@ -123,6 +123,3 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   clearGrammarOverrides: ->
     @grammarOverridesByPath = {}
     undefined
-
-  clearObservers: ->
-    @emitter = new Emitter
