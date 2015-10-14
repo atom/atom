@@ -807,28 +807,6 @@ class AtomEnvironment extends Model
           detail: error.message
           dismissable: true
 
-  # Require the module with the given globals.
-  #
-  # The globals will be set on the `window` object and removed after the
-  # require completes.
-  #
-  # * `id` The {String} module name or path.
-  # * `globals` An optional {Object} to set as globals during require.
-  requireWithGlobals: (id, globals={}) ->
-    existingGlobals = {}
-    for key, value of globals
-      existingGlobals[key] = window[key]
-      window[key] = value
-
-    require(id)
-
-    for key, value of existingGlobals
-      if value is undefined
-        delete window[key]
-      else
-        window[key] = value
-    return
-
   onUpdateAvailable: (callback) ->
     @emitter.on 'update-available', callback
 
