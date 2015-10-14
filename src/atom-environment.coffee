@@ -288,11 +288,13 @@ class AtomEnvironment extends Model
   destroy: ->
     return if not @project
 
+    @disposables.dispose()
     @workspace?.destroy()
     @workspace = null
     @themes.workspace = null
     @project?.destroy()
     @project = null
+    @commands.clear()
 
     @uninstallWindowEventHandler()
 
