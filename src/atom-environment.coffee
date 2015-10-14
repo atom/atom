@@ -195,7 +195,6 @@ class AtomEnvironment extends Model
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
     @registerDefaultViewProviders()
-    @registerDefaultTargetForKeymaps()
 
     @installUncaughtErrorHandler()
     @installWindowEventHandler()
@@ -607,6 +606,8 @@ class AtomEnvironment extends Model
     @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
     @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
     @listenForUpdates()
+
+    @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
 
