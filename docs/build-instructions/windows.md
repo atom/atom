@@ -5,7 +5,7 @@
 ### On Windows 7
   * [Visual C++ 2010 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
   * [Visual Studio 2010 Service Pack 1](http://www.microsoft.com/en-us/download/details.aspx?id=23691)
-  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x or 2.x)
+  * [node.js](http://nodejs.org/download/) (0.10.x or above)
     * For 64-bit builds of node and native modules you **must** have the
     [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279).
     You may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
@@ -20,7 +20,7 @@
   * [Visual Studio Express 2013 or 2015 for Windows Desktop](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_2)
     * For VS 2015, be sure to customize the installation to include Visual C++. It's not installed by default.
     * Some have experienced issues with Node locating C++ on VS 2015. If so, try VS 2013.
-  * [node.js](http://nodejs.org/download/) (0.10.x, 0.12.x or 4.x) or [io.js](https://iojs.org) (1.x or 2.x)
+  * [node.js](http://nodejs.org/download/) (0.10.x or above)
   * [Python](https://www.python.org/downloads/) v2.7.x (required by [node-gyp](https://github.com/TooTallNate/node-gyp))
   * [GitHub Desktop](http://desktop.github.com/)
 
