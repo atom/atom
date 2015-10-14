@@ -138,7 +138,8 @@ class WindowEventHandler
 
   handleWindowBeforeunload: =>
     confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)
-    @atomEnvironment.hide() if confirmed and not @reloadRequested and @atomEnvironment.getCurrentWindow().isWebViewFocused()
+    if confirmed and not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
+      @atomEnvironment.hide()
     @reloadRequested = false
 
     @atomEnvironment.storeDefaultWindowDimensions()
