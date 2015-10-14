@@ -1,7 +1,7 @@
 ipc = require 'ipc'
 
-module.exports = (atom) ->
-  atom.commands.add 'atom-workspace',
+module.exports = ({commandRegistry, commandInstaller, config}) ->
+  commandRegistry.add 'atom-workspace',
     'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
     'pane:show-previous-item': -> @getModel().getActivePane().activatePreviousItem()
     'pane:show-item-1': -> @getModel().getActivePane().activateItemAtIndex(0)
@@ -51,19 +51,19 @@ module.exports = (atom) ->
     'window:focus-pane-on-left': -> @focusPaneViewOnLeft()
     'window:focus-pane-on-right': -> @focusPaneViewOnRight()
     'window:save-all': -> @getModel().saveAll()
-    'window:toggle-invisibles': -> atom.config.set("editor.showInvisibles", not atom.config.get("editor.showInvisibles"))
+    'window:toggle-invisibles': -> config.set("editor.showInvisibles", not config.get("editor.showInvisibles"))
     'window:log-deprecation-warnings': -> Grim.logDeprecations()
-    'window:toggle-auto-indent': -> atom.config.set("editor.autoIndent", not atom.config.get("editor.autoIndent"))
+    'window:toggle-auto-indent': -> config.set("editor.autoIndent", not config.get("editor.autoIndent"))
     'pane:reopen-closed-item': -> @getModel().reopenItem()
     'core:close': -> @getModel().destroyActivePaneItemOrEmptyPane()
     'core:save': -> @getModel().saveActivePaneItem()
     'core:save-as': -> @getModel().saveActivePaneItemAs()
 
   if process.platform is 'darwin'
-    atom.commands.add 'atom-workspace', 'window:install-shell-commands', ->
-      atom.commandInstaller.installShellCommandsInteractively()
+    commandRegistry.add 'atom-workspace', 'window:install-shell-commands', ->
+      commandInstaller.installShellCommandsInteractively()
 
-  atom.commands.add 'atom-pane',
+  commandRegistry.add 'atom-pane',
     'pane:save-items': -> @getModel().saveItems()
     'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
     'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
@@ -74,7 +74,7 @@ module.exports = (atom) ->
     'pane:increase-size': -> @getModel().increaseSize()
     'pane:decrease-size': -> @getModel().decreaseSize()
 
-  atom.commands.add 'atom-text-editor', stopEventPropagation(
+  commandRegistry.add 'atom-text-editor', stopEventPropagation(
     'core:undo': -> @undo()
     'core:redo': -> @redo()
     'core:move-left': -> @moveLeft()
@@ -115,7 +115,7 @@ module.exports = (atom) ->
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 
-  atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(atom.config,
+  commandRegistry.add 'atom-text-editor', stopEventPropagationAndGroupUndo(config,
     'core:backspace': -> @backspace()
     'core:delete': -> @delete()
     'core:cut': -> @cutSelectedText()
@@ -138,7 +138,7 @@ module.exports = (atom) ->
     'editor:copy-selection': -> @copyOnlySelectedText()
   )
 
-  atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagation(
+  commandRegistry.add 'atom-text-editor:not([mini])', stopEventPropagation(
     'core:move-up': -> @moveUp()
     'core:move-down': -> @moveDown()
     'core:move-to-top': -> @moveToTop()
@@ -170,12 +170,12 @@ module.exports = (atom) ->
     'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
     'editor:log-cursor-scope': -> @logCursorScope()
     'editor:copy-path': -> @copyPathToClipboard()
-    'editor:toggle-indent-guide': -> atom.config.set('editor.showIndentGuide', not atom.config.get('editor.showIndentGuide'))
-    'editor:toggle-line-numbers': -> atom.config.set('editor.showLineNumbers', not atom.config.get('editor.showLineNumbers'))
+    'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
+    'editor:toggle-line-numbers': -> config.set('editor.showLineNumbers', not config.get('editor.showLineNumbers'))
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
   )
 
-  atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(atom.config,
+  commandRegistry.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(config,
     'editor:indent': -> @indent()
     'editor:auto-indent': -> @autoIndentSelectedRows()
     'editor:indent-selected-rows': -> @indentSelectedRows()

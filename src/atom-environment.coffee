@@ -182,7 +182,7 @@ class AtomEnvironment extends Model
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
 
-    registerDefaultCommands(this)
+    @registerDefaultCommands()
     @registerDefaultOpeners()
     @registerDefaultDeserializers()
     @registerDefaultViewProviders()
@@ -201,6 +201,9 @@ class AtomEnvironment extends Model
     @deserializers.add(Project)
     @deserializers.add(TextEditor)
     @deserializers.add(TextBuffer)
+
+  registerDefaultCommands: ->
+    registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller})
 
   registerDefaultViewProviders: ->
     @views.addViewProvider Workspace, (model, env) ->
@@ -242,7 +245,7 @@ class AtomEnvironment extends Model
     @keymaps.loadBundledKeymaps()
 
     @commands.clear()
-    registerDefaultCommands(this)
+    @registerDefaultCommands()
 
     @styles.restoreSnapshot(params?.stylesSnapshot ? [])
 
