@@ -40,8 +40,6 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   document.head.appendChild(atom.styles.buildStylesElement())
   document.body.appendChild(jasmineContent)
 
-  atom.commands.attach(window)
-
   jasmineEnv.execute()
   promise
 
