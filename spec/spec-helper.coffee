@@ -7,6 +7,7 @@ _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Grim = require 'grim'
 pathwatcher = require 'pathwatcher'
+FindParentDir = require 'find-parent-dir'
 
 {Point} = require 'text-buffer'
 Workspace = require '../src/workspace'
@@ -52,12 +53,19 @@ if process.env.CI
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
-{resourcePath} = atom.getLoadSettings()
+{resourcePath, testPaths} = atom.getLoadSettings()
+
+if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
+  packageMetadata = require(path.join(specPackagePath, 'package.json'))
+  specPackageName = packageMetadata.name
+
+if specDirectory = FindParentDir.sync(testPaths[0], 'fixtures')
+  specProjectPath = path.join(specDirectory, 'fixtures')
 
 beforeEach ->
   documentTitle = null
 
-  atom.project.setPaths([path.join(@specDirectory, 'fixtures')])
+  atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
   spyOn(_._, "now").andCallFake -> window.now
@@ -66,7 +74,12 @@ beforeEach ->
 
   spyOn(atom, 'saveStateSync')
 
-  spyOn(atom.packages, 'resolvePackagePath').andCallThrough()
+  spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
+    if specPackageName and packageName is specPackageName
+      resolvePackagePath(specPackagePath)
+    else
+      resolvePackagePath(packageName)
+  resolvePackagePath = _.bind(spy.originalValue, atom.packages)
 
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
