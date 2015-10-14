@@ -20,6 +20,8 @@ KeymapManager::loadBundledKeymaps = ->
   @emitter.emit 'did-load-bundled-keymaps'
 
 KeymapManager::getUserKeymapPath = ->
+  return "" unless @configDirPath?
+
   if userKeymapPath = CSON.resolve(path.join(@configDirPath, 'keymap'))
     userKeymapPath
   else
