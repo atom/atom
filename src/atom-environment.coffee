@@ -13,6 +13,22 @@ StorageFolder = require './storage-folder'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
+DeserializerManager = require './deserializer-manager'
+ViewRegistry = require './view-registry'
+NotificationManager = require './notification-manager'
+Config = require './config'
+KeymapManager = require './keymap-extensions'
+TooltipManager = require './tooltip-manager'
+CommandRegistry = require './command-registry'
+GrammarRegistry = require './grammar-registry'
+StyleManager = require './style-manager'
+PackageManager = require './package-manager'
+ThemeManager = require './theme-manager'
+MenuManager = require './menu-manager'
+ContextMenuManager = require './context-menu-manager'
+CommandInstaller = require './command-installer'
+Clipboard = require './clipboard'
+Project = require './project'
 Workspace = require './workspace'
 PanelContainer = require './panel-container'
 Panel = require './panel'
@@ -110,66 +126,50 @@ class AtomEnvironment extends Model
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    DeserializerManager = require './deserializer-manager'
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
 
-    ViewRegistry = require './view-registry'
     @views = new ViewRegistry(this)
 
-    NotificationManager = require './notification-manager'
     @notifications = new NotificationManager
 
-    Config = require './config'
     @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
     @setConfigSchema()
 
-    KeymapManager = require './keymap-extensions'
     @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
 
-    TooltipManager = require './tooltip-manager'
     @tooltips = new TooltipManager(keymapManager: @keymaps)
 
-    CommandRegistry = require './command-registry'
     @commands = new CommandRegistry
     @commands.attach(@window)
 
-    GrammarRegistry = require './grammar-registry'
     @grammars = new GrammarRegistry({@config})
 
-    StyleManager = require './style-manager'
     @styles = new StyleManager({configDirPath})
 
-    PackageManager = require './package-manager'
     @packages = new PackageManager({
       devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars
     })
 
-    ThemeManager = require './theme-manager'
     @themes = new ThemeManager({
       packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
       styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
     })
 
-    MenuManager = require './menu-manager'
     @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
 
-    ContextMenuManager = require './context-menu-manager'
     @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
 
     @packages.setMenuManager(@menu)
     @packages.setContextMenuManager(@contextMenu)
     @packages.setThemeManager(@themes)
 
-    Clipboard = require './clipboard'
     @clipboard = new Clipboard()
 
-    Project = require './project'
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config})
 
-    CommandInstaller = require './command-installer'
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
     @workspace = new Workspace({
