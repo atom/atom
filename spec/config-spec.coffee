@@ -155,13 +155,27 @@ describe "Config", ->
 
     describe "when the value equals the default value", ->
       it "does not store the value in the user's config", ->
-        atom.config.setDefaults "foo",
-          same: 1
-          changes: 1
-          sameArray: [1, 2, 3]
-          sameObject: {a: 1, b: 2}
-          null: null
-          undefined: undefined
+        atom.config.setSchema "foo",
+          type: 'object'
+          properties:
+            same:
+              type: 'number'
+              default: 1
+            changes:
+              type: 'number'
+              default: 1
+            sameArray:
+              type: 'array'
+              default: [1, 2, 3]
+            sameObject:
+              type: 'object'
+              default: {a: 1, b: 2}
+            null:
+              type: '*'
+              default: null
+            undefined:
+              type: '*'
+              default: undefined
         expect(atom.config.settings.foo).toBeUndefined()
 
         atom.config.set('foo.same', 1)
@@ -171,11 +185,15 @@ describe "Config", ->
         atom.config.set('foo.undefined', null)
         atom.config.set('foo.sameObject', {b: 2, a: 1})
 
-        expect(atom.config.get("foo.same", sources: [atom.config.getUserConfigPath()])).toBeUndefined()
+        userConfigPath = atom.config.getUserConfigPath()
 
-        expect(atom.config.get("foo.changes", sources: [atom.config.getUserConfigPath()])).toBe 2
+        expect(atom.config.get("foo.same", sources: [userConfigPath])).toBeUndefined()
+
+        expect(atom.config.get("foo.changes")).toBe 2
+        expect(atom.config.get("foo.changes", sources: [userConfigPath])).toBe 2
+
         atom.config.set('foo.changes', 1)
-        expect(atom.config.get("foo.changes", sources: [atom.config.getUserConfigPath()])).toBeUndefined()
+        expect(atom.config.get("foo.changes", sources: [userConfigPath])).toBeUndefined()
 
     describe "when a 'scopeSelector' is given", ->
       it "sets the value and overrides the others", ->

@@ -22,6 +22,8 @@ class TextEditorPresenter
     @gutterWidth ?= 0
     @tileSize ?= 6
 
+    @realScrollTop = @scrollTop
+    @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @visibleHighlights = {}
@@ -775,7 +777,7 @@ class TextEditorPresenter
 
   updateScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
-    if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
+    if scrollTop isnt @realScrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
       @scrollRow = Math.round(@scrollTop / @lineHeight)
@@ -792,7 +794,7 @@ class TextEditorPresenter
 
   updateScrollLeft: (scrollLeft) ->
     scrollLeft = @constrainScrollLeft(scrollLeft)
-    if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
+    if scrollLeft isnt @realScrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
       @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
