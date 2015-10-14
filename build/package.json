@@ -22,7 +22,7 @@
     "grunt-contrib-less": "~0.8.0",
     "grunt-cson": "0.16.0",
     "grunt-download-electron": "^2.1.1",
-    "grunt-electron-installer": "1.0.5",
+    "grunt-electron-installer": "1.0.6",
     "grunt-lesslint": "0.17.0",
     "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
