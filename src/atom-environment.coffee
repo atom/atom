@@ -628,8 +628,8 @@ class AtomEnvironment extends Model
       @workspace.open(null)
 
   installUncaughtErrorHandler: ->
-    @previousWindowErrorHandler = window.onerror
-    window.onerror = =>
+    @previousWindowErrorHandler = @window.onerror
+    @window.onerror = =>
       @lastUncaughtError = Array::slice.call(arguments)
       [message, url, line, column, originalError] = @lastUncaughtError
 
@@ -649,7 +649,7 @@ class AtomEnvironment extends Model
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
   uninstallUncaughtErrorHandler: ->
-    window.onerror = @previousWindowErrorHandler
+    @window.onerror = @previousWindowErrorHandler
 
   installWindowEventHandler: ->
     @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate, @window, @document})
