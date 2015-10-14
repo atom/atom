@@ -101,7 +101,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window} = params
+    {@applicationDelegate, @window, @document} = params
 
     @state = {version: @constructor.version}
 
@@ -472,9 +472,9 @@ class AtomEnvironment extends Model
   setFullScreen: (fullScreen=false) ->
     @applicationDelegate.setWindowFullScreen(fullScreen)
     if fullScreen
-      document.body.classList.add("fullscreen")
+      @document.body.classList.add("fullscreen")
     else
-      document.body.classList.remove("fullscreen")
+      @document.body.classList.remove("fullscreen")
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
@@ -587,13 +587,13 @@ class AtomEnvironment extends Model
     @themes.loadBaseStylesheets()
     @setBodyPlatformClass()
 
-    document.head.appendChild(@styles.buildStylesElement())
+    @document.head.appendChild(@styles.buildStylesElement())
 
     @packages.loadPackages()
 
     workspaceElement = @views.getView(@workspace)
     @keymaps.defaultTarget = workspaceElement
-    document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
+    @document.querySelector(@workspaceParentSelectorctor).appendChild(workspaceElement)
 
     @watchProjectPath()
 
@@ -652,7 +652,7 @@ class AtomEnvironment extends Model
     window.onerror = @previousWindowErrorHandler
 
   installWindowEventHandler: ->
-    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate, @window})
+    @windowEventHandler = new WindowEventHandler({atomEnvironment: this, @applicationDelegate, @window, @document})
 
   uninstallWindowEventHandler: ->
     @windowEventHandler?.unsubscribe()
@@ -817,16 +817,16 @@ class AtomEnvironment extends Model
     @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
 
   setBodyPlatformClass: ->
-    document.body.classList.add("platform-#{process.platform}")
+    @document.body.classList.add("platform-#{process.platform}")
 
   setAutoHideMenuBar: (autoHide) ->
     @applicationDelegate.setAutoHideWindowMenuBar(autoHide)
     @applicationDelegate.setWindowMenuBarVisibility(not autoHide)
 
   dispatchApplicationMenuCommand: (command, arg) ->
-    activeElement = document.activeElement
+    activeElement = @document.activeElement
     # Use the workspace element if body has focus
-    if activeElement is document.body and workspaceElement = @views.getView(@workspace)
+    if activeElement is @document.body and workspaceElement = @views.getView(@workspace)
       activeElement = workspaceElement
     @commands.dispatch(activeElement, command, arg)
 

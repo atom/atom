@@ -6,7 +6,7 @@ listen = require './delegated-listener'
 # Handles low-level events related to the @window.
 module.exports =
 class WindowEventHandler
-  constructor: ({@atomEnvironment, @applicationDelegate, @window}) ->
+  constructor: ({@atomEnvironment, @applicationDelegate, @window, @document}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
@@ -15,12 +15,12 @@ class WindowEventHandler
     @addEventListener(@window, 'focus', @handleWindowFocus)
     @addEventListener(@window, 'blur', @handleWindowBlur)
 
-    @addEventListener(document, 'keydown', @handleDocumentKeydown)
-    @addEventListener(document, 'drop', @handleDocumentDrop)
-    @addEventListener(document, 'dragover', @handleDocumentDragover)
-    @addEventListener(document, 'contextmenu', @handleDocumentContextmenu)
-    @subscriptions.add listen(document, 'click', 'a', @handleLinkClick)
-    @subscriptions.add listen(document, 'submit', 'form', @handleFormSubmit)
+    @addEventListener(@document, 'keydown', @handleDocumentKeydown)
+    @addEventListener(@document, 'drop', @handleDocumentDrop)
+    @addEventListener(@document, 'dragover', @handleDocumentDragover)
+    @addEventListener(@document, 'contextmenu', @handleDocumentContextmenu)
+    @subscriptions.add listen(@document, 'click', 'a', @handleLinkClick)
+    @subscriptions.add listen(@document, 'submit', 'form', @handleFormSubmit)
 
     @subscriptions.add @atomEnvironment.commands.add @window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
@@ -32,7 +32,7 @@ class WindowEventHandler
       @subscriptions.add @atomEnvironment.commands.add @window,
         '@window:toggle-menu-bar': @handleWindowToggleMenuBar
 
-    @subscriptions.add @atomEnvironment.commands.add document,
+    @subscriptions.add @atomEnvironment.commands.add @document,
       'core:focus-next': @handleFocusNext
       'core:focus-previous': @handleFocusPrevious
 
@@ -42,7 +42,7 @@ class WindowEventHandler
   # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     bindCommandToAction = (command, action) =>
-      @addEventListener document, command, (event) =>
+      @addEventListener @document, command, (event) =>
         if event.target.webkitMatchesSelector('.native-key-bindings')
           @applicationDelegate.getCurrentWindow().webContents[action]()
 
@@ -81,14 +81,14 @@ class WindowEventHandler
     event.dataTransfer.dropEffect = 'none'
 
   eachTabIndexedElement: (callback) ->
-    for element in document.querySelectorAll('[tabindex]')
+    for element in @document.querySelectorAll('[tabindex]')
       continue if element.disabled
       continue unless element.tabIndex >= 0
       callback(element, element.tabIndex)
     return
 
   handleFocusNext: =>
-    focusedTabIndex = document.activeElement.tabIndex ? -Infinity
+    focusedTabIndex = @document.activeElement.tabIndex ? -Infinity
 
     nextElement = null
     nextTabIndex = Infinity
@@ -109,7 +109,7 @@ class WindowEventHandler
       lowestElement.focus()
 
   handleFocusPrevious: =>
-    focusedTabIndex = document.activeElement.tabIndex ? Infinity
+    focusedTabIndex = @document.activeElement.tabIndex ? Infinity
 
     previousElement = null
     previousTabIndex = -Infinity
@@ -130,10 +130,10 @@ class WindowEventHandler
       highestElement.focus()
 
   handleWindowFocus: ->
-    document.body.classList.remove('is-blurred')
+    @document.body.classList.remove('is-blurred')
 
   handleWindowBlur: =>
-    document.body.classList.add('is-blurred')
+    @document.body.classList.add('is-blurred')
     @atomEnvironment.storeDefaultWindowDimensions()
 
   handleWindowBeforeunload: =>
