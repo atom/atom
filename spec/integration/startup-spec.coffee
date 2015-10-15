@@ -29,7 +29,7 @@ describe "Starting Atom", ->
       runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(1, 1000)
 
           .treeViewRootDirectories()
@@ -55,7 +55,7 @@ describe "Starting Atom", ->
       runAtom ["#{filePath}:3"], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(1, 1000)
           .waitForExist("atom-text-editor", 5000)
           .then (exists) -> expect(exists).toBe true
@@ -80,7 +80,7 @@ describe "Starting Atom", ->
       runAtom ["#{filePath}:2:2"], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(1, 1000)
           .waitForExist("atom-text-editor", 5000)
           .then (exists) -> expect(exists).toBe true
@@ -98,7 +98,7 @@ describe "Starting Atom", ->
       runAtom ["#{filePath}:  "], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(1, 1000)
           .waitForExist("atom-text-editor", 5000)
           .then (exists) -> expect(exists).toBe true
@@ -114,7 +114,7 @@ describe "Starting Atom", ->
       runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(1, 5000)
 
           # Opening another file reuses the same window and does not change the
@@ -131,7 +131,7 @@ describe "Starting Atom", ->
           .waitForNewWindow(->
             @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
           , 5000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(0, 1000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([otherTempDirPath])
@@ -140,14 +140,14 @@ describe "Starting Atom", ->
     it "remembers the state of the window", ->
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(0, 3000)
           .execute -> atom.workspace.open()
           .waitForPaneItemCount(1, 3000)
 
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .waitForPaneItemCount(1, 5000)
 
   describe "opening multiple directories simultaneously", ->
@@ -157,14 +157,14 @@ describe "Starting Atom", ->
 
       runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
 
           # Opening one of those directories again reuses the same window and
           # does not change the project paths.
           .startAnotherAtom([nestedDir], ATOM_HOME: atomHome)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
 
@@ -247,6 +247,6 @@ describe "Starting Atom", ->
       runAtom [remoteDirectory], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForWindowCount(1, 1000)
-          .waitForExist("atom-workspace", 5000)
+          .waitForExist("atom-workspace", 10000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([remoteDirectory])
