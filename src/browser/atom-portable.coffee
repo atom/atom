@@ -6,7 +6,7 @@ module.exports =
 class AtomPortable
   @getPortableAtomHomePath: ->
     execDirectoryPath = path.dirname(process.execPath)
-    return path.join(execDirectoryPath, '..', '.atom')
+    path.join(execDirectoryPath, '..', '.atom')
 
   @setPortable: (existingAtomHome) ->
     fs.copySync(existingAtomHome, @getPortableAtomHomePath())
@@ -17,7 +17,7 @@ class AtomPortable
     return false if not fs.existsSync(@getPortableAtomHomePath())
     # currently checking only that the directory exists  and is writable,
     # probably want to do some integrity checks on contents in future
-    return @portableAtomHomePathWritable()
+    @portableAtomHomePathWritable()
 
   @portableAtomHomePathWritable: ->
     writable = false
@@ -32,4 +32,4 @@ class AtomPortable
 
     ipc.on 'check-portable-home-writable', (event, arg) ->
       event.sender.send 'check-portable-home-writable-response', {writable, message}
-    return writable
+    writable
