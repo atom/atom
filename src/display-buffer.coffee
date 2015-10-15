@@ -195,6 +195,7 @@ class DisplayBuffer extends Model
     if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth
       @defaultCharWidth = defaultCharWidth
       @doubleWidthCharWidth = doubleWidthCharWidth
+      @updateWrappedScreenLines() if @isSoftWrapped()
     defaultCharWidth
 
   getCursorWidth: -> 1

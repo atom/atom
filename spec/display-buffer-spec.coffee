@@ -54,16 +54,16 @@ describe "DisplayBuffer", ->
 
   describe "soft wrapping", ->
     beforeEach ->
-      displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setEditorWidthInChars(50)
       displayBuffer.setSoftWrapped(true)
+      displayBuffer.setDefaultCharWidth(1)
       changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
       describe "when there are double width characters", ->
         it "takes them into account when finding the soft wrap column", ->
-          displayBuffer.setDefaultCharWidth(1, 5)
           buffer.setText("私たちのフ是一个地方，数千名学生12345业余爱们的板作为우리포럼hello world this is a pretty long latin line")
+          displayBuffer.setDefaultCharWidth(1, 5)
 
           expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("私たちのフ是一个地方")
           expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("，数千名学生12345业余爱")
