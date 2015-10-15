@@ -758,12 +758,16 @@ class AtomEnvironment extends Model
     @applicationDelegate.showSaveDialog(options)
 
   saveStateSync: ->
+    return unless @enablePersistence
+
     if storageKey = @getStateKey(@project?.getPaths())
       @getStorageFolder().store(storageKey, @state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
 
   loadStateSync: ->
+    return unless @enablePersistence
+
     startTime = Date.now()
 
     if stateKey = @getStateKey(@getLoadSettings().initialPaths)

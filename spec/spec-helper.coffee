@@ -74,8 +74,6 @@ beforeEach ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
-  spyOn(atom, 'saveStateSync')
-
   spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
     if specPackageName and packageName is specPackageName
       resolvePackagePath(specPackagePath)

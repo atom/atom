@@ -141,10 +141,13 @@ describe "AtomEnvironment", ->
         expect(errors).toEqual []
 
   describe "saving and loading", ->
-    it "selects the state based on the current project paths", ->
-      jasmine.unspy(atom, 'saveStateSync')
-      # jasmine.unspy(atom, 'loadStateSync')
+    beforeEach ->
+      atom.enablePersistence = true
 
+    afterEach ->
+      atom.enablePersistence = false
+
+    it "selects the state based on the current project paths", ->
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
       loadSettings = _.extend atom.getLoadSettings(),
