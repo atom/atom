@@ -18,7 +18,11 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   applicationDelegate = new ApplicationDelegate()
   applicationDelegate.setRepresentedFilename = ->
   applicationDelegate.setWindowDocumentEdited = ->
-  window.atom = buildAtomEnvironment({applicationDelegate, window, document})
+  window.atom = buildAtomEnvironment({
+    applicationDelegate, window, document,
+    configDirPath: process.env.ATOM_HOME
+    enablePersistence: false
+  })
 
   require './spec-helper'
   disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI

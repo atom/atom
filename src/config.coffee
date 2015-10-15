@@ -334,8 +334,8 @@ class Config
     value
 
   # Created during initialization, available as `atom.config`
-  constructor: ({@configDirPath, @resourcePath, @notificationManager}={}) ->
-    if @configDirPath?
+  constructor: ({@configDirPath, @resourcePath, @notificationManager, @enablePersistence}={}) ->
+    if @enablePersistence?
       @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
       @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @clear()
@@ -360,7 +360,7 @@ class Config
       @save()
     debouncedSave = _.debounce(save, 100)
 
-  shouldNotAccessFileSystem: -> not @configDirPath?
+  shouldNotAccessFileSystem: -> not @enablePersistence
 
   ###
   Section: Config Subscription

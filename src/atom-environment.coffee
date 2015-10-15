@@ -116,7 +116,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, configDirPath} = params
+    {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
     @state = {version: @constructor.version}
 
@@ -133,7 +133,7 @@ class AtomEnvironment extends Model
 
     @notifications = new NotificationManager
 
-    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications})
+    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
     @setConfigSchema()
 
     @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
