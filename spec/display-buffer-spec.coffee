@@ -52,7 +52,7 @@ describe "DisplayBuffer", ->
       displayBuffer2 = new DisplayBuffer({buffer, tabLength})
       buffer.setText("testing")
 
-  fdescribe "soft wrapping", ->
+  describe "soft wrapping", ->
     beforeEach ->
       displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setEditorWidthInChars(50)
@@ -648,6 +648,7 @@ describe "DisplayBuffer", ->
     beforeEach ->
       tabLength = 4
 
+      displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setTabLength(tabLength)
       displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
@@ -765,6 +766,7 @@ describe "DisplayBuffer", ->
     it "correctly translates positions on soft wrapped lines containing tabs", ->
       buffer.setText('\t\taa  bb  cc  dd  ee  ff  gg')
       displayBuffer.setSoftWrapped(true)
+      displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setEditorWidthInChars(10)
       expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 4]
       expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 9]

@@ -3208,7 +3208,9 @@ describe "TextEditorComponent", ->
         atom.config.set 'editor.preferredLineLength', 17, scopeSelector: '.source.coffee'
         atom.config.set 'editor.softWrapAtPreferredLineLength', true, scopeSelector: '.source.coffee'
 
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(20)
+        coffeeEditor.setDefaultCharWidth(1)
         coffeeEditor.setEditorWidthInChars(20)
 
       it "wraps lines when editor.softWrap is true for a matching scope", ->
