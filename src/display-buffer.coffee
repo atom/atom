@@ -189,17 +189,13 @@ class DisplayBuffer extends Model
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
-  getDefaultCharWidth: -> @defaultCharWidth
-  setDefaultCharWidth: (defaultCharWidth) ->
-    if defaultCharWidth isnt @defaultCharWidth
-      @defaultCharWidth = defaultCharWidth
-    defaultCharWidth
-
   getDoubleWidthCharWidth: -> @doubleWidthCharWidth
-  setDoubleWidthCharWidth: (doubleWidthCharWidth) ->
-    if doubleWidthCharWidth isnt @doubleWidthCharWidth
+  getDefaultCharWidth: -> @defaultCharWidth
+  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth=defaultCharWidth) ->
+    if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth
+      @defaultCharWidth = defaultCharWidth
       @doubleWidthCharWidth = doubleWidthCharWidth
-    doubleWidthCharWidth
+    defaultCharWidth
 
   getCursorWidth: -> 1
 
