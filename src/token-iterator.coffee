@@ -1,5 +1,5 @@
 {SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
-{isDoubleWidthCharacter} = require './text-utils'
+{isDoubleWidthCharacter, isHalfWidthCharacter} = require './text-utils'
 
 module.exports =
 class TokenIterator
@@ -85,6 +85,9 @@ class TokenIterator
 
   hasDoubleWidthCharacterAt: (charIndex) ->
     isDoubleWidthCharacter(@getText()[charIndex])
+
+  hasHalfWidthCharacterAt: (charIndex) ->
+    isHalfWidthCharacter(@getText()[charIndex])
 
   isAtomic: ->
     @isSoftTab() or @isHardTab() or @isSoftWrapIndentation() or @isPairedCharacter()

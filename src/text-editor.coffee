@@ -2976,11 +2976,13 @@ class TextEditor extends Model
   getLineHeightInPixels: -> @displayBuffer.getLineHeightInPixels()
   setLineHeightInPixels: (lineHeightInPixels) -> @displayBuffer.setLineHeightInPixels(lineHeightInPixels)
 
+  getHalfWidthCharWidth: -> @displayBuffer.getHalfWidthCharWidth()
+
   getDoubleWidthCharWidth: -> @displayBuffer.getDoubleWidthCharWidth()
 
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
-  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth=defaultCharWidth) ->
-    @displayBuffer.setDefaultCharWidth(defaultCharWidth, doubleWidthCharWidth)
+  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth) ->
+    @displayBuffer.setDefaultCharWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth)
 
   setHeight: (height, reentrant=false) ->
     if reentrant

@@ -70,6 +70,15 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("们的板作为우리포럼hello ")
           expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("world this is a pretty long latin line")
 
+      describe "when there are half width characters", ->
+        it "takes them into account when finding the soft wrap column", ->
+          displayBuffer.setDefaultCharWidth(1, 0, 5)
+          buffer.setText("abcﾪﾫﾬﾈﾇﾈﾉﾊﾋﾌﾋﾌﾇﾴ￮￮￮hello world this is a pretty long line")
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("abcﾪﾫﾬﾈﾇﾈﾉﾊﾋ")
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("ﾌﾋﾌﾇﾴ￮￮￮hello ")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("world this is a pretty long line")
+
       describe "when editor.softWrapAtPreferredLineLength is set", ->
         it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
           atom.config.set('editor.preferredLineLength', 100)
