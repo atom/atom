@@ -65,10 +65,10 @@ isKoreanCharacter = (charCode) ->
   0xD7B0 <= charCode <= 0xD7FF
 
 isJapaneseCharacter = (charCode) ->
-  0x3000 <= charCode <= 0x30ff
+  0x3000 <= charCode <= 0x30FF
 
 isCjkUnifiedIdeograph = (charCode) ->
-  0x4e00 <= charCode <= 0x9faf
+  0x4E00 <= charCode <= 0x9FAF
 
 isFullWidthForm = (charCode) ->
   0xFF01 <= charCode <= 0xFF5E or
@@ -85,7 +85,8 @@ isDoubleWidthCharacter = (character) ->
 isHalfWidthCharacter = (character) ->
   charCode = character.charCodeAt(0)
 
-  0xFF65 <= charCode <= 0xFFDC
+  0xFF65 <= charCode <= 0xFFDC or
+  0xFFE8 <= charCode <= 0xFFEE
 
 # Does the given string contain at least surrogate pair, variation sequence,
 # or combined character?

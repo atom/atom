@@ -64,4 +64,5 @@ describe 'text utilities', ->
       expect(textUtils.isHalfWidthCharacter("ﾊ")).toBe(true)
       expect(textUtils.isHalfWidthCharacter("ﾋ")).toBe(true)
       expect(textUtils.isHalfWidthCharacter("ﾬ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("￭")).toBe(true)
       expect(textUtils.isHalfWidthCharacter("B")).toBe(false)
