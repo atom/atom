@@ -57,3 +57,10 @@ describe 'text utilities', ->
       expect(textUtils.isDoubleWidthCharacter("，")).toBe(true)
 
       expect(textUtils.isDoubleWidthCharacter("a")).toBe(false)
+
+  describe ".isHalfWidthCharacter(character)", ->
+    it "returns true when the character is an half width form", ->
+      expect(textUtils.isHalfWidthCharacter("ﾊ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("ﾋ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("ﾬ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("B")).toBe(false)

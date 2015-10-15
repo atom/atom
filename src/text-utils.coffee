@@ -81,6 +81,11 @@ isDoubleWidthCharacter = (character) ->
   isCjkUnifiedIdeograph(charCode) or
   isFullWidthForm(charCode)
 
+isHalfWidthCharacter = (character) ->
+  charCode = character.charCodeAt(0)
+
+  0xFF65 <= charCode <= 0xFFDC
+
 # Does the given string contain at least surrogate pair, variation sequence,
 # or combined character?
 #
@@ -94,4 +99,4 @@ hasPairedCharacter = (string) ->
     index++
   false
 
-module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter}
+module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter}
