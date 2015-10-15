@@ -91,7 +91,7 @@ fdescribe "GitRepositoryAsync", ->
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new GitRepositoryAsync.open(workingDirPath)
+      repo = GitRepositoryAsync.open(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
       fs.writeFileSync(newPath, "i'm new here")
@@ -136,22 +136,31 @@ fdescribe "GitRepositoryAsync", ->
         runs ->
           expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
-  xdescribe ".isPathNew(path)", ->
+  describe ".isPathNew(path)", ->
     [filePath, newPath] = []
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new GitRepository(workingDirPath)
+      repo = GitRepositoryAsync.open(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
       fs.writeFileSync(newPath, "i'm new here")
 
-    xdescribe "when the path is unstaged", ->
+    describe "when the path is unstaged", ->
       it "returns true if the path is new", ->
-        expect(repo.isPathNew(newPath)).toBeTruthy()
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathNew(newPath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
 
       it "returns false if the path isn't new", ->
-        expect(repo.isPathNew(filePath)).toBeFalsy()
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(newPath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
+
 
   xdescribe ".checkoutHead(path)", ->
     [filePath] = []

@@ -37,16 +37,32 @@ module.exports = class GitRepositoryAsync {
     })
   }
 
-  isPathModified(_path) {
+  _filterStatusesByPath(_path) {
     // Surely I'm missing a built-in way to do this
     var basePath = null
     return this.repoPromise.then( (repo) => {
       basePath = repo.workdir()
       return repo.getStatus()
     }).then( (statuses) => {
-      console.log(statuses.map(function(x){return x.path()}));
+      return statuses.filter(function (status) {
+        return _path == path.join(basePath, status.path())
+      })
+    })
+  }
+
+  isPathModified(_path) {
+    return this._filterStatusesByPath(_path).then(function(statuses) {
       ret = statuses.filter((status)=> {
-        return _path == path.join(basePath, status.path()) && (status.isModified() || status.isDeleted())
+        return status.isModified() || status.isDeleted()
+      }).length > 0
+      return Promise.resolve(ret)
+    })
+  }
+
+  isPathNew(_path) {
+    return this._filterStatusesByPath(_path).then(function(statuses) {
+      ret = statuses.filter((status)=> {
+        return status.isNew()
       }).length > 0
       return Promise.resolve(ret)
     })
