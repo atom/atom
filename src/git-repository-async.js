@@ -13,11 +13,20 @@ module.exports = class GitRepositoryAsync {
     // this could be replaced with a function
     this._opening = true
 
+    // Do I use this outside of tests?
     openPromise.then( (repo) => {
       this.repo = repo
       this._opening = false
     }).catch( (e) => {
       this._opening = false
+    })
+
+    this.repoPromise = openPromise
+  }
+
+  getPath () {
+    return this.repoPromise.then( (repo) => {
+      return Promise.resolve(repo.path().replace(/\/$/, ''))
     })
   }
 }
