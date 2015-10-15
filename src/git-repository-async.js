@@ -1,6 +1,7 @@
 "use babel";
 
 const Git = require('nodegit')
+const path = require('path')
 
 module.exports = class GitRepositoryAsync {
   static open(path) {
@@ -33,6 +34,21 @@ module.exports = class GitRepositoryAsync {
   isPathIgnored(_path) {
     return this.repoPromise.then( (repo) => {
       return Promise.resolve(Git.Ignore.pathIsIgnored(repo, _path))
+    })
+  }
+
+  isPathModified(_path) {
+    // Surely I'm missing a built-in way to do this
+    var basePath = null
+    return this.repoPromise.then( (repo) => {
+      basePath = repo.workdir()
+      return repo.getStatus()
+    }).then( (statuses) => {
+      console.log(statuses.map(function(x){return x.path()}));
+      ret = statuses.filter((status)=> {
+        return _path == path.join(basePath, status.path()) && (status.isModified() || status.isDeleted())
+      }).length > 0
+      return Promise.resolve(ret)
     })
   }
 }

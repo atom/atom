@@ -1,15 +1,19 @@
 temp = require 'temp'
 GitRepositoryAsync = require '../src/git-repository-async'
 fs = require 'fs-plus'
+os = require 'os'
 path = require 'path'
 Task = require '../src/task'
 Project = require '../src/project'
+
+# Clean up when the process exits
+temp.track()
 
 copyRepository = ->
   workingDirPath = temp.mkdirSync('atom-working-dir')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
-  workingDirPath
+  fs.realpathSync(workingDirPath)
 
 openFixture = (fixture)->
   GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
@@ -82,29 +86,55 @@ fdescribe "GitRepositoryAsync", ->
         expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
 
-  xdescribe ".isPathModified(path)", ->
-    [repo, filePath, newPath] = []
+  describe ".isPathModified(path)", ->
+    [repo, filePath, newPath, emptyPath] = []
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new GitRepository(workingDirPath)
+      repo = new GitRepositoryAsync.open(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
+      fs.writeFileSync(newPath, "i'm new here")
+      emptyPath = path.join(workingDirPath, 'empty-path.txt')
 
-    xdescribe "when the path is unstaged", ->
-      it "returns false if the path has not been modified", ->
-        expect(repo.isPathModified(filePath)).toBeFalsy()
+    describe "when the path is unstaged", ->
+      it "resolves false if the path has not been modified", ->
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(filePath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
-      it "returns true if the path is modified", ->
+      it "resolves true if the path is modified", ->
         fs.writeFileSync(filePath, "change")
-        expect(repo.isPathModified(filePath)).toBeTruthy()
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(filePath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
 
-      it "returns true if the path is deleted", ->
+
+      it "resolves true if the path is deleted", ->
         fs.removeSync(filePath)
-        expect(repo.isPathModified(filePath)).toBeTruthy()
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(filePath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
 
-      it "returns false if the path is new", ->
-        expect(repo.isPathModified(newPath)).toBeFalsy()
+      it "resolves false if the path is new", ->
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(newPath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
+
+      it "resolves false if the path is invalid", ->
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(emptyPath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
   xdescribe ".isPathNew(path)", ->
     [filePath, newPath] = []
