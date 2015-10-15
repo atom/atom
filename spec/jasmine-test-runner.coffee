@@ -89,7 +89,7 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
     if logStream?
       fs.writeSync(logStream, str)
     else
-      ipc.send 'write-to-stdout', str
+      ipc.send 'write-to-stderr', str
 
   {TerminalReporter} = require 'jasmine-tagged'
   new TerminalReporter

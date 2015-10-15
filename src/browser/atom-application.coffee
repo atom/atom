@@ -277,6 +277,9 @@ class AtomApplication
     ipc.on 'write-to-stdout', (event, output) ->
       process.stdout.write(output)
 
+    ipc.on 'write-to-stderr', (event, output) ->
+      process.stderr.write(output)
+
   # Public: Executes the given command.
   #
   # If it isn't handled globally, delegate to the currently focused window.
