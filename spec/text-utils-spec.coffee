@@ -55,6 +55,7 @@ describe 'text utilities', ->
 
       expect(textUtils.isDoubleWidthCharacter("Ｂ")).toBe(true)
       expect(textUtils.isDoubleWidthCharacter("，")).toBe(true)
+      expect(textUtils.isDoubleWidthCharacter("￠")).toBe(true)
 
       expect(textUtils.isDoubleWidthCharacter("a")).toBe(false)
 

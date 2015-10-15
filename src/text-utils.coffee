@@ -71,7 +71,8 @@ isCjkUnifiedIdeograph = (charCode) ->
   0x4e00 <= charCode <= 0x9faf
 
 isFullWidthForm = (charCode) ->
-  0xFF01 <= charCode <= 0xFF5E
+  0xFF01 <= charCode <= 0xFF5E or
+  0xFFE0 <= charCode <= 0xFFE6
 
 isDoubleWidthCharacter = (character) ->
   charCode = character.charCodeAt(0)
