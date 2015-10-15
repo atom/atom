@@ -2893,12 +2893,12 @@ describe "TextEditorComponent", ->
 
   describe "when changing the font", ->
     it "measures the default char width and the double width char width", ->
-      expect(editor.getDefaultCharWidth()).toBe(12)
+      expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
 
       component.setFontSize(10)
       nextAnimationFrame()
 
-      expect(editor.getDefaultCharWidth()).toBe(6)
+      expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
       expect(editor.getDoubleWidthCharWidth()).toBe(10)
 
   describe "hiding and showing the editor", ->
