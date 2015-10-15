@@ -195,6 +195,12 @@ class DisplayBuffer extends Model
       @defaultCharWidth = defaultCharWidth
     defaultCharWidth
 
+  getDoubleWidthCharWidth: -> @doubleWidthCharWidth
+  setDoubleWidthCharWidth: (doubleWidthCharWidth) ->
+    if doubleWidthCharWidth isnt @doubleWidthCharWidth
+      @doubleWidthCharWidth = doubleWidthCharWidth
+    doubleWidthCharWidth
+
   getCursorWidth: -> 1
 
   scrollToScreenRange: (screenRange, options = {}) ->
@@ -282,8 +288,13 @@ class DisplayBuffer extends Model
         else
           charLength = 1
 
-        charWidth = @getDefaultCharWidth()
+        if iterator.hasDoubleWidthCharacterAt(textIndex)
+          charWidth = @getDoubleWidthCharWidth()
+        else
+          charWidth = @getDefaultCharWidth()
+
         return column if currentWidth + charWidth > lineMaxWidth
+
         currentWidth += charWidth
         column += charLength
         textIndex += charLength
