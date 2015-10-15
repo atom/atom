@@ -11,6 +11,9 @@ copyRepository = ->
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   workingDirPath
 
+openFixture = (fixture)->
+  GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
+
 fdescribe "GitRepositoryAsync", ->
   repo = null
 
@@ -49,7 +52,7 @@ fdescribe "GitRepositoryAsync", ->
         expect(onSuccess.mostRecentCall.args[0]).toBe(expectedPath)
 
     it "returns the repository path for a repository path", ->
-      repo = GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      repo = openFixture('master.git')
 
       onSuccess = jasmine.createSpy('onSuccess')
 
@@ -60,14 +63,24 @@ fdescribe "GitRepositoryAsync", ->
         expectedPath = path.join(__dirname, 'fixtures', 'git', 'master.git')
         expect(onSuccess.mostRecentCall.args[0]).toBe(expectedPath)
 
-  xdescribe ".isPathIgnored(path)", ->
-    it "returns true for an ignored path", ->
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
-      expect(repo.isPathIgnored('a.txt')).toBeTruthy()
+  describe ".isPathIgnored(path)", ->
+    it "resolves true for an ignored path", ->
+      repo = openFixture('ignore.git')
+      onSuccess = jasmine.createSpy('onSuccess')
+      waitsForPromise ->
+        repo.isPathIgnored('a.txt').then(onSuccess).catch (e) -> console.log e
 
-    it "returns false for a non-ignored path", ->
-      repo = new GitRepository(path.join(__dirname, 'fixtures', 'git', 'ignore.git'))
-      expect(repo.isPathIgnored('b.txt')).toBeFalsy()
+      runs ->
+        expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
+
+    it "resolves false for a non-ignored path", ->
+      repo = openFixture('ignore.git')
+      onSuccess = jasmine.createSpy('onSuccess')
+      waitsForPromise ->
+        repo.isPathIgnored('b.txt').then(onSuccess)
+      runs ->
+        expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
+
 
   xdescribe ".isPathModified(path)", ->
     [repo, filePath, newPath] = []

@@ -29,4 +29,10 @@ module.exports = class GitRepositoryAsync {
       return Promise.resolve(repo.path().replace(/\/$/, ''))
     })
   }
+
+  isPathIgnored(_path) {
+    return this.repoPromise.then( (repo) => {
+      return Promise.resolve(Git.Ignore.pathIsIgnored(repo, _path))
+    })
+  }
 }
