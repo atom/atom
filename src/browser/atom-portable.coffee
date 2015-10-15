@@ -6,7 +6,7 @@ module.exports =
 class AtomPortable
   @portableAtomHomePath: ->
     execDirectoryPath = path.dirname(process.execPath)
-    return path.join(execDirectoryPath, "../.atom/")
+    return path.join(execDirectoryPath, '..', '.atom')
 
   @setPortable: (existingAtomHome) ->
     fs.copySync(existingAtomHome, @portableAtomHomePath())
