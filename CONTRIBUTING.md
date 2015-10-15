@@ -13,7 +13,7 @@ By participating, you are expected to uphold this code. Please report unacceptab
 #### Table Of Contents
 
 * [Submitting Issues](#submitting-issues)
-* [Your First Contribution](#your-first-contribution`)
+* [Your First Contribution](#your-first-contribution)
 * [Pull Requests](#pull-requests)
 * [Git Commit Messages](#git-commit-messages)
 * [CoffeeScript Styleguide](#coffeescript-styleguide)
