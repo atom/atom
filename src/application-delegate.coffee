@@ -21,48 +21,48 @@ class ApplicationDelegate
     remote.getCurrentWindow()
 
   closeWindow: ->
-    remote.getCurrentWindow().close()
+    ipc.send("call-window-method", "close")
 
   getWindowSize: ->
     [width, height] = remote.getCurrentWindow().getSize()
     {width, height}
 
   setWindowSize: (width, height) ->
-    remote.getCurrentWindow().setSize(width, height)
+    ipc.send("call-window-method", "setSize", width, height)
 
   getWindowPosition: ->
     [x, y] = remote.getCurrentWindow().getPosition()
     {x, y}
 
   setWindowPosition: (x, y) ->
-    remote.getCurrentWindow().setPosition(x, y)
+    ipc.send("call-window-method", "setPosition", x, y)
 
   centerWindow: ->
-    remote.getCurrentWindow().center()
+    ipc.send("call-window-method", "center")
 
   focusWindow: ->
-    remote.getCurrentWindow().focus()
+    ipc.send("call-window-method", "focus")
 
   showWindow: ->
-    remote.getCurrentWindow().show()
+    ipc.send("call-window-method", "show")
 
   hideWindow: ->
-    remote.getCurrentWindow().hide()
+    ipc.send("call-window-method", "hide")
 
   restartWindow: ->
-    remote.getCurrentWindow().restart()
+    ipc.send("call-window-method", "restart")
 
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()
 
   maximizeWindow: ->
-    remote.getCurrentWindow().maximize()
+    ipc.send("call-window-method", "maximize")
 
   isWindowFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
 
   setWindowFullScreen: (fullScreen=false) ->
-    remote.getCurrentWindow().setFullScreen(fullScreen)
+    ipc.send("call-window-method", "setFullScreen", fullScreen)
 
   openWindowDevTools: ->
     remote.getCurrentWindow().openDevTools()
@@ -74,10 +74,10 @@ class ApplicationDelegate
     remote.getCurrentWindow().executeJavaScriptInDevTools(code)
 
   setWindowDocumentEdited: (edited) ->
-    remote.getCurrentWindow().setDocumentEdited(edited)
+    ipc.send("call-window-method", "setDocumentEdited", edited)
 
   setRepresentedFilename: (filename) ->
-    remote.getCurrentWindow().setRepresentedFilename(filename)
+    ipc.send("call-window-method", "setRepresentedFilename", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
     loadSettings = getWindowLoadSettings()
@@ -85,7 +85,7 @@ class ApplicationDelegate
     setWindowLoadSettings(loadSettings)
 
   setAutoHideWindowMenuBar: (autoHide) ->
-    remote.getCurrentWindow().setAutoHideMenuBar(autoHide)
+    ipc.send("call-window-method", "setAutoHideMenuBar", autoHide)
 
   setWindowMenuBarVisibility: (visible) ->
     remote.getCurrentWindow().setMenuBarVisibility(visible)
