@@ -195,7 +195,7 @@ class DisplayBuffer extends Model
     if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth
       @defaultCharWidth = defaultCharWidth
       @doubleWidthCharWidth = doubleWidthCharWidth
-      @updateWrappedScreenLines() if @isSoftWrapped()
+      @updateWrappedScreenLines() if @isSoftWrapped() and @getWidth()?
     defaultCharWidth
 
   getCursorWidth: -> 1
@@ -265,14 +265,8 @@ class DisplayBuffer extends Model
     else
       @getEditorWidthInChars()
 
-  getMaxLengthPerLine: ->
-    if @configSettings.softWrapAtPreferredLineLength
-      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
-    else
-      @getEditorWidthInChars()
-
   getSoftWrapColumnForTokenizedLine: (tokenizedLine) ->
-    lineMaxWidth = @getMaxLengthPerLine() * @getDefaultCharWidth()
+    lineMaxWidth = Math.round(@getSoftWrapColumn() * @getDefaultCharWidth())
     iterator = tokenizedLine.getTokenIterator()
     column = 0
     currentWidth = 0
