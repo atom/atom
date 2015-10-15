@@ -28,7 +28,7 @@ class ApplicationDelegate
     {width, height}
 
   setWindowSize: (width, height) ->
-    ipc.send("call-window-method", "setSize", width, height)
+    remote.getCurrentWindow().setSize(width, height)
 
   getWindowPosition: ->
     [x, y] = remote.getCurrentWindow().getPosition()
