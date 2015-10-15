@@ -79,6 +79,17 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("ﾌﾋﾌﾇﾴ￮￮￮hello ")
           expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("world this is a pretty long line")
 
+      describe "when there are korean characters", ->
+        it "takes them into account when finding the soft wrap column", ->
+          displayBuffer.setDefaultCharWidth(1, 0, 0, 10)
+          buffer.setText("1234세계를 향한 대화, 유니코 제10회유니코드국제")
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("1234세계를 ")
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("향한 대화, ")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("유니코 ")
+          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("제10회유니")
+          expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe("코드국제")
+
       describe "when editor.softWrapAtPreferredLineLength is set", ->
         it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
           atom.config.set('editor.preferredLineLength', 100)

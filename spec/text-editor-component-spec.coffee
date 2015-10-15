@@ -2892,13 +2892,14 @@ describe "TextEditorComponent", ->
         expect(event.abortKeyBinding).toHaveBeenCalled()
 
   describe "when changing the font", ->
-    it "measures the default char, the double width char and the half width char widths ", ->
+    it "measures the default char, the korean char, the double width char and the half width char widths", ->
       expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
 
       component.setFontSize(10)
       nextAnimationFrame()
 
       expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
+      expect(editor.getKoreanCharWidth()).toBeCloseTo(9, 0)
       expect(editor.getDoubleWidthCharWidth()).toBe(10)
       expect(editor.getHalfWidthCharWidth()).toBe(5)
 

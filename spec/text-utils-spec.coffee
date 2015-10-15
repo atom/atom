@@ -46,12 +46,10 @@ describe 'text utilities', ->
       expect(textUtils.isPairedCharacter('ae\u0301c', 4)).toBe false
 
   describe ".isDoubleWidthCharacter(character)", ->
-    it "returns true when the character is either japanese, korean, chinese or a full width form", ->
+    it "returns true when the character is either japanese, chinese or a full width form", ->
       expect(textUtils.isDoubleWidthCharacter("我")).toBe(true)
 
       expect(textUtils.isDoubleWidthCharacter("私")).toBe(true)
-
-      expect(textUtils.isDoubleWidthCharacter("우")).toBe(true)
 
       expect(textUtils.isDoubleWidthCharacter("Ｂ")).toBe(true)
       expect(textUtils.isDoubleWidthCharacter("，")).toBe(true)
@@ -65,4 +63,14 @@ describe 'text utilities', ->
       expect(textUtils.isHalfWidthCharacter("ﾋ")).toBe(true)
       expect(textUtils.isHalfWidthCharacter("ﾬ")).toBe(true)
       expect(textUtils.isHalfWidthCharacter("￭")).toBe(true)
+
       expect(textUtils.isHalfWidthCharacter("B")).toBe(false)
+
+  describe ".isKoreanCharacter(character)", ->
+    it "returns true when the character is a korean character", ->
+      expect(textUtils.isKoreanCharacter("우")).toBe(true)
+      expect(textUtils.isKoreanCharacter("가")).toBe(true)
+      expect(textUtils.isKoreanCharacter("ㅢ")).toBe(true)
+      expect(textUtils.isKoreanCharacter("ㄼ")).toBe(true)
+
+      expect(textUtils.isKoreanCharacter("O")).toBe(false)

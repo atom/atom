@@ -189,19 +189,23 @@ class DisplayBuffer extends Model
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
+  getKoreanCharWidth: -> @koreanCharWidth
+
   getHalfWidthCharWidth: -> @halfWidthCharWidth
 
   getDoubleWidthCharWidth: -> @doubleWidthCharWidth
 
   getDefaultCharWidth: -> @defaultCharWidth
 
-  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth) ->
+  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) ->
     doubleWidthCharWidth ?= defaultCharWidth
     halfWidthCharWidth ?= defaultCharWidth
-    if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth
+    koreanCharWidth ?= defaultCharWidth
+    if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth and halfWidthCharWidth isnt @halfWidthCharWidth and koreanCharWidth isnt @koreanCharWidth
       @defaultCharWidth = defaultCharWidth
       @doubleWidthCharWidth = doubleWidthCharWidth
       @halfWidthCharWidth = halfWidthCharWidth
+      @koreanCharWidth = koreanCharWidth
       @updateWrappedScreenLines() if @isSoftWrapped() and @getEditorWidthInChars()?
     defaultCharWidth
 
@@ -290,6 +294,8 @@ class DisplayBuffer extends Model
           charWidth = @getDoubleWidthCharWidth()
         else if iterator.hasHalfWidthCharacterAt(textIndex)
           charWidth = @getHalfWidthCharWidth()
+        else if iterator.hasKoreanCharacterAt(textIndex)
+          charWidth = @getKoreanCharWidth()
         else
           charWidth = @getDefaultCharWidth()
 

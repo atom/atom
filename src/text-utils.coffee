@@ -57,13 +57,6 @@ isPairedCharacter = (string, index=0) ->
   isVariationSequence(charCodeA, charCodeB) or
   isCombinedCharacter(charCodeA, charCodeB)
 
-isKoreanCharacter = (charCode) ->
-  0xAC00 <= charCode <= 0xD7A3 or
-  0x1100 <= charCode <= 0x11FF or
-  0x3130 <= charCode <= 0x318F or
-  0xA960 <= charCode <= 0xA97F or
-  0xD7B0 <= charCode <= 0xD7FF
-
 isJapaneseCharacter = (charCode) ->
   0x3000 <= charCode <= 0x30FF
 
@@ -77,7 +70,6 @@ isFullWidthForm = (charCode) ->
 isDoubleWidthCharacter = (character) ->
   charCode = character.charCodeAt(0)
 
-  isKoreanCharacter(charCode) or
   isJapaneseCharacter(charCode) or
   isCjkUnifiedIdeograph(charCode) or
   isFullWidthForm(charCode)
@@ -87,6 +79,15 @@ isHalfWidthCharacter = (character) ->
 
   0xFF65 <= charCode <= 0xFFDC or
   0xFFE8 <= charCode <= 0xFFEE
+
+isKoreanCharacter = (character) ->
+  charCode = character.charCodeAt(0)
+
+  0xAC00 <= charCode <= 0xD7A3 or
+  0x1100 <= charCode <= 0x11FF or
+  0x3130 <= charCode <= 0x318F or
+  0xA960 <= charCode <= 0xA97F or
+  0xD7B0 <= charCode <= 0xD7FF
 
 # Does the given string contain at least surrogate pair, variation sequence,
 # or combined character?
@@ -101,4 +102,4 @@ hasPairedCharacter = (string) ->
     index++
   false
 
-module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter}
+module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter}
