@@ -2891,6 +2891,16 @@ describe "TextEditorComponent", ->
         expect(editor.consolidateSelections).toHaveBeenCalled()
         expect(event.abortKeyBinding).toHaveBeenCalled()
 
+  describe "when changing the font", ->
+    it "measures the default char width and the double width char width", ->
+      expect(editor.getDefaultCharWidth()).toBe(12)
+
+      component.setFontSize(10)
+      nextAnimationFrame()
+
+      expect(editor.getDefaultCharWidth()).toBe(6)
+      expect(editor.getDoubleWidthCharWidth()).toBe(10)
+
   describe "hiding and showing the editor", ->
     describe "when the editor is hidden when it is mounted", ->
       it "defers measurement and rendering until the editor becomes visible", ->

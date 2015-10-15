@@ -1122,10 +1122,11 @@ class TextEditorPresenter
       @mouseWheelScreenRow = screenRow
       @didStartScrolling()
 
-  setBaseCharacterWidth: (baseCharacterWidth) ->
-    unless @baseCharacterWidth is baseCharacterWidth
+  setBaseCharacterWidth: (baseCharacterWidth, doubleWidthCharWidth) ->
+    unless @baseCharacterWidth is baseCharacterWidth and @doubleWidthCharWidth is doubleWidthCharWidth
       @baseCharacterWidth = baseCharacterWidth
-      @model.setDefaultCharWidth(baseCharacterWidth)
+      @doubleWidthCharWidth = doubleWidthCharWidth
+      @model.setDefaultCharWidth(baseCharacterWidth, doubleWidthCharWidth)
       @characterWidthsChanged()
 
   characterWidthsChanged: ->
