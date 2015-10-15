@@ -13,7 +13,7 @@ module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @useShadowDOM, @domElementPool}) ->
+  constructor: ({@presenter, @useShadowDOM, @domElementPool, @assert, @grammars}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
@@ -64,7 +64,7 @@ class LinesComponent extends TiledComponent
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
 
-  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool})
+  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool, @assert, @grammars})
 
   buildEmptyState: ->
     {tiles: {}}
