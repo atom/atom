@@ -44,3 +44,16 @@ describe 'text utilities', ->
       expect(textUtils.isPairedCharacter('ae\u0301c', 2)).toBe false
       expect(textUtils.isPairedCharacter('ae\u0301c', 3)).toBe false
       expect(textUtils.isPairedCharacter('ae\u0301c', 4)).toBe false
+
+  describe ".isDoubleWidthCharacter(character)", ->
+    it "returns true when the character is either japanese, korean, chinese or a full width form", ->
+      expect(textUtils.isDoubleWidthCharacter("我")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("私")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("우")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("Ｂ")).toBe(true)
+      expect(textUtils.isDoubleWidthCharacter("，")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("a")).toBe(false)
