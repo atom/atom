@@ -28,8 +28,7 @@ class AtomPortable
       fs.removeSync(writePermissionTestFile)
       writable = true
     catch error
-      message = "Failed to use portable Atom home directory.  Using the default instead."
-      message = "Portable Atom home directory (#{@getPortableAtomHomePath()}) is not writable.  Using the default instead." if error.code == "EPERM"
+      message = "Failed to use portable Atom home directory (#{@getPortableAtomHomePath()}).  Using the default instead.  #{error.message}"
 
     ipc.on 'check-portable-home-writable', (event, arg) ->
       event.sender.send 'check-portable-home-writable-response', {writable, message}
