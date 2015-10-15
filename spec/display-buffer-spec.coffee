@@ -52,10 +52,11 @@ describe "DisplayBuffer", ->
       displayBuffer2 = new DisplayBuffer({buffer, tabLength})
       buffer.setText("testing")
 
-  describe "soft wrapping", ->
+  fdescribe "soft wrapping", ->
     beforeEach ->
-      displayBuffer.setSoftWrapped(true)
+      displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setEditorWidthInChars(50)
+      displayBuffer.setSoftWrapped(true)
       changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
@@ -233,6 +234,7 @@ describe "DisplayBuffer", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
           displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30})
+          displayBuffer.setDefaultCharWidth(1)
           displayBuffer.setSoftWrapped(true)
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")

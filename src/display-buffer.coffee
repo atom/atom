@@ -262,6 +262,33 @@ class DisplayBuffer extends Model
     else
       @getEditorWidthInChars()
 
+  getMaxLengthPerLine: ->
+    if @configSettings.softWrapAtPreferredLineLength
+      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
+    else
+      @getEditorWidthInChars()
+
+  getSoftWrapColumnForTokenizedLine: (tokenizedLine) ->
+    lineMaxWidth = @getMaxLengthPerLine() * @getDefaultCharWidth()
+    iterator = tokenizedLine.getTokenIterator()
+    column = 0
+    currentWidth = 0
+    while iterator.next()
+      textIndex = 0
+      text = iterator.getText()
+      while textIndex < text.length
+        if iterator.isPairedCharacter()
+          charLength = 2
+        else
+          charLength = 1
+
+        charWidth = @getDefaultCharWidth()
+        return column if currentWidth + charWidth > lineMaxWidth
+        currentWidth += charWidth
+        column += charLength
+        textIndex += charLength
+    column
+
   # Gets the screen line for the given screen row.
   #
   # * `screenRow` - A {Number} indicating the screen row.
@@ -958,7 +985,7 @@ class DisplayBuffer extends Model
       else
         softWraps = 0
         if @isSoftWrapped()
-          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumnForTokenizedLine(tokenizedLine))
             [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
               wrapScreenColumn,
               @configSettings.softWrapHangingIndent
