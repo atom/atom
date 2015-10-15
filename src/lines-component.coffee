@@ -8,8 +8,10 @@ DummyLineNode.style.position = 'absolute'
 DummyLineNode.style.visibility = 'hidden'
 DummyLineNode.appendChild(document.createElement('span'))
 DummyLineNode.appendChild(document.createElement('span'))
+DummyLineNode.appendChild(document.createElement('span'))
 DummyLineNode.children[0].textContent = 'x'
 DummyLineNode.children[1].textContent = '我'
+DummyLineNode.children[2].textContent = 'ﾊ'
 
 RangeForMeasurement = document.createRange()
 
@@ -85,11 +87,12 @@ class LinesComponent extends TiledComponent
     lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
     defaultCharWidth = DummyLineNode.children[0].getBoundingClientRect().width
     doubleWidthCharWidth = DummyLineNode.children[1].getBoundingClientRect().width
+    halfWidthCharWidth = DummyLineNode.children[2].getBoundingClientRect().width
 
     @domNode.removeChild(DummyLineNode)
 
     @presenter.setLineHeight(lineHeightInPixels)
-    @presenter.setBaseCharacterWidth(defaultCharWidth, doubleWidthCharWidth)
+    @presenter.setBaseCharacterWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth)
 
   lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
     tile = @presenter.tileForRow(screenRow)

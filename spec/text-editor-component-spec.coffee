@@ -2900,6 +2900,7 @@ describe "TextEditorComponent", ->
 
       expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
       expect(editor.getDoubleWidthCharWidth()).toBe(10)
+      expect(editor.getHalfWidthCharWidth()).toBe(5)
 
   describe "hiding and showing the editor", ->
     describe "when the editor is hidden when it is mounted", ->
