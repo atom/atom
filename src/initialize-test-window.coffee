@@ -2,7 +2,7 @@
 require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
 remote = require 'remote'
 
-exitWithStatusCode = (status) =>
+exitWithStatusCode = (status) ->
   remote.require('app').emit('will-quit')
   remote.process.exit(status)
 
