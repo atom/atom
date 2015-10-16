@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "electronVersion": "0.30.7",
+  "electronVersion": "0.33.6",
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^6.1.0",
@@ -115,7 +115,7 @@
     "update-package-dependencies": "0.10.0",
     "welcome": "0.31.0",
     "whitespace": "0.31.0",
-    "wrap-guide": "0.38.0",
+    "wrap-guide": "0.38.1",
     "language-c": "0.49.0",
     "language-clojure": "0.18.0",
     "language-coffee-script": "0.42.0",
