@@ -62,3 +62,32 @@ Preconditions|A document is loaded and being edited.
 Basic Course of Events|1. The user indicates that the software is to perform a search and replace in the active document.</br>2. The software responds by requesting the search term and the replacement text.</br>3. The user inputs the search term and replacement text. Then, indicates that all occurrences are to be replaced.</br>4. The software replaces all occurrences with the replacement text.
 Postconditions|All occurrences of the search term have been replaced with the inputted text from the user.
 Alternative Paths|1. In step 3, the user may indicate that only the first occurrence is to be replaced. The postcondition state is identical, except there is only one replace.</br>2. In step 3, the user may choose not to replace any text, but only to find it. In this case, the software highlights all occurrences in the active document.</br>3. The user can decide not to find or replace any text. In this case, the software simply returns to the precondition state.
+
+Name   | UC2: Change GUI theme
+-------|-------------------------
+Summary|GUI appearance changes to a specified theme.
+Rationale|The user may enjoy working with different font or background colors, atom provides different color themes for the user interface (tabs, status bar, tree view and dropdowns) and for the text inside the editor.
+Users|All users.
+Preconditions|Atom is running
+Basic Course of Events|1. The user indicates to the software the intention of changing the theme.<br>2. The software responds by showing all the themes available to apply. <br>3. The user inputs the theme he wishes to use.<br>4. The software replaces the current theme with the theme chosen by the user.
+Postconditions|Theme is changed to the one selected by the user.
+Alternative Paths|1. In step 3, the user may cancel the action and the current theme continues to be active.
+
+Name   | UC3: Add functionality
+-------|-------------------------
+Summary|A new functionality is added to the editor.
+Rationale|The standard version of the software may not have some specific functionality desired by the user, the user can add the desired functionality if it is available to install.
+Users|All users.
+Preconditions|Atom is running and has Internet access.
+Basic Course of Events|1. The user indicates to the software the intention of installing a new feature.<br>2. The software responds by requesting the user the search term that describes the feature. <br>3. The software displays all the features matching the search term. <br> 4. The user selects the feature desired. <br> 5. The software downloads and installs the feature selected.
+Postconditions|The feature selected is installed and ready to be used.
+Alternative Paths|1. In step 3, the user may input a different search term and the software will display the new corresponding features.<br> 2. In step 2, 3 or 4 the user may choose to cancel the operation.
+
+Name   | UC4: Create functionality
+-------|-------------------------
+Summary|A user want to use a functionality that does not come with the standard version of the software nor is available for installment. If the user wants to he can create a new functionality.
+Users|All users.
+Preconditions|None
+Basic Course of Events|1. User creates the functionality using services provided by the software.<br> 2. User adds the newly created functionality to the available features to install on the software.
+Postconditions|The feature created is available to be added to the software.
+Alternative Paths|
