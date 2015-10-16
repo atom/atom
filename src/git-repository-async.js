@@ -63,9 +63,9 @@ module.exports = class GitRepositoryAsync {
   }
 
   checkoutHead (_path) {
-    return this.repoPromise.then(function (repo) {
+    return this.repoPromise.then((repo) => {
       var checkoutOptions = new Git.CheckoutOptions()
-      checkoutOptions.paths = [_path]
+      checkoutOptions.paths = [this._gitUtilsRepo.relativize(_path)]
       checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
       Git.Checkout.head(repo, checkoutOptions)
     })

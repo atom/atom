@@ -113,15 +113,6 @@ fdescribe "GitRepositoryAsync", ->
         runs ->
           expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
 
-
-      it "resolves true if the path is deleted", ->
-        fs.removeSync(filePath)
-        onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise ->
-          repo.isPathModified(filePath).then(onSuccess)
-        runs ->
-          expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
-
       it "resolves false if the path is new", ->
         onSuccess = jasmine.createSpy('onSuccess')
         waitsForPromise ->
@@ -162,27 +153,47 @@ fdescribe "GitRepositoryAsync", ->
           expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
 
-  xdescribe ".checkoutHead(path)", ->
+  describe ".checkoutHead(path)", ->
     [filePath] = []
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new GitRepository(workingDirPath)
+      repo = GitRepositoryAsync.open(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
 
     it "no longer reports a path as modified after checkout", ->
-      expect(repo.isPathModified(filePath)).toBeFalsy()
-      fs.writeFileSync(filePath, 'ch ch changes')
-      expect(repo.isPathModified(filePath)).toBeTruthy()
-      expect(repo.checkoutHead(filePath)).toBeTruthy()
-      expect(repo.isPathModified(filePath)).toBeFalsy()
+      onSuccess = jasmine.createSpy('onSuccess')
+      waitsForPromise ->
+        repo.isPathModified(filePath).then(onSuccess)
+      runs ->
+        expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
+        fs.writeFileSync(filePath, 'ch ch changes')
+
+      onSuccess = jasmine.createSpy('onSuccess')
+      waitsForPromise ->
+        repo.isPathModified(filePath).then(onSuccess)
+      runs ->
+        expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
+
+      # Don't need to assert that this succeded because waitsForPromise will
+      # fail if it was rejected.
+      waitsForPromise ->
+        repo.checkoutHead(filePath)
+
+      onSuccess = jasmine.createSpy('onSuccess')
+      waitsForPromise ->
+        repo.isPathModified(filePath).then(onSuccess)
+      runs ->
+        expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
     it "restores the contents of the path to the original text", ->
       fs.writeFileSync(filePath, 'ch ch changes')
-      expect(repo.checkoutHead(filePath)).toBeTruthy()
-      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+      waitsForPromise ->
+        repo.checkoutHead(filePath)
+      runs ->
+        expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
-    it "fires a status-changed event if the checkout completes successfully", ->
+    xit "fires a status-changed event if the checkout completes successfully", ->
       fs.writeFileSync(filePath, 'ch ch changes')
       repo.getPathStatus(filePath)
       statusHandler = jasmine.createSpy('statusHandler')
