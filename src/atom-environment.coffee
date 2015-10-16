@@ -1,6 +1,5 @@
 crypto = require 'crypto'
 path = require 'path'
-webFrame = require 'web-frame'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -189,8 +188,7 @@ class AtomEnvironment extends Model
     @stylesElement = @styles.buildStylesElement()
     @document.head.appendChild(@stylesElement)
 
-    # Disable pinch-to-zoom.
-    webFrame.setZoomLevelLimits(1, 1)
+    @applicationDelegate.disablePinchToZoom()
 
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
