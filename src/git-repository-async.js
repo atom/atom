@@ -1,10 +1,10 @@
-"use babel";
+'use babel'
 
 const Git = require('nodegit')
 const path = require('path')
 
 module.exports = class GitRepositoryAsync {
-  static open(path) {
+  static open (path) {
     // QUESTION: Should this wrap Git.Repository and reject with a nicer message?
     return new GitRepositoryAsync(Git.Repository.open(path))
   }
@@ -15,10 +15,10 @@ module.exports = class GitRepositoryAsync {
     this._opening = true
 
     // Do I use this outside of tests?
-    openPromise.then( (repo) => {
+    openPromise.then((repo) => {
       this.repo = repo
       this._opening = false
-    }).catch( (e) => {
+    }).catch((e) => {
       this._opening = false
     })
 
@@ -26,42 +26,42 @@ module.exports = class GitRepositoryAsync {
   }
 
   getPath () {
-    return this.repoPromise.then( (repo) => {
+    return this.repoPromise.then((repo) => {
       return Promise.resolve(repo.path().replace(/\/$/, ''))
     })
   }
 
-  isPathIgnored(_path) {
-    return this.repoPromise.then( (repo) => {
+  isPathIgnored (_path) {
+    return this.repoPromise.then((repo) => {
       return Promise.resolve(Git.Ignore.pathIsIgnored(repo, _path))
     })
   }
 
-  _filterStatusesByPath(_path) {
+  _filterStatusesByPath (_path) {
     // Surely I'm missing a built-in way to do this
     var basePath = null
-    return this.repoPromise.then( (repo) => {
+    return this.repoPromise.then((repo) => {
       basePath = repo.workdir()
       return repo.getStatus()
-    }).then( (statuses) => {
+    }).then((statuses) => {
       return statuses.filter(function (status) {
-        return _path == path.join(basePath, status.path())
+        return _path === path.join(basePath, status.path())
       })
     })
   }
 
-  isPathModified(_path) {
-    return this._filterStatusesByPath(_path).then(function(statuses) {
-      var ret = statuses.filter((status)=> {
+  isPathModified (_path) {
+    return this._filterStatusesByPath(_path).then(function (statuses) {
+      var ret = statuses.filter((status) => {
         return status.isModified()
       }).length > 0
       return Promise.resolve(ret)
     })
   }
 
-  isPathNew(_path) {
-    return this._filterStatusesByPath(_path).then(function(statuses) {
-      var ret = statuses.filter((status)=> {
+  isPathNew (_path) {
+    return this._filterStatusesByPath(_path).then(function (statuses) {
+      var ret = statuses.filter((status) => {
         return status.isNew()
       }).length > 0
       return Promise.resolve(ret)
