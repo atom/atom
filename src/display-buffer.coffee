@@ -293,7 +293,7 @@ class DisplayBuffer extends Model
 
   getSoftWrapColumnForTokenizedLine: (tokenizedLine) ->
     lineMaxWidth = @getSoftWrapColumn() * @getDefaultCharWidth()
-    iterator = tokenizedLine.getTokenIterator()
+    iterator = tokenizedLine.getTokenIterator(false)
     column = 0
     currentWidth = 0
     while iterator.next()

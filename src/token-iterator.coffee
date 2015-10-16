@@ -3,18 +3,16 @@
 
 module.exports =
 class TokenIterator
-  constructor: ({@grammarRegistry}, line) ->
-    @reset(line) if line?
+  constructor: ({@grammarRegistry}, line, enableScopes) ->
+    @reset(line, enableScopes) if line?
 
-  reset: (@line) ->
+  reset: (@line, @enableScopes=true) ->
     @index = null
     @bufferStart = @line.startBufferColumn
     @bufferEnd = @bufferStart
     @screenStart = 0
     @screenEnd = 0
-    @scopes = @line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
-    @scopeStarts = @scopes.slice()
-    @scopeEnds = []
+    @resetScopes() if @enableScopes
     this
 
   next: ->
@@ -22,26 +20,16 @@ class TokenIterator
 
     if @index?
       @index++
-      @scopeEnds.length = 0
-      @scopeStarts.length = 0
       @bufferStart = @bufferEnd
       @screenStart = @screenEnd
+      @clearScopeStartsAndEnds() if @enableScopes
     else
       @index = 0
 
     while @index < tags.length
       tag = tags[@index]
       if tag < 0
-        scope = @grammarRegistry.scopeForId(tag)
-        if tag % 2 is 0
-          if @scopeStarts[@scopeStarts.length - 1] is scope
-            @scopeStarts.pop()
-          else
-            @scopeEnds.push(scope)
-          @scopes.pop()
-        else
-          @scopeStarts.push(scope)
-          @scopes.push(scope)
+        @handleScopeForTag(tag) if @enableScopes
         @index++
       else
         if @isHardTab()
@@ -58,6 +46,27 @@ class TokenIterator
         return true
 
     false
+
+  resetScopes: ->
+    @scopes = @line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
+    @scopeStarts = @scopes.slice()
+    @scopeEnds = []
+
+  clearScopeStartsAndEnds: ->
+    @scopeEnds.length = 0
+    @scopeStarts.length = 0
+
+  handleScopeForTag: (tag) ->
+    scope = @grammarRegistry.scopeForId(tag)
+    if tag % 2 is 0
+      if @scopeStarts[@scopeStarts.length - 1] is scope
+        @scopeStarts.pop()
+      else
+        @scopeEnds.push(scope)
+      @scopes.pop()
+    else
+      @scopeStarts.push(scope)
+      @scopes.push(scope)
 
   getBufferStart: -> @bufferStart
   getBufferEnd: -> @bufferEnd
