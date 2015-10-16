@@ -2895,6 +2895,18 @@ describe "TextEditorComponent", ->
         expect(editor.consolidateSelections).toHaveBeenCalled()
         expect(event.abortKeyBinding).toHaveBeenCalled()
 
+  describe "when changing the font", ->
+    it "measures the default char, the korean char, the double width char and the half width char widths", ->
+      expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
+
+      component.setFontSize(10)
+      nextAnimationFrame()
+
+      expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
+      expect(editor.getKoreanCharWidth()).toBeCloseTo(9, 0)
+      expect(editor.getDoubleWidthCharWidth()).toBe(10)
+      expect(editor.getHalfWidthCharWidth()).toBe(5)
+
   describe "hiding and showing the editor", ->
     describe "when the editor is hidden when it is mounted", ->
       it "defers measurement and rendering until the editor becomes visible", ->
@@ -3212,7 +3224,9 @@ describe "TextEditorComponent", ->
         atom.config.set 'editor.preferredLineLength', 17, scopeSelector: '.source.coffee'
         atom.config.set 'editor.softWrapAtPreferredLineLength', true, scopeSelector: '.source.coffee'
 
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(20)
+        coffeeEditor.setDefaultCharWidth(1)
         coffeeEditor.setEditorWidthInChars(20)
 
       it "wraps lines when editor.softWrap is true for a matching scope", ->

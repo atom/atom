@@ -272,6 +272,7 @@ describe "TextEditor", ->
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
           editor.createFold(2, 3)
 
@@ -327,6 +328,7 @@ describe "TextEditor", ->
       describe "when the cursor was moved down from the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the previous line", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
 
           editor.setCursorScreenPosition([3, 0])
@@ -379,6 +381,7 @@ describe "TextEditor", ->
       describe "when the cursor is at the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the line's continuation on the next screen row", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
 
           editor.setCursorScreenPosition([3, 0])
@@ -446,6 +449,7 @@ describe "TextEditor", ->
         describe "when line is wrapped and follow previous line indentation", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(50)
 
           it "wraps to the end of the previous line", ->
@@ -604,6 +608,7 @@ describe "TextEditor", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToEndOfScreenLine()
@@ -623,6 +628,7 @@ describe "TextEditor", ->
     describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
         editor.setSoftWrapped(true)
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([1, 2])
         editor.moveToBeginningOfLine()
@@ -632,6 +638,7 @@ describe "TextEditor", ->
     describe ".moveToEndOfLine()", ->
       it "moves cursor to the end of the buffer line", ->
         editor.setSoftWrapped(true)
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
@@ -642,6 +649,7 @@ describe "TextEditor", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition [2, 5]
           editor.addCursorAtScreenPosition [8, 7]
@@ -1523,6 +1531,7 @@ describe "TextEditor", ->
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(40)
+          editor.setDefaultCharWidth(1)
 
           editor.setSelectedScreenRange([[3, 10], [3, 15]])
           editor.addSelectionBelow()
@@ -1548,6 +1557,7 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
@@ -1633,6 +1643,7 @@ describe "TextEditor", ->
 
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(40)
 
           editor.setSelectedScreenRange([[4, 10], [4, 15]])
@@ -1659,6 +1670,7 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
@@ -2705,6 +2717,7 @@ describe "TextEditor", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([2, 2])
             editor.cutToEndOfLine()

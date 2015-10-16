@@ -1259,6 +1259,7 @@ describe "TextEditorPresenter", ->
             it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
               editor.setText("a line that wraps, ok")
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(16)
               marker = editor.markBufferRange([[0, 0], [0, 2]])
               editor.decorateMarker(marker, type: 'line', class: 'a')
@@ -2244,6 +2245,7 @@ describe "TextEditorPresenter", ->
             it "contains states for line numbers that are visible on screen", ->
               editor.foldBufferRow(4)
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(50)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 2)
 
@@ -2259,6 +2261,7 @@ describe "TextEditorPresenter", ->
             it "updates when the editor's content changes", ->
               editor.foldBufferRow(4)
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(50)
               presenter = buildPresenter(explicitHeight: 35, scrollTop: 30, tileSize: 2)
 
@@ -2289,6 +2292,7 @@ describe "TextEditorPresenter", ->
 
             it "correctly handles the first screen line being soft-wrapped", ->
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(30)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 50, tileSize: 2)
 
@@ -2417,6 +2421,7 @@ describe "TextEditorPresenter", ->
               it "only applies line-number decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
                 editor.setText("a line that wraps, ok")
                 editor.setSoftWrapped(true)
+                editor.setDefaultCharWidth(1)
                 editor.setEditorWidthInChars(16)
                 marker = editor.markBufferRange([[0, 0], [0, 2]])
                 editor.decorateMarker(marker, type: 'line-number', class: 'a')

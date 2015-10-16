@@ -60,11 +60,42 @@ describe "DisplayBuffer", ->
 
   describe "soft wrapping", ->
     beforeEach ->
-      displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
+      displayBuffer.setSoftWrapped(true)
+      displayBuffer.setDefaultCharWidth(1)
       changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
+      describe "when there are double width characters", ->
+        it "takes them into account when finding the soft wrap column", ->
+          buffer.setText("私たちのフ是一个地方，数千名学生12345业余爱们的板作为hello world this is a pretty long latin line")
+          displayBuffer.setDefaultCharWidth(1, 5, 0, 0)
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("私たちのフ是一个地方")
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("，数千名学生12345业余爱")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("们的板作为hello world this is a ")
+          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("pretty long latin line")
+
+      describe "when there are half width characters", ->
+        it "takes them into account when finding the soft wrap column", ->
+          displayBuffer.setDefaultCharWidth(1, 0, 5, 0)
+          buffer.setText("abcﾪﾫﾬﾈﾇﾈﾉﾊﾋﾌﾋﾌﾇﾴ￮￮￮hello world this is a pretty long line")
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("abcﾪﾫﾬﾈﾇﾈﾉﾊﾋ")
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("ﾌﾋﾌﾇﾴ￮￮￮hello ")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("world this is a pretty long line")
+
+      describe "when there are korean characters", ->
+        it "takes them into account when finding the soft wrap column", ->
+          displayBuffer.setDefaultCharWidth(1, 0, 0, 10)
+          buffer.setText("1234세계를 향한 대화, 유니코 제10회유니코드국제")
+
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("1234세계를 ")
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("향한 대화, ")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("유니코 ")
+          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("제10회유니")
+          expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe("코드국제")
+
       describe "when editor.softWrapAtPreferredLineLength is set", ->
         it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
           atom.config.set('editor.preferredLineLength', 100)
@@ -242,6 +273,7 @@ describe "DisplayBuffer", ->
             buffer, tabLength, editorWidthInChars: 30, config: atom.config,
             grammarRegistry: atom.grammars, packageManager: atom.packages, assert: ->
           })
+          displayBuffer.setDefaultCharWidth(1)
           displayBuffer.setSoftWrapped(true)
 
           buffer.insert([0, 0], "the quick brown fox jumps over the lazy dog.")
@@ -651,6 +683,7 @@ describe "DisplayBuffer", ->
     beforeEach ->
       tabLength = 4
 
+      displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setTabLength(tabLength)
       displayBuffer.setSoftWrapped(true)
       displayBuffer.setEditorWidthInChars(50)
@@ -768,6 +801,7 @@ describe "DisplayBuffer", ->
     it "correctly translates positions on soft wrapped lines containing tabs", ->
       buffer.setText('\t\taa  bb  cc  dd  ee  ff  gg')
       displayBuffer.setSoftWrapped(true)
+      displayBuffer.setDefaultCharWidth(1)
       displayBuffer.setEditorWidthInChars(10)
       expect(displayBuffer.screenPositionForBufferPosition([0, 10], wrapAtSoftNewlines: true)).toEqual [1, 4]
       expect(displayBuffer.bufferPositionForScreenPosition([1, 0])).toEqual [0, 9]

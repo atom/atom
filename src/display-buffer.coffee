@@ -204,10 +204,24 @@ class DisplayBuffer extends Model
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
+  getKoreanCharWidth: -> @koreanCharWidth
+
+  getHalfWidthCharWidth: -> @halfWidthCharWidth
+
+  getDoubleWidthCharWidth: -> @doubleWidthCharWidth
+
   getDefaultCharWidth: -> @defaultCharWidth
-  setDefaultCharWidth: (defaultCharWidth) ->
-    if defaultCharWidth isnt @defaultCharWidth
+
+  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) ->
+    doubleWidthCharWidth ?= defaultCharWidth
+    halfWidthCharWidth ?= defaultCharWidth
+    koreanCharWidth ?= defaultCharWidth
+    if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth and halfWidthCharWidth isnt @halfWidthCharWidth and koreanCharWidth isnt @koreanCharWidth
       @defaultCharWidth = defaultCharWidth
+      @doubleWidthCharWidth = doubleWidthCharWidth
+      @halfWidthCharWidth = halfWidthCharWidth
+      @koreanCharWidth = koreanCharWidth
+      @updateWrappedScreenLines() if @isSoftWrapped() and @getEditorWidthInChars()?
     defaultCharWidth
 
   getCursorWidth: -> 1
@@ -276,6 +290,40 @@ class DisplayBuffer extends Model
       Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
     else
       @getEditorWidthInChars()
+
+  getSoftWrapColumnForTokenizedLine: (tokenizedLine) ->
+    lineMaxWidth = @getSoftWrapColumn() * @getDefaultCharWidth()
+
+    return if Number.isNaN(lineMaxWidth)
+    return 0 if lineMaxWidth is 0
+
+    iterator = tokenizedLine.getTokenIterator(false)
+    column = 0
+    currentWidth = 0
+    while iterator.next()
+      textIndex = 0
+      text = iterator.getText()
+      while textIndex < text.length
+        if iterator.isPairedCharacter()
+          charLength = 2
+        else
+          charLength = 1
+
+        if iterator.hasDoubleWidthCharacterAt(textIndex)
+          charWidth = @getDoubleWidthCharWidth()
+        else if iterator.hasHalfWidthCharacterAt(textIndex)
+          charWidth = @getHalfWidthCharWidth()
+        else if iterator.hasKoreanCharacterAt(textIndex)
+          charWidth = @getKoreanCharWidth()
+        else
+          charWidth = @getDefaultCharWidth()
+
+        return column if currentWidth + charWidth > lineMaxWidth
+
+        currentWidth += charWidth
+        column += charLength
+        textIndex += charLength
+    column
 
   # Gets the screen line for the given screen row.
   #
@@ -973,7 +1021,7 @@ class DisplayBuffer extends Model
       else
         softWraps = 0
         if @isSoftWrapped()
-          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumn())
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumnForTokenizedLine(tokenizedLine))
             [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
               wrapScreenColumn,
               @configSettings.softWrapHangingIndent
