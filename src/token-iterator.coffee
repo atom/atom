@@ -53,6 +53,8 @@ class TokenIterator
         else
           @screenEnd = @screenStart + tag
           @bufferEnd = @bufferStart + tag
+
+        @text = @line.text.substring(@screenStart, @screenEnd)
         return true
 
     false
@@ -68,8 +70,7 @@ class TokenIterator
 
   getScopes: -> @scopes
 
-  getText: ->
-    @line.text.substring(@screenStart, @screenEnd)
+  getText: -> @text
 
   isSoftTab: ->
     @line.specialTokens[@index] is SoftTab
