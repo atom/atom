@@ -1531,6 +1531,7 @@ describe "TextEditor", ->
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(40)
+          editor.setDefaultCharWidth(1)
 
           editor.setSelectedScreenRange([[3, 10], [3, 15]])
           editor.addSelectionBelow()
