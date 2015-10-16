@@ -133,7 +133,7 @@ parseCommandLine = ->
   if args['resource-path']
     devMode = true
     resourcePath = args['resource-path']
-    resourcePath ?= devResourcePath if devMode
+  resourcePath ?= devResourcePath if devMode
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
