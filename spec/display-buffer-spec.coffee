@@ -68,17 +68,17 @@ describe "DisplayBuffer", ->
     describe "rendering of soft-wrapped lines", ->
       describe "when there are double width characters", ->
         it "takes them into account when finding the soft wrap column", ->
-          buffer.setText("私たちのフ是一个地方，数千名学生12345业余爱们的板作为우리포럼hello world this is a pretty long latin line")
-          displayBuffer.setDefaultCharWidth(1, 5)
+          buffer.setText("私たちのフ是一个地方，数千名学生12345业余爱们的板作为hello world this is a pretty long latin line")
+          displayBuffer.setDefaultCharWidth(1, 5, 0, 0)
 
           expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("私たちのフ是一个地方")
           expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("，数千名学生12345业余爱")
-          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("们的板作为우리포럼hello ")
-          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("world this is a pretty long latin line")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("们的板作为hello world this is a ")
+          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("pretty long latin line")
 
       describe "when there are half width characters", ->
         it "takes them into account when finding the soft wrap column", ->
-          displayBuffer.setDefaultCharWidth(1, 0, 5)
+          displayBuffer.setDefaultCharWidth(1, 0, 5, 0)
           buffer.setText("abcﾪﾫﾬﾈﾇﾈﾉﾊﾋﾌﾋﾌﾇﾴ￮￮￮hello world this is a pretty long line")
 
           expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("abcﾪﾫﾬﾈﾇﾈﾉﾊﾋ")
