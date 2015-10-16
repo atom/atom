@@ -27,7 +27,7 @@ describe "TextEditorComponent", ->
           fn()
 
     waitsForPromise ->
-      atom.project.open('sample.js').then (o) -> editor = o
+      atom.workspace.open('sample.js').then (o) -> editor = o
 
     runs ->
       contentNode = document.querySelector('#jasmine-content')
@@ -35,7 +35,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode = new TextEditorElement()
       wrapperNode.tileSize = tileSize
-      wrapperNode.initialize(editor)
+      wrapperNode.initialize(editor, atom)
       wrapperNode.setUpdatedSynchronously(false)
       jasmine.attachToDOM(wrapperNode)
 
@@ -53,6 +53,10 @@ describe "TextEditorComponent", ->
 
       component.measureDimensions()
       nextAnimationFrame()
+
+    # Mutating the DOM in the previous frame causes a document poll; clear it here
+    waits 0
+    runs -> nextAnimationFrame()
 
   afterEach ->
     contentNode.style.width = ''
@@ -2914,7 +2918,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode = new TextEditorElement()
         wrapperNode.tileSize = tileSize
-        wrapperNode.initialize(editor)
+        wrapperNode.initialize(editor, atom)
         hiddenParent.appendChild(wrapperNode)
 
         {component} = wrapperNode
@@ -3208,7 +3212,7 @@ describe "TextEditorComponent", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
       waitsForPromise ->
-        atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+        atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
     afterEach: ->
       atom.packages.deactivatePackages()

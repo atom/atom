@@ -4,7 +4,7 @@ describe "StyleManager", ->
   [manager, addEvents, removeEvents, updateEvents] = []
 
   beforeEach ->
-    manager = new StyleManager
+    manager = new StyleManager(configDirPath: atom.getConfigDirPath())
     addEvents = []
     removeEvents = []
     updateEvents = []

@@ -4,12 +4,16 @@ fs = require "fs-plus"
 module.exports =
 class StorageFolder
   constructor: (containingPath) ->
-    @path = path.join(containingPath, "storage")
+    @path = path.join(containingPath, "storage") if containingPath?
 
   store: (name, object) ->
+    return unless @path?
+
     fs.writeFileSync(@pathForKey(name), JSON.stringify(object), 'utf8')
 
   load: (name) ->
+    return unless @path?
+
     statePath = @pathForKey(name)
     try
       stateString = fs.readFileSync(statePath, 'utf8')

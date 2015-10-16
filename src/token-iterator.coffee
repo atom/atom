@@ -3,7 +3,7 @@
 
 module.exports =
 class TokenIterator
-  constructor: (line) ->
+  constructor: ({@grammarRegistry}, line) ->
     @reset(line) if line?
 
   reset: (@line) ->
@@ -12,7 +12,7 @@ class TokenIterator
     @bufferEnd = @bufferStart
     @screenStart = 0
     @screenEnd = 0
-    @scopes = @line.openScopes.map (id) -> atom.grammars.scopeForId(id)
+    @scopes = @line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
     @scopeStarts = @scopes.slice()
     @scopeEnds = []
     this
@@ -32,7 +32,7 @@ class TokenIterator
     while @index < tags.length
       tag = tags[@index]
       if tag < 0
-        scope = atom.grammars.scopeForId(tag)
+        scope = @grammarRegistry.scopeForId(tag)
         if tag % 2 is 0
           if @scopeStarts[@scopeStarts.length - 1] is scope
             @scopeStarts.pop()

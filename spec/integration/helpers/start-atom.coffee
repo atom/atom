@@ -91,7 +91,8 @@ buildAtomClient = (args, env) ->
           cb(null)
 
     .addCommand "treeViewRootDirectories", (cb) ->
-      @execute(->
+      @waitForExist('.tree-view', 10000)
+      .execute(->
         for element in document.querySelectorAll(".tree-view .project-root > .header .name")
           element.dataset.path
       , cb)
@@ -104,7 +105,8 @@ buildAtomClient = (args, env) ->
           .then ({value: newWindowHandles}) ->
             [newWindowHandle] = difference(newWindowHandles, oldWindowHandles)
             return done() unless newWindowHandle
-            @window(newWindowHandle, done)
+            @window(newWindowHandle)
+              .waitForExist('atom-workspace', 10000, done)
 
     .addCommand "startAnotherAtom", (args, env, done) ->
       @call ->
@@ -168,7 +170,11 @@ module.exports = (args, env, fn) ->
       jasmine.getEnv().currentSpec.fail(new Error(err.response?.body?.value?.message))
       finish()
 
-    fn(client.init()).then(finish)
+    fn(
+      client.init()
+        .waitUntil((-> @windowHandles().then ({value}) -> value.length > 0), 10000)
+        .waitForExist("atom-workspace", 10000)
+    ).then(finish)
   , 30000)
 
   waitsFor("webdriver to stop", chromeDriverDown, 15000)

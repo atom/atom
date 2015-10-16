@@ -18,7 +18,6 @@
   'ctrl-d': 'core:delete'
 
   # Atom Specific
-  'cmd-alt-ctrl-s': 'application:run-all-specs'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'up': 'core:move-up'

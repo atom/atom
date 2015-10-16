@@ -54,6 +54,8 @@ class TooltipManager
     placement: 'auto top'
     viewportPadding: 2
 
+  constructor: ({@keymapManager}) ->
+
   # Essential: Add a tooltip to the given element.
   #
   # * `target` An `HTMLElement`
@@ -81,7 +83,7 @@ class TooltipManager
     {keyBindingCommand, keyBindingTarget} = options
 
     if keyBindingCommand?
-      bindings = atom.keymaps.findKeyBindings(command: keyBindingCommand, target: keyBindingTarget)
+      bindings = @keymapManager.findKeyBindings(command: keyBindingCommand, target: keyBindingTarget)
       keystroke = getKeystroke(bindings)
       if options.title? and keystroke?
         options.title += " " + getKeystroke(bindings)

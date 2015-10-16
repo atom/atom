@@ -21,17 +21,26 @@ class TokenizedBuffer extends Model
   configSettings: null
   changeCount: 0
 
-  @deserialize: (state) ->
-    state.buffer = atom.project.bufferForPathSync(state.bufferPath)
+  @deserialize: (state, atomEnvironment) ->
+    state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
+    state.config = atomEnvironment.config
+    state.grammarRegistry = atomEnvironment.grammars
+    state.packageManager = atomEnvironment.packages
+    state.assert = atomEnvironment.assert
     new this(state)
 
-  constructor: ({@buffer, @tabLength, @ignoreInvisibles, @largeFileMode}) ->
+  constructor: (params) ->
+    {
+      @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
+      @grammarRegistry, @packageManager, @assert
+    } = params
+
     @emitter = new Emitter
     @disposables = new CompositeDisposable
-    @tokenIterator = new TokenIterator
+    @tokenIterator = new TokenIterator({@grammarRegistry})
 
-    @disposables.add atom.grammars.onDidAddGrammar(@grammarAddedOrUpdated)
-    @disposables.add atom.grammars.onDidUpdateGrammar(@grammarAddedOrUpdated)
+    @disposables.add @grammarRegistry.onDidAddGrammar(@grammarAddedOrUpdated)
+    @disposables.add @grammarRegistry.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
@@ -65,7 +74,7 @@ class TokenizedBuffer extends Model
     if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
-      newScore = atom.grammars.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
+      newScore = @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
 
   setGrammar: (grammar, score) ->
@@ -73,7 +82,7 @@ class TokenizedBuffer extends Model
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-    @currentGrammarScore = score ? atom.grammars.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
+    @currentGrammarScore = score ? @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
@@ -81,33 +90,33 @@ class TokenizedBuffer extends Model
 
     scopeOptions = {scope: @rootScopeDescriptor}
     @configSettings =
-      tabLength: atom.config.get('editor.tabLength', scopeOptions)
-      invisibles: atom.config.get('editor.invisibles', scopeOptions)
-      showInvisibles: atom.config.get('editor.showInvisibles', scopeOptions)
+      tabLength: @config.get('editor.tabLength', scopeOptions)
+      invisibles: @config.get('editor.invisibles', scopeOptions)
+      showInvisibles: @config.get('editor.showInvisibles', scopeOptions)
 
     if @configSubscriptions?
       @configSubscriptions.dispose()
       @disposables.remove(@configSubscriptions)
     @configSubscriptions = new CompositeDisposable
-    @configSubscriptions.add atom.config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
+    @configSubscriptions.add @config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
     ['invisibles', 'showInvisibles'].forEach (key) =>
-      @configSubscriptions.add atom.config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
+      @configSubscriptions.add @config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
         oldInvisibles = @getInvisiblesToShow()
         @configSettings[key] = newValue
         @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-    atom.packages.triggerActivationHook("#{grammar.packageName}:grammar-used")
+    @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
     @emitter.emit 'did-change-grammar', grammar
 
   getGrammarSelectionContent: ->
     @buffer.getTextInRange([[0, 0], [10, 0]])
 
   reloadGrammar: ->
-    if grammar = atom.grammars.selectGrammar(@buffer.getPath(), @getGrammarSelectionContent())
+    if grammar = @grammarRegistry.selectGrammar(@buffer.getPath(), @getGrammarSelectionContent())
       @setGrammar(grammar)
     else
       throw new Error("No grammar found for path: #{path}")
@@ -155,7 +164,7 @@ class TokenizedBuffer extends Model
 
   tokenizeNextChunk: ->
     # Short circuit null grammar which can just use the placeholder tokens
-    if @grammar is atom.grammars.nullGrammar and @firstInvalidRow()?
+    if @grammar is @grammarRegistry.nullGrammar and @firstInvalidRow()?
       @invalidRows = []
       @markTokenizationComplete()
       return
@@ -291,7 +300,7 @@ class TokenizedBuffer extends Model
     # undefined. This should paper over the problem but we want to figure out
     # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    atom.assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
+    @assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
       error.metadata = {
         row: row
         rowCount: @tokenizedLines.length
@@ -391,7 +400,7 @@ class TokenizedBuffer extends Model
         loop
           break if scopes.pop() is matchingStartTag
           if scopes.length is 0
-            atom.assert false, "Encountered an unmatched scope end tag.", (error) =>
+            @assert false, "Encountered an unmatched scope end tag.", (error) =>
               error.metadata = {
                 grammarScopeName: @grammar.scopeName
                 unmatchedEndTag: @grammar.scopeForId(tag)
@@ -472,13 +481,13 @@ class TokenizedBuffer extends Model
     position = Point.fromObject(position)
 
     {openScopes, tags} = @tokenizedLineForRow(position.row)
-    scopes = openScopes.map (tag) -> atom.grammars.scopeForId(tag)
+    scopes = openScopes.map (tag) => @grammarRegistry.scopeForId(tag)
 
     startColumn = 0
     for tag, tokenIndex in tags
       if tag < 0
         if tag % 2 is -1
-          scopes.push(atom.grammars.scopeForId(tag))
+          scopes.push(@grammarRegistry.scopeForId(tag))
         else
           scopes.pop()
       else
@@ -498,7 +507,7 @@ class TokenizedBuffer extends Model
         if tag % 2 is -1
           startScopes.pop()
         else
-          startScopes.push(atom.grammars.scopeForId(tag))
+          startScopes.push(@grammarRegistry.scopeForId(tag))
       else
         break unless selectorMatchesAnyScope(selector, startScopes)
         startColumn -= tag
@@ -508,7 +517,7 @@ class TokenizedBuffer extends Model
       tag = tags[endTokenIndex]
       if tag < 0
         if tag % 2 is -1
-          endScopes.push(atom.grammars.scopeForId(tag))
+          endScopes.push(@grammarRegistry.scopeForId(tag))
         else
           endScopes.pop()
       else

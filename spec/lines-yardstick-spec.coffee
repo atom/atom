@@ -9,7 +9,7 @@ describe "LinesYardstick", ->
       atom.packages.activatePackage('language-javascript')
 
     waitsForPromise ->
-      atom.project.open('sample.js').then (o) -> editor = o
+      atom.workspace.open('sample.js').then (o) -> editor = o
 
     runs ->
       createdLineNodes = []
@@ -56,7 +56,7 @@ describe "LinesYardstick", ->
           textNodes
 
       editor.setLineHeightInPixels(14)
-      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider)
+      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider, atom.grammars)
 
   afterEach ->
     lineNode.remove() for lineNode in createdLineNodes

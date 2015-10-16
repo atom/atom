@@ -7,7 +7,10 @@ describe "DisplayBuffer", ->
     tabLength = 2
 
     buffer = atom.project.bufferForPathSync('sample.js')
-    displayBuffer = new DisplayBuffer({buffer, tabLength})
+    displayBuffer = new DisplayBuffer({
+      buffer, tabLength, config: atom.config, grammarRegistry: atom.grammars,
+      packageManager: atom.packages, assert: ->
+    })
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.onDidChange changeHandler
 
@@ -49,7 +52,10 @@ describe "DisplayBuffer", ->
 
     it "updates the display buffer prior to invoking change handlers registered on the buffer", ->
       buffer.onDidChange -> expect(displayBuffer2.tokenizedLineForScreenRow(0).text).toBe "testing"
-      displayBuffer2 = new DisplayBuffer({buffer, tabLength})
+      displayBuffer2 = new DisplayBuffer({
+        buffer, tabLength, config: atom.config, grammarRegistry: atom.grammars,
+        packageManager: atom.packages, assert: ->
+      })
       buffer.setText("testing")
 
   describe "soft wrapping", ->
@@ -263,7 +269,10 @@ describe "DisplayBuffer", ->
       describe "when a newline is inserted, deleted, and re-inserted at the end of a wrapped line (regression)", ->
         it "correctly renders the original wrapped line", ->
           buffer = atom.project.buildBufferSync(null, '')
-          displayBuffer = new DisplayBuffer({buffer, tabLength, editorWidthInChars: 30})
+          displayBuffer = new DisplayBuffer({
+            buffer, tabLength, editorWidthInChars: 30, config: atom.config,
+            grammarRegistry: atom.grammars, packageManager: atom.packages, assert: ->
+          })
           displayBuffer.setDefaultCharWidth(1)
           displayBuffer.setSoftWrapped(true)
 
@@ -326,7 +335,10 @@ describe "DisplayBuffer", ->
       displayBuffer.destroy()
       buffer.release()
       buffer = atom.project.bufferForPathSync('two-hundred.txt')
-      displayBuffer = new DisplayBuffer({buffer, tabLength})
+      displayBuffer = new DisplayBuffer({
+        buffer, tabLength, config: atom.config, grammarRegistry: atom.grammars,
+        packageManager: atom.packages, assert: ->
+      })
       displayBuffer.onDidChange changeHandler
 
     describe "when folds are created and destroyed", ->
@@ -440,7 +452,10 @@ describe "DisplayBuffer", ->
 
       describe "when there is another display buffer pointing to the same buffer", ->
         it "does not consider folds to be nested inside of folds from the other display buffer", ->
-          otherDisplayBuffer = new DisplayBuffer({buffer, tabLength})
+          otherDisplayBuffer = new DisplayBuffer({
+            buffer, tabLength, config: atom.config, grammarRegistry: atom.grammars,
+            packageManager: atom.packages, assert: ->
+          })
           otherDisplayBuffer.createFold(1, 5)
 
           displayBuffer.createFold(2, 4)
@@ -1188,7 +1203,10 @@ describe "DisplayBuffer", ->
     describe 'when there are multiple DisplayBuffers for a buffer', ->
       describe 'when a marker is created', ->
         it 'the second display buffer will not emit a marker-created event when the marker has been deleted in the first marker-created event', ->
-          displayBuffer2 = new DisplayBuffer({buffer, tabLength})
+          displayBuffer2 = new DisplayBuffer({
+            buffer, tabLength, config: atom.config, grammarRegistry: atom.grammars,
+            packageManager: atom.packages, assert: ->
+          })
           displayBuffer.onDidCreateMarker markerCreated1 = jasmine.createSpy().andCallFake (marker) -> marker.destroy()
           displayBuffer2.onDidCreateMarker markerCreated2 = jasmine.createSpy()
 

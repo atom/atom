@@ -1,6 +1,6 @@
 module.exports =
 class OverlayManager
-  constructor: (@presenter, @container) ->
+  constructor: (@presenter, @container, @views) ->
     @overlaysById = {}
 
   render: (state) ->
@@ -28,7 +28,7 @@ class OverlayManager
     @presenter.setOverlayDimensions(decorationId, itemView.offsetWidth, itemView.offsetHeight, contentMargin)
 
   renderOverlay: (state, decorationId, {item, pixelPosition, class: klass}) ->
-    itemView = atom.views.getView(item)
+    itemView = @views.getView(item)
     cachedOverlay = @overlaysById[decorationId]
     unless overlayNode = cachedOverlay?.overlayNode
       overlayNode = document.createElement('atom-overlay')

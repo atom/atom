@@ -19,7 +19,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @exitWhenDone, @safeMode, @devMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -29,6 +29,10 @@ class AtomWindow
       'web-preferences':
         'direct-write': true
         'subpixel-font-scaling': true
+
+    if @isSpec
+      options['web-preferences']['page-visibility'] = true
+
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if process.platform is 'linux'
@@ -131,7 +135,7 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      global.atomApplication.exit(100) if @exitWhenDone
+      global.atomApplication.exit(100) if @headless
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'

@@ -15,7 +15,6 @@
   'ctrl-alt-r': 'window:reload'
   'ctrl-alt-i': 'window:toggle-dev-tools'
   'ctrl-alt-p': 'window:run-package-specs'
-  'ctrl-alt-s': 'application:run-all-specs'
   'ctrl-shift-o': 'application:open-folder'
   'ctrl-alt-o': 'application:add-project-folder'
   'ctrl-shift-left': 'pane:move-item-left'

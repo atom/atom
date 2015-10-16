@@ -26,17 +26,29 @@ class DisplayBuffer extends Model
   height: null
   width: null
 
-  @deserialize: (state) ->
-    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer)
+  @deserialize: (state, atomEnvironment) ->
+    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+    state.config = atomEnvironment.config
+    state.assert = atomEnvironment.assert
+    state.grammarRegistry = atomEnvironment.grammars
+    state.packageManager = atomEnvironment.packages
     new this(state)
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles, @largeFileMode}={}) ->
+  constructor: (params={}) ->
     super
+
+    {
+      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles,
+      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+    } = params
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, ignoreInvisibles, @largeFileMode})
+    @tokenizedBuffer ?= new TokenizedBuffer({
+      tabLength, buffer, ignoreInvisibles, @largeFileMode, @config,
+      @grammarRegistry, @packageManager, @assert
+    })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @markers = {}
@@ -61,29 +73,29 @@ class DisplayBuffer extends Model
 
     oldConfigSettings = @configSettings
     @configSettings =
-      scrollPastEnd: atom.config.get('editor.scrollPastEnd', scope: scopeDescriptor)
-      softWrap: atom.config.get('editor.softWrap', scope: scopeDescriptor)
-      softWrapAtPreferredLineLength: atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
-      softWrapHangingIndent: atom.config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
-      preferredLineLength: atom.config.get('editor.preferredLineLength', scope: scopeDescriptor)
+      scrollPastEnd: @config.get('editor.scrollPastEnd', scope: scopeDescriptor)
+      softWrap: @config.get('editor.softWrap', scope: scopeDescriptor)
+      softWrapAtPreferredLineLength: @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      softWrapHangingIndent: @config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
+      preferredLineLength: @config.get('editor.preferredLineLength', scope: scopeDescriptor)
 
-    subscriptions.add atom.config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
+    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    subscriptions.add atom.config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, ({newValue}) =>
+    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrapHangingIndent = newValue
       @updateWrappedScreenLines()
 
-    subscriptions.add atom.config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
+    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.softWrapAtPreferredLineLength = newValue
       @updateWrappedScreenLines() if @isSoftWrapped()
 
-    subscriptions.add atom.config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
+    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
       @configSettings.preferredLineLength = newValue
-      @updateWrappedScreenLines() if @isSoftWrapped() and atom.config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      @updateWrappedScreenLines() if @isSoftWrapped() and @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
 
-    subscriptions.add atom.config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
+    subscriptions.add @config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
       @configSettings.scrollPastEnd = value
 
     @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
@@ -97,7 +109,10 @@ class DisplayBuffer extends Model
     largeFileMode: @largeFileMode
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @largeFileMode})
+    newDisplayBuffer = new DisplayBuffer({
+      @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
+      @grammarRegistry, @packageManager
+    })
 
     for marker in @findMarkers(displayBufferId: @id)
       marker.copy(displayBufferId: newDisplayBuffer.id)
@@ -1080,8 +1095,8 @@ class DisplayBuffer extends Model
     tokenizedLinesCount = @tokenizedBuffer.getLineCount()
     bufferLinesCount = @buffer.getLineCount()
 
-    atom.assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
+    @assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
       error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
 
-    atom.assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
+    @assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
       error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
