@@ -146,7 +146,9 @@ class AtomWindow
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
-    @browserWindow.webContents.on 'will-navigate', (event) -> event.preventDefault()
+    @browserWindow.webContents.on 'will-navigate', (event, url) =>
+      unless url is @browserWindow.webContents.getUrl()
+        event.preventDefault()
 
     @setupContextMenu()
 
