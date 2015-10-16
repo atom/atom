@@ -168,14 +168,14 @@ Object.defineProperty(Error, 'prepareStackTrace', {
 })
 
 // Enable Grim to access the raw stack without reassigning Error.prepareStackTrace
-Error.prototype.getRawStack = function () {
+Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
   prepareStackTrace = getRawStack
   var result = this.stack
   prepareStackTrace = sourceMapPrepareStackTrace
   return result
 }
 
-function getRawStack (error, stack) {
+function getRawStack (_, stack) {
   return stack
 }
 
