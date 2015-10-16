@@ -3,26 +3,20 @@
 const Git = require('nodegit')
 const path = require('path')
 
+// GitUtils is temporarily used for ::relativize only, because I don't want
+// to port it just yet. TODO: remove
+const GitUtils = require('git-utils')
+
 module.exports = class GitRepositoryAsync {
   static open (path) {
     // QUESTION: Should this wrap Git.Repository and reject with a nicer message?
-    return new GitRepositoryAsync(Git.Repository.open(path))
+    return new GitRepositoryAsync(path)
   }
 
-  constructor (openPromise) {
+  constructor (path) {
     this.repo = null
-    // this could be replaced with a function
-    this._opening = true
-
-    // Do I use this outside of tests?
-    openPromise.then((repo) => {
-      this.repo = repo
-      this._opening = false
-    }).catch((e) => {
-      this._opening = false
-    })
-
-    this.repoPromise = openPromise
+    this._gitUtilsRepo = GitUtils.open(path) // TODO remove after porting ::relativize
+    this.repoPromise = Git.Repository.open(path)
   }
 
   getPath () {

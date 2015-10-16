@@ -34,8 +34,8 @@ fdescribe "GitRepositoryAsync", ->
     it "repo is null when no repository is found", ->
       repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
 
-      waitsFor ->
-        repo._opening is false
+      waitsForPromise {shouldReject: true}, ->
+        repo.repoPromise
 
       runs ->
         expect(repo.repo).toBe null
