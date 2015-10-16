@@ -8,9 +8,6 @@ class AtomPortable
     execDirectoryPath = path.dirname(process.execPath)
     path.join(execDirectoryPath, '..', '.atom')
 
-  @setPortable: (existingAtomHome) ->
-    fs.copySync(existingAtomHome, @getPortableAtomHomePath())
-
   @isPortableInstall: (platform, environmentAtomHome) ->
     return false unless platform is 'win32'
     return false if environmentAtomHome
