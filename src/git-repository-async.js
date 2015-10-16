@@ -52,8 +52,8 @@ module.exports = class GitRepositoryAsync {
 
   isPathModified(_path) {
     return this._filterStatusesByPath(_path).then(function(statuses) {
-      ret = statuses.filter((status)=> {
-        return status.isModified() || status.isDeleted()
+      var ret = statuses.filter((status)=> {
+        return status.isModified()
       }).length > 0
       return Promise.resolve(ret)
     })
@@ -61,10 +61,19 @@ module.exports = class GitRepositoryAsync {
 
   isPathNew(_path) {
     return this._filterStatusesByPath(_path).then(function(statuses) {
-      ret = statuses.filter((status)=> {
+      var ret = statuses.filter((status)=> {
         return status.isNew()
       }).length > 0
       return Promise.resolve(ret)
+    })
+  }
+
+  checkoutHead (_path) {
+    return this.repoPromise.then(function (repo) {
+      var checkoutOptions = new Git.CheckoutOptions()
+      checkoutOptions.paths = [_path]
+      checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
+      Git.Checkout.head(repo, checkoutOptions)
     })
   }
 }
