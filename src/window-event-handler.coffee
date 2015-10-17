@@ -174,7 +174,7 @@ class WindowEventHandler
       detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
       @atomEnvironment.notifications.addInfo('Menu bar hidden', {detail})
 
-  handleLinkClick: (event) ->
+  handleLinkClick: (event) =>
     event.preventDefault()
     uri = event.currentTarget?.getAttribute('href')
     if uri and uri[0] isnt '#' and /^https?:\/\//.test(uri)
