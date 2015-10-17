@@ -71,11 +71,8 @@ Basic Course of Events|1. User creates the functionality using services provided
 Postconditions|The feature created is available to be added to the software.
 Alternative Paths|
 
-<<<<<<< HEAD
-[testLink](#Use-Cases)
-=======
 [testLink](#use-cases)
->>>>>>> UseCasTemplate
+
 
 Name   | UC5: Syntax Highlighting
 -------|-------------------------
@@ -116,4 +113,4 @@ Name   |Name and number of requirement
 Summary|Brief description of the requirement
 Rationale|Description of the reason that the requirement is needed
 Requirements|The behavior that is required of the software
-References|Use cases and other requirements which are relevant to this one [testingRef](##uc1)
+References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
