@@ -11,21 +11,6 @@ Atom provides a users the possibility to create new functionalities and their ow
 These features make it a powerful tool to increase user productivity.
 # Specific requirements
 This section contains the main requirements of the system. It gives a detailed description of the system and the base features.
-## System features
-### Functional requirements
-#### Customize the editor appearance
-#### Description
-The user must be able to choose and create different color themes. Variety of choice on font styles and sizes.
-#### Reason
-Give the user the most comfortable graphical interface.
-#### Use Case
-![Customize](Resources/Customize.png)
-#### Create, Open, Save and Close files
-##### Description
-The user must be able to create, open, save and close files in a specified directory.
-#### Reason
-Removes the need to leave the editor to create files.
-#### Use Case
 ![Customize](Resources/Files.png)
 #### Git integration
 ##### Description
@@ -34,13 +19,6 @@ The editor must display the current status of the git repository and line diffs.
 User has on screen information about changes made since last commit.
 #### Use Case
 ![Customize](Resources/GitIntegration.png)
-#### Text edition
-##### Description
-The editor must provide word completion for main programming languages, ability to add, edit and delete text.
-#### Reason
-Main functionality of the editor.
-#### Use Case
-![Customize](Resources/Text.png)
 
 # Use Cases
 Name   | Use case number and name
@@ -53,6 +31,7 @@ Basic Course of Events|
 Alternative Paths|
 Postconditions|
 
+## UC1
 Name   | UC1: Search and Replace
 -------|-------------------------
 Summary|Occurrences of a search term are replaced with replacement text.
@@ -92,7 +71,7 @@ Basic Course of Events|1. User creates the functionality using services provided
 Postconditions|The feature created is available to be added to the software.
 Alternative Paths|
 
-[teste](#Use-Cases)
+[testLink](#use-cases)
 
 Name   | UC5: Syntax Highlighting
 -------|-------------------------
@@ -126,3 +105,11 @@ Preconditions|Software is loaded and a file is being edited.
 Basic Course of Events|1. The user indicates that the software is to save the file.</br>2. The user indicates the name and extension that the file is to be saved as.
 Postconditions|The file changes are now saved in the system, the file name is updated in the editor to match the saved value.
 Alternative Paths|1. In step 2, the user may choose not to save the file, in which case the software returns to the precondition.</br>2. In step 2, the user may choose to save the file being edited with the same name and extension, not needing to indicate those values. In this case, the filename isn't updated in the editor, as it stays the same.
+
+# System requirements
+Name   |Name and number of requirement
+-------|------------------------------
+Summary|Brief description of the requirement
+Rationale|Description of the reason that the requirement is needed
+Requirements|The behavior that is required of the software
+References|Use cases and other requirements which are relevant to this one [testingRef](##uc1)
