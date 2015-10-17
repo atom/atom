@@ -13,9 +13,21 @@ try
   AtomEnvironment = require '../src/atom-environment'
   ApplicationDelegate = require '../src/application-delegate'
 
-  # Show window synchronously so a focusout doesn't fire on input elements
-  # that are focused in the very first spec run.
-  remote.getCurrentWindow().show() unless getWindowLoadSettings().headless
+  {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
+
+  if headless
+    # Override logging in headless mode so it goes to the console, regardless
+    # of the --enable-logging flag to Electron.
+    console.log = (args...) ->
+      ipc.send 'write-to-stdout', args.join(' ') + '\n'
+    console.warn = (args...) ->
+      ipc.send 'write-to-stderr', args.join(' ') + '\n'
+    console.error = (args...) ->
+      ipc.send 'write-to-stderr', args.join(' ') + '\n'
+  else
+    # Show window synchronously so a focusout doesn't fire on input elements
+    # that are focused in the very first spec run.
+    remote.getCurrentWindow().show()
 
   handleKeydown = (event) ->
     # Reload: cmd-r / ctrl-r
@@ -39,15 +51,13 @@ try
 
   document.title = "Spec Suite"
 
-  legacyTestRunner = require(getWindowLoadSettings().legacyTestRunnerPath)
-  testRunner = require(getWindowLoadSettings().testRunnerPath)
+  testRunner = require(testRunnerPath)
+  legacyTestRunner = require(legacyTestRunnerPath)
+  buildAtomEnvironment = (params) -> new AtomEnvironment(params)
+  buildDefaultApplicationDelegate = (params) -> new ApplicationDelegate()
+
   promise = testRunner({
-    logFile: getWindowLoadSettings().logFile
-    headless: getWindowLoadSettings().headless
-    testPaths: getWindowLoadSettings().testPaths
-    buildAtomEnvironment: (params) -> new AtomEnvironment(params)
-    buildDefaultApplicationDelegate: (params) -> new ApplicationDelegate()
-    legacyTestRunner: legacyTestRunner
+    logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner
   })
 
   promise.then(exitWithStatusCode) if getWindowLoadSettings().headless
