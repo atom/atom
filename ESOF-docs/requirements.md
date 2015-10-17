@@ -64,12 +64,13 @@ Alternative Paths|1. In step 3, the user may input a different search term and t
 
 Name   | UC4: Create functionality
 -------|-------------------------
-Summary|A user want to use a functionality that does not come with the standard version of the software nor is available for installment. If the user wants to he can create a new functionality.
+Summary|New functionality/feature is created by a user.
+Rationale|A user wants to use a functionality that does not come with the standard version of the software nor is available for installment. If the user wants to he can create a new functionality.
 Users|All users.
 Preconditions|None
-Basic Course of Events|1. User creates the functionality using services provided by the software.<br> 2. User adds the newly created functionality to the available features to install on the software.
+Basic Course of Events|1. User creates the functionality using development services provided by the software.<br> 2. User adds the newly created functionality to the available features to install on the software.
 Postconditions|The feature created is available to be added to the software.
-Alternative Paths|
+Alternative Paths|1. The user may not share his newly created functionality with other user by making it available for installment on the software.
 
 [testLink](#use-cases)
 
@@ -106,6 +107,28 @@ Preconditions|Software is loaded and a file is being edited.
 Basic Course of Events|1. The user indicates that the software is to save the file.</br>2. The user indicates the name and extension that the file is to be saved as.
 Postconditions|The file changes are now saved in the system, the file name is updated in the editor to match the saved value.
 Alternative Paths|1. In step 2, the user may choose not to save the file, in which case the software returns to the precondition.</br>2. In step 2, the user may choose to save the file being edited with the same name and extension, not needing to indicate those values. In this case, the filename isn't updated in the editor, as it stays the same.
+
+
+Name   |UC8: Add Text
+-------|-------------------------
+Summary|Adds text to the file that is loaded and being edited.
+Rationale|To implement a text editor the user must be able to add text to the document he wants to edit.
+Users|All users
+Preconditions|A file is loaded and being edited.
+Basic Course of Events|1. The user specifies the positions where text is to be added. <br> 2. The user inputs a character. <br> 3. The software adds the character to the position specified.
+Postconditions|The character is added to the position specified.
+Alternative Paths|1. In step 2, the user may paste a sequence of characters instead of just one character, this implies that the sequence is added to the position specified.<br> 2. If in step 2 there is some text selected all the text is replaced after the user inputs the character.<br> 3. In step 2 if text is selected and the user pastes a sequence of characters all the selected text is replaced by the sequence of characters.
+
+
+Name   |UC8: Remove Text
+-------|-------------------------
+Summary|Removes text from the file that is being edited.
+Rationale|To implement a text editor the user must be able to remove text that is on the file.
+Users|All users
+Preconditions|A file is loaded, being edited and has content.
+Basic Course of Events|1. The user specifies the positions where text is to be removed. <br> 2. The user indicates the software to remove one character. <br> 3. The software removes the character on the position specified.
+Postconditions|The character is removed from the position specified.
+Alternative Paths|1. If in step 2 there is some text selected all the text is removed after the user inputs the wish to remove text.
 
 # System requirements
 Name   |Name and number of requirement
