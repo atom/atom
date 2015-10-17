@@ -62,3 +62,67 @@ Preconditions|A document is loaded and being edited.
 Basic Course of Events|1. The user indicates that the software is to perform a search and replace in the active document.</br>2. The software responds by requesting the search term and the replacement text.</br>3. The user inputs the search term and replacement text. Then, indicates that all occurrences are to be replaced.</br>4. The software replaces all occurrences with the replacement text.
 Postconditions|All occurrences of the search term have been replaced with the inputted text from the user.
 Alternative Paths|1. In step 3, the user may indicate that only the first occurrence is to be replaced. The postcondition state is identical, except there is only one replace.</br>2. In step 3, the user may choose not to replace any text, but only to find it. In this case, the software highlights all occurrences in the active document.</br>3. The user can decide not to find or replace any text. In this case, the software simply returns to the precondition state.
+
+Name   | UC2: Change GUI theme
+-------|-------------------------
+Summary|GUI appearance changes to a specified theme.
+Rationale|The user may enjoy working with different font or background colors, atom provides different color themes for the user interface (tabs, status bar, tree view and dropdowns) and for the text inside the editor.
+Users|All users.
+Preconditions|Atom is running
+Basic Course of Events|1. The user indicates to the software the intention of changing the theme.<br>2. The software responds by showing all the themes available to apply. <br>3. The user inputs the theme he wishes to use.<br>4. The software replaces the current theme with the theme chosen by the user.
+Postconditions|Theme is changed to the one selected by the user.
+Alternative Paths|1. In step 3, the user may cancel the action and the current theme continues to be active.
+
+Name   | UC3: Add functionality
+-------|-------------------------
+Summary|A new functionality is added to the editor.
+Rationale|The standard version of the software may not have some specific functionality desired by the user, the user can add the desired functionality if it is available to install.
+Users|All users.
+Preconditions|Atom is running and has Internet access.
+Basic Course of Events|1. The user indicates to the software the intention of installing a new feature.<br>2. The software responds by requesting the user the search term that describes the feature. <br>3. The software displays all the features matching the search term. <br> 4. The user selects the feature desired. <br> 5. The software downloads and installs the feature selected.
+Postconditions|The feature selected is installed and ready to be used.
+Alternative Paths|1. In step 3, the user may input a different search term and the software will display the new corresponding features.<br> 2. In step 2, 3 or 4 the user may choose to cancel the operation.
+
+Name   | UC4: Create functionality
+-------|-------------------------
+Summary|A user want to use a functionality that does not come with the standard version of the software nor is available for installment. If the user wants to he can create a new functionality.
+Users|All users.
+Preconditions|None
+Basic Course of Events|1. User creates the functionality using services provided by the software.<br> 2. User adds the newly created functionality to the available features to install on the software.
+Postconditions|The feature created is available to be added to the software.
+Alternative Paths|
+
+[testAnchor](#Use-Cases)
+
+Name   | UC5: Syntax Highlighting
+-------|-------------------------
+Summary|Highlight certain syntax of given languages
+Rationale|While editing a file, users may choose to highlight text in said file according to a language's syntax. Since manually looking through all the text to find certain term is inefficient, Sintax Highlighting automatically highlights a chosen language's syntax in the active file.
+Users|All users.
+Preconditions|A document is loaded and being edited.
+Basic Course of Events|1. The user indicates that the software is to highlight syntax in the active document. </br>2. The user indicates what is the language to be highlighted in the active file.
+Postconditions|All occurrences of the language's syntax have been highlighted.
+Alternative Paths|1. In step 1, the software may already be highlighting syntax in the active document, with the wrong language. The user proceeds to step 2.</br>2. In step 1, the user may choose to turn off syntax highlighting. All previously highlighted terms cease to be highlighted.</br>3. In step 1, the software may already be highlighting syntax in the active document, with the right language. The user does not have to interact with the software to achieve the desired effect.
+
+
+Name   |UC6: Load File
+-------|-------------------------
+Summary|Files are loaded in the text editor.
+Rationale|The user may want to edit it an already existing file.
+Users|All users
+Preconditions|Software is loaded.
+Basic Course of Events|1. The user indicates that the software is to open a file.</br>2. The user indicates what file is to be opened.
+Postconditions|The file is opened and is now editable.
+Alternative Paths|1. In step 2, the user may choose not to open any file, in which case the software returns to the precondition.
+
+
+
+Name   |UC7: Save File
+-------|-------------------------
+Summary|Files are saved in the system.
+Rationale|After editing a file, the user may want to save its changes for later use. The user is also able to create new files by saving with a new name or editing text that isn't already associated with a file.
+Users|All users
+Preconditions|Software is loaded and a file is being edited.
+Basic Course of Events|1. The user indicates that the software is to save the file.</br>2. The user indicates the name and extension that the file is to be saved as.
+Postconditions|The file changes are now saved in the system, the file name is updated in the editor to match the saved value.
+Alternative Paths|1. In step 2, the user may choose not to save the file, in which case the software returns to the precondition.</br>2. In step 2, the user may choose to save the file being edited with the same name and extension, not needing to indicate those values. In this case, the filename isn't updated in the editor, as it stays the same.
