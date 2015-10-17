@@ -91,3 +91,38 @@ Preconditions|None
 Basic Course of Events|1. User creates the functionality using services provided by the software.<br> 2. User adds the newly created functionality to the available features to install on the software.
 Postconditions|The feature created is available to be added to the software.
 Alternative Paths|
+
+[testLink](#Use-Cases)
+
+Name   | UC5: Syntax Highlighting
+-------|-------------------------
+Summary|Highlight certain syntax of given languages
+Rationale|While editing a file, users may choose to highlight text in said file according to a language's syntax. Since manually looking through all the text to find certain term is inefficient, Sintax Highlighting automatically highlights a chosen language's syntax in the active file.
+Users|All users.
+Preconditions|A document is loaded and being edited.
+Basic Course of Events|1. The user indicates that the software is to highlight syntax in the active document. </br>2. The user indicates what is the language to be highlighted in the active file.
+Postconditions|All occurrences of the language's syntax have been highlighted.
+Alternative Paths|1. In step 1, the software may already be highlighting syntax in the active document, with the wrong language. The user proceeds to step 2.</br>2. In step 1, the user may choose to turn off syntax highlighting. All previously highlighted terms cease to be highlighted.</br>3. In step 1, the software may already be highlighting syntax in the active document, with the right language. The user does not have to interact with the software to achieve the desired effect.
+
+
+Name   |UC6: Load File
+-------|-------------------------
+Summary|Files are loaded in the text editor.
+Rationale|The user may want to edit it an already existing file.
+Users|All users
+Preconditions|Software is loaded.
+Basic Course of Events|1. The user indicates that the software is to open a file.</br>2. The user indicates what file is to be opened.
+Postconditions|The file is opened and is now editable.
+Alternative Paths|1. In step 2, the user may choose not to open any file, in which case the software returns to the precondition.
+
+
+
+Name   |UC7: Save File
+-------|-------------------------
+Summary|Files are saved in the system.
+Rationale|After editing a file, the user may want to save its changes for later use. The user is also able to create new files by saving with a new name or editing text that isn't already associated with a file.
+Users|All users
+Preconditions|Software is loaded and a file is being edited.
+Basic Course of Events|1. The user indicates that the software is to save the file.</br>2. The user indicates the name and extension that the file is to be saved as.
+Postconditions|The file changes are now saved in the system, the file name is updated in the editor to match the saved value.
+Alternative Paths|1. In step 2, the user may choose not to save the file, in which case the software returns to the precondition.</br>2. In step 2, the user may choose to save the file being edited with the same name and extension, not needing to indicate those values. In this case, the filename isn't updated in the editor, as it stays the same.
