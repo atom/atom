@@ -137,3 +137,34 @@ Summary|Brief description of the requirement
 Rationale|Description of the reason that the requirement is needed
 Requirements|The behavior that is required of the software
 References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
+
+Name   |FR1:Case sensitivity in search-and-replace
+-------|------------------------------
+Summary|The  search-and-replace  feature  must  have  case  sensitivity  in both the search and the replacement.
+Rationale|A  user  will  often  search  for  a  word  that  is  part  of  a  sentence,title, heading or other kind of text that is not all-lowercase. The search-and-replace function needs to be aware of that, and give the user the option to ignore it.
+Requirements|When a user invokes the search-and-replace function the software must give the option to do a case-sensitive search.<br>By default, the search will match any text which has the same letter as the search term, even if the case if different. If the user indicates the search-and-replace is to be done with case-sensitivity turned on, then the software will only math text in the document where the case is identical to that of the search term.<br>When replacing text the case of the replacement text does not have to follow the same case style of the text to replace.
+References|UC1 [testingRef](#UC1)
+
+Name   |FR2:Extensible platform
+-------|------------------------------
+Summary|To add functionality the software must be based on an extensible platform. The software is release with basic functionality and the user may choose to add functionalities as he desires.
+Requirements|The software must be prepared to add a functionality keeping software integrity.<br> All functionalities working before the addition of a new one must keep working.
+References|UC3 [testingRef](#UC3) UC4 [testingRef](#UC4)
+
+Name   |FR3:List of available functionalities
+-------|------------------------------
+Summary|To add functionality the software must have a list of the functionalities available to install. <br>A list of functionalities installed is required so that the user can edit the options or uninstall the functionality.
+Requirements|The software must provide a way to list the functionalities both the ones installed and the ones that can be installed.<br> On the list of functionalities available to install the user must have the option to find more about the functionality and to install it.<br> On the list of functionalities installed the user must have the option to edit the options of each functionality listed or to uninstall it.
+References|UC3 [testingRef](#UC3) UC4 [testingRef](#UC4)
+
+Name   |FR4:GUI Theme manager
+-------|------------------------------
+Summary|To change current theme, add or remove themes the software must provide a way to manage the theme used to interact with the user.
+Requirements|The software must list the themes available for use identifying the one being used at the moment of the listing.<br> The software must list the themes available to add.
+References|UC2 [testingRef](#UC2)
+
+Name   |FR4:Development Tools
+-------|------------------------------
+Summary|To let the user create his own functionalities the software must offer development tools that the user uses to implement the desired functionality.
+Requirements|The software must have a set of development tools that are aimed at designing and implementing new functionalities, these tools must be complemented with documentation.
+References|UC4 [testingRef](#UC4)
