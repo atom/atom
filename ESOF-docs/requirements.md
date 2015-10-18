@@ -136,14 +136,14 @@ Name   |Name and number of requirement
 Summary|Brief description of the requirement
 Rationale|Description of the reason that the requirement is needed
 Requirements|The behavior that is required of the software
-References|Use cases and other requirements which are relevant to this one [testingRef](# uc1)
+References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
 
 Name   |FR1:Case sensitivity in search-and-replace
 -------|------------------------------
 Summary|The  search-and-replace  feature  must  have  case  sensitivity  in both the search and the replacement.
 Rationale|A  user  will  often  search  for  a  word  that  is  part  of  a  sentence,title, heading or other kind of text that is not all-lowercase. The search-and-replace function needs to be aware of that, and give the user the option to ignore it.
 Requirements|When a user invokes the search-and-replace function the software must give the option to do a case-sensitive search.<br>By default, the search will match any text which has the same letter as the search term, even if the case if different. If the user indicates the search-and-replace is to be done with case-sensitivity turned on, then the software will only math text in the document where the case is identical to that of the search term.<br>When replacing text the case of the replacement text does not have to follow the same case style of the text to replace.
-References|UC1 [testingRef](# UC1)
+References|UC1 [testingRef](#UC1)
 
 Name   |FR2:Extensible platform
 -------|------------------------------
