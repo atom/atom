@@ -171,7 +171,7 @@ Summary|Highlights misspelling and shows possible corrections regarding the lang
 Rationale|To implement a text editor the user must be able to acknowledge possible language errors or mispells. The user is also able to see a list of possible corrections, similar to what has been written.
 Users|All users
 Preconditions|A file is loaded, being edited and has content.
-Basic Course of Events|1. The user specifies the positions where text is to be edited. <br> 2. The user indicates the software to add, remove or change one or more characters. <br> 3. In consequence of an error made by the user, the recently edited text contains a spelling error <br> 4. The software will highlight all existing spelling errors. <br> 5. If the user wants to, the software will show a list of possible corrections, in which the user can select one solution to replace the previous error.
+Basic Course of Events|1. The user specifies the positions where text is to be edited. <br> 2. The user indicates the software to add, remove or change one or more characters. <br> 3. In consequence of an error made by the user, the recently edited text contains a spelling error. <br> 4. The software will highlight all existing spelling errors. <br> 5. If the user wants to, the software will show a list of possible corrections, in which the user can select one solution to replace the previous error.
 Postconditions|Either the spelling error is highlighted and the user is aware of it, or the spelling error was already corrected, being replaced by a correct solution chosen by the user.
 Alternative Paths|1. If in step 4 the software highlights a spelling error to a different language than the one the user is writing, the user will change to the right language, and no false errors will be shown. <br> 2. If in step 4 the software highlights as an error some piece of code that the user wants as it is, the user will ignore the suggested corrections. The user can even tell the software not to highlight that piece of code as an error anymore. <br> 3. In step 5, the user may want to correct the misspelled piece of code with a solution that is not listed by the software.
 
@@ -192,7 +192,7 @@ References|[UC1](#uc1)
 
 Name   |FR2:Extensible platform
 -------|------------------------------
-Summary|To add functionality the software must be based on an extensible platform. The software is release with basic functionality and the user may choose to add functionalities as he desires.
+Summary|To add functionality the software must be based on an extensible platform. The software is released with basic functionality and the user may choose to add functionalities as he desires.
 Requirements|The software must be prepared to add a functionality keeping software integrity.<br> All functionalities working before the addition of a new one must keep working.
 References|[UC3](#uc3) [UC4](#uc4)
 
