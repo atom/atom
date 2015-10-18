@@ -13,7 +13,14 @@ These features make it a powerful tool to increase user productivity.
 # Use Cases
 ## Diagrams
 ![main](resources/Main.png)
-![files](recources/Files.png)
+
+![files](resources/Files.png)
+
+![customization](resources/Customization.png)
+
+![text](resources/Text.png)
+
+![git](resources/GitIntegration.png)
 
 
 ## UC1
