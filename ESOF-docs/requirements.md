@@ -31,7 +31,7 @@ Basic Course of Events|
 Alternative Paths|
 Postconditions|
 
-## UC1
+# UC1
 Name   | UC1: Search and Replace
 -------|-------------------------
 Summary|Occurrences of a search term are replaced with replacement text.
@@ -136,14 +136,14 @@ Name   |Name and number of requirement
 Summary|Brief description of the requirement
 Rationale|Description of the reason that the requirement is needed
 Requirements|The behavior that is required of the software
-References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
+References|Use cases and other requirements which are relevant to this one [testingRef](# uc1)
 
 Name   |FR1:Case sensitivity in search-and-replace
 -------|------------------------------
 Summary|The  search-and-replace  feature  must  have  case  sensitivity  in both the search and the replacement.
 Rationale|A  user  will  often  search  for  a  word  that  is  part  of  a  sentence,title, heading or other kind of text that is not all-lowercase. The search-and-replace function needs to be aware of that, and give the user the option to ignore it.
 Requirements|When a user invokes the search-and-replace function the software must give the option to do a case-sensitive search.<br>By default, the search will match any text which has the same letter as the search term, even if the case if different. If the user indicates the search-and-replace is to be done with case-sensitivity turned on, then the software will only math text in the document where the case is identical to that of the search term.<br>When replacing text the case of the replacement text does not have to follow the same case style of the text to replace.
-References|UC1 [testingRef](#UC1)
+References|UC1 [testingRef](# UC1)
 
 Name   |FR2:Extensible platform
 -------|------------------------------
@@ -163,8 +163,8 @@ Summary|To change current theme, add or remove themes the software must provide 
 Requirements|The software must list the themes available for use identifying the one being used at the moment of the listing.<br> The software must list the themes available to add.
 References|UC2 [testingRef](#UC2)
 
-Name   |FR4:Development Tools
+Name   |FR5:Development Tools
 -------|------------------------------
 Summary|To let the user create his own functionalities the software must offer development tools that the user uses to implement the desired functionality.
 Requirements|The software must have a set of development tools that are aimed at designing and implementing new functionalities, these tools must be complemented with documentation.
-References|UC4 [testingRef](#UC4)
+References|UC4
