@@ -131,6 +131,39 @@ Basic Course of Events|1. The user specifies the positions where text is to be r
 Postconditions|The character is removed from the position specified.
 Alternative Paths|1. If in step 2 there is some text selected all the text is removed after the user inputs the wish to remove text.
 
+## UC10
+Name   |UC10: Git checkout
+-------|-------------------------
+Summary|Removes changes to the project since the last commit.
+Rationale|To checkout their changes, users have to open a shell and execute the git checkout command. This is slower than having it implemented on the text editor.
+Users|All users
+Preconditions|A git project is loaded and being edited.
+Basic Course of Events|1. The user specifies that a command is to be run. <br> 2. The user indicates the software perform git checkout on the loaded project.
+Postconditions|All changes are discarded, project is still loaded.
+Alternative Paths|1. In step 2, the user may indicate that no command is to be performed, in which case the software returns to the precondition.
+
+## UC11
+Name   |UC11: Git status
+-------|-------------------------
+Summary|Shows what files have been changed since last commit.
+Rationale|To see what files in the git project have been changed in the last commit, users would have to open a shell and execute git status to get that information. With integrated git status command, users do not have to leave the text editor to achieve that.
+Users|All users
+Preconditions|A git project is loaded and being edited.
+Basic Course of Events|1. The user specifies that a command is to be run. <br> 2. The user indicates the software perform git status on the loaded project.
+Postconditions|Software displays files changed since last commit and then returns to precondition.
+Alternative Paths|1. In step 2, the user may indicate that no command is to be performed, in which case the software returns to the precondition.
+
+## UC12
+Name   |UC12: Line diff
+-------|-------------------------
+Summary|Shows what lines have been added, edited or deleted since last commit.
+Rationale|To see what lines have been changed since the last commit, users would have to execute line diff command on a shell. With integrated line diff, the user can jump to changed lines and have them highlighted.
+Users|All users
+Preconditions|A git project is loaded and being edited.
+Basic Course of Events|1. The user specifies that the software is to jump to the next line edited since the last commit.
+Postconditions|The software jumps to the next line edited since the last commit.
+Alternative Paths|1. In step 1, the uses may choose to jump to the previous line instead of the next.</br>2. The user may choose to toggle line diff, removing the changed line highlights from the editor.
+
 # System requirements
 Name   |Name and number of requirement
 -------|------------------------------
@@ -139,32 +172,32 @@ Rationale|Description of the reason that the requirement is needed
 Requirements|The behavior that is required of the software
 References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
 
-Name   |FR1:Case sensitivity in search-and-replace
+Name   |SR1:Case sensitivity in search-and-replace
 -------|------------------------------
 Summary|The  search-and-replace  feature  must  have  case  sensitivity  in both the search and the replacement.
 Rationale|A  user  will  often  search  for  a  word  that  is  part  of  a  sentence,title, heading or other kind of text that is not all-lowercase. The search-and-replace function needs to be aware of that, and give the user the option to ignore it.
 Requirements|When a user invokes the search-and-replace function the software must give the option to do a case-sensitive search.<br>By default, the search will match any text which has the same letter as the search term, even if the case if different. If the user indicates the search-and-replace is to be done with case-sensitivity turned on, then the software will only match text in the document where the case is identical to that of the search term.<br>When replacing text the case of the replacement text does not have to follow the same case style of the text to replace.
 References|[UC1](#uc1)
 
-Name   |FR2:Extensible platform
+Name   |SR2:Extensible platform
 -------|------------------------------
 Summary|To add functionality the software must be based on an extensible platform. The software is release with basic functionality and the user may choose to add functionalities as he desires.
 Requirements|The software must be prepared to add a functionality keeping software integrity.<br> All functionalities working before the addition of a new one must keep working.
 References|[UC3](#uc3) [UC4](#uc4)
 
-Name   |FR3:List of available functionalities
+Name   |SR3:List of available functionalities
 -------|------------------------------
 Summary|To add functionality the software must have a list of the functionalities available to install. <br>A list of functionalities installed is required so that the user can edit the options or uninstall the functionality.
 Requirements|The software must provide a way to list the functionalities both the ones installed and the ones that can be installed.<br> On the list of functionalities available to install the user must have the option to find more about the functionality and to install it.<br> On the list of functionalities installed the user must have the option to edit the options of each functionality listed or to uninstall it.
 References|[UC3](#uc3) [UC4](#uc4)
 
-Name   |FR4:GUI Theme manager
+Name   |SR4:GUI Theme manager
 -------|------------------------------
 Summary|To change current theme, add or remove themes the software must provide a way to manage the theme used to interact with the user.
 Requirements|The software must list the themes available for use identifying the one being used at the moment of the listing.<br> The software must list the themes available to add.
 References|[UC2](#uc2)
 
-Name   |FR5:Development Tools
+Name   |SR5:Development Tools
 -------|------------------------------
 Summary|To let the user create his own functionalities the software must offer development tools that the user uses to implement the desired functionality.
 Requirements|The software must have a set of development tools that are aimed at designing and implementing new functionalities, these tools must be complemented with documentation.
