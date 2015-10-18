@@ -165,7 +165,7 @@ Postconditions|The software jumps to the next line edited since the last commit.
 Alternative Paths|1. In step 1, the uses may choose to jump to the previous line instead of the next.</br>2. The user may choose to toggle line diff, removing the changed line highlights from the editor.
 
 ## UC13
-Name   |UC10: Spell Correction
+Name   |UC13: Spell Correction
 -------|-------------------------
 Summary|Highlights misspelling and shows possible corrections regarding the language being written.
 Rationale|To implement a text editor the user must be able to acknowledge possible language errors or mispells. The user is also able to see a list of possible corrections, similar to what has been written.
