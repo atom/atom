@@ -12,15 +12,15 @@ These features make it a powerful tool to increase user productivity.
 
 # Use Cases
 ## Diagrams
-![main](resources/Main.png)
+![main](Resources/Main.png)
 
-![files](resources/Files.png)
+![files](Resources/Files.png)
 
-![customization](resources/Customization.png)
+![customization](Resources/Customization.png)
 
-![text](resources/Text.png)
+![text](Resources/Text.png)
 
-![git](resources/GitIntegration.png)
+![git](Resources/GitIntegration.png)
 
 
 ## UC1
