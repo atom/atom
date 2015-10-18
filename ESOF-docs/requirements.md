@@ -220,7 +220,7 @@ Summary|To let the user change the way the software behaves everytime a new wind
 Requirements|The software must have an editable Init Script file, which will be run after packages are loaded/activated and after the previous editor state has been restored, everytime a new window is opened.
 References|[UC4](#uc4)
 
-Name   |SR6:Keyboard Shortcuts
+Name   |SR7:Keyboard Shortcuts
 -------|------------------------------
 Summary|To let the user speed up some routine or occasional tasks, minimizing the amount of time wasted, increasing the work efficiency.
 Requirements|The software must have a list of available keyboard shortcuts, and each of them must be linked to a specific task of the software. The list of available shortcuts must be available for the user to consult, and must be complemeted with related documentation as well.
