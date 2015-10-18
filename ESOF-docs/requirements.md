@@ -42,6 +42,7 @@ Basic Course of Events|1. The user indicates that the software is to perform a s
 Postconditions|All occurrences of the search term have been replaced with the inputted text from the user.
 Alternative Paths|1. In step 3, the user may indicate that only the first occurrence is to be replaced. The postcondition state is identical, except there is only one replace.</br>2. In step 3, the user may choose not to replace any text, but only to find it. In this case, the software highlights all occurrences in the active document.</br>3. The user can decide not to find or replace any text. In this case, the software simply returns to the precondition state.
 
+## UC2
 Name   | UC2: Change GUI theme
 -------|-------------------------
 Summary|GUI appearance changes to a specified theme.
@@ -52,6 +53,7 @@ Basic Course of Events|1. The user indicates to the software the intention of ch
 Postconditions|Theme is changed to the one selected by the user.
 Alternative Paths|1. In step 3, the user may cancel the action and the current theme continues to be active.
 
+## UC3
 Name   | UC3: Add functionality
 -------|-------------------------
 Summary|A new functionality is added to the editor.
@@ -62,6 +64,7 @@ Basic Course of Events|1. The user indicates to the software the intention of in
 Postconditions|The feature selected is installed and ready to be used.
 Alternative Paths|1. In step 3, the user may input a different search term and the software will display the new corresponding features.<br> 2. In step 2, 3 or 4 the user may choose to cancel the operation.
 
+## UC4
 Name   | UC4: Create functionality
 -------|-------------------------
 Summary|New functionality/feature is created by a user.
@@ -72,9 +75,7 @@ Basic Course of Events|1. User creates the functionality using development servi
 Postconditions|The feature created is available to be added to the software.
 Alternative Paths|1. The user may not share his newly created functionality with other user by making it available for installment on the software.
 
-[testLink](#use-cases)
-
-
+## UC5
 Name   | UC5: Syntax Highlighting
 -------|-------------------------
 Summary|Highlight certain syntax of given languages
@@ -85,7 +86,7 @@ Basic Course of Events|1. The user indicates that the software is to highlight s
 Postconditions|All occurrences of the language's syntax have been highlighted.
 Alternative Paths|1. In step 1, the software may already be highlighting syntax in the active document, with the wrong language. The user proceeds to step 2.</br>2. In step 1, the user may choose to turn off syntax highlighting. All previously highlighted terms cease to be highlighted.</br>3. In step 1, the software may already be highlighting syntax in the active document, with the right language. The user does not have to interact with the software to achieve the desired effect.
 
-
+## UC6
 Name   |UC6: Load File
 -------|-------------------------
 Summary|Files are loaded in the text editor.
@@ -97,7 +98,7 @@ Postconditions|The file is opened and is now editable.
 Alternative Paths|1. In step 2, the user may choose not to open any file, in which case the software returns to the precondition.
 
 
-
+## UC7
 Name   |UC7: Save File
 -------|-------------------------
 Summary|Files are saved in the system.
@@ -108,7 +109,7 @@ Basic Course of Events|1. The user indicates that the software is to save the fi
 Postconditions|The file changes are now saved in the system, the file name is updated in the editor to match the saved value.
 Alternative Paths|1. In step 2, the user may choose not to save the file, in which case the software returns to the precondition.</br>2. In step 2, the user may choose to save the file being edited with the same name and extension, not needing to indicate those values. In this case, the filename isn't updated in the editor, as it stays the same.
 
-
+## UC8
 Name   |UC8: Add Text
 -------|-------------------------
 Summary|Adds text to the file that is loaded and being edited.
@@ -119,8 +120,8 @@ Basic Course of Events|1. The user specifies the positions where text is to be a
 Postconditions|The character is added to the position specified.
 Alternative Paths|1. In step 2, the user may paste a sequence of characters instead of just one character, this implies that the sequence is added to the position specified.<br> 2. If in step 2 there is some text selected all the text is replaced after the user inputs the character.<br> 3. In step 2 if text is selected and the user pastes a sequence of characters all the selected text is replaced by the sequence of characters.
 
-
-Name   |UC8: Remove Text
+## UC9
+Name   |UC9: Remove Text
 -------|-------------------------
 Summary|Removes text from the file that is being edited.
 Rationale|To implement a text editor the user must be able to remove text that is on the file.
@@ -137,3 +138,34 @@ Summary|Brief description of the requirement
 Rationale|Description of the reason that the requirement is needed
 Requirements|The behavior that is required of the software
 References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
+
+Name   |FR1:Case sensitivity in search-and-replace
+-------|------------------------------
+Summary|The  search-and-replace  feature  must  have  case  sensitivity  in both the search and the replacement.
+Rationale|A  user  will  often  search  for  a  word  that  is  part  of  a  sentence,title, heading or other kind of text that is not all-lowercase. The search-and-replace function needs to be aware of that, and give the user the option to ignore it.
+Requirements|When a user invokes the search-and-replace function the software must give the option to do a case-sensitive search.<br>By default, the search will match any text which has the same letter as the search term, even if the case if different. If the user indicates the search-and-replace is to be done with case-sensitivity turned on, then the software will only match text in the document where the case is identical to that of the search term.<br>When replacing text the case of the replacement text does not have to follow the same case style of the text to replace.
+References|[UC1](#uc1)
+
+Name   |FR2:Extensible platform
+-------|------------------------------
+Summary|To add functionality the software must be based on an extensible platform. The software is release with basic functionality and the user may choose to add functionalities as he desires.
+Requirements|The software must be prepared to add a functionality keeping software integrity.<br> All functionalities working before the addition of a new one must keep working.
+References|[UC3](#uc3) [UC4](#uc4)
+
+Name   |FR3:List of available functionalities
+-------|------------------------------
+Summary|To add functionality the software must have a list of the functionalities available to install. <br>A list of functionalities installed is required so that the user can edit the options or uninstall the functionality.
+Requirements|The software must provide a way to list the functionalities both the ones installed and the ones that can be installed.<br> On the list of functionalities available to install the user must have the option to find more about the functionality and to install it.<br> On the list of functionalities installed the user must have the option to edit the options of each functionality listed or to uninstall it.
+References|[UC3](#uc3) [UC4](#uc4)
+
+Name   |FR4:GUI Theme manager
+-------|------------------------------
+Summary|To change current theme, add or remove themes the software must provide a way to manage the theme used to interact with the user.
+Requirements|The software must list the themes available for use identifying the one being used at the moment of the listing.<br> The software must list the themes available to add.
+References|[UC2](#uc2)
+
+Name   |FR5:Development Tools
+-------|------------------------------
+Summary|To let the user create his own functionalities the software must offer development tools that the user uses to implement the desired functionality.
+Requirements|The software must have a set of development tools that are aimed at designing and implementing new functionalities, these tools must be complemented with documentation.
+References|[UC4](#uc4)
