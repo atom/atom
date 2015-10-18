@@ -239,7 +239,7 @@ Name   |NFR4:Software platform compatibility
 -------|------------------------------
 Description|The software is compatible with OS X,Windows and Linux.
 
-### NFR4
-Name   |NFR4:Software is user friendly
+### NFR5
+Name   |NFR5:Software is user friendly
 -------|------------------------------
 Description|The software interface with the user must be intuitive and self explanatory.
