@@ -132,6 +132,39 @@ Postconditions|The character is removed from the position specified.
 Alternative Paths|1. If in step 2 there is some text selected all the text is removed after the user inputs the wish to remove text.
 
 ## UC10
+Name   |UC10: Git checkout
+-------|-------------------------
+Summary|Removes changes to the project since the last commit.
+Rationale|To checkout their changes, users have to open a shell and execute the git checkout command. This is slower than having it implemented on the text editor.
+Users|All users
+Preconditions|A git project is loaded and being edited.
+Basic Course of Events|1. The user specifies that a command is to be run. <br> 2. The user indicates the software perform git checkout on the loaded project.
+Postconditions|All changes are discarded, project is still loaded.
+Alternative Paths|1. In step 2, the user may indicate that no command is to be performed, in which case the software returns to the precondition.
+
+## UC11
+Name   |UC11: Git status
+--------|-------------------------
+Summary|Shows what files have been changed since last commit.
+Rationale|To see what files in the git project have been changed in the last commit, users would have to open a shell and execute git status to get that information. With integrated git status command, users do not have to leave the text editor to achieve that.
+Users|All users
+Preconditions|A git project is loaded and being edited.
+Basic Course of Events|1. The user specifies that a command is to be run. <br> 2. The user indicates the software perform git status on the loaded project.
+Postconditions|Software displays files changed since last commit and then returns to precondition.
+Alternative Paths|1. In step 2, the user may indicate that no command is to be performed, in which case the software returns to the precondition.
+
+## UC12
+Name   |UC12: Line diff
+--------|-------------------------
+Summary|Shows what lines have been added, edited or deleted since last commit.
+Rationale|To see what lines have been changed since the last commit, users would have to execute line diff command on a shell. With integrated line diff, the user can jump to changed lines and have them highlighted.
+Users|All users
+Preconditions|A git project is loaded and being edited.
+Basic Course of Events|1. The user specifies that the software is to jump to the next line edited since the last commit.
+Postconditions|The software jumps to the next line edited since the last commit.
+Alternative Paths|1. In step 1, the uses may choose to jump to the previous line instead of the next.</br>2. The user may choose to toggle line diff, removing the changed line highlights from the editor.
+
+## UC13
 Name   |UC10: Spell Correction
 -------|-------------------------
 Summary|Highlights misspelling and shows possible corrections regarding the language being written.
