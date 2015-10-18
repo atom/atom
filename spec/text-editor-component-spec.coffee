@@ -27,7 +27,7 @@ describe "TextEditorComponent", ->
           fn()
 
     waitsForPromise ->
-      atom.project.open('sample.js').then (o) -> editor = o
+      atom.workspace.open('sample.js').then (o) -> editor = o
 
     runs ->
       contentNode = document.querySelector('#jasmine-content')
@@ -35,7 +35,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode = new TextEditorElement()
       wrapperNode.tileSize = tileSize
-      wrapperNode.initialize(editor)
+      wrapperNode.initialize(editor, atom)
       wrapperNode.setUpdatedSynchronously(false)
       jasmine.attachToDOM(wrapperNode)
 
@@ -53,6 +53,10 @@ describe "TextEditorComponent", ->
 
       component.measureDimensions()
       nextAnimationFrame()
+
+    # Mutating the DOM in the previous frame causes a document poll; clear it here
+    waits 0
+    runs -> nextAnimationFrame()
 
   afterEach ->
     contentNode.style.width = ''
@@ -2891,6 +2895,18 @@ describe "TextEditorComponent", ->
         expect(editor.consolidateSelections).toHaveBeenCalled()
         expect(event.abortKeyBinding).toHaveBeenCalled()
 
+  describe "when changing the font", ->
+    it "measures the default char, the korean char, the double width char and the half width char widths", ->
+      expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
+
+      component.setFontSize(10)
+      nextAnimationFrame()
+
+      expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
+      expect(editor.getKoreanCharWidth()).toBeCloseTo(9, 0)
+      expect(editor.getDoubleWidthCharWidth()).toBe(10)
+      expect(editor.getHalfWidthCharWidth()).toBe(5)
+
   describe "hiding and showing the editor", ->
     describe "when the editor is hidden when it is mounted", ->
       it "defers measurement and rendering until the editor becomes visible", ->
@@ -2902,7 +2918,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode = new TextEditorElement()
         wrapperNode.tileSize = tileSize
-        wrapperNode.initialize(editor)
+        wrapperNode.initialize(editor, atom)
         hiddenParent.appendChild(wrapperNode)
 
         {component} = wrapperNode
@@ -3196,7 +3212,7 @@ describe "TextEditorComponent", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
       waitsForPromise ->
-        atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+        atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
     afterEach: ->
       atom.packages.deactivatePackages()
@@ -3208,7 +3224,9 @@ describe "TextEditorComponent", ->
         atom.config.set 'editor.preferredLineLength', 17, scopeSelector: '.source.coffee'
         atom.config.set 'editor.softWrapAtPreferredLineLength', true, scopeSelector: '.source.coffee'
 
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(20)
+        coffeeEditor.setDefaultCharWidth(1)
         coffeeEditor.setEditorWidthInChars(20)
 
       it "wraps lines when editor.softWrap is true for a matching scope", ->
@@ -3464,12 +3482,14 @@ describe "TextEditorComponent", ->
 
         editor.moveRight()
         nextAnimationFrame()
-        right = wrapperNode.pixelPositionForScreenPosition([0, 6]).left
+
+        margin = component.presenter.getHorizontalScrollMarginInPixels()
+        right = wrapperNode.pixelPositionForScreenPosition([0, 4]).left + margin
         expect(wrapperNode.getScrollRight()).toBeCloseTo right, 0
 
         editor.moveRight()
         nextAnimationFrame()
-        right = wrapperNode.pixelPositionForScreenPosition([0, 7]).left
+        right = wrapperNode.pixelPositionForScreenPosition([0, 5]).left + margin
         expect(wrapperNode.getScrollRight()).toBeCloseTo right, 0
 
       it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
@@ -3481,12 +3501,14 @@ describe "TextEditorComponent", ->
 
         editor.moveLeft()
         nextAnimationFrame()
-        left = wrapperNode.pixelPositionForScreenPosition([6, 59]).left
+
+        margin = component.presenter.getHorizontalScrollMarginInPixels()
+        left = wrapperNode.pixelPositionForScreenPosition([6, 61]).left - margin
         expect(wrapperNode.getScrollLeft()).toBeCloseTo left, 0
 
         editor.moveLeft()
         nextAnimationFrame()
-        left = wrapperNode.pixelPositionForScreenPosition([6, 58]).left
+        left = wrapperNode.pixelPositionForScreenPosition([6, 60]).left - margin
         expect(wrapperNode.getScrollLeft()).toBeCloseTo left, 0
 
       it "scrolls down when inserting lines makes the document longer than the editor's height", ->

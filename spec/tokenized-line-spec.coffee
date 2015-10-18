@@ -7,7 +7,7 @@ describe "TokenizedLine", ->
   describe "::isOnlyWhitespace()", ->
     beforeEach ->
       waitsForPromise ->
-        atom.project.open('coffee.coffee').then (o) -> editor = o
+        atom.workspace.open('coffee.coffee').then (o) -> editor = o
 
     it "returns true when the line is only whitespace", ->
       expect(editor.tokenizedLineForScreenRow(3).isOnlyWhitespace()).toBe true

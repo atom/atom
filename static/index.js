@@ -76,7 +76,7 @@
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())
 
-    require(loadSettings.bootstrapScript)
+    require(loadSettings.windowInitializationScript)
     require('ipc').sendChannel('window-command', 'window:loaded')
   }
 
@@ -168,7 +168,7 @@
 
     var backgroundStylesheet = document.createElement('style')
     backgroundStylesheet.type = 'text/css'
-    backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + '; }'
+    backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + ' !important; }'
     document.head.appendChild(backgroundStylesheet)
 
     // Remove once the page loads
