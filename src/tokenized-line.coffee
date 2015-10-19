@@ -184,7 +184,7 @@ class TokenizedLine
       @lineIsWhitespaceOnly = true
       @firstTrailingWhitespaceIndex = 0
 
-  getTokenIterator: -> @tokenIterator.reset(this)
+  getTokenIterator: -> @tokenIterator.reset(this, arguments...)
 
   Object.defineProperty @prototype, 'tokens', get: ->
     iterator = @getTokenIterator()

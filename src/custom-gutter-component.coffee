@@ -6,12 +6,12 @@
 module.exports =
 class CustomGutterComponent
 
-  constructor: ({@gutter}) ->
+  constructor: ({@gutter, @views}) ->
     @decorationNodesById = {}
     @decorationItemsById = {}
     @visible = true
 
-    @domNode = atom.views.getView(@gutter)
+    @domNode = @views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
     # Clear the contents in case the domNode is being reused.
     @decorationsNode.innerHTML = ''
@@ -98,7 +98,6 @@ class CustomGutterComponent
       delete @decorationItemsById[decorationId]
 
       if newItem
-        # `item` should be either an HTMLElement or a space-pen View.
         newItemNode = null
         if newItem instanceof HTMLElement
           newItemNode = newItem

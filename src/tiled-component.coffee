@@ -1,3 +1,5 @@
+{values} = require 'underscore-plus'
+
 cloneObject = (object) ->
   clone = {}
   clone[key] = value for key, value of object
@@ -21,9 +23,7 @@ class TiledComponent
     return
 
   removeTileNode: (tileRow) ->
-    node = @componentsByTileId[tileRow].getDomNode()
-
-    node.remove()
+    @componentsByTileId[tileRow].destroy()
     delete @componentsByTileId[tileRow]
     delete @oldState.tiles[tileRow]
 
@@ -49,3 +49,6 @@ class TiledComponent
 
   getComponentForTile: (tileRow) ->
     @componentsByTileId[tileRow]
+
+  getTiles: ->
+    values(@componentsByTileId).map (component) -> component.getDomNode()

@@ -5,7 +5,7 @@
 ### On Windows 7
   * [Visual C++ 2010 Express](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_4)
   * [Visual Studio 2010 Service Pack 1](http://www.microsoft.com/en-us/download/details.aspx?id=23691)
-  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x or 2.x)
+  * [Node.js](http://nodejs.org/download/) (0.10.x or above)
     * For 64-bit builds of node and native modules you **must** have the
     [Windows 7 64-bit SDK](http://www.microsoft.com/en-us/download/details.aspx?id=8279).
     You may also need the [compiler update for the Windows SDK 7.1](http://www.microsoft.com/en-us/download/details.aspx?id=4422)
@@ -14,19 +14,21 @@
       If it is installed elsewhere, you can create a symbolic link to the
       directory containing the python.exe using:
       `mklink /d %SystemDrive%\Python27 D:\elsewhere\Python27`
-  * [GitHub for Windows](http://windows.github.com/)
+  * [GitHub Desktop](http://desktop.github.com/)
 
 ### On Windows 8 or 10
   * [Visual Studio Express 2013 or 2015 for Windows Desktop](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs#DownloadFamilies_2)
-  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x or 2.x)
+    * For VS 2015, be sure to customize the installation to include Visual C++. It's not installed by default.
+    * Some have experienced issues with Node locating C++ on VS 2015. If so, try VS 2013.
+  * [Node.js](http://nodejs.org/download/) (0.10.x or above)
   * [Python](https://www.python.org/downloads/) v2.7.x (required by [node-gyp](https://github.com/TooTallNate/node-gyp))
-  * [GitHub for Windows](http://windows.github.com/)
+  * [GitHub Desktop](http://desktop.github.com/)
 
 ## Instructions
 
 ```bash
-# Use the `Git Shell` program which was installed by GitHub for Windows.
-# Also make sure that you are logged into GitHub for Windows.
+# Use the `Git Shell` program which was installed by GitHub Desktop.
+# Also make sure that you are logged into GitHub Desktop.
 cd C:\
 git clone https://github.com/atom/atom/
 cd atom
@@ -40,15 +42,14 @@ We will assume the git shell for these instructions.
   * `--build-dir` - Build the application in this directory.
   * `--verbose` - Verbose mode. A lot more information output.
 
-## Why do I have to use GitHub for Windows?
+## Why do I have to use GitHub Desktop?
 
-You don't. You can use your existing Git! GitHub for Windows's Git Shell is just
-easier to set up.
+You don't. You can use your existing Git! GitHub Desktop's Git Shell is just easier to set up.
 
 If you _prefer_ using your existing Git installation, make sure git's cmd directory is in your PATH env variable (e.g. `C:\Program Files (x86)\Git\cmd`) before you open your powershell or command window.
 Note that you may have to open your command window as administrator. For powershell that doesn't seem to always be the case, though.
 
-If none of this works, do install Github for Windows and use its Git shell. Makes life easier.
+If none of this works, do install Github Desktop and use its Git shell. Makes life easier.
 
 
 ## Troubleshooting
@@ -58,7 +59,6 @@ If none of this works, do install Github for Windows and use its Git shell. Make
 
   * If you just installed node, you'll need to restart your computer before node is
   available on your Path.
-
 
 * `script/build` outputs only the Node and Python versions before returning
 
@@ -73,7 +73,7 @@ If none of this works, do install Github for Windows and use its Git shell. Make
     * https://github.com/TooTallNate/node-gyp/issues/297
     * https://code.google.com/p/gyp/issues/detail?id=393
 
-* `script/build` stops at installing runas with 'Failed at the runas@0.5.4 install script.'
+* `script/build` stops at installing runas with 'Failed at the runas@x.y.z install script.'
 
   See the next item.
 

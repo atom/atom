@@ -1,7 +1,6 @@
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 _ = require 'underscore-plus'
-{$} = require './space-pen-extensions'
 
 SequenceCount = 0
 
@@ -45,15 +44,23 @@ SequenceCount = 0
 # ```
 module.exports =
 class CommandRegistry
-  constructor: (@rootNode) ->
+  constructor: ->
+    @rootNode = null
+    @clear()
+
+  clear: ->
     @registeredCommands = {}
     @selectorBasedListenersByCommandName = {}
     @inlineListenersByCommandName = {}
     @emitter = new Emitter
 
+  attach: (@rootNode) ->
+    @commandRegistered(command) for command of @selectorBasedListenersByCommandName
+    @commandRegistered(command) for command of @inlineListenersByCommandName
+
   destroy: ->
     for commandName of @registeredCommands
-      window.removeEventListener(commandName, @handleCommandEvent, true)
+      @rootNode.removeEventListener(commandName, @handleCommandEvent, true)
     return
 
   # Public: Add one or more command listeners associated with a selector.
@@ -138,8 +145,6 @@ class CommandRegistry
   #  * `name` The name of the command. For example, `user:insert-date`.
   #  * `displayName` The display name of the command. For example,
   #    `User: Insert Date`.
-  #  * `jQuery` Present if the command was registered with the legacy
-  #    `$::command` method.
   findCommands: ({target}) ->
     commandNames = new Set
     commands = []
@@ -227,6 +232,9 @@ class CommandRegistry
     Object.defineProperty dispatchedEvent, 'abortKeyBinding', value: ->
       event.abortKeyBinding?()
 
+    for key in Object.keys(event)
+      dispatchedEvent[key] = event[key]
+
     @emitter.emit 'will-dispatch', dispatchedEvent
 
     loop
@@ -253,8 +261,8 @@ class CommandRegistry
     matched
 
   commandRegistered: (commandName) ->
-    unless @registeredCommands[commandName]
-      window.addEventListener(commandName, @handleCommandEvent, true)
+    if @rootNode? and not @registeredCommands[commandName]
+      @rootNode.addEventListener(commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
 
 class SelectorBasedListener

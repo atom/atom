@@ -1,20 +1,17 @@
-fs = require 'fs'
 path = require 'path'
-_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
-  {spawn, rm, mkdir} = require('./task-helpers')(grunt)
-
-  fillTemplate = (filePath, data) ->
-    template = _.template(String(fs.readFileSync("#{filePath}.in")))
-    filled = template(data)
-
-    outputPath = path.join(grunt.config.get('atom.buildDir'), path.basename(filePath))
-    grunt.file.write(outputPath, filled)
-    outputPath
+  {spawn, fillTemplate, rm, mkdir} = require('./task-helpers')(grunt)
 
   grunt.registerTask 'mkrpm', 'Create rpm package', ->
     done = @async()
+
+    appName = grunt.config.get('atom.appName')
+    appFileName = grunt.config.get('atom.appFileName')
+    apmFileName = grunt.config.get('atom.apmFileName')
+    buildDir = grunt.config.get('atom.buildDir')
+    installDir = '/usr'
+    {version, description} = grunt.config.get('atom.metadata')
 
     if process.arch is 'ia32'
       arch = 'i386'
@@ -23,24 +20,32 @@ module.exports = (grunt) ->
     else
       return done("Unsupported arch #{process.arch}")
 
-    {name, version, description} = grunt.file.readJSON('package.json')
-    buildDir = grunt.config.get('atom.buildDir')
+    desktopFilePath = path.join(buildDir, appFileName + '.desktop')
+    fillTemplate(
+      path.join('resources', 'linux', 'atom.desktop.in'),
+      desktopFilePath,
+      {appName, appFileName, description, installDir, iconPath: appFileName}
+    )
+
+    # RPM versions can't have dashes in them.
+    # * http://www.rpm.org/max-rpm/ch-rpm-file-format.html
+    # * https://github.com/mojombo/semver/issues/145
+    version = version.replace(/-beta/, "~beta")
+    version = version.replace(/-dev/, "~dev")
+
+    specFilePath = path.join(buildDir, appFileName + '.spec')
+    fillTemplate(
+      path.join('resources', 'linux', 'redhat', 'atom.spec.in'),
+      specFilePath,
+      {appName, appFileName, apmFileName, installDir, version, description}
+    )
 
     rpmDir = path.join(buildDir, 'rpm')
     rm rpmDir
     mkdir rpmDir
 
-    installDir = grunt.config.get('atom.installDir')
-    shareDir = path.join(installDir, 'share', 'atom')
-    iconName = 'atom'
-    executable = path.join(shareDir, 'atom')
-
-    data = {name, version, description, installDir, iconName, executable}
-    specFilePath = fillTemplate(path.join('resources', 'linux', 'redhat', 'atom.spec'), data)
-    desktopFilePath = fillTemplate(path.join('resources', 'linux', 'atom.desktop'), data)
-
     cmd = path.join('script', 'mkrpm')
-    args = [specFilePath, desktopFilePath, buildDir]
+    args = [appName, appFileName, specFilePath, desktopFilePath, buildDir]
     spawn {cmd, args}, (error) ->
       if error?
         done(error)

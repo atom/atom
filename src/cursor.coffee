@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
-Grim = require 'grim'
 Model = require './model'
 
 # Extended: The `Cursor` class represents the little blinking line identifying
@@ -17,7 +16,7 @@ class Cursor extends Model
   visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, id}) ->
+  constructor: ({@editor, @marker, @config, id}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -61,18 +60,6 @@ class Cursor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeVisibility: (callback) ->
     @emitter.on 'did-change-visibility', callback
-
-  on: (eventName) ->
-    return unless Grim.includeDeprecatedAPIs
-
-    switch eventName
-      when 'moved'
-        Grim.deprecate("Use Cursor::onDidChangePosition instead")
-      when 'destroyed'
-        Grim.deprecate("Use Cursor::onDidDestroy instead")
-      else
-        Grim.deprecate("::on is no longer supported. Use the event subscription methods instead")
-    super
 
   ###
   Section: Managing Cursor Position
@@ -171,7 +158,7 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
+    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
@@ -578,7 +565,6 @@ class Cursor extends Model
   setVisible: (visible) ->
     if @visible isnt visible
       @visible = visible
-      @emit 'visibility-changed', @visible if Grim.includeDeprecatedAPIs
       @emitter.emit 'did-change-visibility', @visible
 
   # Public: Returns the visibility of the cursor.
@@ -619,7 +605,7 @@ class Cursor extends Model
   # Returns a {RegExp}.
   wordRegExp: ({includeNonWordCharacters}={}) ->
     includeNonWordCharacters ?= true
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
     segments = ["^[\t ]*$"]
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters
@@ -634,7 +620,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
     lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
     uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
     snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
@@ -698,12 +684,3 @@ class Cursor extends Model
         position = range.start
         stop()
     position
-
-if Grim.includeDeprecatedAPIs
-  Cursor::getScopes = ->
-    Grim.deprecate 'Use Cursor::getScopeDescriptor() instead'
-    @getScopeDescriptor().getScopesArray()
-
-  Cursor::getMoveNextWordBoundaryBufferPosition = (options) ->
-    Grim.deprecate 'Use `::getNextWordBoundaryBufferPosition(options)` instead'
-    @getNextWordBoundaryBufferPosition(options)

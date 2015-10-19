@@ -1,10 +1,10 @@
 path = require 'path'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 fs = require 'fs-plus'
-Q = require 'q'
-Grim = require 'grim'
+CSON = require 'season'
 
 ServiceHub = require 'service-hub'
 Package = require './package'
@@ -28,15 +28,21 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
+  constructor: (params) ->
+    {
+      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
+      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry
+    } = params
+
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
-    unless safeMode
+    if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
+    @packagesCache = require('../package.json')?._atomPackages ? {}
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
@@ -44,6 +50,17 @@ class PackageManager
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
+
+  setContextMenuManager: (@contextMenuManager) ->
+
+  setMenuManager: (@menuManager) ->
+
+  setThemeManager: (@themeManager) ->
+
+  reset: ->
+    @serviceHub.clear()
+    @deactivatePackages()
+    @packageStates = {}
 
   ###
   Section: Event Subscription
@@ -187,7 +204,7 @@ class PackageManager
   #
   # Returns a {Boolean}.
   isPackageDisabled: (name) ->
-    _.include(atom.config.get('core.disabledPackages') ? [], name)
+    _.include(@config.get('core.disabledPackages') ? [], name)
 
   ###
   Section: Accessing active packages
@@ -271,7 +288,7 @@ class PackageManager
     packages = []
     for packagePath in @getAvailablePackagePaths()
       name = path.basename(packagePath)
-      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      metadata = @getLoadedPackage(name)?.metadata ? @loadPackageMetadata(packagePath, true)
       packages.push(metadata)
     packages
 
@@ -294,7 +311,7 @@ class PackageManager
     @packageDependencies
 
   hasAtomEngine: (packagePath) ->
-    metadata = Package.loadMetadata(packagePath, true)
+    metadata = @loadPackageMetadata(packagePath, true)
     metadata?.engines?.atom?
 
   unobserveDisabledPackages: ->
@@ -302,7 +319,7 @@ class PackageManager
     @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    @disabledPackagesSubscription ?= atom.config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
+    @disabledPackagesSubscription ?= @config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
       packagesToEnable = _.difference(oldValue, newValue)
       packagesToDisable = _.difference(newValue, oldValue)
 
@@ -315,7 +332,7 @@ class PackageManager
     @packagesWithKeymapsDisabledSubscription = null
 
   observePackagesWithKeymapsDisabled: ->
-    @packagesWithKeymapsDisabledSubscription ?= atom.config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
+    @packagesWithKeymapsDisabledSubscription ?= @config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
@@ -328,18 +345,10 @@ class PackageManager
     # of the first package isn't skewed by being the first to require atom
     require '../exports/atom'
 
-    # TODO: remove after a few atom versions.
-    @uninstallAutocompletePlus()
-
     packagePaths = @getAvailablePackagePaths()
-
-    # TODO: remove after a few atom versions.
-    @migrateSublimeTabsSettings(packagePaths)
-
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
     @loadPackage(packagePath) for packagePath in packagePaths
-    @emit 'loaded' if Grim.includeDeprecatedAPIs
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
@@ -350,20 +359,25 @@ class PackageManager
       return pack if pack = @getLoadedPackage(name)
 
       try
-        metadata = Package.loadMetadata(packagePath) ? {}
+        metadata = @loadPackageMetadata(packagePath) ? {}
       catch error
         @handleMetadataError(error, packagePath)
         return null
 
-      unless @isBundledPackage(metadata.name) or Grim.includeDeprecatedAPIs
+      unless @isBundledPackage(metadata.name)
         if @isDeprecatedPackage(metadata.name, metadata.version)
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
+      options = {
+        path: packagePath, metadata, packageManager: this, @config, @styleManager,
+        @commandRegistry, @keymapManager, @devMode, @notificationManager,
+        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
+      }
       if metadata.theme
-        pack = new ThemePackage(packagePath, metadata)
+        pack = new ThemePackage(options)
       else
-        pack = new Package(packagePath, metadata)
+        pack = new Package(options)
       pack.load()
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
@@ -392,8 +406,7 @@ class PackageManager
     for [activator, types] in @packageActivators
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
-    Q.all(promises).then =>
-      @emit 'activated' if Grim.includeDeprecatedAPIs
+    Promise.all(promises).then =>
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
@@ -403,7 +416,7 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    atom.config.transact =>
+    @config.transact =>
       for pack in packages
         promise = @activatePackage(pack.name)
         promises.push(promise) unless pack.hasActivationCommands()
@@ -415,14 +428,14 @@ class PackageManager
   # Activate a single package by name
   activatePackage: (name) ->
     if pack = @getActivePackage(name)
-      Q(pack)
+      Promise.resolve(pack)
     else if pack = @loadPackage(name)
       pack.activate().then =>
         @activePackages[pack.name] = pack
         @emitter.emit 'did-activate-package', pack
         pack
     else
-      Q.reject(new Error("Failed to load package '#{name}'"))
+      Promise.reject(new Error("Failed to load package '#{name}'"))
 
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
@@ -434,7 +447,7 @@ class PackageManager
 
   # Deactivate all packages
   deactivatePackages: ->
-    atom.config.transact =>
+    @config.transact =>
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
@@ -454,36 +467,7 @@ class PackageManager
     detail = "#{error.message} in #{metadataPath}"
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
-    atom.notifications.addError(message, {stack, detail, dismissable: true})
-
-  # TODO: remove these autocomplete-plus specific helpers after a few versions.
-  uninstallAutocompletePlus: ->
-    packageDir = null
-    devDir = path.join("dev", "packages")
-    for packageDirPath in @packageDirPaths
-      if not packageDirPath.endsWith(devDir)
-        packageDir = packageDirPath
-        break
-
-    if packageDir?
-      dirsToRemove = [
-        path.join(packageDir, 'autocomplete-plus')
-        path.join(packageDir, 'autocomplete-atom-api')
-        path.join(packageDir, 'autocomplete-css')
-        path.join(packageDir, 'autocomplete-html')
-        path.join(packageDir, 'autocomplete-snippets')
-      ]
-      for dirToRemove in dirsToRemove
-        @uninstallDirectory(dirToRemove)
-    return
-
-  # TODO: remove this after a few versions
-  migrateSublimeTabsSettings: (packagePaths) ->
-    return if Grim.includeDeprecatedAPIs
-    for packagePath in packagePaths when path.basename(packagePath) is 'sublime-tabs'
-      atom.config.removeAtKeyPath('core.disabledPackages', 'tree-view')
-      atom.config.removeAtKeyPath('core.disabledPackages', 'tabs')
-    return
+    @notificationManager.addError(message, {stack, detail, dismissable: true})
 
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->
@@ -497,24 +481,39 @@ class PackageManager
       if not isSymLink and isDir
         fs.remove directory, ->
 
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(PackageManager)
+  reloadActivePackageStyleSheets: ->
+    for pack in @getActivePackages() when pack.getType() isnt 'theme'
+      pack.reloadStylesheets?()
+    return
 
-  PackageManager::on = (eventName) ->
-    switch eventName
-      when 'loaded'
-        Grim.deprecate 'Use PackageManager::onDidLoadInitialPackages instead'
-      when 'activated'
-        Grim.deprecate 'Use PackageManager::onDidActivateInitialPackages instead'
-      else
-        Grim.deprecate 'PackageManager::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
+  isBundledPackagePath: (packagePath) ->
+    if @devMode
+      return false unless @resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
 
-  PackageManager::onDidLoadAll = (callback) ->
-    Grim.deprecate("Use `::onDidLoadInitialPackages` instead.")
-    @onDidLoadInitialPackages(callback)
+    @resourcePathWithTrailingSlash ?= "#{@resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
 
-  PackageManager::onDidActivateAll = (callback) ->
-    Grim.deprecate("Use `::onDidActivateInitialPackages` instead.")
-    @onDidActivateInitialPackages(callback)
+  loadPackageMetadata: (packagePath, ignoreErrors=false) ->
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = @packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+          @normalizePackageMetadata(metadata)
+        catch error
+          throw error unless ignoreErrors
+
+    metadata ?= {}
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
+
+    metadata
+
+  normalizePackageMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')

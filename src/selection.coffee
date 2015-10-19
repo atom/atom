@@ -1,7 +1,6 @@
 {Point, Range} = require 'text-buffer'
 {pick} = _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Grim = require 'grim'
 Model = require './model'
 
 NonWhitespaceRegExp = /\S/
@@ -15,7 +14,7 @@ class Selection extends Model
   initialScreenRange: null
   wordwise: false
 
-  constructor: ({@cursor, @marker, @editor, id}) ->
+  constructor: ({@cursor, @marker, @editor, id, @clipboard}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -257,9 +256,14 @@ class Selection extends Model
     @modifySelection => @cursor.moveToFirstCharacterOfLine()
 
   # Public: Selects all the text from the current cursor position to the end of
-  # the line.
+  # the screen line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfScreenLine()
+
+  # Public: Selects all the text from the current cursor position to the end of
+  # the buffer line.
+  selectToEndOfBufferLine: ->
+    @modifySelection => @cursor.moveToEndOfLine()
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the word.
@@ -572,9 +576,14 @@ class Selection extends Model
   toggleLineComments: ->
     @editor.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
-  # Public: Cuts the selection until the end of the line.
+  # Public: Cuts the selection until the end of the screen line.
   cutToEndOfLine: (maintainClipboard) ->
     @selectToEndOfLine() if @isEmpty()
+    @cut(maintainClipboard)
+
+  # Public: Cuts the selection until the end of the buffer line.
+  cutToEndOfBufferLine: (maintainClipboard) ->
+    @selectToEndOfBufferLine() if @isEmpty()
     @cut(maintainClipboard)
 
   # Public: Copies the selection to the clipboard and then deletes it.
@@ -602,7 +611,7 @@ class Selection extends Model
     startLevel = @editor.indentLevelForLine(precedingText)
 
     if maintainClipboard
-      {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
+      {text: clipboardText, metadata} = @clipboard.readWithMetadata()
       metadata ?= {}
       unless metadata.selections?
         metadata.selections = [{
@@ -615,9 +624,9 @@ class Selection extends Model
         indentBasis: startLevel,
         fullLine: fullLine
       })
-      atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
+      @clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      atom.clipboard.write(selectionText, {
+      @clipboard.write(selectionText, {
         indentBasis: startLevel,
         fullLine: fullLine
       })
@@ -826,25 +835,3 @@ class Selection extends Model
   getGoalScreenRange: ->
     if goalScreenRange = @marker.getProperties().goalScreenRange
       Range.fromObject(goalScreenRange)
-
-if Grim.includeDeprecatedAPIs
-  Selection::on = (eventName) ->
-    switch eventName
-      when 'screen-range-changed'
-        Grim.deprecate("Use Selection::onDidChangeRange instead. Call ::getScreenRange() yourself in your callback if you need the range.")
-      when 'destroyed'
-        Grim.deprecate("Use Selection::onDidDestroy instead.")
-      else
-        Grim.deprecate("Selection::on is deprecated. Use documented event subscription methods instead.")
-
-    super
-
-  # Deprecated: Use {::deleteToBeginningOfWord} instead.
-  Selection::backspaceToBeginningOfWord = ->
-    deprecate("Use Selection::deleteToBeginningOfWord() instead")
-    @deleteToBeginningOfWord()
-
-  # Deprecated: Use {::deleteToBeginningOfLine} instead.
-  Selection::backspaceToBeginningOfLine = ->
-    deprecate("Use Selection::deleteToBeginningOfLine() instead")
-    @deleteToBeginningOfLine()

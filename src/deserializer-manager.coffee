@@ -1,5 +1,4 @@
 {Disposable} = require 'event-kit'
-Grim = require 'grim'
 
 # Extended: Manages the deserializers used for serialized state
 #
@@ -22,7 +21,7 @@ Grim = require 'grim'
 # ```
 module.exports =
 class DeserializerManager
-  constructor: ->
+  constructor: (@atomEnvironment) ->
     @deserializers = {}
 
   # Public: Register the given class(es) as deserializers.
@@ -30,7 +29,10 @@ class DeserializerManager
   # * `deserializers` One or more deserializers to register. A deserializer can
   #   be any object with a `.name` property and a `.deserialize()` method. A
   #   common approach is to register a *constructor* as the deserializer for its
-  #   instances by adding a `.deserialize()` class method.
+  #   instances by adding a `.deserialize()` class method. When your method is
+  #   called, it will be passed serialized state as the first argument and the
+  #   {Atom} environment object as the second argument, which is useful if you
+  #   wish to avoid referencing the `atom` global.
   add: (deserializers...) ->
     @deserializers[deserializer.name] = deserializer for deserializer in deserializers
     new Disposable =>
@@ -40,15 +42,13 @@ class DeserializerManager
   # Public: Deserialize the state and params.
   #
   # * `state` The state {Object} to deserialize.
-  # * `params` The params {Object} to pass as the second arguments to the
-  #   deserialize method of the deserializer.
-  deserialize: (state, params) ->
+  deserialize: (state) ->
     return unless state?
 
     if deserializer = @get(state)
       stateVersion = state.get?('version') ? state.version
       return if deserializer.version? and deserializer.version isnt stateVersion
-      deserializer.deserialize(state, params)
+      deserializer.deserialize(state, @atomEnvironment)
     else
       console.warn "No deserializer found for", state
 
@@ -61,8 +61,5 @@ class DeserializerManager
     name = state.get?('deserializer') ? state.deserializer
     @deserializers[name]
 
-if Grim.includeDeprecatedAPIs
-  DeserializerManager::remove = (classes...) ->
-    Grim.deprecate("Call .dispose() on the Disposable return from ::add instead")
-    delete @deserializers[name] for {name} in classes
-    return
+  clear: ->
+    @deserializers = {}

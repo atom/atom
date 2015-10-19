@@ -1,5 +1,4 @@
 {CompositeDisposable} = require 'event-kit'
-{callAttachHooks} = require './space-pen-extensions'
 PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
@@ -9,7 +8,9 @@ class PaneAxisElement extends HTMLElement
   detachedCallback: ->
     @subscriptions.dispose()
 
-  initialize: (@model) ->
+  initialize: (@model, {@views}) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
+
     @subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
     @subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
     @subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
@@ -28,7 +29,7 @@ class PaneAxisElement extends HTMLElement
     element?.nodeName.toLowerCase() is 'atom-pane-resize-handle'
 
   childAdded: ({child, index}) ->
-    view = atom.views.getView(child)
+    view = @views.getView(child)
     @insertBefore(view, @children[index * 2])
 
     prevElement = view.previousSibling
@@ -43,10 +44,8 @@ class PaneAxisElement extends HTMLElement
       resizeHandle = document.createElement('atom-pane-resize-handle')
       @insertBefore(resizeHandle, nextElement)
 
-    callAttachHooks(view) # for backward compatibility with SpacePen views
-
   childRemoved: ({child}) ->
-    view = atom.views.getView(child)
+    view = @views.getView(child)
     siblingView = view.previousSibling
     # make sure next sibling view is pane resize view
     if siblingView? and @isPaneResizeHandleElement(siblingView)

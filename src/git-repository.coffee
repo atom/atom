@@ -4,15 +4,14 @@ _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitUtils = require 'git-utils'
-{includeDeprecatedAPIs, deprecate} = require 'grim'
 
 Task = require './task'
 
 # Extended: Represents the underlying git operations performed by Atom.
 #
 # This class shouldn't be instantiated directly but instead by accessing the
-# `atom.project` global and calling `getRepo()`. Note that this will only be
-# available when the project is backed by a Git repository.
+# `atom.project` global and calling `getRepositories()`. Note that this will
+# only be available when the project is backed by a Git repository.
 #
 # This class handles submodules automatically by taking a `path` argument to many
 # of the methods.  This `path` argument will determine which underlying
@@ -21,7 +20,7 @@ Task = require './task'
 # For a repository with submodules this would have the following outcome:
 #
 # ```coffee
-# repo = atom.project.getRepo()
+# repo = atom.project.getRepositories()[0]
 # repo.getShortHead() # 'master'
 # repo.getShortHead('vendor/path/to/a/submodule') # 'dead1234'
 # ```
@@ -31,7 +30,7 @@ Task = require './task'
 # ### Logging the URL of the origin remote
 #
 # ```coffee
-# git = atom.project.getRepo()
+# git = atom.project.getRepositories()[0]
 # console.log git.getOriginURL()
 # ```
 #
@@ -81,7 +80,7 @@ class GitRepository
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
 
-    {@project, refreshOnWindowFocus} = options
+    {@project, @config, refreshOnWindowFocus} = options
 
     refreshOnWindowFocus ?= true
     if refreshOnWindowFocus
@@ -327,7 +326,6 @@ class GitRepository
     else
       delete @statuses[relativePath]
     if currentPathStatus isnt pathStatus
-      @emit 'status-changed', path, pathStatus if includeDeprecatedAPIs
       @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
@@ -445,24 +443,9 @@ class GitRepository
 
   # Subscribes to editor view event.
   checkoutHeadForEditor: (editor) ->
-    filePath = editor.getPath()
-    return unless filePath
-
-    fileName = basename(filePath)
-
-    checkoutHead = =>
+    if filePath = editor.getPath()
       editor.buffer.reload() if editor.buffer.isModified()
       @checkoutHead(filePath)
-
-    if atom.config.get('editor.confirmCheckoutHeadRevision')
-      atom.confirm
-        message: 'Confirm Checkout HEAD Revision'
-        detailedMessage: "Are you sure you want to discard all changes to \"#{fileName}\" since the last Git commit?"
-        buttons:
-          OK: checkoutHead
-          Cancel: null
-    else
-      checkoutHead()
 
   # Returns the corresponding {Repository}
   getRepo: (path) ->
@@ -496,23 +479,4 @@ class GitRepository
         submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
       unless statusesUnchanged
-        @emit 'statuses-changed' if includeDeprecatedAPIs
         @emitter.emit 'did-change-statuses'
-
-if includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(GitRepository)
-
-  GitRepository::on = (eventName) ->
-    switch eventName
-      when 'status-changed'
-        deprecate 'Use GitRepository::onDidChangeStatus instead'
-      when 'statuses-changed'
-        deprecate 'Use GitRepository::onDidChangeStatuses instead'
-      else
-        deprecate 'GitRepository::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
-  GitRepository::getOriginUrl = (path) ->
-    deprecate 'Use ::getOriginURL instead.'
-    @getOriginURL(path)

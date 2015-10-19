@@ -1,5 +1,3 @@
-{$$} = require '../src/space-pen-extensions'
-
 ContextMenuManager = require '../src/context-menu-manager'
 
 describe "ContextMenuManager", ->
@@ -7,7 +5,7 @@ describe "ContextMenuManager", ->
 
   beforeEach ->
     {resourcePath} = atom.getLoadSettings()
-    contextMenu = new ContextMenuManager({resourcePath})
+    contextMenu = new ContextMenuManager({resourcePath, keymapManager: atom.keymaps})
 
     parent = document.createElement("div")
     child = document.createElement("div")
@@ -158,32 +156,3 @@ describe "ContextMenuManager", ->
       catch error
         addError = error
       expect(addError.message).toContain('<>')
-
-    describe "when the menus are specified in a legacy format", ->
-      beforeEach ->
-        jasmine.snapshotDeprecations()
-
-      afterEach ->
-        jasmine.restoreDeprecationsSnapshot()
-
-      it "allows items to be specified in the legacy format for now", ->
-        contextMenu.add '.parent':
-          'A': 'a'
-          'Separator 1': '-'
-          'B':
-            'C': 'c'
-            'Separator 2': '-'
-            'D': 'd'
-
-        expect(contextMenu.templateForElement(parent)).toEqual [
-          {label: 'A', command: 'a'}
-          {type: 'separator'}
-          {
-            label: 'B'
-            submenu: [
-              {label: 'C', command: 'c'}
-              {type: 'separator'}
-              {label: 'D', command: 'd'}
-            ]
-          }
-        ]

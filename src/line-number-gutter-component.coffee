@@ -1,16 +1,18 @@
 TiledComponent = require './tiled-component'
 LineNumbersTileComponent = require './line-numbers-tile-component'
 WrapperDiv = document.createElement('div')
-DummyLineNumberComponent = LineNumbersTileComponent.createDummy()
+DOMElementPool = require './dom-element-pool'
 
 module.exports =
 class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter}) ->
+  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool, @views}) ->
     @visible = true
 
-    @domNode = atom.views.getView(@gutter)
+    @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
+
+    @domNode = @views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
     @lineNumbersNode.innerHTML = ''
 
@@ -60,7 +62,10 @@ class LineNumberGutterComponent extends TiledComponent
       @oldState.styles = {}
       @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
 
-  buildComponentForTile: (id) -> new LineNumbersTileComponent({id})
+  buildComponentForTile: (id) -> new LineNumbersTileComponent({id, @domElementPool})
+
+  shouldRecreateAllTilesOnUpdate: ->
+    @newState.continuousReflow
 
   ###
   Section: Private Methods
@@ -69,14 +74,13 @@ class LineNumberGutterComponent extends TiledComponent
   # This dummy line number element holds the gutter to the appropriate width,
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
-    DummyLineNumberComponent.newState = @newState
-    WrapperDiv.innerHTML = DummyLineNumberComponent.buildLineNumberHTML({bufferRow: -1})
-    @dummyLineNumberNode = WrapperDiv.children[0]
+    @dummyLineNumberComponent.newState = @newState
+    @dummyLineNumberNode = @dummyLineNumberComponent.buildLineNumberNode({bufferRow: -1})
     @lineNumbersNode.appendChild(@dummyLineNumberNode)
 
   updateDummyLineNumber: ->
-    DummyLineNumberComponent.newState = @newState
-    @dummyLineNumberNode.innerHTML = DummyLineNumberComponent.buildLineNumberInnerHTML(0, false)
+    @dummyLineNumberComponent.newState = @newState
+    @dummyLineNumberComponent.setLineNumberInnerNodes(0, false, @dummyLineNumberNode)
 
   onMouseDown: (event) =>
     {target} = event

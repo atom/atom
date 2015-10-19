@@ -12,7 +12,7 @@ describe "TextEditor", ->
 
   beforeEach ->
     waitsForPromise ->
-      atom.project.open('sample.js', autoIndent: false).then (o) -> editor = o
+      atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
 
     runs ->
       buffer = editor.buffer
@@ -27,11 +27,11 @@ describe "TextEditor", ->
       editor1 = null
 
       waitsForPromise ->
-        atom.project.open(pathToOpen).then (o) -> editor1 = o
+        atom.workspace.open(pathToOpen).then (o) -> editor1 = o
 
       runs ->
         fs.mkdirSync(pathToOpen)
-        expect(editor1.testSerialization()).toBeUndefined()
+        expect(TextEditor.deserialize(editor1.serialize(), atom)).toBeUndefined()
 
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = editor.testSerialization()
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -52,7 +52,7 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
-      editor2 = editor.testSerialization()
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(previousInvisibles).toBeDefined()
       expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
@@ -62,7 +62,7 @@ describe "TextEditor", ->
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
-      editor2 = TextEditor.deserialize(state)
+      editor2 = TextEditor.deserialize(state, atom)
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
@@ -71,7 +71,7 @@ describe "TextEditor", ->
       editor = null
 
       waitsForPromise ->
-        atom.workspace.open('sample.js', largeFileMode: true).then (o) -> editor = o
+        atom.workspace.openTextFile('sample.js', largeFileMode: true).then (o) -> editor = o
 
       runs ->
         buffer = editor.getBuffer()
@@ -114,7 +114,7 @@ describe "TextEditor", ->
       atom.config.set('core.fileEncoding', 'utf16le')
 
       waitsForPromise ->
-        atom.workspace.open('a').then (o) -> editor1 = o
+        atom.workspace.open('dir/a').then (o) -> editor1 = o
 
       runs ->
         expect(editor1.getTabLength()).toBe 4
@@ -128,7 +128,7 @@ describe "TextEditor", ->
         atom.config.set('core.fileEncoding', 'macroman')
 
       waitsForPromise ->
-        atom.workspace.open('b').then (o) -> editor2 = o
+        atom.workspace.open('dir/b').then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getTabLength()).toBe 8
@@ -144,13 +144,13 @@ describe "TextEditor", ->
       atom.config.set('core.fileEncoding', 'macroman', scopeSelector: '.js')
 
       waitsForPromise ->
-        atom.workspace.open('a').then (o) -> editor1 = o
+        atom.workspace.open('dir/a').then (o) -> editor1 = o
 
       runs ->
         expect(editor1.getEncoding()).toBe 'utf16le'
 
       waitsForPromise ->
-        atom.workspace.open('test.js').then (o) -> editor2 = o
+        atom.workspace.open('sample-with-comments.js').then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getEncoding()).toBe 'macroman'
@@ -272,6 +272,7 @@ describe "TextEditor", ->
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
           editor.createFold(2, 3)
 
@@ -327,6 +328,7 @@ describe "TextEditor", ->
       describe "when the cursor was moved down from the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the previous line", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
 
           editor.setCursorScreenPosition([3, 0])
@@ -379,6 +381,7 @@ describe "TextEditor", ->
       describe "when the cursor is at the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the line's continuation on the next screen row", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
 
           editor.setCursorScreenPosition([3, 0])
@@ -446,6 +449,7 @@ describe "TextEditor", ->
         describe "when line is wrapped and follow previous line indentation", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(50)
 
           it "wraps to the end of the previous line", ->
@@ -604,6 +608,7 @@ describe "TextEditor", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToEndOfScreenLine()
@@ -623,6 +628,7 @@ describe "TextEditor", ->
     describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
         editor.setSoftWrapped(true)
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([1, 2])
         editor.moveToBeginningOfLine()
@@ -632,6 +638,7 @@ describe "TextEditor", ->
     describe ".moveToEndOfLine()", ->
       it "moves cursor to the end of the buffer line", ->
         editor.setSoftWrapped(true)
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
@@ -642,6 +649,7 @@ describe "TextEditor", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition [2, 5]
           editor.addCursorAtScreenPosition [8, 7]
@@ -908,118 +916,6 @@ describe "TextEditor", ->
           cursor1 = editor.addCursorAtBufferPosition([1, 4])
           cursor2 = editor.addCursorAtBufferPosition([1, 4])
           expect(cursor2.marker).toBe cursor1.marker
-
-    describe "autoscroll", ->
-      beforeEach ->
-        editor.setVerticalScrollMargin(2)
-        editor.setHorizontalScrollMargin(2)
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHorizontalScrollbarHeight(0)
-        editor.setHeight(5.5 * 10)
-        editor.setWidth(5.5 * 10)
-
-      it "scrolls down when the last cursor gets closer than ::verticalScrollMargin to the bottom of the editor", ->
-        expect(editor.getScrollTop()).toBe 0
-        expect(editor.getScrollBottom()).toBe 5.5 * 10
-
-        editor.setCursorScreenPosition([2, 0])
-        expect(editor.getScrollBottom()).toBe 5.5 * 10
-
-        editor.moveDown()
-        expect(editor.getScrollBottom()).toBe 6 * 10
-
-        editor.moveDown()
-        expect(editor.getScrollBottom()).toBe 7 * 10
-
-      it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
-        editor.setCursorScreenPosition([11, 0])
-        editor.setScrollBottom(editor.getScrollHeight())
-
-        editor.moveUp()
-        expect(editor.getScrollBottom()).toBe editor.getScrollHeight()
-
-        editor.moveUp()
-        expect(editor.getScrollTop()).toBe 7 * 10
-
-        editor.moveUp()
-        expect(editor.getScrollTop()).toBe 6 * 10
-
-      it "scrolls right when the last cursor gets closer than ::horizontalScrollMargin to the right of the editor", ->
-        expect(editor.getScrollLeft()).toBe 0
-        expect(editor.getScrollRight()).toBe 5.5 * 10
-
-        editor.setCursorScreenPosition([0, 2])
-        expect(editor.getScrollRight()).toBe 5.5 * 10
-
-        editor.moveRight()
-        expect(editor.getScrollRight()).toBe 6 * 10
-
-        editor.moveRight()
-        expect(editor.getScrollRight()).toBe 7 * 10
-
-      it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
-        editor.setScrollRight(editor.getScrollWidth())
-        expect(editor.getScrollRight()).toBe editor.getScrollWidth()
-        editor.setCursorScreenPosition([6, 62], autoscroll: false)
-
-        editor.moveLeft()
-        expect(editor.getScrollLeft()).toBe 59 * 10
-
-        editor.moveLeft()
-        expect(editor.getScrollLeft()).toBe 58 * 10
-
-      it "scrolls down when inserting lines makes the document longer than the editor's height", ->
-        editor.setCursorScreenPosition([13, Infinity])
-        editor.insertNewline()
-        expect(editor.getScrollBottom()).toBe 14 * 10
-        editor.insertNewline()
-        expect(editor.getScrollBottom()).toBe 15 * 10
-
-      it "autoscrolls to the cursor when it moves due to undo", ->
-        editor.insertText('abc')
-        editor.setScrollTop(Infinity)
-        editor.undo()
-        expect(editor.getScrollTop()).toBe 0
-
-      it "doesn't scroll when the cursor moves into the visible area", ->
-        editor.setCursorBufferPosition([0, 0])
-        editor.setScrollTop(40)
-        expect(editor.getVisibleRowRange()).toEqual([4, 9])
-        editor.setCursorBufferPosition([6, 0])
-        expect(editor.getScrollTop()).toBe 40
-
-      it "honors the autoscroll option on cursor and selection manipulation methods", ->
-        expect(editor.getScrollTop()).toBe 0
-        editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setCursorScreenPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setCursorBufferPosition([11, 11], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-        editor.clearSelections(autoscroll: false)
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.addSelectionForScreenRange([[0, 0], [0, 4]])
-
-        editor.getCursors()[0].setScreenPosition([11, 11], autoscroll: true)
-        expect(editor.getScrollTop()).toBeGreaterThan 0
-        editor.getCursors()[0].setBufferPosition([0, 0], autoscroll: true)
-        expect(editor.getScrollTop()).toBe 0
-        editor.getSelections()[0].setScreenRange([[11, 0], [11, 4]], autoscroll: true)
-        expect(editor.getScrollTop()).toBeGreaterThan 0
-        editor.getSelections()[0].setBufferRange([[0, 0], [0, 4]], autoscroll: true)
-        expect(editor.getScrollTop()).toBe 0
 
     describe '.logCursorScope()', ->
       beforeEach ->
@@ -1306,20 +1202,6 @@ describe "TextEditor", ->
           editor.selectLinesContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [4, 0]]
 
-      it "autoscrolls to the selection", ->
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(50)
-        editor.setWidth(50)
-        editor.setHorizontalScrollbarHeight(0)
-        editor.setCursorScreenPosition([5, 6])
-
-        editor.scrollToTop()
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.selectLinesContainingCursors()
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
-
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
         editor.setCursorScreenPosition [0, 13]
@@ -1457,7 +1339,7 @@ describe "TextEditor", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-coffee-script')
           waitsForPromise ->
-            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+            atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         it 'selects the correct surrounding word for the given scoped setting', ->
           coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
@@ -1572,30 +1454,6 @@ describe "TextEditor", ->
         expect(selection1).toBe selection
         expect(selection1.getScreenRange()).toEqual [[2, 2], [3, 4]]
 
-    describe ".setSelectedBufferRange(range)", ->
-      it "autoscrolls the selection if it is last unless the 'autoscroll' option is false", ->
-        editor.setVerticalScrollMargin(2)
-        editor.setHorizontalScrollMargin(2)
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(70)
-        editor.setWidth(100)
-        editor.setHorizontalScrollbarHeight(0)
-
-        expect(editor.getScrollTop()).toBe 0
-
-        editor.setSelectedBufferRange([[5, 6], [6, 8]])
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
-        expect(editor.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
-
-        editor.setSelectedBufferRange([[0, 0], [0, 0]])
-        expect(editor.getScrollTop()).toBe 0
-        expect(editor.getScrollLeft()).toBe 0
-
-        editor.setSelectedBufferRange([[6, 6], [6, 8]])
-        expect(editor.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
-        expect(editor.getScrollRight()).toBe (8 + editor.getHorizontalScrollMargin()) * 10
-
     describe ".selectMarker(marker)", ->
       describe "if the marker is valid", ->
         it "selects the marker's range and returns the selected range", ->
@@ -1614,17 +1472,6 @@ describe "TextEditor", ->
       it "adds a selection for the specified buffer range", ->
         editor.addSelectionForBufferRange([[3, 4], [5, 6]])
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 0]], [[3, 4], [5, 6]]]
-
-      it "autoscrolls to the added selection if needed", ->
-        editor.setVerticalScrollMargin(2)
-        editor.setHorizontalScrollMargin(2)
-        editor.setLineHeightInPixels(10)
-        editor.setDefaultCharWidth(10)
-        editor.setHeight(80)
-        editor.setWidth(100)
-        editor.addSelectionForBufferRange([[8, 10], [8, 15]])
-        expect(editor.getScrollBottom()).toBe (9 * 10) + (2 * 10)
-        expect(editor.getScrollRight()).toBe (15 * 10) + (2 * 10)
 
     describe ".addSelectionBelow()", ->
       describe "when the selection is non-empty", ->
@@ -1684,6 +1531,7 @@ describe "TextEditor", ->
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(40)
+          editor.setDefaultCharWidth(1)
 
           editor.setSelectedScreenRange([[3, 10], [3, 15]])
           editor.addSelectionBelow()
@@ -1694,7 +1542,7 @@ describe "TextEditor", ->
 
         it "takes atomic tokens into account", ->
           waitsForPromise ->
-            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+            atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
 
           runs ->
             editor.setSelectedBufferRange([[2, 1], [2, 3]])
@@ -1709,6 +1557,7 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
@@ -1794,6 +1643,7 @@ describe "TextEditor", ->
 
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(40)
 
           editor.setSelectedScreenRange([[4, 10], [4, 15]])
@@ -1805,7 +1655,7 @@ describe "TextEditor", ->
 
         it "takes atomic tokens into account", ->
           waitsForPromise ->
-            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+            atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
 
           runs ->
             editor.setSelectedBufferRange([[3, 1], [3, 2]])
@@ -1820,6 +1670,7 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
@@ -1890,7 +1741,7 @@ describe "TextEditor", ->
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
 
     describe ".consolidateSelections()", ->
-      it "destroys all selections but the most recent, returning true if any selections were destroyed", ->
+      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
         editor.setSelectedBufferRange([[3, 16], [3, 21]])
         selection1 = editor.getLastSelection()
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
@@ -1898,10 +1749,10 @@ describe "TextEditor", ->
 
         expect(editor.getSelections()).toEqual [selection1, selection2, selection3]
         expect(editor.consolidateSelections()).toBeTruthy()
-        expect(editor.getSelections()).toEqual [selection3]
-        expect(selection3.isEmpty()).toBeFalsy()
+        expect(editor.getSelections()).toEqual [selection1]
+        expect(selection1.isEmpty()).toBeFalsy()
         expect(editor.consolidateSelections()).toBeFalsy()
-        expect(editor.getSelections()).toEqual [selection3]
+        expect(editor.getSelections()).toEqual [selection1]
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
@@ -1930,9 +1781,11 @@ describe "TextEditor", ->
     it "does not share selections between different edit sessions for the same buffer", ->
       editor2 = null
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor2 = o
+        atom.workspace.getActivePane().splitRight()
+        atom.workspace.open(editor.getPath()).then (o) -> editor2 = o
 
       runs ->
+        expect(editor2.getText()).toBe(editor.getText())
         editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
         editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
         expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
@@ -1975,16 +1828,6 @@ describe "TextEditor", ->
 
             expect(cursor1.getBufferPosition()).toEqual [1, 5]
             expect(cursor2.getBufferPosition()).toEqual [2, 7]
-
-          it "autoscrolls to the last cursor", ->
-            editor.setCursorScreenPosition([1, 2])
-            editor.addCursorAtScreenPosition([10, 4])
-            editor.setLineHeightInPixels(10)
-            editor.setHeight(50)
-
-            expect(editor.getScrollTop()).toBe 0
-            editor.insertText('a')
-            expect(editor.getScrollTop()).toBe 80
 
       describe "when there are multiple non-empty selections", ->
         describe "when the selections are on the same line", ->
@@ -2874,6 +2717,7 @@ describe "TextEditor", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([2, 2])
             editor.cutToEndOfLine()
@@ -2898,6 +2742,32 @@ describe "TextEditor", ->
               expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
               expect(buffer.lineForRow(3)).toBe '    var pivot = item'
               expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+
+      describe ".cutToEndOfBufferLine()", ->
+        beforeEach ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(10)
+
+        describe "when nothing is selected", ->
+          it "cuts up to the end of the buffer line", ->
+            editor.setCursorBufferPosition([2, 20])
+            editor.addCursorAtBufferPosition([3, 20])
+
+            editor.cutToEndOfBufferLine()
+
+            expect(buffer.lineForRow(2)).toBe '    if (items.length'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(atom.clipboard.read()).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+
+        describe "when text is selected", ->
+          it "only cuts the selected text, not to the end of the buffer line", ->
+            editor.setSelectedBufferRanges([[[2, 20], [2, 30]], [[3, 20], [3, 20]]])
+
+            editor.cutToEndOfBufferLine()
+
+            expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(atom.clipboard.read()).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
@@ -3818,26 +3688,13 @@ describe "TextEditor", ->
         editor.destroy()
 
         waitsForPromise ->
-          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+          atom.workspace.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe true
 
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
-
-        runs ->
-          expect(editor.softTabs).toBe false
-
-      it "uses hard tabs in Makefile files", ->
-        # FIXME remove once this is handled by a scoped setting in the
-        # language-make package
-
-        waitsForPromise ->
-          atom.packages.activatePackage('language-make')
-
-        waitsForPromise ->
-          atom.project.open('Makefile').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe false
@@ -3904,7 +3761,7 @@ describe "TextEditor", ->
         editor.destroy()
 
         waitsForPromise ->
-          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+          atom.workspace.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe true
@@ -3959,7 +3816,7 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
         waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
       afterEach: ->
         atom.packages.deactivatePackages()
@@ -4162,7 +4019,7 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
         waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         runs ->
           atom.config.set('editor.autoIndent', true, scopeSelector: '.source.js')
@@ -4312,7 +4169,8 @@ describe "TextEditor", ->
 
       editor2 = null
       waitsForPromise ->
-        atom.project.open('sample.js', autoIndent: false).then (o) -> editor2 = o
+        atom.workspace.getActivePane().splitRight()
+        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor2 = o
 
       runs ->
         expect(editor.shouldPromptToSave()).toBeFalsy()
@@ -4521,30 +4379,10 @@ describe "TextEditor", ->
       editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]])
       expect(editor.getText()).toBe '     '
 
-  describe ".scrollToCursorPosition()", ->
-    it "scrolls the last cursor into view, centering around the cursor if possible and the 'center' option isn't false", ->
-      editor.setCursorScreenPosition([8, 8])
-      editor.setLineHeightInPixels(10)
-      editor.setDefaultCharWidth(10)
-      editor.setHeight(60)
-      editor.setWidth(130)
-      editor.setHorizontalScrollbarHeight(0)
-      expect(editor.getScrollTop()).toBe 0
-      expect(editor.getScrollLeft()).toBe 0
-
-      editor.scrollToCursorPosition()
-      expect(editor.getScrollTop()).toBe (8.5 * 10) - 30
-      expect(editor.getScrollBottom()).toBe (8.5 * 10) + 30
-      expect(editor.getScrollRight()).toBe (9 + editor.getHorizontalScrollMargin()) * 10
-
-      editor.setScrollTop(0)
-      editor.scrollToCursorPosition(center: false)
-      expect(editor.getScrollBottom()).toBe (9 + editor.getVerticalScrollMargin()) * 10
-
   describe ".pageUp/Down()", ->
     it "moves the cursor down one page length", ->
-      editor.setLineHeightInPixels(10)
-      editor.setHeight(50)
+      editor.setRowsPerPage(5)
+
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.pageDown()
@@ -4561,9 +4399,8 @@ describe "TextEditor", ->
 
   describe ".selectPageUp/Down()", ->
     it "selects one screen height of text up or down", ->
-      editor.setLineHeightInPixels(10)
-      editor.setHeight(50)
-      expect(editor.getScrollHeight()).toBe 130
+      editor.setRowsPerPage(5)
+
       expect(editor.getCursorBufferPosition().row).toBe 0
 
       editor.selectPageDown()
@@ -4587,11 +4424,10 @@ describe "TextEditor", ->
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
-      TextBuffer = require 'text-buffer'
-      newEditor = new TextEditor
-        buffer: new TextBuffer
+      newEditor = atom.workspace.buildTextEditor(
         mini: true
         placeholderText: 'yep'
+      )
       expect(newEditor.getPlaceholderText()).toBe 'yep'
 
     it 'models placeholderText and emits an event when changed', ->
@@ -4619,7 +4455,7 @@ describe "TextEditor", ->
 
     describe "when there's no repository for the editor's file", ->
       it "doesn't do anything", ->
-        editor = new TextEditor({})
+        editor = atom.workspace.buildTextEditor()
         editor.setText("stuff")
         editor.checkoutHeadRevision()
 
@@ -4952,18 +4788,6 @@ describe "TextEditor", ->
 
     beforeEach ->
       marker = editor.markBufferRange([[1, 0], [1, 0]])
-
-    it "casts 'gutter' type to 'line-number' unless a gutter name is specified.", ->
-      jasmine.snapshotDeprecations()
-
-      lineNumberDecoration = editor.decorateMarker(marker, {type: 'gutter'})
-      customGutterDecoration = editor.decorateMarker(marker, {type: 'gutter', gutterName: 'custom'})
-      expect(lineNumberDecoration.getProperties().type).toBe 'line-number'
-      expect(lineNumberDecoration.getProperties().gutterName).toBe 'line-number'
-      expect(customGutterDecoration.getProperties().type).toBe 'gutter'
-      expect(customGutterDecoration.getProperties().gutterName).toBe 'custom'
-
-      jasmine.restoreDeprecationsSnapshot()
 
     it 'reflects an added decoration when one of its custom gutters is decorated.', ->
       gutter = editor.addGutter {'name': 'custom-gutter'}

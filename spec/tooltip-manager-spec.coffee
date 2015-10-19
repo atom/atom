@@ -1,5 +1,4 @@
 TooltipManager = require '../src/tooltip-manager'
-{$} = require '../src/space-pen-extensions'
 _ = require "underscore-plus"
 
 describe "TooltipManager", ->
@@ -9,24 +8,57 @@ describe "TooltipManager", ->
   ctrlY = _.humanizeKeystroke("ctrl-y")
 
   beforeEach ->
-    manager = new TooltipManager
+    manager = new TooltipManager(keymapManager: atom.keymaps)
     element = document.createElement('div')
     element.classList.add('foo')
     jasmine.attachToDOM(element)
 
   hover = (element, fn) ->
-    $(element).trigger 'mouseenter'
+    element.dispatchEvent(new CustomEvent('mouseenter', bubbles: false))
+    element.dispatchEvent(new CustomEvent('mouseover', bubbles: true))
     advanceClock(manager.defaults.delay.show)
     fn()
-    $(element).trigger 'mouseleave'
+    element.dispatchEvent(new CustomEvent('mouseleave', bubbles: false))
+    element.dispatchEvent(new CustomEvent('mouseout', bubbles: true))
     advanceClock(manager.defaults.delay.hide)
 
   describe "::add(target, options)", ->
-    describe "when the target is an element", ->
-      it "creates a tooltip based on the given options when hovering over the target element", ->
-        manager.add element, title: "Title"
-        hover element, ->
-          expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+    it "creates a tooltip based on the given options when hovering over the target element", ->
+      manager.add element, title: "Title"
+      hover element, ->
+        expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+
+    it "allows jQuery elements to be passed as the target", ->
+      element2 = document.createElement('div')
+      jasmine.attachToDOM(element2)
+
+      fakeJqueryWrapper = [element, element2]
+      fakeJqueryWrapper.jquery = 'any-version'
+      disposable = manager.add fakeJqueryWrapper, title: "Title"
+
+      hover element, -> expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+      expect(document.body.querySelector(".tooltip")).toBeNull()
+      hover element2, -> expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+      expect(document.body.querySelector(".tooltip")).toBeNull()
+
+      disposable.dispose()
+
+      hover element, -> expect(document.body.querySelector(".tooltip")).toBeNull()
+      hover element2, -> expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    describe "when a selector is specified", ->
+      it "creates a tooltip when hovering over a descendant of the target that matches the selector", ->
+        child = document.createElement('div')
+        child.classList.add('bar')
+        grandchild = document.createElement('div')
+        element.appendChild(child)
+        child.appendChild(grandchild)
+
+        manager.add element, selector: '.bar', title: 'Bar'
+
+        hover grandchild, ->
+          expect(document.body.querySelector('.tooltip')).toHaveText('Bar')
+        expect(document.body.querySelector('.tooltip')).toBeNull()
 
     describe "when a keyBindingCommand is specified", ->
       describe "when a title is specified", ->
@@ -80,4 +112,12 @@ describe "TooltipManager", ->
         disposable.dispose()
 
         hover element, ->
+          expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    describe "when the window is resized", ->
+      it "hides the tooltips", ->
+        manager.add element, title: "Title"
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).toBeDefined()
+          window.dispatchEvent(new CustomEvent('resize'))
           expect(document.body.querySelector(".tooltip")).toBeNull()
