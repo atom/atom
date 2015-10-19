@@ -51,6 +51,6 @@ class Enable extends Command
       callback "Failed to save `#{configFilePath}`: #{error.message}"
       return
 
-    console.log "Enabled: #{packageNames.join(', ')} "
+    console.log "Enabled:\n  #{packageNames.join('\n  ')} "
     @logSuccess()
     callback()
