@@ -51,6 +51,6 @@ class Disable extends Command
       callback "Failed to save `#{configFilePath}`: #{error.message}"
       return
 
-    process.stdout.write "Disabled: #{packageNames.join(', ')} "
+    console.log "Disabled: #{packageNames.join(', ')} "
     @logSuccess()
     callback()
