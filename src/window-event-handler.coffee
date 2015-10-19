@@ -30,7 +30,7 @@ class WindowEventHandler
 
     if process.platform in ['win32', 'linux']
       @subscriptions.add @atomEnvironment.commands.add @window,
-        '@window:toggle-menu-bar': @handleWindowToggleMenuBar
+        'window:toggle-menu-bar': @handleWindowToggleMenuBar
 
     @subscriptions.add @atomEnvironment.commands.add @document,
       'core:focus-next': @handleFocusNext
