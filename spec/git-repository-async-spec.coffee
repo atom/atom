@@ -1,5 +1,6 @@
 temp = require 'temp'
 GitRepositoryAsync = require '../src/git-repository-async'
+Git = require 'nodegit'
 fs = require 'fs-plus'
 os = require 'os'
 path = require 'path'
@@ -18,7 +19,7 @@ copyRepository = ->
 openFixture = (fixture)->
   GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 
-fdescribe "GitRepositoryAsync", ->
+describe "GitRepositoryAsync", ->
   repo = null
 
   # beforeEach ->
@@ -154,6 +155,8 @@ fdescribe "GitRepositoryAsync", ->
 
 
   describe ".checkoutHead(path)", ->
+    # XXX this is failing sporadically with various errors around not finding the
+    # repo / files in the repo
     [filePath] = []
 
     beforeEach ->
@@ -175,16 +178,17 @@ fdescribe "GitRepositoryAsync", ->
       runs ->
         expect(onSuccess.mostRecentCall.args[0]).toBeTruthy()
 
-      # Don't need to assert that this succeded because waitsForPromise will
-      # fail if it was rejected.
+      # Don't need to assert that this succeded because waitsForPromise should
+      # fail if it was rejected..
       waitsForPromise ->
         repo.checkoutHead(filePath)
 
-      onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise ->
-        repo.isPathModified(filePath).then(onSuccess)
       runs ->
-        expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
+        onSuccess = jasmine.createSpy('onSuccess')
+        waitsForPromise ->
+          repo.isPathModified(filePath).then(onSuccess)
+        runs ->
+          expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
     it "restores the contents of the path to the original text", ->
       fs.writeFileSync(filePath, 'ch ch changes')
@@ -243,25 +247,33 @@ fdescribe "GitRepositoryAsync", ->
       repo.destroy()
       expect(-> repo.getShortHead()).toThrow()
 
-  xdescribe ".getPathStatus(path)", ->
+  describe ".getPathStatus(path)", ->
     [filePath] = []
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new GitRepository(workingDirectory)
+      repo = GitRepositoryAsync.open(workingDirectory)
       filePath = path.join(workingDirectory, 'file.txt')
 
     it "trigger a status-changed event when the new status differs from the last cached one", ->
       statusHandler = jasmine.createSpy("statusHandler")
       repo.onDidChangeStatus statusHandler
       fs.writeFileSync(filePath, '')
-      status = repo.getPathStatus(filePath)
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0]).toEqual {path: filePath, pathStatus: status}
 
-      fs.writeFileSync(filePath, 'abc')
-      status = repo.getPathStatus(filePath)
-      expect(statusHandler.callCount).toBe 1
+      waitsForPromise ->
+        repo.getPathStatus(filePath)
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        status = Git.Status.STATUS.WT_MODIFIED
+        expect(statusHandler.argsForCall[0][0]).toEqual {path: filePath, pathStatus: status}
+        fs.writeFileSync(filePath, 'abc')
+
+      waitsForPromise ->
+        status = repo.getPathStatus(filePath)
+
+      runs ->
+        expect(statusHandler.callCount).toBe 1
 
   xdescribe ".getDirectoryStatus(path)", ->
     [directoryPath, filePath] = []
