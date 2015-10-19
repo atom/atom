@@ -4,9 +4,13 @@ const Git = require('nodegit')
 const path = require('path')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 
+// Temporary requires
+// ==================
 // GitUtils is temporarily used for ::relativize only, because I don't want
 // to port it just yet. TODO: remove
 const GitUtils = require('git-utils')
+// Just using this for _.isEqual and _.object, we should impl our own here
+const _ = require('underscore-plus')
 
 module.exports = class GitRepositoryAsync {
   static open (path) {
@@ -75,7 +79,6 @@ module.exports = class GitRepositoryAsync {
     }).then((statuses) => {
       var cachedStatus = this.pathStatusCache[relativePath] || 0
       var status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
-      console.log('cachedStatus', cachedStatus, 'status', status)
       if (status !== cachedStatus) {
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
@@ -93,6 +96,7 @@ module.exports = class GitRepositoryAsync {
 
   getDirectoryStatus (directoryPath) {
     var relativePath = this._gitUtilsRepo.relativize(directoryPath)
+    // XXX _filterSBD already gets repoPromise
     return this.repoPromise.then((repo) => {
       return this._filterStatusesByDirectory(relativePath)
     }).then((statuses) => {
@@ -107,16 +111,43 @@ module.exports = class GitRepositoryAsync {
     })
   }
 
+  // Refreshes the git status. Note: the sync GitRepository class does this with
+  // a separate process, let's see if we can avoid that.
+  refreshStatus () {
+    // TODO add upstream, branch, and submodule tracking
+    return this.repoPromise.then((repo) => {
+      return repo.getStatus()
+    }).then((statuses) => {
+      // update the status cache
+      return Promise.all(statuses.map((status) => {
+        return [status.path(), status.statusBit()]
+      })).then((statusesByPath) => {
+        var newPathStatusCache = _.object(statusesByPath)
+        return Promise.resolve(newPathStatusCache)
+      })
+    }).then((newPathStatusCache) => {
+      if (!_.isEqual(this.pathStatusCache, newPathStatusCache)) {
+        this.emitter.emit('did-change-statuses')
+      }
+      this.pathStatusCache = newPathStatusCache
+      return Promise.resolve(newPathStatusCache)
+    })
+  }
+
   // Utility functions
   // =================
 
+  getCachedPathStatus (_path) {
+    return this.pathStatusCache[this._gitUtilsRepo.relativize(_path)]
+  }
+
   // TODO fix with bitwise ops
   isStatusNew (statusBit) {
-    return statusBit === Git.Status.STATUS.WT_NEW || statusBit === Git.Status.STATUS.INDEX_NEW
+    return Object.is(statusBit, Git.Status.STATUS.WT_NEW) || Object.is(statusBit, Git.Status.STATUS.INDEX_NEW)
   }
 
   isStatusModified (statusBit) {
-    return statusBit === Git.Status.STATUS.WT_MODIFIED || statusBit === Git.Status.STATUS.INDEX_MODIFIED
+    return Object.is(statusBit, Git.Status.STATUS.WT_MODIFIED) || Object.is(statusBit, Git.Status.STATUS.INDEX_MODIFIED)
   }
 
   _filterStatusesByPath (_path) {
@@ -126,7 +157,6 @@ module.exports = class GitRepositoryAsync {
       basePath = repo.workdir()
       return repo.getStatus()
     }).then((statuses) => {
-      console.log('statuses', statuses)
       return statuses.filter(function (status) {
         return _path === path.join(basePath, status.path())
       })

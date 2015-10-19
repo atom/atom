@@ -293,7 +293,6 @@ describe "GitRepositoryAsync", ->
 
       runs ->
         expect(onSuccess.callCount).toBe 1
-        console.log onSuccess.mostRecentCall.args
         expect(repo.isStatusModified(onSuccess.mostRecentCall)).toBe false
         fs.writeFileSync(filePath, 'abc')
 
@@ -304,12 +303,12 @@ describe "GitRepositoryAsync", ->
         expect(repo.isStatusModified(onSuccess2.argsForCall[0][0])).toBe true
 
 
-  xdescribe ".refreshStatus()", ->
+  describe ".refreshStatus()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new GitRepository(workingDirectory)
+      repo = GitRepositoryAsync.open(workingDirectory)
       modifiedPath = path.join(workingDirectory, 'file.txt')
       newPath = path.join(workingDirectory, 'untracked.txt')
       cleanPath = path.join(workingDirectory, 'other.txt')
@@ -320,13 +319,15 @@ describe "GitRepositoryAsync", ->
     it "returns status information for all new and modified files", ->
       fs.writeFileSync(modifiedPath, 'making this path modified')
       statusHandler = jasmine.createSpy('statusHandler')
+      onSuccess = jasmine.createSpy('onSuccess')
       repo.onDidChangeStatuses statusHandler
-      repo.refreshStatus()
-
-      waitsFor ->
-        statusHandler.callCount > 0
+      waitsForPromise ->
+        repo.refreshStatus().then(onSuccess)
 
       runs ->
+        # Callers will use the promise returned by refreshStatus, not the
+        # cache directly
+        expect(onSuccess.mostRecentCall.args[0]).toEqual(repo.pathStatusCache)
         expect(repo.getCachedPathStatus(cleanPath)).toBeUndefined()
         expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
         expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
