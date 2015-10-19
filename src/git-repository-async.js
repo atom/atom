@@ -39,20 +39,6 @@ module.exports = class GitRepositoryAsync {
     })
   }
 
-  _filterStatusesByPath (_path) {
-    // Surely I'm missing a built-in way to do this
-    var basePath = null
-    return this.repoPromise.then((repo) => {
-      basePath = repo.workdir()
-      return repo.getStatus()
-    }).then((statuses) => {
-      console.log('statuses', statuses)
-      return statuses.filter(function (status) {
-        return _path === path.join(basePath, status.path())
-      })
-    })
-  }
-
   isPathModified (_path) {
     return this._filterStatusesByPath(_path).then(function (statuses) {
       var ret = statuses.filter((status) => {
@@ -90,7 +76,7 @@ module.exports = class GitRepositoryAsync {
       var cachedStatus = this.pathStatusCache[relativePath] || 0
       var status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
       console.log('cachedStatus', cachedStatus, 'status', status)
-      if (status != cachedStatus) {
+      if (status !== cachedStatus) {
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
       this.pathStatusCache[relativePath] = status
@@ -98,6 +84,65 @@ module.exports = class GitRepositoryAsync {
     })
   }
 
+  // Get the status of a directory in the repository's working directory.
+  //
+  // * `directoryPath` The {String} path to check.
+  //
+  // Returns a promise resolving to a {Number} representing the status. This value can be passed to
+  // {::isStatusModified} or {::isStatusNew} to get more information.
+
+  getDirectoryStatus (directoryPath) {
+    var relativePath = this._gitUtilsRepo.relativize(directoryPath)
+    return this.repoPromise.then((repo) => {
+      return this._filterStatusesByDirectory(relativePath)
+    }).then((statuses) => {
+      return Promise.all(statuses.map(function (s) { return s.statusBit() })).then(function (bits) {
+        var ret = 0
+        var filteredBits = bits.filter(function (b) { return b > 0 })
+        if (filteredBits.length > 0) {
+          ret = filteredBits.pop()
+        }
+        return Promise.resolve(ret)
+      })
+    })
+  }
+
+  // Utility functions
+  // =================
+
+  // TODO fix with bitwise ops
+  isStatusNew (statusBit) {
+    return statusBit === Git.Status.STATUS.WT_NEW || statusBit === Git.Status.STATUS.INDEX_NEW
+  }
+
+  isStatusModified (statusBit) {
+    return statusBit === Git.Status.STATUS.WT_MODIFIED || statusBit === Git.Status.STATUS.INDEX_MODIFIED
+  }
+
+  _filterStatusesByPath (_path) {
+    // Surely I'm missing a built-in way to do this
+    var basePath = null
+    return this.repoPromise.then((repo) => {
+      basePath = repo.workdir()
+      return repo.getStatus()
+    }).then((statuses) => {
+      console.log('statuses', statuses)
+      return statuses.filter(function (status) {
+        return _path === path.join(basePath, status.path())
+      })
+    })
+  }
+
+  _filterStatusesByDirectory (directoryPath) {
+    return this.repoPromise.then(function (repo) {
+      return repo.getStatus()
+    }).then(function (statuses) {
+      var filtered = statuses.filter((status) => {
+        return status.path().indexOf(directoryPath) === 0
+      })
+      return Promise.resolve(filtered)
+    })
+  }
   // Event subscription
   // ==================
 

@@ -275,20 +275,34 @@ describe "GitRepositoryAsync", ->
       runs ->
         expect(statusHandler.callCount).toBe 1
 
-  xdescribe ".getDirectoryStatus(path)", ->
+  describe ".getDirectoryStatus(path)", ->
     [directoryPath, filePath] = []
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new GitRepository(workingDirectory)
+      repo = GitRepositoryAsync.open(workingDirectory)
       directoryPath = path.join(workingDirectory, 'dir')
       filePath = path.join(directoryPath, 'b.txt')
 
     it "gets the status based on the files inside the directory", ->
-      expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe false
-      fs.writeFileSync(filePath, 'abc')
-      repo.getPathStatus(filePath)
-      expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe true
+      onSuccess = jasmine.createSpy('onSuccess')
+      onSuccess2 = jasmine.createSpy('onSuccess2')
+
+      waitsForPromise ->
+        repo.getDirectoryStatus(directoryPath).then(onSuccess)
+
+      runs ->
+        expect(onSuccess.callCount).toBe 1
+        console.log onSuccess.mostRecentCall.args
+        expect(repo.isStatusModified(onSuccess.mostRecentCall)).toBe false
+        fs.writeFileSync(filePath, 'abc')
+
+      waitsForPromise ->
+        repo.getDirectoryStatus(directoryPath).then(onSuccess2)
+      runs ->
+        expect(onSuccess2.callCount).toBe 1
+        expect(repo.isStatusModified(onSuccess2.argsForCall[0][0])).toBe true
+
 
   xdescribe ".refreshStatus()", ->
     [newPath, modifiedPath, cleanPath, originalModifiedPathText] = []
