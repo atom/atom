@@ -1,8 +1,10 @@
 path = require 'path'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 fs = require 'fs-plus'
+CSON = require 'season'
 
 ServiceHub = require 'service-hub'
 Package = require './package'
@@ -26,15 +28,21 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
+  constructor: (params) ->
+    {
+      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
+      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry
+    } = params
+
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
-    unless safeMode
+    if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
+    @packagesCache = require('../package.json')?._atomPackages ? {}
     @loadedPackages = {}
     @activePackages = {}
     @packageStates = {}
@@ -42,6 +50,17 @@ class PackageManager
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
+
+  setContextMenuManager: (@contextMenuManager) ->
+
+  setMenuManager: (@menuManager) ->
+
+  setThemeManager: (@themeManager) ->
+
+  reset: ->
+    @serviceHub.clear()
+    @deactivatePackages()
+    @packageStates = {}
 
   ###
   Section: Event Subscription
@@ -185,7 +204,7 @@ class PackageManager
   #
   # Returns a {Boolean}.
   isPackageDisabled: (name) ->
-    _.include(atom.config.get('core.disabledPackages') ? [], name)
+    _.include(@config.get('core.disabledPackages') ? [], name)
 
   ###
   Section: Accessing active packages
@@ -269,7 +288,7 @@ class PackageManager
     packages = []
     for packagePath in @getAvailablePackagePaths()
       name = path.basename(packagePath)
-      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      metadata = @getLoadedPackage(name)?.metadata ? @loadPackageMetadata(packagePath, true)
       packages.push(metadata)
     packages
 
@@ -292,7 +311,7 @@ class PackageManager
     @packageDependencies
 
   hasAtomEngine: (packagePath) ->
-    metadata = Package.loadMetadata(packagePath, true)
+    metadata = @loadPackageMetadata(packagePath, true)
     metadata?.engines?.atom?
 
   unobserveDisabledPackages: ->
@@ -300,7 +319,7 @@ class PackageManager
     @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    @disabledPackagesSubscription ?= atom.config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
+    @disabledPackagesSubscription ?= @config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
       packagesToEnable = _.difference(oldValue, newValue)
       packagesToDisable = _.difference(newValue, oldValue)
 
@@ -313,7 +332,7 @@ class PackageManager
     @packagesWithKeymapsDisabledSubscription = null
 
   observePackagesWithKeymapsDisabled: ->
-    @packagesWithKeymapsDisabledSubscription ?= atom.config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
+    @packagesWithKeymapsDisabledSubscription ?= @config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
@@ -340,7 +359,7 @@ class PackageManager
       return pack if pack = @getLoadedPackage(name)
 
       try
-        metadata = Package.loadMetadata(packagePath) ? {}
+        metadata = @loadPackageMetadata(packagePath) ? {}
       catch error
         @handleMetadataError(error, packagePath)
         return null
@@ -350,10 +369,15 @@ class PackageManager
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
+      options = {
+        path: packagePath, metadata, packageManager: this, @config, @styleManager,
+        @commandRegistry, @keymapManager, @devMode, @notificationManager,
+        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
+      }
       if metadata.theme
-        pack = new ThemePackage(packagePath, metadata)
+        pack = new ThemePackage(options)
       else
-        pack = new Package(packagePath, metadata)
+        pack = new Package(options)
       pack.load()
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
@@ -392,7 +416,7 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    atom.config.transact =>
+    @config.transact =>
       for pack in packages
         promise = @activatePackage(pack.name)
         promises.push(promise) unless pack.hasActivationCommands()
@@ -423,7 +447,7 @@ class PackageManager
 
   # Deactivate all packages
   deactivatePackages: ->
-    atom.config.transact =>
+    @config.transact =>
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
@@ -443,7 +467,7 @@ class PackageManager
     detail = "#{error.message} in #{metadataPath}"
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
-    atom.notifications.addError(message, {stack, detail, dismissable: true})
+    @notificationManager.addError(message, {stack, detail, dismissable: true})
 
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->
@@ -456,3 +480,40 @@ class PackageManager
       [isSymLink, isDir] = values
       if not isSymLink and isDir
         fs.remove directory, ->
+
+  reloadActivePackageStyleSheets: ->
+    for pack in @getActivePackages() when pack.getType() isnt 'theme'
+      pack.reloadStylesheets?()
+    return
+
+  isBundledPackagePath: (packagePath) ->
+    if @devMode
+      return false unless @resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+
+    @resourcePathWithTrailingSlash ?= "#{@resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
+  loadPackageMetadata: (packagePath, ignoreErrors=false) ->
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = @packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+          @normalizePackageMetadata(metadata)
+        catch error
+          throw error unless ignoreErrors
+
+    metadata ?= {}
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
+
+    metadata
+
+  normalizePackageMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)
+      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')

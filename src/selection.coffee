@@ -14,7 +14,7 @@ class Selection extends Model
   initialScreenRange: null
   wordwise: false
 
-  constructor: ({@cursor, @marker, @editor, id}) ->
+  constructor: ({@cursor, @marker, @editor, id, @clipboard}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -611,7 +611,7 @@ class Selection extends Model
     startLevel = @editor.indentLevelForLine(precedingText)
 
     if maintainClipboard
-      {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
+      {text: clipboardText, metadata} = @clipboard.readWithMetadata()
       metadata ?= {}
       unless metadata.selections?
         metadata.selections = [{
@@ -624,9 +624,9 @@ class Selection extends Model
         indentBasis: startLevel,
         fullLine: fullLine
       })
-      atom.clipboard.write([clipboardText, selectionText].join("\n"), metadata)
+      @clipboard.write([clipboardText, selectionText].join("\n"), metadata)
     else
-      atom.clipboard.write(selectionText, {
+      @clipboard.write(selectionText, {
         indentBasis: startLevel,
         fullLine: fullLine
       })

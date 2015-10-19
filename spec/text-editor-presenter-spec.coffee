@@ -18,7 +18,7 @@ describe "TextEditorPresenter", ->
       spyOn(window, "clearInterval").andCallFake window.fakeClearInterval
 
       buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
-      editor = new TextEditor({buffer})
+      editor = atom.workspace.buildTextEditor({buffer})
       waitsForPromise -> buffer.load()
 
     afterEach ->
@@ -40,6 +40,7 @@ describe "TextEditorPresenter", ->
         verticalScrollbarWidth: 10
         scrollTop: 0
         scrollLeft: 0
+        config: atom.config
 
       presenter = new TextEditorPresenter(params)
       presenter.setLinesYardstick(new FakeLinesYardstick(editor, presenter))
@@ -724,6 +725,20 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollTop", ->
+        it "doesn't get stuck when repeatedly setting the same non-integer position in a scroll event listener", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
+          expect(presenter.getState().content.scrollTop).toBe(0)
+
+          presenter.onDidChangeScrollTop ->
+            presenter.setScrollTop(1.5)
+            presenter.getState() # trigger scroll update
+
+          presenter.setScrollTop(1.5)
+          presenter.getState() # trigger scroll update
+
+          expect(presenter.getScrollTop()).toBe(2)
+          expect(presenter.getRealScrollTop()).toBe(1.5)
+
         it "changes based on the scroll operation that was performed last", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
           expect(presenter.getState().content.scrollTop).toBe(0)
@@ -837,6 +852,20 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
+        it "doesn't get stuck when repeatedly setting the same non-integer position in a scroll event listener", ->
+          presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 10)
+          expect(presenter.getState().content.scrollLeft).toBe(0)
+
+          presenter.onDidChangeScrollLeft ->
+            presenter.setScrollLeft(1.5)
+            presenter.getState() # trigger scroll update
+
+          presenter.setScrollLeft(1.5)
+          presenter.getState() # trigger scroll update
+
+          expect(presenter.getScrollLeft()).toBe(2)
+          expect(presenter.getRealScrollLeft()).toBe(1.5)
+
         it "changes based on the scroll operation that was performed last", ->
           presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 10)
           expect(presenter.getState().content.scrollLeft).toBe(0)
@@ -1230,6 +1259,7 @@ describe "TextEditorPresenter", ->
             it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
               editor.setText("a line that wraps, ok")
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(16)
               marker = editor.markBufferRange([[0, 0], [0, 2]])
               editor.decorateMarker(marker, type: 'line', class: 'a')
@@ -2215,6 +2245,7 @@ describe "TextEditorPresenter", ->
             it "contains states for line numbers that are visible on screen", ->
               editor.foldBufferRow(4)
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(50)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 2)
 
@@ -2230,6 +2261,7 @@ describe "TextEditorPresenter", ->
             it "updates when the editor's content changes", ->
               editor.foldBufferRow(4)
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(50)
               presenter = buildPresenter(explicitHeight: 35, scrollTop: 30, tileSize: 2)
 
@@ -2260,6 +2292,7 @@ describe "TextEditorPresenter", ->
 
             it "correctly handles the first screen line being soft-wrapped", ->
               editor.setSoftWrapped(true)
+              editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(30)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 50, tileSize: 2)
 
@@ -2388,6 +2421,7 @@ describe "TextEditorPresenter", ->
               it "only applies line-number decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
                 editor.setText("a line that wraps, ok")
                 editor.setSoftWrapped(true)
+                editor.setDefaultCharWidth(1)
                 editor.setEditorWidthInChars(16)
                 marker = editor.markBufferRange([[0, 0], [0, 2]])
                 editor.decorateMarker(marker, type: 'line-number', class: 'a')
@@ -2827,7 +2861,7 @@ describe "TextEditorPresenter", ->
 
     performSetup = ->
       buffer = new TextBuffer
-      editor = new TextEditor({buffer})
+      editor = atom.workspace.buildTextEditor({buffer})
       editor.setEditorWidthInChars(80)
       presenterParams =
         model: editor

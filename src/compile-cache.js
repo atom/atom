@@ -158,6 +158,27 @@ require('source-map-support').install({
   }
 })
 
+var sourceMapPrepareStackTrace = Error.prepareStackTrace
+var prepareStackTrace = sourceMapPrepareStackTrace
+
+// Prevent coffee-script from reassigning Error.prepareStackTrace
+Object.defineProperty(Error, 'prepareStackTrace', {
+  get: function () { return prepareStackTrace },
+  set: function (newValue) {}
+})
+
+// Enable Grim to access the raw stack without reassigning Error.prepareStackTrace
+Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+  prepareStackTrace = getRawStack
+  var result = this.stack
+  prepareStackTrace = sourceMapPrepareStackTrace
+  return result
+}
+
+function getRawStack (_, stack) {
+  return stack
+}
+
 Object.keys(COMPILERS).forEach(function (extension) {
   var compiler = COMPILERS[extension]
 
