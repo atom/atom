@@ -61,7 +61,9 @@ setupAtomHome = (args) ->
   return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
-  atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+
+  AtomPortable.setPortable(atomHome) if not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome) and args.setPortable
+  atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall process.platform, process.env.ATOM_HOME, atomHome
   try
     atomHome = fs.realpathSync(atomHome)
 
@@ -107,6 +109,7 @@ parseCommandLine = ->
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
+  options.alias('p', 'set-portable').boolean('p').describe('p', 'Set portable mode.')
   options.string('socket-path')
 
   args = options.argv
@@ -132,6 +135,7 @@ parseCommandLine = ->
   profileStartup = args['profile-startup']
   urlsToOpen = []
   devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
+  setPortable = args['set-portable']
 
   if args['resource-path']
     devMode = true
@@ -161,6 +165,6 @@ parseCommandLine = ->
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
    version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
-   logFile, socketPath, profileStartup}
+   logFile, socketPath, profileStartup, setPortable}
 
 start()
