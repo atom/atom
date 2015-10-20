@@ -195,17 +195,25 @@ describe "GitRepositoryAsync", ->
       runs ->
         expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
-    xit "fires a status-changed event if the checkout completes successfully", ->
+    it "fires a did-change-status event if the checkout completes successfully", ->
       fs.writeFileSync(filePath, 'ch ch changes')
-      repo.getPathStatus(filePath)
       statusHandler = jasmine.createSpy('statusHandler')
-      repo.onDidChangeStatus statusHandler
-      repo.checkoutHead(filePath)
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler.argsForCall[0][0]).toEqual {path: filePath, pathStatus: 0}
 
-      repo.checkoutHead(filePath)
-      expect(statusHandler.callCount).toBe 1
+      waitsForPromise ->
+        repo.getPathStatus(filePath)
+      runs ->
+        repo.onDidChangeStatus statusHandler
+
+      waitsForPromise ->
+        repo.checkoutHead(filePath)
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler.argsForCall[0][0]).toEqual {path: filePath, pathStatus: 0}
+
+      waitsForPromise ->
+        repo.checkoutHead(filePath)
+      runs ->
+        expect(statusHandler.callCount).toBe 1
 
   xdescribe ".checkoutHeadForEditor(editor)", ->
     [filePath, editor] = []

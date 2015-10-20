@@ -84,6 +84,8 @@ module.exports = class GitRepositoryAsync {
       checkoutOptions.paths = [this._gitUtilsRepo.relativize(_path)]
       checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
       return Git.Checkout.head(repo, checkoutOptions)
+    }).then(() => {
+      return this.getPathStatus(_path)
     })
   }
 
