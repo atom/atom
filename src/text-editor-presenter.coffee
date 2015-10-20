@@ -982,6 +982,13 @@ class TextEditorPresenter
   getScrollWidth: ->
     @scrollWidth
 
+  getMaxScrollTop: ->
+    scrollHeight = @getScrollHeight()
+    clientHeight = @getClientHeight()
+    return 0 unless scrollHeight? and clientHeight?
+
+    scrollHeight - clientHeight
+
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
       oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
