@@ -215,12 +215,12 @@ describe "GitRepositoryAsync", ->
       runs ->
         expect(statusHandler.callCount).toBe 1
 
-  xdescribe ".checkoutHeadForEditor(editor)", ->
+  fdescribe ".checkoutHeadForEditor(editor)", ->
     [filePath, editor] = []
 
     beforeEach ->
       workingDirPath = copyRepository()
-      repo = new GitRepository(workingDirPath)
+      repo = repo = GitRepositoryAsync.open(workingDirPath)
       filePath = path.join(workingDirPath, 'a.txt')
       fs.writeFileSync(filePath, 'ch ch changes')
 
@@ -242,10 +242,11 @@ describe "GitRepositoryAsync", ->
       spyOn(atom, 'confirm')
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
-      repo.checkoutHeadForEditor(editor)
-
-      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
-      expect(atom.confirm).not.toHaveBeenCalled()
+      waitsForPromise ->
+        repo.checkoutHeadForEditor(editor)
+      runs ->
+        expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+        expect(atom.confirm).not.toHaveBeenCalled()
 
   xdescribe ".destroy()", ->
     it "throws an exception when any method is called after it is called", ->
