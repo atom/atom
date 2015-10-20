@@ -155,8 +155,6 @@ describe "GitRepositoryAsync", ->
 
 
   describe ".checkoutHead(path)", ->
-    # XXX this is failing sporadically with various errors around not finding the
-    # repo / files in the repo
     [filePath] = []
 
     beforeEach ->
