@@ -32,12 +32,11 @@ describe "apm test", ->
         expect(atomSpawn.mostRecentCall.args[1][2].indexOf('atom')).not.toBe -1
         expect(atomSpawn.mostRecentCall.args[1][2].indexOf('--dev')).not.toBe -1
         expect(atomSpawn.mostRecentCall.args[1][2].indexOf('--test')).not.toBe -1
-        expect(atomSpawn.mostRecentCall.args[1][2].indexOf('--spec-directory')).not.toBe -1
       else
         expect(atomSpawn.mostRecentCall.args[0]).toEqual 'atom'
         expect(atomSpawn.mostRecentCall.args[1][0]).toEqual '--dev'
         expect(atomSpawn.mostRecentCall.args[1][1]).toEqual '--test'
-        expect(atomSpawn.mostRecentCall.args[1][2]).toEqual "--spec-directory=#{specPath}"
+        expect(atomSpawn.mostRecentCall.args[1][2]).toEqual specPath
         expect(atomSpawn.mostRecentCall.args[2].streaming).toBeTruthy()
 
   describe 'returning', ->
