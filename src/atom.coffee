@@ -247,9 +247,7 @@ class Atom extends Model
       responseChannel = "check-portable-home-writable-response"
       ipc.on responseChannel, (response) ->
         ipc.removeAllListeners(responseChannel)
-        escapeMarkdown = (inputMessage) ->
-          inputMessage.split('\\').join('\\\\').split('.').join('\\.').split('-').join('\\-').split('+').join('\\+').split('_').join('\\_').split('#').join('\\#').split('!').join('\\!')
-        atom.notifications.addWarning("#{escapeMarkdown response.message}") if not response.writable
+        atom.notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
       ipc.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
