@@ -41,7 +41,7 @@ class Disable extends Command
       return
 
     keyPath = '*.core.disabledPackages'
-    disabledPackages = _.valueForKeyPath(settings, keyPath) or []
+    disabledPackages = _.valueForKeyPath(settings, keyPath) ? []
     result = _.union(disabledPackages, packageNames...)
     _.setValueForKeyPath(settings, keyPath, result)
 
