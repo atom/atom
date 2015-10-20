@@ -405,7 +405,7 @@ describe "GitRepositoryAsync", ->
       atom.project.getRepositories()[0].destroy()
       expect(-> editor.save()).not.toThrow()
 
-  xdescribe "when a project is deserialized", ->
+  describe "when a project is deserialized", ->
     [buffer, project2] = []
 
     afterEach ->
@@ -429,7 +429,10 @@ describe "GitRepositoryAsync", ->
         buffer.append('changes')
 
         statusHandler = jasmine.createSpy('statusHandler')
-        project2.getRepositories()[0].onDidChangeStatus statusHandler
+        project2.getRepositories()[0].async.onDidChangeStatus statusHandler
         buffer.save()
-        expect(statusHandler.callCount).toBe 1
-        expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}
+        waitsFor ->
+          statusHandler.callCount == 1
+        runs ->
+          expect(statusHandler.callCount).toBe 1
+          expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}
