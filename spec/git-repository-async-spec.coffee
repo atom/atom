@@ -182,13 +182,13 @@ describe "GitRepositoryAsync", ->
       # fail if it was rejected..
       waitsForPromise ->
         repo.checkoutHead(filePath)
-
       runs ->
         onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise ->
-          repo.isPathModified(filePath).then(onSuccess)
-        runs ->
-          expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
+
+      waitsForPromise ->
+        repo.isPathModified(filePath).then(onSuccess)
+      runs ->
+        expect(onSuccess.mostRecentCall.args[0]).toBeFalsy()
 
     it "restores the contents of the path to the original text", ->
       fs.writeFileSync(filePath, 'ch ch changes')
