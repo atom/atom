@@ -19,7 +19,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode, @atomHome} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
