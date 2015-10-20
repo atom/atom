@@ -215,7 +215,7 @@ describe "GitRepositoryAsync", ->
       runs ->
         expect(statusHandler.callCount).toBe 1
 
-  fdescribe ".checkoutHeadForEditor(editor)", ->
+  describe ".checkoutHeadForEditor(editor)", ->
     [filePath, editor] = []
 
     beforeEach ->
@@ -234,9 +234,10 @@ describe "GitRepositoryAsync", ->
       spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.OK()
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
-      repo.checkoutHeadForEditor(editor)
-
-      expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+      waitsForPromise ->
+        repo.checkoutHeadForEditor(editor)
+      runs ->
+        expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
     it "does not display a dialog when confirmation is disabled", ->
       spyOn(atom, 'confirm')
