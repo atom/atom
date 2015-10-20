@@ -332,7 +332,11 @@ describe "GitRepositoryAsync", ->
         expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
         expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
 
-  xdescribe "buffer events", ->
+  # This tests the async implementation's events directly, but ultimately I
+  # think we want users to just be able to subscribe to events on GitRepository
+  # and have them bubble up from async-land
+
+  describe "buffer events", ->
     [editor] = []
 
     beforeEach ->
@@ -345,32 +349,57 @@ describe "GitRepositoryAsync", ->
       editor.insertNewline()
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
+      repo = atom.project.getRepositories()[0]
+      repo.async.onDidChangeStatus statusHandler
       editor.save()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+      waitsFor ->
+        statusHandler.callCount == 1
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
 
     it "emits a status-changed event when a buffer is reloaded", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
+      atom.project.getRepositories()[0].async.onDidChangeStatus statusHandler
       editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
+      reloadHandler = jasmine.createSpy 'reloadHandler'
+
+      waitsFor ->
+        statusHandler.callCount == 1
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+        buffer = editor.getBuffer()
+        buffer.onDidReload(reloadHandler)
+        buffer.reload()
+
+      waitsFor ->
+        reloadHandler.callCount == 1
+      runs ->
+        expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
       statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
+      atom.project.getRepositories()[0].async.onDidChangeStatus statusHandler
       editor.getBuffer().emitter.emit 'did-change-path'
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
-      editor.getBuffer().emitter.emit 'did-change-path'
-      expect(statusHandler.callCount).toBe 1
+      waitsFor ->
+        statusHandler.callCount == 1
+      runs ->
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+
+      pathHandler = jasmine.createSpy('pathHandler')
+      buffer = editor.getBuffer()
+      buffer.onDidChangePath pathHandler
+      buffer.emitter.emit 'did-change-path'
+      waitsFor ->
+        pathHandler.callCount == 1
+      runs ->
+        expect(statusHandler.callCount).toBe 1
 
     it "stops listening to the buffer when the repository is destroyed (regression)", ->
       atom.project.getRepositories()[0].destroy()

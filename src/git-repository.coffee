@@ -76,7 +76,7 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
-    @async = GitRepositoryAsync.open(path)
+    @async = GitRepositoryAsync.open(path, options)
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
@@ -319,6 +319,9 @@ class GitRepository
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
+    # Trigger events emitted on the async repo as well
+    @async.getPathStatus(path)
+
     repo = @getRepo(path)
     relativePath = @relativize(path)
     currentPathStatus = @statuses[relativePath] ? 0
@@ -479,6 +482,7 @@ class GitRepository
   # Refreshes the current git status in an outside process and asynchronously
   # updates the relevant properties.
   refreshStatus: ->
+    @async.refreshStatus()
     @handlerPath ?= require.resolve('./repository-status-handler')
 
     @statusTask?.terminate()

@@ -13,18 +13,35 @@ const GitUtils = require('git-utils')
 const _ = require('underscore-plus')
 
 module.exports = class GitRepositoryAsync {
-  static open (path) {
+  static open (path, options = {}) {
     // QUESTION: Should this wrap Git.Repository and reject with a nicer message?
-    return new GitRepositoryAsync(path)
+    return new GitRepositoryAsync(path, options)
   }
 
-  constructor (path) {
+  constructor (path, options) {
     this.repo = null
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
     this._gitUtilsRepo = GitUtils.open(path) // TODO remove after porting ::relativize
     this.repoPromise = Git.Repository.open(path)
+
+    var {project, refreshOnWindowFocus} = options
+    this.project = project
+    if (refreshOnWindowFocus === undefined) {
+      refreshOnWindowFocus = true
+    }
+    if (refreshOnWindowFocus) {
+      // TODO
+    }
+
+    if (this.project) {
+      this.subscriptions.add(this.project.onDidAddBuffer((buffer) => {
+        this.subscribeToBuffer(buffer)
+      }))
+
+      this.project.getBuffers().forEach((buffer) => { this.subscribeToBuffer(buffer) })
+    }
   }
 
   destroy () {
@@ -73,6 +90,7 @@ module.exports = class GitRepositoryAsync {
   // Returns a Promise that resolves to the status bit of a given path if it has
   // one, otherwise 'current'.
   getPathStatus (_path) {
+    console.log('getting path status for', _path)
     var relativePath = this._gitUtilsRepo.relativize(_path)
     return this.repoPromise.then((repo) => {
       return this._filterStatusesByPath(_path)
@@ -80,6 +98,7 @@ module.exports = class GitRepositoryAsync {
       var cachedStatus = this.pathStatusCache[relativePath] || 0
       var status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
       if (status !== cachedStatus) {
+        console.log('async emitting', {path: _path, pathStatus: status})
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
       this.pathStatusCache[relativePath] = status
@@ -134,8 +153,37 @@ module.exports = class GitRepositoryAsync {
     })
   }
 
-  // Utility functions
-  // =================
+  // Section: Private
+  // ================
+
+  subscribeToBuffer (buffer) {
+    var getBufferPathStatus = () => {
+      var _path = buffer.getPath()
+      var bufferSubscriptions = new CompositeDisposable()
+
+      if (_path) {
+        // We don't need to do anything with this promise, we just want the
+        // emitted event side effect
+        this.getPathStatus(_path)
+      }
+
+      bufferSubscriptions.add(
+        buffer.onDidSave(getBufferPathStatus),
+        buffer.onDidReload(getBufferPathStatus),
+        buffer.onDidChangePath(getBufferPathStatus)
+      )
+
+      bufferSubscriptions.add(() => {
+        buffer.onDidDestroy(() => {
+          bufferSubscriptions.dispose()
+          this.subscriptions.remove(bufferSubscriptions)
+        })
+      })
+
+      this.subscriptions.add(bufferSubscriptions)
+      return
+    }
+  }
 
   getCachedPathStatus (_path) {
     return this.pathStatusCache[this._gitUtilsRepo.relativize(_path)]
