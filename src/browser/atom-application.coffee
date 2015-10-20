@@ -65,7 +65,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, timeout} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, timeout, @atomHome} = options
 
     @socketPath = null if options.test
 
@@ -89,16 +89,16 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, atomHome, newWindow, logFile, profileStartup, timeout}) ->
     if test
-      @runTests({headless: true, @resourcePath, executedFrom, pathsToOpen, logFile, timeout})
+      @runTests({headless: true, @resourcePath, executedFrom, pathsToOpen, logFile, timeout, atomHome})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
+      @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, atomHome, profileStartup})
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
+      @openUrl({urlToOpen, devMode, safeMode, atomHome}) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
+      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, atomHome, profileStartup})
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -164,6 +164,7 @@ class AtomApplication
     getLoadSettings = =>
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
+      atomHome: @focusedWindow()?.atomHome
 
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
@@ -359,8 +360,8 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :profileStartup - Boolean to control creating a profile of the startup time.
   #   :window - {AtomWindow} to open file paths in.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window}) ->
-    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window})
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, atomHome, profileStartup, window}) ->
+    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, atomHome, profileStartup, window})
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
@@ -372,7 +373,7 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
-  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
+  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, atomHome, windowDimensions, profileStartup, window}={}) ->
     locationsToOpen = (@locationForPathToOpen(pathToOpen, executedFrom) for pathToOpen in pathsToOpen)
     pathsToOpen = (locationToOpen.pathToOpen for locationToOpen in locationsToOpen)
 
@@ -402,7 +403,7 @@ class AtomApplication
 
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
+      openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, atomHome, windowDimensions, profileStartup})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -479,7 +480,7 @@ class AtomApplication
         packagePath = @packages.resolvePackagePath(packageName)
         windowInitializationScript = path.resolve(packagePath, pack.urlMain)
         windowDimensions = @focusedWindow()?.getDimensions()
-        new AtomWindow({windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions})
+        new AtomWindow({windowInitializationScript, @resourcePath, devMode, safeMode, atomHome, urlToOpen, windowDimensions})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
@@ -494,7 +495,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runTests: ({headless, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout}) ->
+  runTests: ({headless, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout, atomHome}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -524,7 +525,7 @@ class AtomApplication
     isSpec = true
     devMode = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, atomHome})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'
@@ -577,9 +578,9 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
+  promptForPathToOpen: (type, {devMode, safeMode, atomHome, window}) ->
     @promptForPath type, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, window})
+      @openPaths({pathsToOpen, devMode, safeMode, atomHome, window})
 
   promptForPath: (type, callback) ->
     properties =
