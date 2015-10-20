@@ -61,7 +61,7 @@ setupAtomHome = (args) ->
   return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
-  atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME)
+  atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
   try
     atomHome = fs.realpathSync(atomHome)
 
