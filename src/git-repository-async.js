@@ -90,7 +90,6 @@ module.exports = class GitRepositoryAsync {
   // Returns a Promise that resolves to the status bit of a given path if it has
   // one, otherwise 'current'.
   getPathStatus (_path) {
-    console.log('getting path status for', _path)
     var relativePath = this._gitUtilsRepo.relativize(_path)
     return this.repoPromise.then((repo) => {
       return this._filterStatusesByPath(_path)
@@ -98,7 +97,6 @@ module.exports = class GitRepositoryAsync {
       var cachedStatus = this.pathStatusCache[relativePath] || 0
       var status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
       if (status !== cachedStatus) {
-        console.log('async emitting', {path: _path, pathStatus: status})
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
       this.pathStatusCache[relativePath] = status
