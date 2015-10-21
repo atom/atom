@@ -1,4 +1,5 @@
-fs = require 'fs'
+fs = require 'fs-plus'
+wrench = require 'wrench'
 path = require 'path'
 temp = require 'temp'
 CSON = require 'season'
@@ -19,25 +20,34 @@ describe 'apm disable', ->
     CSON.writeFileSync configFilePath, '*':
       core:
         disabledPackages: [
-          "vim-mode"
-          "file-icons"
+          "test-module"
         ]
 
+    packagesPath = path.join(atomHome, 'packages')
+    packageSrcPath = path.join(__dirname, 'fixtures')
+    fs.makeTreeSync(packagesPath)
+    wrench.copyDirSyncRecursive(path.join(packageSrcPath, 'test-module'), path.join(packagesPath, 'test-module'))
+    wrench.copyDirSyncRecursive(path.join(packageSrcPath, 'test-module-two'), path.join(packagesPath, 'test-module-two'))
+    wrench.copyDirSyncRecursive(path.join(packageSrcPath, 'test-module-three'), path.join(packagesPath, 'test-module-three'))
+
     runs ->
-      apm.run(['disable', 'metrics', 'exception-reporting'], callback)
+      apm.run(['disable', 'test-module-two', 'not-installed', 'test-module-three'], callback)
 
     waitsFor 'waiting for disable to complete', ->
       callback.callCount > 0
 
     runs ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[0][0]).toMatch /Not Installed:\s*not-installed/
+      expect(console.log.argsForCall[1][0]).toMatch /Disabled:\s*test-module-two/
+
       config = CSON.readFileSync(configFilePath)
       expect(config).toEqual '*':
         core:
           disabledPackages: [
-            "vim-mode"
-            "file-icons"
-            "metrics"
-            "exception-reporting"
+            "test-module"
+            "test-module-two"
+            "test-module-three"
           ]
 
   it 'does nothing if a package is already disabled', ->
