@@ -117,6 +117,7 @@ class AtomEnvironment extends Model
   # Call .loadOrCreate instead
   constructor: (params={}) ->
     WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
+    PanelContainerElement = document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype
 
     {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
