@@ -35,7 +35,7 @@ Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com)
 
 ### Atom and Packages
 
-Atom is a large open source project - it's made up of over [200 repositories](https://github.com/atom).
+Atom is a large open source project—it's made up of over [200 repositories](https://github.com/atom).
 When you initially consider contributing to Atom, you might be unsure about which of those 200 repositories implements the functionality you want to change or report a bug for.
 This section should help you with that.
 
