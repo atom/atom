@@ -116,6 +116,8 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
+    WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
+
     {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
     @state = {version: @constructor.version}

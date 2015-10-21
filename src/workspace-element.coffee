@@ -1,8 +1,8 @@
-ipc = require 'ipc'
-path = require 'path'
+ipc = null
+scrollbarStyle = null
+path = null
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
-scrollbarStyle = require 'scrollbar-style'
 
 module.exports =
 class WorkspaceElement extends HTMLElement
@@ -28,6 +28,7 @@ class WorkspaceElement extends HTMLElement
     @appendChild(@horizontalAxis)
 
   observeScrollbarStyle: ->
+    scrollbarStyle ?= require 'scrollbar-style'
     @subscriptions.add scrollbarStyle.observePreferredScrollbarStyle (style) =>
       switch style
         when 'legacy'
@@ -104,6 +105,6 @@ class WorkspaceElement extends HTMLElement
       [projectPath] = @project.relativizePath(activePath)
     else
       [projectPath] = @project.getPaths()
+    ipc ?= require 'ipc'
+    path ?= require 'path'
     ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
-
-module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
