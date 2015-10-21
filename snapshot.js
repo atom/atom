@@ -1,7 +1,7 @@
 // The snapshot doesn't really know what process or global is. Thus, we should
 // pay attention not to use 'em.
 var process;
-var global;
+var global; // is global defined inside a v8 context? probably it is actually.
 
 function SnapshotModule(id, parent) {
   this.id = id;
