@@ -14,7 +14,7 @@ console.log = require 'nslog'
 start = ->
   args = parseCommandLine()
 
-  setupAtomHome(args)
+  setupAtomHome
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 
@@ -57,7 +57,7 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-setupAtomHome = (args) ->
+setupAtomHome = ->
   return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
