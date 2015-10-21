@@ -4,7 +4,6 @@ Path = require 'path'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-StylesElement = require './styles-element'
 
 ShadowStyleSheet = null
 
@@ -48,7 +47,7 @@ class TextEditorElement extends HTMLElement
       @createShadowRoot()
 
       @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-      @stylesElement = new StylesElement
+      @stylesElement = document.createElement("atom-styles")
       @stylesElement.initialize(@styles)
       @stylesElement.setAttribute('context', 'atom-text-editor')
 

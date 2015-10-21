@@ -1,5 +1,6 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 
+module.exports =
 class StylesElement extends HTMLElement
   subscriptions: null
   context: null
@@ -113,5 +114,3 @@ class StylesElement extends HTMLElement
 
       warning += "\nSee the upgrade guide for information on removing this warning."
       console.warn(warning)
-
-module.exports = StylesElement = document.registerElement 'atom-styles', prototype: StylesElement.prototype
