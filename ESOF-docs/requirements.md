@@ -9,27 +9,19 @@ Atom is the "hackable text-editor", it allows users to customize its GUI and add
 It's a text editor that provides the ability to create, edit and save text files. It also provides efficiency tools such as auto completion and language support.
 Atom provides a users the possibility to create new functionalities and their own themes. All of this can be shared with the community.
 These features make it a powerful tool to increase user productivity.
-# Specific requirements
-This section contains the main requirements of the system. It gives a detailed description of the system and the base features.
-![Customize](Resources/Files.png)
-#### Git integration
-##### Description
-The editor must display the current status of the git repository and line diffs.
-#### Reason
-User has on screen information about changes made since last commit.
-#### Use Case
-![Customize](Resources/GitIntegration.png)
 
 # Use Cases
-Name   | Use case number and name
--------|-------------------------
-Summary|
-Rationale|
-Users|
-Preconditions|
-Basic Course of Events|
-Alternative Paths|
-Postconditions|
+## Diagrams
+![main](Resources/Main.png)
+
+![files](Resources/Files.png)
+
+![customization](Resources/Customization.png)
+
+![text](Resources/Text.png)
+
+![git](Resources/GitIntegration.png)
+
 
 ## UC1
 Name   | UC1: Search and Replace
@@ -168,7 +160,7 @@ Alternative Paths|1. In step 1, the uses may choose to jump to the previous line
 Name   |UC13: Spell Correction
 -------|-------------------------
 Summary|Highlights misspelling and shows possible corrections regarding the language being written.
-Rationale|To implement a text editor the user must be able to acknowledge possible language errors or mispells. The user is also able to see a list of possible corrections, similar to what has been written.
+Rationale|To implement a text editor the user must be able to acknowledge possible language errors or misspells. The user is also able to see a list of possible corrections, similar to what has been written.
 Users|All users
 Preconditions|A file is loaded, being edited and has content.
 Basic Course of Events|1. The user specifies the positions where text is to be edited. <br> 2. The user indicates the software to add, remove or change one or more characters. <br> 3. In consequence of an error made by the user, the recently edited text contains a spelling error. <br> 4. The software will highlight all existing spelling errors. <br> 5. If the user wants to, the software will show a list of possible corrections, in which the user can select one solution to replace the previous error.
@@ -176,51 +168,78 @@ Postconditions|Either the spelling error is highlighted and the user is aware of
 Alternative Paths|1. If in step 4 the software highlights a spelling error to a different language than the one the user is writing, the user will change to the right language, and no false errors will be shown. <br> 2. If in step 4 the software highlights as an error some piece of code that the user wants as it is, the user will ignore the suggested corrections. The user can even tell the software not to highlight that piece of code as an error anymore. <br> 3. In step 5, the user may want to correct the misspelled piece of code with a solution that is not listed by the software.
 
 # System requirements
-Name   |Name and number of requirement
--------|------------------------------
-Summary|Brief description of the requirement
-Rationale|Description of the reason that the requirement is needed
-Requirements|The behavior that is required of the software
-References|Use cases and other requirements which are relevant to this one [testingRef](#uc1)
-
-Name   |SR1:Case sensitivity in search-and-replace
+## Functional requirements
+### FR1
+Name   |FR1:Case sensitivity in search-and-replace
 -------|------------------------------
 Summary|The  search-and-replace  feature  must  have  case  sensitivity  in both the search and the replacement.
 Rationale|A  user  will  often  search  for  a  word  that  is  part  of  a  sentence,title, heading or other kind of text that is not all-lowercase. The search-and-replace function needs to be aware of that, and give the user the option to ignore it.
 Requirements|When a user invokes the search-and-replace function the software must give the option to do a case-sensitive search.<br>By default, the search will match any text which has the same letter as the search term, even if the case if different. If the user indicates the search-and-replace is to be done with case-sensitivity turned on, then the software will only match text in the document where the case is identical to that of the search term.<br>When replacing text the case of the replacement text does not have to follow the same case style of the text to replace.
 References|[UC1](#uc1)
 
-Name   |SR2:Extensible platform
+### FR2
+Name   |FR2:Extensible platform
 -------|------------------------------
 Summary|To add functionality the software must be based on an extensible platform. The software is released with basic functionality and the user may choose to add functionalities as he desires.
 Requirements|The software must be prepared to add a functionality keeping software integrity.<br> All functionalities working before the addition of a new one must keep working.
 References|[UC3](#uc3) [UC4](#uc4)
 
-Name   |SR3:List of available functionalities
+### FR3
+Name   |FR3:List of available functionalities
 -------|------------------------------
 Summary|To add functionality the software must have a list of the functionalities available to install. <br>A list of functionalities installed is required so that the user can edit the options or uninstall the functionality.
 Requirements|The software must provide a way to list the functionalities both the ones installed and the ones that can be installed.<br> On the list of functionalities available to install the user must have the option to find more about the functionality and to install it.<br> On the list of functionalities installed the user must have the option to edit the options of each functionality listed or to uninstall it.
 References|[UC3](#uc3) [UC4](#uc4)
 
-Name   |SR4:GUI Theme manager
+### FR4
+Name   |FR4:GUI Theme manager
 -------|------------------------------
 Summary|To change current theme, add or remove themes the software must provide a way to manage the theme used to interact with the user.
 Requirements|The software must list the themes available for use identifying the one being used at the moment of the listing.<br> The software must list the themes available to add.
 References|[UC2](#uc2)
 
-Name   |SR5:Development Tools
+### FR5
+Name   |FR5:Development Tools
 -------|------------------------------
 Summary|To let the user create his own functionalities the software must offer development tools that the user uses to implement the desired functionality.
 Requirements|The software must have a set of development tools that are aimed at designing and implementing new functionalities, these tools must be complemented with documentation.
 References|[UC4](#uc4)
 
-Name   |SR6:Customizable Init Script
+### FR6
+Name   |FR6:Customizable Init Script
 -------|------------------------------
-Summary|To let the user change the way the software behaves everytime a new window is opened.
-Requirements|The software must have an editable Init Script file, which will be run after packages are loaded/activated and after the previous editor state has been restored, everytime a new window is opened.
+Summary|To let the user change the way the software behaves every time a new window is opened.
+Requirements|The software must have an editable Init Script file, which will be run after packages are loaded/activated and after the previous editor state has been restored, every time a new window is opened.
 References|[UC4](#uc4)
 
-Name   |SR7:Keyboard Shortcuts
+### FR7
+Name   |FR7:Keyboard Shortcuts
 -------|------------------------------
 Summary|To let the user speed up some routine or occasional tasks, minimizing the amount of time wasted, increasing the work efficiency.
-Requirements|The software must have a list of available keyboard shortcuts, and each of them must be linked to a specific task of the software. The list of available shortcuts must be available for the user to consult, and must be complemeted with related documentation as well.
+Requirements|The software must have a list of available keyboard shortcuts, and each of them must be linked to a specific task of the software. The list of available shortcuts must be available for the user to consult, and must be complemented with related documentation as well.
+
+## Non functional requirements
+### NFR1
+Name   |NFR1:Software initialization time
+-------|------------------------------
+Description|The software when running on recommended specifications must open in less than 2 seconds.
+
+### NFR2
+Name   |NFR2:Software is open source
+-------|------------------------------
+Description|The software's code is available to the general public for use and/or modification from its original design.
+
+### NFR3
+Name   |NFR3:Software response time
+-------|------------------------------
+Description|The software when running on recommended specifications must provide all functionalities with a short response time (instant from user prespective).
+
+### NFR4
+Name   |NFR4:Software platform compatibility
+-------|------------------------------
+Description|The software is compatible with OS X,Windows and Linux.
+
+### NFR5
+Name   |NFR5:Software is user friendly
+-------|------------------------------
+Description|The software interface with the user must be intuitive and self explanatory.
