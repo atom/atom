@@ -141,7 +141,7 @@
     } else {
       currentWindow.openDevTools()
       currentWindow.once('devtools-opened', function () {
-        setTimeout(profile, 100)
+        setTimeout(profile, 1000)
       })
     }
   }
