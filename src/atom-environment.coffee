@@ -50,6 +50,8 @@ PaneElement = require './pane-element'
 TextEditorElement = require './text-editor-element'
 {createGutterView} = require './gutter-component-helpers'
 
+hasRegisteredCustomElements = false
+
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
 # An instance of this class is always available as the `atom` global.
@@ -115,16 +117,22 @@ class AtomEnvironment extends Model
   Section: Construction and Destruction
   ###
 
+  registerCustomElements: ->
+    return if hasRegisteredCustomElements
+
+    WorkspaceElement = @document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
+    PanelContainerElement = @document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype
+    PanelElement = @document.registerElement 'atom-panel', prototype: PanelElement.prototype
+    PaneResizeHandleElement = @document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
+    PaneAxisElement = @document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype
+
+    hasRegisteredCustomElements = true
+
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
-    PanelContainerElement = document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype
-    PanelElement = document.registerElement 'atom-panel', prototype: PanelElement.prototype
-    PaneResizeHandleElement = document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
-    PaneAxisElement = document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype
-
     {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
+    @registerCustomElements()
     @state = {version: @constructor.version}
 
     @loadTime = null
