@@ -87,7 +87,7 @@ class AtomApplication
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
     else
-      @loadState() or @openPath(options)
+      @loadState(options) or @openPath(options)
 
   openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout}) ->
     if test
@@ -441,15 +441,15 @@ class AtomApplication
     if states.length > 0 or allowEmpty
       @storageFolder.store('application.json', states)
 
-  loadState: ->
+  loadState: (options) ->
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
-        @openWithOptions({
+        @openWithOptions(_.extend(options, {
           pathsToOpen: state.initialPaths
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
-        })
+        }))
       true
     else
       false
