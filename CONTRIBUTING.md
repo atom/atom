@@ -51,7 +51,7 @@ Here's a list of the big ones:
 
 * [atom/atom](https://github.com/atom/atom) - Atom Core! The core editor component is responsible for basic text editing (e.g. cursors, selections, scrolling), text indentation, wrapping, and folding, text rendering, editor rendering, file system operations (e.g. saving), and installation and auto-updating. You should also use this repository for feedback related to the [core API](https://atom.io/docs/api/latest/Notification) and for large, overarching design proposals.
 * [tree-view](https://github.com/atom/tree-view) - file and directory listing on the left of the UI.
-* [fuzzy-finder](https://github.com/atom/fuzzy-finder) - the quick file open chooser.
+* [fuzzy-finder](https://github.com/atom/fuzzy-finder) - the quick file opener.
 * [find-and-replace](https://github.com/atom/find-and-replace) - all search and replace functionality.
 * [tabs](https://github.com/atom/tabs) - the tabs for open editors at the top of the UI.
 * [status-bar](https://github.com/atom/status-bar) - the status bar at the bottom of the UI.
