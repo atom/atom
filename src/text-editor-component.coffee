@@ -1,8 +1,8 @@
+scrollbarStyle = null
+ipc = null
 _ = require 'underscore-plus'
-scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
-ipc = require 'ipc'
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
@@ -106,6 +106,8 @@ class TextEditorComponent
     @disposables.add @stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
     unless @themes.isInitialLoadComplete()
       @disposables.add @themes.onDidChangeActiveThemes @onAllThemesLoaded
+
+    scrollbarStyle ?= require 'scrollbar-style'
     @disposables.add scrollbarStyle.onDidChangePreferredScrollbarStyle @refreshScrollbars
 
     @disposables.add @views.pollDocument(@pollDOM)
@@ -270,6 +272,7 @@ class TextEditorComponent
         # This uses ipc.send instead of clipboard.writeText because
         # clipboard.writeText is a sync ipc call on Linux and that
         # will slow down selections.
+        ipc ?= require 'ipc'
         ipc.send('write-text-to-selection-clipboard', selectedText)
     @disposables.add @editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
