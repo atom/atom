@@ -1,5 +1,5 @@
-path = require 'path'
-fs = require 'fs-plus'
+path = null
+fs = null
 runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
@@ -27,6 +27,8 @@ symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
 module.exports =
 class CommandInstaller
   constructor: (@appVersion, @applicationDelegate) ->
+    path ?= require 'path'
+    fs ?= require 'fs-plus'
 
   getInstallDirectory: ->
     "/usr/local/bin"
