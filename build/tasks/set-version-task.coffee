@@ -27,10 +27,14 @@ module.exports = (grunt) ->
         return
 
       appDir = grunt.config.get('atom.appDir')
+      appName = grunt.config.get('atom.appName')
+      appFileName = grunt.config.get('atom.appFileName')
 
       # Replace version field of package.json.
       packageJsonPath = path.join(appDir, 'package.json')
       packageJson = require(packageJsonPath)
+      packageJson.name = appFileName
+      packageJson.productName = appName
       packageJson.version = version
       packageJsonString = JSON.stringify(packageJson)
       fs.writeFileSync(packageJsonPath, packageJsonString)
@@ -45,9 +49,9 @@ module.exports = (grunt) ->
 
         strings =
           CompanyName: 'GitHub, Inc.'
-          FileDescription: 'Atom'
+          FileDescription: appName
           LegalCopyright: 'Copyright (C) 2015 GitHub, Inc. All rights reserved'
-          ProductName: 'Atom'
+          ProductName: appName
           ProductVersion: version
 
         rcedit = require('rcedit')
