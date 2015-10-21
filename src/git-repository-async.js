@@ -1,5 +1,4 @@
 'use babel'
-const atom = window.atom
 
 const Git = require('nodegit')
 const path = require('path')
