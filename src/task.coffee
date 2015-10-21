@@ -1,5 +1,6 @@
+ChildProcess = null
+
 _ = require 'underscore-plus'
-ChildProcess = require 'child_process'
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 
@@ -64,6 +65,8 @@ class Task
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
   #   exports a single {Function} to execute.
   constructor: (taskPath) ->
+    ChildProcess ?= require 'child_process'
+
     @emitter = new Emitter
 
     compileCacheRequire = "require('#{require.resolve('./compile-cache')}')"

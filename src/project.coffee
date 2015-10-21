@@ -1,8 +1,8 @@
-path = require 'path'
-url = require 'url'
+path = null
+url = null
+fs = null
 
 _ = require 'underscore-plus'
-fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
 
@@ -22,6 +22,10 @@ class Project extends Model
   ###
 
   constructor: ({@notificationManager, packageManager, config}) ->
+    path ?= require 'path'
+    url ?= require 'url'
+    fs ?= require 'fs-plus'
+
     @emitter = new Emitter
     @buffers = []
     @paths = []

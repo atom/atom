@@ -1,5 +1,5 @@
-fs = require 'fs'
-{Directory} = require 'pathwatcher'
+fs = null
+Directory = null
 GitRepository = require './git-repository'
 
 # Returns the .gitdir path in the agnostic Git symlink .git file given, or
@@ -47,8 +47,10 @@ isValidGitDirectorySync = (directory) ->
 # Provider that conforms to the atom.repository-provider@0.1.0 service.
 module.exports =
 class GitRepositoryProvider
-
   constructor: (@project, @config) ->
+    fs ?= require 'fs'
+    Directory ?= (require 'pathwatcher').Directory
+
     # Keys are real paths that end in `.git`.
     # Values are the corresponding GitRepository objects.
     @pathToRepository = {}
