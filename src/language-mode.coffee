@@ -1,7 +1,7 @@
 {Range} = require 'text-buffer'
 _ = require 'underscore-plus'
-{OnigRegExp} = require 'oniguruma'
 ScopeDescriptor = require './scope-descriptor'
+OnigRegExp = null
 
 module.exports =
 class LanguageMode
@@ -10,6 +10,7 @@ class LanguageMode
   # editor - The {TextEditor} to associate with
   constructor: (@editor, @config) ->
     {@buffer} = @editor
+    OnigRegExp ?= (require 'oniguruma').OnigRegExp
 
   destroy: ->
 

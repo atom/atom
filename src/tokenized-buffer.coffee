@@ -1,7 +1,8 @@
 _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
-{ScopeSelector} = require 'first-mate'
+
+ScopeSelector = null
 Model = require './model'
 TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
@@ -35,6 +36,7 @@ class TokenizedBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     } = params
 
+    ScopeSelector ?= (require 'first-mate').ScopeSelector
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator({@grammarRegistry})

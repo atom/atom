@@ -1,5 +1,8 @@
+path = null
+TextMateScopeSelector = null
+Directory = null
+
 _ = require 'underscore-plus'
-path = require 'path'
 Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
@@ -8,8 +11,6 @@ DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
-TextMateScopeSelector = require('first-mate').ScopeSelector
-{Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
 
 # Essential: This class represents all essential editing state for a single
@@ -103,6 +104,10 @@ class TextEditor extends Model
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
     throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
+
+    path ?= require 'path'
+    TextMateScopeSelector ?= require('first-mate').ScopeSelector
+    Directory ?= (require "pathwatcher").Directory
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
