@@ -1,6 +1,5 @@
-require '../src/window'
-
 require 'jasmine-json'
+require '../src/window'
 require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
@@ -9,12 +8,9 @@ Grim = require 'grim'
 pathwatcher = require 'pathwatcher'
 FindParentDir = require 'find-parent-dir'
 
-{Point} = require 'text-buffer'
-Workspace = require '../src/workspace'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TokenizedBuffer = require '../src/tokenized-buffer'
-TextEditorComponent = require '../src/text-editor-component'
 clipboard = require '../src/safe-clipboard'
 
 jasmineStyle = document.createElement('style')

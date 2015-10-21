@@ -8,7 +8,6 @@ class PanelContainerElement extends HTMLElement
     throw new Error("Must pass a views parameter when initializing PanelContainerElements") unless @views?
 
     @subscriptions.add @model.onDidAddPanel(@panelAdded.bind(this))
-    @subscriptions.add @model.onDidRemovePanel(@panelRemoved.bind(this))
     @subscriptions.add @model.onDidDestroy(@destroyed.bind(this))
     @classList.add(@model.getLocation())
     this
@@ -33,9 +32,6 @@ class PanelContainerElement extends HTMLElement
       @hideAllPanelsExcept(panel)
       @subscriptions.add panel.onDidChangeVisible (visible) =>
         @hideAllPanelsExcept(panel) if visible
-
-  panelRemoved: ({panel, index}) ->
-    @removeChild(@views.getView(panel))
 
   destroyed: ->
     @subscriptions.dispose()

@@ -188,6 +188,8 @@ class AtomEnvironment extends Model
     @stylesElement = @styles.buildStylesElement()
     @document.head.appendChild(@stylesElement)
 
+    @applicationDelegate.disablePinchToZoom()
+
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
 

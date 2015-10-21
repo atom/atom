@@ -88,7 +88,7 @@ class AtomWindow
       hash: encodeURIComponent(JSON.stringify(loadSettings))
 
   getLoadSettings: ->
-    if @browserWindow.webContents?.loaded
+    if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
       hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
@@ -146,7 +146,9 @@ class AtomWindow
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
-    @browserWindow.webContents.on 'will-navigate', (event) -> event.preventDefault()
+    @browserWindow.webContents.on 'will-navigate', (event, url) =>
+      unless url is @browserWindow.webContents.getUrl()
+        event.preventDefault()
 
     @setupContextMenu()
 

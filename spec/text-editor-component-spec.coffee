@@ -3482,12 +3482,14 @@ describe "TextEditorComponent", ->
 
         editor.moveRight()
         nextAnimationFrame()
-        right = wrapperNode.pixelPositionForScreenPosition([0, 6]).left
+
+        margin = component.presenter.getHorizontalScrollMarginInPixels()
+        right = wrapperNode.pixelPositionForScreenPosition([0, 4]).left + margin
         expect(wrapperNode.getScrollRight()).toBeCloseTo right, 0
 
         editor.moveRight()
         nextAnimationFrame()
-        right = wrapperNode.pixelPositionForScreenPosition([0, 7]).left
+        right = wrapperNode.pixelPositionForScreenPosition([0, 5]).left + margin
         expect(wrapperNode.getScrollRight()).toBeCloseTo right, 0
 
       it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
@@ -3499,12 +3501,14 @@ describe "TextEditorComponent", ->
 
         editor.moveLeft()
         nextAnimationFrame()
-        left = wrapperNode.pixelPositionForScreenPosition([6, 59]).left
+
+        margin = component.presenter.getHorizontalScrollMarginInPixels()
+        left = wrapperNode.pixelPositionForScreenPosition([6, 61]).left - margin
         expect(wrapperNode.getScrollLeft()).toBeCloseTo left, 0
 
         editor.moveLeft()
         nextAnimationFrame()
-        left = wrapperNode.pixelPositionForScreenPosition([6, 58]).left
+        left = wrapperNode.pixelPositionForScreenPosition([6, 60]).left - margin
         expect(wrapperNode.getScrollLeft()).toBeCloseTo left, 0
 
       it "scrolls down when inserting lines makes the document longer than the editor's height", ->

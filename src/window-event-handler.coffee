@@ -30,7 +30,7 @@ class WindowEventHandler
 
     if process.platform in ['win32', 'linux']
       @subscriptions.add @atomEnvironment.commands.add @window,
-        '@window:toggle-menu-bar': @handleWindowToggleMenuBar
+        'window:toggle-menu-bar': @handleWindowToggleMenuBar
 
     @subscriptions.add @atomEnvironment.commands.add @document,
       'core:focus-next': @handleFocusNext
@@ -174,7 +174,7 @@ class WindowEventHandler
       detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
       @atomEnvironment.notifications.addInfo('Menu bar hidden', {detail})
 
-  handleLinkClick: (event) ->
+  handleLinkClick: (event) =>
     event.preventDefault()
     uri = event.currentTarget?.getAttribute('href')
     if uri and uri[0] isnt '#' and /^https?:\/\//.test(uri)

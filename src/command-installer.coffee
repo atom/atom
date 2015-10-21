@@ -44,7 +44,7 @@ class CommandInstaller
       if error?
         showErrorDialog(error)
       else
-        @installApmCommand true, (error) ->
+        @installApmCommand true, (error) =>
           if error?
             showErrorDialog(error)
           else

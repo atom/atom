@@ -32,6 +32,6 @@ class PanelElement extends HTMLElement
 
   destroyed: ->
     @subscriptions.dispose()
-    @parentNode?.removeChild(this)
+    @remove()
 
 module.exports = PanelElement = document.registerElement 'atom-panel', prototype: PanelElement.prototype

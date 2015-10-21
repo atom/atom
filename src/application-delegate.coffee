@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 ipc = require 'ipc'
 remote = require 'remote'
 shell = require 'shell'
+webFrame = require 'web-frame'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
@@ -163,3 +164,6 @@ class ApplicationDelegate
 
   openExternal: (url) ->
     shell.openExternal(url)
+
+  disablePinchToZoom: ->
+    webFrame.setZoomLevelLimits(1, 1)

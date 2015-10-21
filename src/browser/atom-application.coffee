@@ -91,7 +91,7 @@ class AtomApplication
 
   openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, atomHome, newWindow, logFile, profileStartup, timeout}) ->
     if test
-      @runTests({headless: true, @resourcePath, executedFrom, pathsToOpen, logFile, timeout, atomHome})
+      @runTests({headless: true, devMode, @resourcePath, executedFrom, pathsToOpen, logFile, timeout, atomHome})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, atomHome, profileStartup})
     else if urlsToOpen.length > 0
@@ -495,7 +495,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runTests: ({headless, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout, atomHome}) ->
+  runTests: ({headless, devMode, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout, atomHome}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -523,7 +523,6 @@ class AtomApplication
     legacyTestRunnerPath = @resolveLegacyTestRunnerPath()
     testRunnerPath = @resolveTestRunnerPath(testPaths[0])
     isSpec = true
-    devMode = true
     safeMode ?= false
     new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, atomHome})
 
