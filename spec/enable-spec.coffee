@@ -26,12 +26,16 @@ describe 'apm enable', ->
         ]
 
     runs ->
-      apm.run(['enable', 'vim-mode', 'file-icons'], callback)
+      apm.run(['enable', 'vim-mode', 'not-installed', 'file-icons'], callback)
 
     waitsFor 'waiting for enable to complete', ->
       callback.callCount > 0
 
     runs ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[0][0]).toMatch /Not Disabled:\s*not-installed/
+      expect(console.log.argsForCall[1][0]).toMatch /Enabled:\s*vim-mode/
+
       config = CSON.readFileSync(configFilePath)
       expect(config).toEqual '*':
         core:
@@ -60,6 +64,9 @@ describe 'apm enable', ->
       callback.callCount > 0
 
     runs ->
+      expect(console.log).toHaveBeenCalled()
+      expect(console.log.argsForCall[0][0]).toMatch /Not Disabled:\s*vim-mode/
+
       config = CSON.readFileSync(configFilePath)
       expect(config).toEqual '*':
         core:

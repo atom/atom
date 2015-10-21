@@ -23,11 +23,7 @@ class Enable extends Command
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
-
     packageNames = @packageNamesFromArgv(options.argv)
-    if packageNames.length is 0
-      callback("Please specify a package to enable")
-      return
 
     configFilePath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
     unless configFilePath
@@ -42,7 +38,19 @@ class Enable extends Command
 
     keyPath = '*.core.disabledPackages'
     disabledPackages = _.valueForKeyPath(settings, keyPath) ? []
-    result = _.without(disabledPackages, packageNames...)
+
+    errorPackages = _.difference(packageNames, disabledPackages)
+    if errorPackages.length > 0
+      console.log "Not Disabled:\n  #{errorPackages.join('\n  ')}"
+
+    # can't enable a package that isn't disabled
+    packageNames = _.difference(packageNames, errorPackages)
+
+    if packageNames.length is 0
+      callback("Please specify a package to enable")
+      return
+
+    result = _.difference(disabledPackages, packageNames)
     _.setValueForKeyPath(settings, keyPath, result)
 
     try
@@ -51,6 +59,6 @@ class Enable extends Command
       callback "Failed to save `#{configFilePath}`: #{error.message}"
       return
 
-    console.log "Enabled:\n  #{packageNames.join('\n  ')} "
+    console.log "Enabled:\n  #{packageNames.join('\n  ')}"
     @logSuccess()
     callback()
