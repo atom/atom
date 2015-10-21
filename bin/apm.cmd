@@ -1,5 +1,6 @@
 @IF EXIST "%~dp0\node.exe" (
-  "%~dp0\node.exe" "%~dp0/../lib/cli.js" %*
+  "%~dp0\node.exe" --harmony_collections "%~dp0/../lib/cli.js" %*
 ) ELSE (
-  node.exe "%~dp0/../lib/cli.js" %*
+  node.exe --harmony_collections "%~dp0/../lib/cli.js" %*
 )
+

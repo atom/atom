@@ -5,12 +5,8 @@ notifications:
     on_success: never
     on_failure: change
 
-env:
-  global:
-    - CXX=g++-4.8
-
 node_js:
-  - v4.2
+  - 0.10
 
 git:
   depth: 10
@@ -23,8 +19,5 @@ sudo: false
 
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
     packages:
       - libgnome-keyring-dev
-      - g++-4.8
