@@ -125,6 +125,7 @@ class AtomEnvironment extends Model
     PanelElement = @document.registerElement 'atom-panel', prototype: PanelElement.prototype
     PaneResizeHandleElement = @document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
     PaneAxisElement = @document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype
+    PaneElement = @document.registerElement 'atom-pane', prototype: PaneElement.prototype
 
     hasRegisteredCustomElements = true
 

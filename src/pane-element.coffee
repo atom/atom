@@ -1,6 +1,7 @@
-path = require 'path'
+path = null
 {CompositeDisposable} = require 'event-kit'
 
+module.exports =
 class PaneElement extends HTMLElement
   attached: false
 
@@ -84,6 +85,7 @@ class PaneElement extends HTMLElement
     itemView = @views.getView(item)
 
     if itemPath = item.getPath?()
+      path ?= require 'path'
       @dataset.activeItemName = path.basename(itemPath)
       @dataset.activeItemPath = itemPath
 
@@ -125,5 +127,3 @@ class PaneElement extends HTMLElement
 
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
-
-module.exports = PaneElement = document.registerElement 'atom-pane', prototype: PaneElement.prototype
