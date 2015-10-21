@@ -24,18 +24,9 @@ describe "the `grammars` global", ->
     atom.packages.deactivatePackages()
     atom.packages.unloadPackages()
 
-  describe "serialization", ->
-    it "remembers grammar overrides by path", ->
-      filePath = '/foo/bar/file.js'
-      expect(atom.grammars.selectGrammar(filePath).name).not.toBe 'Ruby'
-      atom.grammars.setGrammarOverrideForPath(filePath, 'source.ruby')
-      grammars2 = atom.deserializers.deserialize(atom.grammars.serialize())
-      grammars2.addGrammar(grammar) for grammar in atom.grammars.grammars when grammar isnt atom.grammars.nullGrammar
-      expect(grammars2.selectGrammar(filePath).name).toBe 'Ruby'
-
   describe ".selectGrammar(filePath)", ->
     it "always returns a grammar", ->
-      registry = new GrammarRegistry()
+      registry = new GrammarRegistry(config: atom.config)
       expect(registry.selectGrammar().scopeName).toBe 'text.plain.null-grammar'
 
     it "selects the text.plain grammar over the null grammar", ->

@@ -18,7 +18,7 @@ describe 'CompileCache', ->
     CompileCache.resetCacheStats()
 
     spyOn(Babel, 'transform').andReturn {code: 'the-babel-code'}
-    spyOn(CoffeeScript, 'compile').andReturn {js: 'the-coffee-code', v3SourceMap: {}}
+    spyOn(CoffeeScript, 'compile').andReturn {js: 'the-coffee-code', v3SourceMap: "{}"}
     spyOn(TypeScriptSimple::, 'compile').andReturn 'the-typescript-code'
     spyOn(CSONParser, 'parse').andReturn {the: 'cson-data'}
 

@@ -1,13 +1,20 @@
-Exec = require('child_process').exec
+_ = require "underscore-plus"
 path = require 'path'
+temp = require 'temp'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
-_ = require "underscore-plus"
-temp = require "temp"
+AtomEnvironment = require '../src/atom-environment'
 
-describe "the `atom` global", ->
+describe "AtomEnvironment", ->
   describe 'window sizing methods', ->
     describe '::getPosition and ::setPosition', ->
+      originalPosition = null
+      beforeEach ->
+        originalPosition = atom.getPosition()
+
+      afterEach ->
+        atom.setPosition(originalPosition.x, originalPosition.y)
+
       it 'sets the position of the window, and can retrieve the position just set', ->
         atom.setPosition(22, 45)
         expect(atom.getPosition()).toEqual x: 22, y: 45
@@ -31,28 +38,8 @@ describe "the `atom` global", ->
       version = '36b5518'
       expect(atom.isReleasedVersion()).toBe false
 
-  describe "when an update becomes available", ->
-    subscription = null
-
-    afterEach ->
-      subscription?.dispose()
-
-    it "invokes onUpdateAvailable listeners", ->
-      updateAvailableHandler = jasmine.createSpy("update-available-handler")
-      subscription = atom.onUpdateAvailable updateAvailableHandler
-
-      autoUpdater = require('remote').require('auto-updater')
-      autoUpdater.emit 'update-downloaded', null, "notes", "version"
-
-      waitsFor ->
-        updateAvailableHandler.callCount > 0
-
-      runs ->
-        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
-        expect(releaseVersion).toBe 'version'
-
   describe "loading default config", ->
-    it 'loads the default core config', ->
+    it 'loads the default core config schema', ->
       expect(atom.config.get('core.excludeVcsIgnoredPaths')).toBe true
       expect(atom.config.get('core.followSymlinks')).toBe true
       expect(atom.config.get('editor.showInvisibles')).toBe false
@@ -139,7 +126,7 @@ describe "the `atom` global", ->
         expect(result).toBe false
         expect(errors.length).toBe 1
         expect(errors[0].message).toBe "Assertion failed: a == b"
-        expect(errors[0].stack).toContain('atom-spec')
+        expect(errors[0].stack).toContain('atom-environment-spec')
 
       describe "if passed a callback function", ->
         it "calls the callback with the assertion failure's error object", ->
@@ -154,30 +141,34 @@ describe "the `atom` global", ->
         expect(errors).toEqual []
 
   describe "saving and loading", ->
-    afterEach -> atom.mode = "spec"
+    beforeEach ->
+      atom.enablePersistence = true
+
+    afterEach ->
+      atom.enablePersistence = false
 
     it "selects the state based on the current project paths", ->
-      Atom = atom.constructor
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
-      loadSettings = _.extend Atom.getLoadSettings(),
+      loadSettings = _.extend atom.getLoadSettings(),
         initialPaths: [dir1]
         windowState: null
 
-      spyOn(Atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(Atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
+      spyOn(atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
 
-      atom.mode = "editor"
       atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
-      atom.saveSync.originalValue.call(atom)
+      atom.saveStateSync()
 
-      atom1 = Atom.loadOrCreate("editor")
-      expect(atom1.state.stuff).toBeUndefined()
+      atom.state = {}
+      atom.loadStateSync()
+      expect(atom.state.stuff).toBeUndefined()
 
       loadSettings.initialPaths = [dir2, dir1]
-      atom2 = Atom.loadOrCreate("editor")
-      expect(atom2.state.stuff).toBe("cool")
+      atom.state = {}
+      atom.loadStateSync()
+      expect(atom.state.stuff).toBe("cool")
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -225,28 +216,92 @@ describe "the `atom` global", ->
 
   describe "::unloadEditorWindow()", ->
     it "saves the serialized state of the window so it can be deserialized after reload", ->
-      workspaceState = atom.workspace.serialize()
-      syntaxState = atom.grammars.serialize()
-      projectState = atom.project.serialize()
+      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
+      spyOn(atomEnvironment, 'saveStateSync')
 
-      atom.unloadEditorWindow()
+      workspaceState = atomEnvironment.workspace.serialize()
+      grammarsState = {grammarOverridesByPath: atomEnvironment.grammars.grammarOverridesByPath}
+      projectState = atomEnvironment.project.serialize()
 
-      expect(atom.state.workspace).toEqual workspaceState
-      expect(atom.state.grammars).toEqual syntaxState
-      expect(atom.state.project).toEqual projectState
-      expect(atom.saveSync).toHaveBeenCalled()
+      atomEnvironment.unloadEditorWindow()
 
-  describe "::removeEditorWindow()", ->
+      expect(atomEnvironment.state.workspace).toEqual workspaceState
+      expect(atomEnvironment.state.grammars).toEqual grammarsState
+      expect(atomEnvironment.state.project).toEqual projectState
+      expect(atomEnvironment.saveStateSync).toHaveBeenCalled()
+
+      atomEnvironment.destroy()
+
+  describe "::destroy()", ->
     it "unsubscribes from all buffers", ->
+      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
+
       waitsForPromise ->
-        atom.workspace.open("sample.js")
+        atomEnvironment.workspace.open("sample.js")
 
       runs ->
-        buffer = atom.workspace.getActivePaneItem().buffer
-        pane = atom.workspace.getActivePane()
+        buffer = atomEnvironment.workspace.getActivePaneItem().buffer
+        pane = atomEnvironment.workspace.getActivePane()
         pane.splitRight(copyActiveItem: true)
-        expect(atom.workspace.getTextEditors().length).toBe 2
+        expect(atomEnvironment.workspace.getTextEditors().length).toBe 2
 
-        atom.removeEditorWindow()
+        atomEnvironment.destroy()
 
         expect(buffer.getSubscriptionCount()).toBe 0
+
+  describe "::openLocations(locations) (called via IPC from browser process)", ->
+    beforeEach ->
+      spyOn(atom.workspace, 'open')
+      atom.project.setPaths([])
+
+    describe "when the opened path exists", ->
+      it "adds it to the project's paths", ->
+        pathToOpen = __filename
+        atom.openLocations([{pathToOpen}])
+        expect(atom.project.getPaths()[0]).toBe __dirname
+
+    describe "when the opened path does not exist but its parent directory does", ->
+      it "adds the parent directory to the project paths", ->
+        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
+        atom.openLocations([{pathToOpen}])
+        expect(atom.project.getPaths()[0]).toBe __dirname
+
+    describe "when the opened path is a file", ->
+      it "opens it in the workspace", ->
+        pathToOpen = __filename
+        atom.openLocations([{pathToOpen}])
+        expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
+
+    describe "when the opened path is a directory", ->
+      it "does not open it in the workspace", ->
+        pathToOpen = __dirname
+        atom.openLocations([{pathToOpen}])
+        expect(atom.workspace.open.callCount).toBe 0
+
+    describe "when the opened path is a uri", ->
+      it "adds it to the project's paths as is", ->
+        pathToOpen = 'remote://server:7644/some/dir/path'
+        atom.openLocations([{pathToOpen}])
+        expect(atom.project.getPaths()[0]).toBe pathToOpen
+
+  describe "::updateAvailable(info) (called via IPC from browser process)", ->
+    subscription = null
+
+    afterEach ->
+      subscription?.dispose()
+
+    it "invokes onUpdateAvailable listeners", ->
+      atom.listenForUpdates()
+
+      updateAvailableHandler = jasmine.createSpy("update-available-handler")
+      subscription = atom.onUpdateAvailable updateAvailableHandler
+
+      autoUpdater = require('remote').require('auto-updater')
+      autoUpdater.emit 'update-downloaded', null, "notes", "version"
+
+      waitsFor ->
+        updateAvailableHandler.callCount > 0
+
+      runs ->
+        {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
+        expect(releaseVersion).toBe 'version'

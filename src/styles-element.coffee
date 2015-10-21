@@ -14,6 +14,7 @@ class StylesElement extends HTMLElement
     @emitter.on 'did-update-style-element', callback
 
   createdCallback: ->
+    @subscriptions = new CompositeDisposable
     @emitter = new Emitter
     @styleElementClonesByOriginalElement = new WeakMap
 
@@ -21,31 +22,29 @@ class StylesElement extends HTMLElement
     if @context is 'atom-text-editor'
       for styleElement in @children
         @upgradeDeprecatedSelectors(styleElement)
-    @initialize()
+
+    @context = @getAttribute('context') ? undefined
 
   detachedCallback: ->
     @subscriptions.dispose()
-    @subscriptions = null
+    @subscriptions = new CompositeDisposable
 
   attributeChangedCallback: (attrName, oldVal, newVal) ->
     @contextChanged() if attrName is 'context'
 
-  initialize: ->
-    return if @subscriptions?
+  initialize: (@styleManager) ->
+    throw new Error("Must pass a styleManager parameter when initializing a StylesElement") unless @styleManager?
 
-    @subscriptions = new CompositeDisposable
-    @context = @getAttribute('context') ? undefined
-
-    @subscriptions.add atom.styles.observeStyleElements(@styleElementAdded.bind(this))
-    @subscriptions.add atom.styles.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
-    @subscriptions.add atom.styles.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
+    @subscriptions.add @styleManager.observeStyleElements(@styleElementAdded.bind(this))
+    @subscriptions.add @styleManager.onDidRemoveStyleElement(@styleElementRemoved.bind(this))
+    @subscriptions.add @styleManager.onDidUpdateStyleElement(@styleElementUpdated.bind(this))
 
   contextChanged: ->
     return unless @subscriptions?
 
     @styleElementRemoved(child) for child in Array::slice.call(@children)
     @context = @getAttribute('context')
-    @styleElementAdded(styleElement) for styleElement in atom.styles.getStyleElements()
+    @styleElementAdded(styleElement) for styleElement in @styleManager.getStyleElements()
     return
 
   styleElementAdded: (styleElement) ->

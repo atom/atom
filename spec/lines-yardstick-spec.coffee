@@ -9,7 +9,7 @@ describe "LinesYardstick", ->
       atom.packages.activatePackage('language-javascript')
 
     waitsForPromise ->
-      atom.project.open('sample.js').then (o) -> editor = o
+      atom.workspace.open('sample.js').then (o) -> editor = o
 
     runs ->
       createdLineNodes = []
@@ -56,7 +56,7 @@ describe "LinesYardstick", ->
           textNodes
 
       editor.setLineHeightInPixels(14)
-      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider)
+      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider, atom.grammars)
 
   afterEach ->
     lineNode.remove() for lineNode in createdLineNodes
@@ -76,10 +76,10 @@ describe "LinesYardstick", ->
 
       expect(linesYardstick.pixelPositionForScreenPosition([0, 0])).toEqual({left: 0, top: 0})
       expect(linesYardstick.pixelPositionForScreenPosition([0, 1])).toEqual({left: 7, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).toEqual({left: 37.8046875, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 6])).toEqual({left: 43.20703125, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 9])).toEqual({left: 72.20703125, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, Infinity])).toEqual({left: 288.046875, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).toEqual({left: 37.78125, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 6])).toEqual({left: 43.171875, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 9])).toEqual({left: 72.171875, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([2, Infinity])).toEqual({left: 287.859375, top: 28})
 
     it "reuses already computed pixel positions unless it is invalidated", ->
       atom.styles.addStyleSheet """
@@ -105,9 +105,9 @@ describe "LinesYardstick", ->
 
       linesYardstick.invalidateCache()
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 24.00390625, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 72.01171875, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 120.01171875, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 24, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 72, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 120, top: 70})
 
     it "correctly handles RTL characters", ->
       atom.styles.addStyleSheet """
@@ -156,7 +156,7 @@ describe "LinesYardstick", ->
         expect(linesYardstick.screenPositionForPixelPosition({top: 32, left: 24.3})).toEqual([2, 3])
         expect(linesYardstick.screenPositionForPixelPosition({top: 46, left: 66.5})).toEqual([3, 9])
         expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 99.9})).toEqual([5, 14])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 224.4365234375})).toEqual([5, 29])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 224.2365234375})).toEqual([5, 29])
         expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 225})).toEqual([5, 30])
 
       it "clips pixel positions above buffer start", ->

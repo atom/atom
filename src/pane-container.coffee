@@ -7,45 +7,36 @@ ItemRegistry = require './item-registry'
 
 module.exports =
 class PaneContainer extends Model
-  atom.deserializers.add(this)
-
-  @version: 1
-
+  serializationVersion: 1
   root: null
   stoppedChangingActivePaneItemDelay: 100
   stoppedChangingActivePaneItemTimeout: null
 
-  @deserialize: (state) ->
-    container = Object.create(@prototype) # allows us to pass a self reference to our child before invoking constructor
-    state.root = atom.deserializers.deserialize(state.root, {container})
-    state.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
-    state.activePane = find state.root.getPanes(), (pane) -> pane.id is state.activePaneId
-    @call(container, state) # run constructor
-    container
-
   constructor: (params) ->
     super
 
-    @activePane = params?.activePane
-
+    {@config, applicationDelegate, notificationManager, deserializerManager} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
-
     @itemRegistry = new ItemRegistry
 
-    @setRoot(params?.root ? new Pane)
-    @setActivePane(@getPanes()[0]) unless @getActivePane()
-
-    @destroyEmptyPanes() if params?.destroyEmptyPanes
-
+    @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager}))
+    @setActivePane(@getRoot())
     @monitorActivePaneItem()
     @monitorPaneItems()
 
   serialize: (params) ->
     deserializer: 'PaneContainer'
-    version: @constructor.version
+    version: @serializationVersion
     root: @root?.serialize()
     activePaneId: @activePane.id
+
+  deserialize: (state, deserializerManager) ->
+    return unless state.version is @serializationVersion
+    @setRoot(deserializerManager.deserialize(state.root))
+    activePane = find @getRoot().getPanes(), (pane) -> pane.id is state.activePaneId
+    @setActivePane(activePane ? @getPanes()[0])
+    @destroyEmptyPanes() if @config.get('core.destroyEmptyPanes')
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn

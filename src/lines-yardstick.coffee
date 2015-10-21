@@ -3,8 +3,8 @@ TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @presenter, @lineNodesProvider) ->
-    @tokenIterator = new TokenIterator
+  constructor: (@model, @presenter, @lineNodesProvider, grammarRegistry) ->
+    @tokenIterator = new TokenIterator({grammarRegistry})
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
 
@@ -40,7 +40,7 @@ class LinesYardstick
     previousColumn = 0
     previousLeft = 0
 
-    @tokenIterator.reset(line)
+    @tokenIterator.reset(line, false)
     while @tokenIterator.next()
       text = @tokenIterator.getText()
       textIndex = 0
@@ -112,7 +112,7 @@ class LinesYardstick
     indexWithinTextNode = null
     charIndex = 0
 
-    @tokenIterator.reset(line)
+    @tokenIterator.reset(line, false)
     while @tokenIterator.next()
       break if foundIndexWithinTextNode?
 
