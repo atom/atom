@@ -14,7 +14,7 @@ console.log = require 'nslog'
 start = ->
   args = parseCommandLine()
 
-  setupAtomHome
+  setupAtomHome()
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 

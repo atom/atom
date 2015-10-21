@@ -1,5 +1,6 @@
 crypto = require 'crypto'
 path = require 'path'
+ipc = require 'ipc'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
