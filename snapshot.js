@@ -2,9 +2,8 @@
 Object.prototype.toString = function() {
   return "[object " + typeof this + "]";
 };
-var global = {};
 var cachedFunctions = {
-  "underscore": (function (exports, require, module, __filename, __dirname, process, global) {
+  "underscore": (function (exports, require, module, __filename, __dirname) {
         // Baseline setup
     // --------------
 
@@ -1615,7 +1614,7 @@ var cachedFunctions = {
   }
 
   }),
-  "underscore-plus": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  "underscore-plus": (function (exports, require, module, __filename, __dirname) { (function() {
   var isEqual, isPlainObject, macModifierKeyMap, nonMacModifierKeyMap, plus, shiftKeyMap, splitKeyPath, _,
     __slice = [].slice;
 
@@ -2140,11 +2139,6 @@ var cachedFunctions = {
 })
 };
 
-// The snapshot doesn't really know what process or global is. Thus, we should
-// pay attention not to use 'em.
-var process;
-var global; // is global defined inside a v8 context? probably it is actually.
-
 function SnapshotModule(id, parent) {
   this.id = id;
   this.exports = {};
@@ -2198,7 +2192,7 @@ SnapshotModule.prototype._compile = function(filename) {
   var dirname = "";
   // we need to make sure to not use process/global inside the code we run on the snapshot.
   // here we may probably shim it and re-assign it later, when node has loaded.
-  var args = [self.exports, require, self, filename, dirname, process, global];
+  var args = [self.exports, require, self, filename, dirname];
   return cachedFunctions[filename].apply(self.exports, args);
 };
 
