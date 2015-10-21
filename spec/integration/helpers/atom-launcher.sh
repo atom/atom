@@ -43,6 +43,5 @@ for arg in "$@"; do
 done
 
 echo "Launching Atom" >&2
-echo ${atom_path} ${atom_args[@]} ${atom_switches[@]} >&2
-
-exec ${atom_path} ${atom_args[@]} ${atom_switches[@]}
+echo "${atom_path}" ${atom_args[@]} ${atom_switches[@]} >&2
+exec "${atom_path}" ${atom_args[@]} ${atom_switches[@]}

@@ -7,13 +7,21 @@ DummyLineNode.className = 'line'
 DummyLineNode.style.position = 'absolute'
 DummyLineNode.style.visibility = 'hidden'
 DummyLineNode.appendChild(document.createElement('span'))
-DummyLineNode.firstChild.textContent = 'x'
+DummyLineNode.appendChild(document.createElement('span'))
+DummyLineNode.appendChild(document.createElement('span'))
+DummyLineNode.appendChild(document.createElement('span'))
+DummyLineNode.children[0].textContent = 'x'
+DummyLineNode.children[1].textContent = '我'
+DummyLineNode.children[2].textContent = 'ﾊ'
+DummyLineNode.children[3].textContent = '세'
+
+RangeForMeasurement = document.createRange()
 
 module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @hostElement, @useShadowDOM, visible, @domElementPool}) ->
+  constructor: ({@presenter, @useShadowDOM, @domElementPool, @assert, @grammars}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
@@ -54,6 +62,7 @@ class LinesComponent extends TiledComponent
         @placeholderTextDiv.classList.add('placeholder-text')
         @placeholderTextDiv.textContent = @newState.placeholderText
         @domNode.appendChild(@placeholderTextDiv)
+      @oldState.placeholderText = @newState.placeholderText
 
     if @newState.width isnt @oldState.width
       @domNode.style.width = @newState.width + 'px'
@@ -63,7 +72,7 @@ class LinesComponent extends TiledComponent
 
     @oldState.indentGuidesVisible = @newState.indentGuidesVisible
 
-  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool})
+  buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool, @assert, @grammars})
 
   buildEmptyState: ->
     {tiles: {}}
@@ -75,28 +84,23 @@ class LinesComponent extends TiledComponent
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)
+    textNode = DummyLineNode.firstChild.childNodes[0]
+
     lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
-    charWidth = DummyLineNode.firstChild.getBoundingClientRect().width
+    defaultCharWidth = DummyLineNode.children[0].getBoundingClientRect().width
+    doubleWidthCharWidth = DummyLineNode.children[1].getBoundingClientRect().width
+    halfWidthCharWidth = DummyLineNode.children[2].getBoundingClientRect().width
+    koreanCharWidth = DummyLineNode.children[3].getBoundingClientRect().width
+
     @domNode.removeChild(DummyLineNode)
 
     @presenter.setLineHeight(lineHeightInPixels)
-    @presenter.setBaseCharacterWidth(charWidth)
+    @presenter.setBaseCharacterWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
 
-  remeasureCharacterWidths: ->
-    return unless @presenter.baseCharacterWidth
+  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+    @getComponentForTile(tile)?.lineNodeForLineId(lineId)
 
-    @clearScopedCharWidths()
-    @measureCharactersInNewLines()
-
-  measureCharactersInNewLines: ->
-    @presenter.batchCharacterMeasurement =>
-      for id, component of @componentsByTileId
-        component.measureCharactersInNewLines()
-
-      return
-
-  clearScopedCharWidths: ->
-    for id, component of @componentsByTileId
-      component.clearMeasurements()
-
-    @presenter.clearScopedCharacterWidths()
+  textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+    @getComponentForTile(tile)?.textNodesForLineId(lineId)

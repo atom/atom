@@ -54,10 +54,7 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  atom.deserializers.add(this)
-
   callDisplayBufferCreatedHook: false
-  registerEditor: false
   buffer: null
   languageMode: null
   cursors: null
@@ -67,9 +64,9 @@ class TextEditor extends Model
   selectionFlashDuration: 500
   gutterContainer: null
 
-  @deserialize: (state) ->
+  @deserialize: (state, atomEnvironment) ->
     try
-      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer)
+      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer, atomEnvironment)
     catch error
       if error.syscall is 'read'
         return # Error reading the file, don't deserialize an editor for it
@@ -77,11 +74,35 @@ class TextEditor extends Model
         throw error
 
     state.displayBuffer = displayBuffer
-    state.registerEditor = true
+    state.config = atomEnvironment.config
+    state.notificationManager = atomEnvironment.notifications
+    state.packageManager = atomEnvironment.packages
+    state.clipboard = atomEnvironment.clipboard
+    state.viewRegistry = atomEnvironment.views
+    state.grammarRegistry = atomEnvironment.grammars
+    state.project = atomEnvironment.project
+    state.assert = atomEnvironment.assert.bind(atomEnvironment)
+    state.applicationDelegate = atomEnvironment.applicationDelegate
     new this(state)
 
-  constructor: ({@softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength, softWrapped, @displayBuffer, buffer, registerEditor, suppressCursorCreation, @mini, @placeholderText, lineNumberGutterVisible, largeFileMode}={}) ->
+  constructor: (params={}) ->
     super
+
+    {
+      @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
+      softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
+      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
+    } = params
+
+    throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
+    throw new Error("Must pass a notificationManager parameter when constructing TextEditors") unless @notificationManager?
+    throw new Error("Must pass a packageManager parameter when constructing TextEditors") unless @packageManager?
+    throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
+    throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
+    throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
+    throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
+    throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
@@ -89,7 +110,10 @@ class TextEditor extends Model
     @selections = []
 
     buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode})
+    @displayBuffer ?= new DisplayBuffer({
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode,
+      @config, @assert, @grammarRegistry, @packageManager
+    })
     @buffer = @displayBuffer.buffer
 
     for marker in @findMarkers(@getSelectionMarkerAttributes())
@@ -105,17 +129,15 @@ class TextEditor extends Model
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
 
-    @languageMode = new LanguageMode(this)
+    @languageMode = new LanguageMode(this, @config)
 
-    @setEncoding(atom.config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
+    @setEncoding(@config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
-
-    atom.workspace?.editorAdded(this) if registerEditor
 
   serialize: ->
     deserializer: 'TextEditor'
@@ -128,8 +150,8 @@ class TextEditor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @disposables.add @buffer.onDidChangePath =>
-      unless atom.project.getPaths().length > 0
-        atom.project.setPaths([path.dirname(@getPath())])
+      unless @project.getPaths().length > 0
+        @project.setPaths([path.dirname(@getPath())])
       @emitter.emit 'did-change-title', @getTitle()
       @emitter.emit 'did-change-path', @getPath()
     @disposables.add @buffer.onDidChangeEncoding =>
@@ -148,7 +170,7 @@ class TextEditor extends Model
 
   subscribeToTabTypeConfig: ->
     @tabTypeSubscription?.dispose()
-    @tabTypeSubscription = atom.config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
+    @tabTypeSubscription = @config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
       @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   destroyed: ->
@@ -429,12 +451,12 @@ class TextEditor extends Model
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
-    atom.views.getView(this).onDidChangeScrollTop(callback)
+    @viewRegistry.getView(this).onDidChangeScrollTop(callback)
 
   onDidChangeScrollLeft: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.")
 
-    atom.views.getView(this).onDidChangeScrollLeft(callback)
+    @viewRegistry.getView(this).onDidChangeScrollLeft(callback)
 
   onDidRequestAutoscroll: (callback) ->
     @displayBuffer.onDidRequestAutoscroll(callback)
@@ -456,7 +478,11 @@ class TextEditor extends Model
   copy: ->
     displayBuffer = @displayBuffer.copy()
     softTabs = @getSoftTabs()
-    newEditor = new TextEditor({@buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true, registerEditor: true})
+    newEditor = new TextEditor({
+      @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
+      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
+      @grammarRegistry, @project, @assert, @applicationDelegate
+    })
     for marker in @findMarkers(editorId: @id)
       marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
@@ -557,7 +583,7 @@ class TextEditor extends Model
   getLongTitle: ->
     if sessionPath = @getPath()
       fileName = path.basename(sessionPath)
-      directory = atom.project.relativize(path.dirname(sessionPath))
+      directory = @project.relativize(path.dirname(sessionPath))
       directory = if directory.length > 0 then directory else path.basename(path.dirname(sessionPath))
       "#{fileName} - #{directory}"
     else
@@ -585,7 +611,7 @@ class TextEditor extends Model
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: ->
     if filePath = @getPath()
-      atom.clipboard.write(filePath)
+      @clipboard.write(filePath)
 
   ###
   Section: File Operations
@@ -594,14 +620,14 @@ class TextEditor extends Model
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save(backup: atom.config.get('editor.backUpBeforeSaving'))
+  save: -> @buffer.save(backup: @config.get('editor.backUpBeforeSaving'))
 
   # Essential: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: atom.config.get('editor.backUpBeforeSaving'))
+  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: @config.get('editor.backUpBeforeSaving'))
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
@@ -617,9 +643,20 @@ class TextEditor extends Model
 
   checkoutHeadRevision: ->
     if filePath = this.getPath()
-      atom.project.repositoryForDirectory(new Directory(path.dirname(filePath)))
-        .then (repository) =>
-          repository?.checkoutHeadForEditor(this)
+      checkoutHead = =>
+        @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
+          .then (repository) =>
+            repository?.checkoutHeadForEditor(this)
+
+      if @config.get('editor.confirmCheckoutHeadRevision')
+        @applicationDelegate.confirm
+          message: 'Confirm Checkout HEAD Revision'
+          detailedMessage: "Are you sure you want to discard all changes to \"#{path.basename(filePath)}\" since the last Git commit?"
+          buttons:
+            OK: checkoutHead
+            Cancel: null
+      else
+        checkoutHead()
     else
       Promise.resolve(false)
 
@@ -748,7 +785,7 @@ class TextEditor extends Model
     return false unless @emitWillInsertTextEvent(text)
 
     groupingInterval = if options.groupUndo
-      atom.config.get('editor.undoGroupingInterval')
+      @config.get('editor.undoGroupingInterval')
     else
       0
 
@@ -1742,7 +1779,7 @@ class TextEditor extends Model
 
   # Add a cursor based on the given {Marker}.
   addCursor: (marker) ->
-    cursor = new Cursor(editor: this, marker: marker)
+    cursor = new Cursor(editor: this, marker: marker, config: @config)
     @cursors.push(cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
@@ -2225,7 +2262,7 @@ class TextEditor extends Model
     unless marker.getProperties().preserveFolds
       @destroyFoldsContainingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
-    selection = new Selection(_.extend({editor: this, marker, cursor}, options))
+    selection = new Selection(_.extend({editor: this, marker, cursor, @clipboard}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
@@ -2382,10 +2419,10 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}
   shouldUseSoftTabs: ({defaultValue}) ->
-    tabType = atom.config.get('editor.tabType', scope: @getRootScopeDescriptor())
+    tabType = @config.get('editor.tabType', scope: @getRootScopeDescriptor())
     switch tabType
       when 'auto'
-        @usesSoftTabs() ? defaultValue ? atom.config.get('editor.softTabs') ? true
+        @usesSoftTabs() ? defaultValue ? @config.get('editor.softTabs') ? true
       when 'hard'
         false
       when 'soft'
@@ -2561,7 +2598,7 @@ class TextEditor extends Model
     list = list.map (item) -> "* #{item}"
     content = "Scopes at Cursor\n#{list.join('\n')}"
 
-    atom.notifications.addInfo(content, dismissable: true)
+    @notificationManager.addInfo(content, dismissable: true)
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
@@ -2613,7 +2650,7 @@ class TextEditor extends Model
   #
   # * `options` (optional) See {Selection::insertText}.
   pasteText: (options={}) ->
-    {text: clipboardText, metadata} = atom.clipboard.readWithMetadata()
+    {text: clipboardText, metadata} = @clipboard.readWithMetadata()
     return false unless @emitWillInsertTextEvent(clipboardText)
 
     metadata ?= {}
@@ -2866,24 +2903,24 @@ class TextEditor extends Model
   scrollToTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-    atom.views.getView(this).scrollToTop()
+    @viewRegistry.getView(this).scrollToTop()
 
   scrollToBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-    atom.views.getView(this).scrollToBottom()
+    @viewRegistry.getView(this).scrollToBottom()
 
   scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
 
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
-    atom.views.getView(this).getHorizontalScrollbarHeight()
+    @viewRegistry.getView(this).getHorizontalScrollbarHeight()
 
   getVerticalScrollbarWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.")
 
-    atom.views.getView(this).getVerticalScrollbarWidth()
+    @viewRegistry.getView(this).getVerticalScrollbarWidth()
 
   pageUp: ->
     @moveUp(@getRowsPerPage())
@@ -2908,10 +2945,10 @@ class TextEditor extends Model
   ###
 
   shouldAutoIndent: ->
-    atom.config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
+    @config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
 
   shouldAutoIndentOnPaste: ->
-    atom.config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
+    @config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
 
   ###
   Section: Event Handlers
@@ -2950,19 +2987,19 @@ class TextEditor extends Model
 
   getFirstVisibleScreenRow: ->
     deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
-    atom.views.getView(this).getVisibleRowRange()[0]
+    @viewRegistry.getView(this).getVisibleRowRange()[0]
 
   getLastVisibleScreenRow: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
-    atom.views.getView(this).getVisibleRowRange()[1]
+    @viewRegistry.getView(this).getVisibleRowRange()[1]
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
-    atom.views.getView(this).pixelPositionForBufferPosition(bufferPosition)
+    @viewRegistry.getView(this).pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
-    atom.views.getView(this).pixelPositionForScreenPosition(screenPosition)
+    @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
     {type: 'selection', editorId: @id, invalidate: 'never', maintainHistory: true}
@@ -2976,24 +3013,22 @@ class TextEditor extends Model
   getLineHeightInPixels: -> @displayBuffer.getLineHeightInPixels()
   setLineHeightInPixels: (lineHeightInPixels) -> @displayBuffer.setLineHeightInPixels(lineHeightInPixels)
 
-  batchCharacterMeasurement: (fn) -> @displayBuffer.batchCharacterMeasurement(fn)
+  getKoreanCharWidth: -> @displayBuffer.getKoreanCharWidth()
 
-  getScopedCharWidth: (scopeNames, char) -> @displayBuffer.getScopedCharWidth(scopeNames, char)
-  setScopedCharWidth: (scopeNames, char, width) -> @displayBuffer.setScopedCharWidth(scopeNames, char, width)
+  getHalfWidthCharWidth: -> @displayBuffer.getHalfWidthCharWidth()
 
-  getScopedCharWidths: (scopeNames) -> @displayBuffer.getScopedCharWidths(scopeNames)
-
-  clearScopedCharWidths: -> @displayBuffer.clearScopedCharWidths()
+  getDoubleWidthCharWidth: -> @displayBuffer.getDoubleWidthCharWidth()
 
   getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
-  setDefaultCharWidth: (defaultCharWidth) -> @displayBuffer.setDefaultCharWidth(defaultCharWidth)
+  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) ->
+    @displayBuffer.setDefaultCharWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
 
   setHeight: (height, reentrant=false) ->
     if reentrant
       @displayBuffer.setHeight(height)
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
-      atom.views.getView(this).setHeight(height)
+      @viewRegistry.getView(this).setHeight(height)
 
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
@@ -3006,7 +3041,7 @@ class TextEditor extends Model
       @displayBuffer.setWidth(width)
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
-      atom.views.getView(this).setWidth(width)
+      @viewRegistry.getView(this).setWidth(width)
 
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
@@ -3021,77 +3056,77 @@ class TextEditor extends Model
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
 
-    atom.views.getView(this).getScrollTop()
+    @viewRegistry.getView(this).getScrollTop()
 
   setScrollTop: (scrollTop) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollTop instead.")
 
-    atom.views.getView(this).setScrollTop(scrollTop)
+    @viewRegistry.getView(this).setScrollTop(scrollTop)
 
   getScrollBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollBottom instead.")
 
-    atom.views.getView(this).getScrollBottom()
+    @viewRegistry.getView(this).getScrollBottom()
 
   setScrollBottom: (scrollBottom) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollBottom instead.")
 
-    atom.views.getView(this).setScrollBottom(scrollBottom)
+    @viewRegistry.getView(this).setScrollBottom(scrollBottom)
 
   getScrollLeft: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollLeft instead.")
 
-    atom.views.getView(this).getScrollLeft()
+    @viewRegistry.getView(this).getScrollLeft()
 
   setScrollLeft: (scrollLeft) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollLeft instead.")
 
-    atom.views.getView(this).setScrollLeft(scrollLeft)
+    @viewRegistry.getView(this).setScrollLeft(scrollLeft)
 
   getScrollRight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollRight instead.")
 
-    atom.views.getView(this).getScrollRight()
+    @viewRegistry.getView(this).getScrollRight()
 
   setScrollRight: (scrollRight) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollRight instead.")
 
-    atom.views.getView(this).setScrollRight(scrollRight)
+    @viewRegistry.getView(this).setScrollRight(scrollRight)
 
   getScrollHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollHeight instead.")
 
-    atom.views.getView(this).getScrollHeight()
+    @viewRegistry.getView(this).getScrollHeight()
 
   getScrollWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollWidth instead.")
 
-    atom.views.getView(this).getScrollWidth()
+    @viewRegistry.getView(this).getScrollWidth()
 
   getVisibleRowRange: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
 
-    atom.views.getView(this).getVisibleRowRange()
+    @viewRegistry.getView(this).getVisibleRowRange()
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
 
-    atom.views.getView(this).intersectsVisibleRowRange(startRow, endRow)
+    @viewRegistry.getView(this).intersectsVisibleRowRange(startRow, endRow)
 
   selectionIntersectsVisibleRowRange: (selection) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.")
 
-    atom.views.getView(this).selectionIntersectsVisibleRowRange(selection)
+    @viewRegistry.getView(this).selectionIntersectsVisibleRowRange(selection)
 
   screenPositionForPixelPosition: (pixelPosition) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.")
 
-    atom.views.getView(this).screenPositionForPixelPosition(pixelPosition)
+    @viewRegistry.getView(this).screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.")
 
-    atom.views.getView(this).pixelRectForScreenRange(screenRange)
+    @viewRegistry.getView(this).pixelRectForScreenRange(screenRange)
 
   ###
   Section: Utility

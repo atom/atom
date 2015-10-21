@@ -49,15 +49,15 @@ class ViewRegistry
   debouncedPerformDocumentPoll: null
   minimumPollInterval: 200
 
-  constructor: ->
+  constructor: (@atomEnvironment) ->
+    @observer = new MutationObserver(@requestDocumentPoll)
+    @clear()
+
+  clear: ->
     @views = new WeakMap
     @providers = []
-    @documentWriters = []
-    @documentReaders = []
-    @documentPollers = []
-
-    @observer = new MutationObserver(@requestDocumentPoll)
     @debouncedPerformDocumentPoll = _.throttle(@performDocumentPoll, @minimumPollInterval).bind(this)
+    @clearDocumentRequests()
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -159,7 +159,7 @@ class ViewRegistry
     else if object?.jquery
       object[0]
     else if provider = @findProvider(object)
-      element = provider.createView?(object)
+      element = provider.createView?(object, @atomEnvironment)
       unless element?
         element = new provider.viewConstructor
         element.initialize?(object) ? element.setModel?(object)

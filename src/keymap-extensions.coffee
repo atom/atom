@@ -20,6 +20,8 @@ KeymapManager::loadBundledKeymaps = ->
   @emitter.emit 'did-load-bundled-keymaps'
 
 KeymapManager::getUserKeymapPath = ->
+  return "" unless @configDirPath?
+
   if userKeymapPath = CSON.resolve(path.join(@configDirPath, 'keymap'))
     userKeymapPath
   else
@@ -41,11 +43,11 @@ KeymapManager::loadUserKeymap = ->
         [this document][watches] for more info.
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
       """
-      atom.notifications.addError(message, {dismissable: true})
+      @notificationManager.addError(message, {dismissable: true})
     else
       detail = error.path
       stack = error.stack
-      atom.notifications.addFatalError(error.message, {detail, stack, dismissable: true})
+      @notificationManager.addFatalError(error.message, {detail, stack, dismissable: true})
 
 KeymapManager::subscribeToFileReadFailure = ->
   @onDidFailToReadFile (error) =>
@@ -57,6 +59,6 @@ KeymapManager::subscribeToFileReadFailure = ->
     else
       error.message
 
-    atom.notifications.addError(message, {detail, dismissable: true})
+    @notificationManager.addError(message, {detail, dismissable: true})
 
 module.exports = KeymapManager
