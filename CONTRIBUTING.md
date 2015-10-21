@@ -12,8 +12,8 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
   * [Atom and Packages](#atom-and-packages)
 
 [How Can I Contribute?](#how-can-i-contribute)
-  * [Your First Contribution](#your-first-contribution)
   * [Submitting Issues](#submitting-issues)
+  * [Your First Code Contribution](#your-first-code-contribution)
   * [Pull Requests](#pull-requests)
 
 [Styleguides](#styleguides)
@@ -73,15 +73,6 @@ Each community package has its own repository too, and you should be able to fin
 
 ## How can I contribute?
 
-### Your First Contribution
-
-Unsure where to begin contributing to Atom? You can start by looking through these `beginner` and `help-wanted` issues:
-
-* [Beginner issues][beginner] - issues which should only require a few lines of code, and a test or two.
-* [Help wanted issues][help-wanted] - issues which should be a bit more involved than `beginner` issues.
-
-Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
-
 ### Submitting Issues
 
 * You can create an issue [here](https://github.com/atom/atom/issues/new), but
@@ -104,6 +95,15 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
   to see if a similar issue has already been submitted.
 * Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
   to make yourself recognizable and so we can all get to know each other better.
+
+### Your First Code Contribution
+
+Unsure where to begin contributing to Atom? You can start by looking through these `beginner` and `help-wanted` issues:
+
+* [Beginner issues][beginner] - issues which should only require a few lines of code, and a test or two.
+* [Help wanted issues][help-wanted] - issues which should be a bit more involved than `beginner` issues.
+
+Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
 
 ### Pull Requests
 
