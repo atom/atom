@@ -426,7 +426,8 @@ describe "GitRepositoryAsync", ->
         atom.workspace.open('file.txt')
 
       runs ->
-        project2 = atom.project.deserialize(atom.project.serialize(), atom.deserializers)
+        project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        project2.deserialize(atom.project.serialize(), atom.deserializers)
         buffer = project2.getBuffers()[0]
 
       waitsFor ->
