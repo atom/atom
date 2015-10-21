@@ -1,5 +1,5 @@
-fs = require 'fs-plus'
-path = require 'path'
+fs = null
+path = null
 {Emitter, Disposable} = require 'event-kit'
 
 # Extended: A singleton instance of this class available via `atom.styles`,
@@ -10,6 +10,9 @@ path = require 'path'
 module.exports =
 class StyleManager
   constructor: ({@configDirPath}) ->
+    fs ?= require 'fs-plus'
+    path ?= require 'path'
+
     @emitter = new Emitter
     @styleElements = []
     @styleElementsBySourcePath = {}
