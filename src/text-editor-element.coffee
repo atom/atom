@@ -1,5 +1,4 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
-Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
