@@ -1,10 +1,10 @@
-crypto = require 'crypto'
-path = require 'path'
+crypto = null
+path = null
+fs = null
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
-fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
@@ -133,6 +133,10 @@ class AtomEnvironment extends Model
   # Call .loadOrCreate instead
   constructor: (params={}) ->
     {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
+
+    crypto ?= require 'crypto'
+    path ?= require 'path'
+    fs ?= require 'fs-plus'
 
     @registerCustomElements()
     @state = {version: @constructor.version}
