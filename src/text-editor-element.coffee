@@ -210,6 +210,12 @@ class TextEditorElement extends HTMLElement
   getDefaultCharacterWidth: ->
     @getModel().getDefaultCharWidth()
 
+  # Extended: Get the maximum scroll top that can be applied to this element.
+  #
+  # Returns a {Number} of pixels.
+  getMaxScrollTop: ->
+    @component?.getMaxScrollTop()
+
   # Extended: Converts a buffer position to a pixel position.
   #
   # * `bufferPosition` An object that represents a buffer position. It can be either

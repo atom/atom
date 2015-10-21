@@ -3103,6 +3103,11 @@ class TextEditor extends Model
 
     @viewRegistry.getView(this).getScrollWidth()
 
+  getMaxScrollTop: ->
+    Grim.deprecate("This is now a view method. Call TextEditorElement::getMaxScrollTop instead.")
+
+    @viewRegistry.getView(this).getMaxScrollTop()
+
   getVisibleRowRange: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
 

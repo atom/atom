@@ -421,6 +421,9 @@ class TextEditorComponent
   getScrollWidth: ->
     @presenter.getScrollWidth()
 
+  getMaxScrollTop: ->
+    @presenter.getMaxScrollTop()
+
   getVerticalScrollbarWidth: ->
     @presenter.getVerticalScrollbarWidth()
 

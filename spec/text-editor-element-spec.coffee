@@ -236,6 +236,27 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
 
+  describe "::getMaxScrollTop", ->
+    it "returns the maximum scroll top that can be applied to the element", ->
+      editor = atom.workspace.buildTextEditor()
+      editor.setText('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16')
+      element = atom.views.getView(editor)
+      element.style.lineHeight = "10px"
+      element.style.width = "200px"
+
+      expect(element.getMaxScrollTop()).toBe(0)
+
+      jasmine.attachToDOM(element)
+
+      element.setHeight(100)
+      expect(element.getMaxScrollTop()).toBe(60)
+
+      element.setHeight(120)
+      expect(element.getMaxScrollTop()).toBe(40)
+
+      element.setHeight(200)
+      expect(element.getMaxScrollTop()).toBe(0)
+
   describe "on TextEditor::setMini", ->
     it "changes the element's 'mini' attribute", ->
       element = new TextEditorElement
