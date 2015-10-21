@@ -44,6 +44,7 @@ WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
 PanelElement = require './panel-element'
 PaneContainerElement = require './pane-container-element'
+PaneResizeHandleElement = require './pane-resize-handle-element'
 PaneAxisElement = require './pane-axis-element'
 PaneElement = require './pane-element'
 TextEditorElement = require './text-editor-element'
@@ -119,6 +120,8 @@ class AtomEnvironment extends Model
     WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
     PanelContainerElement = document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype
     PanelElement = document.registerElement 'atom-panel', prototype: PanelElement.prototype
+    PaneResizeHandleElement = document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
+    PaneAxisElement = document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype
 
     {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 

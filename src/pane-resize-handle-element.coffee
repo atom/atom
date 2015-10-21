@@ -1,3 +1,4 @@
+module.exports =
 class PaneResizeHandleElement extends HTMLElement
   createdCallback: ->
     @resizePane = @resizePane.bind(this)
@@ -63,6 +64,3 @@ class PaneResizeHandleElement extends HTMLElement
       topHeight = @fixInRange(topHeight, 0, totalHeight)
       bottomHeight = totalHeight - topHeight
       @setFlexGrow(topHeight, bottomHeight)
-
-module.exports = PaneResizeHandleElement =
-document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
