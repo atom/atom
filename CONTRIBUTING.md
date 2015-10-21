@@ -7,7 +7,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 
 #### Table Of Contents
 
-[What should I know before I get started?](#introduction)
+[What should I know before I get started?](#what-should-i-know-before-i-get-started)
   * [Code of Conduct](#code-of-conduct)
   * [Atom and Packages](#atom-and-packages)
 
