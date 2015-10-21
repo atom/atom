@@ -1,9 +1,12 @@
-path = require "path"
-fs = require "fs-plus"
+path = null
+fs = null
 
 module.exports =
 class StorageFolder
   constructor: (containingPath) ->
+    path ?= require "path"
+    fs ?= require "fs-plus"
+
     @path = path.join(containingPath, "storage") if containingPath?
 
   store: (name, object) ->
