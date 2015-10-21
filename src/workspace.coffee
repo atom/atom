@@ -1,8 +1,8 @@
+path = null
+fs = null
+
 _ = require 'underscore-plus'
-path = require 'path'
-{join} = path
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-fs = require 'fs-plus'
 DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
@@ -31,6 +31,9 @@ class Workspace extends Model
       @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
       @deserializerManager
     } = params
+
+    path ?= require 'path'
+    fs ?= require 'fs-plus'
 
     @emitter = new Emitter
     @openers = []
