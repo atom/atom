@@ -39,10 +39,13 @@ describe 'apm list', ->
     packagesPath = path.join(atomHome, 'packages')
     fs.makeTreeSync(packagesPath)
     wrench.copyDirSyncRecursive(path.join(__dirname, 'fixtures', 'test-module'), path.join(packagesPath, 'test-module'))
+    fs.mkdirSync(path.join(packagesPath, '.bin'))  # ensure invalid packages aren't listed
 
     listPackages ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[4][0]).toContain 'test-module@1.0.0'
+      allText = console.log.argsForCall.map((arr) -> arr.join(' ')).join('\n')
+      expect(allText).not.toContain '.bin'
 
   it 'labels disabled packages', ->
     packagesPath = path.join(atomHome, 'packages')

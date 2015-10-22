@@ -64,6 +64,7 @@ class List extends Command
     packages = []
     for child in fs.list(directoryPath)
       continue unless fs.isDirectorySync(path.join(directoryPath, child))
+      continue if child.match /^\./
       unless options.argv.links
         continue if fs.isSymbolicLinkSync(path.join(directoryPath, child))
 
