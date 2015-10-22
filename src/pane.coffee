@@ -525,7 +525,8 @@ class Pane extends Model
 
   # Public: Save all items.
   saveItems: ->
-    @saveItem(item) for item in @getItems()
+    for item in @getItems()
+      @saveItem(item) if item.isModified?()
     return
 
   # Public: Return the first item that matches the given URI or undefined if
