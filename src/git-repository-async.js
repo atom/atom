@@ -90,36 +90,19 @@ module.exports = class GitRepositoryAsync {
   }
 
   checkoutHeadForEditor (editor) {
-    var filePath = editor.getPath()
-    if (!filePath) {
-      return Promise.reject('editor.filePath() is empty')
-    }
-
-    var fileName = path.basename(filePath)
-    var checkoutHead = () => {
-      if (editor.buffer.isModified()) {
-        editor.buffer.reload()
-      }
-      return this.checkoutHead(filePath)
-    }
-
-    var confirmCheckout = function () {
-      // This is bad tho
-      return Promise.resolve(atom.confirm({
-        message: 'Confirm Checkout HEAD Revision',
-        detailedMessage: `Are you sure you want to discard all changes to "${fileName}" since the last Git commit?`,
-        buttons: {
-          OK: checkoutHead,
-          Cancel: null
+    return new Promise(function (resolve, reject) {
+      var filePath = editor.getPath()
+      if (filePath) {
+        if (editor.buffer.isModified()) {
+          editor.buffer.reload()
         }
-      }))
-    }
-
-    if (atom.config.get('editor.confirmCheckoutHeadRevision')) {
-      return confirmCheckout()
-    } else {
-      return checkoutHead()
-    }
+        resolve(filePath)
+      } else {
+        reject()
+      }
+    }).then((filePath) => {
+      return this.checkoutHead(filePath)
+    })
   }
 
   // Returns a Promise that resolves to the status bit of a given path if it has
