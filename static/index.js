@@ -1,5 +1,4 @@
 (function () {
-  var fs = require('fs-plus')
   var path = require('path')
   var FileSystemBlobStore = require('../src/file-system-blob-store')
   var NativeCompileCache = require('../src/native-compile-cache')
