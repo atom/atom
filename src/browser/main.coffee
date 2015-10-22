@@ -12,14 +12,13 @@ yargs = require 'yargs'
 console.log = require 'nslog'
 
 start = ->
-  setupAtomHome()
+  args = parseCommandLine()
+  setupAtomHome(args)
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
-
-  args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
@@ -57,7 +56,7 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-setupAtomHome = ->
+setupAtomHome = (args) ->
   return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
