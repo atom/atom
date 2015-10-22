@@ -1,9 +1,6 @@
 // We won't have access to es_natives.js here, so this means we have to provide
 // them ourselves. The best way we can overcome this is to avoid using such
 // functions wherever possible.
-
-// TODO: can we load a v8 context that has all these primitives and compile the
-// snapshot using that environment instead?
 //Object.prototype.toString = function() {
 //  return "[object " + typeof this + "]";
 //};
