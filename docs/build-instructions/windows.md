@@ -74,7 +74,7 @@ If none of this works, do install Github Desktop and use its Git shell. Makes li
   * If you're building Atom with Visual Studio 2013 or above make sure the `GYP_MSVS_VERSION` environment variable is set, and then re-run `script/build`:
 
     ```bash
-    GYP_MSVS_VERSION=2013 # 2015 if using Visual Studio 2015, and so on
+    $env:GYP_MSVS_VERSION='2013' # '2015' if using Visual Studio 2015, and so on
     script/build
     ```
   * If you are using Visual Studio 2013 or above and the build fails with some other error message this environment variable might still be required.
