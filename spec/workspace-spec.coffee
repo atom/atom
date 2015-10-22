@@ -293,6 +293,90 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane4
 
+      describe "when the 'split' option is 'up'", ->
+        it "opens the editor in the topmost pane of the current pane axis", ->
+          pane1 = workspace.getActivePane()
+          pane2 = pane1.splitDown()
+          expect(workspace.getActivePane()).toBe pane2
+
+          editor = null
+          waitsForPromise ->
+            workspace.open('a', split: 'up').then (o) -> editor = o
+
+          runs ->
+            expect(workspace.getActivePane()).toBe pane1
+            expect(pane1.items).toEqual [editor]
+            expect(pane2.items).toEqual []
+
+          # Focus bottom pane and reopen the file on the top
+          waitsForPromise ->
+            pane2.focus()
+            workspace.open('a', split: 'up').then (o) -> editor = o
+
+          runs ->
+            expect(workspace.getActivePane()).toBe pane1
+            expect(pane1.items).toEqual [editor]
+            expect(pane2.items).toEqual []
+
+      describe "when a pane axis is the topmost sibling of the current pane", ->
+        it "opens the new item in the current pane", ->
+          editor = null
+          pane1 = workspace.getActivePane()
+          pane2 = pane1.splitUp()
+          pane3 = pane2.splitRight()
+          pane1.activate()
+          expect(workspace.getActivePane()).toBe pane1
+
+          waitsForPromise ->
+            workspace.open('a', split: 'up').then (o) -> editor = o
+
+          runs ->
+            expect(workspace.getActivePane()).toBe pane1
+            expect(pane1.items).toEqual [editor]
+
+      describe "when the 'split' option is 'down'", ->
+        it "opens the editor in the bottommost pane of the current pane axis", ->
+          editor = null
+          pane1 = workspace.getActivePane()
+          pane2 = null
+          waitsForPromise ->
+            workspace.open('a', split: 'down').then (o) -> editor = o
+
+          runs ->
+            pane2 = workspace.getPanes().filter((p) -> p isnt pane1)[0]
+            expect(workspace.getActivePane()).toBe pane2
+            expect(pane1.items).toEqual []
+            expect(pane2.items).toEqual [editor]
+
+          # Focus bottom pane and reopen the file on the right
+          waitsForPromise ->
+            pane1.focus()
+            workspace.open('a', split: 'down').then (o) -> editor = o
+
+          runs ->
+            expect(workspace.getActivePane()).toBe pane2
+            expect(pane1.items).toEqual []
+            expect(pane2.items).toEqual [editor]
+
+        describe "when a pane axis is the bottommost sibling of the current pane", ->
+          it "opens the new item in a new pane split to the bottom of the current pane", ->
+            editor = null
+            pane1 = workspace.getActivePane()
+            pane2 = pane1.splitDown()
+            pane1.activate()
+            expect(workspace.getActivePane()).toBe pane1
+            pane4 = null
+
+            waitsForPromise ->
+              workspace.open('a', split: 'down').then (o) -> editor = o
+
+            runs ->
+              pane4 = workspace.getPanes().filter((p) -> p isnt pane1)[0]
+              expect(workspace.getActivePane()).toBe pane4
+              expect(pane4.items).toEqual [editor]
+              expect(workspace.paneContainer.root.children[0]).toBe pane1
+              expect(workspace.paneContainer.root.children[1]).toBe pane2
+
     describe "when an initialLine and initialColumn are specified", ->
       it "moves the cursor to the indicated location", ->
         waitsForPromise ->
