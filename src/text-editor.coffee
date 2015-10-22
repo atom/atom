@@ -646,7 +646,7 @@ class TextEditor extends Model
       checkoutHead = =>
         @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
           .then (repository) =>
-            repository?.checkoutHeadForEditor(this)
+            repository?.async.checkoutHeadForEditor(this)
 
       if @config.get('editor.confirmCheckoutHeadRevision')
         @applicationDelegate.confirm
