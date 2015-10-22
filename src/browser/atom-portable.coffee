@@ -14,9 +14,9 @@ class AtomPortable
     return false if not fs.existsSync(@getPortableAtomHomePath())
     # currently checking only that the directory exists  and is writable,
     # probably want to do some integrity checks on contents in future
-    @portableAtomHomePathWritable(defaultHome)
+    @isPortableAtomHomePathWritable(defaultHome)
 
-  @portableAtomHomePathWritable: (defaultHome) ->
+  @isPortableAtomHomePathWritable: (defaultHome) ->
     writable = false
     message = ""
     try
