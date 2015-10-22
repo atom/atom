@@ -13,7 +13,7 @@ StorageFolder = require './storage-folder'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
-DeserializerManager = require './deserializer-manager'
+DeserializerManager = __AtomEnvironment__.DeserializerManager
 ViewRegistry = require './view-registry'
 NotificationManager = require './notification-manager'
 Config = require './config'
