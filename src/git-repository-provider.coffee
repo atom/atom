@@ -25,7 +25,7 @@ findGitDirectorySync = (directory) ->
   gitDirPath = pathFromGitFile(gitDir.getPath?())
   if gitDirPath
     gitDir = new Directory(directory.resolve(gitDirPath))
-  if gitDir.existsSync?() and isValidGitDirectorySync gitDir
+  if gitDir.existsSync?() and isValidGitDirectorySync(gitDir) and not directory.getFile('.atomignore').existsSync()
     gitDir
   else if directory.isRoot()
     return null
