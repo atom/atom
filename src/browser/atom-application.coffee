@@ -16,14 +16,10 @@ net = require 'net'
 url = require 'url'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
+FindParentDir = null
+Resolve = null
 
 LocationSuffixRegExp = /(:\d+)(:\d+)?$/
-
-DefaultSocketPath =
-  if process.platform is 'win32'
-    '\\\\.\\pipe\\atom-sock'
-  else
-    path.join(os.tmpdir(), "atom-#{process.env.USER}.sock")
 
 # The application's singleton class.
 #
@@ -36,7 +32,11 @@ class AtomApplication
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
-    options.socketPath ?= DefaultSocketPath
+    unless options.socketPath?
+      if process.platform is 'win32'
+        options.socketPath = '\\\\.\\pipe\\atom-sock'
+      else
+        options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
     createAtomApplication = -> new AtomApplication(options)
 
@@ -65,7 +65,9 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, timeout} = options
+
+    @socketPath = null if options.test
 
     global.atomApplication = this
 
@@ -87,9 +89,9 @@ class AtomApplication
     else
       @loadState() or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory, logFile, profileStartup}) ->
+  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout}) ->
     if test
-      @runSpecs({exitWhenDone: true, @resourcePath, specDirectory, logFile})
+      @runTests({headless: true, devMode, @resourcePath, executedFrom, pathsToOpen, logFile, timeout})
     else if pathsToOpen.length > 0
       @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup})
     else if urlsToOpen.length > 0
@@ -132,6 +134,7 @@ class AtomApplication
   # the other launches will just pass their information to this server and then
   # close immediately.
   listenForArgumentsFromNewProcess: ->
+    return unless @socketPath?
     @deleteSocketFile()
     server = net.createServer (connection) =>
       connection.on 'data', (data) =>
@@ -141,7 +144,7 @@ class AtomApplication
     server.on 'error', (error) -> console.error 'Application server failed', error
 
   deleteSocketFile: ->
-    return if process.platform is 'win32'
+    return if process.platform is 'win32' or not @socketPath?
 
     if fs.existsSync(@socketPath)
       try
@@ -162,7 +165,6 @@ class AtomApplication
       devMode: @focusedWindow()?.devMode
       safeMode: @focusedWindow()?.safeMode
 
-    @on 'application:run-all-specs', -> @runSpecs(exitWhenDone: false, resourcePath: @devResourcePath, safeMode: @focusedWindow()?.safeMode)
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
@@ -217,11 +219,6 @@ class AtomApplication
       @killAllProcesses()
       @deleteSocketFile()
 
-    app.on 'will-exit', =>
-      @saveState(false)
-      @killAllProcesses()
-      @deleteSocketFile()
-
     app.on 'open-file', (event, pathToOpen) =>
       event.preventDefault()
       @openPath({pathToOpen})
@@ -252,8 +249,8 @@ class AtomApplication
       win = BrowserWindow.fromWebContents(event.sender)
       @applicationMenu.update(win, template, keystrokesByCommand)
 
-    ipc.on 'run-package-specs', (event, specDirectory) =>
-      @runSpecs({resourcePath: @devResourcePath, specDirectory: specDirectory, exitWhenDone: false})
+    ipc.on 'run-package-specs', (event, packageSpecPath) =>
+      @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -270,12 +267,18 @@ class AtomApplication
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
 
-    ipc.on 'cancel-window-close', =>
+    ipc.on 'did-cancel-window-unload', =>
       @quitting = false
 
     clipboard = require '../safe-clipboard'
     ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard.writeText(selectedText, 'selection')
+
+    ipc.on 'write-to-stdout', (event, output) ->
+      process.stdout.write(output)
+
+    ipc.on 'write-to-stderr', (event, output) ->
+      process.stderr.write(output)
 
   # Public: Executes the given command.
   #
@@ -394,12 +397,12 @@ class AtomApplication
     else
       if devMode
         try
-          bootstrapScript = require.resolve(path.join(@devResourcePath, 'src', 'window-bootstrap'))
+          windowInitializationScript = require.resolve(path.join(@devResourcePath, 'src', 'initialize-application-window'))
           resourcePath = @devResourcePath
 
-      bootstrapScript ?= require.resolve('../window-bootstrap')
+      windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
-      openedWindow = new AtomWindow({locationsToOpen, bootstrapScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
+      openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -474,9 +477,9 @@ class AtomApplication
     if pack?
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
-        bootstrapScript = path.resolve(packagePath, pack.urlMain)
+        windowInitializationScript = path.resolve(packagePath, pack.urlMain)
         windowDimensions = @focusedWindow()?.getDimensions()
-        new AtomWindow({bootstrapScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions})
+        new AtomWindow({windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
@@ -485,25 +488,63 @@ class AtomApplication
   # Opens up a new {AtomWindow} to run specs within.
   #
   # options -
-  #   :exitWhenDone - A Boolean that, if true, will close the window upon
+  #   :headless - A Boolean that, if true, will close the window upon
   #                   completion.
   #   :resourcePath - The path to include specs from.
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runSpecs: ({exitWhenDone, resourcePath, specDirectory, logFile, safeMode}) ->
+  runTests: ({headless, devMode, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
-    try
-      bootstrapScript = require.resolve(path.resolve(@devResourcePath, 'spec', 'spec-bootstrap'))
-    catch error
-      bootstrapScript = require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'spec-bootstrap'))
+    timeoutInSeconds = Number.parseFloat(timeout)
+    unless Number.isNaN(timeoutInSeconds)
+      timeoutHandler = ->
+        console.log "The test suite has timed out because it has been running for more than #{timeoutInSeconds} seconds."
+        process.exit(124) # Use the same exit code as the UNIX timeout util.
+      setTimeout(timeoutHandler, timeoutInSeconds * 1000)
 
+    try
+      windowInitializationScript = require.resolve(path.resolve(@devResourcePath, 'src', 'initialize-test-window'))
+    catch error
+      windowInitializationScript = require.resolve(path.resolve(__dirname, '..', '..', 'src', 'initialize-test-window'))
+
+    testPaths = []
+    if pathsToOpen?
+      for pathToOpen in pathsToOpen
+        testPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+
+    if testPaths.length is 0
+      process.stderr.write 'Error: Specify at least one test path\n\n'
+      process.exit(1)
+
+    legacyTestRunnerPath = @resolveLegacyTestRunnerPath()
+    testRunnerPath = @resolveTestRunnerPath(testPaths[0])
     isSpec = true
-    devMode = true
     safeMode ?= false
-    new AtomWindow({bootstrapScript, resourcePath, exitWhenDone, isSpec, devMode, specDirectory, logFile, safeMode})
+    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode})
+
+  resolveTestRunnerPath: (testPath) ->
+    FindParentDir ?= require 'find-parent-dir'
+
+    if packageRoot = FindParentDir.sync(testPath, 'package.json')
+      packageMetadata = require(path.join(packageRoot, 'package.json'))
+      if packageMetadata.atomTestRunner
+        Resolve ?= require('resolve')
+        if testRunnerPath = Resolve.sync(packageMetadata.atomTestRunner, basedir: packageRoot, extensions: Object.keys(require.extensions))
+          return testRunnerPath
+        else
+          process.stderr.write "Error: Could not resolve test runner path '#{packageMetadata.atomTestRunner}'"
+          process.exit(1)
+
+    @resolveLegacyTestRunnerPath()
+
+  resolveLegacyTestRunnerPath: ->
+    try
+      require.resolve(path.resolve(@devResourcePath, 'spec', 'jasmine-test-runner'))
+    catch error
+      require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'jasmine-test-runner'))
 
   locationForPathToOpen: (pathToOpen, executedFrom='') ->
     return {pathToOpen} unless pathToOpen

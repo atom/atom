@@ -1,51 +1,27 @@
-require '../src/window'
-atom.initialize()
-atom.restoreWindowDimensions()
-
 require 'jasmine-json'
+require '../src/window'
 require '../vendor/jasmine-jquery'
 path = require 'path'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 Grim = require 'grim'
-KeymapManager = require '../src/keymap-extensions'
+pathwatcher = require 'pathwatcher'
+FindParentDir = require 'find-parent-dir'
 
-Config = require '../src/config'
-{Point} = require 'text-buffer'
-Project = require '../src/project'
-Workspace = require '../src/workspace'
-ServiceHub = require 'service-hub'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TokenizedBuffer = require '../src/tokenized-buffer'
-TextEditorComponent = require '../src/text-editor-component'
-pathwatcher = require 'pathwatcher'
 clipboard = require '../src/safe-clipboard'
 
-atom.themes.loadBaseStylesheets()
-atom.themes.requireStylesheet '../static/jasmine'
-atom.themes.initialLoadComplete = true
+jasmineStyle = document.createElement('style')
+jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
+document.head.appendChild(jasmineStyle)
 
 fixturePackagesPath = path.resolve(__dirname, './fixtures/packages')
 atom.packages.packageDirPaths.unshift(fixturePackagesPath)
-atom.keymaps.loadBundledKeymaps()
-keyBindingsToRestore = atom.keymaps.getKeyBindings()
-commandsToRestore = atom.commands.getSnapshot()
-styleElementsToRestore = atom.styles.getSnapshot()
-
-window.addEventListener 'core:close', -> window.close()
-window.addEventListener 'beforeunload', ->
-  atom.storeWindowDimensions()
-  atom.saveSync()
 
 document.querySelector('html').style.overflow = 'auto'
 document.body.style.overflow = 'auto'
-
-# Allow document.title to be assigned in specs without screwing up spec window title
-documentTitle = null
-Object.defineProperty document, 'title',
-  get: -> documentTitle
-  set: (title) -> documentTitle = title
 
 Set.prototype.jasmineToString = ->
   result = "Set {"
@@ -73,45 +49,26 @@ if process.env.CI
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
-specPackageName = null
-specPackagePath = null
-specProjectPath = null
-isCoreSpec = false
+{resourcePath, testPaths} = atom.getLoadSettings()
 
-{specDirectory, resourcePath} = atom.getLoadSettings()
+if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
+  packageMetadata = require(path.join(specPackagePath, 'package.json'))
+  specPackageName = packageMetadata.name
 
-if specDirectory
-  specPackagePath = path.resolve(specDirectory, '..')
-  try
-    specPackageName = JSON.parse(fs.readFileSync(path.join(specPackagePath, 'package.json')))?.name
+if specDirectory = FindParentDir.sync(testPaths[0], 'fixtures')
   specProjectPath = path.join(specDirectory, 'fixtures')
-
-isCoreSpec = specDirectory is fs.realpathSync(__dirname)
+else
+  specProjectPath = path.join(__dirname, 'fixtures')
 
 beforeEach ->
   documentTitle = null
-  projectPath = specProjectPath ? path.join(@specDirectory, 'fixtures')
-  atom.packages.serviceHub = new ServiceHub
-  atom.project = new Project(paths: [projectPath])
-  atom.workspace = new Workspace()
-  atom.keymaps.keyBindings = _.clone(keyBindingsToRestore)
-  atom.commands.restoreSnapshot(commandsToRestore)
-  atom.styles.restoreSnapshot(styleElementsToRestore)
-  atom.views.clearDocumentRequests()
 
-  atom.workspaceParentSelectorctor = '#jasmine-content'
+  atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
   spyOn(_._, "now").andCallFake -> window.now
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
-
-  atom.packages.packageStates = {}
-
-  serializedWindowState = null
-
-  spyOn(atom, 'saveSync')
-  atom.grammars.clearGrammarOverrides()
 
   spy = spyOn(atom.packages, 'resolvePackagePath').andCallFake (packageName) ->
     if specPackageName and packageName is specPackageName
@@ -123,28 +80,20 @@ beforeEach ->
   # prevent specs from modifying Atom's menus
   spyOn(atom.menu, 'sendToBrowserProcess')
 
-  # reset config before each spec; don't load or save from/to `config.json`
-  spyOn(Config::, 'load')
-  spyOn(Config::, 'save')
-  config = new Config({resourcePath, configDirPath: atom.getConfigDirPath()})
-  atom.config = config
-  atom.loadConfig()
-  config.set "core.destroyEmptyPanes", false
-  config.set "editor.fontFamily", "Courier"
-  config.set "editor.fontSize", 16
-  config.set "editor.autoIndent", false
-  config.set "core.disabledPackages", ["package-that-throws-an-exception",
+  # reset config before each spec
+  atom.config.set "core.destroyEmptyPanes", false
+  atom.config.set "editor.fontFamily", "Courier"
+  atom.config.set "editor.fontSize", 16
+  atom.config.set "editor.autoIndent", false
+  atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  config.set "editor.useShadowDOM", true
+  atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
-  config.load.reset()
-  config.save.reset()
 
   # make editor display updates synchronous
   TextEditorElement::setUpdatedSynchronously(true)
 
-  spyOn(atom, "setRepresentedFilename")
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
@@ -159,25 +108,10 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.packages.deactivatePackages()
-  atom.menu.template = []
-  atom.contextMenu.clear()
-  atom.notifications.clear()
-
-  atom.workspace?.destroy()
-  atom.workspace = null
-  delete atom.state.workspace
-
-  atom.project?.destroy()
-  atom.project = null
-
-  atom.themes.removeStylesheet('global-editor-styles')
-
-  delete atom.state.packageStates
+  atom.reset()
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  jasmine.unspy(atom, 'saveSync')
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 

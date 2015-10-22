@@ -86,6 +86,7 @@ describe 'ModuleCache', ->
       exports.load = function() { require('underscore-plus'); };
     """
 
+    spyOn(process, 'cwd').andReturn('/') # Required when running this test from CLI
     packageMain = require(indexPath)
     Module._findPath.reset()
     expect(-> packageMain.load()).toThrow()

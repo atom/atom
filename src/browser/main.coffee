@@ -12,14 +12,14 @@ yargs = require 'yargs'
 console.log = require 'nslog'
 
 start = ->
-  args = parseCommandLine()
-
-  setupAtomHome(args)
+  setupAtomHome()
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
+
+  args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
@@ -57,7 +57,7 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-setupAtomHome = (args) ->
+setupAtomHome = ->
   return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
@@ -104,9 +104,9 @@ parseCommandLine = ->
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
-  options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which to run package specs (default: Atom\'s spec directory).')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
+  options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('p', 'set-portable').boolean('p').describe('p', 'Set portable mode.')
@@ -127,7 +127,7 @@ parseCommandLine = ->
   safeMode = args['safe']
   pathsToOpen = args._
   test = args['test']
-  specDirectory = args['spec-directory']
+  timeout = args['timeout']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
@@ -140,18 +140,9 @@ parseCommandLine = ->
   if args['resource-path']
     devMode = true
     resourcePath = args['resource-path']
-  else
-    # Set resourcePath based on the specDirectory if running specs on atom core
-    if specDirectory?
-      packageDirectoryPath = path.join(specDirectory, '..')
-      packageManifestPath = path.join(packageDirectoryPath, 'package.json')
-      if fs.statSyncNoException(packageManifestPath)
-        try
-          packageManifest = JSON.parse(fs.readFileSync(packageManifestPath))
-          resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
 
-    if devMode
-      resourcePath ?= devResourcePath
+  devMode = true if test
+  resourcePath ?= devResourcePath if devMode
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
@@ -164,7 +155,7 @@ parseCommandLine = ->
   devResourcePath = normalizeDriveLetterName(devResourcePath)
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
-   version, pidToKillWhenClosed, devMode, safeMode, newWindow, specDirectory,
-   logFile, socketPath, profileStartup, setPortable}
+   version, pidToKillWhenClosed, devMode, safeMode, newWindow,
+   logFile, socketPath, profileStartup, timeout, setPortable}
 
 start()

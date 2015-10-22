@@ -17,9 +17,9 @@ class AtomPortable
     return false if not fs.existsSync(@getPortableAtomHomePath())
     # currently checking only that the directory exists  and is writable,
     # probably want to do some integrity checks on contents in future
-    @portableAtomHomePathWritable(defaultHome)
+    @isPortableAtomHomePathWritable(defaultHome)
 
-  @portableAtomHomePathWritable: (defaultHome) ->
+  @isPortableAtomHomePathWritable: (defaultHome) ->
     writable = false
     message = ""
     try
@@ -30,6 +30,6 @@ class AtomPortable
     catch error
       message = "Failed to use portable Atom home directory (#{@getPortableAtomHomePath()}).  Using the default instead (#{defaultHome}).  #{error.message}"
 
-    ipc.on 'check-portable-home-writable', (event, arg) ->
+    ipc.on 'check-portable-home-writable', (event) ->
       event.sender.send 'check-portable-home-writable-response', {writable, message}
     writable

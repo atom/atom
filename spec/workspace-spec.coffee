@@ -1,6 +1,7 @@
 path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
+Project = require '../src/project'
 Pane = require '../src/pane'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
@@ -8,11 +9,14 @@ fstream = require 'fstream'
 fs = require 'fs-plus'
 
 describe "Workspace", ->
-  workspace = null
+  [workspace, setDocumentEdited] = []
 
   beforeEach ->
+    workspace = atom.workspace
+    workspace.resetFontSize()
+    spyOn(atom.applicationDelegate, "confirm")
+    setDocumentEdited = spyOn(atom.applicationDelegate, 'setWindowDocumentEdited')
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
-    atom.workspace = workspace = new Workspace
     waits(1)
 
   describe "serialization", ->
@@ -21,8 +25,16 @@ describe "Workspace", ->
       projectState = atom.project.serialize()
       atom.workspace.destroy()
       atom.project.destroy()
-      atom.project = atom.deserializers.deserialize(projectState)
-      atom.workspace = Workspace.deserialize(workspaceState)
+      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom)})
+      atom.project.deserialize(projectState, atom.deserializers)
+      atom.workspace = new Workspace({
+        config: atom.config, project: atom.project, packageManager: atom.packages,
+        grammarRegistry: atom.grammars, deserializerManager: atom.deserializers,
+        notificationManager: atom.notifications, clipboard: atom.clipboard,
+        applicationDelegate: atom.applicationDelegate,
+        viewRegistry: atom.views, assert: atom.assert.bind(atom),
+      })
+      atom.workspace.deserialize(workspaceState, atom.deserializers)
 
     describe "when the workspace contains text editors", ->
       it "constructs the view with the same panes", ->
@@ -333,7 +345,8 @@ describe "Workspace", ->
     describe "when the file is over 20MB", ->
       it "prompts the user to make sure they want to open a file this big", ->
         spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
-        spyOn(atom, 'confirm').andCallFake -> selectedButtonIndex
+        atom.applicationDelegate.confirm.andCallFake -> selectedButtonIndex
+        atom.applicationDelegate.confirm()
         selectedButtonIndex = 1 # cancel
 
         editor = null
@@ -342,16 +355,16 @@ describe "Workspace", ->
 
         runs ->
           expect(editor).toBeUndefined()
-          expect(atom.confirm).toHaveBeenCalled()
+          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
 
-          atom.confirm.reset()
+          atom.applicationDelegate.confirm.reset()
           selectedButtonIndex = 0 # open the file
 
         waitsForPromise ->
           workspace.open('sample.js').then (e) -> editor = e
 
         runs ->
-          expect(atom.confirm).toHaveBeenCalled()
+          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
           expect(editor.displayBuffer.largeFileMode).toBe true
 
     describe "when passed a path that matches a custom opener", ->
@@ -614,7 +627,13 @@ describe "Workspace", ->
       spyOn(jsPackage, 'loadGrammarsSync')
       spyOn(coffeePackage, 'loadGrammarsSync')
 
-      workspace2 = Workspace.deserialize(state)
+      workspace2 = new Workspace({
+        config: atom.config, project: atom.project, packageManager: atom.packages,
+        notificationManager: atom.notifications, deserializerManager: atom.deserializers,
+        clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+        applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
+      })
+      workspace2.deserialize(state, atom.deserializers)
       expect(jsPackage.loadGrammarsSync.callCount).toBe 1
       expect(coffeePackage.loadGrammarsSync.callCount).toBe 1
 
@@ -666,7 +685,13 @@ describe "Workspace", ->
 
       it "updates the title to contain the project's path", ->
         document.title = null
-        workspace2 = Workspace.deserialize(atom.workspace.serialize())
+        workspace2 = new Workspace({
+          config: atom.config, project: atom.project, packageManager: atom.packages,
+          notificationManager: atom.notifications, deserializerManager: atom.deserializers,
+          clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+          applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
+        })
+        workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = atom.workspace.getActivePaneItem()
         expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()
@@ -679,15 +704,14 @@ describe "Workspace", ->
       waitsForPromise -> atom.workspace.open('b')
       runs ->
         [item1, item2] = atom.workspace.getPaneItems()
-        spyOn(atom, 'setDocumentEdited')
 
-    it "calls atom.setDocumentEdited when the active item changes", ->
+    it "calls setDocumentEdited when the active item changes", ->
       expect(atom.workspace.getActivePaneItem()).toBe item2
       item1.insertText('a')
       expect(item1.isModified()).toBe true
       atom.workspace.getActivePane().activateNextItem()
 
-      expect(atom.setDocumentEdited).toHaveBeenCalledWith(true)
+      expect(setDocumentEdited).toHaveBeenCalledWith(true)
 
     it "calls atom.setDocumentEdited when the active item's modified status changes", ->
       expect(atom.workspace.getActivePaneItem()).toBe item2
@@ -695,13 +719,13 @@ describe "Workspace", ->
       advanceClock(item2.getBuffer().getStoppedChangingDelay())
 
       expect(item2.isModified()).toBe true
-      expect(atom.setDocumentEdited).toHaveBeenCalledWith(true)
+      expect(setDocumentEdited).toHaveBeenCalledWith(true)
 
       item2.undo()
       advanceClock(item2.getBuffer().getStoppedChangingDelay())
 
       expect(item2.isModified()).toBe false
-      expect(atom.setDocumentEdited).toHaveBeenCalledWith(false)
+      expect(setDocumentEdited).toHaveBeenCalledWith(false)
 
   describe "adding panels", ->
     class TestItem
@@ -956,7 +980,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('a').then (o) ->
+          atom.workspace.open('a').then (o) ->
             editor = o
             editor.setText("Elephant")
 
@@ -974,7 +998,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open(temp.openSync().path).then (o) ->
+          atom.workspace.open(temp.openSync().path).then (o) ->
             editor = o
             editor.setText("Elephant")
 
@@ -1069,6 +1093,9 @@ describe "Workspace", ->
               canSearchDirectory: (directory) -> directory.getPath() is dir1
               search: (directory, regex, options) -> fakeSearch = new FakeSearch(options)
             })
+
+            waitsFor ->
+              atom.workspace.directorySearchers.length > 0
 
           it "can override the DefaultDirectorySearcher on a per-directory basis", ->
             foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
@@ -1193,7 +1220,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('sample.js').then (o) -> editor = o
+          atom.workspace.open('sample.js').then (o) -> editor = o
 
         runs ->
           expect(editor.isModified()).toBeFalsy()
@@ -1214,7 +1241,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('sample-with-comments.js').then (o) -> editor = o
+          atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
 
         waitsForPromise ->
           atom.workspace.replace /items/gi, 'items', [commentFilePath], (result) ->
@@ -1229,7 +1256,7 @@ describe "Workspace", ->
         results = []
 
         waitsForPromise ->
-          atom.project.open('sample.js').then (o) -> editor = o
+          atom.workspace.open('sample.js').then (o) -> editor = o
 
         runs ->
           editor.buffer.setTextInRange([[0, 0], [0, 0]], 'omg')

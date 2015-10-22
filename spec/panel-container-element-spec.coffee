@@ -20,10 +20,6 @@ describe "PanelContainerElement", ->
   beforeEach ->
     jasmineContent = document.body.querySelector('#jasmine-content')
 
-    atom.views.addViewProvider Panel, (model) ->
-      new PanelElement().initialize(model)
-    atom.views.addViewProvider PanelContainer, (model) ->
-      new PaneContainerElement().initialize(model)
     atom.views.addViewProvider TestPanelContainerItem, (model) ->
       new TestPanelContainerItemElement().initialize(model)
 

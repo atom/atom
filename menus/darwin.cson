@@ -164,7 +164,6 @@
         label: 'Developer'
         submenu: [
           { label: 'Open In Dev Mode…', command: 'application:open-dev' }
-          { label: 'Run Atom Specs', command: 'application:run-all-specs' }
           { label: 'Run Package Specs', command: 'window:run-package-specs' }
           { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
         ]

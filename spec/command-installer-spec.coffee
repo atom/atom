@@ -22,7 +22,8 @@ describe "CommandInstaller on #darwin", ->
 
   describe "when using a stable version of atom", ->
     beforeEach ->
-      installer = new CommandInstaller("2.0.2")
+      confirm = ->
+      installer = new CommandInstaller("2.0.2", confirm)
 
     it "symlinks the atom command as 'atom'", ->
       installedAtomPath = path.join(installationPath, 'atom')

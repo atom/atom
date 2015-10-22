@@ -4,8 +4,10 @@ describe "PaneElement", ->
   [paneElement, container, pane] = []
 
   beforeEach ->
-    container = new PaneContainer
-    pane = container.getRoot()
+    spyOn(atom, "open")
+
+    container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+    pane = container.getActivePane()
     paneElement = atom.views.getView(pane)
 
   describe "when the pane's active status changes", ->
@@ -183,7 +185,6 @@ describe "PaneElement", ->
 
     describe "when a file is dragged to the pane", ->
       it "opens it", ->
-        spyOn(atom, "open")
         event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
         paneElement.dispatchEvent(event)
         expect(atom.open.callCount).toBe 1
@@ -191,7 +192,6 @@ describe "PaneElement", ->
 
     describe "when a non-file is dragged to the pane", ->
       it "does nothing", ->
-        spyOn(atom, "open")
         event = buildDragEvent("drop", [])
         paneElement.dispatchEvent(event)
         expect(atom.open).not.toHaveBeenCalled()
