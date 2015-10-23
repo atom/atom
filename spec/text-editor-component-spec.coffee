@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 TextEditorElement = require '../src/text-editor-element'
 nbsp = String.fromCharCode(160)
 
-describe "TextEditorComponent", ->
+fdescribe "TextEditorComponent", ->
   [contentNode, editor, wrapperNode, component, componentNode, verticalScrollbarNode, horizontalScrollbarNode] = []
   [lineHeightInPixels, charWidth, nextAnimationFrame, noAnimationFrame, tileSize, tileHeightInPixels] = []
 
@@ -1264,7 +1264,7 @@ describe "TextEditorComponent", ->
       nextAnimationFrame()
       expect(selectionNode.classList.contains('flash')).toBe true
 
-  describe "line decoration rendering", ->
+  ffdescribe "line decoration rendering", ->
     [marker, decoration, decorationParams] = []
 
     beforeEach ->

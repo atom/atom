@@ -81,6 +81,7 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
+    @displayBuffer.didDestroyDecoration(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -153,6 +154,7 @@ class Decoration
     @properties.id = @id
     if newProperties.type?
       @displayBuffer.decorationDidChangeType(this)
+    @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -172,6 +174,7 @@ class Decoration
     flashObject = {class: klass, duration}
     @flashQueue ?= []
     @flashQueue.push(flashObject)
+    @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-flash'
 
   consumeNextFlash: ->

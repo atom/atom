@@ -185,7 +185,7 @@ class TextEditorPresenter
       @shouldUpdateCustomGutterDecorationState = true
       @emitDidUpdateState()
 
-    @disposables.add @model.onDidUpdateMarkers =>
+    @disposables.add @model.onDidUpdateDecorations =>
       @shouldUpdateLinesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateDecorations = true
@@ -214,10 +214,8 @@ class TextEditorPresenter
       @shouldUpdateGutterOrderState = true
       @emitDidUpdateState()
 
-    @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
-    @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
     return
@@ -890,6 +888,7 @@ class TextEditorPresenter
       @shouldUpdateFocusedState = true
       @shouldUpdateHiddenInputState = true
 
+      console.log 'emitDidUpdateState'
       @emitDidUpdateState()
 
   setScrollTop: (scrollTop, overrideScroll=true) ->
@@ -1182,65 +1181,6 @@ class TextEditorPresenter
     rect.height = Math.round(rect.height)
 
     rect
-
-  observeDecoration: (decoration) ->
-    decorationDisposables = new CompositeDisposable
-    if decoration.isType('highlight')
-      decorationDisposables.add decoration.onDidFlash =>
-        @shouldUpdateDecorations = true
-        @emitDidUpdateState()
-
-    decorationDisposables.add decoration.onDidChangeProperties (event) =>
-      @decorationPropertiesDidChange(decoration, event)
-    decorationDisposables.add decoration.onDidDestroy =>
-      @disposables.remove(decorationDisposables)
-      decorationDisposables.dispose()
-      @didDestroyDecoration(decoration)
-    @disposables.add(decorationDisposables)
-
-  decorationPropertiesDidChange: (decoration, {oldProperties}) ->
-    @shouldUpdateDecorations = true
-    if decoration.isType('line') or decoration.isType('gutter')
-      if decoration.isType('line') or Decoration.isType(oldProperties, 'line')
-        @shouldUpdateLinesState = true
-      if decoration.isType('line-number') or Decoration.isType(oldProperties, 'line-number')
-        @shouldUpdateLineNumbersState = true
-      if (decoration.isType('gutter') and not decoration.isType('line-number')) or
-      (Decoration.isType(oldProperties, 'gutter') and not Decoration.isType(oldProperties, 'line-number'))
-        @shouldUpdateCustomGutterDecorationState = true
-    else if decoration.isType('overlay')
-      @shouldUpdateOverlaysState = true
-    @emitDidUpdateState()
-
-  didDestroyDecoration: (decoration) ->
-    @shouldUpdateDecorations = true
-    if decoration.isType('line') or decoration.isType('gutter')
-      @shouldUpdateLinesState = true if decoration.isType('line')
-      if decoration.isType('line-number')
-        @shouldUpdateLineNumbersState = true
-      else if decoration.isType('gutter')
-        @shouldUpdateCustomGutterDecorationState = true
-    if decoration.isType('overlay')
-      @shouldUpdateOverlaysState = true
-
-    @emitDidUpdateState()
-
-  didAddDecoration: (decoration) ->
-    @observeDecoration(decoration)
-
-    if decoration.isType('line') or decoration.isType('gutter')
-      @shouldUpdateDecorations = true
-      @shouldUpdateLinesState = true if decoration.isType('line')
-      if decoration.isType('line-number')
-        @shouldUpdateLineNumbersState = true
-      else if decoration.isType('gutter')
-        @shouldUpdateCustomGutterDecorationState = true
-    else if decoration.isType('highlight')
-      @shouldUpdateDecorations = true
-    else if decoration.isType('overlay')
-      @shouldUpdateOverlaysState = true
-
-    @emitDidUpdateState()
 
   fetchDecorations: ->
     @decorations = []
