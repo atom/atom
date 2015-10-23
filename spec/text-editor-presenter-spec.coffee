@@ -62,6 +62,13 @@ describe "TextEditorPresenter", ->
 
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
+    waitsForStateToUpdate = (presenter, fn) ->
+      waitsFor "presenter state to update", 1000, (done) ->
+        fn?()
+        disposable = presenter.onDidUpdateState ->
+          disposable.dispose()
+          done()
+
     tiledContentContract = (stateFn) ->
       it "contains states for tiles that are visible on screen", ->
         presenter = buildPresenter(explicitHeight: 6, scrollTop: 0, lineHeight: 1, tileSize: 2)
@@ -1153,49 +1160,56 @@ describe "TextEditorPresenter", ->
               marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
               decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
 
-              expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+              waitsForStateToUpdate presenter
+              runs ->
+                expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> editor.getBuffer().insert([5, 0], 'x')
-              expect(marker1.isValid()).toBe false
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+              waitsForStateToUpdate presenter, -> editor.getBuffer().insert([5, 0], 'x')
+              runs ->
+                expect(marker1.isValid()).toBe false
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> editor.undo()
-              expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+              waitsForStateToUpdate presenter, -> editor.undo()
+              runs ->
+                expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> marker1.setBufferRange([[2, 0], [4, 2]])
-              expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
-              expect(lineStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
-              expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+              waitsForStateToUpdate presenter, -> marker1.setBufferRange([[2, 0], [4, 2]])
+              runs ->
+                expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
+                expect(lineStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+                expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> decoration1.destroy()
-              expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
-              expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+              waitsForStateToUpdate presenter, -> decoration1.destroy()
+              runs ->
+                expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+                expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> marker2.destroy()
-              expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+              waitsForStateToUpdate presenter, -> marker2.destroy()
+              runs ->
+                expect(lineStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
             it "honors the 'onlyEmpty' option on line decorations", ->
               presenter = buildPresenter()
@@ -1206,11 +1220,12 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> marker.clearTail()
+              waitsForStateToUpdate presenter, -> marker.clearTail()
 
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+              runs ->
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
             it "honors the 'onlyNonEmpty' option on line decorations", ->
               presenter = buildPresenter()
@@ -1221,40 +1236,49 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
               expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
-              expectStateUpdate presenter, -> marker.clearTail()
+              waitsForStateToUpdate presenter, -> marker.clearTail()
 
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+              runs ->
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
             it "honors the 'onlyHead' option on line decorations", ->
               presenter = buildPresenter()
-              marker = editor.markBufferRange([[4, 0], [6, 2]])
-              decoration = editor.decorateMarker(marker, type: 'line', class: 'a', onlyHead: true)
+              waitsForStateToUpdate presenter, ->
+                marker = editor.markBufferRange([[4, 0], [6, 2]])
+                editor.decorateMarker(marker, type: 'line', class: 'a', onlyHead: true)
 
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+              runs ->
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
             it "does not decorate the last line of a non-empty line decoration range if it ends at column 0", ->
               presenter = buildPresenter()
-              marker = editor.markBufferRange([[4, 0], [6, 0]])
-              decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
+              waitsForStateToUpdate presenter, ->
+                marker = editor.markBufferRange([[4, 0], [6, 0]])
+                editor.decorateMarker(marker, type: 'line', class: 'a')
 
-              expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
-              expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
-              expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+              runs ->
+                expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
+                expect(lineStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
+                expect(lineStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
             it "does not apply line decorations to mini editors", ->
               editor.setMini(true)
               presenter = buildPresenter(explicitHeight: 10)
-              marker = editor.markBufferRange([[0, 0], [0, 0]])
-              decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
-              expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
-              expectStateUpdate presenter, -> editor.setMini(false)
-              expect(lineStateForScreenRow(presenter, 0).decorationClasses).toEqual ['cursor-line', 'a']
+              waitsForStateToUpdate presenter, ->
+                marker = editor.markBufferRange([[0, 0], [0, 0]])
+                decoration = editor.decorateMarker(marker, type: 'line', class: 'a')
 
-              expectStateUpdate presenter, -> editor.setMini(true)
-              expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+              runs ->
+                expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
+
+                expectStateUpdate presenter, -> editor.setMini(false)
+                expect(lineStateForScreenRow(presenter, 0).decorationClasses).toEqual ['cursor-line', 'a']
+
+                expectStateUpdate presenter, -> editor.setMini(true)
+                expect(lineStateForScreenRow(presenter, 0).decorationClasses).toBeNull()
 
             it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
               editor.setText("a line that wraps, ok")
@@ -1268,9 +1292,12 @@ describe "TextEditorPresenter", ->
               expect(lineStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
               expect(lineStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
 
-              marker.setBufferRange([[0, 0], [0, Infinity]])
-              expect(lineStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
-              expect(lineStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
+              waitsForStateToUpdate presenter, ->
+                marker.setBufferRange([[0, 0], [0, Infinity]])
+
+              runs ->
+                expect(lineStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
+                expect(lineStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
 
       describe ".cursors", ->
         stateForCursor = (presenter, cursorIndex) ->
@@ -1740,41 +1767,51 @@ describe "TextEditorPresenter", ->
           expectUndefinedStateForSelection(presenter, 1)
 
           # moving into view
-          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
-          expectValues stateForSelectionInTile(presenter, 1, 2), {
-            regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
-          }
+          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
+          runs ->
+            expectValues stateForSelectionInTile(presenter, 1, 2), {
+              regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
+            }
 
           # becoming empty
-          expectStateUpdate presenter, -> editor.getSelections()[1].clear(autoscroll: false)
-          expectUndefinedStateForSelection(presenter, 1)
+          waitsForStateToUpdate presenter, -> editor.getSelections()[1].clear(autoscroll: false)
+          runs ->
+            expectUndefinedStateForSelection(presenter, 1)
 
           # becoming non-empty
-          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
-          expectValues stateForSelectionInTile(presenter, 1, 2), {
-            regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
-          }
+          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
+          runs ->
+            expectValues stateForSelectionInTile(presenter, 1, 2), {
+              regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
+            }
 
           # moving out of view
-          expectStateUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
-          expectUndefinedStateForSelection(presenter, 1)
+          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
+          runs ->
+            expectUndefinedStateForSelection(presenter, 1)
 
           # adding
-          expectStateUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
-          expectValues stateForSelectionInTile(presenter, 2, 0), {
-            regions: [{top: 10, left: 4 * 10, width: 2 * 10, height: 10}]
-          }
+          waitsForStateToUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
+          runs ->
+            expectValues stateForSelectionInTile(presenter, 2, 0), {
+              regions: [{top: 10, left: 4 * 10, width: 2 * 10, height: 10}]
+            }
 
           # moving added selection
-          expectStateUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
-          expectValues stateForSelectionInTile(presenter, 2, 0), {
-            regions: [{top: 10, left: 4 * 10, width: 4 * 10, height: 10}]
-          }
+          waitsForStateToUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
 
-          # destroying
-          destroyedSelection = editor.getSelections()[2]
-          expectStateUpdate presenter, -> destroyedSelection.destroy()
-          expectUndefinedStateForHighlight(presenter, destroyedSelection.decoration)
+          destroyedSelection = null
+          runs ->
+            expectValues stateForSelectionInTile(presenter, 2, 0), {
+              regions: [{top: 10, left: 4 * 10, width: 4 * 10, height: 10}]
+            }
+
+            # destroying
+            destroyedSelection = editor.getSelections()[2]
+
+          waitsForStateToUpdate presenter, -> destroyedSelection.destroy()
+          runs ->
+            expectUndefinedStateForHighlight(presenter, destroyedSelection.decoration)
 
         it "updates when highlight decorations' properties are updated", ->
           marker = editor.markBufferPosition([2, 2])
@@ -1784,44 +1821,45 @@ describe "TextEditorPresenter", ->
 
           expectUndefinedStateForHighlight(presenter, highlight)
 
-          expectStateUpdate presenter, ->
+          waitsForStateToUpdate presenter, ->
             marker.setBufferRange([[2, 2], [2, 4]])
             highlight.setProperties(class: 'b', type: 'highlight')
 
-          expectValues stateForHighlightInTile(presenter, highlight, 2), {class: 'b'}
+          runs ->
+            expectValues stateForHighlightInTile(presenter, highlight, 2), {class: 'b'}
 
         it "increments the .flashCount and sets the .flashClass and .flashDuration when the highlight model flashes", ->
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20, tileSize: 2)
 
           marker = editor.markBufferPosition([2, 2])
           highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
-          expectStateUpdate presenter, ->
+          waitsForStateToUpdate presenter, ->
             marker.setBufferRange([[2, 2], [5, 2]])
             highlight.flash('b', 500)
+          runs ->
+            expectValues stateForHighlightInTile(presenter, highlight, 2), {
+              flashClass: 'b'
+              flashDuration: 500
+              flashCount: 1
+            }
+            expectValues stateForHighlightInTile(presenter, highlight, 4), {
+              flashClass: 'b'
+              flashDuration: 500
+              flashCount: 1
+            }
 
-          expectValues stateForHighlightInTile(presenter, highlight, 2), {
-            flashClass: 'b'
-            flashDuration: 500
-            flashCount: 1
-          }
-          expectValues stateForHighlightInTile(presenter, highlight, 4), {
-            flashClass: 'b'
-            flashDuration: 500
-            flashCount: 1
-          }
-
-          expectStateUpdate presenter, -> highlight.flash('c', 600)
-
-          expectValues stateForHighlightInTile(presenter, highlight, 2), {
-            flashClass: 'c'
-            flashDuration: 600
-            flashCount: 2
-          }
-          expectValues stateForHighlightInTile(presenter, highlight, 4), {
-            flashClass: 'c'
-            flashDuration: 600
-            flashCount: 2
-          }
+          waitsForStateToUpdate presenter, -> highlight.flash('c', 600)
+          runs ->
+            expectValues stateForHighlightInTile(presenter, highlight, 2), {
+              flashClass: 'c'
+              flashDuration: 600
+              flashCount: 2
+            }
+            expectValues stateForHighlightInTile(presenter, highlight, 4), {
+              flashClass: 'c'
+              flashDuration: 600
+              flashCount: 2
+            }
 
       describe ".overlays", ->
         [item] = []
@@ -1840,40 +1878,47 @@ describe "TextEditorPresenter", ->
           }
 
           # Change range
-          expectStateUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]])
-          expectValues stateForOverlay(presenter, decoration), {
-            item: item
-            pixelPosition: {top: 5 * 10 - presenter.state.content.scrollTop, left: 6 * 10}
-          }
+          waitsForStateToUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]])
+          runs ->
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 5 * 10 - presenter.state.content.scrollTop, left: 6 * 10}
+            }
 
-          # Valid -> invalid
-          expectStateUpdate presenter, -> editor.getBuffer().insert([2, 14], 'x')
-          expect(stateForOverlay(presenter, decoration)).toBeUndefined()
+            # Valid -> invalid
+          waitsForStateToUpdate presenter, -> editor.getBuffer().insert([2, 14], 'x')
+          runs ->
+            expect(stateForOverlay(presenter, decoration)).toBeUndefined()
 
-          # Invalid -> valid
-          expectStateUpdate presenter, -> editor.undo()
-          expectValues stateForOverlay(presenter, decoration), {
-            item: item
-            pixelPosition: {top: 5 * 10 - presenter.state.content.scrollTop, left: 6 * 10}
-          }
+            # Invalid -> valid
+          waitsForStateToUpdate presenter, -> editor.undo()
+          runs ->
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 5 * 10 - presenter.state.content.scrollTop, left: 6 * 10}
+            }
 
           # Reverse direction
-          expectStateUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]], reversed: true)
-          expectValues stateForOverlay(presenter, decoration), {
-            item: item
-            pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
-          }
+          waitsForStateToUpdate presenter, -> marker.setBufferRange([[2, 13], [4, 6]], reversed: true)
+          runs ->
+            expectValues stateForOverlay(presenter, decoration), {
+              item: item
+              pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
+            }
 
           # Destroy
-          decoration.destroy()
-          expect(stateForOverlay(presenter, decoration)).toBeUndefined()
+          waitsForStateToUpdate presenter, -> decoration.destroy()
+          runs ->
+            expect(stateForOverlay(presenter, decoration)).toBeUndefined()
 
           # Add
-          decoration2 = editor.decorateMarker(marker, {type: 'overlay', item})
-          expectValues stateForOverlay(presenter, decoration2), {
-            item: item
-            pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
-          }
+          decoration2 = null
+          waitsForStateToUpdate presenter, -> decoration2 = editor.decorateMarker(marker, {type: 'overlay', item})
+          runs ->
+            expectValues stateForOverlay(presenter, decoration2), {
+              item: item
+              pixelPosition: {top: 3 * 10 - presenter.state.content.scrollTop, left: 13 * 10}
+            }
 
         it "updates when character widths changes", ->
           scrollTop = 20
@@ -2310,9 +2355,9 @@ describe "TextEditorPresenter", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
                 marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
                 decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
-                presenter = buildPresenter()
                 marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
                 decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
+                presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
@@ -2320,85 +2365,92 @@ describe "TextEditorPresenter", ->
                 expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
                 expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-                expectStateUpdate presenter, -> editor.getBuffer().insert([5, 0], 'x')
-                expect(marker1.isValid()).toBe false
-                expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+                waitsForStateToUpdate presenter, -> editor.getBuffer().insert([5, 0], 'x')
+                runs ->
+                  expect(marker1.isValid()).toBe false
+                  expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-                expectStateUpdate presenter, -> editor.undo()
-                expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
-                expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
-                expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+                waitsForStateToUpdate presenter, -> editor.undo()
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+                  expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a', 'b']
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a', 'b']
+                  expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-                expectStateUpdate presenter, -> marker1.setBufferRange([[2, 0], [4, 2]])
-                expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
-                expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
-                expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
-                expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
-                expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+                waitsForStateToUpdate presenter, -> marker1.setBufferRange([[2, 0], [4, 2]])
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toEqual ['a']
+                  expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toEqual ['a']
+                  expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
+                  expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+                  expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-                expectStateUpdate presenter, -> decoration1.destroy()
-                expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
-                expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
-                expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+                waitsForStateToUpdate presenter, -> decoration1.destroy()
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['b']
+                  expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['b']
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['b']
+                  expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
-                expectStateUpdate presenter, -> marker2.destroy()
-                expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
+                waitsForStateToUpdate presenter, -> marker2.destroy()
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 7).decorationClasses).toBeNull()
 
               it "honors the 'onlyEmpty' option on line-number decorations", ->
-                presenter = buildPresenter()
                 marker = editor.markBufferRange([[4, 0], [6, 1]])
                 decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyEmpty: true)
+                presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
                 expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
                 expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
-                expectStateUpdate presenter, -> marker.clearTail()
+                waitsForStateToUpdate presenter, -> marker.clearTail()
 
-                expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
               it "honors the 'onlyNonEmpty' option on line-number decorations", ->
-                presenter = buildPresenter()
                 marker = editor.markBufferRange([[4, 0], [6, 2]])
                 decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyNonEmpty: true)
+                presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
                 expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
                 expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
-                expectStateUpdate presenter, -> marker.clearTail()
+                waitsForStateToUpdate presenter, -> marker.clearTail()
 
-                expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toBeNull()
 
               it "honors the 'onlyHead' option on line-number decorations", ->
-                presenter = buildPresenter()
                 marker = editor.markBufferRange([[4, 0], [6, 2]])
                 decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a', onlyHead: true)
+                presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toBeNull()
                 expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toBeNull()
                 expect(lineNumberStateForScreenRow(presenter, 6).decorationClasses).toEqual ['a']
 
               it "does not decorate the last line of a non-empty line-number decoration range if it ends at column 0", ->
-                presenter = buildPresenter()
                 marker = editor.markBufferRange([[4, 0], [6, 0]])
                 decoration = editor.decorateMarker(marker, type: 'line-number', class: 'a')
+                presenter = buildPresenter()
 
                 expect(lineNumberStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a']
                 expect(lineNumberStateForScreenRow(presenter, 5).decorationClasses).toEqual ['a']
@@ -2430,9 +2482,10 @@ describe "TextEditorPresenter", ->
                 expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
                 expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
 
-                marker.setBufferRange([[0, 0], [0, Infinity]])
-                expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
-                expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
+                waitsForStateToUpdate presenter, -> marker.setBufferRange([[0, 0], [0, Infinity]])
+                runs ->
+                  expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
+                  expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
 
             describe ".foldable", ->
               it "marks line numbers at the start of a foldable region as foldable", ->
@@ -2565,14 +2618,15 @@ describe "TextEditorPresenter", ->
 
           it "updates when a decoration's marker is modified", ->
             # This update will move decoration1 out of view.
-            expectStateUpdate presenter, ->
+            waitsForStateToUpdate presenter, ->
               newRange = new Range([13, 0], [14, 0])
               marker1.setBufferRange(newRange)
 
-            decorationState = getContentForGutterWithName(presenter, 'test-gutter')
-            expect(decorationState[decoration1.id]).toBeUndefined()
-            expect(decorationState[decoration2.id].top).toBeDefined()
-            expect(decorationState[decoration3.id]).toBeUndefined()
+            runs ->
+              decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+              expect(decorationState[decoration1.id]).toBeUndefined()
+              expect(decorationState[decoration2.id].top).toBeDefined()
+              expect(decorationState[decoration3.id]).toBeUndefined()
 
           describe "when a decoration's properties are modified", ->
             it "updates the item applied to the decoration, if the decoration item is changed", ->
@@ -2584,12 +2638,14 @@ describe "TextEditorPresenter", ->
                 gutterName: 'test-gutter'
                 class: 'test-class'
                 item: newItem
-              expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
 
-              decorationState = getContentForGutterWithName(presenter, 'test-gutter')
-              expect(decorationState[decoration1.id].item).toBe newItem
-              expect(decorationState[decoration2.id].item).toBe decorationItem
-              expect(decorationState[decoration3.id]).toBeUndefined()
+              waitsForStateToUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+
+              runs ->
+                decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+                expect(decorationState[decoration1.id].item).toBe newItem
+                expect(decorationState[decoration2.id].item).toBe decorationItem
+                expect(decorationState[decoration3.id]).toBeUndefined()
 
             it "updates the class applied to the decoration, if the decoration class is changed", ->
               # This changes the decoration item. The visibility of the decoration should not be affected.
@@ -2598,12 +2654,13 @@ describe "TextEditorPresenter", ->
                 gutterName: 'test-gutter'
                 class: 'new-test-class'
                 item: decorationItem
-              expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+              waitsForStateToUpdate presenter, -> decoration1.setProperties(newDecorationParams)
 
-              decorationState = getContentForGutterWithName(presenter, 'test-gutter')
-              expect(decorationState[decoration1.id].class).toBe 'new-test-class'
-              expect(decorationState[decoration2.id].class).toBe 'test-class'
-              expect(decorationState[decoration3.id]).toBeUndefined()
+              runs ->
+                decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+                expect(decorationState[decoration1.id].class).toBe 'new-test-class'
+                expect(decorationState[decoration2.id].class).toBe 'test-class'
+                expect(decorationState[decoration3.id]).toBeUndefined()
 
             it "updates the type of the decoration, if the decoration type is changed", ->
               # This changes the type of the decoration. This should remove the decoration from the gutter.
@@ -2612,12 +2669,13 @@ describe "TextEditorPresenter", ->
                 gutterName: 'test-gutter' # This is an invalid/meaningless option here, but it shouldn't matter.
                 class: 'test-class'
                 item: decorationItem
-              expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+              waitsForStateToUpdate presenter, -> decoration1.setProperties(newDecorationParams)
 
-              decorationState = getContentForGutterWithName(presenter, 'test-gutter')
-              expect(decorationState[decoration1.id]).toBeUndefined()
-              expect(decorationState[decoration2.id].top).toBeDefined()
-              expect(decorationState[decoration3.id]).toBeUndefined()
+              runs ->
+                decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+                expect(decorationState[decoration1.id]).toBeUndefined()
+                expect(decorationState[decoration2.id].top).toBeDefined()
+                expect(decorationState[decoration3.id]).toBeUndefined()
 
             it "updates the gutter the decoration targets, if the decoration gutterName is changed", ->
               # This changes which gutter this decoration applies to. Since this gutter does not exist,
@@ -2627,24 +2685,25 @@ describe "TextEditorPresenter", ->
                 gutterName: 'test-gutter-2'
                 class: 'new-test-class'
                 item: decorationItem
-              expectStateUpdate presenter, -> decoration1.setProperties(newDecorationParams)
+              waitsForStateToUpdate presenter, -> decoration1.setProperties(newDecorationParams)
 
-              decorationState = getContentForGutterWithName(presenter, 'test-gutter')
-              expect(decorationState[decoration1.id]).toBeUndefined()
-              expect(decorationState[decoration2.id].top).toBeDefined()
-              expect(decorationState[decoration3.id]).toBeUndefined()
+              runs ->
+                decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+                expect(decorationState[decoration1.id]).toBeUndefined()
+                expect(decorationState[decoration2.id].top).toBeDefined()
+                expect(decorationState[decoration3.id]).toBeUndefined()
 
-              # After adding the targeted gutter, the decoration will appear in the state for that gutter,
-              # since it should be visible.
-              expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
-              newGutterDecorationState = getContentForGutterWithName(presenter, 'test-gutter-2')
-              expect(newGutterDecorationState[decoration1.id].top).toBeDefined()
-              expect(newGutterDecorationState[decoration2.id]).toBeUndefined()
-              expect(newGutterDecorationState[decoration3.id]).toBeUndefined()
-              oldGutterDecorationState = getContentForGutterWithName(presenter, 'test-gutter')
-              expect(oldGutterDecorationState[decoration1.id]).toBeUndefined()
-              expect(oldGutterDecorationState[decoration2.id].top).toBeDefined()
-              expect(oldGutterDecorationState[decoration3.id]).toBeUndefined()
+                # After adding the targeted gutter, the decoration will appear in the state for that gutter,
+                # since it should be visible.
+                expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
+                newGutterDecorationState = getContentForGutterWithName(presenter, 'test-gutter-2')
+                expect(newGutterDecorationState[decoration1.id].top).toBeDefined()
+                expect(newGutterDecorationState[decoration2.id]).toBeUndefined()
+                expect(newGutterDecorationState[decoration3.id]).toBeUndefined()
+                oldGutterDecorationState = getContentForGutterWithName(presenter, 'test-gutter')
+                expect(oldGutterDecorationState[decoration1.id]).toBeUndefined()
+                expect(oldGutterDecorationState[decoration2.id].top).toBeDefined()
+                expect(oldGutterDecorationState[decoration3.id]).toBeUndefined()
 
           it "updates when the editor's mini state changes, and is cleared when the editor is mini", ->
             expectStateUpdate presenter, -> editor.setMini(true)
@@ -2679,13 +2738,17 @@ describe "TextEditorPresenter", ->
               class: 'test-class'
             marker4 = editor.markBufferRange([[0, 0], [1, 0]])
             decoration4 = editor.decorateMarker(marker4, decorationParams)
-            expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
 
-            decorationState = getContentForGutterWithName(presenter, 'test-gutter-2')
-            expect(decorationState[decoration1.id]).toBeUndefined()
-            expect(decorationState[decoration2.id]).toBeUndefined()
-            expect(decorationState[decoration3.id]).toBeUndefined()
-            expect(decorationState[decoration4.id].top).toBeDefined()
+            waitsForStateToUpdate presenter
+
+            runs ->
+              expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
+
+              decorationState = getContentForGutterWithName(presenter, 'test-gutter-2')
+              expect(decorationState[decoration1.id]).toBeUndefined()
+              expect(decorationState[decoration2.id]).toBeUndefined()
+              expect(decorationState[decoration3.id]).toBeUndefined()
+              expect(decorationState[decoration4.id].top).toBeDefined()
 
           it "updates when editor lines are folded", ->
             oldDimensionsForDecoration1 =

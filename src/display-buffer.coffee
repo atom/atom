@@ -25,6 +25,7 @@ class DisplayBuffer extends Model
   defaultCharWidth: null
   height: null
   width: null
+  didUpdateDecorationsEventScheduled: false
 
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
@@ -59,7 +60,8 @@ class DisplayBuffer extends Model
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
-    @disposables.add @buffer.onDidUpdateMarkers => @emitter.emit 'did-update-markers'
+    @disposables.add @buffer.getDefaultMarkerLayer().onDidUpdate => @scheduleUpdateDecorationsEvent()
+
     @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
     @updateAllScreenLines()
@@ -157,6 +159,9 @@ class DisplayBuffer extends Model
 
   onDidUpdateMarkers: (callback) ->
     @emitter.on 'did-update-markers', callback
+
+  onDidUpdateDecorations: (callback) ->
+    @emitter.on 'did-update-decorations', callback
 
   emitDidChange: (eventProperties, refreshMarkers=true) ->
     @emitter.emit 'did-change', eventProperties
@@ -768,28 +773,13 @@ class DisplayBuffer extends Model
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
-    decorationDestroyedDisposable = decoration.onDidDestroy =>
-      @removeDecoration(decoration)
-      @disposables.remove(decorationDestroyedDisposable)
-    @disposables.add(decorationDestroyedDisposable)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
     @decorationsById[decoration.id] = decoration
+    @scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-add-decoration', decoration
     decoration
-
-  removeDecoration: (decoration) ->
-    {marker} = decoration
-    return unless decorations = @decorationsByMarkerId[marker.id]
-    index = decorations.indexOf(decoration)
-
-    if index > -1
-      decorations.splice(index, 1)
-      delete @decorationsById[decoration.id]
-      @emitter.emit 'did-remove-decoration', decoration
-      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
-      delete @overlayDecorationsById[decoration.id]
 
   decorationsForMarkerId: (markerId) ->
     @decorationsByMarkerId[markerId]
@@ -1079,6 +1069,13 @@ class DisplayBuffer extends Model
       # this one. Only emit when the marker still exists.
       @emitter.emit 'did-create-marker', marker
 
+  scheduleUpdateDecorationsEvent: ->
+    unless @didUpdateDecorationsEventScheduled
+      @didUpdateDecorationsEventScheduled = true
+      process.nextTick =>
+        @didUpdateDecorationsEventScheduled = false
+        @emitter.emit 'did-update-decorations'
+
   decorateFold: (fold) ->
     @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
 
@@ -1090,6 +1087,19 @@ class DisplayBuffer extends Model
       @overlayDecorationsById[decoration.id] = decoration
     else
       delete @overlayDecorationsById[decoration.id]
+
+  didDestroyDecoration: (decoration) ->
+    {marker} = decoration
+    return unless decorations = @decorationsByMarkerId[marker.id]
+    index = decorations.indexOf(decoration)
+
+    if index > -1
+      decorations.splice(index, 1)
+      delete @decorationsById[decoration.id]
+      @emitter.emit 'did-remove-decoration', decoration
+      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
+      delete @overlayDecorationsById[decoration.id]
+    @scheduleUpdateDecorationsEvent()
 
   checkScreenLinesInvariant: ->
     return if @isSoftWrapped()
