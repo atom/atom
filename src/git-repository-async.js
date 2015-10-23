@@ -251,4 +251,21 @@ module.exports = class GitRepositoryAsync {
     return this.emitter.on('did-destroy', callback)
   }
 
+  //
+  // Section: Repository Details
+  //
+
+  // Returns a {Promise} that resolves true if at the root, false if in a
+  // subfolder of the repository.
+  isProjectAtRoot () {
+    if (this.projectAtRoot === undefined) {
+      this.projectAtRoot = Promise.resolve(() => {
+        return this.repoPromise.then((repo) => {
+          return this.project.relativize(repo.workdir)
+        })
+      })
+    }
+
+    return this.projectAtRoot
+  }
 }
