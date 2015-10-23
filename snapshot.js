@@ -7,6 +7,1203 @@
 
 var snapshotGlobal = {};
 var cachedFunctions = {
+  "./helpers": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var SpliceArrayChunkSize,
+    __slice = [].slice;
+
+  SpliceArrayChunkSize = 100000;
+
+  module.exports = {
+    spliceArray: function(originalArray, start, length, insertedArray) {
+      var chunk, chunkEnd, chunkStart, removedValues, _i, _ref;
+      if (insertedArray == null) {
+        insertedArray = [];
+      }
+      if (insertedArray.length < SpliceArrayChunkSize) {
+        return originalArray.splice.apply(originalArray, [start, length].concat(__slice.call(insertedArray)));
+      } else {
+        removedValues = originalArray.splice(start, length);
+        for (chunkStart = _i = 0, _ref = insertedArray.length; SpliceArrayChunkSize > 0 ? _i <= _ref : _i >= _ref; chunkStart = _i += SpliceArrayChunkSize) {
+          chunkEnd = chunkStart + SpliceArrayChunkSize;
+          chunk = insertedArray.slice(chunkStart, chunkEnd);
+          originalArray.splice.apply(originalArray, [start + chunkStart, 0].concat(__slice.call(chunk)));
+        }
+        return removedValues;
+      }
+    },
+    newlineRegex: /\r\n|\n|\r/g
+  };
+
+}).call(this);
+
+}),
+  "./range": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Grim, Point, Range, newlineRegex,
+    __slice = [].slice;
+
+  Grim = require('grim');
+
+  Point = require('./point');
+
+  newlineRegex = require('./helpers').newlineRegex;
+
+  module.exports = Range = (function() {
+
+    /*
+    Section: Properties
+     */
+    Range.prototype.start = null;
+
+    Range.prototype.end = null;
+
+
+    /*
+    Section: Construction
+     */
+
+    Range.fromObject = function(object, copy) {
+      if (Array.isArray(object)) {
+        return new this(object[0], object[1]);
+      } else if (object instanceof this) {
+        if (copy) {
+          return object.copy();
+        } else {
+          return object;
+        }
+      } else {
+        return new this(object.start, object.end);
+      }
+    };
+
+    Range.fromText = function() {
+      var args, endPoint, lastIndex, lines, startPoint, text;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      if (args.length > 1) {
+        startPoint = Point.fromObject(args.shift());
+      } else {
+        startPoint = new Point(0, 0);
+      }
+      text = args.shift();
+      endPoint = startPoint.copy();
+      lines = text.split(newlineRegex);
+      if (lines.length > 1) {
+        lastIndex = lines.length - 1;
+        endPoint.row += lastIndex;
+        endPoint.column = lines[lastIndex].length;
+      } else {
+        endPoint.column += lines[0].length;
+      }
+      return new this(startPoint, endPoint);
+    };
+
+    Range.fromPointWithDelta = function(startPoint, rowDelta, columnDelta) {
+      var endPoint;
+      startPoint = Point.fromObject(startPoint);
+      endPoint = new Point(startPoint.row + rowDelta, startPoint.column + columnDelta);
+      return new this(startPoint, endPoint);
+    };
+
+
+    /*
+    Section: Serialization and Deserialization
+     */
+
+    Range.deserialize = function(array) {
+      if (Array.isArray(array)) {
+        return new this(array[0], array[1]);
+      } else {
+        return new this();
+      }
+    };
+
+
+    /*
+    Section: Construction
+     */
+
+    function Range(pointA, pointB) {
+      if (pointA == null) {
+        pointA = new Point(0, 0);
+      }
+      if (pointB == null) {
+        pointB = new Point(0, 0);
+      }
+      if (!(this instanceof Range)) {
+        return new Range(pointA, pointB);
+      }
+      pointA = Point.fromObject(pointA);
+      pointB = Point.fromObject(pointB);
+      if (pointA.isLessThanOrEqual(pointB)) {
+        this.start = pointA;
+        this.end = pointB;
+      } else {
+        this.start = pointB;
+        this.end = pointA;
+      }
+    }
+
+    Range.prototype.copy = function() {
+      return new this.constructor(this.start.copy(), this.end.copy());
+    };
+
+    Range.prototype.negate = function() {
+      return new this.constructor(this.start.negate(), this.end.negate());
+    };
+
+
+    /*
+    Section: Serialization and Deserialization
+     */
+
+    Range.prototype.serialize = function() {
+      return [this.start.serialize(), this.end.serialize()];
+    };
+
+
+    /*
+    Section: Range Details
+     */
+
+    Range.prototype.isEmpty = function() {
+      return this.start.isEqual(this.end);
+    };
+
+    Range.prototype.isSingleLine = function() {
+      return this.start.row === this.end.row;
+    };
+
+    Range.prototype.getRowCount = function() {
+      return this.end.row - this.start.row + 1;
+    };
+
+    Range.prototype.getRows = function() {
+      var _i, _ref, _ref1, _results;
+      return (function() {
+        _results = [];
+        for (var _i = _ref = this.start.row, _ref1 = this.end.row; _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; _ref <= _ref1 ? _i++ : _i--){ _results.push(_i); }
+        return _results;
+      }).apply(this);
+    };
+
+
+    /*
+    Section: Operations
+     */
+
+    Range.prototype.freeze = function() {
+      this.start.freeze();
+      this.end.freeze();
+      return Object.freeze(this);
+    };
+
+    Range.prototype.union = function(otherRange) {
+      var end, start;
+      start = this.start.isLessThan(otherRange.start) ? this.start : otherRange.start;
+      end = this.end.isGreaterThan(otherRange.end) ? this.end : otherRange.end;
+      return new this.constructor(start, end);
+    };
+
+    Range.prototype.translate = function(startDelta, endDelta) {
+      if (endDelta == null) {
+        endDelta = startDelta;
+      }
+      return new this.constructor(this.start.translate(startDelta), this.end.translate(endDelta));
+    };
+
+    Range.prototype.traverse = function(delta) {
+      return new this.constructor(this.start.traverse(delta), this.end.traverse(delta));
+    };
+
+
+    /*
+    Section: Comparison
+     */
+
+    Range.prototype.compare = function(other) {
+      var value;
+      other = this.constructor.fromObject(other);
+      if (value = this.start.compare(other.start)) {
+        return value;
+      } else {
+        return other.end.compare(this.end);
+      }
+    };
+
+    Range.prototype.isEqual = function(other) {
+      if (other == null) {
+        return false;
+      }
+      other = this.constructor.fromObject(other);
+      return other.start.isEqual(this.start) && other.end.isEqual(this.end);
+    };
+
+    Range.prototype.coversSameRows = function(other) {
+      return this.start.row === other.start.row && this.end.row === other.end.row;
+    };
+
+    Range.prototype.intersectsWith = function(otherRange, exclusive) {
+      if (exclusive) {
+        return !(this.end.isLessThanOrEqual(otherRange.start) || this.start.isGreaterThanOrEqual(otherRange.end));
+      } else {
+        return !(this.end.isLessThan(otherRange.start) || this.start.isGreaterThan(otherRange.end));
+      }
+    };
+
+    Range.prototype.containsRange = function(otherRange, exclusive) {
+      var end, start, _ref;
+      _ref = this.constructor.fromObject(otherRange), start = _ref.start, end = _ref.end;
+      return this.containsPoint(start, exclusive) && this.containsPoint(end, exclusive);
+    };
+
+    Range.prototype.containsPoint = function(point, exclusive) {
+      if (Grim.includeDeprecatedAPIs && (exclusive != null) && typeof exclusive === 'object') {
+        Grim.deprecate("The second param is no longer an object, it's a boolean argument named `exclusive`.");
+        exclusive = exclusive.exclusive;
+      }
+      point = Point.fromObject(point);
+      if (exclusive) {
+        return point.isGreaterThan(this.start) && point.isLessThan(this.end);
+      } else {
+        return point.isGreaterThanOrEqual(this.start) && point.isLessThanOrEqual(this.end);
+      }
+    };
+
+    Range.prototype.intersectsRow = function(row) {
+      return (this.start.row <= row && row <= this.end.row);
+    };
+
+    Range.prototype.intersectsRowRange = function(startRow, endRow) {
+      var _ref;
+      if (startRow > endRow) {
+        _ref = [endRow, startRow], startRow = _ref[0], endRow = _ref[1];
+      }
+      return this.end.row >= startRow && endRow >= this.start.row;
+    };
+
+    Range.prototype.getExtent = function() {
+      return this.end.traversalFrom(this.start);
+    };
+
+
+    /*
+    Section: Conversion
+     */
+
+    Range.prototype.toDelta = function() {
+      var columns, rows;
+      rows = this.end.row - this.start.row;
+      if (rows === 0) {
+        columns = this.end.column - this.start.column;
+      } else {
+        columns = this.end.column;
+      }
+      return new Point(rows, columns);
+    };
+
+    Range.prototype.toString = function() {
+      return "[" + this.start + " - " + this.end + "]";
+    };
+
+    return Range;
+
+  })();
+
+  if (Grim.includeDeprecatedAPIs) {
+    Range.prototype.add = function(delta) {
+      Grim.deprecate("Use Range::traverse instead");
+      return this.traverse(delta);
+    };
+  }
+
+}).call(this);
+
+}),
+  "./point": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Point, deprecate, includeDeprecatedAPIs, isNumber, _ref;
+
+  _ref = require('grim'), includeDeprecatedAPIs = _ref.includeDeprecatedAPIs, deprecate = _ref.deprecate;
+
+  module.exports = Point = (function() {
+
+    /*
+    Section: Properties
+     */
+    Point.prototype.row = null;
+
+    Point.prototype.column = null;
+
+
+    /*
+    Section: Construction
+     */
+
+    Point.fromObject = function(object, copy) {
+      var column, row;
+      if (object instanceof Point) {
+        if (copy) {
+          return object.copy();
+        } else {
+          return object;
+        }
+      } else {
+        if (Array.isArray(object)) {
+          row = object[0], column = object[1];
+        } else {
+          row = object.row, column = object.column;
+        }
+        return new Point(row, column);
+      }
+    };
+
+
+    /*
+    Section: Comparison
+     */
+
+    Point.min = function(point1, point2) {
+      point1 = this.fromObject(point1);
+      point2 = this.fromObject(point2);
+      if (point1.isLessThanOrEqual(point2)) {
+        return point1;
+      } else {
+        return point2;
+      }
+    };
+
+    Point.max = function(point1, point2) {
+      point1 = Point.fromObject(point1);
+      point2 = Point.fromObject(point2);
+      if (point1.compare(point2) >= 0) {
+        return point1;
+      } else {
+        return point2;
+      }
+    };
+
+    Point.assertValid = function(point) {
+      if (!(isNumber(point.row) && isNumber(point.column))) {
+        throw new TypeError("Invalid Point: " + point);
+      }
+    };
+
+    Point.ZERO = Object.freeze(new Point(0, 0));
+
+    Point.INFINITY = Object.freeze(new Point(Infinity, Infinity));
+
+
+    /*
+    Section: Construction
+     */
+
+    function Point(row, column) {
+      if (row == null) {
+        row = 0;
+      }
+      if (column == null) {
+        column = 0;
+      }
+      if (!(this instanceof Point)) {
+        return new Point(row, column);
+      }
+      this.row = row;
+      this.column = column;
+    }
+
+    Point.prototype.copy = function() {
+      return new Point(this.row, this.column);
+    };
+
+    Point.prototype.negate = function() {
+      return new Point(-this.row, -this.column);
+    };
+
+
+    /*
+    Section: Operations
+     */
+
+    Point.prototype.freeze = function() {
+      return Object.freeze(this);
+    };
+
+    Point.prototype.translate = function(other) {
+      var column, row, _ref1;
+      _ref1 = Point.fromObject(other), row = _ref1.row, column = _ref1.column;
+      return new Point(this.row + row, this.column + column);
+    };
+
+    Point.prototype.traverse = function(other) {
+      var column, row;
+      other = Point.fromObject(other);
+      row = this.row + other.row;
+      if (other.row === 0) {
+        column = this.column + other.column;
+      } else {
+        column = other.column;
+      }
+      return new Point(row, column);
+    };
+
+    Point.prototype.traversalFrom = function(other) {
+      other = Point.fromObject(other);
+      if (this.row === other.row) {
+        if (this.column === Infinity && other.column === Infinity) {
+          return new Point(0, 0);
+        } else {
+          return new Point(0, this.column - other.column);
+        }
+      } else {
+        return new Point(this.row - other.row, this.column);
+      }
+    };
+
+    Point.prototype.splitAt = function(column) {
+      var rightColumn;
+      if (this.row === 0) {
+        rightColumn = this.column - column;
+      } else {
+        rightColumn = this.column;
+      }
+      return [new Point(0, column), new Point(this.row, rightColumn)];
+    };
+
+
+    /*
+    Section: Comparison
+     */
+
+    Point.prototype.compare = function(other) {
+      other = Point.fromObject(other);
+      if (this.row > other.row) {
+        return 1;
+      } else if (this.row < other.row) {
+        return -1;
+      } else {
+        if (this.column > other.column) {
+          return 1;
+        } else if (this.column < other.column) {
+          return -1;
+        } else {
+          return 0;
+        }
+      }
+    };
+
+    Point.prototype.isEqual = function(other) {
+      if (!other) {
+        return false;
+      }
+      other = Point.fromObject(other);
+      return this.row === other.row && this.column === other.column;
+    };
+
+    Point.prototype.isLessThan = function(other) {
+      return this.compare(other) < 0;
+    };
+
+    Point.prototype.isLessThanOrEqual = function(other) {
+      return this.compare(other) <= 0;
+    };
+
+    Point.prototype.isGreaterThan = function(other) {
+      return this.compare(other) > 0;
+    };
+
+    Point.prototype.isGreaterThanOrEqual = function(other) {
+      return this.compare(other) >= 0;
+    };
+
+    Point.prototype.isZero = function() {
+      return this.row === 0 && this.column === 0;
+    };
+
+    Point.prototype.isPositive = function() {
+      if (this.row > 0) {
+        return true;
+      } else if (this.row < 0) {
+        return false;
+      } else {
+        return this.column > 0;
+      }
+    };
+
+    Point.prototype.isNegative = function() {
+      if (this.row < 0) {
+        return true;
+      } else if (this.row > 0) {
+        return false;
+      } else {
+        return this.column < 0;
+      }
+    };
+
+
+    /*
+    Section: Conversion
+     */
+
+    Point.prototype.toArray = function() {
+      return [this.row, this.column];
+    };
+
+    Point.prototype.serialize = function() {
+      return this.toArray();
+    };
+
+    Point.prototype.toString = function() {
+      return "(" + this.row + ", " + this.column + ")";
+    };
+
+    return Point;
+
+  })();
+
+  if (includeDeprecatedAPIs) {
+    Point.prototype.add = function(other) {
+      deprecate("Use Point::traverse instead");
+      return this.traverse(other);
+    };
+  }
+
+  isNumber = function(value) {
+    return (typeof value === 'number') && (!Number.isNaN(value));
+  };
+
+}).call(this);
+
+}),
+  "./marker": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Delegator, Emitter, EmitterMixin, Grim, Marker, OptionKeys, Point, Range, extend, isEqual, omit, pick, size, _ref,
+    __slice = [].slice;
+
+  _ref = require('underscore-plus'), extend = _ref.extend, isEqual = _ref.isEqual, omit = _ref.omit, pick = _ref.pick, size = _ref.size;
+  //
+  Emitter = require('event-kit').Emitter;
+  //
+  Grim = require('grim');
+  //
+  Delegator = require('delegato');
+  //
+  Point = require('./point');
+  //
+  Range = require('./range');
+  //
+  OptionKeys = new Set(['reversed', 'tailed', 'invalidate', 'persistent', 'maintainHistory']);
+
+  module.exports = Marker = (function() {
+    Delegator.includeInto(Marker);
+
+    Marker.extractParams = function(inputParams) {
+      var key, outputParams, _i, _len, _ref1;
+      outputParams = {};
+      if (inputParams != null) {
+        if (Grim.includeDeprecatedAPIs) {
+          this.handleDeprecatedParams(inputParams);
+        }
+        _ref1 = Object.keys(inputParams);
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          key = _ref1[_i];
+          if (OptionKeys.has(key)) {
+            outputParams[key] = inputParams[key];
+          } else {
+            if (outputParams.properties == null) {
+              outputParams.properties = {};
+            }
+            outputParams.properties[key] = inputParams[key];
+          }
+        }
+      }
+      return outputParams;
+    };
+
+    // Marker.delegatesMethods('containsPoint', 'containsRange', 'intersectsRow', {
+    //   toMethod: 'getRange'
+    // });
+
+    function Marker(id, store, range, params) {
+      this.id = id;
+      this.store = store;
+      this.tailed = params.tailed, this.reversed = params.reversed, this.valid = params.valid, this.invalidate = params.invalidate, this.persistent = params.persistent, this.properties = params.properties, this.maintainHistory = params.maintainHistory;
+      this.emitter = new Emitter;
+      if (this.tailed == null) {
+        this.tailed = true;
+      }
+      if (this.reversed == null) {
+        this.reversed = false;
+      }
+      if (this.valid == null) {
+        this.valid = true;
+      }
+      if (this.invalidate == null) {
+        this.invalidate = 'overlap';
+      }
+      if (this.persistent == null) {
+        this.persistent = true;
+      }
+      if (this.maintainHistory == null) {
+        this.maintainHistory = false;
+      }
+      if (this.properties == null) {
+        this.properties = {};
+      }
+      this.hasChangeObservers = false;
+      this.rangeWhenDestroyed = null;
+      Object.freeze(this.properties);
+      this.store.setMarkerHasTail(this.id, this.tailed);
+    }
+
+
+    /*
+    Section: Event Subscription
+     */
+
+    Marker.prototype.onDidDestroy = function(callback) {
+      return this.emitter.on('did-destroy', callback);
+    };
+
+    Marker.prototype.onDidChange = function(callback) {
+      if (!this.hasChangeObservers) {
+        this.previousEventState = this.getSnapshot(this.getRange());
+        this.hasChangeObservers = true;
+      }
+      return this.emitter.on('did-change', callback);
+    };
+
+    Marker.prototype.getRange = function() {
+      var _ref1;
+      return (_ref1 = this.rangeWhenDestroyed) != null ? _ref1 : this.store.getMarkerRange(this.id);
+    };
+
+    Marker.prototype.setRange = function(range, properties) {
+      var params;
+      params = this.extractParams(properties);
+      params.tailed = true;
+      params.range = Range.fromObject(range, true);
+      return this.update(this.getRange(), params);
+    };
+
+    Marker.prototype.getHeadPosition = function() {
+      if (this.reversed) {
+        return this.getStartPosition();
+      } else {
+        return this.getEndPosition();
+      }
+    };
+
+    Marker.prototype.setHeadPosition = function(position, properties) {
+      var oldRange, params;
+      position = Point.fromObject(position);
+      params = this.extractParams(properties);
+      oldRange = this.getRange();
+      if (this.hasTail()) {
+        if (this.isReversed()) {
+          if (position.isLessThan(oldRange.end)) {
+            params.range = new Range(position, oldRange.end);
+          } else {
+            params.reversed = false;
+            params.range = new Range(oldRange.end, position);
+          }
+        } else {
+          if (position.isLessThan(oldRange.start)) {
+            params.reversed = true;
+            params.range = new Range(position, oldRange.start);
+          } else {
+            params.range = new Range(oldRange.start, position);
+          }
+        }
+      } else {
+        params.range = new Range(position, position);
+      }
+      return this.update(oldRange, params);
+    };
+
+    Marker.prototype.getTailPosition = function() {
+      if (this.reversed) {
+        return this.getEndPosition();
+      } else {
+        return this.getStartPosition();
+      }
+    };
+
+    Marker.prototype.setTailPosition = function(position, properties) {
+      var oldRange, params;
+      position = Point.fromObject(position);
+      params = this.extractParams(properties);
+      params.tailed = true;
+      oldRange = this.getRange();
+      if (this.reversed) {
+        if (position.isLessThan(oldRange.start)) {
+          params.reversed = false;
+          params.range = new Range(position, oldRange.start);
+        } else {
+          params.range = new Range(oldRange.start, position);
+        }
+      } else {
+        if (position.isLessThan(oldRange.end)) {
+          params.range = new Range(position, oldRange.end);
+        } else {
+          params.reversed = true;
+          params.range = new Range(oldRange.end, position);
+        }
+      }
+      return this.update(oldRange, params);
+    };
+
+    Marker.prototype.getStartPosition = function() {
+      var _ref1, _ref2;
+      return (_ref1 = (_ref2 = this.rangeWhenDestroyed) != null ? _ref2.start : void 0) != null ? _ref1 : this.store.getMarkerStartPosition(this.id);
+    };
+
+    Marker.prototype.getEndPosition = function() {
+      var _ref1, _ref2;
+      return (_ref1 = (_ref2 = this.rangeWhenDestroyed) != null ? _ref2.end : void 0) != null ? _ref1 : this.store.getMarkerEndPosition(this.id);
+    };
+
+    Marker.prototype.clearTail = function(properties) {
+      var headPosition, params;
+      params = this.extractParams(properties);
+      params.tailed = false;
+      headPosition = this.getHeadPosition();
+      params.range = new Range(headPosition, headPosition);
+      return this.update(this.getRange(), params);
+    };
+
+    Marker.prototype.plantTail = function(properties) {
+      var params;
+      params = this.extractParams(properties);
+      if (!this.hasTail()) {
+        params.tailed = true;
+        params.range = new Range(this.getHeadPosition(), this.getHeadPosition());
+      }
+      return this.update(this.getRange(), params);
+    };
+
+    Marker.prototype.isReversed = function() {
+      return this.tailed && this.reversed;
+    };
+
+    Marker.prototype.hasTail = function() {
+      return this.tailed;
+    };
+
+    Marker.prototype.isValid = function() {
+      return !this.isDestroyed() && this.valid;
+    };
+
+    Marker.prototype.isDestroyed = function() {
+      return this.rangeWhenDestroyed != null;
+    };
+
+    Marker.prototype.isEqual = function(other) {
+      return this.invalidate === other.invalidate && this.tailed === other.tailed && this.persistent === other.persistent && this.maintainHistory === other.maintainHistory && this.reversed === other.reversed && isEqual(this.properties, other.properties) && this.getRange().isEqual(other.getRange());
+    };
+
+    Marker.prototype.getInvalidationStrategy = function() {
+      return this.invalidate;
+    };
+
+    Marker.prototype.getProperties = function() {
+      return this.properties;
+    };
+
+    Marker.prototype.setProperties = function(properties) {
+      return this.update(this.getRange(), {
+        properties: extend({}, this.properties, properties)
+      });
+    };
+
+    Marker.prototype.copy = function(options) {
+      var snapshot;
+      if (options == null) {
+        options = {};
+      }
+      snapshot = this.getSnapshot(null);
+      options = Marker.extractParams(options);
+      return this.store.createMarker(this.getRange(), extend({}, snapshot, options, {
+        properties: extend({}, snapshot.properties, options.properties)
+      }));
+    };
+
+    Marker.prototype.destroy = function() {
+      this.rangeWhenDestroyed = this.getRange();
+      this.store.destroyMarker(this.id);
+      this.emitter.emit('did-destroy');
+      if (Grim.includeDeprecatedAPIs) {
+        return this.emit('destroyed');
+      }
+    };
+
+    Marker.prototype.extractParams = function(params) {
+      params = this.constructor.extractParams(params);
+      if (params.properties != null) {
+        params.properties = extend({}, this.properties, params.properties);
+      }
+      return params;
+    };
+
+    Marker.prototype.compare = function(other) {
+      return this.getRange().compare(other.getRange());
+    };
+
+    Marker.prototype.matchesParams = function(params) {
+      var key, _i, _len, _ref1;
+      _ref1 = Object.keys(params);
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        key = _ref1[_i];
+        if (!this.matchesParam(key, params[key])) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    Marker.prototype.matchesParam = function(key, value) {
+      switch (key) {
+        case 'startPosition':
+          return this.getStartPosition().isEqual(value);
+        case 'endPosition':
+          return this.getEndPosition().isEqual(value);
+        case 'containsPoint':
+        case 'containsPosition':
+          return this.containsPoint(value);
+        case 'containsRange':
+          return this.containsRange(value);
+        case 'startRow':
+          return this.getStartPosition().row === value;
+        case 'endRow':
+          return this.getEndPosition().row === value;
+        case 'intersectsRow':
+          return this.intersectsRow(value);
+        case 'invalidate':
+        case 'reversed':
+        case 'tailed':
+        case 'persistent':
+        case 'maintainHistory':
+          return isEqual(this[key], value);
+        default:
+          return isEqual(this.properties[key], value);
+      }
+    };
+
+    Marker.prototype.update = function(oldRange, _arg, textChanged) {
+      var properties, propertiesChanged, range, reversed, tailed, updated, valid;
+      range = _arg.range, reversed = _arg.reversed, tailed = _arg.tailed, valid = _arg.valid, properties = _arg.properties;
+      if (textChanged == null) {
+        textChanged = false;
+      }
+      if (this.isDestroyed()) {
+        return;
+      }
+      updated = propertiesChanged = false;
+      if ((range != null) && !range.isEqual(oldRange)) {
+        this.store.setMarkerRange(this.id, range);
+        updated = true;
+      }
+      if ((reversed != null) && reversed !== this.reversed) {
+        this.reversed = reversed;
+        updated = true;
+      }
+      if ((tailed != null) && tailed !== this.tailed) {
+        this.tailed = tailed;
+        this.store.setMarkerHasTail(this.id, this.tailed);
+        updated = true;
+      }
+      if ((valid != null) && valid !== this.valid) {
+        this.valid = valid;
+        updated = true;
+      }
+      if ((properties != null) && !isEqual(properties, this.properties)) {
+        this.properties = Object.freeze(properties);
+        propertiesChanged = true;
+        updated = true;
+      }
+      this.emitChangeEvent(range != null ? range : oldRange, textChanged, propertiesChanged);
+      if (updated && !textChanged) {
+        this.store.markerUpdated();
+      }
+      return updated;
+    };
+
+    Marker.prototype.getSnapshot = function(range) {
+      return Object.freeze({
+        range: range,
+        properties: this.properties,
+        reversed: this.reversed,
+        tailed: this.tailed,
+        valid: this.valid,
+        invalidate: this.invalidate,
+        maintainHistory: this.maintainHistory
+      });
+    };
+
+    Marker.prototype.toString = function() {
+      return "[Marker " + this.id + ", " + (this.getRange()) + "]";
+    };
+
+
+    /*
+    Section: Private
+     */
+
+    Marker.prototype.emitChangeEvent = function(currentRange, textChanged, propertiesChanged) {
+      var newHeadPosition, newState, newTailPosition, oldHeadPosition, oldState, oldTailPosition;
+      if (!this.hasChangeObservers) {
+        return;
+      }
+      oldState = this.previousEventState;
+      if (currentRange == null) {
+        currentRange = this.getRange();
+      }
+      if (!(propertiesChanged || oldState.valid !== this.valid || oldState.tailed !== this.tailed || oldState.reversed !== this.reversed || oldState.range.compare(currentRange) !== 0)) {
+        return false;
+      }
+      newState = this.previousEventState = this.getSnapshot(currentRange);
+      if (oldState.reversed) {
+        oldHeadPosition = oldState.range.start;
+        oldTailPosition = oldState.range.end;
+      } else {
+        oldHeadPosition = oldState.range.end;
+        oldTailPosition = oldState.range.start;
+      }
+      if (newState.reversed) {
+        newHeadPosition = newState.range.start;
+        newTailPosition = newState.range.end;
+      } else {
+        newHeadPosition = newState.range.end;
+        newTailPosition = newState.range.start;
+      }
+      this.emitter.emit("did-change", {
+        wasValid: oldState.valid,
+        isValid: newState.valid,
+        hadTail: oldState.tailed,
+        hasTail: newState.tailed,
+        oldProperties: oldState.properties,
+        newProperties: newState.properties,
+        oldHeadPosition: oldHeadPosition,
+        newHeadPosition: newHeadPosition,
+        oldTailPosition: oldTailPosition,
+        newTailPosition: newTailPosition,
+        textChanged: textChanged
+      });
+      return true;
+    };
+
+    return Marker;
+
+  })();
+
+  // if (Grim.includeDeprecatedAPIs) {
+  //   EmitterMixin = require('emissary').Emitter;
+  //   EmitterMixin.includeInto(Marker);
+  //   Marker.prototype.on = function(eventName) {
+  //     switch (eventName) {
+  //       case 'changed':
+  //         Grim.deprecate("Use Marker::onDidChange instead");
+  //         break;
+  //       case 'destroyed':
+  //         Grim.deprecate("Use Marker::onDidDestroy instead");
+  //         break;
+  //       default:
+  //         Grim.deprecate("Marker::on is deprecated. Use event subscription methods instead.");
+  //     }
+  //     return EmitterMixin.prototype.on.apply(this, arguments);
+  //   };
+  //   Marker.prototype.matchesAttributes = function() {
+  //     var args;
+  //     args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+  //     Grim.deprecate("Use Marker::matchesParams instead.");
+  //     return this.matchesParams.apply(this, args);
+  //   };
+  //   Marker.prototype.getAttributes = function() {
+  //     Grim.deprecate("Use Marker::getProperties instead.");
+  //     return this.getProperties();
+  //   };
+  //   Marker.prototype.setAttributes = function() {
+  //     var args;
+  //     args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+  //     Grim.deprecate("Use Marker::setProperties instead.");
+  //     return this.setProperties.apply(this, args);
+  //   };
+  //   Marker.handleDeprecatedParams = function(params) {
+  //     if (params.isReversed != null) {
+  //       Grim.deprecate("The option `isReversed` is deprecated, use `reversed` instead");
+  //       params.reversed = params.isReversed;
+  //       delete params.isReversed;
+  //     }
+  //     if (params.hasTail != null) {
+  //       Grim.deprecate("The option `hasTail` is deprecated, use `tailed` instead");
+  //       params.tailed = params.hasTail;
+  //       delete params.hasTail;
+  //     }
+  //     if (params.persist != null) {
+  //       Grim.deprecate("The option `persist` is deprecated, use `persistent` instead");
+  //       params.persistent = params.persist;
+  //       delete params.persist;
+  //     }
+  //     if (params.invalidation) {
+  //       Grim.deprecate("The option `invalidation` is deprecated, use `invalidate` instead");
+  //       params.invalidate = params.invalidation;
+  //       return delete params.invalidation;
+  //     }
+  //   };
+  // }
+
+}).call(this);
+
+}),
+  "mixto": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var ExcludedClassProperties, ExcludedPrototypeProperties, Mixin, name;
+
+  module.exports = Mixin = (function() {
+    Mixin.includeInto = function(constructor) {
+      var name, value, _ref;
+      this.extend(constructor.prototype);
+      for (name in this) {
+        value = this[name];
+        if (ExcludedClassProperties.indexOf(name) === -1) {
+          if (!constructor.hasOwnProperty(name)) {
+            constructor[name] = value;
+          }
+        }
+      }
+      return (_ref = this.included) != null ? _ref.call(constructor) : void 0;
+    };
+
+    Mixin.extend = function(object) {
+      var name, _i, _len, _ref, _ref1;
+      _ref = Object.getOwnPropertyNames(this.prototype);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        name = _ref[_i];
+        if (ExcludedPrototypeProperties.indexOf(name) === -1) {
+          if (!object.hasOwnProperty(name)) {
+            object[name] = this.prototype[name];
+          }
+        }
+      }
+      return (_ref1 = this.prototype.extended) != null ? _ref1.call(object) : void 0;
+    };
+
+    function Mixin() {
+      if (typeof this.extended === "function") {
+        this.extended();
+      }
+    }
+
+    return Mixin;
+
+  })();
+
+  ExcludedClassProperties = ['__super__'];
+
+  for (name in Mixin) {
+    ExcludedClassProperties.push(name);
+  }
+
+  ExcludedPrototypeProperties = ['constructor', 'extended'];
+
+}).call(this);
+
+}),
+  "delegato": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Delegator, Mixin, _ref,
+    __extends = function(child, parent) { for (var key in parent) { if (parent.hasOwnProperty(key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __slice = [].slice;
+
+  Mixin = require('mixto');
+
+  module.exports = Delegator = (function(_super) {
+    __extends(Delegator, _super);
+
+    function Delegator() {
+      _ref = Delegator.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    Delegator.delegatesProperties = function() {
+      var propertyName, propertyNames, toMethod, toProperty, _arg, _i, _j, _len, _results,
+        _this = this;
+      propertyNames = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), _arg = arguments[_i++];
+      toProperty = _arg.toProperty, toMethod = _arg.toMethod;
+      _results = [];
+      for (_j = 0, _len = propertyNames.length; _j < _len; _j++) {
+        propertyName = propertyNames[_j];
+        _results.push((function(propertyName) {
+          return Object.defineProperty(_this.prototype, propertyName, (function() {
+            if (toProperty != null) {
+              return {
+                get: function() {
+                  return this[toProperty][propertyName];
+                },
+                set: function(value) {
+                  return this[toProperty][propertyName] = value;
+                }
+              };
+            } else if (toMethod != null) {
+              return {
+                get: function() {
+                  return this[toMethod]()[propertyName];
+                },
+                set: function(value) {
+                  return this[toMethod]()[propertyName] = value;
+                }
+              };
+            } else {
+              throw new Error("No delegation target specified");
+            }
+          })());
+        })(propertyName));
+      }
+      return _results;
+    };
+
+    Delegator.delegatesMethods = function() {
+      var methodName, methodNames, toMethod, toProperty, _arg, _i, _j, _len, _results,
+        _this = this;
+      methodNames = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), _arg = arguments[_i++];
+      toProperty = _arg.toProperty, toMethod = _arg.toMethod;
+      _results = [];
+      for (_j = 0, _len = methodNames.length; _j < _len; _j++) {
+        methodName = methodNames[_j];
+        _results.push((function(methodName) {
+          if (toProperty != null) {
+            return _this.prototype[methodName] = function() {
+              var args, _ref1;
+              args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+              return (_ref1 = this[toProperty])[methodName].apply(_ref1, args);
+            };
+          } else if (toMethod != null) {
+            return _this.prototype[methodName] = function() {
+              var args, _ref1;
+              args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+              return (_ref1 = this[toMethod]())[methodName].apply(_ref1, args);
+            };
+          } else {
+            throw new Error("No delegation target specified");
+          }
+        })(methodName));
+      }
+      return _results;
+    };
+
+    Delegator.delegatesProperty = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return this.delegatesProperties.apply(this, args);
+    };
+
+    Delegator.delegatesMethod = function() {
+      var args;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      return this.delegatesMethods.apply(this, args);
+    };
+
+    return Delegator;
+
+  })(Mixin);
+
+}).call(this);
+
+}),
   "underscore": (function (exports, require, module, __filename, __dirname, process, global) { //     Underscore.js 1.6.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
