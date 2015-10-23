@@ -7,6 +7,3162 @@
 
 var snapshotGlobal = {};
 var cachedFunctions = {
+  "span-skip-list": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var SpanSkipList,
+    __slice = [].slice;
+
+  module.exports = SpanSkipList = (function() {
+    SpanSkipList.prototype.maxHeight = 8;
+
+    SpanSkipList.prototype.probability = .25;
+
+    function SpanSkipList() {
+      var dimensions, index;
+      dimensions = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      this.dimensions = dimensions;
+      this.head = this.createNode(this.maxHeight, this.buildZeroDistance());
+      this.tail = this.createNode(this.maxHeight, this.buildZeroDistance());
+      index = 0;
+      while (index < this.maxHeight) {
+        this.head.next[index] = this.tail;
+        this.head.distance[index] = this.buildZeroDistance();
+        index++;
+      }
+    }
+
+    SpanSkipList.prototype.totalTo = function(target, dimension) {
+      var index, nextDistanceInTargetDimension, node, totalDistance, _ref;
+      totalDistance = this.buildZeroDistance();
+      node = this.head;
+      index = this.maxHeight - 1;
+      while (index >= 0) {
+        while (true) {
+          if (node.next[index] === this.tail) {
+            break;
+          }
+          nextDistanceInTargetDimension = totalDistance[dimension] + node.distance[index][dimension] + ((_ref = node.next[index].element[dimension]) != null ? _ref : 1);
+          if (nextDistanceInTargetDimension > target) {
+            break;
+          }
+          this.incrementDistance(totalDistance, node.distance[index]);
+          this.incrementDistance(totalDistance, node.next[index].element);
+          node = node.next[index];
+        }
+        index--;
+      }
+      return totalDistance;
+    };
+
+    SpanSkipList.prototype.splice = function() {
+      var count, dimension, elements, index;
+      dimension = arguments[0], index = arguments[1], count = arguments[2], elements = 4 <= arguments.length ? __slice.call(arguments, 3) : [];
+      return this.spliceArray(dimension, index, count, elements);
+    };
+
+    SpanSkipList.prototype.spliceArray = function(dimension, index, count, elements) {
+      var i, newNode, nextNode, previous, previousDistances, removedElements;
+      previous = this.buildPreviousArray();
+      previousDistances = this.buildPreviousDistancesArray();
+      nextNode = this.findClosestNode(dimension, index, previous, previousDistances);
+      removedElements = [];
+      while (count > 0 && nextNode !== this.tail) {
+        removedElements.push(nextNode.element);
+        nextNode = this.removeNode(nextNode, previous, previousDistances);
+        count--;
+      }
+      i = elements.length - 1;
+      while (i >= 0) {
+        newNode = this.createNode(this.getRandomNodeHeight(), elements[i]);
+        this.insertNode(newNode, previous, previousDistances);
+        i--;
+      }
+      return removedElements;
+    };
+
+    SpanSkipList.prototype.getLength = function() {
+      return this.getElements().length;
+    };
+
+    SpanSkipList.prototype.getElements = function() {
+      var elements, node;
+      elements = [];
+      node = this.head;
+      while (node.next[0] !== this.tail) {
+        elements.push(node.next[0].element);
+        node = node.next[0];
+      }
+      return elements;
+    };
+
+    SpanSkipList.prototype.findClosestNode = function(dimension, index, previous, previousDistances) {
+      var i, nextHopDistance, node, totalDistance, _i, _ref, _ref1;
+      totalDistance = this.buildZeroDistance();
+      node = this.head;
+      for (i = _i = _ref = this.maxHeight - 1; _ref <= 0 ? _i <= 0 : _i >= 0; i = _ref <= 0 ? ++_i : --_i) {
+        while (true) {
+          if (node.next[i] === this.tail) {
+            break;
+          }
+          nextHopDistance = ((_ref1 = node.next[i].element[dimension]) != null ? _ref1 : 1) + node.distance[i][dimension];
+          if (totalDistance[dimension] + nextHopDistance > index) {
+            break;
+          }
+          this.incrementDistance(totalDistance, node.distance[i]);
+          this.incrementDistance(totalDistance, node.next[i].element);
+          this.incrementDistance(previousDistances[i], node.distance[i]);
+          this.incrementDistance(previousDistances[i], node.next[i].element);
+          node = node.next[i];
+        }
+        previous[i] = node;
+      }
+      return node.next[0];
+    };
+
+    SpanSkipList.prototype.insertNode = function(node, previous, previousDistances) {
+      var coveredDistance, level;
+      coveredDistance = this.buildZeroDistance();
+      level = 0;
+      while (level < node.height) {
+        node.next[level] = previous[level].next[level];
+        previous[level].next[level] = node;
+        node.distance[level] = this.subtractDistances(previous[level].distance[level], coveredDistance);
+        previous[level].distance[level] = this.cloneObject(coveredDistance);
+        this.incrementDistance(coveredDistance, previousDistances[level]);
+        level++;
+      }
+      level = node.height;
+      while (level < this.maxHeight) {
+        this.incrementDistance(previous[level].distance[level], node.element);
+        level++;
+      }
+    };
+
+    SpanSkipList.prototype.removeNode = function(node, previous) {
+      var level;
+      level = 0;
+      while (level < node.height) {
+        previous[level].next[level] = node.next[level];
+        this.incrementDistance(previous[level].distance[level], node.distance[level]);
+        level++;
+      }
+      level = node.height;
+      while (level < this.maxHeight) {
+        this.decrementDistance(previous[level].distance[level], node.element);
+        level++;
+      }
+      return node.next[0];
+    };
+
+    SpanSkipList.prototype.buildPreviousArray = function() {
+      var index, previous;
+      previous = new Array(this.maxHeight);
+      index = 0;
+      while (index < this.maxHeight) {
+        previous[index] = this.head;
+        index++;
+      }
+      return previous;
+    };
+
+    SpanSkipList.prototype.buildPreviousDistancesArray = function() {
+      var distances, index;
+      distances = new Array(this.maxHeight);
+      index = 0;
+      while (index < this.maxHeight) {
+        distances[index] = this.buildZeroDistance();
+        index++;
+      }
+      return distances;
+    };
+
+    SpanSkipList.prototype.getRandomNodeHeight = function() {
+      var height;
+      height = 1;
+      while (height < this.maxHeight && Math.random() < this.probability) {
+        height++;
+      }
+      return height;
+    };
+
+    SpanSkipList.prototype.buildZeroDistance = function() {
+      var dimension, _i, _len, _ref;
+      if (this.zeroDistance == null) {
+        this.zeroDistance = {
+          elements: 0
+        };
+        _ref = this.dimensions;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          dimension = _ref[_i];
+          this.zeroDistance[dimension] = 0;
+        }
+      }
+      return this.cloneObject(this.zeroDistance);
+    };
+
+    SpanSkipList.prototype.incrementDistance = function(distance, delta) {
+      var dimension, _i, _len, _ref, _ref1;
+      distance.elements += (_ref = delta.elements) != null ? _ref : 1;
+      _ref1 = this.dimensions;
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        dimension = _ref1[_i];
+        distance[dimension] += delta[dimension];
+      }
+    };
+
+    SpanSkipList.prototype.decrementDistance = function(distance, delta) {
+      var dimension, _i, _len, _ref, _ref1;
+      distance.elements -= (_ref = delta.elements) != null ? _ref : 1;
+      _ref1 = this.dimensions;
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        dimension = _ref1[_i];
+        distance[dimension] -= delta[dimension];
+      }
+    };
+
+    SpanSkipList.prototype.addDistances = function(a, b) {
+      var dimension, distance, _i, _len, _ref, _ref1, _ref2;
+      distance = {
+        elements: ((_ref = a.elements) != null ? _ref : 1) + ((_ref1 = b.elements) != null ? _ref1 : 1)
+      };
+      _ref2 = this.dimensions;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        dimension = _ref2[_i];
+        distance[dimension] = a[dimension] + b[dimension];
+      }
+      return distance;
+    };
+
+    SpanSkipList.prototype.subtractDistances = function(a, b) {
+      var dimension, distance, _i, _len, _ref, _ref1, _ref2;
+      distance = {
+        elements: ((_ref = a.elements) != null ? _ref : 1) - ((_ref1 = b.elements) != null ? _ref1 : 1)
+      };
+      _ref2 = this.dimensions;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        dimension = _ref2[_i];
+        distance[dimension] = a[dimension] - b[dimension];
+      }
+      return distance;
+    };
+
+    SpanSkipList.prototype.verifyDistanceInvariant = function() {
+      var distanceOnPreviousLevel, distanceOnThisLevel, isEqual, level, node, _i, _ref, _results;
+      isEqual = require('underscore').isEqual;
+      _results = [];
+      for (level = _i = _ref = this.maxHeight - 1; _ref <= 1 ? _i <= 1 : _i >= 1; level = _ref <= 1 ? ++_i : --_i) {
+        node = this.head;
+        _results.push((function() {
+          var _results1;
+          _results1 = [];
+          while (node !== this.tail) {
+            distanceOnThisLevel = this.addDistances(node.element, node.distance[level]);
+            distanceOnPreviousLevel = this.distanceBetweenNodesAtLevel(node, node.next[level], level - 1);
+            if (!isEqual(distanceOnThisLevel, distanceOnPreviousLevel)) {
+              console.log(this.inspect());
+              throw new Error("On level " + level + ": Distance " + (JSON.stringify(distanceOnThisLevel)) + " does not match " + (JSON.stringify(distanceOnPreviousLevel)));
+            }
+            _results1.push(node = node.next[level]);
+          }
+          return _results1;
+        }).call(this));
+      }
+      return _results;
+    };
+
+    SpanSkipList.prototype.distanceBetweenNodesAtLevel = function(startNode, endNode, level) {
+      var distance, node;
+      distance = this.buildZeroDistance();
+      node = startNode;
+      while (node !== endNode) {
+        this.incrementDistance(distance, node.element);
+        this.incrementDistance(distance, node.distance[level]);
+        node = node.next[level];
+      }
+      return distance;
+    };
+
+    SpanSkipList.prototype.createNode = function(height, element) {
+      return {
+        height: height,
+        element: element,
+        next: new Array(height),
+        distance: new Array(height)
+      };
+    };
+
+    SpanSkipList.prototype.cloneObject = function(object) {
+      var cloned, key, value;
+      cloned = {};
+      for (key in object) {
+        value = object[key];
+        cloned[key] = value;
+      }
+      return cloned;
+    };
+
+    return SpanSkipList;
+
+  })();
+
+}).call(this);
+
+}),
+  "get-parameter-names": (function (exports, require, module, __filename, __dirname, process, global) { var COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+function getParameterNames(fn) {
+  var code = fn.toString().replace(COMMENTS, '');
+  var result = code.slice(code.indexOf('(') + 1, code.indexOf(')'))
+    .match(/([^\s,]+)/g);
+
+  return result === null
+    ? []
+    : result;
+}
+
+module.exports = getParameterNames;
+
+}),
+  "serializable": (function (exports, require, module, __filename, __dirname, process, global) {
+    (function() {
+  var Mixin, Serializable, extend, getParameterNames, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __slice = [].slice;
+
+  extend = require('underscore-plus').extend;
+
+  Mixin = require('mixto');
+
+  getParameterNames = require('get-parameter-names');
+
+  module.exports = Serializable = (function(_super) {
+    __extends(Serializable, _super);
+
+    function Serializable() {
+      _ref = Serializable.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    Serializable.prototype.deserializers = null;
+
+    Serializable.registerDeserializers = function() {
+      var deserializer, deserializers, _i, _len, _results;
+      deserializers = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      _results = [];
+      for (_i = 0, _len = deserializers.length; _i < _len; _i++) {
+        deserializer = deserializers[_i];
+        _results.push(this.registerDeserializer(deserializer));
+      }
+      return _results;
+    };
+
+    Serializable.registerDeserializer = function(deserializer) {
+      if (this.deserializers == null) {
+        this.deserializers = {};
+      }
+      return this.deserializers[deserializer.name] = deserializer;
+    };
+
+    Serializable.deserialize = function(state, params) {
+      var deserializer, object, orderedParams, _ref1;
+      if (state == null) {
+        return;
+      }
+      if (state.deserializer === this.name) {
+        deserializer = this;
+      } else {
+        deserializer = (_ref1 = this.deserializers) != null ? _ref1[state.deserializer] : void 0;
+      }
+      if (!((deserializer != null) && deserializer.version === state.version)) {
+        return;
+      }
+      object = Object.create(deserializer.prototype);
+      params = extend({}, state, params);
+      delete params.deserializer;
+      if (typeof object.deserializeParams === 'function') {
+        params = object.deserializeParams(params);
+      }
+      if (params == null) {
+        return;
+      }
+      if (deserializer.parameterNames == null) {
+        deserializer.parameterNames = getParameterNames(deserializer);
+      }
+      if (deserializer.parameterNames.length > 1 || params.hasOwnProperty(deserializer.parameterNames[0])) {
+        orderedParams = deserializer.parameterNames.map(function(name) {
+          return params[name];
+        });
+        deserializer.call.apply(deserializer, [object].concat(__slice.call(orderedParams)));
+      } else {
+        deserializer.call(object, params);
+      }
+      return object;
+    };
+
+    Serializable.prototype.serialize = function() {
+      var state, _ref1;
+      state = (_ref1 = typeof this.serializeParams === "function" ? this.serializeParams() : void 0) != null ? _ref1 : {};
+      state.deserializer = this.constructor.name;
+      if (this.constructor.version != null) {
+        state.version = this.constructor.version;
+      }
+      return state;
+    };
+
+    Serializable.prototype.testSerialization = function(params) {
+      return this.constructor.deserialize(this.serialize(), params);
+    };
+
+    return Serializable;
+
+  })(Mixin);
+
+}).call(this);
+
+  }),
+  "mixto": (function (exports, require, module, __filename, __dirname, process, global) {
+    (function() {
+  var ExcludedClassProperties, ExcludedPrototypeProperties, Mixin, name;
+
+  module.exports = Mixin = (function() {
+    Mixin.includeInto = function(constructor) {
+      var name, value, _ref;
+      this.extend(constructor.prototype);
+      for (name in this) {
+        value = this[name];
+        if (ExcludedClassProperties.indexOf(name) === -1) {
+          if (!constructor.hasOwnProperty(name)) {
+            constructor[name] = value;
+          }
+        }
+      }
+      return (_ref = this.included) != null ? _ref.call(constructor) : void 0;
+    };
+
+    Mixin.extend = function(object) {
+      var name, _i, _len, _ref, _ref1;
+      _ref = Object.getOwnPropertyNames(this.prototype);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        name = _ref[_i];
+        if (ExcludedPrototypeProperties.indexOf(name) === -1) {
+          if (!object.hasOwnProperty(name)) {
+            object[name] = this.prototype[name];
+          }
+        }
+      }
+      return (_ref1 = this.prototype.extended) != null ? _ref1.call(object) : void 0;
+    };
+
+    function Mixin() {
+      if (typeof this.extended === "function") {
+        this.extended();
+      }
+    }
+
+    return Mixin;
+
+  })();
+
+  ExcludedClassProperties = ['__super__'];
+
+  for (name in Mixin) {
+    ExcludedClassProperties.push(name);
+  }
+
+  ExcludedPrototypeProperties = ['constructor', 'extended'];
+
+}).call(this);
+
+  }),
+  "./match-iterator": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Backwards, Forwards;
+
+  Forwards = (function() {
+    function Forwards(text, regex, startIndex, endIndex) {
+      this.text = text;
+      this.regex = regex;
+      this.startIndex = startIndex;
+      this.endIndex = endIndex;
+      this.regex.lastIndex = this.startIndex;
+    }
+
+    Forwards.prototype.next = function() {
+      var match, matchEndIndex, matchLength, matchStartIndex, submatch;
+      if (match = this.regex.exec(this.text)) {
+        matchLength = match[0].length;
+        matchStartIndex = match.index;
+        matchEndIndex = matchStartIndex + matchLength;
+        if (matchEndIndex > this.endIndex) {
+          this.regex.lastIndex = 0;
+          if (matchStartIndex < this.endIndex && (submatch = this.regex.exec(this.text.slice(matchStartIndex, this.endIndex)))) {
+            submatch.index = matchStartIndex;
+            match = submatch;
+          } else {
+            match = null;
+          }
+          this.regex.lastIndex = Infinity;
+        } else {
+          if (matchLength === 0) {
+            matchEndIndex++;
+          }
+          this.regex.lastIndex = matchEndIndex;
+        }
+      }
+      if (match) {
+        return {
+          value: match,
+          done: false
+        };
+      } else {
+        return {
+          value: null,
+          done: true
+        };
+      }
+    };
+
+    return Forwards;
+
+  })();
+
+  Backwards = (function() {
+    function Backwards(text, regex, startIndex, endIndex, chunkSize) {
+      this.text = text;
+      this.regex = regex;
+      this.startIndex = startIndex;
+      this.chunkSize = chunkSize;
+      this.bufferedMatches = [];
+      this.doneScanning = false;
+      this.chunkStartIndex = this.chunkEndIndex = endIndex;
+      this.lastMatchIndex = Infinity;
+    }
+
+    Backwards.prototype.scanNextChunk = function() {
+      var firstResultIndex, match, matchEndIndex, matchLength, matchStartIndex, submatch, _ref;
+      this.doneScanning = this.chunkStartIndex === this.startIndex;
+      this.chunkEndIndex = Math.min(this.chunkEndIndex, this.lastMatchIndex);
+      this.chunkStartIndex = Math.max(this.startIndex, this.chunkStartIndex - this.chunkSize);
+      firstResultIndex = null;
+      this.regex.lastIndex = this.chunkStartIndex;
+      while (match = this.regex.exec(this.text)) {
+        matchLength = match[0].length;
+        matchStartIndex = match.index;
+        matchEndIndex = matchStartIndex + matchLength;
+        if ((matchStartIndex === (_ref = this.chunkStartIndex) && _ref > this.startIndex)) {
+          break;
+        }
+        if (matchStartIndex >= this.chunkEndIndex) {
+          break;
+        }
+        if (matchEndIndex > this.chunkEndIndex) {
+          this.regex.lastIndex = 0;
+          if (submatch = this.regex.exec(this.text.slice(matchStartIndex, this.chunkEndIndex))) {
+            submatch.index = matchStartIndex;
+            if (firstResultIndex == null) {
+              firstResultIndex = matchStartIndex;
+            }
+            this.bufferedMatches.push(submatch);
+          }
+          break;
+        } else {
+          if (firstResultIndex == null) {
+            firstResultIndex = matchStartIndex;
+          }
+          this.bufferedMatches.push(match);
+          if (matchLength === 0) {
+            matchEndIndex++;
+          }
+          this.regex.lastIndex = matchEndIndex;
+        }
+      }
+      if (firstResultIndex) {
+        return this.lastMatchIndex = firstResultIndex;
+      }
+    };
+
+    Backwards.prototype.next = function() {
+      var match;
+      while (!(this.doneScanning || this.bufferedMatches.length > 0)) {
+        this.scanNextChunk();
+      }
+      if (match = this.bufferedMatches.pop()) {
+        return {
+          value: match,
+          done: false
+        };
+      } else {
+        return {
+          value: null,
+          done: true
+        };
+      }
+    };
+
+    return Backwards;
+
+  })();
+
+  module.exports = {
+    Forwards: Forwards,
+    Backwards: Backwards
+  };
+
+}).call(this);
+
+}),
+  "./marker-store": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Marker, MarkerIndex, MarkerStore, Point, Range, SerializationVersion, clone, filterSet, intersectSet;
+
+  clone = require("underscore-plus").clone;
+
+  Point = require("./point");
+
+  Range = require("./range");
+
+  Marker = require("./marker");
+
+  MarkerIndex = require("./marker-index");
+
+  intersectSet = require("./set-helpers").intersectSet;
+
+  SerializationVersion = 2;
+
+  module.exports = MarkerStore = (function() {
+    MarkerStore.deserialize = function(delegate, state) {
+      var store;
+      store = new MarkerStore(delegate);
+      store.deserialize(state);
+      return store;
+    };
+
+    MarkerStore.serializeSnapshot = function(snapshot) {
+      var id, markerSnapshot, result;
+      result = {};
+      for (id in snapshot) {
+        markerSnapshot = snapshot[id];
+        result[id] = clone(markerSnapshot);
+        result[id].range = markerSnapshot.range.serialize();
+      }
+      return result;
+    };
+
+    MarkerStore.deserializeSnapshot = function(snapshot) {
+      var id, markerSnapshot, result;
+      result = {};
+      for (id in snapshot) {
+        markerSnapshot = snapshot[id];
+        result[id] = clone(markerSnapshot);
+        result[id].range = Range.deserialize(markerSnapshot.range);
+      }
+      return result;
+    };
+
+    function MarkerStore(delegate) {
+      this.delegate = delegate;
+      this.index = new MarkerIndex;
+      this.markersById = {};
+      this.historiedMarkers = new Set;
+      this.nextMarkerId = 0;
+    }
+
+
+    /*
+    Section: TextBuffer API
+     */
+
+    MarkerStore.prototype.getMarker = function(id) {
+      return this.markersById[id];
+    };
+
+    MarkerStore.prototype.getMarkers = function() {
+      var id, marker, _ref, _results;
+      _ref = this.markersById;
+      _results = [];
+      for (id in _ref) {
+        marker = _ref[id];
+        _results.push(marker);
+      }
+      return _results;
+    };
+
+    MarkerStore.prototype.getMarkerCount = function() {
+      return Object.keys(this.markersById).length;
+    };
+
+    MarkerStore.prototype.findMarkers = function(params) {
+      var end, key, markerIds, result, start, value, _i, _len, _ref, _ref1, _ref2, _ref3;
+      markerIds = null;
+      _ref = Object.keys(params);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        key = _ref[_i];
+        value = params[key];
+        switch (key) {
+          case 'startPosition':
+            markerIds = filterSet(markerIds, this.index.findStartingIn(Point.fromObject(value)));
+            break;
+          case 'endPosition':
+            markerIds = filterSet(markerIds, this.index.findEndingIn(Point.fromObject(value)));
+            break;
+          case 'containsPoint':
+          case 'containsPosition':
+            markerIds = filterSet(markerIds, this.index.findContaining(Point.fromObject(value)));
+            break;
+          case 'containsRange':
+            _ref1 = Range.fromObject(value), start = _ref1.start, end = _ref1.end;
+            markerIds = filterSet(markerIds, this.index.findContaining(start, end));
+            break;
+          case 'intersectsRange':
+            _ref2 = Range.fromObject(value), start = _ref2.start, end = _ref2.end;
+            markerIds = filterSet(markerIds, this.index.findIntersecting(start, end));
+            break;
+          case 'startRow':
+            markerIds = filterSet(markerIds, this.index.findStartingIn(Point(value, 0), Point(value, Infinity)));
+            break;
+          case 'endRow':
+            markerIds = filterSet(markerIds, this.index.findEndingIn(Point(value, 0), Point(value, Infinity)));
+            break;
+          case 'intersectsRow':
+            markerIds = filterSet(markerIds, this.index.findIntersecting(Point(value, 0), Point(value, Infinity)));
+            break;
+          case 'intersectsRowRange':
+            markerIds = filterSet(markerIds, this.index.findIntersecting(Point(value[0], 0), Point(value[1], Infinity)));
+            break;
+          case 'containedInRange':
+            _ref3 = Range.fromObject(value), start = _ref3.start, end = _ref3.end;
+            markerIds = filterSet(markerIds, this.index.findContainedIn(start, end));
+            break;
+          default:
+            continue;
+        }
+        delete params[key];
+      }
+      if (markerIds == null) {
+        markerIds = new Set(Object.keys(this.markersById));
+      }
+      result = [];
+      markerIds.forEach((function(_this) {
+        return function(id) {
+          var marker;
+          marker = _this.markersById[id];
+          if (marker.matchesParams(params)) {
+            return result.push(marker);
+          }
+        };
+      })(this));
+      return result.sort(function(a, b) {
+        return a.compare(b);
+      });
+    };
+
+    MarkerStore.prototype.markRange = function(range, options) {
+      if (options == null) {
+        options = {};
+      }
+      return this.createMarker(Range.fromObject(range), Marker.extractParams(options));
+    };
+
+    MarkerStore.prototype.markPosition = function(position, options) {
+      if (options == null) {
+        options = {};
+      }
+      if (options.tailed == null) {
+        options.tailed = false;
+      }
+      return this.markRange(Range(position, position), options);
+    };
+
+    MarkerStore.prototype.splice = function(start, oldExtent, newExtent) {
+      var end, endingAt, endingIn, id, intersecting, invalid, marker, startingAt, startingIn, _i, _len, _ref;
+      end = start.traverse(oldExtent);
+      intersecting = this.index.findIntersecting(start, end);
+      endingAt = this.index.findEndingIn(start);
+      startingAt = this.index.findStartingIn(end);
+      startingIn = this.index.findStartingIn(start.traverse(Point(0, 1)), end.traverse(Point(0, -1)));
+      endingIn = this.index.findEndingIn(start.traverse(Point(0, 1)), end.traverse(Point(0, -1)));
+      _ref = Object.keys(this.markersById);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        id = _ref[_i];
+        marker = this.markersById[id];
+        switch (marker.getInvalidationStrategy()) {
+          case 'touch':
+            invalid = intersecting.has(id);
+            break;
+          case 'inside':
+            invalid = intersecting.has(id) && !(startingAt.has(id) || endingAt.has(id));
+            break;
+          case 'overlap':
+            invalid = startingIn.has(id) || endingIn.has(id);
+            break;
+          case 'surround':
+            invalid = startingIn.has(id) && endingIn.has(id);
+            break;
+          case 'never':
+            invalid = false;
+        }
+        if (invalid) {
+          marker.valid = false;
+        }
+      }
+      return this.index.splice(start, oldExtent, newExtent);
+    };
+
+    MarkerStore.prototype.restoreFromSnapshot = function(snapshots) {
+      var createdIds, existingMarkerIds, id, marker, newMarker, snapshot, snapshotIds, _i, _j, _len, _len1;
+      if (snapshots == null) {
+        return;
+      }
+      createdIds = new Set;
+      snapshotIds = Object.keys(snapshots);
+      existingMarkerIds = Object.keys(this.markersById);
+      for (_i = 0, _len = snapshotIds.length; _i < _len; _i++) {
+        id = snapshotIds[_i];
+        snapshot = snapshots[id];
+        if (marker = this.markersById[id]) {
+          marker.update(marker.getRange(), snapshot, true);
+        } else {
+          newMarker = this.createMarker(snapshot.range, snapshot);
+          createdIds.add(newMarker.id);
+        }
+      }
+      for (_j = 0, _len1 = existingMarkerIds.length; _j < _len1; _j++) {
+        id = existingMarkerIds[_j];
+        if ((marker = this.markersById[id]) && (snapshots[id] == null)) {
+          if (this.historiedMarkers.has(id)) {
+            marker.destroy();
+          } else {
+            marker.emitChangeEvent(marker.getRange(), true, false);
+          }
+        }
+      }
+      this.delegate.markersUpdated();
+    };
+
+    MarkerStore.prototype.createSnapshot = function(emitChangeEvents) {
+      var id, marker, ranges, result, _i, _len, _ref;
+      if (emitChangeEvents == null) {
+        emitChangeEvents = false;
+      }
+      result = {};
+      ranges = this.index.dump(this.historiedMarkers);
+      _ref = Object.keys(this.markersById);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        id = _ref[_i];
+        if (marker = this.markersById[id]) {
+          if (marker.maintainHistory) {
+            result[id] = marker.getSnapshot(ranges[id], false);
+          }
+          if (emitChangeEvents) {
+            marker.emitChangeEvent(ranges[id], true, false);
+          }
+        }
+      }
+      if (emitChangeEvents) {
+        this.delegate.markersUpdated();
+      }
+      return result;
+    };
+
+    MarkerStore.prototype.serialize = function() {
+      var id, marker, markersById, ranges, _i, _len, _ref;
+      ranges = this.index.dump();
+      markersById = {};
+      _ref = Object.keys(this.markersById);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        id = _ref[_i];
+        marker = this.markersById[id];
+        if (marker.persistent) {
+          markersById[id] = marker.getSnapshot(ranges[id], false);
+        }
+      }
+      return {
+        nextMarkerId: this.nextMarkerId,
+        markersById: markersById,
+        version: SerializationVersion
+      };
+    };
+
+    MarkerStore.prototype.deserialize = function(state) {
+      var id, markerState, range, _ref;
+      if (state.version !== SerializationVersion) {
+        return;
+      }
+      this.nextMarkerId = state.nextMarkerId;
+      _ref = state.markersById;
+      for (id in _ref) {
+        markerState = _ref[id];
+        range = Range.fromObject(markerState.range);
+        delete markerState.range;
+        this.addMarker(id, range, markerState);
+      }
+    };
+
+
+    /*
+    Section: Marker interface
+     */
+
+    MarkerStore.prototype.markerUpdated = function() {
+      return this.delegate.markersUpdated();
+    };
+
+    MarkerStore.prototype.destroyMarker = function(id) {
+      delete this.markersById[id];
+      this.historiedMarkers["delete"](id);
+      this.index["delete"](id);
+      return this.delegate.markersUpdated();
+    };
+
+    MarkerStore.prototype.getMarkerRange = function(id) {
+      return this.index.getRange(id);
+    };
+
+    MarkerStore.prototype.getMarkerStartPosition = function(id) {
+      return this.index.getStart(id);
+    };
+
+    MarkerStore.prototype.getMarkerEndPosition = function(id) {
+      return this.index.getEnd(id);
+    };
+
+    MarkerStore.prototype.setMarkerRange = function(id, range) {
+      var end, start, _ref;
+      _ref = Range.fromObject(range), start = _ref.start, end = _ref.end;
+      start = this.delegate.clipPosition(start);
+      end = this.delegate.clipPosition(end);
+      this.index["delete"](id);
+      return this.index.insert(id, start, end);
+    };
+
+    MarkerStore.prototype.setMarkerHasTail = function(id, hasTail) {
+      return this.index.setExclusive(id, !hasTail);
+    };
+
+    MarkerStore.prototype.createMarker = function(range, params) {
+      var id, marker;
+      id = String(this.nextMarkerId++);
+      marker = this.addMarker(id, range, params);
+      this.delegate.markerCreated(marker);
+      this.delegate.markersUpdated();
+      return marker;
+    };
+
+
+    /*
+    Section: Private
+     */
+
+    MarkerStore.prototype.addMarker = function(id, range, params) {
+      var marker;
+      Point.assertValid(range.start);
+      Point.assertValid(range.end);
+      marker = new Marker(id, this, range, params);
+      this.markersById[id] = marker;
+      this.index.insert(id, range.start, range.end);
+      if (marker.getInvalidationStrategy() === 'inside') {
+        this.index.setExclusive(id, true);
+      }
+      if (marker.maintainHistory) {
+        this.historiedMarkers.add(id);
+      }
+      return marker;
+    };
+
+    return MarkerStore;
+
+  })();
+
+  filterSet = function(set1, set2) {
+    if (set1) {
+      intersectSet(set1, set2);
+      return set1;
+    } else {
+      return set2;
+    }
+  };
+
+}).call(this);
+
+}),
+  "./marker-index": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var BRANCHING_THRESHOLD, Leaf, MarkerIndex, Node, Point, Range, addSet, assertValidId, extend, intersectSet, last, setEqual, setsOverlap, subtractSet, templateRange, _ref, _ref1,
+    __slice = [].slice;
+
+  Point = require("./point");
+
+  Range = require("./range");
+
+  _ref = require("underscore-plus"), last = _ref.last, extend = _ref.extend;
+
+  _ref1 = require("./set-helpers"), addSet = _ref1.addSet, subtractSet = _ref1.subtractSet, intersectSet = _ref1.intersectSet, setEqual = _ref1.setEqual;
+
+  BRANCHING_THRESHOLD = 3;
+
+  Node = (function() {
+    function Node(children) {
+      var child, _i, _len, _ref2;
+      this.children = children;
+      this.ids = new Set;
+      this.extent = Point.ZERO;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        this.extent = this.extent.traverse(child.extent);
+        addSet(this.ids, child.ids);
+      }
+    }
+
+    Node.prototype.insert = function(ids, start, end) {
+      var child, childEnd, childFollowsRange, childPrecedesRange, childStart, i, newChildren, newNodes, rangeIsEmpty, relativeEnd, relativeStart, _ref2;
+      rangeIsEmpty = start.compare(end) === 0;
+      childEnd = Point.ZERO;
+      i = 0;
+      while (i < this.children.length) {
+        child = this.children[i++];
+        childStart = childEnd;
+        childEnd = childStart.traverse(child.extent);
+        switch (childEnd.compare(start)) {
+          case -1:
+            childPrecedesRange = true;
+            break;
+          case 1:
+            childPrecedesRange = false;
+            break;
+          case 0:
+            if (child.hasEmptyRightmostLeaf()) {
+              childPrecedesRange = false;
+            } else {
+              childPrecedesRange = true;
+              if (rangeIsEmpty) {
+                ids = new Set(ids);
+                child.findContaining(child.extent, ids);
+              }
+            }
+        }
+        if (childPrecedesRange) {
+          continue;
+        }
+        switch (childStart.compare(end)) {
+          case -1:
+            childFollowsRange = false;
+            break;
+          case 1:
+            childFollowsRange = true;
+            break;
+          case 0:
+            childFollowsRange = !(child.hasEmptyLeftmostLeaf() || rangeIsEmpty);
+        }
+        if (childFollowsRange) {
+          break;
+        }
+        relativeStart = Point.max(Point.ZERO, start.traversalFrom(childStart));
+        relativeEnd = Point.min(child.extent, end.traversalFrom(childStart));
+        if (newChildren = child.insert(ids, relativeStart, relativeEnd)) {
+          (_ref2 = this.children).splice.apply(_ref2, [i - 1, 1].concat(__slice.call(newChildren)));
+          i += newChildren.length - 1;
+        }
+        if (rangeIsEmpty) {
+          break;
+        }
+      }
+      if (newNodes = this.splitIfNeeded()) {
+        return newNodes;
+      } else {
+        addSet(this.ids, ids);
+      }
+    };
+
+    Node.prototype["delete"] = function(id) {
+      var i, _results;
+      if (!this.ids["delete"](id)) {
+        return;
+      }
+      i = 0;
+      _results = [];
+      while (i < this.children.length) {
+        this.children[i]["delete"](id);
+        if (!this.mergeChildrenIfNeeded(i - 1)) {
+          _results.push(i++);
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    Node.prototype.splice = function(position, oldExtent, newExtent, exclusiveIds, precedingIds, followingIds) {
+      var child, childEnd, childPrecedesRange, childStart, extentAfterChange, i, nextChildIds, oldRangeIsEmpty, previousChildIds, previousExtent, remainderToDelete, spliceNewEnd, spliceOldEnd, splitNodes, _ref2, _ref3, _ref4, _ref5, _ref6;
+      oldRangeIsEmpty = oldExtent.isZero();
+      spliceOldEnd = position.traverse(oldExtent);
+      spliceNewEnd = position.traverse(newExtent);
+      extentAfterChange = this.extent.traversalFrom(spliceOldEnd);
+      this.extent = spliceNewEnd.traverse(Point.max(Point.ZERO, extentAfterChange));
+      if (position.isZero() && oldRangeIsEmpty) {
+        if (precedingIds != null) {
+          precedingIds.forEach((function(_this) {
+            return function(id) {
+              if (!exclusiveIds.has(id)) {
+                return _this.ids.add(id);
+              }
+            };
+          })(this));
+        }
+      }
+      i = 0;
+      childEnd = Point.ZERO;
+      while (i < this.children.length) {
+        child = this.children[i];
+        childStart = childEnd;
+        childEnd = childStart.traverse(child.extent);
+        switch (childEnd.compare(position)) {
+          case -1:
+            childPrecedesRange = true;
+            break;
+          case 0:
+            childPrecedesRange = !(child.hasEmptyRightmostLeaf() && oldRangeIsEmpty);
+            break;
+          case 1:
+            childPrecedesRange = false;
+        }
+        if (!childPrecedesRange) {
+          if (typeof remainderToDelete !== "undefined" && remainderToDelete !== null) {
+            if (remainderToDelete.isPositive()) {
+              previousExtent = child.extent;
+              child.splice(Point.ZERO, remainderToDelete, Point.ZERO);
+              remainderToDelete = remainderToDelete.traversalFrom(previousExtent);
+              childEnd = childStart.traverse(child.extent);
+            }
+          } else {
+            if (oldRangeIsEmpty) {
+              previousChildIds = (_ref2 = (_ref3 = this.children[i - 1]) != null ? _ref3.getRightmostIds() : void 0) != null ? _ref2 : precedingIds;
+              nextChildIds = (_ref4 = (_ref5 = this.children[i + 1]) != null ? _ref5.getLeftmostIds() : void 0) != null ? _ref4 : followingIds;
+            }
+            splitNodes = child.splice(position.traversalFrom(childStart), oldExtent, newExtent, exclusiveIds, previousChildIds, nextChildIds);
+            if (splitNodes) {
+              (_ref6 = this.children).splice.apply(_ref6, [i, 1].concat(__slice.call(splitNodes)));
+            }
+            remainderToDelete = spliceOldEnd.traversalFrom(childEnd);
+            childEnd = childStart.traverse(child.extent);
+          }
+        }
+        if (!this.mergeChildrenIfNeeded(i - 1)) {
+          i++;
+        }
+      }
+      return this.splitIfNeeded();
+    };
+
+    Node.prototype.getStart = function(id) {
+      var child, childEnd, childStart, startRelativeToChild, _i, _len, _ref2;
+      if (!this.ids.has(id)) {
+        return;
+      }
+      childEnd = Point.ZERO;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        childStart = childEnd;
+        childEnd = childStart.traverse(child.extent);
+        if (startRelativeToChild = child.getStart(id)) {
+          return childStart.traverse(startRelativeToChild);
+        }
+      }
+    };
+
+    Node.prototype.getEnd = function(id) {
+      var child, childEnd, childStart, end, endRelativeToChild, _i, _len, _ref2;
+      if (!this.ids.has(id)) {
+        return;
+      }
+      childEnd = Point.ZERO;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        childStart = childEnd;
+        childEnd = childStart.traverse(child.extent);
+        if (endRelativeToChild = child.getEnd(id)) {
+          end = childStart.traverse(endRelativeToChild);
+        } else if (end != null) {
+          break;
+        }
+      }
+      return end;
+    };
+
+    Node.prototype.dump = function(ids, offset, snapshot) {
+      var child, _i, _len, _ref2;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        if ((!ids) || setsOverlap(ids, child.ids)) {
+          offset = child.dump(ids, offset, snapshot);
+        } else {
+          offset = offset.traverse(child.extent);
+        }
+      }
+      return offset;
+    };
+
+    Node.prototype.findContaining = function(point, set) {
+      var child, childEnd, childStart, _i, _len, _ref2;
+      childEnd = Point.ZERO;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        childStart = childEnd;
+        childEnd = childStart.traverse(child.extent);
+        if (childEnd.compare(point) < 0) {
+          continue;
+        }
+        if (childStart.compare(point) > 0) {
+          break;
+        }
+        child.findContaining(point.traversalFrom(childStart), set);
+      }
+    };
+
+    Node.prototype.findIntersecting = function(start, end, set) {
+      var child, childEnd, childStart, _i, _len, _ref2;
+      if (start.isZero() && end.compare(this.extent) === 0) {
+        addSet(set, this.ids);
+        return;
+      }
+      childEnd = Point.ZERO;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        childStart = childEnd;
+        childEnd = childStart.traverse(child.extent);
+        if (childEnd.compare(start) < 0) {
+          continue;
+        }
+        if (childStart.compare(end) > 0) {
+          break;
+        }
+        child.findIntersecting(Point.max(Point.ZERO, start.traversalFrom(childStart)), Point.min(child.extent, end.traversalFrom(childStart)), set);
+      }
+    };
+
+    Node.prototype.findStartingAt = function(position, result, previousIds) {
+      var child, nextPosition, _i, _len, _ref2;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        if (position.isNegative()) {
+          break;
+        }
+        nextPosition = position.traversalFrom(child.extent);
+        if (!nextPosition.isPositive()) {
+          child.findStartingAt(position, result, previousIds);
+        }
+        previousIds = child.ids;
+        position = nextPosition;
+      }
+    };
+
+    Node.prototype.findEndingAt = function(position, result) {
+      var child, nextPosition, _i, _len, _ref2;
+      _ref2 = this.children;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        child = _ref2[_i];
+        if (position.isNegative()) {
+          break;
+        }
+        nextPosition = position.traversalFrom(child.extent);
+        if (!nextPosition.isPositive()) {
+          child.findEndingAt(position, result);
+        }
+        position = nextPosition;
+      }
+    };
+
+    Node.prototype.hasEmptyRightmostLeaf = function() {
+      return this.children[this.children.length - 1].hasEmptyRightmostLeaf();
+    };
+
+    Node.prototype.hasEmptyLeftmostLeaf = function() {
+      return this.children[0].hasEmptyLeftmostLeaf();
+    };
+
+    Node.prototype.getLeftmostIds = function() {
+      return this.children[0].getLeftmostIds();
+    };
+
+    Node.prototype.getRightmostIds = function() {
+      return last(this.children).getRightmostIds();
+    };
+
+    Node.prototype.merge = function(other) {
+      var childCount, _ref2;
+      childCount = this.children.length + other.children.length;
+      if (childCount <= BRANCHING_THRESHOLD + 1) {
+        if (last(this.children).merge(other.children[0])) {
+          other.children.shift();
+          childCount--;
+        }
+        if (childCount <= BRANCHING_THRESHOLD) {
+          this.extent = this.extent.traverse(other.extent);
+          addSet(this.ids, other.ids);
+          (_ref2 = this.children).push.apply(_ref2, other.children);
+          return true;
+        }
+      }
+      return false;
+    };
+
+    Node.prototype.splitIfNeeded = function() {
+      var branchingRatio, splitIndex;
+      if ((branchingRatio = this.children.length / BRANCHING_THRESHOLD) > 1) {
+        splitIndex = Math.ceil(branchingRatio);
+        return [new Node(this.children.slice(0, splitIndex)), new Node(this.children.slice(splitIndex))];
+      }
+    };
+
+    Node.prototype.mergeChildrenIfNeeded = function(i) {
+      var _ref2;
+      if ((_ref2 = this.children[i]) != null ? _ref2.merge(this.children[i + 1]) : void 0) {
+        this.children.splice(i + 1, 1);
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    Node.prototype.toString = function(indentLevel) {
+      var i, ids, indent, next, values, _i;
+      if (indentLevel == null) {
+        indentLevel = 0;
+      }
+      indent = "";
+      for (i = _i = 0; _i < indentLevel; i = _i += 1) {
+        indent += " ";
+      }
+      ids = [];
+      values = this.ids.values();
+      while (!(next = values.next()).done) {
+        ids.push(next.value);
+      }
+      return "" + indent + "Node " + this.extent + " (" + (ids.join(" ")) + ")\n" + (this.children.map(function(c) {
+        return c.toString(indentLevel + 2);
+      }).join("\n"));
+    };
+
+    return Node;
+
+  })();
+
+  Leaf = (function() {
+    function Leaf(extent, ids) {
+      this.extent = extent;
+      this.ids = ids;
+    }
+
+    Leaf.prototype.insert = function(ids, start, end) {
+      var newIds, newLeaves;
+      if (start.isZero() && end.compare(this.extent) === 0) {
+        addSet(this.ids, ids);
+      } else {
+        newIds = new Set(this.ids);
+        addSet(newIds, ids);
+        newLeaves = [];
+        if (start.isPositive()) {
+          newLeaves.push(new Leaf(start, new Set(this.ids)));
+        }
+        newLeaves.push(new Leaf(end.traversalFrom(start), newIds));
+        if (this.extent.compare(end) > 0) {
+          newLeaves.push(new Leaf(this.extent.traversalFrom(end), new Set(this.ids)));
+        }
+        return newLeaves;
+      }
+    };
+
+    Leaf.prototype["delete"] = function(id) {
+      return this.ids["delete"](id);
+    };
+
+    Leaf.prototype.splice = function(position, spliceOldExtent, spliceNewExtent, exclusiveIds, precedingIds, followingIds) {
+      var extentAfterChange, leftIds, spliceNewEnd, spliceOldEnd;
+      if (position.isZero() && spliceOldExtent.isZero()) {
+        leftIds = new Set(precedingIds);
+        addSet(leftIds, this.ids);
+        subtractSet(leftIds, exclusiveIds);
+        if (this.extent.isZero()) {
+          precedingIds.forEach((function(_this) {
+            return function(id) {
+              if (!followingIds.has(id)) {
+                return _this.ids["delete"](id);
+              }
+            };
+          })(this));
+        }
+        return [new Leaf(spliceNewExtent, leftIds), this];
+      } else {
+        spliceOldEnd = position.traverse(spliceOldExtent);
+        spliceNewEnd = position.traverse(spliceNewExtent);
+        extentAfterChange = this.extent.traversalFrom(spliceOldEnd);
+        this.extent = spliceNewEnd.traverse(Point.max(Point.ZERO, extentAfterChange));
+      }
+    };
+
+    Leaf.prototype.getStart = function(id) {
+      if (this.ids.has(id)) {
+        return Point.ZERO;
+      }
+    };
+
+    Leaf.prototype.getEnd = function(id) {
+      if (this.ids.has(id)) {
+        return this.extent;
+      }
+    };
+
+    Leaf.prototype.dump = function(ids, offset, snapshot) {
+      var end, id, next, values, _base;
+      end = offset.traverse(this.extent);
+      values = this.ids.values();
+      while (!(next = values.next()).done) {
+        id = next.value;
+        if ((!ids) || ids.has(id)) {
+          if (snapshot[id] == null) {
+            snapshot[id] = templateRange();
+          }
+          if ((_base = snapshot[id]).start == null) {
+            _base.start = offset;
+          }
+          snapshot[id].end = end;
+        }
+      }
+      return end;
+    };
+
+    Leaf.prototype.findEndingAt = function(position, result) {
+      if (position.isEqual(this.extent)) {
+        addSet(result, this.ids);
+      } else if (position.isZero()) {
+        subtractSet(result, this.ids);
+      }
+    };
+
+    Leaf.prototype.findStartingAt = function(position, result, previousIds) {
+      if (position.isZero()) {
+        this.ids.forEach(function(id) {
+          if (!previousIds.has(id)) {
+            return result.add(id);
+          }
+        });
+      }
+    };
+
+    Leaf.prototype.findContaining = function(point, set) {
+      return addSet(set, this.ids);
+    };
+
+    Leaf.prototype.findIntersecting = function(start, end, set) {
+      return addSet(set, this.ids);
+    };
+
+    Leaf.prototype.hasEmptyRightmostLeaf = function() {
+      return this.extent.isZero();
+    };
+
+    Leaf.prototype.hasEmptyLeftmostLeaf = function() {
+      return this.extent.isZero();
+    };
+
+    Leaf.prototype.getLeftmostIds = function() {
+      return this.ids;
+    };
+
+    Leaf.prototype.getRightmostIds = function() {
+      return this.ids;
+    };
+
+    Leaf.prototype.merge = function(other) {
+      if (setEqual(this.ids, other.ids) || this.extent.isZero() && other.extent.isZero()) {
+        this.extent = this.extent.traverse(other.extent);
+        addSet(this.ids, other.ids);
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    Leaf.prototype.toString = function(indentLevel) {
+      var i, ids, indent, next, values, _i;
+      if (indentLevel == null) {
+        indentLevel = 0;
+      }
+      indent = "";
+      for (i = _i = 0; _i < indentLevel; i = _i += 1) {
+        indent += " ";
+      }
+      ids = [];
+      values = this.ids.values();
+      while (!(next = values.next()).done) {
+        ids.push(next.value);
+      }
+      return "" + indent + "Leaf " + this.extent + " (" + (ids.join(" ")) + ")";
+    };
+
+    return Leaf;
+
+  })();
+
+  module.exports = MarkerIndex = (function() {
+    function MarkerIndex() {
+      this.clear();
+    }
+
+    MarkerIndex.prototype.insert = function(id, start, end) {
+      var splitNodes;
+      assertValidId(id);
+      this.rangeCache[id] = Range(start, end);
+      if (splitNodes = this.rootNode.insert(new Set().add(id + ""), start, end)) {
+        return this.rootNode = new Node(splitNodes);
+      }
+    };
+
+    MarkerIndex.prototype["delete"] = function(id) {
+      assertValidId(id);
+      delete this.rangeCache[id];
+      this.rootNode["delete"](id);
+      return this.condenseIfNeeded();
+    };
+
+    MarkerIndex.prototype.splice = function(position, oldExtent, newExtent) {
+      var splitNodes;
+      this.clearRangeCache();
+      if (splitNodes = this.rootNode.splice(position, oldExtent, newExtent, this.exclusiveIds, new Set, new Set)) {
+        this.rootNode = new Node(splitNodes);
+      }
+      return this.condenseIfNeeded();
+    };
+
+    MarkerIndex.prototype.isExclusive = function(id) {
+      return this.exclusiveIds.has(id);
+    };
+
+    MarkerIndex.prototype.setExclusive = function(id, isExclusive) {
+      assertValidId(id);
+      if (isExclusive) {
+        return this.exclusiveIds.add(id);
+      } else {
+        return this.exclusiveIds["delete"](id);
+      }
+    };
+
+    MarkerIndex.prototype.getRange = function(id) {
+      var start;
+      if (start = this.getStart(id)) {
+        return Range(start, this.getEnd(id));
+      }
+    };
+
+    MarkerIndex.prototype.getStart = function(id) {
+      var entry, _base;
+      if (!this.rootNode.ids.has(id)) {
+        return;
+      }
+      entry = (_base = this.rangeCache)[id] != null ? _base[id] : _base[id] = templateRange();
+      return entry.start != null ? entry.start : entry.start = this.rootNode.getStart(id);
+    };
+
+    MarkerIndex.prototype.getEnd = function(id) {
+      var entry, _base;
+      if (!this.rootNode.ids.has(id)) {
+        return;
+      }
+      entry = (_base = this.rangeCache)[id] != null ? _base[id] : _base[id] = templateRange();
+      return entry.end != null ? entry.end : entry.end = this.rootNode.getEnd(id);
+    };
+
+    MarkerIndex.prototype.findContaining = function(start, end) {
+      var containing, containingEnd;
+      containing = new Set;
+      this.rootNode.findContaining(start, containing);
+      if ((end != null) && end.compare(start) !== 0) {
+        containingEnd = new Set;
+        this.rootNode.findContaining(end, containingEnd);
+        containing.forEach(function(id) {
+          if (!containingEnd.has(id)) {
+            return containing["delete"](id);
+          }
+        });
+      }
+      return containing;
+    };
+
+    MarkerIndex.prototype.findContainedIn = function(start, end) {
+      var result;
+      if (end == null) {
+        end = start;
+      }
+      result = this.findStartingIn(start, end);
+      subtractSet(result, this.findIntersecting(end.traverse(Point(0, 1))));
+      return result;
+    };
+
+    MarkerIndex.prototype.findIntersecting = function(start, end) {
+      var intersecting;
+      if (end == null) {
+        end = start;
+      }
+      intersecting = new Set;
+      this.rootNode.findIntersecting(start, end, intersecting);
+      return intersecting;
+    };
+
+    MarkerIndex.prototype.findStartingIn = function(start, end) {
+      var previousPoint, result;
+      if (end != null) {
+        result = this.findIntersecting(start, end);
+        if (start.isPositive()) {
+          if (start.column === 0) {
+            previousPoint = Point(start.row - 1, Infinity);
+          } else {
+            previousPoint = Point(start.row, start.column - 1);
+          }
+          subtractSet(result, this.findIntersecting(previousPoint));
+        }
+        return result;
+      } else {
+        result = new Set;
+        this.rootNode.findStartingAt(start, result, new Set);
+        return result;
+      }
+    };
+
+    MarkerIndex.prototype.findEndingIn = function(start, end) {
+      var result;
+      if (end != null) {
+        result = this.findIntersecting(start, end);
+        subtractSet(result, this.findIntersecting(end.traverse(Point(0, 1))));
+        return result;
+      } else {
+        result = new Set;
+        this.rootNode.findEndingAt(start, result);
+        return result;
+      }
+    };
+
+    MarkerIndex.prototype.clear = function() {
+      this.rootNode = new Leaf(Point.INFINITY, new Set);
+      this.exclusiveIds = new Set;
+      return this.clearRangeCache();
+    };
+
+    MarkerIndex.prototype.dump = function(ids) {
+      var result;
+      result = {};
+      this.rootNode.dump(ids, Point.ZERO, result);
+      extend(this.rangeCache, result);
+      return result;
+    };
+
+
+    /*
+    Section: Private
+     */
+
+    MarkerIndex.prototype.clearRangeCache = function() {
+      return this.rangeCache = {};
+    };
+
+    MarkerIndex.prototype.condenseIfNeeded = function() {
+      var _ref2;
+      while (((_ref2 = this.rootNode.children) != null ? _ref2.length : void 0) === 1) {
+        this.rootNode = this.rootNode.children[0];
+      }
+    };
+
+    return MarkerIndex;
+
+  })();
+
+  assertValidId = function(id) {
+    if (typeof id !== 'string') {
+      throw new TypeError("Marker ID must be a string");
+    }
+  };
+
+  templateRange = function() {
+    return Object.create(Range.prototype);
+  };
+
+  setsOverlap = function(set1, set2) {
+    var next, values;
+    values = set1.values();
+    while (!(next = values.next()).done) {
+      if (set2.has(next.value)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+}).call(this);
+
+}),
+  "./set-helpers": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var addSet, intersectSet, setEqual, subtractSet;
+
+  setEqual = function(a, b) {
+    var iterator, next;
+    if (a.size !== b.size) {
+      return false;
+    }
+    iterator = a.values();
+    while (!(next = iterator.next()).done) {
+      if (!b.has(next.value)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  subtractSet = function(set, valuesToRemove) {
+    if (set.size > valuesToRemove.size) {
+      return valuesToRemove.forEach(function(value) {
+        return set["delete"](value);
+      });
+    } else {
+      return set.forEach(function(value) {
+        if (valuesToRemove.has(value)) {
+          return set["delete"](value);
+        }
+      });
+    }
+  };
+
+  addSet = function(set, valuesToAdd) {
+    return valuesToAdd.forEach(function(value) {
+      return set.add(value);
+    });
+  };
+
+  intersectSet = function(set, other) {
+    return set.forEach(function(value) {
+      if (!other.has(value)) {
+        return set["delete"](value);
+      }
+    });
+  };
+
+  module.exports = {
+    setEqual: setEqual,
+    subtractSet: subtractSet,
+    addSet: addSet,
+    intersectSet: intersectSet
+  };
+
+}).call(this);
+
+}),
+  "./history": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Checkpoint, GroupEnd, GroupStart, History, SerializationVersion;
+
+  SerializationVersion = 3;
+
+  Checkpoint = (function() {
+    function Checkpoint(id, snapshot, isBoundary) {
+      var _ref;
+      this.id = id;
+      this.snapshot = snapshot;
+      this.isBoundary = isBoundary;
+      if (this.snapshot == null) {
+        if ((_ref = global.atom) != null) {
+          _ref.assert(false, "Checkpoint created without snapshot");
+        }
+        this.snapshot = {};
+      }
+    }
+
+    return Checkpoint;
+
+  })();
+
+  GroupStart = (function() {
+    function GroupStart(snapshot) {
+      this.snapshot = snapshot;
+    }
+
+    return GroupStart;
+
+  })();
+
+  GroupEnd = (function() {
+    function GroupEnd(snapshot) {
+      this.snapshot = snapshot;
+      this.timestamp = Date.now();
+      this.groupingInterval = 0;
+    }
+
+    return GroupEnd;
+
+  })();
+
+  module.exports = History = (function() {
+    History.deserialize = function(delegate, state) {
+      var history;
+      history = new History(delegate);
+      history.deserialize(state);
+      return history;
+    };
+
+    function History(delegate, maxUndoEntries) {
+      this.delegate = delegate;
+      this.maxUndoEntries = maxUndoEntries;
+      this.nextCheckpointId = 0;
+      this.undoStack = [];
+      this.redoStack = [];
+    }
+
+    History.prototype.createCheckpoint = function(snapshot, isBoundary) {
+      var checkpoint;
+      checkpoint = new Checkpoint(this.nextCheckpointId++, snapshot, isBoundary);
+      this.undoStack.push(checkpoint);
+      return checkpoint.id;
+    };
+
+    History.prototype.groupChangesSinceCheckpoint = function(checkpointId, endSnapshot, deleteCheckpoint) {
+      var changesSinceCheckpoint, checkpointIndex, entry, i, startSnapshot, withinGroup, _i, _ref, _ref1;
+      if (deleteCheckpoint == null) {
+        deleteCheckpoint = false;
+      }
+      withinGroup = false;
+      checkpointIndex = null;
+      startSnapshot = null;
+      changesSinceCheckpoint = [];
+      _ref = this.undoStack;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        entry = _ref[i];
+        if (checkpointIndex != null) {
+          break;
+        }
+        switch (entry.constructor) {
+          case GroupEnd:
+            withinGroup = true;
+            break;
+          case GroupStart:
+            if (withinGroup) {
+              withinGroup = false;
+            } else {
+              return false;
+            }
+            break;
+          case Checkpoint:
+            if (entry.id === checkpointId) {
+              checkpointIndex = i;
+              startSnapshot = entry.snapshot;
+            } else if (entry.isBoundary) {
+              return false;
+            }
+            break;
+          default:
+            changesSinceCheckpoint.unshift(entry);
+        }
+      }
+      if (checkpointIndex != null) {
+        if (changesSinceCheckpoint.length > 0) {
+          this.undoStack.splice(checkpointIndex + 1);
+          this.undoStack.push(new GroupStart(startSnapshot));
+          (_ref1 = this.undoStack).push.apply(_ref1, changesSinceCheckpoint);
+          this.undoStack.push(new GroupEnd(endSnapshot));
+        }
+        if (deleteCheckpoint) {
+          this.undoStack.splice(checkpointIndex, 1);
+        }
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    History.prototype.applyGroupingInterval = function(groupingInterval) {
+      var entry, i, previousEntry, topEntry, _i, _ref;
+      topEntry = this.undoStack[this.undoStack.length - 1];
+      if (topEntry instanceof GroupEnd) {
+        topEntry.groupingInterval = groupingInterval;
+      } else {
+        return;
+      }
+      if (groupingInterval === 0) {
+        return;
+      }
+      _ref = this.undoStack;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        entry = _ref[i];
+        if (entry instanceof GroupStart) {
+          previousEntry = this.undoStack[i - 1];
+          if (previousEntry instanceof GroupEnd) {
+            if (topEntry.timestamp - previousEntry.timestamp < Math.min(previousEntry.groupingInterval, groupingInterval)) {
+              this.undoStack.splice(i - 1, 2);
+            }
+          }
+          return;
+        }
+      }
+      throw new Error("Didn't find matching group-start entry");
+    };
+
+    History.prototype.pushChange = function(change) {
+      var entry, i, spliceIndex, withinGroup, _i, _len, _ref;
+      this.undoStack.push(change);
+      this.clearRedoStack();
+      if (this.undoStack.length - this.maxUndoEntries > 0) {
+        spliceIndex = null;
+        withinGroup = false;
+        _ref = this.undoStack;
+        for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+          entry = _ref[i];
+          if (spliceIndex != null) {
+            break;
+          }
+          switch (entry.constructor) {
+            case GroupStart:
+              if (withinGroup) {
+                throw new Error("Invalid undo stack state");
+              } else {
+                withinGroup = true;
+              }
+              break;
+            case GroupEnd:
+              if (withinGroup) {
+                spliceIndex = i;
+              } else {
+                throw new Error("Invalid undo stack state");
+              }
+          }
+        }
+        if (spliceIndex != null) {
+          return this.undoStack.splice(0, spliceIndex + 1);
+        }
+      }
+    };
+
+    History.prototype.popUndoStack = function() {
+      var entry, i, invertedChanges, snapshotBelow, spliceIndex, withinGroup, _i, _ref, _ref1;
+      snapshotBelow = null;
+      spliceIndex = null;
+      withinGroup = false;
+      invertedChanges = [];
+      _ref = this.undoStack;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        entry = _ref[i];
+        if (spliceIndex != null) {
+          break;
+        }
+        switch (entry.constructor) {
+          case GroupStart:
+            if (withinGroup) {
+              snapshotBelow = entry.snapshot;
+              spliceIndex = i;
+            } else {
+              return false;
+            }
+            break;
+          case GroupEnd:
+            if (withinGroup) {
+              throw new Error("Invalid undo stack state");
+            } else {
+              withinGroup = true;
+            }
+            break;
+          case Checkpoint:
+            if (entry.isBoundary) {
+              return false;
+            }
+            break;
+          default:
+            invertedChanges.push(this.delegate.invertChange(entry));
+            if (!withinGroup) {
+              spliceIndex = i;
+            }
+        }
+      }
+      if (spliceIndex != null) {
+        (_ref1 = this.redoStack).push.apply(_ref1, this.undoStack.splice(spliceIndex).reverse());
+        return {
+          snapshot: snapshotBelow,
+          changes: invertedChanges
+        };
+      } else {
+        return false;
+      }
+    };
+
+    History.prototype.popRedoStack = function() {
+      var changes, entry, i, snapshotBelow, spliceIndex, withinGroup, _i, _ref, _ref1;
+      snapshotBelow = null;
+      spliceIndex = null;
+      withinGroup = false;
+      changes = [];
+      _ref = this.redoStack;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        entry = _ref[i];
+        if (spliceIndex != null) {
+          break;
+        }
+        switch (entry.constructor) {
+          case GroupEnd:
+            if (withinGroup) {
+              snapshotBelow = entry.snapshot;
+              spliceIndex = i;
+            } else {
+              return false;
+            }
+            break;
+          case GroupStart:
+            if (withinGroup) {
+              throw new Error("Invalid redo stack state");
+            } else {
+              withinGroup = true;
+            }
+            break;
+          case Checkpoint:
+            if (entry.isBoundary) {
+              throw new Error("Invalid redo stack state");
+            }
+            break;
+          default:
+            changes.push(entry);
+            if (!withinGroup) {
+              spliceIndex = i;
+            }
+        }
+      }
+      while (this.redoStack[spliceIndex - 1] instanceof Checkpoint) {
+        spliceIndex--;
+      }
+      if (spliceIndex != null) {
+        (_ref1 = this.undoStack).push.apply(_ref1, this.redoStack.splice(spliceIndex).reverse());
+        return {
+          snapshot: snapshotBelow,
+          changes: changes
+        };
+      } else {
+        return false;
+      }
+    };
+
+    History.prototype.truncateUndoStack = function(checkpointId) {
+      var entry, i, invertedChanges, snapshotBelow, spliceIndex, withinGroup, _i, _ref;
+      snapshotBelow = null;
+      spliceIndex = null;
+      withinGroup = false;
+      invertedChanges = [];
+      _ref = this.undoStack;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        entry = _ref[i];
+        if (spliceIndex != null) {
+          break;
+        }
+        switch (entry.constructor) {
+          case GroupStart:
+            if (withinGroup) {
+              withinGroup = false;
+            } else {
+              return false;
+            }
+            break;
+          case GroupEnd:
+            if (withinGroup) {
+              throw new Error("Invalid undo stack state");
+            } else {
+              withinGroup = true;
+            }
+            break;
+          case Checkpoint:
+            if (entry.id === checkpointId) {
+              spliceIndex = i;
+              snapshotBelow = entry.snapshot;
+            } else if (entry.isBoundary) {
+              return false;
+            }
+            break;
+          default:
+            invertedChanges.push(this.delegate.invertChange(entry));
+        }
+      }
+      if (spliceIndex != null) {
+        this.undoStack.splice(spliceIndex);
+        return {
+          snapshot: snapshotBelow,
+          changes: invertedChanges
+        };
+      } else {
+        return false;
+      }
+    };
+
+    History.prototype.clearUndoStack = function() {
+      return this.undoStack.length = 0;
+    };
+
+    History.prototype.clearRedoStack = function() {
+      return this.redoStack.length = 0;
+    };
+
+    History.prototype.serialize = function() {
+      return {
+        version: SerializationVersion,
+        nextCheckpointId: this.nextCheckpointId,
+        undoStack: this.serializeStack(this.undoStack),
+        redoStack: this.serializeStack(this.redoStack)
+      };
+    };
+
+    History.prototype.deserialize = function(state) {
+      if (state.version !== SerializationVersion) {
+        return;
+      }
+      this.nextCheckpointId = state.nextCheckpointId;
+      this.maxUndoEntries = state.maxUndoEntries;
+      this.undoStack = this.deserializeStack(state.undoStack);
+      return this.redoStack = this.deserializeStack(state.redoStack);
+    };
+
+
+    /*
+    Section: Private
+     */
+
+    History.prototype.getCheckpointIndex = function(checkpointId) {
+      var entry, i, _i, _ref;
+      _ref = this.undoStack;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        entry = _ref[i];
+        if (entry instanceof Checkpoint && entry.id === checkpointId) {
+          return i;
+        }
+      }
+      return null;
+    };
+
+    History.prototype.serializeStack = function(stack) {
+      var entry, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = stack.length; _i < _len; _i++) {
+        entry = stack[_i];
+        switch (entry.constructor) {
+          case Checkpoint:
+            _results.push({
+              type: 'checkpoint',
+              id: entry.id,
+              snapshot: this.delegate.serializeSnapshot(entry.snapshot),
+              isBoundary: entry.isBoundary
+            });
+            break;
+          case GroupStart:
+            _results.push({
+              type: 'group-start',
+              snapshot: this.delegate.serializeSnapshot(entry.snapshot)
+            });
+            break;
+          case GroupEnd:
+            _results.push({
+              type: 'group-end',
+              snapshot: this.delegate.serializeSnapshot(entry.snapshot)
+            });
+            break;
+          default:
+            _results.push({
+              type: 'change',
+              content: this.delegate.serializeChange(entry)
+            });
+        }
+      }
+      return _results;
+    };
+
+    History.prototype.deserializeStack = function(stack) {
+      var entry, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = stack.length; _i < _len; _i++) {
+        entry = stack[_i];
+        switch (entry.type) {
+          case 'checkpoint':
+            _results.push(new Checkpoint(entry.id, this.delegate.deserializeSnapshot(entry.snapshot), entry.isBoundary));
+            break;
+          case 'group-start':
+            _results.push(new GroupStart(this.delegate.deserializeSnapshot(entry.snapshot)));
+            break;
+          case 'group-end':
+            _results.push(new GroupEnd(this.delegate.deserializeSnapshot(entry.snapshot)));
+            break;
+          case 'change':
+            _results.push(this.delegate.deserializeChange(entry.content));
+            break;
+          default:
+            _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    return History;
+
+  })();
+
+}).call(this);
+
+}),
+  "atom-diff": (function (exports, require, module, __filename, __dirname, process, global) { /* See LICENSE file for terms of use */
+
+/*
+ * Text diff implementation.
+ *
+ * This library supports the following APIS:
+ * JsDiff.diffChars: Character by character diff
+ * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
+ * JsDiff.diffLines: Line based diff
+ *
+ * JsDiff.diffCss: Diff targeted at CSS content
+ *
+ * These methods are based on the implementation proposed in
+ * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
+ * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
+ */
+var JsDiff = (function() {
+  /*jshint maxparams: 5*/
+  function clonePath(path) {
+    return { newPos: path.newPos, components: path.components.slice(0) };
+  }
+  function removeEmpty(array) {
+    var ret = [];
+    for (var i = 0; i < array.length; i++) {
+      if (array[i]) {
+        ret.push(array[i]);
+      }
+    }
+    return ret;
+  }
+  function escapeHTML(s) {
+    var n = s;
+    n = n.replace(/&/g, '&amp;');
+    n = n.replace(/</g, '&lt;');
+    n = n.replace(/>/g, '&gt;');
+    n = n.replace(/"/g, '&quot;');
+
+    return n;
+  }
+
+  var Diff = function(ignoreWhitespace) {
+    this.ignoreWhitespace = ignoreWhitespace;
+  };
+  Diff.prototype = {
+      diff: function(oldString, newString) {
+        // Handle the identity case (this is due to unrolling editLength == 0
+        if (newString === oldString) {
+          return [{ value: newString }];
+        }
+        if (!newString) {
+          return [{ value: oldString, removed: true }];
+        }
+        if (!oldString) {
+          return [{ value: newString, added: true }];
+        }
+
+        newString = this.tokenize(newString);
+        oldString = this.tokenize(oldString);
+
+        var newLen = newString.length, oldLen = oldString.length;
+        var maxEditLength = newLen + oldLen;
+        var bestPath = [{ newPos: -1, components: [] }];
+
+        // Seed editLength = 0
+        var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+        if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
+          return bestPath[0].components;
+        }
+
+        for (var editLength = 1; editLength <= maxEditLength; editLength++) {
+          for (var diagonalPath = -1*editLength; diagonalPath <= editLength; diagonalPath+=2) {
+            var basePath;
+            var addPath = bestPath[diagonalPath-1],
+                removePath = bestPath[diagonalPath+1];
+            oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
+            if (addPath) {
+              // No one else is going to attempt to use this value, clear it
+              bestPath[diagonalPath-1] = undefined;
+            }
+
+            var canAdd = addPath && addPath.newPos+1 < newLen;
+            var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
+            if (!canAdd && !canRemove) {
+              bestPath[diagonalPath] = undefined;
+              continue;
+            }
+
+            // Select the diagonal that we want to branch from. We select the prior
+            // path whose position in the new string is the farthest from the origin
+            // and does not pass the bounds of the diff graph
+            if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
+              basePath = clonePath(removePath);
+              this.pushComponent(basePath.components, oldString[oldPos], undefined, true);
+            } else {
+              basePath = clonePath(addPath);
+              basePath.newPos++;
+              this.pushComponent(basePath.components, newString[basePath.newPos], true, undefined);
+            }
+
+            var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
+
+            if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
+              return basePath.components;
+            } else {
+              bestPath[diagonalPath] = basePath;
+            }
+          }
+        }
+      },
+
+      pushComponent: function(components, value, added, removed) {
+        var last = components[components.length-1];
+        if (last && last.added === added && last.removed === removed) {
+          // We need to clone here as the component clone operation is just
+          // as shallow array clone
+          components[components.length-1] =
+            {value: this.join(last.value, value), added: added, removed: removed };
+        } else {
+          components.push({value: value, added: added, removed: removed });
+        }
+      },
+      extractCommon: function(basePath, newString, oldString, diagonalPath) {
+        var newLen = newString.length,
+            oldLen = oldString.length,
+            newPos = basePath.newPos,
+            oldPos = newPos - diagonalPath;
+        while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
+          newPos++;
+          oldPos++;
+
+          this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
+        }
+        basePath.newPos = newPos;
+        return oldPos;
+      },
+
+      equals: function(left, right) {
+        var reWhitespace = /\S/;
+        if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
+          return true;
+        } else {
+          return left === right;
+        }
+      },
+      join: function(left, right) {
+        return left + right;
+      },
+      tokenize: function(value) {
+        return value;
+      }
+  };
+
+  var CharDiff = new Diff();
+
+  var WordDiff = new Diff(true);
+  var WordWithSpaceDiff = new Diff();
+  WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
+    return removeEmpty(value.split(/(\s+|\b)/));
+  };
+
+  var CssDiff = new Diff(true);
+  CssDiff.tokenize = function(value) {
+    return removeEmpty(value.split(/([{}:;,]|\s+)/));
+  };
+
+  var LineDiff = new Diff();
+  LineDiff.tokenize = function(value) {
+    var retLines = [];
+    var lines = value.split(/^/m);
+
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var lastLine = lines[i - 1];
+
+      if(line == '\n' && lastLine && lastLine.indexOf('\r') == lastLine.length - 1)
+        retLines[retLines.length - 1] += '\n';
+      else if(line)
+        retLines.push(line);
+    }
+
+    return retLines;
+  };
+
+  return {
+    Diff: Diff,
+
+    diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
+    diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
+    diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
+    diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
+
+    diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
+
+    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
+      var ret = [];
+
+      ret.push('Index: ' + fileName);
+      ret.push('===================================================================');
+      ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
+      ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
+
+      var diff = LineDiff.diff(oldStr, newStr);
+      if (!diff[diff.length-1].value) {
+        diff.pop();   // Remove trailing newline add
+      }
+      diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
+
+      function contextLines(lines) {
+        return lines.map(function(entry) { return ' ' + entry; });
+      }
+      function eofNL(curRange, i, current) {
+        var last = diff[diff.length-2],
+            isLast = i === diff.length-2,
+            isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
+
+        // Figure out if this is the last line for the given file and missing NL
+        if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
+          curRange.push('\\ No newline at end of file');
+        }
+      }
+
+      var oldRangeStart = 0, newRangeStart = 0, curRange = [],
+          oldLine = 1, newLine = 1;
+      for (var i = 0; i < diff.length; i++) {
+        var current = diff[i],
+            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
+        current.lines = lines;
+
+        if (current.added || current.removed) {
+          if (!oldRangeStart) {
+            var prev = diff[i-1];
+            oldRangeStart = oldLine;
+            newRangeStart = newLine;
+
+            if (prev) {
+              curRange = contextLines(prev.lines.slice(-4));
+              oldRangeStart -= curRange.length;
+              newRangeStart -= curRange.length;
+            }
+          }
+          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
+          eofNL(curRange, i, current);
+
+          if (current.added) {
+            newLine += lines.length;
+          } else {
+            oldLine += lines.length;
+          }
+        } else {
+          if (oldRangeStart) {
+            // Close out any changes that have been output (or join overlapping)
+            if (lines.length <= 8 && i < diff.length-2) {
+              // Overlapping
+              curRange.push.apply(curRange, contextLines(lines));
+            } else {
+              // end the range and output
+              var contextSize = Math.min(lines.length, 4);
+              ret.push(
+                  '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
+                  + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
+                  + ' @@');
+              ret.push.apply(ret, curRange);
+              ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
+              if (lines.length <= 4) {
+                eofNL(ret, i, current);
+              }
+
+              oldRangeStart = 0;  newRangeStart = 0; curRange = [];
+            }
+          }
+          oldLine += lines.length;
+          newLine += lines.length;
+        }
+      }
+
+      return ret.join('\n') + '\n';
+    },
+
+    applyPatch: function(oldStr, uniDiff) {
+      var diffstr = uniDiff.split('\n');
+      var diff = [];
+      var remEOFNL = false,
+          addEOFNL = false;
+
+      for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
+        if(diffstr[i][0] === '@') {
+          var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
+          diff.unshift({
+            start:meh[3],
+            oldlength:meh[2],
+            oldlines:[],
+            newlength:meh[4],
+            newlines:[]
+          });
+        } else if(diffstr[i][0] === '+') {
+          diff[0].newlines.push(diffstr[i].substr(1));
+        } else if(diffstr[i][0] === '-') {
+          diff[0].oldlines.push(diffstr[i].substr(1));
+        } else if(diffstr[i][0] === ' ') {
+          diff[0].newlines.push(diffstr[i].substr(1));
+          diff[0].oldlines.push(diffstr[i].substr(1));
+        } else if(diffstr[i][0] === '\\') {
+          if (diffstr[i-1][0] === '+') {
+            remEOFNL = true;
+          } else if(diffstr[i-1][0] === '-') {
+            addEOFNL = true;
+          }
+        }
+      }
+
+      var str = oldStr.split('\n');
+      for (var i = diff.length - 1; i >= 0; i--) {
+        var d = diff[i];
+        for (var j = 0; j < d.oldlength; j++) {
+          if(str[d.start-1+j] !== d.oldlines[j]) {
+            return false;
+          }
+        }
+        Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
+      }
+
+      if (remEOFNL) {
+        while (!str[str.length-1]) {
+          str.pop();
+        }
+      } else if (addEOFNL) {
+        str.push('');
+      }
+      return str.join('\n');
+    },
+
+    convertChangesToXML: function(changes){
+      var ret = [];
+      for ( var i = 0; i < changes.length; i++) {
+        var change = changes[i];
+        if (change.added) {
+          ret.push('<ins>');
+        } else if (change.removed) {
+          ret.push('<del>');
+        }
+
+        ret.push(escapeHTML(change.value));
+
+        if (change.added) {
+          ret.push('</ins>');
+        } else if (change.removed) {
+          ret.push('</del>');
+        }
+      }
+      return ret.join('');
+    },
+
+    // See: http://code.google.com/p/google-diff-match-patch/wiki/API
+    convertChangesToDMP: function(changes){
+      var ret = [], change;
+      for ( var i = 0; i < changes.length; i++) {
+        change = changes[i];
+        ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
+      }
+      return ret;
+    }
+  };
+})();
+
+if (typeof module !== 'undefined') {
+    module.exports = JsDiff;
+}
+
+}),
+  "./patch": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var BRANCHING_THRESHOLD, ChangeIterator, Leaf, Node, Patch, Point, RegionIterator, isEmpty, last,
+    __slice = [].slice;
+
+  Point = require("./point");
+
+  last = function(array) {
+    return array[array.length - 1];
+  };
+
+  isEmpty = function(node) {
+    return node.inputExtent.isZero() && node.outputExtent.isZero();
+  };
+
+  BRANCHING_THRESHOLD = 3;
+
+  Node = (function() {
+    function Node(children) {
+      this.children = children;
+      this.calculateExtent();
+    }
+
+    Node.prototype.splice = function(childIndex, splitChildren) {
+      var inputOffset, leftMergeIndex, outputOffset, rightMergeIndex, rightNeighbor, spliceChild, splitIndex, splitNodes, _ref, _ref1;
+      spliceChild = this.children[childIndex];
+      leftMergeIndex = rightMergeIndex = childIndex;
+      if (splitChildren != null) {
+        (_ref = this.children).splice.apply(_ref, [childIndex, 1].concat(__slice.call(splitChildren)));
+        childIndex += splitChildren.indexOf(spliceChild);
+        rightMergeIndex += splitChildren.length - 1;
+      }
+      if (rightNeighbor = this.children[rightMergeIndex + 1]) {
+        this.children[rightMergeIndex].merge(rightNeighbor);
+        if (isEmpty(rightNeighbor)) {
+          this.children.splice(rightMergeIndex + 1, 1);
+        }
+      }
+      splitIndex = Math.ceil(this.children.length / BRANCHING_THRESHOLD);
+      if (splitIndex > 1) {
+        if (childIndex < splitIndex) {
+          splitNodes = [this, new Node(this.children.splice(splitIndex))];
+        } else {
+          splitNodes = [new Node(this.children.splice(0, splitIndex)), this];
+          childIndex -= splitIndex;
+        }
+      }
+      _ref1 = this.calculateExtent(childIndex), inputOffset = _ref1.inputOffset, outputOffset = _ref1.outputOffset;
+      return {
+        splitNodes: splitNodes,
+        inputOffset: inputOffset,
+        outputOffset: outputOffset,
+        childIndex: childIndex
+      };
+    };
+
+    Node.prototype.merge = function(rightNeighbor) {
+      var childMerge, result, _ref, _ref1;
+      childMerge = (_ref = last(this.children)) != null ? _ref.merge(rightNeighbor.children[0]) : void 0;
+      if (isEmpty(rightNeighbor.children[0])) {
+        rightNeighbor.children.shift();
+      }
+      if (this.children.length + rightNeighbor.children.length <= BRANCHING_THRESHOLD) {
+        this.inputExtent = this.inputExtent.traverse(rightNeighbor.inputExtent);
+        this.outputExtent = this.outputExtent.traverse(rightNeighbor.outputExtent);
+        (_ref1 = this.children).push.apply(_ref1, rightNeighbor.children);
+        result = {
+          inputExtent: rightNeighbor.inputExtent,
+          outputExtent: rightNeighbor.outputExtent
+        };
+        rightNeighbor.inputExtent = rightNeighbor.outputExtent = Point.ZERO;
+        return result;
+      } else if (childMerge != null) {
+        this.inputExtent = this.inputExtent.traverse(childMerge.inputExtent);
+        this.outputExtent = this.outputExtent.traverse(childMerge.outputExtent);
+        rightNeighbor.inputExtent = rightNeighbor.inputExtent.traversalFrom(childMerge.inputExtent);
+        rightNeighbor.outputExtent = rightNeighbor.outputExtent.traversalFrom(childMerge.outputExtent);
+        return childMerge;
+      }
+    };
+
+    Node.prototype.calculateExtent = function(childIndex) {
+      var child, i, result, _i, _len, _ref;
+      result = {
+        inputOffset: null,
+        outputOffset: null
+      };
+      this.inputExtent = Point.ZERO;
+      this.outputExtent = Point.ZERO;
+      _ref = this.children;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        child = _ref[i];
+        if (i === childIndex) {
+          result.inputOffset = this.inputExtent;
+          result.outputOffset = this.outputExtent;
+        }
+        this.inputExtent = this.inputExtent.traverse(child.inputExtent);
+        this.outputExtent = this.outputExtent.traverse(child.outputExtent);
+      }
+      return result;
+    };
+
+    Node.prototype.toString = function(indentLevel) {
+      var i, indent, _i;
+      if (indentLevel == null) {
+        indentLevel = 0;
+      }
+      indent = "";
+      for (i = _i = 0; _i < indentLevel; i = _i += 1) {
+        indent += " ";
+      }
+      return "" + indent + "[Node " + this.inputExtent + " " + this.outputExtent + "]\n" + (this.children.map(function(c) {
+        return c.toString(indentLevel + 2);
+      }).join("\n"));
+    };
+
+    return Node;
+
+  })();
+
+  Leaf = (function() {
+    function Leaf(inputExtent, outputExtent, content) {
+      this.inputExtent = inputExtent;
+      this.outputExtent = outputExtent;
+      this.content = content;
+    }
+
+    Leaf.prototype.insert = function(inputOffset, outputOffset, newInputExtent, newOutputExtent, newContent) {
+      var inputExtentAfterOffset, outputExtentAfterOffset, splitNodes;
+      inputExtentAfterOffset = this.inputExtent.traversalFrom(inputOffset);
+      outputExtentAfterOffset = this.outputExtent.traversalFrom(outputOffset);
+      if (this.content != null) {
+        this.inputExtent = inputOffset.traverse(newInputExtent).traverse(inputExtentAfterOffset);
+        this.outputExtent = outputOffset.traverse(newOutputExtent).traverse(outputExtentAfterOffset);
+        this.content = this.content.slice(0, outputOffset.column) + newContent + this.content.slice(outputOffset.column);
+        inputOffset = inputOffset.traverse(newInputExtent);
+        outputOffset = outputOffset.traverse(newOutputExtent);
+      } else if (newInputExtent.isPositive() || newOutputExtent.isPositive()) {
+        splitNodes = [];
+        if (outputOffset.isPositive()) {
+          splitNodes.push(new Leaf(inputOffset, outputOffset, null));
+        }
+        this.inputExtent = newInputExtent;
+        this.outputExtent = newOutputExtent;
+        this.content = newContent;
+        splitNodes.push(this);
+        if (outputExtentAfterOffset.isPositive()) {
+          splitNodes.push(new Leaf(inputExtentAfterOffset, outputExtentAfterOffset, null));
+        }
+        inputOffset = this.inputExtent;
+        outputOffset = this.outputExtent;
+      }
+      return {
+        splitNodes: splitNodes,
+        inputOffset: inputOffset,
+        outputOffset: outputOffset
+      };
+    };
+
+    Leaf.prototype.merge = function(rightNeighbor) {
+      var result, _ref, _ref1;
+      if (((this.content != null) === (rightNeighbor.content != null)) || isEmpty(this) || isEmpty(rightNeighbor)) {
+        this.outputExtent = this.outputExtent.traverse(rightNeighbor.outputExtent);
+        this.inputExtent = this.inputExtent.traverse(rightNeighbor.inputExtent);
+        this.content = ((_ref = this.content) != null ? _ref : "") + ((_ref1 = rightNeighbor.content) != null ? _ref1 : "");
+        if (this.content === "" && this.outputExtent.isPositive()) {
+          this.content = null;
+        }
+        result = {
+          inputExtent: rightNeighbor.inputExtent,
+          outputExtent: rightNeighbor.outputExtent
+        };
+        rightNeighbor.inputExtent = rightNeighbor.outputExtent = Point.ZERO;
+        rightNeighbor.content = null;
+        return result;
+      }
+    };
+
+    Leaf.prototype.toString = function(indentLevel) {
+      var i, indent, _i;
+      if (indentLevel == null) {
+        indentLevel = 0;
+      }
+      indent = "";
+      for (i = _i = 0; _i < indentLevel; i = _i += 1) {
+        indent += " ";
+      }
+      if (this.content != null) {
+        return "" + indent + "[Leaf " + this.inputExtent + " " + this.outputExtent + " " + (JSON.stringify(this.content)) + "]";
+      } else {
+        return "" + indent + "[Leaf " + this.inputExtent + " " + this.outputExtent + "]";
+      }
+    };
+
+    return Leaf;
+
+  })();
+
+  RegionIterator = (function() {
+    function RegionIterator(patch, path) {
+      this.patch = patch;
+      this.path = path;
+      if (this.path == null) {
+        this.path = [];
+        this.descendToLeftmostLeaf(this.patch.rootNode);
+      }
+    }
+
+    RegionIterator.prototype.next = function() {
+      var entry, nextChild, parentEntry, value, _ref, _ref1;
+      while ((entry = last(this.path)) && entry.inputOffset.isEqual(entry.node.inputExtent) && entry.outputOffset.isEqual(entry.node.outputExtent)) {
+        this.path.pop();
+        if (parentEntry = last(this.path)) {
+          parentEntry.childIndex++;
+          parentEntry.inputOffset = parentEntry.inputOffset.traverse(entry.inputOffset);
+          parentEntry.outputOffset = parentEntry.outputOffset.traverse(entry.outputOffset);
+          if (nextChild = parentEntry.node.children[parentEntry.childIndex]) {
+            this.descendToLeftmostLeaf(nextChild);
+            entry = last(this.path);
+          }
+        } else {
+          this.path.push(entry);
+          return {
+            value: null,
+            done: true
+          };
+        }
+      }
+      value = (_ref = (_ref1 = entry.node.content) != null ? _ref1.slice(entry.outputOffset.column) : void 0) != null ? _ref : null;
+      entry.outputOffset = entry.node.outputExtent;
+      entry.inputOffset = entry.node.inputExtent;
+      return {
+        value: value,
+        done: false
+      };
+    };
+
+    RegionIterator.prototype.seek = function(targetOutputOffset) {
+      var child, childIndex, childInputEnd, childInputStart, childOutputEnd, childOutputStart, inputOffset, node, outputOffset, _i, _len, _ref;
+      this.path.length = 0;
+      node = this.patch.rootNode;
+      while (true) {
+        if (node.children != null) {
+          childInputEnd = Point.ZERO;
+          childOutputEnd = Point.ZERO;
+          _ref = node.children;
+          for (childIndex = _i = 0, _len = _ref.length; _i < _len; childIndex = ++_i) {
+            child = _ref[childIndex];
+            childInputStart = childInputEnd;
+            childOutputStart = childOutputEnd;
+            childInputEnd = childInputStart.traverse(child.inputExtent);
+            childOutputEnd = childOutputStart.traverse(child.outputExtent);
+            if (childOutputEnd.compare(targetOutputOffset) >= 0) {
+              inputOffset = childInputStart;
+              outputOffset = childOutputStart;
+              this.path.push({
+                node: node,
+                childIndex: childIndex,
+                inputOffset: inputOffset,
+                outputOffset: outputOffset
+              });
+              targetOutputOffset = targetOutputOffset.traversalFrom(childOutputStart);
+              node = child;
+              break;
+            }
+          }
+        } else {
+          if (targetOutputOffset.isEqual(node.outputExtent)) {
+            inputOffset = node.inputExtent;
+          } else {
+            inputOffset = Point.min(node.inputExtent, targetOutputOffset);
+          }
+          outputOffset = targetOutputOffset;
+          childIndex = null;
+          this.path.push({
+            node: node,
+            inputOffset: inputOffset,
+            outputOffset: outputOffset,
+            childIndex: childIndex
+          });
+          break;
+        }
+      }
+      return this;
+    };
+
+    RegionIterator.prototype.seekToInputPosition = function(targetInputOffset) {
+      var child, childIndex, childInputEnd, childInputStart, childOutputEnd, childOutputStart, inputOffset, node, outputOffset, _i, _len, _ref;
+      this.path.length = 0;
+      node = this.patch.rootNode;
+      while (true) {
+        if (node.children != null) {
+          childInputEnd = Point.ZERO;
+          childOutputEnd = Point.ZERO;
+          _ref = node.children;
+          for (childIndex = _i = 0, _len = _ref.length; _i < _len; childIndex = ++_i) {
+            child = _ref[childIndex];
+            childInputStart = childInputEnd;
+            childOutputStart = childOutputEnd;
+            childInputEnd = childInputStart.traverse(child.inputExtent);
+            childOutputEnd = childOutputStart.traverse(child.outputExtent);
+            if (childInputEnd.compare(targetInputOffset) >= 0) {
+              inputOffset = childInputStart;
+              outputOffset = childOutputStart;
+              this.path.push({
+                node: node,
+                childIndex: childIndex,
+                inputOffset: inputOffset,
+                outputOffset: outputOffset
+              });
+              targetInputOffset = targetInputOffset.traversalFrom(childInputStart);
+              node = child;
+              break;
+            }
+          }
+        } else {
+          inputOffset = targetInputOffset;
+          if (targetInputOffset.isEqual(node.inputExtent)) {
+            outputOffset = node.outputExtent;
+          } else {
+            outputOffset = Point.min(node.outputExtent, targetInputOffset);
+          }
+          childIndex = null;
+          this.path.push({
+            node: node,
+            inputOffset: inputOffset,
+            outputOffset: outputOffset,
+            childIndex: childIndex
+          });
+          break;
+        }
+      }
+      return this;
+    };
+
+    RegionIterator.prototype.splice = function(oldOutputExtent, newExtent, newContent) {
+      var inputExtent, rightEdge;
+      rightEdge = this.copy().seek(this.getOutputPosition().traverse(oldOutputExtent));
+      inputExtent = rightEdge.getInputPosition().traversalFrom(this.getInputPosition());
+      this.deleteUntil(rightEdge);
+      return this.insert(inputExtent, newExtent, newContent);
+    };
+
+    RegionIterator.prototype.getOutputPosition = function() {
+      var entry, result, _i, _len, _ref;
+      result = Point.ZERO;
+      _ref = this.path;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        entry = _ref[_i];
+        result = result.traverse(entry.outputOffset);
+      }
+      return result;
+    };
+
+    RegionIterator.prototype.getInputPosition = function() {
+      var inputOffset, node, outputOffset, result, _i, _len, _ref, _ref1;
+      result = Point.ZERO;
+      _ref = this.path;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        _ref1 = _ref[_i], node = _ref1.node, inputOffset = _ref1.inputOffset, outputOffset = _ref1.outputOffset;
+        result = result.traverse(inputOffset);
+      }
+      return result;
+    };
+
+    RegionIterator.prototype.copy = function() {
+      return new RegionIterator(this.patch, this.path.slice());
+    };
+
+    RegionIterator.prototype.descendToLeftmostLeaf = function(node) {
+      var entry, _results;
+      _results = [];
+      while (true) {
+        entry = {
+          node: node,
+          outputOffset: Point.ZERO,
+          inputOffset: Point.ZERO,
+          childIndex: null
+        };
+        this.path.push(entry);
+        if (node.children != null) {
+          entry.childIndex = 0;
+          _results.push(node = node.children[0]);
+        } else {
+          break;
+        }
+      }
+      return _results;
+    };
+
+    RegionIterator.prototype.deleteUntil = function(rightIterator) {
+      var childIndex, i, inputOffset, left, meetingIndex, node, outputOffset, right, spliceIndex, totalInputOffset, totalOutputOffset, _i, _j, _ref, _ref1, _ref2, _ref3;
+      meetingIndex = null;
+      totalInputOffset = Point.ZERO;
+      totalOutputOffset = Point.ZERO;
+      _ref = this.path;
+      for (i = _i = _ref.length - 1; _i >= 0; i = _i += -1) {
+        _ref1 = _ref[i], node = _ref1.node, inputOffset = _ref1.inputOffset, outputOffset = _ref1.outputOffset, childIndex = _ref1.childIndex;
+        if (node === rightIterator.path[i].node) {
+          meetingIndex = i;
+          break;
+        }
+        if (node.content != null) {
+          node.content = node.content.slice(0, outputOffset.column);
+        } else if (node.children != null) {
+          node.children.splice(childIndex + 1);
+        }
+        totalInputOffset = inputOffset.traverse(totalInputOffset);
+        totalOutputOffset = outputOffset.traverse(totalOutputOffset);
+        node.inputExtent = totalInputOffset;
+        node.outputExtent = totalOutputOffset;
+      }
+      totalInputOffset = Point.ZERO;
+      totalOutputOffset = Point.ZERO;
+      _ref2 = rightIterator.path;
+      for (i = _j = _ref2.length - 1; _j >= 0; i = _j += -1) {
+        _ref3 = _ref2[i], node = _ref3.node, inputOffset = _ref3.inputOffset, outputOffset = _ref3.outputOffset, childIndex = _ref3.childIndex;
+        if (i === meetingIndex) {
+          break;
+        }
+        if (node.content != null) {
+          node.content = node.content.slice(outputOffset.column);
+        } else if (node.children != null) {
+          if (isEmpty(node.children[childIndex])) {
+            node.children.splice(childIndex, 1);
+          }
+          node.children.splice(0, childIndex);
+        }
+        totalInputOffset = inputOffset.traverse(totalInputOffset);
+        totalOutputOffset = outputOffset.traverse(totalOutputOffset);
+        node.inputExtent = node.inputExtent.traversalFrom(totalInputOffset);
+        node.outputExtent = node.outputExtent.traversalFrom(totalOutputOffset);
+      }
+      left = this.path[meetingIndex];
+      right = rightIterator.path[meetingIndex];
+      node = left.node;
+      node.outputExtent = left.outputOffset.traverse(node.outputExtent.traversalFrom(right.outputOffset));
+      node.inputExtent = left.inputOffset.traverse(node.inputExtent.traversalFrom(right.inputOffset));
+      if (node.content != null) {
+        node.content = node.content.slice(0, left.outputOffset.column) + node.content.slice(right.outputOffset.column);
+      } else if (node.children != null) {
+        spliceIndex = left.childIndex + 1;
+        if (isEmpty(node.children[right.childIndex])) {
+          node.children.splice(right.childIndex, 1);
+        }
+        node.children.splice(spliceIndex, right.childIndex - spliceIndex);
+      }
+      return this;
+    };
+
+    RegionIterator.prototype.insert = function(newInputExtent, newOutputExtent, newContent) {
+      var childIndex, entry, inputOffset, newPath, node, outputOffset, splitNodes, _i, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+      newPath = [];
+      splitNodes = null;
+      _ref = this.path;
+      for (_i = _ref.length - 1; _i >= 0; _i += -1) {
+        _ref1 = _ref[_i], node = _ref1.node, inputOffset = _ref1.inputOffset, outputOffset = _ref1.outputOffset, childIndex = _ref1.childIndex;
+        if (node instanceof Leaf) {
+          _ref2 = node.insert(inputOffset, outputOffset, newInputExtent, newOutputExtent, newContent), splitNodes = _ref2.splitNodes, inputOffset = _ref2.inputOffset, outputOffset = _ref2.outputOffset;
+        } else {
+          _ref3 = node.splice(childIndex, splitNodes), splitNodes = _ref3.splitNodes, inputOffset = _ref3.inputOffset, outputOffset = _ref3.outputOffset, childIndex = _ref3.childIndex;
+        }
+        newPath.unshift({
+          node: node,
+          inputOffset: inputOffset,
+          outputOffset: outputOffset,
+          childIndex: childIndex
+        });
+      }
+      if (splitNodes != null) {
+        node = this.patch.rootNode = new Node([node]);
+        _ref4 = node.splice(0, splitNodes), inputOffset = _ref4.inputOffset, outputOffset = _ref4.outputOffset, childIndex = _ref4.childIndex;
+        newPath.unshift({
+          node: node,
+          inputOffset: inputOffset,
+          outputOffset: outputOffset,
+          childIndex: childIndex
+        });
+      }
+      while (((_ref5 = this.patch.rootNode.children) != null ? _ref5.length : void 0) === 1) {
+        this.patch.rootNode = this.patch.rootNode.children[0];
+        newPath.shift();
+      }
+      entry = last(newPath);
+      if (entry.outputOffset.isEqual(entry.node.outputExtent)) {
+        entry.inputOffset = entry.node.inputExtent;
+      } else {
+        entry.inputOffset = Point.min(entry.node.inputExtent, entry.outputOffset);
+      }
+      this.path = newPath;
+      return this;
+    };
+
+    RegionIterator.prototype.toString = function() {
+      var childIndex, entries, inputOffset, node, outputOffset;
+      entries = (function() {
+        var _i, _len, _ref, _ref1, _results;
+        _ref = this.path;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          _ref1 = _ref[_i], node = _ref1.node, inputOffset = _ref1.inputOffset, outputOffset = _ref1.outputOffset, childIndex = _ref1.childIndex;
+          _results.push("  {inputOffset:" + inputOffset + ", outputOffset:" + outputOffset + ", childIndex:" + childIndex + "}");
+        }
+        return _results;
+      }).call(this);
+      return "[RegionIterator\n" + (entries.join("\n")) + "]";
+    };
+
+    return RegionIterator;
+
+  })();
+
+  ChangeIterator = (function() {
+    function ChangeIterator(patchIterator) {
+      this.patchIterator = patchIterator;
+      this.inputPosition = Point.ZERO;
+      this.outputPosition = Point.ZERO;
+    }
+
+    ChangeIterator.prototype.next = function() {
+      var content, lastInputPosition, lastOutputPosition, newExtent, next, oldExtent, position;
+      while (!(next = this.patchIterator.next()).done) {
+        lastInputPosition = this.inputPosition;
+        lastOutputPosition = this.outputPosition;
+        this.inputPosition = this.patchIterator.getInputPosition();
+        this.outputPosition = this.patchIterator.getOutputPosition();
+        if ((content = next.value) != null) {
+          position = lastOutputPosition;
+          oldExtent = this.inputPosition.traversalFrom(lastInputPosition);
+          newExtent = this.outputPosition.traversalFrom(lastOutputPosition);
+          return {
+            done: false,
+            value: {
+              position: position,
+              oldExtent: oldExtent,
+              newExtent: newExtent,
+              content: content
+            }
+          };
+        }
+      }
+      return {
+        done: true,
+        value: null
+      };
+    };
+
+    return ChangeIterator;
+
+  })();
+
+  module.exports = Patch = (function() {
+    function Patch() {
+      this.clear();
+    }
+
+    Patch.prototype.splice = function(spliceOutputStart, oldOutputExtent, newOutputExtent, content) {
+      var iterator;
+      iterator = this.regions();
+      iterator.seek(spliceOutputStart);
+      return iterator.splice(oldOutputExtent, newOutputExtent, content);
+    };
+
+    Patch.prototype.clear = function() {
+      return this.rootNode = new Leaf(Point.INFINITY, Point.INFINITY, null);
+    };
+
+    Patch.prototype.regions = function() {
+      return new RegionIterator(this);
+    };
+
+    Patch.prototype.changes = function() {
+      return new ChangeIterator(this.regions());
+    };
+
+    Patch.prototype.toInputPosition = function(outputPosition) {
+      return this.regions().seek(outputPosition).getInputPosition();
+    };
+
+    Patch.prototype.toOutputPosition = function(inputPosition) {
+      return this.regions().seekToInputPosition(inputPosition).getOutputPosition();
+    };
+
+    return Patch;
+
+  })();
+
+}).call(this);
+
+}),
   "./helpers": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
   var SpliceArrayChunkSize,
     __slice = [].slice;
