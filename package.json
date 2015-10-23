@@ -23,7 +23,7 @@
     "color": "^0.7.3",
     "event-kit": "^1.3.0",
     "find-parent-dir": "^0.3.0",
-    "first-mate": "^5.1.0",
+    "first-mate": "^5.1.1",
     "fs-plus": "^2.8.0",
     "fstream": "0.1.24",
     "fuzzaldrin": "^2.1",
