@@ -1,6 +1,6 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
 {defaults} = require 'underscore-plus'
-TextBuffer = require 'text-buffer'
+TextBuffer = __AtomEnvironment__.TextBuffer
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 

@@ -37,7 +37,7 @@ PaneAxis = require './pane-axis'
 Pane = require './pane'
 Project = require './project'
 TextEditor = require './text-editor'
-TextBuffer = require 'text-buffer'
+TextBuffer = __AtomEnvironment__.TextBuffer
 Gutter = require './gutter'
 
 WorkspaceElement = require './workspace-element'

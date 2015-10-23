@@ -4,7 +4,7 @@ fs = null
 
 _ = require 'underscore-plus'
 {Emitter, Disposable} = require 'event-kit'
-TextBuffer = require 'text-buffer'
+TextBuffer = __AtomEnvironment__.TextBuffer
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'

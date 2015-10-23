@@ -1,4 +1,4 @@
-{Range} = require 'text-buffer'
+{Range} = __AtomEnvironment__.TextBuffer
 _ = require 'underscore-plus'
 ScopeDescriptor = require './scope-descriptor'
 OnigRegExp = null

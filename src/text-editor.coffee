@@ -5,7 +5,7 @@ Directory = null
 _ = require 'underscore-plus'
 Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
-{Point, Range} = TextBuffer = require 'text-buffer'
+{Point, Range} = TextBuffer = __AtomEnvironment__.TextBuffer
 LanguageMode = require './language-mode'
 DisplayBuffer = require './display-buffer'
 Cursor = require './cursor'

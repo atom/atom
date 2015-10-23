@@ -1,7 +1,7 @@
 scrollbarStyle = null
 ipc = null
 _ = require 'underscore-plus'
-{Range, Point} = require 'text-buffer'
+{Range, Point} = __AtomEnvironment__.TextBuffer
 {CompositeDisposable} = require 'event-kit'
 
 TextEditorPresenter = require './text-editor-presenter'
