@@ -9,12 +9,12 @@ _ = require 'underscore-plus'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
-StorageFolder = require './storage-folder'
+StorageFolder = __AtomEnvironment__.StorageFolder
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = __AtomEnvironment__.DeserializerManager
-ViewRegistry = require './view-registry'
+ViewRegistry = __AtomEnvironment__.ViewRegistry
 NotificationManager = require './notification-manager'
 Config = require './config'
 KeymapManager = require './keymap-extensions'

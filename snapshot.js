@@ -7,6 +7,303 @@
 
 var snapshotGlobal = {};
 var cachedFunctions = {
+  "./view-registry": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var Disposable, Grim, ViewRegistry, find, _,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  find = require('underscore-plus').find;
+
+  Grim = require('grim');
+
+  Disposable = require('event-kit').Disposable;
+
+  _ = require('underscore-plus');
+
+  module.exports = ViewRegistry = (function() {
+    ViewRegistry.prototype.documentUpdateRequested = false;
+
+    ViewRegistry.prototype.documentReadInProgress = false;
+
+    ViewRegistry.prototype.performDocumentPollAfterUpdate = false;
+
+    ViewRegistry.prototype.debouncedPerformDocumentPoll = null;
+
+    ViewRegistry.prototype.minimumPollInterval = 200;
+
+    function ViewRegistry(atomEnvironment) {
+      this.atomEnvironment = atomEnvironment;
+      this.requestDocumentPoll = __bind(this.requestDocumentPoll, this);
+      this.performDocumentUpdate = __bind(this.performDocumentUpdate, this);
+      this.observer = new MutationObserver(this.requestDocumentPoll);
+      this.clear();
+    }
+
+    ViewRegistry.prototype.clear = function() {
+      this.views = new WeakMap;
+      this.providers = [];
+      this.debouncedPerformDocumentPoll = _.throttle(this.performDocumentPoll, this.minimumPollInterval).bind(this);
+      return this.clearDocumentRequests();
+    };
+
+    ViewRegistry.prototype.addViewProvider = function(modelConstructor, createView) {
+      var provider;
+      if (arguments.length === 1) {
+        Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.");
+        provider = modelConstructor;
+      } else {
+        provider = {
+          modelConstructor: modelConstructor,
+          createView: createView
+        };
+      }
+      this.providers.push(provider);
+      return new Disposable((function(_this) {
+        return function() {
+          return _this.providers = _this.providers.filter(function(p) {
+            return p !== provider;
+          });
+        };
+      })(this));
+    };
+
+    ViewRegistry.prototype.getView = function(object) {
+      var view;
+      if (object == null) {
+        return;
+      }
+      if (view = this.views.get(object)) {
+        return view;
+      } else {
+        view = this.createView(object);
+        this.views.set(object, view);
+        return view;
+      }
+    };
+
+    ViewRegistry.prototype.createView = function(object) {
+      var element, provider, view, viewConstructor, _ref;
+      if (object instanceof HTMLElement) {
+        return object;
+      } else if ((object != null ? object.element : void 0) instanceof HTMLElement) {
+        return object.element;
+      } else if (object != null ? object.jquery : void 0) {
+        return object[0];
+      } else if (provider = this.findProvider(object)) {
+        element = typeof provider.createView === "function" ? provider.createView(object, this.atomEnvironment) : void 0;
+        if (element == null) {
+          element = new provider.viewConstructor;
+                    if ((_ref = typeof element.initialize === "function" ? element.initialize(object) : void 0) != null) {
+            _ref;
+          } else {
+            if (typeof element.setModel === "function") {
+              element.setModel(object);
+            }
+          };
+        }
+        return element;
+      } else if (viewConstructor = object != null ? typeof object.getViewClass === "function" ? object.getViewClass() : void 0 : void 0) {
+        view = new viewConstructor(object);
+        return view[0];
+      } else {
+        throw new Error("Can't create a view for " + object.constructor.name + " instance. Please register a view provider.");
+      }
+    };
+
+    ViewRegistry.prototype.findProvider = function(object) {
+      return find(this.providers, function(_arg) {
+        var modelConstructor;
+        modelConstructor = _arg.modelConstructor;
+        return object instanceof modelConstructor;
+      });
+    };
+
+    ViewRegistry.prototype.updateDocument = function(fn) {
+      this.documentWriters.push(fn);
+      if (!this.documentReadInProgress) {
+        this.requestDocumentUpdate();
+      }
+      return new Disposable((function(_this) {
+        return function() {
+          return _this.documentWriters = _this.documentWriters.filter(function(writer) {
+            return writer !== fn;
+          });
+        };
+      })(this));
+    };
+
+    ViewRegistry.prototype.readDocument = function(fn) {
+      this.documentReaders.push(fn);
+      this.requestDocumentUpdate();
+      return new Disposable((function(_this) {
+        return function() {
+          return _this.documentReaders = _this.documentReaders.filter(function(reader) {
+            return reader !== fn;
+          });
+        };
+      })(this));
+    };
+
+    ViewRegistry.prototype.pollDocument = function(fn) {
+      if (this.documentPollers.length === 0) {
+        this.startPollingDocument();
+      }
+      this.documentPollers.push(fn);
+      return new Disposable((function(_this) {
+        return function() {
+          _this.documentPollers = _this.documentPollers.filter(function(poller) {
+            return poller !== fn;
+          });
+          if (_this.documentPollers.length === 0) {
+            return _this.stopPollingDocument();
+          }
+        };
+      })(this));
+    };
+
+    ViewRegistry.prototype.pollAfterNextUpdate = function() {
+      return this.performDocumentPollAfterUpdate = true;
+    };
+
+    ViewRegistry.prototype.clearDocumentRequests = function() {
+      this.documentReaders = [];
+      this.documentWriters = [];
+      this.documentPollers = [];
+      this.documentUpdateRequested = false;
+      return this.stopPollingDocument();
+    };
+
+    ViewRegistry.prototype.requestDocumentUpdate = function() {
+      if (!this.documentUpdateRequested) {
+        this.documentUpdateRequested = true;
+        return requestAnimationFrame(this.performDocumentUpdate);
+      }
+    };
+
+    ViewRegistry.prototype.performDocumentUpdate = function() {
+      var reader, writer, _results;
+      this.documentUpdateRequested = false;
+      while (writer = this.documentWriters.shift()) {
+        writer();
+      }
+      this.documentReadInProgress = true;
+      while (reader = this.documentReaders.shift()) {
+        reader();
+      }
+      if (this.performDocumentPollAfterUpdate) {
+        this.performDocumentPoll();
+      }
+      this.performDocumentPollAfterUpdate = false;
+      this.documentReadInProgress = false;
+      _results = [];
+      while (writer = this.documentWriters.shift()) {
+        _results.push(writer());
+      }
+      return _results;
+    };
+
+    ViewRegistry.prototype.startPollingDocument = function() {
+      window.addEventListener('resize', this.requestDocumentPoll);
+      return this.observer.observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true
+      });
+    };
+
+    ViewRegistry.prototype.stopPollingDocument = function() {
+      window.removeEventListener('resize', this.requestDocumentPoll);
+      return this.observer.disconnect();
+    };
+
+    ViewRegistry.prototype.requestDocumentPoll = function() {
+      if (this.documentUpdateRequested) {
+        return this.performDocumentPollAfterUpdate = true;
+      } else {
+        return this.debouncedPerformDocumentPoll();
+      }
+    };
+
+    ViewRegistry.prototype.performDocumentPoll = function() {
+      var poller, _i, _len, _ref;
+      _ref = this.documentPollers;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        poller = _ref[_i];
+        poller();
+      }
+    };
+
+    return ViewRegistry;
+
+  })();
+
+}).call(this);
+
+}),
+  "./storage-folder": (function (exports, require, module, __filename, __dirname, process, global) { (function() {
+  var StorageFolder, fs, path;
+
+  path = null;
+
+  fs = null;
+
+  module.exports = StorageFolder = (function() {
+    function StorageFolder(containingPath) {
+      if (path == null) {
+        path = require("path");
+      }
+      if (fs == null) {
+        fs = require("fs-plus");
+      }
+      if (containingPath != null) {
+        this.path = path.join(containingPath, "storage");
+      }
+    }
+
+    StorageFolder.prototype.store = function(name, object) {
+      if (this.path == null) {
+        return;
+      }
+      return fs.writeFileSync(this.pathForKey(name), JSON.stringify(object), 'utf8');
+    };
+
+    StorageFolder.prototype.load = function(name) {
+      var error, statePath, stateString;
+      if (this.path == null) {
+        return;
+      }
+      statePath = this.pathForKey(name);
+      try {
+        stateString = fs.readFileSync(statePath, 'utf8');
+      } catch (_error) {
+        error = _error;
+        if (error.code !== 'ENOENT') {
+          console.warn("Error reading state file: " + statePath, error.stack, error);
+        }
+        return void 0;
+      }
+      try {
+        return JSON.parse(stateString);
+      } catch (_error) {
+        error = _error;
+        return console.warn("Error parsing state file: " + statePath, error.stack, error);
+      }
+    };
+
+    StorageFolder.prototype.pathForKey = function(name) {
+      return path.join(this.getPath(), name);
+    };
+
+    StorageFolder.prototype.getPath = function() {
+      return this.path;
+    };
+
+    return StorageFolder;
+
+  })();
+
+}).call(this);
+
+}),
   "text-buffer": (function (exports, require, module, __filename, __dirname, process, global) {
     (function() {
   var CompositeDisposable, Emitter, File, Grim, History, MarkerStore, MatchIterator, Patch, Point, Range, SearchCallbackArgument, Serializable, SpanSkipList, TextBuffer, TransactionAbortedError, diff, fs, newlineRegex, path, spliceArray, _, _ref, _ref1,
@@ -8041,7 +8338,8 @@ if (typeof module !== 'undefined') {
     exports.DeserializerManager = require('./deserializer-manager');
     exports.Grim = require('grim');
     exports.TextBuffer = require('text-buffer');
-    // ViewRegistry = require('./view-registry')
+    exports.StorageFolder = require('./storage-folder');
+    exports.ViewRegistry = require('./view-registry');
     // NotificationManager = require('./notification-manager')
   },
   "./deserializer-manager": function (exports, require, module, __filename, __dirname) { (function() {
