@@ -62,10 +62,9 @@ module.exports = class GitRepositoryAsync {
 
   isPathModified (_path) {
     return this._filterStatusesByPath(_path).then(function (statuses) {
-      var ret = statuses.filter((status) => {
+      return statuses.filter((status) => {
         return status.isModified()
       }).length > 0
-      return Promise.resolve(ret)
     })
   }
 
