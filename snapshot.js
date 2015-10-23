@@ -6818,7 +6818,10 @@ SnapshotModule.prototype._compile = function(filename) {
   var self = this;
 
   function require(path) {
-    return self.require(path);
+    if (cachedFunctions.hasOwnProperty(path))
+      return self.require(path);
+    else
+      return process.mainModule.require(path);
   }
 
   require.resolve = function(request) {
