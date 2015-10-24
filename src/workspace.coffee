@@ -838,6 +838,44 @@ class Workspace extends Model
   addTopPanel: (options) ->
     @addPanel('top', options)
 
+  # Essential: Get an {Array} of all the panel items at the top of the window.
+  getTopBarPanels: ->
+    @getPanels('topBar')
+
+  # Essential: Adds a panel item to the top of the window. It will take up full width.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addTopBarPanel: (options) ->
+    @addPanel('topBar', options)
+
+  # Essential: Get an {Array} of all the panel items at the bottom of the window.
+  getBottomBarPanels: ->
+    @getPanels('bottomBar')
+
+  # Essential: Adds a panel item to the bottom of the window. It will take up full width.
+  #
+  # * `options` {Object}
+  #   * `item` Your panel content. It can be DOM element, a jQuery element, or
+  #     a model with a view registered via {ViewRegistry::addViewProvider}. We recommend the
+  #     latter. See {ViewRegistry::addViewProvider} for more information.
+  #   * `visible` (optional) {Boolean} false if you want the panel to initially be hidden
+  #     (default: true)
+  #   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
+  #     forced closer to the edges of the window. (default: 100)
+  #
+  # Returns a {Panel}
+  addBottomBarPanel: (options) ->
+    @addPanel('bottomBar', options)
+
   # Essential: Get an {Array} of all the modal panel items
   getModalPanels: ->
     @getPanels('modal')
