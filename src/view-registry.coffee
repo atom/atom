@@ -195,6 +195,10 @@ class ViewRegistry
   pollAfterNextUpdate: ->
     @performDocumentPollAfterUpdate = true
 
+  getNextUpdatePromise: ->
+    @nextUpdatePromise ?= new Promise (resolve) =>
+      @resolveNextUpdatePromise = resolve
+
   clearDocumentRequests: ->
     @documentReaders = []
     @documentWriters = []
@@ -219,6 +223,9 @@ class ViewRegistry
 
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
+
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise?()
 
   startPollingDocument: ->
     window.addEventListener('resize', @requestDocumentPoll)
