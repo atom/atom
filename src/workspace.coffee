@@ -47,6 +47,8 @@ class Workspace extends Model
       left: new PanelContainer({location: 'left'})
       right: new PanelContainer({location: 'right'})
       bottom: new PanelContainer({location: 'bottom'})
+      topBar: new PanelContainer({location: 'top-bar'})
+      bottomBar: new PanelContainer({location: 'bottom-bar'})
       modal: new PanelContainer({location: 'modal'})
 
     @subscribeToEvents()
@@ -66,6 +68,8 @@ class Workspace extends Model
       left: new PanelContainer({location: 'left'})
       right: new PanelContainer({location: 'right'})
       bottom: new PanelContainer({location: 'bottom'})
+      topBar: new PanelContainer({location: 'top-bar'})
+      bottomBar: new PanelContainer({location: 'bottom-bar'})
       modal: new PanelContainer({location: 'modal'})
 
     @originalFontSize = null
