@@ -894,6 +894,36 @@ describe "Workspace", ->
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
+    describe '::addTopBarPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getTopBarPanels().length).toBe(0)
+        atom.workspace.panelContainers.topBar.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addTopBarPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getTopBarPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe '::addBottomBarPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getBottomBarPanels().length).toBe(0)
+        atom.workspace.panelContainers.bottomBar.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addBottomBarPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getBottomBarPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
     describe '::addModalPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
         expect(atom.workspace.getModalPanels().length).toBe(0)

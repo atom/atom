@@ -72,6 +72,11 @@ describe "WorkspaceElement", ->
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
 
+      topBarContainer = workspaceElement.querySelector('atom-panel-container.top-bar')
+      bottomBarContainer = workspaceElement.querySelector('atom-panel-container.bottom-bar')
+      expect(topBarContainer.nextSibling).toBe workspaceElement.horizontalAxis
+      expect(bottomBarContainer.previousSibling).toBe workspaceElement.horizontalAxis
+
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement
 
