@@ -8,7 +8,7 @@ export default class __PackageName__View {
     this.element.classList.add('__package-name__');
 
     // Create message element
-    message = document.createElement('div');
+    const message = document.createElement('div');
     message.textContent = 'The __PackageName__ package is Alive! It\'s ALIVE!';
     message.classList.add('message');
     this.element.appendChild(message);
