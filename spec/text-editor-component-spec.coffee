@@ -41,7 +41,7 @@ describe "TextEditorComponent", ->
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
       component.measureDimensions()
-    waitsForNextDOMUpdate()
+      waitsForNextDOMUpdate()
 
   afterEach ->
     contentNode.style.width = ''
@@ -54,13 +54,11 @@ describe "TextEditorComponent", ->
       # simulate state corruption
       component.presenter.startRow = -1
       component.presenter.endRow = 9999
-
       waitsForNextDOMUpdate()
 
     it "doesn't update when an animation frame was requested but the component got destroyed before its delivery", ->
       editor.setText("You shouldn't see this update.")
       component.destroy()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -89,8 +87,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
@@ -109,8 +106,7 @@ describe "TextEditorComponent", ->
 
         verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -152,8 +148,7 @@ describe "TextEditorComponent", ->
 
         verticalScrollbarNode.scrollTop = tileSize * lineHeightInPixels + 5
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -199,8 +194,7 @@ describe "TextEditorComponent", ->
         expectTileContainsRow(tilesNodes[1], 5, top: 2 * lineHeightInPixels)
 
         editor.getBuffer().insert([0, 0], '\n\n')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -228,22 +222,19 @@ describe "TextEditorComponent", ->
       runs ->
         verticalScrollbarNode.scrollTop = 5 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       buffer = null
       runs ->
         buffer = editor.getBuffer()
         buffer.insert([0, 0], '\n\n')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNodeForScreenRow(3).textContent).toBe editor.tokenizedLineForScreenRow(3).text
 
         buffer.delete([[0, 0], [3, 0]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNodeForScreenRow(3).textContent).toBe editor.tokenizedLineForScreenRow(3).text
@@ -301,8 +292,7 @@ describe "TextEditorComponent", ->
 
         componentNode.style.width = gutterWidth + wrapperNode.getScrollWidth() + 100 + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         scrollViewWidth = scrollViewNode.offsetWidth
@@ -323,7 +313,6 @@ describe "TextEditorComponent", ->
         expect(tileNode.style.backgroundColor).toBe(backgroundColor)
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -341,8 +330,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe false
 
         editor.setText('\ta')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -359,8 +347,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
         editor.setText('\t')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -368,8 +355,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
         editor.setText('a ')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -377,7 +363,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
         editor.setText('a\t')
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -419,15 +405,13 @@ describe "TextEditorComponent", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
           atom.config.set("editor.showInvisibles", false)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
 
           atom.config.set("editor.showInvisibles", true)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
@@ -480,30 +464,26 @@ describe "TextEditorComponent", ->
 
         runs ->
           editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", normalizeLineEndings: false)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
 
           editor.setTabLength(3)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span> </span>'
 
           editor.setTabLength(1)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="indent-guide"><span class="invisible-character">E</span></span>'
 
           editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
           editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
@@ -516,7 +496,7 @@ describe "TextEditorComponent", ->
           runs ->
             componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
             component.measureDimensions()
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
@@ -602,8 +582,7 @@ describe "TextEditorComponent", ->
 
         runs ->
           editor.getBuffer().insert([13, 0], '    ')
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
@@ -617,9 +596,9 @@ describe "TextEditorComponent", ->
 
         waitsForNextDOMUpdate()
 
-        runs -> editor.getBuffer().insert([12, 0], '    ')
-
-        waitsForNextDOMUpdate()
+        runs ->
+          editor.getBuffer().insert([12, 0], '    ')
+          waitsForNextDOMUpdate()
 
         runs ->
           line13LeafNodes = getLeafNodes(component.lineNodeForScreenRow(13))
@@ -669,8 +648,7 @@ describe "TextEditorComponent", ->
           expect(foldedLineNode.querySelector('.fold-marker')).toBeTruthy()
 
           editor.unfoldBufferRow(4)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           foldedLineNode = component.lineNodeForScreenRow(4)
@@ -697,8 +675,7 @@ describe "TextEditorComponent", ->
 
         verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLineNumbers()
@@ -720,8 +697,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
@@ -756,8 +732,7 @@ describe "TextEditorComponent", ->
 
         verticalScrollbarNode.scrollTop = tileSize * lineHeightInPixels + 5
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLineNumbers()
@@ -797,8 +772,7 @@ describe "TextEditorComponent", ->
         expect(component.lineNumberNodeForScreenRow(5).offsetTop).toBe 2 * lineHeightInPixels
 
         editor.getBuffer().insert([0, 0], '\n\n')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe 0 * lineHeightInPixels
@@ -816,7 +790,6 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 30 * charWidth + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -848,8 +821,7 @@ describe "TextEditorComponent", ->
 
         # Removes padding when the max number of digits goes down
         editor.getBuffer().delete([[1, 0], [2, 0]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         for screenRow in [0..8]
@@ -858,8 +830,7 @@ describe "TextEditorComponent", ->
 
         # Increases padding when the max number of digits goes up
         editor.getBuffer().insert([0, 0], '\n\n')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         for screenRow in [0..8]
@@ -870,7 +841,6 @@ describe "TextEditorComponent", ->
     it "renders the .line-numbers div at the full height of the editor even if it's taller than its content", ->
       wrapperNode.style.height = componentNode.offsetHeight + 100 + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -887,7 +857,6 @@ describe "TextEditorComponent", ->
       # favor gutter color if it's assigned
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
       atom.views.performDocumentPoll() # required due to DOM change not being detected inside shadow DOM
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -899,29 +868,25 @@ describe "TextEditorComponent", ->
       expect(component.gutterContainerComponent.getLineNumberGutterComponent()?).toBe true
 
       editor.setLineNumberGutterVisible(false)
-
       waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
         atom.config.set("editor.showLineNumbers", false)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
         editor.setLineNumberGutterVisible(true)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
         atom.config.set("editor.showLineNumbers", true)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe ''
@@ -965,14 +930,12 @@ describe "TextEditorComponent", ->
           expect(lineNumberHasClass(11, 'foldable')).toBe false
 
           editor.getBuffer().insert([11, 44], '\n    fold me')
-
           waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(11, 'foldable')).toBe true
             editor.undo()
-
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(11, 'foldable')).toBe false
@@ -984,16 +947,14 @@ describe "TextEditorComponent", ->
           runs ->
             expect(lineNumberHasClass(4, 'folded')).toBe true
             editor.getBuffer().insert([0, 0], '\n')
-
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(4, 'folded')).toBe false
             expect(lineNumberHasClass(5, 'folded')).toBe true
 
             editor.unfoldBufferRow(5)
-
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(5, 'folded')).toBe false
@@ -1006,8 +967,7 @@ describe "TextEditorComponent", ->
             runs ->
               componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
               component.measureDimensions()
-
-            waitsForNextDOMUpdate()
+              waitsForNextDOMUpdate()
 
           it "doesn't add the foldable class for soft-wrapped lines", ->
             expect(lineNumberHasClass(0, 'foldable')).toBe true
@@ -1044,8 +1004,7 @@ describe "TextEditorComponent", ->
             lineNumber = component.lineNumberNodeForScreenRow(1)
             target = lineNumber.querySelector('.icon-right')
             target.dispatchEvent(buildClickEvent(target))
-
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(1, 'folded')).toBe false
@@ -1067,7 +1026,6 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1079,8 +1037,7 @@ describe "TextEditorComponent", ->
 
         cursor2 = editor.addCursorAtScreenPosition([8, 11], autoscroll: false)
         cursor3 = editor.addCursorAtScreenPosition([4, 10], autoscroll: false)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1090,13 +1047,11 @@ describe "TextEditorComponent", ->
         expect(cursorNodes[1].style['-webkit-transform']).toBe "translate(#{Math.round(10 * charWidth)}px, #{4 * lineHeightInPixels}px)"
 
         verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       cursorMovedListener = null
       runs ->
@@ -1107,16 +1062,14 @@ describe "TextEditorComponent", ->
 
         editor.onDidChangeCursorPosition cursorMovedListener = jasmine.createSpy('cursorMovedListener')
         cursor3.setScreenPosition([4, 11], autoscroll: false)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{Math.round(11 * charWidth - horizontalScrollbarNode.scrollLeft)}px, #{4 * lineHeightInPixels - verticalScrollbarNode.scrollTop}px)"
         expect(cursorMovedListener).toHaveBeenCalled()
 
         cursor3.destroy()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1127,7 +1080,6 @@ describe "TextEditorComponent", ->
     it "accounts for character widths when positioning cursors", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1147,7 +1099,6 @@ describe "TextEditorComponent", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setText('he\u0301y') # e with an accent mark
       editor.setCursorBufferPosition([0, 3])
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1167,7 +1118,6 @@ describe "TextEditorComponent", ->
     it "positions cursors correctly after character widths are changed via a stylesheet change", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1176,8 +1126,7 @@ describe "TextEditorComponent", ->
             font-weight: bold;
           }
         """, context: 'atom-text-editor'
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         cursor = componentNode.querySelector('.cursor')
@@ -1196,7 +1145,6 @@ describe "TextEditorComponent", ->
 
     it "sets the cursor to the default character width at the end of a line", ->
       editor.setCursorScreenPosition([0, Infinity])
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1205,7 +1153,6 @@ describe "TextEditorComponent", ->
 
     it "gives the cursor a non-zero width even if it's inside atomic tokens", ->
       editor.setCursorScreenPosition([1, 0])
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1215,8 +1162,8 @@ describe "TextEditorComponent", ->
     it "blinks cursors when they aren't moving", ->
       cursorsNode = componentNode.querySelector('.cursors')
       wrapperNode.focus()
-
       waitsForNextDOMUpdate()
+
       runs -> expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       waitsFor -> cursorsNode.classList.contains('blink-off')
@@ -1225,8 +1172,7 @@ describe "TextEditorComponent", ->
       runs ->
         # Stop blinking after moving the cursor
         editor.moveRight()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(cursorsNode.classList.contains('blink-off')).toBe false
@@ -1236,7 +1182,6 @@ describe "TextEditorComponent", ->
     it "does not render cursors that are associated with non-empty selections", ->
       editor.setSelectedScreenRange([[0, 4], [4, 6]])
       editor.addCursorAtScreenPosition([6, 8])
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1380,7 +1325,6 @@ describe "TextEditorComponent", ->
     it "updates selections when the line height changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setLineHeight(2)
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1390,7 +1334,6 @@ describe "TextEditorComponent", ->
     it "updates selections when the font size changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontSize(10)
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1401,7 +1344,6 @@ describe "TextEditorComponent", ->
     it "updates selections when the font family changes", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontFamily('sans-serif')
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1411,7 +1353,6 @@ describe "TextEditorComponent", ->
 
     it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
-
       waitsForNextDOMUpdate()
 
       selectionNode = null
@@ -1423,8 +1364,7 @@ describe "TextEditorComponent", ->
 
       runs ->
         editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(selectionNode.classList.contains('flash')).toBe true
@@ -1445,30 +1385,26 @@ describe "TextEditorComponent", ->
       # Shrink editor vertically
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
         # Add decorations that are out of range
         marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
         editor.decorateMarker(marker2, type: ['line-number', 'line'], class: 'b')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         # Scroll decorations into view
         verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(9, 'b')).toBe true
 
         # Fold a line to move the decorations
         editor.foldBufferRow(5)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(9, 'b')).toBe false
@@ -1479,23 +1415,20 @@ describe "TextEditorComponent", ->
       editor.setSoftWrapped(true)
       componentNode.style.width = 16 * charWidth + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
         marker.destroy()
         marker = editor.markBufferRange([[0, 0], [0, 2]])
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'b')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(0, 'b')).toBe true
         expect(lineNumberHasClass(1, 'b')).toBe false
 
         marker.setBufferRange([[0, 0], [0, Infinity]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(0, 'b')).toBe true
@@ -1508,7 +1441,6 @@ describe "TextEditorComponent", ->
       expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
 
       editor.getBuffer().insert([0, 0], '\n')
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1518,8 +1450,7 @@ describe "TextEditorComponent", ->
         expect(lineAndLineNumberHaveClass(5, 'a')).toBe false
 
         marker.setBufferRange([[4, 4], [6, 4]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
@@ -1531,7 +1462,6 @@ describe "TextEditorComponent", ->
 
     it "remove decoration classes when decorations are removed", ->
       decoration.destroy()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1542,7 +1472,6 @@ describe "TextEditorComponent", ->
 
     it "removes decorations when their marker is invalidated", ->
       editor.getBuffer().insert([3, 2], 'n')
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -1553,8 +1482,7 @@ describe "TextEditorComponent", ->
         expect(lineAndLineNumberHaveClass(4, 'a')).toBe false
 
         editor.undo()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(marker.isValid()).toBe true
@@ -1587,7 +1515,6 @@ describe "TextEditorComponent", ->
     describe "when the decoration's 'onlyEmpty' property is true", ->
       it "only applies the decoration when its marker is empty", ->
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-empty', onlyEmpty: true)
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1595,8 +1522,7 @@ describe "TextEditorComponent", ->
           expect(lineAndLineNumberHaveClass(3, 'only-empty')).toBe false
 
           marker.clearTail()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
@@ -1605,7 +1531,6 @@ describe "TextEditorComponent", ->
     describe "when the decoration's 'onlyNonEmpty' property is true", ->
       it "only applies the decoration when its marker is non-empty", ->
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1613,8 +1538,7 @@ describe "TextEditorComponent", ->
           expect(lineAndLineNumberHaveClass(3, 'only-non-empty')).toBe true
 
           marker.clearTail()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe false
@@ -1632,14 +1556,12 @@ describe "TextEditorComponent", ->
     it "does not render highlights for off-screen lines until they come on-screen", ->
       wrapperNode.style.height = 2.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
         marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
         editor.decorateMarker(marker, type: 'highlight', class: 'some-highlight')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         # Should not be rendering range containing the marker
@@ -1652,8 +1574,7 @@ describe "TextEditorComponent", ->
 
         verticalScrollbarNode.scrollTop = 6 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(component.presenter.endRow).toBeGreaterThan(8)
@@ -1704,8 +1625,7 @@ describe "TextEditorComponent", ->
         expect(regions.length).toBe 0
 
         editor.getBuffer().undo()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(marker.isValid()).toBe true
@@ -1714,14 +1634,12 @@ describe "TextEditorComponent", ->
 
     it "allows multiple space-delimited decoration classes", ->
       decoration.setProperties(type: 'highlight', class: 'foo bar')
-
       waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.foo.bar').length).toBe 2
         decoration.setProperties(type: 'highlight', class: 'bar baz')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.bar.baz').length).toBe 2
@@ -1756,8 +1674,9 @@ describe "TextEditorComponent", ->
           waitsForNextDOMUpdate()
           runs -> expect(highlightNode.classList.contains('flash-class')).toBe true
           waits 2
-          runs -> decoration.flash('flash-class', 10)
-          waitsForNextDOMUpdate()
+          runs ->
+            decoration.flash('flash-class', 10)
+            waitsForNextDOMUpdate()
           runs -> expect(highlightNode.classList.contains('flash-class')).toBe false
           waitsFor -> highlightNode.classList.contains('flash-class')
 
@@ -1769,7 +1688,6 @@ describe "TextEditorComponent", ->
         expect(originalTop).toBe(2 * lineHeightInPixels)
 
         editor.getBuffer().insert([0, 0], '\n')
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1783,7 +1701,6 @@ describe "TextEditorComponent", ->
         expect(parseInt(regionStyle.top)).toBe 2 * lineHeightInPixels
 
         marker.setBufferRange([[5, 8], [5, 13]])
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1795,7 +1712,6 @@ describe "TextEditorComponent", ->
         expect(componentNode.querySelector('.test-highlight')).toBeTruthy()
 
         decoration.setProperties(type: 'highlight', class: 'new-test-highlight')
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1821,8 +1737,7 @@ describe "TextEditorComponent", ->
           expect(overlay).toBe item
 
           decoration.destroy()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
@@ -1831,7 +1746,6 @@ describe "TextEditorComponent", ->
       it "renders the overlay element with the CSS class specified by the decoration", ->
         marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', class: 'my-overlay', item})
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1845,7 +1759,6 @@ describe "TextEditorComponent", ->
       it "renders at the head of the marker by default", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -1897,16 +1810,14 @@ describe "TextEditorComponent", ->
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
           editor.insertText('a')
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
           expect(overlay.style.top).toBe position.top + editor.getLineHeightInPixels() + 'px'
 
           editor.insertText('b')
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
@@ -1921,15 +1832,13 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
         expect(editor.getCursorScreenPosition()).toEqual [0, 0]
         wrapperNode.setScrollTop(3 * lineHeightInPixels)
         wrapperNode.setScrollLeft(3 * charWidth)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1937,8 +1846,7 @@ describe "TextEditorComponent", ->
 
         # In bounds, not focused
         editor.setCursorBufferPosition([5, 4], autoscroll: false)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1946,8 +1854,7 @@ describe "TextEditorComponent", ->
 
         # In bounds and focused
         wrapperNode.focus() # updates via state change
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - wrapperNode.getScrollTop()
@@ -1955,8 +1862,7 @@ describe "TextEditorComponent", ->
 
         # In bounds, not focused
         inputNode.blur() # updates via state change
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1964,8 +1870,7 @@ describe "TextEditorComponent", ->
 
         # Out of bounds, not focused
         editor.setCursorBufferPosition([1, 2], autoscroll: false)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1973,8 +1878,7 @@ describe "TextEditorComponent", ->
 
         # Out of bounds, focused
         inputNode.focus() # updates via state change
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -2000,8 +1904,7 @@ describe "TextEditorComponent", ->
           coordinates = clientCoordinatesForScreenPosition([0, 2])
           coordinates.clientY = -1
           linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(editor.getCursorScreenPosition()).toEqual [0, 0]
@@ -2037,8 +1940,7 @@ describe "TextEditorComponent", ->
 
           runs ->
             linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8])))
-
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
 
           runs ->
             expect(editor.getCursorScreenPosition()).toEqual [4, 8]
@@ -2168,7 +2070,6 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = '100px'
         wrapperNode.style.width = '100px'
         component.measureDimensions()
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -2643,7 +2544,7 @@ describe "TextEditorComponent", ->
         runs ->
           componentNode.style.width = 21 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
           component.measureDimensions()
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
       describe "when the gutter is clicked", ->
         it "selects the clicked buffer row", ->
@@ -2794,7 +2695,7 @@ describe "TextEditorComponent", ->
         expect(componentNode.classList.contains('is-focused')).toBe true
         expect(wrapperNode.classList.contains('is-focused')).toBe true
         inputNode.blur()
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
       runs ->
         expect(componentNode.classList.contains('is-focused')).toBe false
         expect(wrapperNode.classList.contains('is-focused')).toBe false
@@ -2810,14 +2711,12 @@ describe "TextEditorComponent", ->
     it "adds the 'has-selection' class to the editor when there is a selection", ->
       expect(componentNode.classList.contains('has-selection')).toBe false
       editor.selectDown()
-
       waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.classList.contains('has-selection')).toBe true
         editor.moveDown()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.classList.contains('has-selection')).toBe false
@@ -2826,14 +2725,12 @@ describe "TextEditorComponent", ->
     it "updates the vertical scrollbar when the scrollTop is changed in the model", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.scrollTop).toBe 0
         wrapperNode.setScrollTop(10)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.scrollTop).toBe 10
@@ -2855,8 +2752,7 @@ describe "TextEditorComponent", ->
         expect(horizontalScrollbarNode.scrollLeft).toBe 0
 
         wrapperNode.setScrollLeft(100)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         top = 0
@@ -2875,8 +2771,7 @@ describe "TextEditorComponent", ->
         expect(wrapperNode.getScrollLeft()).toBe 0
         horizontalScrollbarNode.scrollLeft = 100
         horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(wrapperNode.getScrollLeft()).toBe 100
@@ -2886,7 +2781,6 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
       wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
-
       waitsForNextDOMUpdate()
 
       lastLineNode = null
@@ -2899,8 +2793,7 @@ describe "TextEditorComponent", ->
         # Scroll so there's no space below the last line when the horizontal scrollbar disappears
         wrapperNode.style.width = 100 * charWidth + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
@@ -2912,7 +2805,6 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
       wrapperNode.setScrollLeft(Infinity)
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -2927,7 +2819,6 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -2936,8 +2827,7 @@ describe "TextEditorComponent", ->
 
         componentNode.style.width = 10 * charWidth + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.display).toBe ''
@@ -2945,8 +2835,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.display).toBe 'none'
@@ -2988,7 +2877,6 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
       component.measureDimensions()
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -2998,8 +2886,7 @@ describe "TextEditorComponent", ->
 
         componentNode.style.width = 10 * charWidth + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
@@ -3008,8 +2895,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
@@ -3545,7 +3431,6 @@ describe "TextEditorComponent", ->
       newHeight = 4 * editor.getLineHeightInPixels() + "px"
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
-
       waitsForNextDOMUpdate()
 
       runs ->
@@ -3554,8 +3439,7 @@ describe "TextEditorComponent", ->
         gutterWidth = componentNode.querySelector('.gutter').offsetWidth
         componentNode.style.width = gutterWidth + 14 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
         atom.views.performDocumentPoll()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
@@ -3582,16 +3466,14 @@ describe "TextEditorComponent", ->
         expect(lineNumberHasClass(5, 'cursor-line')).toBe false
 
         editor.setSelectedScreenRange([[3, 4], [4, 4]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
         expect(lineNumberHasClass(4, 'cursor-line')).toBe true
 
         editor.setSelectedScreenRange([[3, 4], [4, 0]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
@@ -3614,8 +3496,7 @@ describe "TextEditorComponent", ->
         expect(lineHasClass(5, 'cursor-line')).toBe false
 
         editor.setSelectedScreenRange([[3, 4], [4, 4]])
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineHasClass(2, 'cursor-line')).toBe false
@@ -3686,8 +3567,7 @@ describe "TextEditorComponent", ->
       runs ->
         expect(componentNode.querySelector('.placeholder-text').textContent).toBe "Hello World"
         editor.setText('hey')
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.placeholder-text')).toBeNull()
@@ -3820,8 +3700,7 @@ describe "TextEditorComponent", ->
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{newInvisibles.space}a line with tabs#{newInvisibles.tab}and spaces#{newInvisibles.space}#{newInvisibles.eol}"
           editor.setGrammar(jsGrammar)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
@@ -3839,7 +3718,6 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
         editor.setGrammar(coffeeEditor.getGrammar())
-
         waitsForNextDOMUpdate()
 
         runs ->
@@ -3876,14 +3754,12 @@ describe "TextEditorComponent", ->
         wrapperNode.setWidth(55)
         wrapperNode.setHeight(55)
         component.measureDimensions()
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         component.presenter.setHorizontalScrollbarHeight(0)
         component.presenter.setVerticalScrollbarWidth(0)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
     describe "when selecting buffer ranges", ->
       it "autoscrolls the selection if it is last unless the 'autoscroll' option is false", ->
@@ -3899,16 +3775,14 @@ describe "TextEditorComponent", ->
           expect(wrapperNode.getScrollRight()).toBeCloseTo right, 0
 
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           expect(wrapperNode.getScrollLeft()).toBe 0
 
           editor.setSelectedBufferRange([[6, 6], [6, 8]])
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
@@ -3930,11 +3804,11 @@ describe "TextEditorComponent", ->
         waitsForNextDOMUpdate()
         runs ->
           wrapperNode.scrollToTop()
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.selectLinesContainingCursors()
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
 
@@ -3945,11 +3819,11 @@ describe "TextEditorComponent", ->
           waitsForNextDOMUpdate()
           runs ->
             editor.addCursorAtScreenPosition([10, 4], autoscroll: false)
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
           runs ->
             expect(wrapperNode.getScrollTop()).toBe 0
             editor.insertText('a')
-          waitsForNextDOMUpdate()
+            waitsForNextDOMUpdate()
           runs ->
             expect(wrapperNode.getScrollTop()).toBe 75
 
@@ -3986,16 +3860,15 @@ describe "TextEditorComponent", ->
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 5.5 * 10
-          editor.moveDown()
 
-        waitsForNextDOMUpdate()
+          editor.moveDown()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 6 * 10
 
           editor.moveDown()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 7 * 10
@@ -4006,18 +3879,18 @@ describe "TextEditorComponent", ->
         waitsForNextDOMUpdate()
         runs ->
           wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           editor.moveUp()
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe wrapperNode.getScrollHeight()
           editor.moveUp()
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 7 * 10
           editor.moveUp()
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 6 * 10
 
@@ -4026,14 +3899,13 @@ describe "TextEditorComponent", ->
         expect(wrapperNode.getScrollRight()).toBe 5.5 * 10
 
         editor.setCursorScreenPosition([0, 2])
-
         waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollRight()).toBe 5.5 * 10
-          editor.moveRight()
 
-        waitsForNextDOMUpdate()
+          editor.moveRight()
+          waitsForNextDOMUpdate()
 
         margin = null
         runs ->
@@ -4056,13 +3928,11 @@ describe "TextEditorComponent", ->
         runs ->
           expect(wrapperNode.getScrollRight()).toBe wrapperNode.getScrollWidth()
           editor.setCursorScreenPosition([6, 62], autoscroll: false)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           editor.moveLeft()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         margin = null
         runs ->
@@ -4070,8 +3940,7 @@ describe "TextEditorComponent", ->
           left = wrapperNode.pixelPositionForScreenPosition([6, 61]).left - margin
           expect(wrapperNode.getScrollLeft()).toBeCloseTo left, 0
           editor.moveLeft()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           left = wrapperNode.pixelPositionForScreenPosition([6, 60]).left - margin
@@ -4085,8 +3954,7 @@ describe "TextEditorComponent", ->
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 14 * 10
           editor.insertNewline()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 15 * 10
@@ -4098,8 +3966,7 @@ describe "TextEditorComponent", ->
 
         runs ->
           editor.undo()
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
@@ -4110,13 +3977,11 @@ describe "TextEditorComponent", ->
 
         runs ->
           wrapperNode.setScrollTop(40)
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           editor.setCursorBufferPosition([6, 0])
-
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 40
@@ -4128,54 +3993,54 @@ describe "TextEditorComponent", ->
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setCursorScreenPosition([11, 11], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setCursorBufferPosition([11, 11], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.clearSelections(autoscroll: false)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addSelectionForScreenRange([[0, 0], [0, 4]])
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           editor.getCursors()[0].setScreenPosition([11, 11], autoscroll: true)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
           editor.getCursors()[0].setBufferPosition([0, 0], autoscroll: true)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.getSelections()[0].setScreenRange([[11, 0], [11, 4]], autoscroll: true)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
           editor.getSelections()[0].setBufferRange([[0, 0], [0, 4]], autoscroll: true)
-        waitsForNextDOMUpdate()
+          waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
 
@@ -4199,8 +4064,7 @@ describe "TextEditorComponent", ->
 
       runs ->
         component.setScrollTop(60)
-
-      waitsForNextDOMUpdate()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(component.getVisibleRowRange()).toEqual [0, 13]
