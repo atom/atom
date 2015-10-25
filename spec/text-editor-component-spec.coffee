@@ -41,8 +41,7 @@ describe "TextEditorComponent", ->
       horizontalScrollbarNode = componentNode.querySelector('.horizontal-scrollbar')
 
       component.measureDimensions()
-
-    waitsForPromise -> atom.views.getNextUpdatePromise()
+    waitsForNextDOMUpdate()
 
   afterEach ->
     contentNode.style.width = ''
@@ -56,13 +55,13 @@ describe "TextEditorComponent", ->
       component.presenter.startRow = -1
       component.presenter.endRow = 9999
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "doesn't update when an animation frame was requested but the component got destroyed before its delivery", ->
       editor.setText("You shouldn't see this update.")
       component.destroy()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNodeForScreenRow(0).textContent).not.toBe("You shouldn't see this update.")
@@ -83,7 +82,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
@@ -91,7 +90,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
@@ -99,7 +98,7 @@ describe "TextEditorComponent", ->
     it "renders higher tiles in front of lower ones", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -111,7 +110,7 @@ describe "TextEditorComponent", ->
         verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -124,7 +123,7 @@ describe "TextEditorComponent", ->
     it "renders the currently-visible lines in a tiled fashion", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -154,7 +153,7 @@ describe "TextEditorComponent", ->
         verticalScrollbarNode.scrollTop = tileSize * lineHeightInPixels + 5
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -184,7 +183,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
       editor.getBuffer().deleteRows(0, 1)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -201,7 +200,7 @@ describe "TextEditorComponent", ->
 
         editor.getBuffer().insert([0, 0], '\n\n')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLines()
@@ -224,27 +223,27 @@ describe "TextEditorComponent", ->
     it "updates the lines when lines are inserted or removed above the rendered row range", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         verticalScrollbarNode.scrollTop = 5 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       buffer = null
       runs ->
         buffer = editor.getBuffer()
         buffer.insert([0, 0], '\n\n')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNodeForScreenRow(3).textContent).toBe editor.tokenizedLineForScreenRow(3).text
 
         buffer.delete([[0, 0], [3, 0]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNodeForScreenRow(3).textContent).toBe editor.tokenizedLineForScreenRow(3).text
@@ -252,7 +251,7 @@ describe "TextEditorComponent", ->
     it "updates the top position of lines when the line height changes", ->
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setLineHeight(2)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         newLineHeightInPixels = editor.getLineHeightInPixels()
@@ -262,7 +261,7 @@ describe "TextEditorComponent", ->
     it "updates the top position of lines when the font size changes", ->
       initialLineHeightInPixels = editor.getLineHeightInPixels()
       component.setFontSize(10)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         newLineHeightInPixels = editor.getLineHeightInPixels()
@@ -273,7 +272,7 @@ describe "TextEditorComponent", ->
       editor.setText('')
       wrapperNode.style.height = '300px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         linesNode = componentNode.querySelector('.lines')
@@ -286,7 +285,7 @@ describe "TextEditorComponent", ->
 
       componentNode.style.width = gutterWidth + (30 * charWidth) + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(wrapperNode.getScrollWidth()).toBeGreaterThan scrollViewNode.offsetWidth
@@ -303,7 +302,7 @@ describe "TextEditorComponent", ->
         componentNode.style.width = gutterWidth + wrapperNode.getScrollWidth() + 100 + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         scrollViewWidth = scrollViewNode.offsetWidth
@@ -325,7 +324,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.backgroundColor = 'rgb(255, 0, 0)'
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
@@ -334,7 +333,7 @@ describe "TextEditorComponent", ->
 
     it "applies .leading-whitespace for lines with leading spaces and/or tabs", ->
       editor.setText(' a')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -343,7 +342,7 @@ describe "TextEditorComponent", ->
 
         editor.setText('\ta')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -352,7 +351,7 @@ describe "TextEditorComponent", ->
 
     it "applies .trailing-whitespace for lines with trailing spaces and/or tabs", ->
       editor.setText(' ')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -361,7 +360,7 @@ describe "TextEditorComponent", ->
 
         editor.setText('\t')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -370,7 +369,7 @@ describe "TextEditorComponent", ->
 
         editor.setText('a ')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -378,7 +377,7 @@ describe "TextEditorComponent", ->
         expect(leafNodes[0].classList.contains('leading-whitespace')).toBe false
 
         editor.setText('a\t')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -410,32 +409,32 @@ describe "TextEditorComponent", ->
 
         atom.config.set("editor.showInvisibles", true)
         atom.config.set("editor.invisibles", invisibles)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       it "re-renders the lines when the showInvisibles config option changes", ->
         editor.setText " a line with tabs\tand spaces \n"
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
           atom.config.set("editor.showInvisibles", false)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
 
           atom.config.set("editor.showInvisibles", true)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
 
       it "displays leading/trailing spaces, tabs, and newlines as visible characters", ->
         editor.setText " a line with tabs\tand spaces \n"
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{invisibles.space}a line with tabs#{invisibles.tab}and spaces#{invisibles.space}#{invisibles.eol}"
@@ -446,14 +445,14 @@ describe "TextEditorComponent", ->
 
       it "displays newlines as their own token outside of the other tokens' scopeDescriptor", ->
         editor.setText "var\n"
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).innerHTML).toBe "<span class=\"source js\"><span class=\"storage modifier js\">var</span></span><span class=\"invisible-character\">#{invisibles.eol}</span>"
 
       it "displays trailing carriage returns using a visible, non-empty value", ->
         editor.setText "a line that ends with a carriage return\r\n"
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that ends with a carriage return#{invisibles.cr}#{invisibles.eol}"
@@ -463,40 +462,40 @@ describe "TextEditorComponent", ->
 
       it "renders an nbsp on empty lines when the line-ending character is an empty string", ->
         atom.config.set("editor.invisibles", eol: '')
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "renders an nbsp on empty lines when the line-ending character is false", ->
         atom.config.set("editor.invisibles", eol: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).textContent).toBe nbsp
 
       it "interleaves invisible line-ending characters with indent guides on empty lines", ->
         atom.config.set "editor.showIndentGuide", true
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           editor.setTextInBufferRange([[10, 0], [11, 0]], "\r\n", normalizeLineEndings: false)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>'
 
           editor.setTabLength(3)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span> </span>'
 
           editor.setTabLength(1)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="indent-guide"><span class="invisible-character">E</span></span>'
@@ -504,7 +503,7 @@ describe "TextEditorComponent", ->
           editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
           editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(10).innerHTML).toBe '<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>'
@@ -513,11 +512,11 @@ describe "TextEditorComponent", ->
         beforeEach ->
           editor.setText "a line that wraps \n"
           editor.setSoftWrapped(true)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
           runs ->
             componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
             component.measureDimensions()
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
         it "doesn't show end of line invisibles at the end of wrapped lines", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "a line that "
@@ -526,7 +525,7 @@ describe "TextEditorComponent", ->
     describe "when indent guides are enabled", ->
       beforeEach ->
         atom.config.set "editor.showIndentGuide", true
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       it "adds an 'indent-guide' class to spans comprising the leading whitespace", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -543,7 +542,7 @@ describe "TextEditorComponent", ->
 
       it "renders leading whitespace spans with the 'indent-guide' class for empty lines", ->
         editor.getBuffer().insert([1, Infinity], '\n')
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
@@ -556,7 +555,7 @@ describe "TextEditorComponent", ->
 
       it "renders indent guides correctly on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
@@ -573,7 +572,7 @@ describe "TextEditorComponent", ->
         atom.config.set 'editor.invisibles', space: '-', eol: 'x'
         editor.getBuffer().insert([1, Infinity], '\n      ')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
@@ -588,7 +587,7 @@ describe "TextEditorComponent", ->
 
       it "does not render indent guides in trailing whitespace for lines containing non whitespace characters", ->
         editor.getBuffer().setText "  hi  "
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line0LeafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
@@ -599,12 +598,12 @@ describe "TextEditorComponent", ->
 
       it "updates the indent guides on empty lines preceding an indentation change", ->
         editor.getBuffer().insert([12, 0], '\n')
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           editor.getBuffer().insert([13, 0], '    ')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
@@ -616,11 +615,11 @@ describe "TextEditorComponent", ->
       it "updates the indent guides on empty lines following an indentation change", ->
         editor.getBuffer().insert([12, 2], '\n')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs -> editor.getBuffer().insert([12, 0], '    ')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line13LeafNodes = getLeafNodes(component.lineNodeForScreenRow(13))
@@ -636,7 +635,7 @@ describe "TextEditorComponent", ->
       it "does not render indent guides on lines containing only whitespace", ->
         editor.getBuffer().insert([1, Infinity], '\n      ')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
@@ -652,7 +651,7 @@ describe "TextEditorComponent", ->
       it "excludes the null byte from character measurement", ->
         editor.setText("a\0b")
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.pixelPositionForScreenPosition([0, Infinity]).left).toEqual 2 * charWidth
@@ -663,7 +662,7 @@ describe "TextEditorComponent", ->
         expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
 
         editor.foldBufferRow(4)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           foldedLineNode = component.lineNodeForScreenRow(4)
@@ -671,7 +670,7 @@ describe "TextEditorComponent", ->
 
           editor.unfoldBufferRow(4)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           foldedLineNode = component.lineNodeForScreenRow(4)
@@ -687,7 +686,7 @@ describe "TextEditorComponent", ->
     it "renders higher tiles in front of lower ones", ->
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLineNumbers()
@@ -699,7 +698,7 @@ describe "TextEditorComponent", ->
         verticalScrollbarNode.scrollTop = 1 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLineNumbers()
@@ -714,7 +713,7 @@ describe "TextEditorComponent", ->
 
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
@@ -722,7 +721,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(linesNode.getBoundingClientRect().height).toBe(3.5 * lineHeightInPixels)
@@ -730,7 +729,7 @@ describe "TextEditorComponent", ->
     it "renders the currently-visible line numbers in a tiled fashion", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLineNumbers()
@@ -758,7 +757,7 @@ describe "TextEditorComponent", ->
         verticalScrollbarNode.scrollTop = tileSize * lineHeightInPixels + 5
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tilesNodes = component.tileNodesForLineNumbers()
@@ -786,7 +785,7 @@ describe "TextEditorComponent", ->
 
     it "updates the translation of subsequent line numbers when lines are inserted or removed", ->
       editor.getBuffer().insert([0, 0], '\n\n')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         lineNumberNodes = componentNode.querySelectorAll('.line-number')
@@ -799,7 +798,7 @@ describe "TextEditorComponent", ->
 
         editor.getBuffer().insert([0, 0], '\n\n')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNumberNodeForScreenRow(0).offsetTop).toBe 0 * lineHeightInPixels
@@ -818,7 +817,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = 30 * charWidth + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.line-number').length).toBe 9 + 1 # 3 line-numbers tiles + 1 dummy line
@@ -835,7 +834,7 @@ describe "TextEditorComponent", ->
     it "pads line numbers to be right-justified based on the maximum number of line number digits", ->
       editor.getBuffer().setText([1..10].join('\n'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       [gutterNode, initialGutterWidth] = []
 
@@ -850,7 +849,7 @@ describe "TextEditorComponent", ->
         # Removes padding when the max number of digits goes down
         editor.getBuffer().delete([[1, 0], [2, 0]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         for screenRow in [0..8]
@@ -860,7 +859,7 @@ describe "TextEditorComponent", ->
         # Increases padding when the max number of digits goes up
         editor.getBuffer().insert([0, 0], '\n\n')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         for screenRow in [0..8]
@@ -872,7 +871,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = componentNode.offsetHeight + 100 + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe componentNode.offsetHeight
@@ -889,7 +888,7 @@ describe "TextEditorComponent", ->
       gutterNode.style.backgroundColor = 'rgb(255, 0, 0)'
       atom.views.performDocumentPoll() # required due to DOM change not being detected inside shadow DOM
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumbersNode.style.backgroundColor).toBe 'rgb(255, 0, 0)'
@@ -901,28 +900,28 @@ describe "TextEditorComponent", ->
 
       editor.setLineNumberGutterVisible(false)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
         atom.config.set("editor.showLineNumbers", false)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
         editor.setLineNumberGutterVisible(true)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe 'none'
 
         atom.config.set("editor.showLineNumbers", true)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.gutter').style.display).toBe ''
@@ -951,7 +950,7 @@ describe "TextEditorComponent", ->
 
         it "updates the foldable class on the correct line numbers when the foldable positions change", ->
           editor.getBuffer().insert([0, 0], '\n')
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(0, 'foldable')).toBe false
@@ -967,26 +966,26 @@ describe "TextEditorComponent", ->
 
           editor.getBuffer().insert([11, 44], '\n    fold me')
 
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(11, 'foldable')).toBe true
             editor.undo()
 
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(11, 'foldable')).toBe false
 
         it "adds, updates and removes the folded class on the correct line number componentNodes", ->
           editor.foldBufferRow(4)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(4, 'folded')).toBe true
             editor.getBuffer().insert([0, 0], '\n')
 
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(4, 'folded')).toBe false
@@ -994,7 +993,7 @@ describe "TextEditorComponent", ->
 
             editor.unfoldBufferRow(5)
 
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(5, 'folded')).toBe false
@@ -1002,13 +1001,13 @@ describe "TextEditorComponent", ->
         describe "when soft wrapping is enabled", ->
           beforeEach ->
             editor.setSoftWrapped(true)
-            waitsForPromise -> atom.views.getNextUpdatePromise()
+            waitsForNextDOMUpdate()
 
             runs ->
               componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
               component.measureDimensions()
 
-            waitsForPromise -> atom.views.getNextUpdatePromise()
+            waitsForNextDOMUpdate()
 
           it "doesn't add the foldable class for soft-wrapped lines", ->
             expect(lineNumberHasClass(0, 'foldable')).toBe true
@@ -1037,7 +1036,7 @@ describe "TextEditorComponent", ->
           lineNumber = component.lineNumberNodeForScreenRow(1)
           target = lineNumber.querySelector('.icon-right')
           target.dispatchEvent(buildClickEvent(target))
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(1, 'folded')).toBe true
@@ -1046,7 +1045,7 @@ describe "TextEditorComponent", ->
             target = lineNumber.querySelector('.icon-right')
             target.dispatchEvent(buildClickEvent(target))
 
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(lineNumberHasClass(1, 'folded')).toBe false
@@ -1069,7 +1068,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1081,7 +1080,7 @@ describe "TextEditorComponent", ->
         cursor2 = editor.addCursorAtScreenPosition([8, 11], autoscroll: false)
         cursor3 = editor.addCursorAtScreenPosition([4, 10], autoscroll: false)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1092,12 +1091,12 @@ describe "TextEditorComponent", ->
 
         verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         horizontalScrollbarNode.scrollLeft = 3.5 * charWidth
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       cursorMovedListener = null
       runs ->
@@ -1109,7 +1108,7 @@ describe "TextEditorComponent", ->
         editor.onDidChangeCursorPosition cursorMovedListener = jasmine.createSpy('cursorMovedListener')
         cursor3.setScreenPosition([4, 11], autoscroll: false)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(cursorNodes[0].style['-webkit-transform']).toBe "translate(#{Math.round(11 * charWidth - horizontalScrollbarNode.scrollLeft)}px, #{4 * lineHeightInPixels - verticalScrollbarNode.scrollTop}px)"
@@ -1117,7 +1116,7 @@ describe "TextEditorComponent", ->
 
         cursor3.destroy()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1129,7 +1128,7 @@ describe "TextEditorComponent", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursor = componentNode.querySelector('.cursor')
@@ -1149,7 +1148,7 @@ describe "TextEditorComponent", ->
       editor.setText('he\u0301y') # e with an accent mark
       editor.setCursorBufferPosition([0, 3])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursor = componentNode.querySelector('.cursor')
@@ -1169,7 +1168,7 @@ describe "TextEditorComponent", ->
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         atom.styles.addStyleSheet """
@@ -1178,7 +1177,7 @@ describe "TextEditorComponent", ->
           }
         """, context: 'atom-text-editor'
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursor = componentNode.querySelector('.cursor')
@@ -1198,7 +1197,7 @@ describe "TextEditorComponent", ->
     it "sets the cursor to the default character width at the end of a line", ->
       editor.setCursorScreenPosition([0, Infinity])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNode = componentNode.querySelector('.cursor')
@@ -1207,7 +1206,7 @@ describe "TextEditorComponent", ->
     it "gives the cursor a non-zero width even if it's inside atomic tokens", ->
       editor.setCursorScreenPosition([1, 0])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNode = componentNode.querySelector('.cursor')
@@ -1217,7 +1216,7 @@ describe "TextEditorComponent", ->
       cursorsNode = componentNode.querySelector('.cursors')
       wrapperNode.focus()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs -> expect(cursorsNode.classList.contains('blink-off')).toBe false
 
       waitsFor -> cursorsNode.classList.contains('blink-off')
@@ -1227,7 +1226,7 @@ describe "TextEditorComponent", ->
         # Stop blinking after moving the cursor
         editor.moveRight()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(cursorsNode.classList.contains('blink-off')).toBe false
@@ -1238,7 +1237,7 @@ describe "TextEditorComponent", ->
       editor.setSelectedScreenRange([[0, 4], [4, 6]])
       editor.addCursorAtScreenPosition([6, 8])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNodes = componentNode.querySelectorAll('.cursor')
@@ -1248,7 +1247,7 @@ describe "TextEditorComponent", ->
     it "updates cursor positions when the line height changes", ->
       editor.setCursorBufferPosition([1, 10])
       component.setLineHeight(2)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNode = componentNode.querySelector('.cursor')
@@ -1257,7 +1256,7 @@ describe "TextEditorComponent", ->
     it "updates cursor positions when the font size changes", ->
       editor.setCursorBufferPosition([1, 10])
       component.setFontSize(10)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNode = componentNode.querySelector('.cursor')
@@ -1266,7 +1265,7 @@ describe "TextEditorComponent", ->
     it "updates cursor positions when the font family changes", ->
       editor.setCursorBufferPosition([1, 10])
       component.setFontFamily('sans-serif')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         cursorNode = componentNode.querySelector('.cursor')
@@ -1284,7 +1283,7 @@ describe "TextEditorComponent", ->
     it "renders 1 region for 1-line selections", ->
       # 1-line selection
       editor.setSelectedScreenRange([[1, 6], [1, 10]])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         regions = componentNode.querySelectorAll('.selection .region')
@@ -1298,7 +1297,7 @@ describe "TextEditorComponent", ->
 
     it "renders 2 regions for 2-line selections", ->
       editor.setSelectedScreenRange([[1, 6], [2, 10]])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         tileNode = component.tileNodesForLines()[0]
@@ -1319,7 +1318,7 @@ describe "TextEditorComponent", ->
 
     it "renders 3 regions per tile for selections with more than 2 lines", ->
       editor.setSelectedScreenRange([[0, 6], [5, 10]])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         # Tile 0
@@ -1370,7 +1369,7 @@ describe "TextEditorComponent", ->
 
     it "does not render empty selections", ->
       editor.addSelectionForBufferRange([[2, 2], [2, 2]])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(editor.getSelections()[0].isEmpty()).toBe true
@@ -1382,7 +1381,7 @@ describe "TextEditorComponent", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setLineHeight(2)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         selectionNode = componentNode.querySelector('.region')
@@ -1392,7 +1391,7 @@ describe "TextEditorComponent", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontSize(10)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         selectionNode = componentNode.querySelector('.region')
@@ -1403,7 +1402,7 @@ describe "TextEditorComponent", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]])
       component.setFontFamily('sans-serif')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         selectionNode = componentNode.querySelector('.region')
@@ -1413,7 +1412,7 @@ describe "TextEditorComponent", ->
     it "will flash the selection when flash:true is passed to editor::setSelectedBufferRange", ->
       editor.setSelectedBufferRange([[1, 6], [1, 10]], flash: true)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       selectionNode = null
       runs ->
@@ -1425,7 +1424,7 @@ describe "TextEditorComponent", ->
       runs ->
         editor.setSelectedBufferRange([[1, 5], [1, 7]], flash: true)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(selectionNode.classList.contains('flash')).toBe true
@@ -1437,7 +1436,7 @@ describe "TextEditorComponent", ->
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside', maintainHistory: true)
       decorationParams = {type: ['line-number', 'line'], class: 'a'}
       decoration = editor.decorateMarker(marker, decorationParams)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "applies line decoration classes to lines and line numbers", ->
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe true
@@ -1447,21 +1446,21 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         # Add decorations that are out of range
         marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
         editor.decorateMarker(marker2, type: ['line-number', 'line'], class: 'b')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         # Scroll decorations into view
         verticalScrollbarNode.scrollTop = 4.5 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(9, 'b')).toBe true
@@ -1469,7 +1468,7 @@ describe "TextEditorComponent", ->
         # Fold a line to move the decorations
         editor.foldBufferRow(5)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(9, 'b')).toBe false
@@ -1481,14 +1480,14 @@ describe "TextEditorComponent", ->
       componentNode.style.width = 16 * charWidth + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         marker.destroy()
         marker = editor.markBufferRange([[0, 0], [0, 2]])
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'b')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(0, 'b')).toBe true
@@ -1496,7 +1495,7 @@ describe "TextEditorComponent", ->
 
         marker.setBufferRange([[0, 0], [0, Infinity]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(0, 'b')).toBe true
@@ -1510,7 +1509,7 @@ describe "TextEditorComponent", ->
 
       editor.getBuffer().insert([0, 0], '\n')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
@@ -1520,7 +1519,7 @@ describe "TextEditorComponent", ->
 
         marker.setBufferRange([[4, 4], [6, 4]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineAndLineNumberHaveClass(2, 'a')).toBe false
@@ -1533,7 +1532,7 @@ describe "TextEditorComponent", ->
     it "remove decoration classes when decorations are removed", ->
       decoration.destroy()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(1, 'a')).toBe false
@@ -1544,7 +1543,7 @@ describe "TextEditorComponent", ->
     it "removes decorations when their marker is invalidated", ->
       editor.getBuffer().insert([3, 2], 'n')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(marker.isValid()).toBe false
@@ -1555,7 +1554,7 @@ describe "TextEditorComponent", ->
 
         editor.undo()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(marker.isValid()).toBe true
@@ -1566,7 +1565,7 @@ describe "TextEditorComponent", ->
 
     it "removes decorations when their marker is destroyed", ->
       marker.destroy()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(1, 'a')).toBe false
@@ -1577,7 +1576,7 @@ describe "TextEditorComponent", ->
     describe "when the decoration's 'onlyHead' property is true", ->
       it "only applies the decoration's class to lines containing the marker's head", ->
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-head', onlyHead: true)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(1, 'only-head')).toBe false
@@ -1589,7 +1588,7 @@ describe "TextEditorComponent", ->
       it "only applies the decoration when its marker is empty", ->
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-empty', onlyEmpty: true)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
@@ -1597,7 +1596,7 @@ describe "TextEditorComponent", ->
 
           marker.clearTail()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(2, 'only-empty')).toBe false
@@ -1607,7 +1606,7 @@ describe "TextEditorComponent", ->
       it "only applies the decoration when its marker is non-empty", ->
         editor.decorateMarker(marker, type: ['line-number', 'line'], class: 'only-non-empty', onlyNonEmpty: true)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe true
@@ -1615,7 +1614,7 @@ describe "TextEditorComponent", ->
 
           marker.clearTail()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(lineAndLineNumberHaveClass(2, 'only-non-empty')).toBe false
@@ -1628,19 +1627,19 @@ describe "TextEditorComponent", ->
       marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside', maintainHistory: true)
       decorationParams = {type: 'highlight', class: 'test-highlight'}
       decoration = editor.decorateMarker(marker, decorationParams)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "does not render highlights for off-screen lines until they come on-screen", ->
       wrapperNode.style.height = 2.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], invalidate: 'inside')
         editor.decorateMarker(marker, type: 'highlight', class: 'some-highlight')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         # Should not be rendering range containing the marker
@@ -1654,7 +1653,7 @@ describe "TextEditorComponent", ->
         verticalScrollbarNode.scrollTop = 6 * lineHeightInPixels
         verticalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.presenter.endRow).toBeGreaterThan(8)
@@ -1674,7 +1673,7 @@ describe "TextEditorComponent", ->
 
     it "removes highlights when a decoration is removed", ->
       decoration.destroy()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         regions = componentNode.querySelectorAll('.test-highlight .region')
@@ -1682,14 +1681,14 @@ describe "TextEditorComponent", ->
 
     it "does not render a highlight that is within a fold", ->
       editor.foldBufferRow(1)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.test-highlight').length).toBe 0
 
     it "removes highlights when a decoration's marker is destroyed", ->
       marker.destroy()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         regions = componentNode.querySelectorAll('.test-highlight .region')
@@ -1697,7 +1696,7 @@ describe "TextEditorComponent", ->
 
     it "only renders highlights when a decoration's marker is valid", ->
       editor.getBuffer().insert([3, 2], 'n')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(marker.isValid()).toBe false
@@ -1706,7 +1705,7 @@ describe "TextEditorComponent", ->
 
         editor.getBuffer().undo()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(marker.isValid()).toBe true
@@ -1716,20 +1715,20 @@ describe "TextEditorComponent", ->
     it "allows multiple space-delimited decoration classes", ->
       decoration.setProperties(type: 'highlight', class: 'foo bar')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.foo.bar').length).toBe 2
         decoration.setProperties(type: 'highlight', class: 'bar baz')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.bar.baz').length).toBe 2
 
     it "renders classes on the regions directly if 'deprecatedRegionClass' option is defined", ->
       decoration = editor.decorateMarker(marker, type: 'highlight', class: 'test-highlight', deprecatedRegionClass: 'test-highlight-region')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         regions = componentNode.querySelectorAll('.test-highlight .region.test-highlight-region')
@@ -1744,7 +1743,7 @@ describe "TextEditorComponent", ->
         expect(highlightNode.classList.contains('flash-class')).toBe false
 
         decoration.flash('flash-class', 10)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(highlightNode.classList.contains('flash-class')).toBe true
@@ -1754,11 +1753,11 @@ describe "TextEditorComponent", ->
       describe "when ::flash is called again before the first has finished", ->
         it "removes the class from the decoration highlight before adding it for the second ::flash call", ->
           decoration.flash('flash-class', 30)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
           runs -> expect(highlightNode.classList.contains('flash-class')).toBe true
           waits 2
           runs -> decoration.flash('flash-class', 10)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
           runs -> expect(highlightNode.classList.contains('flash-class')).toBe false
           waitsFor -> highlightNode.classList.contains('flash-class')
 
@@ -1771,7 +1770,7 @@ describe "TextEditorComponent", ->
 
         editor.getBuffer().insert([0, 0], '\n')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           regionStyle = componentNode.querySelector('.test-highlight .region').style
@@ -1785,7 +1784,7 @@ describe "TextEditorComponent", ->
 
         marker.setBufferRange([[5, 8], [5, 13]])
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           regionStyle = componentNode.querySelector('.test-highlight .region').style
@@ -1797,7 +1796,7 @@ describe "TextEditorComponent", ->
 
         decoration.setProperties(type: 'highlight', class: 'new-test-highlight')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(componentNode.querySelector('.test-highlight')).toBeFalsy()
@@ -1815,7 +1814,7 @@ describe "TextEditorComponent", ->
       it "renders an overlay decoration when added and removes the overlay when the decoration is destroyed", ->
         marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
@@ -1823,7 +1822,7 @@ describe "TextEditorComponent", ->
 
           decoration.destroy()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay .overlay-test')
@@ -1833,7 +1832,7 @@ describe "TextEditorComponent", ->
         marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', class: 'my-overlay', item})
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           overlay = component.getTopmostDOMNode().querySelector('atom-overlay.my-overlay')
@@ -1847,7 +1846,7 @@ describe "TextEditorComponent", ->
         marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           position = wrapperNode.pixelPositionForBufferPosition([2, 10])
@@ -1877,7 +1876,7 @@ describe "TextEditorComponent", ->
 
         component.measureDimensions()
         component.measureWindowSize()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       afterEach ->
         atom.restoreWindowDimensions()
@@ -1888,7 +1887,7 @@ describe "TextEditorComponent", ->
 
         marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], invalidate: 'never')
         decoration = editor.decorateMarker(marker, {type: 'overlay', item})
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           position = wrapperNode.pixelPositionForBufferPosition([0, 26])
@@ -1899,7 +1898,7 @@ describe "TextEditorComponent", ->
 
           editor.insertText('a')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
@@ -1907,7 +1906,7 @@ describe "TextEditorComponent", ->
 
           editor.insertText('b')
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(overlay.style.left).toBe windowWidth - itemWidth + 'px'
@@ -1923,14 +1922,14 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(editor.getCursorScreenPosition()).toEqual [0, 0]
         wrapperNode.setScrollTop(3 * lineHeightInPixels)
         wrapperNode.setScrollLeft(3 * charWidth)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1939,7 +1938,7 @@ describe "TextEditorComponent", ->
         # In bounds, not focused
         editor.setCursorBufferPosition([5, 4], autoscroll: false)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1948,7 +1947,7 @@ describe "TextEditorComponent", ->
         # In bounds and focused
         wrapperNode.focus() # updates via state change
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe (5 * lineHeightInPixels) - wrapperNode.getScrollTop()
@@ -1957,7 +1956,7 @@ describe "TextEditorComponent", ->
         # In bounds, not focused
         inputNode.blur() # updates via state change
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1966,7 +1965,7 @@ describe "TextEditorComponent", ->
         # Out of bounds, not focused
         editor.setCursorBufferPosition([1, 2], autoscroll: false)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1975,7 +1974,7 @@ describe "TextEditorComponent", ->
         # Out of bounds, focused
         inputNode.focus() # updates via state change
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(inputNode.offsetTop).toBe 0
@@ -1995,14 +1994,14 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = height + 'px'
         wrapperNode.style.width = 10 * charWidth + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           coordinates = clientCoordinatesForScreenPosition([0, 2])
           coordinates.clientY = -1
           linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(editor.getCursorScreenPosition()).toEqual [0, 0]
@@ -2015,13 +2014,13 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = height + 'px'
         wrapperNode.style.width = 10 * charWidth + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           coordinates = clientCoordinatesForScreenPosition([0, 2])
           coordinates.clientY = height * 2
           linesNode.dispatchEvent(buildMouseEvent('mousedown', coordinates))
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
         runs ->
           expect(editor.getCursorScreenPosition()).toEqual [0, 3]
@@ -2034,12 +2033,12 @@ describe "TextEditorComponent", ->
           component.measureDimensions()
           wrapperNode.setScrollTop(3.5 * lineHeightInPixels)
           wrapperNode.setScrollLeft(2 * charWidth)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8])))
 
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(editor.getCursorScreenPosition()).toEqual [4, 8]
@@ -2048,7 +2047,7 @@ describe "TextEditorComponent", ->
         it "selects to the nearest screen position", ->
           editor.setCursorScreenPosition([3, 4])
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), shiftKey: true))
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
           runs ->
             expect(editor.getSelectedScreenRange()).toEqual [[3, 4], [5, 6]]
@@ -2058,7 +2057,7 @@ describe "TextEditorComponent", ->
           it "adds a cursor at the nearest screen position", ->
             editor.setCursorScreenPosition([3, 4])
             linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 6]), metaKey: true))
-            waitsForPromise -> atom.views.getNextUpdatePromise()
+            waitsForNextDOMUpdate()
 
             runs ->
               expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]], [[5, 6], [5, 6]]]
@@ -2069,7 +2068,7 @@ describe "TextEditorComponent", ->
             editor.addCursorAtScreenPosition([5, 2])
             editor.addCursorAtScreenPosition([7, 5])
             linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3, 4]), metaKey: true))
-            waitsForPromise -> atom.views.getNextUpdatePromise()
+            waitsForNextDOMUpdate()
 
             runs ->
               expect(editor.getSelectedScreenRanges()).toEqual [[[5, 2], [5, 2]], [[7, 5], [7, 5]]]
@@ -2078,7 +2077,7 @@ describe "TextEditorComponent", ->
           it "neither adds a new cursor nor removes the current cursor", ->
             editor.setCursorScreenPosition([3, 4])
             linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([3, 4]), metaKey: true))
-            waitsForPromise -> atom.views.getNextUpdatePromise()
+            waitsForNextDOMUpdate()
 
             runs ->
               expect(editor.getSelectedScreenRanges()).toEqual [[[3, 4], [3, 4]]]
@@ -2170,7 +2169,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.width = '100px'
         component.measureDimensions()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe(0)
@@ -2316,7 +2315,7 @@ describe "TextEditorComponent", ->
         jasmine.attachToDOM(wrapperNode)
         wrapperNode.style.height =  6 * lineHeightInPixels + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
@@ -2349,7 +2348,7 @@ describe "TextEditorComponent", ->
         jasmine.attachToDOM(wrapperNode)
         wrapperNode.style.height =  6 * lineHeightInPixels + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([5, 10]), detail: 1))
@@ -2382,7 +2381,7 @@ describe "TextEditorComponent", ->
     describe "when a line is folded", ->
       beforeEach ->
         editor.foldBufferRow 4
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       describe "when the folded line's fold-marker is clicked", ->
         it "unfolds the buffer row", ->
@@ -2478,7 +2477,7 @@ describe "TextEditorComponent", ->
       it "autoscrolls when the cursor approaches the top or bottom of the editor", ->
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
@@ -2640,11 +2639,11 @@ describe "TextEditorComponent", ->
       beforeEach ->
         gutterNode = componentNode.querySelector('.gutter')
         editor.setSoftWrapped(true)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           componentNode.style.width = 21 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
           component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       describe "when the gutter is clicked", ->
         it "selects the clicked buffer row", ->
@@ -2790,12 +2789,12 @@ describe "TextEditorComponent", ->
     it "adds the 'is-focused' class to the editor when the hidden input is focused", ->
       expect(document.activeElement).toBe document.body
       inputNode.focus()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs ->
         expect(componentNode.classList.contains('is-focused')).toBe true
         expect(wrapperNode.classList.contains('is-focused')).toBe true
         inputNode.blur()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs ->
         expect(componentNode.classList.contains('is-focused')).toBe false
         expect(wrapperNode.classList.contains('is-focused')).toBe false
@@ -2806,19 +2805,19 @@ describe "TextEditorComponent", ->
     beforeEach ->
       console.log editor.getText()
       editor.setCursorScreenPosition([0, 0])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "adds the 'has-selection' class to the editor when there is a selection", ->
       expect(componentNode.classList.contains('has-selection')).toBe false
       editor.selectDown()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.classList.contains('has-selection')).toBe true
         editor.moveDown()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.classList.contains('has-selection')).toBe false
@@ -2828,13 +2827,13 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.scrollTop).toBe 0
         wrapperNode.setScrollTop(10)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.scrollTop).toBe 10
@@ -2842,7 +2841,7 @@ describe "TextEditorComponent", ->
     it "updates the horizontal scrollbar and the x transform of the lines based on the scrollLeft of the model", ->
       componentNode.style.width = 30 * charWidth + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       tilesNodes = null
       runs ->
@@ -2857,7 +2856,7 @@ describe "TextEditorComponent", ->
 
         wrapperNode.setScrollLeft(100)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         top = 0
@@ -2870,14 +2869,14 @@ describe "TextEditorComponent", ->
     it "updates the scrollLeft of the model when the scrollLeft of the horizontal scrollbar changes", ->
       componentNode.style.width = 30 * charWidth + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(wrapperNode.getScrollLeft()).toBe 0
         horizontalScrollbarNode.scrollLeft = 100
         horizontalScrollbarNode.dispatchEvent(new UIEvent('scroll'))
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(wrapperNode.getScrollLeft()).toBe 100
@@ -2888,7 +2887,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       lastLineNode = null
       runs ->
@@ -2901,7 +2900,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.width = 100 * charWidth + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         bottomOfLastLine = lastLineNode.getBoundingClientRect().bottom
@@ -2914,7 +2913,7 @@ describe "TextEditorComponent", ->
       component.measureDimensions()
       wrapperNode.setScrollLeft(Infinity)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         rightOfLongestLine = component.lineNodeForScreenRow(6).querySelector('.line > span:last-child').getBoundingClientRect().right
@@ -2929,7 +2928,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = '1000px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.display).toBe ''
@@ -2938,7 +2937,7 @@ describe "TextEditorComponent", ->
         componentNode.style.width = 10 * charWidth + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.display).toBe ''
@@ -2947,7 +2946,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.display).toBe 'none'
@@ -2957,7 +2956,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
 
       runs ->
@@ -2990,7 +2989,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.width = '1000px'
       component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.bottom).toBe '0px'
@@ -3000,7 +2999,7 @@ describe "TextEditorComponent", ->
         componentNode.style.width = 10 * charWidth + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
@@ -3010,7 +3009,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(verticalScrollbarNode.style.bottom).toBe horizontalScrollbarNode.offsetHeight + 'px'
@@ -3021,7 +3020,7 @@ describe "TextEditorComponent", ->
       gutterNode = componentNode.querySelector('.gutter')
       componentNode.style.width = 10 * charWidth + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(horizontalScrollbarNode.scrollWidth).toBe wrapperNode.getScrollWidth()
@@ -3036,7 +3035,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       it "updates the scrollLeft or scrollTop on mousewheel events depending on which delta is greater (x or y)", ->
         expect(verticalScrollbarNode.scrollTop).toBe 0
@@ -3095,7 +3094,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         lineNode = null
         runs ->
@@ -3113,7 +3112,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         lineNode = null
         runs ->
@@ -3161,7 +3160,7 @@ describe "TextEditorComponent", ->
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         lineNumberNode = null
         runs ->
@@ -3181,7 +3180,7 @@ describe "TextEditorComponent", ->
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * charWidth + 'px'
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         # try to scroll past the top, which is impossible
@@ -3238,24 +3237,25 @@ describe "TextEditorComponent", ->
 
     it "inserts the newest character in the input's value into the buffer", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'x', target: inputNode))
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs ->
         expect(editor.lineTextForBufferRow(0)).toBe 'xvar quicksort = function () {'
         componentNode.dispatchEvent(buildTextInputEvent(data: 'y', target: inputNode))
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
       runs ->
         expect(editor.lineTextForBufferRow(0)).toBe 'xyvar quicksort = function () {'
 
     it "replaces the last character if the length of the input's value doesn't increase, as occurs with the accented character menu", ->
       componentNode.dispatchEvent(buildTextInputEvent(data: 'u', target: inputNode))
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs ->
         expect(editor.lineTextForBufferRow(0)).toBe 'uvar quicksort = function () {'
 
         # simulate the accented character suggestion's selection of the previous character
         inputNode.setSelectionRange(0, 1)
         componentNode.dispatchEvent(buildTextInputEvent(data: 'ü', target: inputNode))
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
+
       runs ->
         expect(editor.lineTextForBufferRow(0)).toBe 'üvar quicksort = function () {'
 
@@ -3393,7 +3393,7 @@ describe "TextEditorComponent", ->
       expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
 
       component.setFontSize(10)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
@@ -3469,7 +3469,7 @@ describe "TextEditorComponent", ->
         component.checkForVisibilityChange()
 
         editor.setCursorBufferPosition([0, Infinity])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
@@ -3502,7 +3502,7 @@ describe "TextEditorComponent", ->
         component.checkForVisibilityChange()
 
         editor.setCursorBufferPosition([0, Infinity])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
@@ -3529,7 +3529,7 @@ describe "TextEditorComponent", ->
         component.checkForVisibilityChange()
 
         editor.setCursorBufferPosition([0, Infinity])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           cursorLeft = componentNode.querySelector('.cursor').getBoundingClientRect().left
@@ -3539,14 +3539,14 @@ describe "TextEditorComponent", ->
   describe "soft wrapping", ->
     beforeEach ->
       editor.setSoftWrapped(true)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "updates the wrap location when the editor is resized", ->
       newHeight = 4 * editor.getLineHeightInPixels() + "px"
       expect(parseInt(newHeight)).toBeLessThan wrapperNode.offsetHeight
       wrapperNode.style.height = newHeight
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelectorAll('.line')).toHaveLength(7) # visible rows + model longest screen row
@@ -3555,7 +3555,7 @@ describe "TextEditorComponent", ->
         componentNode.style.width = gutterWidth + 14 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
         atom.views.performDocumentPoll()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.line').textContent).toBe "var quicksort "
@@ -3566,7 +3566,7 @@ describe "TextEditorComponent", ->
       componentNode.style.width = 30 * charWidth + 'px'
 
       atom.views.performDocumentPoll()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "var quicksort = "
@@ -3574,7 +3574,7 @@ describe "TextEditorComponent", ->
   describe "default decorations", ->
     it "applies .cursor-line decorations for line numbers overlapping selections", ->
       editor.setCursorScreenPosition([4, 4])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe false
@@ -3583,7 +3583,7 @@ describe "TextEditorComponent", ->
 
         editor.setSelectedScreenRange([[3, 4], [4, 4]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
@@ -3591,7 +3591,7 @@ describe "TextEditorComponent", ->
 
         editor.setSelectedScreenRange([[3, 4], [4, 0]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
@@ -3599,7 +3599,7 @@ describe "TextEditorComponent", ->
 
     it "does not apply .cursor-line to the last line of a selection if it's empty", ->
       editor.setSelectedScreenRange([[3, 4], [5, 0]])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs ->
         expect(lineNumberHasClass(3, 'cursor-line')).toBe true
         expect(lineNumberHasClass(4, 'cursor-line')).toBe true
@@ -3607,7 +3607,7 @@ describe "TextEditorComponent", ->
 
     it "applies .cursor-line decorations for lines containing the cursor in non-empty selections", ->
       editor.setCursorScreenPosition([4, 4])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
       runs ->
         expect(lineHasClass(3, 'cursor-line')).toBe false
         expect(lineHasClass(4, 'cursor-line')).toBe true
@@ -3615,7 +3615,7 @@ describe "TextEditorComponent", ->
 
         editor.setSelectedScreenRange([[3, 4], [4, 4]])
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineHasClass(2, 'cursor-line')).toBe false
@@ -3625,13 +3625,13 @@ describe "TextEditorComponent", ->
 
     it "applies .cursor-line-no-selection to line numbers for rows containing the cursor when the selection is empty", ->
       editor.setCursorScreenPosition([4, 4])
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe true
 
         editor.setSelectedScreenRange([[3, 4], [4, 4]])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       runs ->
         expect(lineNumberHasClass(4, 'cursor-line-no-selection')).toBe false
@@ -3641,7 +3641,7 @@ describe "TextEditorComponent", ->
       it "does not assign a height on the component node", ->
         wrapperNode.style.height = '200px'
         component.measureDimensions()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(componentNode.style.height).toBe ''
@@ -3654,7 +3654,7 @@ describe "TextEditorComponent", ->
   describe "when the 'mini' property is true", ->
     beforeEach ->
       editor.setMini(true)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "does not render the gutter", ->
       expect(componentNode.querySelector('.gutter')).toBeNull()
@@ -3681,13 +3681,13 @@ describe "TextEditorComponent", ->
       editor.setPlaceholderText('Hello World')
       expect(componentNode.querySelector('.placeholder-text')).toBeNull()
       editor.setText('')
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.placeholder-text').textContent).toBe "Hello World"
         editor.setText('hey')
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(componentNode.querySelector('.placeholder-text')).toBeNull()
@@ -3788,14 +3788,14 @@ describe "TextEditorComponent", ->
         atom.config.set 'editor.invisibles', coffeeInvisibles, scopeSelector: '.source.coffee'
 
         editor.setText " a line with tabs\tand spaces \n"
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       it "renders the invisibles when editor.showInvisibles is true for a given grammar", ->
         expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
 
       it "does not render the invisibles when editor.showInvisibles is false for a given grammar", ->
         editor.setGrammar(coffeeEditor.getGrammar())
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe " a line with tabs and spaces "
 
@@ -3803,7 +3803,7 @@ describe "TextEditorComponent", ->
         jsGrammar = editor.getGrammar()
         editor.setGrammar(coffeeEditor.getGrammar())
         atom.config.set 'editor.showInvisibles', true, scopeSelector: '.source.coffee'
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         newInvisibles =
           eol: 'N'
@@ -3815,13 +3815,13 @@ describe "TextEditorComponent", ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{coffeeInvisibles.space}a line with tabs#{coffeeInvisibles.tab}and spaces#{coffeeInvisibles.space}#{coffeeInvisibles.eol}"
           atom.config.set 'editor.invisibles', newInvisibles, scopeSelector: '.source.coffee'
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{newInvisibles.space}a line with tabs#{newInvisibles.tab}and spaces#{newInvisibles.space}#{newInvisibles.eol}"
           editor.setGrammar(jsGrammar)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(component.lineNodeForScreenRow(0).textContent).toBe "#{jsInvisibles.space}a line with tabs#{jsInvisibles.tab}and spaces#{jsInvisibles.space}#{jsInvisibles.eol}"
@@ -3830,7 +3830,7 @@ describe "TextEditorComponent", ->
       beforeEach ->
         atom.config.set 'editor.showIndentGuide', true, scopeSelector: '.source.js'
         atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.coffee'
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
       it "has an 'indent-guide' class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false", ->
         line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -3840,7 +3840,7 @@ describe "TextEditorComponent", ->
 
         editor.setGrammar(coffeeEditor.getGrammar())
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -3855,7 +3855,7 @@ describe "TextEditorComponent", ->
         expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe false
 
         atom.config.set 'editor.showIndentGuide', false, scopeSelector: '.source.js'
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
@@ -3870,27 +3870,27 @@ describe "TextEditorComponent", ->
       component.setLineHeight("10px")
       component.setFontSize(17)
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         wrapperNode.setWidth(55)
         wrapperNode.setHeight(55)
         component.measureDimensions()
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         component.presenter.setHorizontalScrollbarHeight(0)
         component.presenter.setVerticalScrollbarWidth(0)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     describe "when selecting buffer ranges", ->
       it "autoscrolls the selection if it is last unless the 'autoscroll' option is false", ->
         expect(wrapperNode.getScrollTop()).toBe 0
 
         editor.setSelectedBufferRange([[5, 6], [6, 8]])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         right = null
         runs ->
@@ -3900,7 +3900,7 @@ describe "TextEditorComponent", ->
 
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
@@ -3908,7 +3908,7 @@ describe "TextEditorComponent", ->
 
           editor.setSelectedBufferRange([[6, 6], [6, 8]])
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
@@ -3917,7 +3917,7 @@ describe "TextEditorComponent", ->
     describe "when adding selections for buffer ranges", ->
       it "autoscrolls to the added selection if needed", ->
         editor.addSelectionForBufferRange([[8, 10], [8, 15]])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           right = wrapperNode.pixelPositionForBufferPosition([8, 15]).left
@@ -3927,14 +3927,14 @@ describe "TextEditorComponent", ->
     describe "when selecting lines containing cursors", ->
       it "autoscrolls to the selection", ->
         editor.setCursorScreenPosition([5, 6])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           wrapperNode.scrollToTop()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.selectLinesContainingCursors()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe (7 + editor.getVerticalScrollMargin()) * 10
 
@@ -3942,29 +3942,28 @@ describe "TextEditorComponent", ->
       describe "when there are multiple empty selections on different lines", ->
         it "autoscrolls to the last cursor", ->
           editor.setCursorScreenPosition([1, 2], autoscroll: false)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
           runs ->
             editor.addCursorAtScreenPosition([10, 4], autoscroll: false)
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
           runs ->
             expect(wrapperNode.getScrollTop()).toBe 0
             editor.insertText('a')
-          waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
           runs ->
             expect(wrapperNode.getScrollTop()).toBe 75
 
     describe "when scrolled to cursor position", ->
       it "scrolls the last cursor into view, centering around the cursor if possible and the 'center' option isn't false", ->
         editor.setCursorScreenPosition([8, 8], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           expect(wrapperNode.getScrollLeft()).toBe 0
 
           editor.scrollToCursorPosition()
-
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+          waitsForNextDOMUpdate()
 
         runs ->
           right = wrapperNode.pixelPositionForScreenPosition([8, 9 + editor.getHorizontalScrollMargin()]).left
@@ -3983,20 +3982,20 @@ describe "TextEditorComponent", ->
         expect(wrapperNode.getScrollBottom()).toBe 5.5 * 10
 
         editor.setCursorScreenPosition([2, 0])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 5.5 * 10
           editor.moveDown()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 6 * 10
 
           editor.moveDown()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 7 * 10
@@ -4004,21 +4003,21 @@ describe "TextEditorComponent", ->
       it "scrolls up when the last cursor gets closer than ::verticalScrollMargin to the top of the editor", ->
         editor.setCursorScreenPosition([11, 0])
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           editor.moveUp()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe wrapperNode.getScrollHeight()
           editor.moveUp()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 7 * 10
           editor.moveUp()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 6 * 10
 
@@ -4028,13 +4027,13 @@ describe "TextEditorComponent", ->
 
         editor.setCursorScreenPosition([0, 2])
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollRight()).toBe 5.5 * 10
           editor.moveRight()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         margin = null
         runs ->
@@ -4043,7 +4042,7 @@ describe "TextEditorComponent", ->
           expect(wrapperNode.getScrollRight()).toBeCloseTo right, 0
           editor.moveRight()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           right = wrapperNode.pixelPositionForScreenPosition([0, 5]).left + margin
@@ -4052,18 +4051,18 @@ describe "TextEditorComponent", ->
       it "scrolls left when the last cursor gets closer than ::horizontalScrollMargin to the left of the editor", ->
         wrapperNode.setScrollRight(wrapperNode.getScrollWidth())
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollRight()).toBe wrapperNode.getScrollWidth()
           editor.setCursorScreenPosition([6, 62], autoscroll: false)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           editor.moveLeft()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         margin = null
         runs ->
@@ -4072,7 +4071,7 @@ describe "TextEditorComponent", ->
           expect(wrapperNode.getScrollLeft()).toBeCloseTo left, 0
           editor.moveLeft()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           left = wrapperNode.pixelPositionForScreenPosition([6, 60]).left - margin
@@ -4081,13 +4080,13 @@ describe "TextEditorComponent", ->
       it "scrolls down when inserting lines makes the document longer than the editor's height", ->
         editor.setCursorScreenPosition([13, Infinity])
         editor.insertNewline()
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 14 * 10
           editor.insertNewline()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollBottom()).toBe 15 * 10
@@ -4095,29 +4094,29 @@ describe "TextEditorComponent", ->
       it "autoscrolls to the cursor when it moves due to undo", ->
         editor.insertText('abc')
         wrapperNode.setScrollTop(Infinity)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           editor.undo()
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
 
       it "doesn't scroll when the cursor moves into the visible area", ->
         editor.setCursorBufferPosition([0, 0])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           wrapperNode.setScrollTop(40)
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           editor.setCursorBufferPosition([6, 0])
 
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
 
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 40
@@ -4125,58 +4124,58 @@ describe "TextEditorComponent", ->
       it "honors the autoscroll option on cursor and selection manipulation methods", ->
         expect(wrapperNode.getScrollTop()).toBe 0
         editor.addCursorAtScreenPosition([11, 11], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addCursorAtBufferPosition([11, 11], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setCursorScreenPosition([11, 11], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setCursorBufferPosition([11, 11], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addSelectionForBufferRange([[11, 11], [11, 11]], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addSelectionForScreenRange([[11, 11], [11, 12]], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setSelectedBufferRange([[11, 0], [11, 1]], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.setSelectedScreenRange([[11, 0], [11, 6]], autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.clearSelections(autoscroll: false)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.addSelectionForScreenRange([[0, 0], [0, 4]])
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           editor.getCursors()[0].setScreenPosition([11, 11], autoscroll: true)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
           editor.getCursors()[0].setBufferPosition([0, 0], autoscroll: true)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
           editor.getSelections()[0].setScreenRange([[11, 0], [11, 4]], autoscroll: true)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBeGreaterThan 0
           editor.getSelections()[0].setBufferRange([[0, 0], [0, 4]], autoscroll: true)
-        waitsForPromise -> atom.views.getNextUpdatePromise()
+        waitsForNextDOMUpdate()
         runs ->
           expect(wrapperNode.getScrollTop()).toBe 0
 
@@ -4184,11 +4183,11 @@ describe "TextEditorComponent", ->
     beforeEach ->
       wrapperNode.style.height = lineHeightInPixels * 8 + "px"
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
     it "returns the first and the last visible rows", ->
       component.setScrollTop(0)
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.getVisibleRowRange()).toEqual [0, 9]
@@ -4196,12 +4195,12 @@ describe "TextEditorComponent", ->
     it "ends at last buffer row even if there's more space available", ->
       wrapperNode.style.height = lineHeightInPixels * 13 + "px"
       component.measureDimensions()
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         component.setScrollTop(60)
 
-      waitsForPromise -> atom.views.getNextUpdatePromise()
+      waitsForNextDOMUpdate()
 
       runs ->
         expect(component.getVisibleRowRange()).toEqual [0, 13]
@@ -4278,6 +4277,9 @@ describe "TextEditorComponent", ->
       flatten(toArray(node.children).map(getLeafNodes))
     else
       [node]
+
+  waitsForNextDOMUpdate = ->
+    waitsForPromise -> atom.views.getNextUpdatePromise()
 
   waitsForAnimationFrame = ->
     waitsFor 'next animation frame', (done) -> requestAnimationFrame(done)
