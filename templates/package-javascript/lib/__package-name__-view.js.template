@@ -26,4 +26,4 @@ export default class __PackageName__View {
     return this.element;
   }
 
-};
+}
