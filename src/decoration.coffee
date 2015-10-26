@@ -68,7 +68,6 @@ class Decoration
     @id = nextId()
     @setProperties properties
     @properties.id = @id
-    @flashQueue = null
     @destroyed = false
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
@@ -167,16 +166,10 @@ class Decoration
       return false if @properties[key] isnt value
     true
 
-  onDidFlash: (callback) ->
-    @emitter.on 'did-flash', callback
-
   flash: (klass, duration=500) ->
-    flashObject = {class: klass, duration}
-    @flashQueue ?= []
-    @flashQueue.push(flashObject)
+    @properties.flashCount ?= 0
+    @properties.flashCount++
+    @properties.flashClass = klass
+    @properties.flashDuration = duration
     @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-flash'
-
-  consumeNextFlash: ->
-    return @flashQueue.shift() if @flashQueue?.length > 0
-    null
