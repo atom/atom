@@ -888,7 +888,6 @@ class TextEditorPresenter
       @shouldUpdateFocusedState = true
       @shouldUpdateHiddenInputState = true
 
-      console.log 'emitDidUpdateState'
       @emitDidUpdateState()
 
   setScrollTop: (scrollTop, overrideScroll=true) ->
