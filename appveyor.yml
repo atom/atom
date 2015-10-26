@@ -19,7 +19,10 @@ install:
   - ps: Install-Product node 4.2.1
 
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%
+  - cd %APPVEYOR_BUILD_FOLDER%\build
+  - npm install
+  - cf - cd %APPVEYOR_BUILD_FOLDER%\apm
+  - npm install
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - c:\projects\atom\script\build.cmd
 
