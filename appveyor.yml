@@ -1,0 +1,24 @@
+version: "{build}"
+
+branches:
+  only:
+    - jf-add-appveyor-build
+
+skip_tags: true
+clone_folder: c:\projects\atom
+clone_depth: 10
+
+environment:
+  ATOM_DEV_RESOURCE_PATH: c:\projects\atom
+
+install:
+  - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
+  - ps: Install-Product node 4.2.1
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
+  - %APPVEYOR_BUILD_FOLDER%\script\build.cmd
+
+test: off
+deploy: off
