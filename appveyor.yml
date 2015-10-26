@@ -13,11 +13,19 @@ environment:
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - ps: Install-Product node 4.2.1 x64
+  - ps: Install-Product node 4.2.1
 
 build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%\build
+  - npm install
+  - cd %APPVEYOR_BUILD_FOLDER%\apm
+  - npm install
+  - SET PATH=C:\projects\atom\apm\node_modules\atom-package-manager\bin\;%PATH%
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - apm clean
+  - apm install
+  - C:\projects\atom\script\build.cmd
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - c:\projects\atom\script\build.cmd
 
 test: off
 deploy: off
