@@ -31,7 +31,7 @@ function bootstrap() {
     fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
   apmPathCmd = '';
-  if (process..platform === 'win32') {
+  if (process.platform === 'win32') {
     apmPathCmd = '.cmd';
   }
   var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm' + apmPathCmd);
