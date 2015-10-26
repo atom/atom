@@ -30,7 +30,11 @@ function bootstrap() {
   if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
     fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
-  var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
+  apmPathCmd = '';
+  if (os.platform() === 'win32') {
+    apmPathCmd = '.cmd';
+  }
+  var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm' + apmPathCmd);
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
