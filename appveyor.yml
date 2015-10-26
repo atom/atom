@@ -12,7 +12,7 @@ clone_depth: 10
 
 environment:
   ATOM_DEV_RESOURCE_PATH: c:\projects\atom
-  GYP_MSVS_VERSION: 2015
+  # GYP_MSVS_VERSION: 2015
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
