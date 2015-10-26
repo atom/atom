@@ -21,9 +21,11 @@ build_script:
   - cd %APPVEYOR_BUILD_FOLDER%\apm
   - npm install
   - SET PATH=C:\projects\atom\apm\node_modules\atom-package-manager\bin\;%PATH%
+  - dir C:\projects\atom\apm\node_modules\atom-package-manager\bin\
+  - C:\projects\atom\apm\node_modules\atom-package-manager\bin\node.exe --version
   - cd %APPVEYOR_BUILD_FOLDER%
-  - apm clean
-  - apm install
+  - apm.cmd clean
+  - apm.cmd install
   - C:\projects\atom\script\build.cmd
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
 
