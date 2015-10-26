@@ -28,7 +28,6 @@ class TextEditorPresenter
     @emitter = new Emitter
     @visibleHighlights = {}
     @characterWidthsByScope = {}
-    @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
@@ -1192,7 +1191,6 @@ class TextEditorPresenter
         @decorations.push({decoration, range})
 
   updateLineDecorations: ->
-    @rangesByDecorationId = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
@@ -1216,20 +1214,6 @@ class TextEditorPresenter
 
     return
 
-  removeFromLineDecorationCaches: (decoration) ->
-    @removePropertiesFromLineDecorationCaches(decoration.id, decoration.getProperties())
-
-  removePropertiesFromLineDecorationCaches: (decorationId, decorationProperties) ->
-    if range = @rangesByDecorationId[decorationId]
-      delete @rangesByDecorationId[decorationId]
-
-      gutterName = decorationProperties.gutterName
-      for row in [range.start.row..range.end.row] by 1
-        delete @lineDecorationsByScreenRow[row]?[decorationId]
-        delete @lineNumberDecorationsByScreenRow[row]?[decorationId]
-        delete @customGutterDecorationsByGutterNameAndScreenRow[gutterName]?[row]?[decorationId] if gutterName
-      return
-
   addToLineDecorationCaches: (decoration, range) ->
     marker = decoration.getMarker()
     properties = decoration.getProperties()
@@ -1241,8 +1225,6 @@ class TextEditorPresenter
     else
       return if properties.onlyEmpty
       omitLastRow = range.end.column is 0
-
-    @rangesByDecorationId[decoration.id] = range
 
     for row in [range.start.row..range.end.row] by 1
       continue if properties.onlyHead and row isnt marker.getHeadScreenPosition().row
