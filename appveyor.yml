@@ -18,7 +18,7 @@ install:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - %APPVEYOR_BUILD_FOLDER%\script\build.cmd
+  - c:\projects\atom\script\build.cmd
 
 test: off
 deploy: off
