@@ -18,6 +18,10 @@ module.exports = class GitRepositoryAsync {
     return new GitRepositoryAsync(path, options)
   }
 
+  static get Git () {
+    return Git
+  }
+
   constructor (path, options) {
     this.repo = null
     this.emitter = new Emitter()
