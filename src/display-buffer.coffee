@@ -770,6 +770,18 @@ class DisplayBuffer extends Model
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
+  decorationStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    decorationState = {}
+    for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow]) when marker.isValid()
+      if decorations = @decorationsByMarkerId[marker.id]
+        for decoration in decorations
+          decorationState[decoration.id] = {
+            properties: decoration.getProperties()
+            screenRange: marker.getScreenRange()
+            rangeIsReversed: marker.isReversed()
+          }
+    decorationState
+
   decorateMarker: (marker, decorationParams) ->
     marker = @getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)

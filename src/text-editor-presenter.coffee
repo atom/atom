@@ -623,16 +623,18 @@ class TextEditorPresenter
         @clearDecorationsForCustomGutterName(gutterName)
       else
         @customGutterDecorations[gutterName] = {}
-      continue if not @gutterIsVisible(gutter)
 
-      relevantDecorations = @customGutterDecorationsInRange(gutterName, @startRow, @endRow - 1)
-      relevantDecorations.forEach (decoration) =>
-        decorationRange = decoration.getMarker().getScreenRange()
-        @customGutterDecorations[gutterName][decoration.id] =
-          top: @lineHeight * decorationRange.start.row
-          height: @lineHeight * decorationRange.getRowCount()
-          item: decoration.getProperties().item
-          class: decoration.getProperties().class
+      continue unless @gutterIsVisible(gutter)
+
+      if customGutterDecorationsByScreenRow = @customGutterDecorationsByGutterNameAndScreenRow[gutterName]
+        for screenRow in [@startRow..@endRow - 1]
+          if decorationsById = customGutterDecorationsByScreenRow[screenRow]
+            for decorationId, {properties, screenRange} of decorationsById
+              @customGutterDecorations[gutterName][decorationId] ?=
+                top: @lineHeight * screenRange.start.row
+                height: @lineHeight * screenRange.getRowCount()
+                item: properties.item
+                class: properties.class
 
   clearAllCustomGutterDecorations: ->
     allGutterNames = Object.keys(@customGutterDecorations)
@@ -847,31 +849,19 @@ class TextEditorPresenter
     return null if @model.isMini()
 
     decorationClasses = null
-    for id, decoration of @lineDecorationsByScreenRow[row]
+    for id, properties of @lineDecorationsByScreenRow[row]
       decorationClasses ?= []
-      decorationClasses.push(decoration.getProperties().class)
+      decorationClasses.push(properties.class)
     decorationClasses
 
   lineNumberDecorationClassesForRow: (row) ->
     return null if @model.isMini()
 
     decorationClasses = null
-    for id, decoration of @lineNumberDecorationsByScreenRow[row]
+    for id, properties of @lineNumberDecorationsByScreenRow[row]
       decorationClasses ?= []
-      decorationClasses.push(decoration.getProperties().class)
+      decorationClasses.push(properties.class)
     decorationClasses
-
-  # Returns a {Set} of {Decoration}s on the given custom gutter from startRow to endRow (inclusive).
-  customGutterDecorationsInRange: (gutterName, startRow, endRow) ->
-    decorations = new Set
-
-    return decorations if @model.isMini() or gutterName is 'line-number' or
-      not @customGutterDecorationsByGutterNameAndScreenRow[gutterName]
-
-    for screenRow in [@startRow..@endRow - 1]
-      for id, decoration of @customGutterDecorationsByGutterNameAndScreenRow[gutterName][screenRow]
-        decorations.add(decoration)
-    decorations
 
   getCursorBlinkPeriod: -> @cursorBlinkPeriod
 
@@ -1181,32 +1171,26 @@ class TextEditorPresenter
     rect
 
   fetchDecorations: ->
-    @decorations = []
-
     return unless 0 <= @startRow <= @endRow <= Infinity
-
-    for markerId, decorations of @model.decorationsForScreenRowRange(@startRow, @endRow - 1)
-      range = @model.getMarker(markerId).getScreenRange()
-      for decoration in decorations
-        @decorations.push({decoration, range})
+    @decorations = @model.decorationStateForScreenRowRange(@startRow, @endRow - 1)
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterNameAndScreenRow = {}
 
-    for {decoration, range} in @decorations
-      if decoration.isType('line') or decoration.isType('gutter')
-        @addToLineDecorationCaches(decoration, range)
+    for decorationId, {properties, screenRange, rangeIsReversed} of @decorations
+      if Decoration.isType(properties, 'line') or Decoration.isType(properties, 'gutter')
+        @addToLineDecorationCaches(decorationId, properties, screenRange, rangeIsReversed)
 
     return
 
   updateHighlightDecorations: ->
     @visibleHighlights = {}
 
-    for {decoration, range} in @decorations
-      if decoration.isType('highlight')
-        @updateHighlightState(decoration, range)
+    for decorationId, {properties, screenRange} of @decorations
+      if Decoration.isType(properties, 'highlight')
+        @updateHighlightState(decorationId, properties, screenRange)
 
     for tileId, tileState of @state.content.tiles
       for id, highlight of tileState.highlights
@@ -1214,34 +1198,35 @@ class TextEditorPresenter
 
     return
 
-  addToLineDecorationCaches: (decoration, range) ->
-    marker = decoration.getMarker()
-    properties = decoration.getProperties()
-
-    return unless marker.isValid()
-
-    if range.isEmpty()
+  addToLineDecorationCaches: (decorationId, properties, screenRange, rangeIsReversed) ->
+    if screenRange.isEmpty()
       return if properties.onlyNonEmpty
     else
       return if properties.onlyEmpty
-      omitLastRow = range.end.column is 0
+      omitLastRow = screenRange.end.column is 0
 
-    for row in [range.start.row..range.end.row] by 1
-      continue if properties.onlyHead and row isnt marker.getHeadScreenPosition().row
-      continue if omitLastRow and row is range.end.row
+    if rangeIsReversed
+      headPosition = screenRange.start
+    else
+      headPosition = screenRange.end
 
-      if decoration.isType('line')
+    for row in [screenRange.start.row..screenRange.end.row] by 1
+      continue if properties.onlyHead and row isnt headPosition.row
+      continue if omitLastRow and row is screenRange.end.row
+
+      if Decoration.isType(properties, 'line')
         @lineDecorationsByScreenRow[row] ?= {}
-        @lineDecorationsByScreenRow[row][decoration.id] = decoration
+        @lineDecorationsByScreenRow[row][decorationId] = properties
 
-      if decoration.isType('line-number')
+      if Decoration.isType(properties, 'line-number')
         @lineNumberDecorationsByScreenRow[row] ?= {}
-        @lineNumberDecorationsByScreenRow[row][decoration.id] = decoration
-      else if decoration.isType('gutter')
-        gutterName = decoration.getProperties().gutterName
+        @lineNumberDecorationsByScreenRow[row][decorationId] = properties
+
+      else if Decoration.isType(properties, 'gutter')
+        gutterName = properties.gutterName
         @customGutterDecorationsByGutterNameAndScreenRow[gutterName] ?= {}
         @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row] ?= {}
-        @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row][decoration.id] = decoration
+        @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row][decorationId] = {properties, screenRange}
 
     return
 
@@ -1261,46 +1246,34 @@ class TextEditorPresenter
 
     intersectingRange
 
-  updateHighlightState: (decoration, range) ->
+  updateHighlightState: (decorationId, properties, screenRange) ->
     return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
 
-    properties = decoration.getProperties()
-    marker = decoration.getMarker()
+    return if screenRange.isEmpty()
 
-    if decoration.isDestroyed() or not marker.isValid() or range.isEmpty() or not range.intersectsRowRange(@startRow, @endRow - 1)
-      return
+    if screenRange.start.row < @startRow
+      screenRange.start.row = @startRow
+      screenRange.start.column = 0
+    if screenRange.end.row >= @endRow
+      screenRange.end.row = @endRow
+      screenRange.end.column = 0
 
-    if range.start.row < @startRow
-      range.start.row = @startRow
-      range.start.column = 0
-    if range.end.row >= @endRow
-      range.end.row = @endRow
-      range.end.column = 0
+    return if screenRange.isEmpty()
 
-    return if range.isEmpty()
-
-    flash = decoration.consumeNextFlash()
-
-    startTile = @tileForRow(range.start.row)
-    endTile = @tileForRow(range.end.row)
+    startTile = @tileForRow(screenRange.start.row)
+    endTile = @tileForRow(screenRange.end.row)
 
     for tileStartRow in [startTile..endTile] by @tileSize
-      rangeWithinTile = @intersectRangeWithTile(range, tileStartRow)
+      rangeWithinTile = @intersectRangeWithTile(screenRange, tileStartRow)
 
       continue if rangeWithinTile.isEmpty()
 
       tileState = @state.content.tiles[tileStartRow] ?= {highlights: {}}
-      highlightState = tileState.highlights[decoration.id] ?= {
-        flashCount: 0
-        flashDuration: null
-        flashClass: null
-      }
+      highlightState = tileState.highlights[decorationId] ?= {}
 
-      if flash?
-        highlightState.flashCount++
-        highlightState.flashClass = flash.class
-        highlightState.flashDuration = flash.duration
-
+      highlightState.flashCount = properties.flashCount
+      highlightState.flashClass = properties.flashClass
+      highlightState.flashDuration = properties.flashDuration
       highlightState.class = properties.class
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
       highlightState.regions = @buildHighlightRegions(rangeWithinTile)
@@ -1309,7 +1282,7 @@ class TextEditorPresenter
         @repositionRegionWithinTile(region, tileStartRow)
 
       @visibleHighlights[tileStartRow] ?= {}
-      @visibleHighlights[tileStartRow][decoration.id] = true
+      @visibleHighlights[tileStartRow][decorationId] = true
 
     true
 

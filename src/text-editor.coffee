@@ -1376,6 +1376,9 @@ class TextEditor extends Model
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
+  decorationStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    @displayBuffer.decorationStateForScreenRowRange(startScreenRow, endScreenRow)
+
   # Extended: Get all decorations.
   #
   # * `propertyFilter` (optional) An {Object} containing key value pairs that
