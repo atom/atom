@@ -65,7 +65,7 @@ module.exports = class GitRepositoryAsync {
 
   isPathIgnored (_path) {
     return this.repoPromise.then((repo) => {
-      Git.Ignore.pathIsIgnored(repo, _path)
+      return Git.Ignore.pathIsIgnored(repo, _path)
     })
   }
 
