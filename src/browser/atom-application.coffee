@@ -87,7 +87,7 @@ class AtomApplication
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
     else
-      @loadState() or @openPath(options)
+      @loadState(options) or @openPath(options)
 
   openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, atomHome, newWindow, logFile, profileStartup, timeout}) ->
     if test
@@ -379,14 +379,16 @@ class AtomApplication
 
     unless pidToKillWhenClosed or newWindow
       existingWindow = @windowForPaths(pathsToOpen, devMode)
-
-      # Default to using the specified window or the last focused window
-      currentWindow = window ? @lastFocusedWindow
       stats = (fs.statSyncNoException(pathToOpen) for pathToOpen in pathsToOpen)
-      existingWindow ?= currentWindow if (
-        stats.every((stat) -> stat.isFile?()) or
-        stats.some((stat) -> stat.isDirectory?()) and not currentWindow?.hasProjectPath()
-      )
+      unless existingWindow?
+        if currentWindow = window ? @lastFocusedWindow
+          existingWindow = currentWindow if (
+            currentWindow.devMode is devMode and
+            (
+              stats.every((stat) -> stat.isFile?()) or
+              stats.some((stat) -> stat.isDirectory?() and not currentWindow.hasProjectPath())
+            )
+          )
 
     if existingWindow?
       openedWindow = existingWindow
@@ -442,15 +444,15 @@ class AtomApplication
     if states.length > 0 or allowEmpty
       @storageFolder.store('application.json', states)
 
-  loadState: ->
+  loadState: (options) ->
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
-        @openWithOptions({
+        @openWithOptions(_.extend(options, {
           pathsToOpen: state.initialPaths
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
-        })
+        }))
       true
     else
       false
