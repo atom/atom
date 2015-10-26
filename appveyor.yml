@@ -22,6 +22,7 @@ build_script:
   - npm install
   - SET PATH=C:\projects\atom\apm\node_modules\atom-package-manager\bin\;%PATH%
   - dir C:\projects\atom\apm\node_modules\atom-package-manager\bin\
+  - ps: Unblock-File -Path C:\projects\atom\apm\node_modules\atom-package-manager\bin\node.exe
   - C:\projects\atom\apm\node_modules\atom-package-manager\bin\node.exe --version
   - cd %APPVEYOR_BUILD_FOLDER%
   - apm.cmd clean
