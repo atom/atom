@@ -4,6 +4,11 @@ const Git = require('nodegit')
 const path = require('path')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 
+const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
+const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
+const deletedStatusFlags = Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED
+const indexStatusFlags = Git.Status.STATUS.INDEX_NEW | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.INDEX_RENAMED | Git.Status.STATUS.INDEX_TYPECHANGE
+
 // Temporary requires
 // ==================
 // GitUtils is temporarily used for ::relativize only, because I don't want
@@ -133,18 +138,21 @@ module.exports = class GitRepositoryAsync {
   // {::isStatusModified} or {::isStatusNew} to get more information.
 
   getDirectoryStatus (directoryPath) {
-    var relativePath = this._gitUtilsRepo.relativize(directoryPath)
+    let relativePath = this._gitUtilsRepo.relativize(directoryPath)
     // XXX _filterSBD already gets repoPromise
     return this.repoPromise.then((repo) => {
       return this._filterStatusesByDirectory(relativePath)
     }).then((statuses) => {
       return Promise.all(statuses.map(function (s) { return s.statusBit() })).then(function (bits) {
-        var ret = 0
-        var filteredBits = bits.filter(function (b) { return b > 0 })
+        let directoryStatus = 0
+        let filteredBits = bits.filter(function (b) { return b > 0 })
         if (filteredBits.length > 0) {
-          ret = filteredBits.pop()
+          filteredBits.forEach(function (bit) {
+            directoryStatus |= bit
+          })
         }
-        return Promise.resolve(ret)
+
+        return directoryStatus
       })
     })
   }
@@ -208,13 +216,24 @@ module.exports = class GitRepositoryAsync {
     return this.pathStatusCache[this._gitUtilsRepo.relativize(_path)]
   }
 
-  // TODO fix with bitwise ops
   isStatusNew (statusBit) {
-    return Object.is(statusBit, Git.Status.STATUS.WT_NEW) || Object.is(statusBit, Git.Status.STATUS.INDEX_NEW)
+    return (statusBit & newStatusFlags) > 0
   }
 
   isStatusModified (statusBit) {
-    return Object.is(statusBit, Git.Status.STATUS.WT_MODIFIED) || Object.is(statusBit, Git.Status.STATUS.INDEX_MODIFIED)
+    return (statusBit & modifiedStatusFlags) > 0
+  }
+
+  isStatusStaged (statusBit) {
+    return (statusBit & indexStatusFlags) > 0
+  }
+
+  isStatusIgnored (statusBit) {
+    return (statusBit & (1 << 14)) > 0
+  }
+
+  isStatusDeleted (statusBit) {
+    return (statusBit & deletedStatusFlags) > 0
   }
 
   _filterStatusesByPath (_path) {
