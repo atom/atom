@@ -13,7 +13,7 @@ environment:
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - ps: Install-Product node 4.2.1
+  - ps: Install-Product node 4.2.1 x64
 
 build_script:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
