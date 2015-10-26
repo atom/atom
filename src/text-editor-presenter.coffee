@@ -30,7 +30,7 @@ class TextEditorPresenter
     @characterWidthsByScope = {}
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
-    @customGutterDecorationsByGutterNameAndScreenRow = {}
+    @customGutterDecorationsByGutterName = {}
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -625,16 +625,12 @@ class TextEditorPresenter
         @customGutterDecorations[gutterName] = {}
 
       continue unless @gutterIsVisible(gutter)
-
-      if customGutterDecorationsByScreenRow = @customGutterDecorationsByGutterNameAndScreenRow[gutterName]
-        for screenRow in [@startRow..@endRow - 1]
-          if decorationsById = customGutterDecorationsByScreenRow[screenRow]
-            for decorationId, {properties, screenRange} of decorationsById
-              @customGutterDecorations[gutterName][decorationId] ?=
-                top: @lineHeight * screenRange.start.row
-                height: @lineHeight * screenRange.getRowCount()
-                item: properties.item
-                class: properties.class
+      for decorationId, {properties, screenRange} of @customGutterDecorationsByGutterName[gutterName]
+        @customGutterDecorations[gutterName][decorationId] =
+          top: @lineHeight * screenRange.start.row
+          height: @lineHeight * screenRange.getRowCount()
+          item: properties.item
+          class: properties.class
 
   clearAllCustomGutterDecorations: ->
     allGutterNames = Object.keys(@customGutterDecorations)
@@ -1177,11 +1173,16 @@ class TextEditorPresenter
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
-    @customGutterDecorationsByGutterNameAndScreenRow = {}
+    @customGutterDecorationsByGutterName = {}
 
-    for decorationId, {properties, screenRange, rangeIsReversed} of @decorations
-      if Decoration.isType(properties, 'line') or Decoration.isType(properties, 'gutter')
+    for decorationId, decorationState of @decorations
+      {properties, screenRange, rangeIsReversed} = decorationState
+      if Decoration.isType(properties, 'line') or Decoration.isType(properties, 'line-number')
         @addToLineDecorationCaches(decorationId, properties, screenRange, rangeIsReversed)
+
+      else if Decoration.isType(properties, 'gutter') and properties.gutterName?
+        @customGutterDecorationsByGutterName[properties.gutterName] ?= {}
+        @customGutterDecorationsByGutterName[properties.gutterName][decorationId] = decorationState
 
     return
 
@@ -1221,12 +1222,6 @@ class TextEditorPresenter
       if Decoration.isType(properties, 'line-number')
         @lineNumberDecorationsByScreenRow[row] ?= {}
         @lineNumberDecorationsByScreenRow[row][decorationId] = properties
-
-      else if Decoration.isType(properties, 'gutter')
-        gutterName = properties.gutterName
-        @customGutterDecorationsByGutterNameAndScreenRow[gutterName] ?= {}
-        @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row] ?= {}
-        @customGutterDecorationsByGutterNameAndScreenRow[gutterName][row][decorationId] = {properties, screenRange}
 
     return
 
