@@ -59,13 +59,13 @@ module.exports = class GitRepositoryAsync {
 
   getPath () {
     return this.repoPromise.then((repo) => {
-      return Promise.resolve(repo.path().replace(/\/$/, ''))
+      return repo.path().replace(/\/$/, '')
     })
   }
 
   isPathIgnored (_path) {
     return this.repoPromise.then((repo) => {
-      return Promise.resolve(Git.Ignore.pathIsIgnored(repo, _path))
+      Git.Ignore.pathIsIgnored(repo, _path)
     })
   }
 
@@ -79,10 +79,9 @@ module.exports = class GitRepositoryAsync {
 
   isPathNew (_path) {
     return this._filterStatusesByPath(_path).then(function (statuses) {
-      var ret = statuses.filter((status) => {
+      return statuses.filter((status) => {
         return status.isNew()
       }).length > 0
-      return Promise.resolve(ret)
     })
   }
 
@@ -126,7 +125,7 @@ module.exports = class GitRepositoryAsync {
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
       this.pathStatusCache[relativePath] = status
-      return Promise.resolve(status)
+      return status
     })
   }
 
@@ -169,14 +168,14 @@ module.exports = class GitRepositoryAsync {
         return [status.path(), status.statusBit()]
       })).then((statusesByPath) => {
         var newPathStatusCache = _.object(statusesByPath)
-        return Promise.resolve(newPathStatusCache)
+        return newPathStatusCache
       })
     }).then((newPathStatusCache) => {
       if (!_.isEqual(this.pathStatusCache, newPathStatusCache)) {
         this.emitter.emit('did-change-statuses')
       }
       this.pathStatusCache = newPathStatusCache
-      return Promise.resolve(newPathStatusCache)
+      return newPathStatusCache
     })
   }
 
@@ -256,7 +255,7 @@ module.exports = class GitRepositoryAsync {
       var filtered = statuses.filter((status) => {
         return status.path().indexOf(directoryPath) === 0
       })
-      return Promise.resolve(filtered)
+      return filtered
     })
   }
   // Event subscription
