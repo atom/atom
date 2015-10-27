@@ -61,14 +61,10 @@ atom-panel.bottom {
   flex-direction: column;
 }
 
-atom-panel.left,
-atom-panel.right {
-  flex-direction: row;
-
-  // TODO: Remove in tree-view package
-  .tree-view-resizer {
-    height: initial;
-  }
+// Some packages use `height: 100%` which doesn't play nice with flexbox
+atom-panel-container > atom-panel.left > *,
+atom-panel-container > atom-panel.right > * {
+  height: initial;
 }
 
 // Modal panels
