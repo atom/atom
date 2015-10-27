@@ -67,7 +67,6 @@ class Decoration
     @emitter = new Emitter
     @id = nextId()
     @setProperties properties
-    @properties.id = @id
     @destroyed = false
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
@@ -150,7 +149,6 @@ class Decoration
     return if @destroyed
     oldProperties = @properties
     @properties = translateDecorationParamsOldToNew(newProperties)
-    @properties.id = @id
     if newProperties.type?
       @displayBuffer.decorationDidChangeType(this)
     @displayBuffer.scheduleUpdateDecorationsEvent()

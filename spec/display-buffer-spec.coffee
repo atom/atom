@@ -1244,7 +1244,7 @@ describe "DisplayBuffer", ->
 
         {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
         expect(oldProperties).toEqual decorationProperties
-        expect(newProperties).toEqual type: 'line-number', gutterName: 'line-number', class: 'two', id: decoration.id
+        expect(newProperties).toEqual {type: 'line-number', gutterName: 'line-number', class: 'two'}
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->

@@ -4888,7 +4888,7 @@ describe "TextEditor", ->
         marker = editor.markBufferRange([[2, 4], [6, 8]])
         decoration = editor.decorateMarker(marker, type: 'highlight', class: 'foo')
         expect(editor.decorationStateForScreenRowRange(0, 5)[decoration.id]).toEqual {
-          properties: {type: 'highlight', class: 'foo', id: decoration.id}
+          properties: {type: 'highlight', class: 'foo'}
           screenRange: marker.getScreenRange(),
           rangeIsReversed: false,
         }
