@@ -49,16 +49,15 @@ atom-panel-container.right {
   display: flex;
 }
 
-.tool-panel, // deprecated
+.tool-panel, // deprecated: .tool-panel
 atom-panel {
-  display: flex;
   position: relative;
   background-color: @tool-panel-background-color;
 }
 
-atom-panel.top,
-atom-panel.bottom {
-  flex-direction: column;
+atom-panel-container > atom-panel.left,
+atom-panel-container > atom-panel.right {
+  display: flex;
 }
 
 // Some packages use `height: 100%` which doesn't play nice with flexbox
