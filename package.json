@@ -18,6 +18,7 @@
     "atom-keymap": "^6.1.0",
     "babel-core": "^5.8.21",
     "bootstrap": "^3.3.4",
+    "cached-run-in-this-context": "0.3.0",
     "clear-cut": "^2.0.1",
     "coffee-script": "1.8.0",
     "color": "^0.7.3",
