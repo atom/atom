@@ -34,7 +34,6 @@ function bootstrap() {
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
-  var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
   var npmFlags = ' --userconfig=' + path.resolve(__dirname, '..', 'build', '.npmrc') + ' ';
 
   var packagesToDedupe = [
@@ -64,7 +63,8 @@ function bootstrap() {
 
   process.env.ATOM_RESOURCE_PATH = path.resolve(__dirname, '..');
 
-  var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
+  var installNpmCommand = 'npm install npm@3.3.7'
+  var buildInstallCommand = npmPath + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
   var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
@@ -86,6 +86,11 @@ function bootstrap() {
     apmInstallCommand += ' --arch=ia32';
 
   var commands = [
+    {
+      command: installNpmCommand,
+      message: 'Installing npm...',
+      options: buildInstallOptions
+    },
     {
       command: buildInstallCommand,
       message: 'Installing build modules...',
