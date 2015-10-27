@@ -9,8 +9,6 @@ module.exports =
 class PaneContainer extends Model
   serializationVersion: 1
   root: null
-  stoppedChangingActivePaneItemDelay: 100
-  stoppedChangingActivePaneItemTimeout: null
 
   constructor: (params) ->
     super
@@ -196,24 +194,30 @@ class PaneContainer extends Model
 
   monitorActivePaneItem: ->
     childSubscription = null
+    childSubscriptionAsync = null
+
+    didStopChangingActivePaneItem = (activeItem) =>
+      @emitter.emit 'did-stop-changing-active-pane-item', activeItem
 
     @subscriptions.add @observeActivePane (activePane) =>
       if childSubscription?
         @subscriptions.remove(childSubscription)
         childSubscription.dispose()
+      if childSubscriptionAsync?
+        @subscriptions.remove(childSubscriptionAsync)
+        childSubscriptionAsync.dispose()
 
       childSubscription = activePane.observeActiveItem (activeItem) =>
         @emitter.emit 'did-change-active-pane-item', activeItem
-        @cancelStoppedChangingActivePaneItemTimeout()
-        stoppedChangingActivePaneItemCallback = =>
-          @stoppedChangingActivePaneItemTimeout = null
-          @emitter.emit 'did-stop-changing-active-pane-item', activeItem
-        @stoppedChangingActivePaneItemTimeout =
-          setTimeout(
-            stoppedChangingActivePaneItemCallback,
-            @stoppedChangingActivePaneItemDelay)
+
+      # Calling the callback once before adding the listener to the emitter is
+      # equivalent to `observeFoo`-style functions.
+      didStopChangingActivePaneItem activePane.getActiveItem()
+      childSubscriptionAsync =
+        activePane.onDidStopChangingActiveItem(didStopChangingActivePaneItem)
 
       @subscriptions.add(childSubscription)
+      @subscriptions.add(childSubscriptionAsync)
 
   monitorPaneItems: ->
     @subscriptions.add @observePanes (pane) =>
