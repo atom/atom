@@ -50,16 +50,10 @@ function verifyNpm(cb) {
 
   childProcess.execFile(npmCommand, ['-v'], { env: process.env }, function(err, stdout) {
     if (err)
-      return cb("npm 1.4 is required to build Atom. An error (" + err + ") occured when checking the version.");
+      return cb("npm is required to build Atom. An error (" + err + ") occured when checking the version.");
 
     var npmVersion = stdout ? stdout.trim() : '';
-    var versionArray = npmVersion.split('.');
-    var npmMajorVersion = +versionArray[0] || 0;
-    var npmMinorVersion = +versionArray[1] || 0;
-    if (npmMajorVersion === 1 && npmMinorVersion < 4)
-      cb("npm v1.4+ is required to build Atom. Version " + npmVersion + " was detected.");
-    else
-      cb(null, "npm: v" + npmVersion);
+    cb(null, "npm: v" + npmVersion);
   });
 }
 
