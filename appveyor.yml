@@ -16,17 +16,7 @@ install:
   - ps: Install-Product node 4.2.1
 
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%\build
-  - npm install
-  - cd %APPVEYOR_BUILD_FOLDER%\apm
-  - npm install
-  - SET PATH=C:\projects\atom\apm\node_modules\atom-package-manager\bin\;%PATH%
-  - dir C:\projects\atom\apm\node_modules\atom-package-manager\bin\
-  - ps: Unblock-File -Path C:\projects\atom\apm\node_modules\atom-package-manager\bin\node.exe
-  - C:\projects\atom\apm\node_modules\atom-package-manager\bin\node.exe --version
   - cd %APPVEYOR_BUILD_FOLDER%
-  - apm.cmd clean
-  - apm.cmd install
   - C:\projects\atom\script\build.cmd
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
 
