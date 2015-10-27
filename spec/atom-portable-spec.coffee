@@ -6,18 +6,15 @@ AtomPortable = require "../src/browser/atom-portable"
 
 describe "Check for Portable Mode", ->
   describe "Windows", ->
-    platform = "win32"
-
     describe "with ATOM_HOME environment variable", ->
-      environmentAtomHome = "C:\\some\\path"
       it "returns false", ->
-        expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe false
+        expect(AtomPortable.isPortableInstall("win32", "C:\\some\\path")).toBe false
 
     describe "without ATOM_HOME environment variable", ->
       environmentAtomHome = undefined
-      portableAtomHomePath = path.join(path.dirname(process.execPath), "../.atom").toString()
+      portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
       portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
-      portableAtomHomeBackupPath = portableAtomHomePath + ".temp"
+      portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
 
       beforeEach ->
         fs.renameSync(portableAtomHomePath, portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomePath)
@@ -32,21 +29,21 @@ describe "Check for Portable Mode", ->
       describe "with .atom directory sibling to exec", ->
         beforeEach ->
           fs.mkdirSync(portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
+
         it "returns true", ->
-          expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe true
+          expect(AtomPortable.isPortableInstall("win32", environmentAtomHome)).toBe true
 
       describe "without .atom directory sibling to exec", ->
         beforeEach ->
           rimraf.sync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
+
         it "returns false", ->
-          expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe false
+          expect(AtomPortable.isPortableInstall("win32", environmentAtomHome)).toBe false
 
   describe "Mac", ->
-    platform = "darwin"
     it "returns false", ->
-      expect(AtomPortable.isPortableInstall(platform, platform)).toBe false
+      expect(AtomPortable.isPortableInstall("darwin", "darwin")).toBe false
 
   describe "Linux", ->
-    platform = "linux"
     it "returns false", ->
-      expect(AtomPortable.isPortableInstall(platform, platform)).toBe false
+      expect(AtomPortable.isPortableInstall("linux", "linux")).toBe false

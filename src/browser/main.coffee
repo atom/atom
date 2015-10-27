@@ -18,7 +18,7 @@ start = ->
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
-  
+
   args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
@@ -64,7 +64,6 @@ setupAtomHome = ->
   atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
   try
     atomHome = fs.realpathSync(atomHome)
-
   process.env.ATOM_HOME = atomHome
 
 setupCompileCache = ->
