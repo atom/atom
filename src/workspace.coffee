@@ -47,8 +47,8 @@ class Workspace extends Model
       left: new PanelContainer({location: 'left'})
       right: new PanelContainer({location: 'right'})
       bottom: new PanelContainer({location: 'bottom'})
-      topBar: new PanelContainer({location: 'top-bar'})
-      bottomBar: new PanelContainer({location: 'bottom-bar'})
+      header: new PanelContainer({location: 'header'})
+      footer: new PanelContainer({location: 'footer'})
       modal: new PanelContainer({location: 'modal'})
 
     @subscribeToEvents()
@@ -68,8 +68,8 @@ class Workspace extends Model
       left: new PanelContainer({location: 'left'})
       right: new PanelContainer({location: 'right'})
       bottom: new PanelContainer({location: 'bottom'})
-      topBar: new PanelContainer({location: 'top-bar'})
-      bottomBar: new PanelContainer({location: 'bottom-bar'})
+      header: new PanelContainer({location: 'header'})
+      footer: new PanelContainer({location: 'footer'})
       modal: new PanelContainer({location: 'modal'})
 
     @originalFontSize = null
@@ -838,11 +838,11 @@ class Workspace extends Model
   addTopPanel: (options) ->
     @addPanel('top', options)
 
-  # Essential: Get an {Array} of all the panel items at the top of the window.
-  getTopBarPanels: ->
-    @getPanels('topBar')
+  # Essential: Get an {Array} of all the panel items in the header.
+  getHeaderPanels: ->
+    @getPanels('header')
 
-  # Essential: Adds a panel item to the top of the window. It will take up full width.
+  # Essential: Adds a panel item to the header.
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
@@ -854,14 +854,14 @@ class Workspace extends Model
   #     forced closer to the edges of the window. (default: 100)
   #
   # Returns a {Panel}
-  addTopBarPanel: (options) ->
-    @addPanel('topBar', options)
+  addHeaderPanel: (options) ->
+    @addPanel('header', options)
 
-  # Essential: Get an {Array} of all the panel items at the bottom of the window.
-  getBottomBarPanels: ->
-    @getPanels('bottomBar')
+  # Essential: Get an {Array} of all the panel items in the footer.
+  getFooterPanels: ->
+    @getPanels('footer')
 
-  # Essential: Adds a panel item to the bottom of the window. It will take up full width.
+  # Essential: Adds a panel item to the footer.
   #
   # * `options` {Object}
   #   * `item` Your panel content. It can be DOM element, a jQuery element, or
@@ -873,8 +873,8 @@ class Workspace extends Model
   #     forced closer to the edges of the window. (default: 100)
   #
   # Returns a {Panel}
-  addBottomBarPanel: (options) ->
-    @addPanel('bottomBar', options)
+  addFooterPanel: (options) ->
+    @addPanel('footer', options)
 
   # Essential: Get an {Array} of all the modal panel items
   getModalPanels: ->

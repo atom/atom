@@ -894,33 +894,33 @@ describe "Workspace", ->
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
-    describe '::addTopBarPanel(model)', ->
+    describe '::addHeaderPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
-        expect(atom.workspace.getTopBarPanels().length).toBe(0)
-        atom.workspace.panelContainers.topBar.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        expect(atom.workspace.getHeaderPanels().length).toBe(0)
+        atom.workspace.panelContainers.header.onDidAddPanel addPanelSpy = jasmine.createSpy()
 
         model = new TestItem
-        panel = atom.workspace.addTopBarPanel(item: model)
+        panel = atom.workspace.addHeaderPanel(item: model)
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.views.getView(atom.workspace.getTopBarPanels()[0].getItem())
+        itemView = atom.views.getView(atom.workspace.getHeaderPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
-    describe '::addBottomBarPanel(model)', ->
+    describe '::addFooterPanel(model)', ->
       it 'adds a panel to the correct panel container', ->
-        expect(atom.workspace.getBottomBarPanels().length).toBe(0)
-        atom.workspace.panelContainers.bottomBar.onDidAddPanel addPanelSpy = jasmine.createSpy()
+        expect(atom.workspace.getFooterPanels().length).toBe(0)
+        atom.workspace.panelContainers.footer.onDidAddPanel addPanelSpy = jasmine.createSpy()
 
         model = new TestItem
-        panel = atom.workspace.addBottomBarPanel(item: model)
+        panel = atom.workspace.addFooterPanel(item: model)
 
         expect(panel).toBeDefined()
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
-        itemView = atom.views.getView(atom.workspace.getBottomBarPanels()[0].getItem())
+        itemView = atom.views.getView(atom.workspace.getFooterPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
