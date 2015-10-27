@@ -7,6 +7,7 @@ Fold = require './fold'
 Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
+LayerDecoration = require './layer-decoration'
 Marker = require './marker'
 
 class BufferToScreenConversionError extends Error
@@ -57,6 +58,7 @@ class DisplayBuffer extends Model
     @decorationsById = {}
     @decorationsByMarkerId = {}
     @overlayDecorationsById = {}
+    @layerDecorationsByMarkerLayerId = {}
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
@@ -772,14 +774,31 @@ class DisplayBuffer extends Model
 
   decorationStateForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationState = {}
-    for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow]) when marker.isValid()
+
+    startBufferRow = @bufferRowForScreenRow(startScreenRow)
+    endBufferRow = @bufferRowForScreenRow(endScreenRow)
+
+    defaultLayer = @buffer.getDefaultMarkerLayer()
+    for marker in defaultLayer.findMarkers(intersectsRowRange: [startBufferRow, endBufferRow]) when marker.isValid()
       if decorations = @decorationsByMarkerId[marker.id]
         for decoration in decorations
           decorationState[decoration.id] = {
             properties: decoration.getProperties()
-            screenRange: marker.getScreenRange()
+            screenRange: @screenRangeForBufferRange(marker.getRange())
             rangeIsReversed: marker.isReversed()
           }
+
+    for markerLayerId, layerDecorations of @layerDecorationsByMarkerLayerId
+      markerLayer = @buffer.getMarkerLayer(markerLayerId)
+      for marker in markerLayer.findMarkers(intersectsRowRange: [startBufferRow, endBufferRow]) when marker.isValid()
+        screenRange = @screenRangeForBufferRange(marker.getRange())
+        rangeIsReversed = marker.isReversed()
+        for layerDecoration in layerDecorations
+          decorationState["#{layerDecoration.id}-#{marker.id}"] = {
+            properties: layerDecoration.getProperties()
+            screenRange, rangeIsReversed
+          }
+
     decorationState
 
   decorateMarker: (marker, decorationParams) ->
@@ -791,6 +810,13 @@ class DisplayBuffer extends Model
     @decorationsById[decoration.id] = decoration
     @scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-add-decoration', decoration
+    decoration
+
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    decoration = new LayerDecoration(markerLayer, this, decorationParams)
+    @layerDecorationsByMarkerLayerId[markerLayer.id] ?= []
+    @layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
+    @scheduleUpdateDecorationsEvent()
     decoration
 
   decorationsForMarkerId: (markerId) ->
@@ -1111,6 +1137,16 @@ class DisplayBuffer extends Model
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
       delete @overlayDecorationsById[decoration.id]
+    @scheduleUpdateDecorationsEvent()
+
+  didDestroyLayerDecoration: (decoration) ->
+    {markerLayer} = decoration
+    return unless decorations = @layerDecorationsByMarkerLayerId[markerLayer.id]
+    index = decorations.indexOf(decoration)
+
+    if index > -1
+      decorations.splice(index, 1)
+      delete @layerDecorationsByMarkerLayerId[markerLayer.id] if decorations.length is 0
     @scheduleUpdateDecorationsEvent()
 
   checkScreenLinesInvariant: ->

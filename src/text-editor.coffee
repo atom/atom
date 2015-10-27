@@ -1363,6 +1363,9 @@ class TextEditor extends Model
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
 
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    @displayBuffer.decorateMarkerLayer(markerLayer, decorationParams)
+
   # Essential: Get all the decorations within a screen row range.
   #
   # * `startScreenRow` the {Number} beginning screen row
