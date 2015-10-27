@@ -4882,3 +4882,13 @@ describe "TextEditor", ->
         gutter.destroy()
         expect(payloads).toEqual []
 
+  describe "decorations", ->
+    describe "::decorateMarker", ->
+      it "includes the decoration in the object returned from ::decorationStateForScreenRowRange", ->
+        marker = editor.markBufferRange([[2, 4], [6, 8]])
+        decoration = editor.decorateMarker(marker, type: 'highlight', class: 'foo')
+        expect(editor.decorationStateForScreenRowRange(0, 5)[decoration.id]).toEqual {
+          properties: {type: 'highlight', class: 'foo', id: decoration.id}
+          screenRange: marker.getScreenRange(),
+          rangeIsReversed: false,
+        }
