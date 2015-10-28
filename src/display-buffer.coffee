@@ -776,7 +776,7 @@ class DisplayBuffer extends Model
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
-  decorationStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+  decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationState = {}
 
     startBufferRow = @bufferRowForScreenRow(startScreenRow)
