@@ -292,17 +292,36 @@ describe "PaneContainer", ->
       ]
 
   describe "::saveAll()", ->
-    it "saves all open pane items", ->
+    it "saves all modified pane items", ->
       container = new PaneContainer(params)
       pane1 = container.getRoot()
       pane2 = pane1.splitRight()
 
-      pane1.addItem(item1 = {getURI: (-> ''), save: -> @saved = true})
-      pane1.addItem(item2 = {getURI: (-> ''), save: -> @saved = true})
-      pane2.addItem(item3 = {getURI: (-> ''), save: -> @saved = true})
+      item1 = {
+        saved: false
+        getURI: -> ''
+        isModified: -> true,
+        save: -> @saved = true
+      }
+      item2 = {
+        saved: false
+        getURI: -> ''
+        isModified: -> false,
+        save: -> @saved = true
+      }
+      item3 = {
+        saved: false
+        getURI: -> ''
+        isModified: -> true,
+        save: -> @saved = true
+      }
+
+      pane1.addItem(item1)
+      pane1.addItem(item2)
+      pane1.addItem(item3)
 
       container.saveAll()
 
       expect(item1.saved).toBe true
-      expect(item2.saved).toBe true
+      expect(item2.saved).toBe false
       expect(item3.saved).toBe true
