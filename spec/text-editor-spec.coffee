@@ -5670,3 +5670,19 @@ describe "TextEditor", ->
           screenRange: marker3.getRange(),
           rangeIsReversed: false
         }
+
+        layer1Decoration2.setPropertiesForMarker(marker1, {type: 'highlight', class: 'quux'})
+        decorationState = editor.decorationStateForScreenRowRange(0, 12)
+        expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
+          properties: {type: 'highlight', class: 'quux'},
+          screenRange: marker1.getRange(),
+          rangeIsReversed: false
+        }
+
+        layer1Decoration2.setPropertiesForMarker(marker1, null)
+        decorationState = editor.decorationStateForScreenRowRange(0, 12)
+        expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
+          properties: {type: 'highlight', class: 'bar'},
+          screenRange: marker1.getRange(),
+          rangeIsReversed: false
+        }

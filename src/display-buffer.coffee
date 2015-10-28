@@ -787,7 +787,7 @@ class DisplayBuffer extends Model
       if decorations = @decorationsByMarkerId[marker.id]
         for decoration in decorations
           decorationState[decoration.id] = {
-            properties: decoration.getProperties()
+            properties: decoration.properties
             screenRange: @screenRangeForBufferRange(marker.getRange())
             rangeIsReversed: marker.isReversed()
           }
@@ -799,7 +799,7 @@ class DisplayBuffer extends Model
         rangeIsReversed = marker.isReversed()
         for layerDecoration in layerDecorations
           decorationState["#{layerDecoration.id}-#{marker.id}"] = {
-            properties: layerDecoration.getProperties()
+            properties: layerDecoration.overridePropertiesByMarkerId[marker.id] ? layerDecoration.properties
             screenRange, rangeIsReversed
           }
 

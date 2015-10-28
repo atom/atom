@@ -9,6 +9,7 @@ class LayerDecoration
     @id = nextId()
     @destroyed = false
     @markerLayerDestroyedDisposable = @markerLayer.onDidDestroy => @destroy()
+    @overridePropertiesByMarkerId = {}
 
   destroy: ->
     return if @destroyed
@@ -29,4 +30,12 @@ class LayerDecoration
   setProperties: (newProperties) ->
     return if @destroyed
     @properties = newProperties
+    @displayBuffer.scheduleUpdateDecorationsEvent()
+
+  setPropertiesForMarker: (marker, properties) ->
+    return if @destroyed
+    if properties?
+      @overridePropertiesByMarkerId[marker.id] = properties
+    else
+      delete @overridePropertiesByMarkerId[marker.id]
     @displayBuffer.scheduleUpdateDecorationsEvent()
