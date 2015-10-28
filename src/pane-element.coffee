@@ -44,16 +44,16 @@ class PaneElement extends HTMLElement
       event.stopPropagation()
       @getModel().activate()
       pathsToOpen = Array::map.call event.dataTransfer.files, (file) -> file.path
-      @open({pathsToOpen}) if pathsToOpen.length > 0
+      @applicationDelegate.open({pathsToOpen}) if pathsToOpen.length > 0
 
     @addEventListener 'focus', handleFocus, true
     @addEventListener 'blur', handleBlur, true
     @addEventListener 'dragover', handleDragOver
     @addEventListener 'drop', handleDrop
 
-  initialize: (@model, {@views, @open}) ->
+  initialize: (@model, {@views, @applicationDelegate}) ->
     throw new Error("Must pass a views parameter when initializing PaneElements") unless @views?
-    throw new Error("Must pass a open parameter when initializing PaneElements") unless @open?
+    throw new Error("Must pass an applicationDelegate parameter when initializing PaneElements") unless @applicationDelegate?
 
     @subscriptions.add @model.onDidActivate(@activated.bind(this))
     @subscriptions.add @model.observeActive(@activeStatusChanged.bind(this))

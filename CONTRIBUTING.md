@@ -2,26 +2,78 @@
 
 :+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
-The following is a set of guidelines for contributing to Atom and its packages,
-which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
-These are just guidelines, not rules, use your best judgment and feel free to
-propose changes to this document in a pull request.
-
-This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
-By participating, you are expected to uphold this code. Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
+The following is a set of guidelines for contributing to Atom and its packages, which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
+These are just guidelines, not rules, use your best judgment and feel free to propose changes to this document in a pull request.
 
 #### Table Of Contents
 
-* [Submitting Issues](#submitting-issues)
-* [Your First Contribution](#your-first-contribution)
-* [Pull Requests](#pull-requests)
-* [Git Commit Messages](#git-commit-messages)
-* [CoffeeScript Styleguide](#coffeescript-styleguide)
-* [Specs Styleguide](#specs-styleguide)
-* [Documentation Styleguide](#documentation-styleguide)
-* [Issue and Pull Request Labels](#issue-and-pull-request-labels)
+[What should I know before I get started?](#what-should-i-know-before-i-get-started)
+  * [Code of Conduct](#code-of-conduct)
+  * [Atom and Packages](#atom-and-packages)
 
-## Submitting Issues
+[How Can I Contribute?](#how-can-i-contribute)
+  * [Submitting Issues](#submitting-issues)
+  * [Your First Code Contribution](#your-first-code-contribution)
+  * [Pull Requests](#pull-requests)
+
+[Styleguides](#styleguides)
+  * [Git Commit Messages](#git-commit-messages)
+  * [CoffeeScript Styleguide](#coffeescript-styleguide)
+  * [Specs Styleguide](#specs-styleguide)
+  * [Documentation Styleguide](#documentation-styleguide)
+
+[Additional Notes](#additional-notes)
+  * [Issue and Pull Request Labels](#issue-and-pull-request-labels)
+
+## What should I know before I get started?
+
+### Code of Conduct
+
+This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
+By participating, you are expected to uphold this code.
+Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
+
+### Atom and Packages
+
+Atom is a large open source project—it's made up of over [200 repositories](https://github.com/atom).
+When you initially consider contributing to Atom, you might be unsure about which of those 200 repositories implements the functionality you want to change or report a bug for.
+This section should help you with that.
+
+Atom is intentionally very modular.
+Nearly every non-editor UI element you interact with comes from a package, even fundamental things like tabs and the status-bar.
+These packages are packages in the same way that packages in the [package store](https://atom.io/packages) are packages, with one difference: they are bundled into the [default distribution](https://github.com/atom/atom/blob/10b8de6fc499a7def9b072739486e68530d67ab4/package.json#L58).
+
+![atom-packages](https://cloud.githubusercontent.com/assets/69169/10472281/84fc9792-71d3-11e5-9fd1-19da717df079.png)
+
+To get a sense for the packages that are bundled with Atom, you can go to Settings > Packages within Atom and take a look at the Core Packages section.
+
+Here's a list of the big ones:
+
+* [atom/atom](https://github.com/atom/atom) - Atom Core! The core editor component is responsible for basic text editing (e.g. cursors, selections, scrolling), text indentation, wrapping, and folding, text rendering, editor rendering, file system operations (e.g. saving), and installation and auto-updating. You should also use this repository for feedback related to the [core API](https://atom.io/docs/api/latest/Notification) and for large, overarching design proposals.
+* [tree-view](https://github.com/atom/tree-view) - file and directory listing on the left of the UI.
+* [fuzzy-finder](https://github.com/atom/fuzzy-finder) - the quick file opener.
+* [find-and-replace](https://github.com/atom/find-and-replace) - all search and replace functionality.
+* [tabs](https://github.com/atom/tabs) - the tabs for open editors at the top of the UI.
+* [status-bar](https://github.com/atom/status-bar) - the status bar at the bottom of the UI.
+* [markdown-preview](https://github.com/atom/markdown-preview) - the rendered markdown pane item.
+* [settings-view](https://github.com/atom/settings-view) - the settings UI pane item.
+* [autocomplete-plus](https://github.com/atom/autocomplete-plus) - autocompletions shown while typing. Some languages have additional packages for autocompletion functionality, such as [autocomplete-html](https://github.com/atom/autocomplete-html).
+* [git-diff](https://github.com/atom/git-diff) - Git change indicators shown in the editor's gutter.
+* [language-javascript](https://github.com/atom/language-javascript) - all bundled languages are packages too, and each one has a separate package `language-[name]`. Use these for feedback on syntax highlighting issues that only appear for a specific language.
+* [one-dark-ui](https://github.com/atom/one-dark-ui) - the default UI styling for anything but the text editor. UI theme packages (i.e. packages with a `-ui` suffix) provide only styling and it's possible that a bundled package is responsible for a UI issue. There are other other bundled UI themes, such as [one-light-ui](https://github.com/atom/one-light-ui).
+* [one-dark-syntax](https://github.com/atom/one-dark-syntax) - the default syntax highlighting styles applied for all languages. There are other other bundled syntax themes, such as [solarized-dark](https://github.com/atom/solarized-dark). You should use these packages for reporting issues that appear in many languages, but disappear if you change to another syntax theme.
+* [apm](https://github.com/atom/apm) - the `apm` command line tool (Atom Package Manager). You should use this repository for any contributions related to the `apm` tool and to publishing packages.
+* [atom.io](https://github.com/atom/atom.io) - the repository for feedback on the [Atom.io website](https://atom.io) and the [Atom.io package API](https://github.com/atom/atom/blob/master/docs/apm-rest-api.md) used by [apm](https://github.com/atom/apm).
+
+There are many more, but this list should be a good starting point.
+For more information on how to work with Atom's official packages, see [Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md).
+
+Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering aren't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed.
+Each community package has its own repository too, and you should be able to find it in Settings > Packages for the packages you installed and contribute there.
+
+## How can I contribute?
+
+### Submitting Issues
 
 * You can create an issue [here](https://github.com/atom/atom/issues/new), but
   before doing that please read the notes below on debugging and submitting issues,
@@ -44,31 +96,16 @@ By participating, you are expected to uphold this code. Please report unacceptab
 * Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
   to make yourself recognizable and so we can all get to know each other better.
 
-### Package Repositories
-
-This is the repository for the core Atom editor only. Atom comes bundled with
-many packages and themes that are stored in other repos under the
-[Atom organization](https://github.com/atom) such as
-[tabs](https://github.com/atom/tabs),
-[find-and-replace](https://github.com/atom/find-and-replace),
-[language-javascript](https://github.com/atom/language-javascript), and
-[atom-light-ui](https://github.com/atom/atom-light-ui).
-
-If your issue is related to a specific package, open an issue on that package's
-issue tracker. If you're unsure which package is causing your problem or if
-you're having an issue with Atom core, open an issue on this repository.
-
-For more information on how to work with Atom's official packages, see
-[Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md)
-
-## Your First Contribution
+### Your First Code Contribution
 
 Unsure where to begin contributing to Atom? You can start by looking through these `beginner` and `help-wanted` issues:
 
-* [Beginner issues][beginner]
-* [Help wanted issues][help-wanted]
+* [Beginner issues][beginner] - issues which should only require a few lines of code, and a test or two.
+* [Help wanted issues][help-wanted] - issues which should be a bit more involved than `beginner` issues.
 
-## Pull Requests
+Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
+
+### Pull Requests
 
 * Include screenshots and animated GIFs in your pull request whenever possible.
 * Follow the [CoffeeScript](#coffeescript-styleguide),
@@ -94,7 +131,9 @@ Unsure where to begin contributing to Atom? You can start by looking through the
 * Using a plain `return` when returning explicitly at the end of a function.
     * Not `return null`, `return undefined`, `null`, or `undefined`
 
-## Git Commit Messages
+## Styleguides
+
+### Git Commit Messages
 
 * Use the present tense ("Add feature" not "Added feature")
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
@@ -117,7 +156,7 @@ Unsure where to begin contributing to Atom? You can start by looking through the
     * :arrow_down: `:arrow_down:` when downgrading dependencies
     * :shirt: `:shirt:` when removing linter warnings
 
-## CoffeeScript Styleguide
+### CoffeeScript Styleguide
 
 * Set parameter defaults without spaces around the equal sign
     * `clear = (count=1) ->` instead of `clear = (count = 1) ->`
@@ -140,14 +179,14 @@ Unsure where to begin contributing to Atom? You can start by looking through the
 * Use `this` instead of a standalone `@`
   * `return this` instead of `return @`
 
-## Specs Styleguide
+### Specs Styleguide
 
 - Include thoughtfully-worded, well-structured
   [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder.
 - treat `describe` as a noun or situation.
 - treat `it` as a statement about state or how an operation changes state.
 
-### Example
+#### Example
 
 ```coffee
 describe 'a dog', ->
@@ -158,7 +197,7 @@ describe 'a dog', ->
   # spec here
 ```
 
-## Documentation Styleguide
+### Documentation Styleguide
 
 * Use [AtomDoc](https://github.com/atom/atomdoc).
 * Use [Markdown](https://daringfireball.net/projects/markdown).
@@ -167,7 +206,7 @@ describe 'a dog', ->
     * Reference instance methods with `{ClassName::methodName}`
     * Reference class methods with `{ClassName.methodName}`
 
-### Example
+#### Example
 
 ```coffee
 # Public: Disable the package with the given name.
@@ -182,7 +221,9 @@ describe 'a dog', ->
 disablePackage: (name, options, callback) ->
 ```
 
-## Issue and Pull Request Labels
+## Additional Notes
+
+### Issue and Pull Request Labels
 
 This section lists the labels we use to help us track and manage issues and pull requests. Most labels are used across all Atom repositories, but some are specific to `atom/atom`.
 

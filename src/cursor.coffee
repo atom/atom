@@ -75,7 +75,7 @@ class Cursor extends Model
     @changePosition options, =>
       @marker.setHeadScreenPosition(screenPosition, options)
 
-  # Public: Returns the screen position of the cursor as an Array.
+  # Public: Returns the screen position of the cursor as a {Point}.
   getScreenPosition: ->
     @marker.getHeadScreenPosition()
 

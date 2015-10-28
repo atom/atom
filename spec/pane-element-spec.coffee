@@ -4,7 +4,7 @@ describe "PaneElement", ->
   [paneElement, container, pane] = []
 
   beforeEach ->
-    spyOn(atom, "open")
+    spyOn(atom.applicationDelegate, "open")
 
     container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
     pane = container.getActivePane()
@@ -187,11 +187,11 @@ describe "PaneElement", ->
       it "opens it", ->
         event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
         paneElement.dispatchEvent(event)
-        expect(atom.open.callCount).toBe 1
-        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
+        expect(atom.applicationDelegate.open.callCount).toBe 1
+        expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
     describe "when a non-file is dragged to the pane", ->
       it "does nothing", ->
         event = buildDragEvent("drop", [])
         paneElement.dispatchEvent(event)
-        expect(atom.open).not.toHaveBeenCalled()
+        expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
