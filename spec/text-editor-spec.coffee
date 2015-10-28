@@ -4884,17 +4884,17 @@ describe "TextEditor", ->
 
   describe "decorations", ->
     describe "::decorateMarker", ->
-      it "includes the decoration in the object returned from ::decorationStateForScreenRowRange", ->
+      it "includes the decoration in the object returned from ::decorationsStateForScreenRowRange", ->
         marker = editor.markBufferRange([[2, 4], [6, 8]])
         decoration = editor.decorateMarker(marker, type: 'highlight', class: 'foo')
-        expect(editor.decorationStateForScreenRowRange(0, 5)[decoration.id]).toEqual {
+        expect(editor.decorationsStateForScreenRowRange(0, 5)[decoration.id]).toEqual {
           properties: {type: 'highlight', class: 'foo'}
           screenRange: marker.getScreenRange(),
           rangeIsReversed: false
         }
 
     describe "::decorateMarkerLayer", ->
-      it "based on the markers in the layer, includes multiple decoration objects with the same properties and different ranges in the object returned from ::decorationStateForScreenRowRange", ->
+      it "based on the markers in the layer, includes multiple decoration objects with the same properties and different ranges in the object returned from ::decorationsStateForScreenRowRange", ->
         layer1 = editor.getBuffer().addMarkerLayer()
         marker1 = layer1.markRange([[2, 4], [6, 8]])
         marker2 = layer1.markRange([[11, 0], [11, 12]])
@@ -4905,7 +4905,7 @@ describe "TextEditor", ->
         layer1Decoration2 = editor.decorateMarkerLayer(layer1, type: 'highlight', class: 'bar')
         layer2Decoration = editor.decorateMarkerLayer(layer2, type: 'highlight', class: 'baz')
 
-        decorationState = editor.decorationStateForScreenRowRange(0, 13)
+        decorationState = editor.decorationsStateForScreenRowRange(0, 13)
 
         expect(decorationState["#{layer1Decoration1.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'foo'},
@@ -4935,7 +4935,7 @@ describe "TextEditor", ->
 
         layer1Decoration1.destroy()
 
-        decorationState = editor.decorationStateForScreenRowRange(0, 12)
+        decorationState = editor.decorationsStateForScreenRowRange(0, 12)
         expect(decorationState["#{layer1Decoration1.id}-#{marker1.id}"]).toBeUndefined()
         expect(decorationState["#{layer1Decoration1.id}-#{marker2.id}"]).toBeUndefined()
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
@@ -4955,7 +4955,7 @@ describe "TextEditor", ->
         }
 
         layer1Decoration2.setPropertiesForMarker(marker1, {type: 'highlight', class: 'quux'})
-        decorationState = editor.decorationStateForScreenRowRange(0, 12)
+        decorationState = editor.decorationsStateForScreenRowRange(0, 12)
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'quux'},
           screenRange: marker1.getRange(),
@@ -4963,7 +4963,7 @@ describe "TextEditor", ->
         }
 
         layer1Decoration2.setPropertiesForMarker(marker1, null)
-        decorationState = editor.decorationStateForScreenRowRange(0, 12)
+        decorationState = editor.decorationsStateForScreenRowRange(0, 12)
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'bar'},
           screenRange: marker1.getRange(),

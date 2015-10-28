@@ -1168,7 +1168,7 @@ class TextEditorPresenter
 
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
-    @decorations = @model.decorationStateForScreenRowRange(@startRow, @endRow - 1)
+    @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}
