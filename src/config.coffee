@@ -422,7 +422,6 @@ class Config
   #   * `event` {Object}
   #     * `newValue` the new value of the key
   #     * `oldValue` the prior value of the key.
-  #     * `keyPath` the keyPath of the changed key
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
