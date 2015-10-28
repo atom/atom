@@ -4,12 +4,12 @@ describe "NativeCompileCache", ->
 
   beforeEach ->
     cachedFiles = []
-    fakeCacheStorage = jasmine.createSpyObj("cache storage", ["set", "get"])
+    fakeCacheStorage = jasmine.createSpyObj("cache storage", ["set", "get", "has"])
     nativeCompileCache.setCacheStorage(fakeCacheStorage)
     nativeCompileCache.install()
 
   it "writes and reads from the cache storage when requiring files", ->
-    fakeCacheStorage.get.andReturn(null)
+    fakeCacheStorage.has.andReturn(false)
     fakeCacheStorage.set.andCallFake (filename, cacheBuffer) ->
       cachedFiles.push({filename, cacheBuffer})
 
@@ -28,6 +28,7 @@ describe "NativeCompileCache", ->
     expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0)
     expect(fn2()).toBe(2)
 
+    fakeCacheStorage.has.andReturn(true)
     fakeCacheStorage.get.andReturn(cachedFiles[0].cacheBuffer)
     fakeCacheStorage.set.reset()
 
