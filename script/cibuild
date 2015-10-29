@@ -45,6 +45,7 @@ function removeNodeModules() {
 
   try {
     fsPlus.removeSync(path.resolve(__dirname, '..', 'node_modules'));
+    fsPlus.removeSync(path.resolve(__dirname, '..', 'build', 'node_modules'));
   } catch (error) {
     console.error(error.message);
     process.exit(1);
@@ -84,7 +85,7 @@ readEnvironmentVariables();
 removeNodeModules();
 removeTempFolders();
 cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
-  cp.safeExec.bind(global, 'node script/bootstrap', function(error) {
+  cp.safeExec.bind(global, 'node script/bootstrap --no-quiet', function(error) {
     if (error)
       process.exit(1);
     require('fs-plus').removeSync.bind(global, path.join(homeDir, '.atom'))
