@@ -1396,7 +1396,7 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
-  # Essential: Adds a decoration that tracks a {Marker}. When the marker moves,
+  # Essential: Adds a decoration that tracks a {TextEditorMarker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
@@ -1417,28 +1417,28 @@ class TextEditor extends Model
   #     </div>
   #     ```
   # * __overlay__: Positions the view associated with the given item at the head
-  #     or tail of the given `Marker`.
-  # * __gutter__: A decoration that tracks a {Marker} in a {Gutter}. Gutter
+  #     or tail of the given `TextEditorMarker`.
+  # * __gutter__: A decoration that tracks a {TextEditorMarker} in a {Gutter}. Gutter
   #     decorations are created by calling {Gutter::decorateMarker} on the
   #     desired `Gutter` instance.
   #
   # ## Arguments
   #
-  # * `marker` A {Marker} you want this decoration to follow.
+  # * `marker` A {TextEditorMarker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
   #   `{type: 'line-number', class: 'linter-error'}`
   #   * `type` There are several supported decoration types. The behavior of the
   #     types are as follows:
   #     * `line` Adds the given `class` to the lines overlapping the rows
-  #        spanned by the `Marker`.
+  #        spanned by the `TextEditorMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
-  #       the rows spanned by the `Marker`.
+  #       the rows spanned by the `TextEditorMarker`.
   #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `Marker`.
+  #       to 3 nested regions that fill the area spanned by the `TextEditorMarker`.
   #     * `overlay` Positions the view associated with the given item at the
-  #       head or tail of the given `Marker`, depending on the `position`
+  #       head or tail of the given `TextEditorMarker`, depending on the `position`
   #       property.
-  #     * `gutter` Tracks a {Marker} in a {Gutter}. Created by calling
+  #     * `gutter` Tracks a {TextEditorMarker} in a {Gutter}. Created by calling
   #       {Gutter::decorateMarker} on the desired `Gutter` instance.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
@@ -1446,16 +1446,16 @@ class TextEditor extends Model
   #     corresponding view registered. Only applicable to the `gutter` and
   #     `overlay` types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
-  #     the head of the `Marker`. Only applicable to the `line` and
+  #     the head of the `TextEditorMarker`. Only applicable to the `line` and
   #     `line-number` types.
   #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
-  #     the associated `Marker` is empty. Only applicable to the `gutter`,
+  #     the associated `TextEditorMarker` is empty. Only applicable to the `gutter`,
   #     `line`, and `line-number` types.
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
-  #     if the associated `Marker` is non-empty. Only applicable to the
+  #     if the associated `TextEditorMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
   #   * `position` (optional) Only applicable to decorations of type `overlay`,
-  #     controls where the overlay view is positioned relative to the `Marker`.
+  #     controls where the overlay view is positioned relative to the `TextEditorMarker`.
   #     Values can be `'head'` (the default), or `'tail'`.
   #
   # Returns a {Decoration} object
@@ -1472,7 +1472,7 @@ class TextEditor extends Model
   #
   # Returns an {Object} of decorations in the form
   #  `{1: [{id: 10, type: 'line-number', class: 'someclass'}], 2: ...}`
-  #   where the keys are {Marker} IDs, and the values are an array of decoration
+  #   where the keys are {TextEditorMarker} IDs, and the values are an array of decoration
   #   params objects attached to the marker.
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
@@ -1567,7 +1567,7 @@ class TextEditor extends Model
   #       region in any way, including changes that end at the marker's
   #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
@@ -1602,7 +1602,7 @@ class TextEditor extends Model
   #       region in any way, including changes that end at the marker's
   #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
@@ -1611,7 +1611,7 @@ class TextEditor extends Model
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
@@ -1620,11 +1620,11 @@ class TextEditor extends Model
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Essential: Find all {Marker}s that match the given properties.
+  # Essential: Find all {TextEditorMarker}s that match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1649,7 +1649,7 @@ class TextEditor extends Model
   # Extended: Observe changes in the set of markers that intersect a particular
   # region of the editor.
   #
-  # * `callback` A {Function} to call whenever one or more {Marker}s appears,
+  # * `callback` A {Function} to call whenever one or more {TextEditorMarker}s appears,
   #    disappears, or moves within the given region.
   #   * `event` An {Object} with the following keys:
   #     * `insert` A {Set} containing the ids of all markers that appeared
@@ -1665,13 +1665,13 @@ class TextEditor extends Model
   observeMarkers: (callback) ->
     @displayBuffer.observeMarkers(callback)
 
-  # Extended: Get the {Marker} for the given marker id.
+  # Extended: Get the {TextEditorMarker} for the given marker id.
   #
   # * `id` {Number} id of the marker
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
-  # Extended: Get all {Marker}s. Consider using {::findMarkers}
+  # Extended: Get all {TextEditorMarker}s. Consider using {::findMarkers}
   getMarkers: ->
     @displayBuffer.getMarkers()
 
@@ -1888,7 +1888,7 @@ class TextEditor extends Model
   getCursorsOrderedByBufferPosition: ->
     @getCursors().sort (a, b) -> a.compare(b)
 
-  # Add a cursor based on the given {Marker}.
+  # Add a cursor based on the given {TextEditorMarker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker, config: @config)
     @cursors.push(cursor)
@@ -2237,7 +2237,7 @@ class TextEditor extends Model
 
   # Extended: Select the range of the given marker if it is valid.
   #
-  # * `marker` A {Marker}
+  # * `marker` A {TextEditorMarker}
   #
   # Returns the selected {Range} or `undefined` if the marker is invalid.
   selectMarker: (marker) ->
@@ -2363,9 +2363,9 @@ class TextEditor extends Model
     _.reduce(tail, reducer, [head])
     return result if fn?
 
-  # Add a {Selection} based on the given {Marker}.
+  # Add a {Selection} based on the given {TextEditorMarker}.
   #
-  # * `marker` The {Marker} to highlight
+  # * `marker` The {TextEditorMarker} to highlight
   # * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
