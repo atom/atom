@@ -1,4 +1,4 @@
-{find, compact, extend, last} = require 'underscore-plus'
+{find, compact, extend, last, throttle} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Model = require './model'
 PaneAxis = require './pane-axis'
@@ -13,6 +13,7 @@ class Pane extends Model
   container: undefined
   activeItem: undefined
   focused: false
+  stoppedChangingActiveItemDelay: 50
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
     {items, activeItemURI, activeItemUri} = state
@@ -39,6 +40,18 @@ class Pane extends Model
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
     @items = []
+
+    didStopChangingActiveItem = (item) ->
+      @emitter.emit 'did-stop-changing-active-item', item
+
+    @throttledDidStopChangingActiveItem = throttle(
+      didStopChangingActiveItem,
+      @stoppedChangingActiveItemDelay,
+      # Disable leading edge throttle call to force most calls to be async. With
+      # a leading edge call, the function is called synchronously the first
+      # time.
+      {leading: false}
+    )
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
@@ -221,6 +234,9 @@ class Pane extends Model
   onDidChangeActiveItem: (callback) ->
     @emitter.on 'did-change-active-item', callback
 
+  onDidStopChangingActiveItem: (callback) ->
+    @emitter.on 'did-stop-changing-active-item', callback
+
   # Public: Invoke the given callback with the current and future values of
   # {::getActiveItem}.
   #
@@ -282,6 +298,7 @@ class Pane extends Model
     unless activeItem is @activeItem
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
+      @throttledDidStopChangingActiveItem(@activeItem)
     @activeItem
 
   # Return an {TextEditor} if the pane item is an {TextEditor}, or null otherwise.
