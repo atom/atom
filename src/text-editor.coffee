@@ -436,9 +436,6 @@ class TextEditor extends Model
   onDidRemoveDecoration: (callback) ->
     @displayBuffer.onDidRemoveDecoration(callback)
 
-  onDidUpdateDecorations: (callback) ->
-    @displayBuffer.onDidUpdateDecorations(callback)
-
   # Extended: Calls your `callback` when the placeholder text is changed.
   #
   # * `callback` {Function}
