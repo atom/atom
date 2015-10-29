@@ -8,7 +8,7 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 LayerDecoration = require './layer-decoration'
-TextEditorMarker = require './text-editor-marker'
+TextEditorMarkerLayer = require './text-editor-marker-layer'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -53,7 +53,7 @@ class DisplayBuffer extends Model
     })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
-    @markers = {}
+    @defaultMarkerLayer = new TextEditorMarkerLayer(this, @buffer.getDefaultMarkerLayer(), true)
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
@@ -832,17 +832,13 @@ class DisplayBuffer extends Model
   #
   # Returns the {TextEditorMarker} (if it exists).
   getMarker: (id) ->
-    unless marker = @markers[id]
-      if bufferMarker = @buffer.getMarker(id)
-        marker = new TextEditorMarker({bufferMarker, displayBuffer: this})
-        @markers[id] = marker
-    marker
+    @defaultMarkerLayer.getMarker(id)
 
   # Retrieves the active markers in the buffer.
   #
   # Returns an {Array} of existing {TextEditorMarker}s.
   getMarkers: ->
-    @buffer.getMarkers().map ({id}) => @getMarker(id)
+    @defaultMarkerLayer.getMarkers()
 
   getMarkerCount: ->
     @buffer.getMarkerCount()
@@ -853,9 +849,8 @@ class DisplayBuffer extends Model
   # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markScreenRange: (args...) ->
-    bufferRange = @bufferRangeForScreenRange(args.shift())
-    @markBufferRange(bufferRange, args...)
+  markScreenRange: (screenRange, options) ->
+    @defaultMarkerLayer.markScreenRange(screenRange, options)
 
   # Public: Constructs a new marker at the given buffer range.
   #
@@ -863,8 +858,8 @@ class DisplayBuffer extends Model
   # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markBufferRange: (range, options) ->
-    @getMarker(@buffer.markRange(range, options).id)
+  markBufferRange: (bufferRange, options) ->
+    @defaultMarkerLayer.markBufferRange(bufferRange, options)
 
   # Public: Constructs a new marker at the given screen position.
   #
@@ -873,7 +868,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
-    @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
+    @defaultMarkerLayer.markScreenPosition(screenPosition, options)
 
   # Public: Constructs a new marker at the given buffer position.
   #
@@ -882,14 +877,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
-    @getMarker(@buffer.markPosition(bufferPosition, options).id)
-
-  # Public: Removes the marker with the given id.
-  #
-  # id - The {Number} of the ID to remove
-  destroyMarker: (id) ->
-    @buffer.destroyMarker(id)
-    delete @markers[id]
+    @defaultMarkerLayer.markBufferPosition(bufferPosition, options)
 
   # Finds the first marker satisfying the given attributes
   #
@@ -897,7 +885,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {TextEditorMarker} or null
   findMarker: (params) ->
-    @findMarkers(params)[0]
+    @defaultMarkerLayer.findMarkers(params)[0]
 
   # Public: Find all markers satisfying a set of parameters.
   #
@@ -918,46 +906,7 @@ class DisplayBuffer extends Model
   #
   # Returns an {Array} of {TextEditorMarker}s
   findMarkers: (params) ->
-    params = @translateToBufferMarkerParams(params)
-    @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
-
-  translateToBufferMarkerParams: (params) ->
-    bufferMarkerParams = {}
-    for key, value of params
-      switch key
-        when 'startBufferRow'
-          key = 'startRow'
-        when 'endBufferRow'
-          key = 'endRow'
-        when 'startScreenRow'
-          key = 'startRow'
-          value = @bufferRowForScreenRow(value)
-        when 'endScreenRow'
-          key = 'endRow'
-          value = @bufferRowForScreenRow(value)
-        when 'intersectsBufferRowRange'
-          key = 'intersectsRowRange'
-        when 'intersectsScreenRowRange'
-          key = 'intersectsRowRange'
-          [startRow, endRow] = value
-          value = [@bufferRowForScreenRow(startRow), @bufferRowForScreenRow(endRow)]
-        when 'containsBufferRange'
-          key = 'containsRange'
-        when 'containsBufferPosition'
-          key = 'containsPosition'
-        when 'containedInBufferRange'
-          key = 'containedInRange'
-        when 'containedInScreenRange'
-          key = 'containedInRange'
-          value = @bufferRangeForScreenRange(value)
-        when 'intersectsBufferRange'
-          key = 'intersectsRange'
-        when 'intersectsScreenRange'
-          key = 'intersectsRange'
-          value = @bufferRangeForScreenRange(value)
-      bufferMarkerParams[key] = value
-
-    bufferMarkerParams
+    @defaultMarkerLayer.findMarkers(params)
 
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]
@@ -978,7 +927,7 @@ class DisplayBuffer extends Model
 
   destroyed: ->
     fold.destroy() for markerId, fold of @foldsByMarkerId
-    marker.disposables.dispose() for id, marker of @markers
+    @defaultMarkerLayer.destroy()
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
     @tokenizedBuffer.destroy()
