@@ -1666,7 +1666,7 @@ describe "TextEditorComponent", ->
         runs ->
           expect(highlightNode.classList.contains('flash-class')).toBe true
 
-        waitsFor -> !highlightNode.classList.contains('flash-class')
+        waitsFor -> not highlightNode.classList.contains('flash-class')
 
       describe "when ::flash is called again before the first has finished", ->
         it "removes the class from the decoration highlight before adding it for the second ::flash call", ->
