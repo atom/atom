@@ -2,7 +2,7 @@
   var app = require('remote').require('app')
   var fs = require('fs-plus')
   var path = require('path')
-  var FileSystemCacheBlobStorage = require('../src/file-system-cache-blob-storage')
+  var FileSystemBlobStore = require('../src/file-system-blob-store')
   var NativeCompileCache = require('../src/native-compile-cache')
 
   var loadSettings = null
@@ -26,10 +26,10 @@
       // Ensure ATOM_HOME is always set before anything else is required
       setupAtomHome()
 
-      cacheStorage = FileSystemCacheBlobStorage.load(
-        path.join(process.env.ATOM_HOME, 'native-compile-cache/')
+      blobStore = FileSystemBlobStore.load(
+        path.join(process.env.ATOM_HOME, 'blob-store/')
       )
-      NativeCompileCache.setCacheStorage(cacheStorage)
+      NativeCompileCache.setCacheStore(blobStore)
       NativeCompileCache.install()
 
       // Normalize to make sure drive letter case is consistent on Windows

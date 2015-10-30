@@ -1,16 +1,16 @@
 describe "NativeCompileCache", ->
   nativeCompileCache = require '../src/native-compile-cache'
-  [fakeCacheStorage, cachedFiles] = []
+  [fakeCacheStore, cachedFiles] = []
 
   beforeEach ->
     cachedFiles = []
-    fakeCacheStorage = jasmine.createSpyObj("cache storage", ["set", "get", "has", "delete"])
-    nativeCompileCache.setCacheStorage(fakeCacheStorage)
+    fakeCacheStore = jasmine.createSpyObj("cache store", ["set", "get", "has", "delete"])
+    nativeCompileCache.setCacheStore(fakeCacheStore)
     nativeCompileCache.install()
 
   it "writes and reads from the cache storage when requiring files", ->
-    fakeCacheStorage.has.andReturn(false)
-    fakeCacheStorage.set.andCallFake (filename, cacheBuffer) ->
+    fakeCacheStore.has.andReturn(false)
+    fakeCacheStore.set.andCallFake (filename, cacheBuffer) ->
       cachedFiles.push({filename, cacheBuffer})
 
     fn1 = require('./fixtures/native-cache/file-1')
@@ -28,20 +28,20 @@ describe "NativeCompileCache", ->
     expect(cachedFiles[1].cacheBuffer.length).toBeGreaterThan(0)
     expect(fn2()).toBe(2)
 
-    fakeCacheStorage.has.andReturn(true)
-    fakeCacheStorage.get.andReturn(cachedFiles[0].cacheBuffer)
-    fakeCacheStorage.set.reset()
+    fakeCacheStore.has.andReturn(true)
+    fakeCacheStore.get.andReturn(cachedFiles[0].cacheBuffer)
+    fakeCacheStore.set.reset()
 
     fn1 = require('./fixtures/native-cache/file-1')
 
-    expect(fakeCacheStorage.set).not.toHaveBeenCalled()
+    expect(fakeCacheStore.set).not.toHaveBeenCalled()
     expect(fn1()).toBe(1)
 
   it "deletes previously cached code when the cache is not valid", ->
-    fakeCacheStorage.has.andReturn(true)
-    fakeCacheStorage.get.andCallFake -> new Buffer("an invalid cache")
+    fakeCacheStore.has.andReturn(true)
+    fakeCacheStore.get.andCallFake -> new Buffer("an invalid cache")
 
     fn3 = require('./fixtures/native-cache/file-3')
 
-    expect(fakeCacheStorage.delete).toHaveBeenCalledWith(require.resolve('./fixtures/native-cache/file-3'))
+    expect(fakeCacheStore.delete).toHaveBeenCalledWith(require.resolve('./fixtures/native-cache/file-3'))
     expect(fn3()).toBe(3)

@@ -6,12 +6,12 @@ const cachedVm = require('cached-run-in-this-context')
 
 class NativeCompileCache {
   constructor () {
-    this.cacheStorage = null
+    this.cacheStore = null
     this.previousModuleCompile = null
   }
 
-  setCacheStorage (storage) {
-    this.cacheStorage = storage
+  setCacheStore (store) {
+    this.cacheStore = store
   }
 
   install () {
@@ -28,7 +28,7 @@ class NativeCompileCache {
   }
 
   overrideModuleCompile () {
-    let cacheStorage = this.cacheStorage
+    let cacheStore = this.cacheStore
     let resolvedArgv = null
     Module.prototype._compile = function (content, filename) {
       let self = this
@@ -52,17 +52,17 @@ class NativeCompileCache {
       let wrapper = Module.wrap(content)
 
       let compiledWrapper = null
-      if (cacheStorage.has(filename)) {
-        let buffer = cacheStorage.get(filename)
+      if (cacheStore.has(filename)) {
+        let buffer = cacheStore.get(filename)
         let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
-          cacheStorage.delete(filename)
+          cacheStore.delete(filename)
         }
       } else {
         let compilationResult = cachedVm.runInThisContext(wrapper, filename)
         if (compilationResult.cacheBuffer) {
-          cacheStorage.set(filename, compilationResult.cacheBuffer)
+          cacheStore.set(filename, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
       }
