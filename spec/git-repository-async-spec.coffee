@@ -350,68 +350,82 @@ describe "GitRepositoryAsync", ->
     beforeEach ->
       atom.project.setPaths([copyRepository()])
 
-      waitsForPromise ->
-        atom.workspace.open('other.txt').then (o) -> editor = o
-
     it "emits a status-changed event when a buffer is saved", ->
-      editor.insertNewline()
-
-      statusHandler = jasmine.createSpy('statusHandler')
-      repo = atom.project.getRepositories()[0]
-      repo.async.onDidChangeStatus statusHandler
-      editor.save()
-      waitsFor ->
-        statusHandler.callCount == 1
+      waitsForPromise ->
+        atom.workspace.open('other.txt').then (o) ->
+                    editor = o
       runs ->
-        expect(statusHandler.callCount).toBe 1
-        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+        editor.insertNewline()
+        statusHandler = jasmine.createSpy('statusHandler')
+        repo = atom.project.getRepositories()[0]
+        repo.async.onDidChangeStatus statusHandler
+        editor.save()
+
+        waitsFor ->
+          statusHandler.callCount >= 1
+        runs ->
+          console.log "in run block"
+          expect(statusHandler.callCount).toBe 1
+          expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
 
     it "emits a status-changed event when a buffer is reloaded", ->
-      fs.writeFileSync(editor.getPath(), 'changed')
-
-      statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepositories()[0].async.onDidChangeStatus statusHandler
-      editor.getBuffer().reload()
-      reloadHandler = jasmine.createSpy 'reloadHandler'
-
-      waitsFor ->
-        statusHandler.callCount == 1
+      waitsForPromise ->
+        atom.workspace.open('other.txt').then (o) ->
+          editor = o
       runs ->
-        expect(statusHandler.callCount).toBe 1
-        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
-        buffer = editor.getBuffer()
-        buffer.onDidReload(reloadHandler)
-        buffer.reload()
+        fs.writeFileSync(editor.getPath(), 'changed')
 
-      waitsFor ->
-        reloadHandler.callCount == 1
-      runs ->
-        expect(statusHandler.callCount).toBe 1
+        statusHandler = jasmine.createSpy('statusHandler')
+        atom.project.getRepositories()[0].async.onDidChangeStatus statusHandler
+        editor.getBuffer().reload()
+        reloadHandler = jasmine.createSpy 'reloadHandler'
+
+        waitsFor ->
+          statusHandler.callCount >= 1
+        runs ->
+          expect(statusHandler.callCount).toBe 1
+          expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+          buffer = editor.getBuffer()
+          buffer.onDidReload(reloadHandler)
+          buffer.reload()
+
+        waitsFor ->
+          reloadHandler.callCount >= 1
+        runs ->
+          expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
-      fs.writeFileSync(editor.getPath(), 'changed')
-
-      statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepositories()[0].async.onDidChangeStatus statusHandler
-      editor.getBuffer().emitter.emit 'did-change-path'
-      waitsFor ->
-        statusHandler.callCount == 1
+      waitsForPromise ->
+        atom.workspace.open('other.txt').then (o) ->
+          editor = o
       runs ->
-        expect(statusHandler.callCount).toBe 1
-        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+        fs.writeFileSync(editor.getPath(), 'changed')
 
-      pathHandler = jasmine.createSpy('pathHandler')
-      buffer = editor.getBuffer()
-      buffer.onDidChangePath pathHandler
-      buffer.emitter.emit 'did-change-path'
-      waitsFor ->
-        pathHandler.callCount == 1
-      runs ->
-        expect(statusHandler.callCount).toBe 1
+        statusHandler = jasmine.createSpy('statusHandler')
+        atom.project.getRepositories()[0].async.onDidChangeStatus statusHandler
+        editor.getBuffer().emitter.emit 'did-change-path'
+        waitsFor ->
+          statusHandler.callCount >= 1
+        runs ->
+          expect(statusHandler.callCount).toBe 1
+          expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+
+        pathHandler = jasmine.createSpy('pathHandler')
+        buffer = editor.getBuffer()
+        buffer.onDidChangePath pathHandler
+        buffer.emitter.emit 'did-change-path'
+        waitsFor ->
+          pathHandler.callCount >= 1
+        runs ->
+          expect(statusHandler.callCount).toBe 1
 
     it "stops listening to the buffer when the repository is destroyed (regression)", ->
-      atom.project.getRepositories()[0].destroy()
-      expect(-> editor.save()).not.toThrow()
+      waitsForPromise ->
+        atom.workspace.open('other.txt').then (o) ->
+          editor = o
+      runs ->
+        atom.project.getRepositories()[0].destroy()
+        expect(-> editor.save()).not.toThrow()
 
   describe "when a project is deserialized", ->
     [buffer, project2] = []
@@ -441,7 +455,7 @@ describe "GitRepositoryAsync", ->
         project2.getRepositories()[0].async.onDidChangeStatus statusHandler
         buffer.save()
         waitsFor ->
-          statusHandler.callCount == 1
+          statusHandler.callCount >= 1
         runs ->
           expect(statusHandler.callCount).toBe 1
           expect(statusHandler).toHaveBeenCalledWith {path: buffer.getPath(), pathStatus: 256}
