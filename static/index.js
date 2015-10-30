@@ -7,11 +7,11 @@
 
   var loadSettings = null
   var loadSettingsError = null
-  var cacheStorage = null
+  var blobStore = null
 
   app.on('before-quit', function () {
-    if (cacheStorage) {
-      cacheStorage.save()
+    if (blobStore) {
+      blobStore.save()
     }
   })
 

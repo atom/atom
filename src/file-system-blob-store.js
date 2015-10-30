@@ -14,32 +14,32 @@ class FileSystemBlobStore {
   constructor (directory) {
     this.inMemoryBlobs = new Map()
     this.blobFilename = path.join(directory, 'BLOB')
-    this.mapFilename = path.join(directory, 'MAP')
+    this.blobMapFilename = path.join(directory, 'MAP')
     this.storedBlob = new Buffer(0)
-    this.storedMap = {}
+    this.storedBlobMap = {}
   }
 
   load () {
-    if (!fs.existsSync(this.mapFilename)) {
+    if (!fs.existsSync(this.blobMapFilename)) {
       return
     }
     if (!fs.existsSync(this.blobFilename)) {
       return
     }
     this.storedBlob = fs.readFileSync(this.blobFilename)
-    this.storedMap = JSON.parse(fs.readFileSync(this.mapFilename))
+    this.storedBlobMap = JSON.parse(fs.readFileSync(this.blobMapFilename))
   }
 
   save () {
     let dump = this.getDump()
-    let cacheBlob = Buffer.concat(dump[0])
-    let cacheMap = JSON.stringify(dump[1])
-    fs.writeFileSync(this.blobFilename, cacheBlob)
-    fs.writeFileSync(this.mapFilename, cacheMap)
+    let blobToStore = Buffer.concat(dump[0])
+    let mapToStore = JSON.stringify(dump[1])
+    fs.writeFileSync(this.blobFilename, blobToStore)
+    fs.writeFileSync(this.blobMapFilename, mapToStore)
   }
 
   has (key) {
-    return this.inMemoryBlobs.hasOwnProperty(key) || this.storedMap.hasOwnProperty(key)
+    return this.inMemoryBlobs.hasOwnProperty(key) || this.storedBlobMap.hasOwnProperty(key)
   }
 
   get (key) {
@@ -52,7 +52,7 @@ class FileSystemBlobStore {
 
   delete (key) {
     this.inMemoryBlobs.delete(key)
-    delete this.storedMap[key]
+    delete this.storedBlobMap[key]
   }
 
   getFromMemory (key) {
@@ -60,22 +60,22 @@ class FileSystemBlobStore {
   }
 
   getFromStorage (key) {
-    if (this.storedMap[key] == null) {
+    if (!this.storedBlobMap[key]) {
       return
     }
 
-    return this.storedBlob.slice.apply(this.storedBlob, this.storedMap[key])
+    return this.storedBlob.slice.apply(this.storedBlob, this.storedBlobMap[key])
   }
 
   getDump () {
     let buffers = []
-    let cacheMap = {}
+    let blobMap = {}
     let currentBufferStart = 0
 
     function dump (key, getBufferByKey) {
       let buffer = getBufferByKey(key)
       buffers.push(buffer)
-      cacheMap[key] = [currentBufferStart, currentBufferStart + buffer.length]
+      blobMap[key] = [currentBufferStart, currentBufferStart + buffer.length]
       currentBufferStart += buffer.length
     }
 
@@ -83,12 +83,12 @@ class FileSystemBlobStore {
       dump(key, this.getFromMemory.bind(this))
     }
 
-    for (let key of Object.keys(this.storedMap)) {
-      if (!cacheMap[key]) {
+    for (let key of Object.keys(this.storedBlobMap)) {
+      if (!blobMap[key]) {
         dump(key, this.getFromStorage.bind(this))
       }
     }
 
-    return [buffers, cacheMap]
+    return [buffers, blobMap]
   }
 }
