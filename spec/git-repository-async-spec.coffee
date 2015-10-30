@@ -364,7 +364,6 @@ describe "GitRepositoryAsync", ->
         waitsFor ->
           statusHandler.callCount >= 1
         runs ->
-          console.log "in run block"
           expect(statusHandler.callCount).toBe 1
           expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
 
