@@ -3,7 +3,7 @@
   var fs = require('fs-plus')
   var path = require('path')
   var FileSystemCacheBlobStorage = require('../src/file-system-cache-blob-storage')
-  var NativeCompileCache = require("../src/native-compile-cache")
+  var NativeCompileCache = require('../src/native-compile-cache')
 
   var loadSettings = null
   var loadSettingsError = null
@@ -11,7 +11,7 @@
 
   app.on('before-quit', function () {
     if (cacheStorage) {
-      cacheStorage.save();
+      cacheStorage.save()
     }
   })
 
@@ -27,7 +27,7 @@
       setupAtomHome()
 
       cacheStorage = FileSystemCacheBlobStorage.load(
-        path.join(process.env.ATOM_HOME, "native-compile-cache/")
+        path.join(process.env.ATOM_HOME, 'native-compile-cache/')
       )
       NativeCompileCache.setCacheStorage(cacheStorage)
       NativeCompileCache.install()
