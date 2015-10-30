@@ -1,11 +1,19 @@
 (function () {
+  var app = require('remote').require('app')
   var fs = require('fs-plus')
   var path = require('path')
-  var FileSystemCacheStorage = require('../src/file-system-cache-storage')
+  var FileSystemCacheBlobStorage = require('../src/file-system-cache-blob-storage')
   var NativeCompileCache = require("../src/native-compile-cache")
 
   var loadSettings = null
   var loadSettingsError = null
+  var cacheStorage = null
+
+  app.on('before-quit', function () {
+    if (cacheStorage) {
+      cacheStorage.save();
+    }
+  })
 
   window.onload = function () {
     try {
@@ -18,9 +26,10 @@
       // Ensure ATOM_HOME is always set before anything else is required
       setupAtomHome()
 
-      NativeCompileCache.setCacheStorage(
-        new FileSystemCacheStorage(path.join(process.env.ATOM_HOME, "native-compile-cache/"))
+      cacheStorage = FileSystemCacheBlobStorage.load(
+        path.join(process.env.ATOM_HOME, "native-compile-cache/")
       )
+      NativeCompileCache.setCacheStorage(cacheStorage)
       NativeCompileCache.install()
 
       // Normalize to make sure drive letter case is consistent on Windows
