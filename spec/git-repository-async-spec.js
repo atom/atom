@@ -80,6 +80,39 @@ describe('GitRepositoryAsync', () => {
         expect(called).toEqual({path: editor.getPath(), pathStatus: 256})
       })
     })
+
+    it('emits a status-changed event when a buffer is reloaded', () => {
+      let editor
+      let statusHandler = jasmine.createSpy('statusHandler')
+      let reloadHandler = jasmine.createSpy('reloadHandler')
+
+      waitsForPromise(function () {
+        return atom.workspace.open('other.txt').then((o) => {
+          editor = o
+        })
+      })
+
+      runs(() => {
+        fs.writeFileSync(editor.getPath(), 'changed')
+        atom.project.getRepositories()[0].async.onDidChangeStatus(statusHandler)
+        editor.getBuffer().reload()
+      })
+
+      waitsFor(() => {
+        return statusHandler.callCount > 0
+      })
+
+      runs(() => {
+        expect(statusHandler.callCount).toBe(1)
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+        let buffer = editor.getBuffer()
+        buffer.onDidReload(reloadHandler)
+        buffer.reload()
+      })
+
+      waitsFor(() => { return reloadHandler.callCount > 0 })
+      runs(() => { expect(statusHandler.callCount).toBe(1) })
+    })
   })
 
 })
