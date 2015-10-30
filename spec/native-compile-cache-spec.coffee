@@ -4,7 +4,7 @@ describe "NativeCompileCache", ->
 
   beforeEach ->
     cachedFiles = []
-    fakeCacheStorage = jasmine.createSpyObj("cache storage", ["set", "get", "has"])
+    fakeCacheStorage = jasmine.createSpyObj("cache storage", ["set", "get", "has", "delete"])
     nativeCompileCache.setCacheStorage(fakeCacheStorage)
     nativeCompileCache.install()
 
@@ -36,3 +36,12 @@ describe "NativeCompileCache", ->
 
     expect(fakeCacheStorage.set).not.toHaveBeenCalled()
     expect(fn1()).toBe(1)
+
+  it "deletes previously cached code when the cache is not valid", ->
+    fakeCacheStorage.has.andReturn(true)
+    fakeCacheStorage.get.andCallFake -> new Buffer("an invalid cache")
+
+    fn3 = require('./fixtures/native-cache/file-3')
+
+    expect(fakeCacheStorage.delete).toHaveBeenCalledWith(require.resolve('./fixtures/native-cache/file-3'))
+    expect(fn3()).toBe(3)

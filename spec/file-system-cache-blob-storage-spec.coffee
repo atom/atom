@@ -48,3 +48,22 @@ describe "FileSystemCacheBlobStorage", ->
     expect(cacheBlobStorage.get("foo")).toEqual(new Buffer("foo"))
     expect(cacheBlobStorage.get("bar")).toEqual(new Buffer("changed"))
     expect(cacheBlobStorage.get("qux")).toEqual(new Buffer("qux"))
+
+  it "allows to delete keys from both memory and stored buffers", ->
+    cacheBlobStorage.set("a", new Buffer("a"))
+    cacheBlobStorage.set("b", new Buffer("b"))
+    cacheBlobStorage.save()
+
+    cacheBlobStorage = FileSystemCacheBlobStorage.load(storageDirectory)
+
+    cacheBlobStorage.set("b", new Buffer("b"))
+    cacheBlobStorage.set("c", new Buffer("c"))
+    cacheBlobStorage.delete("b")
+    cacheBlobStorage.delete("c")
+    cacheBlobStorage.save()
+
+    cacheBlobStorage = FileSystemCacheBlobStorage.load(storageDirectory)
+
+    expect(cacheBlobStorage.get("a")).toEqual(new Buffer("a"))
+    expect(cacheBlobStorage.get("b")).toBeUndefined()
+    expect(cacheBlobStorage.get("c")).toBeUndefined()

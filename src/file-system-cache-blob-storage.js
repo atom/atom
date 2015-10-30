@@ -47,6 +47,11 @@ module.exports = (function () {
     return this.inMemoryCache.set(key, buffer)
   }
 
+  FileSystemCacheBlobStorage.prototype.delete = function (key) {
+    this.inMemoryCache.delete(key)
+    delete this.storedCacheMap[key]
+  }
+
   FileSystemCacheBlobStorage.prototype.getFromMemory = function (key) {
     return this.inMemoryCache.get(key)
   }

@@ -56,12 +56,16 @@ NativeCompileCache = (function () {
       var wrapper = Module.wrap(content)
 
       var compiledWrapper = null
+      var compilationResult = null
       if (cacheStorage.has(filename)) {
         var buffer = cacheStorage.get(filename)
-        compiledWrapper =
-          cachedVm.runInThisContextCached(wrapper, filename, buffer).result
+        compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
+        compiledWrapper = compilationResult.result
+        if (compilationResult.wasRejected) {
+          cacheStorage.delete(filename)
+        }
       } else {
-        var compilationResult = cachedVm.runInThisContext(wrapper, filename)
+        compilationResult = cachedVm.runInThisContext(wrapper, filename)
         if (compilationResult.cacheBuffer) {
           cacheStorage.set(filename, compilationResult.cacheBuffer)
         }
