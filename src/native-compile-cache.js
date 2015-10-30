@@ -1,41 +1,37 @@
-var Module = require('module')
-var path = require('path')
-var cachedVm = require('cached-run-in-this-context')
+'use strict'
 
-var NativeCompileCache
-NativeCompileCache = (function () {
-  function NativeCompileCache () {}
+const Module = require('module')
+const path = require('path')
+const cachedVm = require('cached-run-in-this-context')
 
-  NativeCompileCache.prototype.setCacheStorage = function (storage) {
+class NativeCompileCache {
+  constructor () {
+    this.cacheStorage = null
+    this.previousModuleCompile = null
+  }
+
+  setCacheStorage (storage) {
     this.cacheStorage = storage
   }
 
-  NativeCompileCache.prototype.getCacheStorage = function () {
-    return this.cacheStorage
-  }
-
-  NativeCompileCache.prototype.install = function () {
+  install () {
     this.savePreviousModuleCompile()
     this.overrideModuleCompile()
   }
 
-  NativeCompileCache.prototype.uninstall = function () {
+  uninstall () {
     this.restorePreviousModuleCompile()
   }
 
-  NativeCompileCache.prototype.savePreviousModuleCompile = function () {
+  savePreviousModuleCompile () {
     this.previousModuleCompile = Module.prototype._compile
   }
 
-  NativeCompileCache.prototype.restorePreviousModuleCompile = function () {
-    Module.prototype._compile = this.previousModuleCompile
-  }
-
-  NativeCompileCache.prototype.overrideModuleCompile = function () {
-    var cacheStorage = this.cacheStorage
-    var resolvedArgv = null
+  overrideModuleCompile () {
+    let cacheStorage = this.cacheStorage
+    let resolvedArgv = null
     Module.prototype._compile = function (content, filename) {
-      var self = this
+      let self = this
       // remove shebang
       content = content.replace(/^\#\!.*/, '')
       function require (path) {
@@ -50,22 +46,21 @@ NativeCompileCache = (function () {
       require.extensions = Module._extensions
       require.cache = Module._cache
 
-      var dirname = path.dirname(filename)
+      let dirname = path.dirname(filename)
 
       // create wrapper function
-      var wrapper = Module.wrap(content)
+      let wrapper = Module.wrap(content)
 
-      var compiledWrapper = null
-      var compilationResult = null
+      let compiledWrapper = null
       if (cacheStorage.has(filename)) {
-        var buffer = cacheStorage.get(filename)
-        compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
+        let buffer = cacheStorage.get(filename)
+        let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
           cacheStorage.delete(filename)
         }
       } else {
-        compilationResult = cachedVm.runInThisContext(wrapper, filename)
+        let compilationResult = cachedVm.runInThisContext(wrapper, filename)
         if (compilationResult.cacheBuffer) {
           cacheStorage.set(filename, compilationResult.cacheBuffer)
         }
@@ -90,13 +85,14 @@ NativeCompileCache = (function () {
           global.v8debug.Debug.setBreakPoint(compiledWrapper, 0, 0)
         }
       }
-      var args = [self.exports, require, self, filename, dirname, process, global]
+      let args = [self.exports, require, self, filename, dirname, process, global]
       return compiledWrapper.apply(self.exports, args)
     }
   }
 
-  return NativeCompileCache
-
-})()
+  restorePreviousModuleCompile () {
+    Module.prototype._compile = this.previousModuleCompile
+  }
+}
 
 module.exports = new NativeCompileCache()

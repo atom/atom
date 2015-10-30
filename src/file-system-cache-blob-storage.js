@@ -1,14 +1,17 @@
-var fs = require('fs-plus')
-var path = require('path')
+'use strict'
 
-module.exports = (function () {
-  FileSystemCacheBlobStorage.load = function (directory) {
-    var instance = new FileSystemCacheBlobStorage(directory)
+const fs = require('fs-plus')
+const path = require('path')
+
+module.exports =
+class FileSystemCacheBlobStorage {
+  static load (directory) {
+    let instance = new FileSystemCacheBlobStorage(directory)
     instance.load()
     return instance
   }
 
-  function FileSystemCacheBlobStorage (directory) {
+  constructor (directory) {
     this.inMemoryCache = new Map()
     this.cacheBlobFilename = path.join(directory, 'v8-compile-cache.blob')
     this.cacheMapFilename = path.join(directory, 'v8-compile-cache.map')
@@ -16,7 +19,7 @@ module.exports = (function () {
     this.storedCacheMap = {}
   }
 
-  FileSystemCacheBlobStorage.prototype.load = function () {
+  load () {
     if (!fs.existsSync(this.cacheMapFilename)) {
       return
     }
@@ -27,36 +30,36 @@ module.exports = (function () {
     this.storedCacheMap = JSON.parse(fs.readFileSync(this.cacheMapFilename))
   }
 
-  FileSystemCacheBlobStorage.prototype.save = function () {
-    var dump = this.getDump()
-    var cacheBlob = Buffer.concat(dump[0])
-    var cacheMap = JSON.stringify(dump[1])
+  save () {
+    let dump = this.getDump()
+    let cacheBlob = Buffer.concat(dump[0])
+    let cacheMap = JSON.stringify(dump[1])
     fs.writeFileSync(this.cacheBlobFilename, cacheBlob)
     fs.writeFileSync(this.cacheMapFilename, cacheMap)
   }
 
-  FileSystemCacheBlobStorage.prototype.has = function (key) {
+  has (key) {
     return this.inMemoryCache.hasOwnProperty(key) || this.storedCacheMap.hasOwnProperty(key)
   }
 
-  FileSystemCacheBlobStorage.prototype.get = function (key) {
+  get (key) {
     return this.getFromMemory(key) || this.getFromStorage(key)
   }
 
-  FileSystemCacheBlobStorage.prototype.set = function (key, buffer) {
+  set (key, buffer) {
     return this.inMemoryCache.set(key, buffer)
   }
 
-  FileSystemCacheBlobStorage.prototype.delete = function (key) {
+  delete (key) {
     this.inMemoryCache.delete(key)
     delete this.storedCacheMap[key]
   }
 
-  FileSystemCacheBlobStorage.prototype.getFromMemory = function (key) {
+  getFromMemory (key) {
     return this.inMemoryCache.get(key)
   }
 
-  FileSystemCacheBlobStorage.prototype.getFromStorage = function (key) {
+  getFromStorage (key) {
     if (this.storedCacheMap[key] == null) {
       return
     }
@@ -64,30 +67,28 @@ module.exports = (function () {
     return this.storedCacheBlob.slice.apply(this.storedCacheBlob, this.storedCacheMap[key])
   }
 
-  FileSystemCacheBlobStorage.prototype.getDump = function () {
-    var self = this
-    var buffers = []
-    var cacheMap = {}
-    var currentBufferStart = 0
+  getDump () {
+    let buffers = []
+    let cacheMap = {}
+    let currentBufferStart = 0
+
     function dump (key, getBufferByKey) {
-      var buffer = getBufferByKey.bind(self)(key)
+      let buffer = getBufferByKey(key)
       buffers.push(buffer)
       cacheMap[key] = [currentBufferStart, currentBufferStart + buffer.length]
       currentBufferStart += buffer.length
     }
 
-    this.inMemoryCache.forEach(function (__, key) {
-      dump(key, self.getFromMemory)
-    })
-    Object.keys(this.storedCacheMap).forEach(function (key) {
+    for (let key of this.inMemoryCache.keys()) {
+      dump(key, this.getFromMemory.bind(this))
+    }
+
+    for (let key of Object.keys(this.storedCacheMap)) {
       if (!cacheMap[key]) {
-        dump(key, self.getFromStorage)
+        dump(key, this.getFromStorage.bind(this))
       }
-    })
+    }
 
     return [buffers, cacheMap]
   }
-
-  return FileSystemCacheBlobStorage
-
-})()
+}
