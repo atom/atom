@@ -353,7 +353,7 @@ describe "GitRepositoryAsync", ->
     it "emits a status-changed event when a buffer is saved", ->
       waitsForPromise ->
         atom.workspace.open('other.txt').then (o) ->
-                    editor = o
+          editor = o
       runs ->
         editor.insertNewline()
         statusHandler = jasmine.createSpy('statusHandler')
