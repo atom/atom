@@ -182,32 +182,30 @@ module.exports = class GitRepositoryAsync {
   // ================
 
   subscribeToBuffer (buffer) {
+    let bufferSubscriptions = new CompositeDisposable()
+
     let getBufferPathStatus = () => {
       let _path = buffer.getPath()
-      let bufferSubscriptions = new CompositeDisposable()
-
       if (_path) {
         // We don't need to do anything with this promise, we just want the
         // emitted event side effect
         this.getPathStatus(_path)
       }
-
-      bufferSubscriptions.add(
-        buffer.onDidSave(getBufferPathStatus),
-        buffer.onDidReload(getBufferPathStatus),
-        buffer.onDidChangePath(getBufferPathStatus)
-      )
-
-      bufferSubscriptions.add(() => {
-        buffer.onDidDestroy(() => {
-          bufferSubscriptions.dispose()
-          this.subscriptions.remove(bufferSubscriptions)
-        })
-      })
-
-      this.subscriptions.add(bufferSubscriptions)
-      return
     }
+
+    bufferSubscriptions.add(
+      buffer.onDidSave(getBufferPathStatus),
+      buffer.onDidReload(getBufferPathStatus),
+      buffer.onDidChangePath(getBufferPathStatus),
+      buffer.onDidDestroy(() => {
+        bufferSubscriptions.dispose()
+        this.subscriptions.remove(bufferSubscriptions)
+      })
+    )
+
+
+    this.subscriptions.add(bufferSubscriptions)
+    return
   }
 
   getCachedPathStatus (_path) {
