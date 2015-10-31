@@ -66,17 +66,6 @@ atom-text-editor .search-results .marker.current-result .region,
   color: @light-gray;
 }
 
-.entity {
-  &.name.type {
-    color: @light-orange;
-    text-decoration: underline;
-  }
-
-  &.other.inherited-class {
-    color: @green;
-  }
-}
-
 .keyword {
   color: @purple;
 
@@ -208,7 +197,14 @@ atom-text-editor .search-results .marker.current-result .region,
   &.name.function {
     color: @blue;
   }
+  &.name.type {
+    color: @light-orange;
+    text-decoration: underline;
+  }
 
+  &.other.inherited-class {
+    color: @green;
+  }
   &.name.class, &.name.type.class {
     color: @light-orange;
   }
