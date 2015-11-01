@@ -159,9 +159,12 @@ class LinesYardstick
       0
 
   leftPixelPositionForCharInTextNode: (lineNode, textNode, charIndex) ->
-    @rangeForMeasurement.setStart(textNode, 0)
-    @rangeForMeasurement.setEnd(textNode, charIndex)
-    width = @rangeForMeasurement.getBoundingClientRect().width
+    if charIndex is 0
+      width = 0
+    else
+      @rangeForMeasurement.setStart(textNode, 0)
+      @rangeForMeasurement.setEnd(textNode, charIndex)
+      width = @rangeForMeasurement.getBoundingClientRect().width
 
     @rangeForMeasurement.setStart(textNode, 0)
     @rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
