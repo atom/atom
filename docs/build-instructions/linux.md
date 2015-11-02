@@ -55,7 +55,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   ```sh
   git fetch -p
-  git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
+  git checkout $(git tag --sort="version:refname" | grep -v -E "alpha|beta" | tail -n 1)
   ```
 
 3. Build Atom:
