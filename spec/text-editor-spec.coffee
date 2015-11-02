@@ -2077,6 +2077,39 @@ describe "TextEditor", ->
               expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
 
+        describe 'when there are many folds', ->
+          beforeEach ->
+            waitsForPromise ->
+              atom.workspace.open('sample-with-many-folds.js', autoIndent: false).then (o) -> editor = o
+
+          describe 'and many selections intersects folded rows', ->
+            it 'moves and preserves all the folds', ->
+              editor.createFold(2, 4)
+              editor.createFold(7, 9)
+
+              editor.setSelectedBufferRanges([
+                [[1, 0], [5, 4]],
+                [[7, 0], [7, 4]]
+              ], preserveFolds: true)
+
+              editor.moveLineUp()
+
+              expect(editor.lineTextForBufferRow(1)).toEqual "function f3() {"
+              expect(editor.lineTextForBufferRow(4)).toEqual "6;"
+              expect(editor.lineTextForBufferRow(5)).toEqual "1;"
+              expect(editor.lineTextForBufferRow(6)).toEqual "function f8() {"
+              expect(editor.lineTextForBufferRow(9)).toEqual "7;"
+
+              expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
         describe "when some of the selections span the same lines", ->
           it "moves lines that contain multiple selections correctly", ->
             editor.setSelectedBufferRanges([[[3, 2], [3, 9]], [[3, 12], [3, 13]]])
@@ -2103,7 +2136,7 @@ describe "TextEditor", ->
 
             expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]]
 
-    describe ".moveLineDown", ->
+    fdescribe ".moveLineDown", ->
       describe "when there is a single selection", ->
         describe "when the selection spans a single line", ->
           describe "when there is no fold in the following row", ->
@@ -2294,6 +2327,41 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(5)).toBe "      current < pivot ? left.push(current) : right.push(current);"
               expect(editor.lineTextForBufferRow(6)).toBe "      current = items.shift();"
+
+          describe 'when there are many folds', ->
+            beforeEach ->
+              waitsForPromise ->
+                atom.workspace.open('sample-with-many-folds.js', autoIndent: false).then (o) -> editor = o
+
+            describe 'and many selections intersects folded rows', ->
+              it 'moves and preserves all the folds', ->
+                editor.createFold(2, 4)
+                editor.createFold(7, 9)
+
+                editor.setSelectedBufferRanges([
+                  [[2, 0], [2, 4]],
+                  [[6, 0], [10, 4]]
+                ], preserveFolds: true)
+
+                editor.moveLineDown()
+
+                expect(editor.lineTextForBufferRow(2)).toEqual "6;"
+                expect(editor.lineTextForBufferRow(3)).toEqual "function f3() {"
+                expect(editor.lineTextForBufferRow(6)).toEqual "12;"
+                expect(editor.lineTextForBufferRow(7)).toEqual "7;"
+                expect(editor.lineTextForBufferRow(8)).toEqual "function f8() {"
+                expect(editor.lineTextForBufferRow(11)).toEqual "11;"
+
+                expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+                expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
+                expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+                expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(9)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(10)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(11)).toBeFalsy()
 
           describe "when there is a fold below one of the selected row", ->
             it "moves all lines spanned by a selection to the following row, preserving the fold", ->
