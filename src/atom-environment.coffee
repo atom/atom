@@ -13,6 +13,7 @@ StorageFolder = require './storage-folder'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
+ApplicationDelegate = require './application-delegate'
 DeserializerManager = require './deserializer-manager'
 ViewRegistry = require './view-registry'
 NotificationManager = require './notification-manager'
@@ -117,6 +118,12 @@ class AtomEnvironment extends Model
   # Call .loadOrCreate instead
   constructor: (params={}) ->
     {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
+    unless @window
+      @window = window
+    unless @document
+      @document = document
+    unless @applicationDelegate
+      @applicationDelegate = new ApplicationDelegate()
 
     @state = {version: @constructor.version}
 
