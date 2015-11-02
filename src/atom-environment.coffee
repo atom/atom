@@ -636,6 +636,7 @@ class AtomEnvironment extends Model
     @state.packageStates = @packages.packageStates
     @state.fullScreen = @isFullScreen()
     @saveStateSync()
+    @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
@@ -758,6 +759,11 @@ class AtomEnvironment extends Model
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
+
+  saveBlobStoreSync: ->
+    return unless @enablePersistence
+
+    @window.blobStore.save()
 
   saveStateSync: ->
     return unless @enablePersistence

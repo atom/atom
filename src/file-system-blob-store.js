@@ -15,6 +15,7 @@ class FileSystemBlobStore {
     this.inMemoryBlobs = new Map()
     this.blobFilename = path.join(directory, 'BLOB')
     this.blobMapFilename = path.join(directory, 'MAP')
+    this.lockFilename = path.join(directory, 'LOCK')
     this.storedBlob = new Buffer(0)
     this.storedBlobMap = {}
   }
@@ -34,8 +35,24 @@ class FileSystemBlobStore {
     let dump = this.getDump()
     let blobToStore = Buffer.concat(dump[0])
     let mapToStore = JSON.stringify(dump[1])
-    fs.writeFileSync(this.blobFilename, blobToStore)
-    fs.writeFileSync(this.blobMapFilename, mapToStore)
+
+    let acquiredLock = false
+    try {
+      fs.writeFileSync(this.lockFilename, 'LOCK', {flag: 'wx'})
+      acquiredLock = true
+
+      fs.writeFileSync(this.blobFilename, blobToStore)
+      fs.writeFileSync(this.blobMapFilename, mapToStore)
+    } catch (error) {
+      // Swallow the exception silently only if we fail to acquire the lock.
+      if (error.code !== 'EEXIST') {
+        throw error
+      }
+    } finally {
+      if (acquiredLock) {
+        fs.unlinkSync(this.lockFilename)
+      }
+    }
   }
 
   has (key) {

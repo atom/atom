@@ -3,17 +3,10 @@
   var path = require('path')
   var FileSystemBlobStore = require('../src/file-system-blob-store')
   var NativeCompileCache = require('../src/native-compile-cache')
-  var ipc = require('ipc')
 
   var loadSettings = null
   var loadSettingsError = null
-  var blobStore = null
-
-  ipc.on('save-blob-store', function () {
-    if (blobStore) {
-      blobStore.save()
-    }
-  })
+  window.blobStore = null
 
   window.onload = function () {
     try {
@@ -26,10 +19,10 @@
       // Ensure ATOM_HOME is always set before anything else is required
       setupAtomHome()
 
-      blobStore = FileSystemBlobStore.load(
+      window.blobStore = FileSystemBlobStore.load(
         path.join(process.env.ATOM_HOME, 'blob-store/')
       )
-      NativeCompileCache.setCacheStore(blobStore)
+      NativeCompileCache.setCacheStore(window.blobStore)
       NativeCompileCache.install()
 
       // Normalize to make sure drive letter case is consistent on Windows
