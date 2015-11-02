@@ -30,6 +30,7 @@ class DisplayBuffer extends Model
 
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+    state.foldsMarkerLayer = state.tokenizedBuffer.buffer.getMarkerLayer(state.foldsMarkerLayerId)
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
     state.grammarRegistry = atomEnvironment.grammars
@@ -40,8 +41,8 @@ class DisplayBuffer extends Model
     super
 
     {
-      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles,
-      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+      tabLength, @editorWidthInChars, @tokenizedBuffer, @foldsMarkerLayer, buffer,
+      ignoreInvisibles, @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
     } = params
 
     @emitter = new Emitter
@@ -65,10 +66,10 @@ class DisplayBuffer extends Model
 
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
+    @disposables.add @buffer.onDidCreateMarker @didCreateDefaultLayerMarker
 
-    @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
-    folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
+    @foldsMarkerLayer ?= @buffer.addMarkerLayer()
+    folds = (new Fold(this, marker) for marker in @foldsMarkerLayer.getMarkers())
     @updateAllScreenLines()
     @decorateFold(fold) for fold in folds
 
@@ -114,16 +115,14 @@ class DisplayBuffer extends Model
     editorWidthInChars: @editorWidthInChars
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
+    foldsMarkerLayerId: @foldsMarkerLayer.id
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({
+    foldsMarkerLayer = @foldsMarkerLayer.copy()
+    new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
-      @grammarRegistry, @packageManager
+      @grammarRegistry, @packageManager, foldsMarkerLayer
     })
-
-    for marker in @findMarkers(displayBufferId: @id)
-      marker.copy(displayBufferId: newDisplayBuffer.id)
-    newDisplayBuffer
 
   updateAllScreenLines: ->
     @maxLineLength = 0
@@ -396,10 +395,14 @@ class DisplayBuffer extends Model
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
     unless @largeFileMode
-      foldMarker =
-        @findFoldMarker({startRow, endRow}) ?
-          @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
-      @foldForMarker(foldMarker)
+      if foldMarker = @findFoldMarker({startRow, endRow})
+        @foldForMarker(foldMarker)
+      else
+        foldMarker = @foldsMarkerLayer.markRange([[startRow, 0], [endRow, Infinity]])
+        fold = new Fold(this, foldMarker)
+        fold.updateDisplayBuffer()
+        @decorateFold(fold)
+        fold
 
   isFoldedAtBufferRow: (bufferRow) ->
     @largestFoldContainingBufferRow(bufferRow)?
@@ -920,17 +923,11 @@ class DisplayBuffer extends Model
     else if bufferLayer = @buffer.getMarkerLayer(id)
       @customMarkerLayersById[id] = new TextEditorMarkerLayer(this, bufferLayer)
 
-  findFoldMarker: (attributes) ->
-    @findFoldMarkers(attributes)[0]
+  findFoldMarker: (params) ->
+    @findFoldMarkers(params)[0]
 
-  findFoldMarkers: (attributes) ->
-    @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
-
-  getFoldMarkerAttributes: (attributes) ->
-    if attributes
-      _.extend(attributes, @foldMarkerAttributes)
-    else
-      @foldMarkerAttributes
+  findFoldMarkers: (params) ->
+    @foldsMarkerLayer.findMarkers(params)
 
   refreshMarkerScreenPositions: ->
     @defaultMarkerLayer.refreshMarkerScreenPositions()
@@ -938,8 +935,8 @@ class DisplayBuffer extends Model
     return
 
   destroyed: ->
-    fold.destroy() for markerId, fold of @foldsByMarkerId
     @defaultMarkerLayer.destroy()
+    @foldsMarkerLayer.destroy()
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
     @tokenizedBuffer.destroy()
@@ -1061,12 +1058,7 @@ class DisplayBuffer extends Model
         @longestScreenRow = screenRow
         @maxLineLength = length
 
-  handleBufferMarkerCreated: (textBufferMarker) =>
-    if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
-      fold = new Fold(this, textBufferMarker)
-      fold.updateDisplayBuffer()
-      @decorateFold(fold)
-
+  didCreateDefaultLayerMarker: (textBufferMarker) =>
     if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.

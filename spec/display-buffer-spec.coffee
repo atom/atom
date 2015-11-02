@@ -418,11 +418,11 @@ describe "DisplayBuffer", ->
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
           fold = displayBuffer.createFold(0, 10)
-          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
+          expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
           newFold = displayBuffer.createFold(0, 10)
           expect(newFold).toBe fold
-          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
+          expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
       describe "when a fold is created inside an existing folded region", ->
         it "creates/destroys the fold, but does not trigger change event", ->
