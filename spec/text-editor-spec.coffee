@@ -1838,7 +1838,7 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
 
           describe "when the cursor is at the beginning of a fold", ->
-            it "moves the line to the following row without breaking the fold", ->
+            it "moves the line to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
               editor.createFold(4, 7)
@@ -1904,7 +1904,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(4)).toBe "    if (items.length <= 1) return items;"
 
           describe "when the selection's end intersects a fold", ->
-            it "moves the lines to the following row without breaking the fold", ->
+            it "moves the lines to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
               editor.createFold(4, 7)
@@ -1932,7 +1932,7 @@ describe "TextEditor", ->
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
 
           describe "when the selection's start intersects a fold", ->
-            it "moves the lines to the following row without breaking the fold", ->
+            it "moves the lines to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
               editor.createFold(4, 7)
@@ -1974,7 +1974,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-        describe "when there are multiple selections and the preceeding row is a folded row", ->
+        describe "when the preceeding row is a folded row", ->
           it "moves the lines spanned by the selection to the preceeding row, but preserves the folded code", ->
             expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
             expect(editor.lineTextForBufferRow(9)).toBe "  };"
