@@ -1373,7 +1373,7 @@ describe "TextEditorComponent", ->
     [marker, decoration, decorationParams] = []
 
     beforeEach ->
-      marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside', maintainHistory: true)
+      marker = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
       decorationParams = {type: ['line-number', 'line'], class: 'a'}
       decoration = editor.decorateMarker(marker, decorationParams)
       waitsForNextDOMUpdate()
@@ -1548,7 +1548,7 @@ describe "TextEditorComponent", ->
     [marker, decoration, decorationParams, scrollViewClientLeft] = []
     beforeEach ->
       scrollViewClientLeft = componentNode.querySelector('.scroll-view').getBoundingClientRect().left
-      marker = editor.displayBuffer.markBufferRange([[2, 13], [3, 15]], invalidate: 'inside', maintainHistory: true)
+      marker = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[2, 13], [3, 15]], invalidate: 'inside')
       decorationParams = {type: 'highlight', class: 'test-highlight'}
       decoration = editor.decorateMarker(marker, decorationParams)
       waitsForNextDOMUpdate()
@@ -2673,7 +2673,6 @@ describe "TextEditorComponent", ->
     cursor = null
 
     beforeEach ->
-      console.log editor.getText()
       editor.setCursorScreenPosition([0, 0])
       waitsForNextDOMUpdate()
 

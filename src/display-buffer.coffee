@@ -54,15 +54,18 @@ class DisplayBuffer extends Model
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
     @defaultMarkerLayer = new TextEditorMarkerLayer(this, @buffer.getDefaultMarkerLayer(), true)
+    @customMarkerLayersById = {}
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
     @overlayDecorationsById = {}
     @layerDecorationsByMarkerLayerId = {}
+    @decorationCountsByLayerId = {}
+    @layerUpdateDisposablesByLayerId = {}
+
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
-    @disposables.add @buffer.getDefaultMarkerLayer().onDidUpdate => @scheduleUpdateDecorationsEvent()
 
     @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
     folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
@@ -777,41 +780,39 @@ class DisplayBuffer extends Model
     decorationsByMarkerId
 
   decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
-    decorationState = {}
+    decorationsState = {}
 
-    startBufferRow = @bufferRowForScreenRow(startScreenRow)
-    endBufferRow = @bufferRowForScreenRow(endScreenRow)
+    for layerId of @decorationCountsByLayerId
+      layer = @getMarkerLayer(layerId)
 
-    defaultLayer = @buffer.getDefaultMarkerLayer()
-    for marker in defaultLayer.findMarkers(intersectsRowRange: [startBufferRow, endBufferRow]) when marker.isValid()
-      if decorations = @decorationsByMarkerId[marker.id]
-        for decoration in decorations
-          decorationState[decoration.id] = {
-            properties: decoration.properties
-            screenRange: @screenRangeForBufferRange(marker.getRange())
-            rangeIsReversed: marker.isReversed()
-          }
-
-    for markerLayerId, layerDecorations of @layerDecorationsByMarkerLayerId
-      markerLayer = @buffer.getMarkerLayer(markerLayerId)
-      for marker in markerLayer.findMarkers(intersectsRowRange: [startBufferRow, endBufferRow]) when marker.isValid()
-        screenRange = @screenRangeForBufferRange(marker.getRange())
+      for marker in layer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow]) when marker.isValid()
+        screenRange = marker.getScreenRange()
         rangeIsReversed = marker.isReversed()
-        for layerDecoration in layerDecorations
-          decorationState["#{layerDecoration.id}-#{marker.id}"] = {
-            properties: layerDecoration.overridePropertiesByMarkerId[marker.id] ? layerDecoration.properties
-            screenRange, rangeIsReversed
-          }
 
-    decorationState
+        if decorations = @decorationsByMarkerId[marker.id]
+          for decoration in decorations
+            decorationsState[decoration.id] = {
+              properties: decoration.properties
+              screenRange, rangeIsReversed
+            }
+
+        if layerDecorations = @layerDecorationsByMarkerLayerId[layerId]
+          for layerDecoration in layerDecorations
+            decorationsState["#{layerDecoration.id}-#{marker.id}"] = {
+              properties: layerDecoration.overridePropertiesByMarkerId[marker.id] ? layerDecoration.properties
+              screenRange, rangeIsReversed
+            }
+
+    decorationsState
 
   decorateMarker: (marker, decorationParams) ->
-    marker = @getMarker(marker.id)
+    marker = @getMarkerLayer(marker.layer.id).getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
     @decorationsById[decoration.id] = decoration
+    @observeDecoratedLayer(marker.layer)
     @scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-add-decoration', decoration
     decoration
@@ -820,6 +821,7 @@ class DisplayBuffer extends Model
     decoration = new LayerDecoration(markerLayer, this, decorationParams)
     @layerDecorationsByMarkerLayerId[markerLayer.id] ?= []
     @layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
+    @observeDecoratedLayer(markerLayer)
     @scheduleUpdateDecorationsEvent()
     decoration
 
@@ -908,6 +910,16 @@ class DisplayBuffer extends Model
   findMarkers: (params) ->
     @defaultMarkerLayer.findMarkers(params)
 
+  addMarkerLayer: (options) ->
+    bufferLayer = @buffer.addMarkerLayer(options)
+    @getMarkerLayer(bufferLayer.id)
+
+  getMarkerLayer: (id) ->
+    if layer = @customMarkerLayersById[id]
+      layer
+    else if bufferLayer = @buffer.getMarkerLayer(id)
+      @customMarkerLayersById[id] = new TextEditorMarkerLayer(this, bufferLayer)
+
   findFoldMarker: (attributes) ->
     @findFoldMarkers(attributes)[0]
 
@@ -921,8 +933,8 @@ class DisplayBuffer extends Model
       @foldMarkerAttributes
 
   refreshMarkerScreenPositions: ->
-    for marker in @getMarkers()
-      marker.notifyObservers(textChanged: false)
+    @defaultMarkerLayer.refreshMarkerScreenPositions()
+    layer.refreshMarkerScreenPositions() for id, layer of @customMarkerLayersById
     return
 
   destroyed: ->
@@ -1090,6 +1102,7 @@ class DisplayBuffer extends Model
       @emitter.emit 'did-remove-decoration', decoration
       delete @decorationsByMarkerId[marker.id] if decorations.length is 0
       delete @overlayDecorationsById[decoration.id]
+      @unobserveDecoratedLayer(marker.layer)
     @scheduleUpdateDecorationsEvent()
 
   didDestroyLayerDecoration: (decoration) ->
@@ -1100,7 +1113,19 @@ class DisplayBuffer extends Model
     if index > -1
       decorations.splice(index, 1)
       delete @layerDecorationsByMarkerLayerId[markerLayer.id] if decorations.length is 0
+      @unobserveDecoratedLayer(markerLayer)
     @scheduleUpdateDecorationsEvent()
+
+  observeDecoratedLayer: (layer) ->
+    @decorationCountsByLayerId[layer.id] ?= 0
+    if ++@decorationCountsByLayerId[layer.id] is 1
+      @layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(@scheduleUpdateDecorationsEvent.bind(this))
+
+  unobserveDecoratedLayer: (layer) ->
+    if --@decorationCountsByLayerId[layer.id] is 0
+      @layerUpdateDisposablesByLayerId[layer.id].dispose()
+      delete @decorationCountsByLayerId[layer.id]
+      delete @layerUpdateDisposablesByLayerId[layer.id]
 
   checkScreenLinesInvariant: ->
     return if @isSoftWrapped()

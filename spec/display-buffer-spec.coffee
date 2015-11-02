@@ -829,7 +829,6 @@ describe "DisplayBuffer", ->
     it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
       marker = displayBuffer.markBufferPosition([12, 2])
       displayBuffer.destroy()
-      expect(marker.bufferMarker.getSubscriptionCount()).toBe 0
       expect( -> buffer.insert([12, 2], '\n')).not.toThrow()
 
   describe "markers", ->
@@ -879,7 +878,7 @@ describe "DisplayBuffer", ->
       [markerChangedHandler, marker] = []
 
       beforeEach ->
-        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]], maintainHistory: true)
+        marker = displayBuffer.addMarkerLayer(maintainHistory: true).markScreenRange([[5, 4], [5, 10]])
         marker.onDidChange markerChangedHandler = jasmine.createSpy("markerChangedHandler")
 
       it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
@@ -1016,7 +1015,7 @@ describe "DisplayBuffer", ->
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
-        marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]], maintainHistory: true)
+        marker2 = displayBuffer.addMarkerLayer(maintainHistory: true).markBufferRange([[8, 1], [8, 1]])
         marker2.onDidChange marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
         displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 

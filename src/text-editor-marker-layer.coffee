@@ -3,6 +3,7 @@ TextEditorMarker = require './text-editor-marker'
 module.exports =
 class TextEditorMarkerLayer
   constructor: (@displayBuffer, @bufferMarkerLayer, @isDefaultLayer) ->
+    @id = @bufferMarkerLayer.id
     @markersById = {}
 
   getMarker: (id) ->
@@ -37,6 +38,11 @@ class TextEditorMarkerLayer
       marker.destroy() for id, marker of @markersById
     else
       @bufferMarkerLayer.destroy()
+
+  refreshMarkerScreenPositions: ->
+    for marker in @getMarkers()
+      marker.notifyObservers(textChanged: false)
+    return
 
   didDestroyMarker: (marker) ->
     delete @markersById[marker.id]
@@ -78,3 +84,10 @@ class TextEditorMarkerLayer
       bufferMarkerParams[key] = value
 
     bufferMarkerParams
+
+  onDidCreateMarker: (callback) ->
+    @bufferMarkerLayer.onDidCreateMarker (bufferMarker) =>
+      callback(@getMarker(bufferMarker.id))
+
+  onDidUpdate: (callback) ->
+    @bufferMarkerLayer.onDidUpdate(callback)

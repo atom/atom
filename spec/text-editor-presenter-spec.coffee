@@ -1154,10 +1154,10 @@ describe "TextEditorPresenter", ->
 
           describe ".decorationClasses", ->
             it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
-              marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
+              marker1 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
               decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
               presenter = buildPresenter()
-              marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
+              marker2 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
               decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
 
               waitsForStateToUpdate presenter
@@ -1867,7 +1867,7 @@ describe "TextEditorPresenter", ->
           presenter.getState().content.overlays[decoration.id]
 
         it "contains state for overlay decorations both initially and when their markers move", ->
-          marker = editor.markBufferPosition([2, 13], invalidate: 'touch', maintainHistory: true)
+          marker = editor.addMarkerLayer(maintainHistory: true).markBufferPosition([2, 13], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', item})
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20)
 
@@ -2353,9 +2353,9 @@ describe "TextEditorPresenter", ->
 
             describe ".decorationClasses", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
-                marker1 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
+                marker1 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
                 decoration1 = editor.decorateMarker(marker1, type: 'line-number', class: 'a')
-                marker2 = editor.markBufferRange([[4, 0], [6, 2]], invalidate: 'touch', maintainHistory: true)
+                marker2 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
                 decoration2 = editor.decorateMarker(marker2, type: 'line-number', class: 'b')
                 presenter = buildPresenter()
 

@@ -53,8 +53,8 @@ class TextEditorMarker
   Section: Construction and Destruction
   ###
 
-  constructor: (@markerLayer, @bufferMarker) ->
-    {@displayBuffer} = @markerLayer
+  constructor: (@layer, @bufferMarker) ->
+    {@displayBuffer} = @layer
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @id = @bufferMarker.id
@@ -82,7 +82,7 @@ class TextEditorMarker
   #
   # Returns a {TextEditorMarker}.
   copy: (properties) ->
-    @markerLayer.getMarker(@bufferMarker.copy(properties).id)
+    @layer.getMarker(@bufferMarker.copy(properties).id)
 
   ###
   Section: Event Subscription
@@ -170,7 +170,7 @@ class TextEditorMarker
     @bufferMarker.setProperties(properties)
 
   matchesProperties: (attributes) ->
-    attributes = @markerLayer.translateToBufferMarkerParams(attributes)
+    attributes = @layer.translateToBufferMarkerParams(attributes)
     @bufferMarker.matchesParams(attributes)
 
   ###
@@ -334,7 +334,7 @@ class TextEditorMarker
     "TextEditorMarker(id: #{@id}, bufferRange: #{@getBufferRange()})"
 
   destroyed: ->
-    @markerLayer.didDestroyMarker(this)
+    @layer.didDestroyMarker(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 

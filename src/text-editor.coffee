@@ -74,6 +74,7 @@ class TextEditor extends Model
         throw error
 
     state.displayBuffer = displayBuffer
+    state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
     state.packageManager = atomEnvironment.packages
@@ -90,9 +91,10 @@ class TextEditor extends Model
 
     {
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
-      softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
-      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
+      softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
+      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
+      @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
+      @project, @assert, @applicationDelegate
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -115,8 +117,9 @@ class TextEditor extends Model
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
+    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
 
-    for marker in @findMarkers(@getSelectionMarkerAttributes())
+    for marker in @selectionsMarkerLayer.getMarkers()
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
@@ -146,6 +149,7 @@ class TextEditor extends Model
     scrollRow: @getScrollRow()
     scrollColumn: @getScrollColumn()
     displayBuffer: @displayBuffer.serialize()
+    selectionsMarkerLayerId: @selectionsMarkerLayer.id
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -161,9 +165,9 @@ class TextEditor extends Model
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
-    @disposables.add @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @disposables.add @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
-    @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
+    @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
+    @disposables.add @displayBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
+    @disposables.add @displayBuffer.onDidTokenize @handleTokenization.bind(this)
     @disposables.add @displayBuffer.onDidChange (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
@@ -480,14 +484,13 @@ class TextEditor extends Model
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
     displayBuffer = @displayBuffer.copy()
+    selectionsMarkerLayer = displayBuffer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
-      @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert, @applicationDelegate
+      @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
+      suppressCursorCreation: true, @config, @notificationManager, @packageManager,
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
-    for marker in @findMarkers(editorId: @id)
-      marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
 
   # Controls visibility based on the given {Boolean}.
@@ -1681,6 +1684,15 @@ class TextEditor extends Model
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
+  destroyMarker: (id) ->
+    @getMarker(id)?.destroy()
+
+  addMarkerLayer: (options) ->
+    @displayBuffer.addMarkerLayer(options)
+
+  getMarkerLayer: (id) ->
+    @displayBuffer.getMarkerLayer(id)
+
   ###
   Section: Cursors
   ###
@@ -1749,7 +1761,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition, options) ->
-    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -1759,7 +1771,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtScreenPosition: (screenPosition, options) ->
-    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -2037,7 +2049,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -2050,7 +2062,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
-    @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -3069,10 +3081,6 @@ class TextEditor extends Model
     @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
-  handleMarkerCreated: (marker) =>
-    if marker.matchesProperties(@getSelectionMarkerAttributes())
-      @addSelection(marker)
-
   ###
   Section: TextEditor Rendering
   ###
@@ -3109,7 +3117,7 @@ class TextEditor extends Model
     @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
-    {type: 'selection', editorId: @id, invalidate: 'never', maintainHistory: true}
+    {type: 'selection', invalidate: 'never'}
 
   getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
   setVerticalScrollMargin: (verticalScrollMargin) -> @displayBuffer.setVerticalScrollMargin(verticalScrollMargin)
