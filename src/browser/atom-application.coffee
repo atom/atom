@@ -212,6 +212,7 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     app.on 'before-quit', =>
+      @saveBlobStore()
       @saveState(false)
       @quitting = true
 
@@ -432,6 +433,9 @@ class AtomApplication
       if error.code isnt 'ESRCH'
         console.log("Killing process #{pid} failed: #{error.code ? error.message}")
     delete @pidsToOpenWindows[pid]
+
+  saveBlobStore: ->
+    @windows[0]?.saveBlobStore()
 
   saveState: (allowEmpty=false) ->
     return if @quitting

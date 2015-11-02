@@ -1,15 +1,15 @@
 (function () {
-  var app = require('remote').require('app')
   var fs = require('fs-plus')
   var path = require('path')
   var FileSystemBlobStore = require('../src/file-system-blob-store')
   var NativeCompileCache = require('../src/native-compile-cache')
+  var ipc = require('ipc')
 
   var loadSettings = null
   var loadSettingsError = null
   var blobStore = null
 
-  app.on('before-quit', function () {
+  ipc.on('save-blob-store', function () {
     if (blobStore) {
       blobStore.save()
     }
