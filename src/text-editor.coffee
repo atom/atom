@@ -971,13 +971,19 @@ class TextEditor extends Model
           linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
         # If there's a fold containing either the starting row or the end row
-        # of the selection then the whole fold needs to be moved.
-        if fold = @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
-          newEndRow = fold.getBufferRange().end.row + 1
+        # of the selection then the whole fold needs to be moved and restored.
+        # The initial fold range is stored and will be translated once the
+        # insert delta is know.
+        selectionFoldRanges = []
+        foldAtSelectionStart =
+          @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+        foldAtSelectionEnd =
+          @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+        if fold = foldAtSelectionStart ? foldAtSelectionEnd
+          selectionFoldRanges.push range = fold.getBufferRange()
+          newEndRow = range.end.row + 1
           linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
-        else if fold = @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
-          newEndRow = fold.getBufferRange().end.row + 1
-          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
+          fold.destroy()
 
         # If selected line range is followed by a fold, one line below on screen
         # could be multiple lines in the buffer. But at the same time, if the
@@ -988,9 +994,10 @@ class TextEditor extends Model
         insertDelta = followingBufferRow - linesRange.end.row
 
         # Any folds in the text that is moved will need to be re-created.
-        rangesToRefold =
-          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
-            fold.getBufferRange().translate([insertDelta, 0])
+        # It includes the folds that were intersecting with the selection.
+        rangesToRefold = selectionFoldRanges.concat(
+          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) -> fold.getBufferRange()
+        ).map (range) -> range.translate([insertDelta, 0])
 
         # Make sure the inserted text doesn't go into an existing fold
         if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow)
