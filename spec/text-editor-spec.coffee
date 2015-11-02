@@ -2136,7 +2136,7 @@ describe "TextEditor", ->
 
             expect(editor.getSelectedBufferRanges()).toEqual [[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]]
 
-    fdescribe ".moveLineDown", ->
+    describe ".moveLineDown", ->
       describe "when there is a single selection", ->
         describe "when the selection spans a single line", ->
           describe "when there is no fold in the following row", ->
