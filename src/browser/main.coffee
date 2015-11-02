@@ -57,14 +57,13 @@ setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
 setupAtomHome = ->
-  return process.env.ATOM_HOME if process.env.ATOM_HOME
+  return if process.env.ATOM_HOME
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
   atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
   try
     atomHome = fs.realpathSync(atomHome)
   process.env.ATOM_HOME = atomHome
-  return atomHome
 
 setupCompileCache = ->
   compileCache = require('../compile-cache')

@@ -251,7 +251,7 @@ class AtomApplication
       @applicationMenu.update(win, template, keystrokesByCommand)
 
     ipc.on 'run-package-specs', (event, packageSpecPath) =>
-      @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
+      @runTests({resourcePath: @devResourcePath, @atomHome, pathsToOpen: [packageSpecPath], headless: false})
 
     ipc.on 'command', (event, command) =>
       @emit(command)
@@ -467,7 +467,7 @@ class AtomApplication
   #   :urlToOpen - The atom:// url to open.
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
-  openUrl: ({urlToOpen, devMode, safeMode}) ->
+  openUrl: ({urlToOpen, devMode, safeMode, atomHome}) ->
     unless @packages?
       PackageManager = require '../package-manager'
       @packages = new PackageManager
