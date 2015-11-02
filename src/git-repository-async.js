@@ -54,7 +54,15 @@ module.exports = class GitRepositoryAsync {
   }
 
   destroy () {
-    this.subscriptions.dispose()
+    if (this.emitter) {
+      this.emitter.emit('did-destroy')
+      this.emitter.dispose()
+      this.emitter = null
+    }
+    if (this.subscriptions) {
+      this.subscriptions.dispose()
+      this.subscriptions = null
+    }
   }
 
   getPath () {
