@@ -4,6 +4,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
+remote = require 'remote'
 MenuHelpers = require './menu-helpers'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
@@ -40,11 +41,11 @@ platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 # {::add} for more information.
 module.exports =
 class ContextMenuManager
-  constructor: ({@resourcePath, @devMode}) ->
+  constructor: ({@resourcePath, @devMode, @keymapManager}) ->
     @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
     @clear()
 
-    atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
+    @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
 
   loadPlatformItems: ->
     if platformContextMenu?
@@ -175,7 +176,7 @@ class ContextMenuManager
     menuTemplate = @templateForEvent(event)
 
     return unless menuTemplate?.length > 0
-    atom.getCurrentWindow().emit('context-menu', menuTemplate)
+    remote.getCurrentWindow().emit('context-menu', menuTemplate)
     return
 
   clear: ->

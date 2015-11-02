@@ -13,7 +13,7 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
+    {@model, @config, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
     {horizontalScrollbarHeight, verticalScrollbarWidth} = params
     {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
@@ -22,6 +22,8 @@ class TextEditorPresenter
     @gutterWidth ?= 0
     @tileSize ?= 6
 
+    @realScrollTop = @scrollTop
+    @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
     @emitter = new Emitter
     @visibleHighlights = {}
@@ -223,9 +225,9 @@ class TextEditorPresenter
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
 
-    @scrollPastEnd = atom.config.get('editor.scrollPastEnd', configParams)
-    @showLineNumbers = atom.config.get('editor.showLineNumbers', configParams)
-    @showIndentGuide = atom.config.get('editor.showIndentGuide', configParams)
+    @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
+    @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
+    @showIndentGuide = @config.get('editor.showIndentGuide', configParams)
 
     if @configDisposables?
       @configDisposables?.dispose()
@@ -234,19 +236,19 @@ class TextEditorPresenter
     @configDisposables = new CompositeDisposable
     @disposables.add(@configDisposables)
 
-    @configDisposables.add atom.config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
+    @configDisposables.add @config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
       @showIndentGuide = newValue
       @shouldUpdateContentState = true
 
       @emitDidUpdateState()
-    @configDisposables.add atom.config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
+    @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
       @scrollPastEnd = newValue
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateScrollbarsState = true
       @updateScrollHeight()
 
       @emitDidUpdateState()
-    @configDisposables.add atom.config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
+    @configDisposables.add @config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
       @shouldUpdateLineNumberGutterState = true
       @shouldUpdateGutterOrderState = true
@@ -775,7 +777,7 @@ class TextEditorPresenter
 
   updateScrollTop: (scrollTop) ->
     scrollTop = @constrainScrollTop(scrollTop)
-    if scrollTop isnt @scrollTop and not Number.isNaN(scrollTop)
+    if scrollTop isnt @realScrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
       @scrollRow = Math.round(@scrollTop / @lineHeight)
@@ -792,7 +794,7 @@ class TextEditorPresenter
 
   updateScrollLeft: (scrollLeft) ->
     scrollLeft = @constrainScrollLeft(scrollLeft)
-    if scrollLeft isnt @scrollLeft and not Number.isNaN(scrollLeft)
+    if scrollLeft isnt @realScrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
       @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
@@ -980,6 +982,13 @@ class TextEditorPresenter
   getScrollWidth: ->
     @scrollWidth
 
+  getMaxScrollTop: ->
+    scrollHeight = @getScrollHeight()
+    clientHeight = @getClientHeight()
+    return 0 unless scrollHeight? and clientHeight?
+
+    scrollHeight - clientHeight
+
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
       oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
@@ -1120,10 +1129,13 @@ class TextEditorPresenter
       @mouseWheelScreenRow = screenRow
       @didStartScrolling()
 
-  setBaseCharacterWidth: (baseCharacterWidth) ->
-    unless @baseCharacterWidth is baseCharacterWidth
+  setBaseCharacterWidth: (baseCharacterWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) ->
+    unless @baseCharacterWidth is baseCharacterWidth and @doubleWidthCharWidth is doubleWidthCharWidth and @halfWidthCharWidth is halfWidthCharWidth and koreanCharWidth is @koreanCharWidth
       @baseCharacterWidth = baseCharacterWidth
-      @model.setDefaultCharWidth(baseCharacterWidth)
+      @doubleWidthCharWidth = doubleWidthCharWidth
+      @halfWidthCharWidth = halfWidthCharWidth
+      @koreanCharWidth = koreanCharWidth
+      @model.setDefaultCharWidth(baseCharacterWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
       @characterWidthsChanged()
 
   characterWidthsChanged: ->

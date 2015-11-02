@@ -10,30 +10,31 @@ TextEditor = require './text-editor'
 # the default configuration, tabs are also displayed for each item.
 module.exports =
 class Pane extends Model
-  atom.deserializers.add(this)
-
   container: undefined
   activeItem: undefined
   focused: false
 
-  @deserialize: (state, params) ->
+  @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
     {items, activeItemURI, activeItemUri} = state
-    state.container = params?.container
     activeItemURI ?= activeItemUri
-    state.items = compact(items.map (itemState) -> atom.deserializers.deserialize(itemState))
+    state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
     state.activeItem = find state.items, (item) ->
       if typeof item.getURI is 'function'
         itemURI = item.getURI()
       itemURI is activeItemURI
-
-    new this(state)
+    new Pane(extend(state, {
+      deserializerManager: deserializers,
+      notificationManager: notifications,
+      config, applicationDelegate
+    }))
 
   constructor: (params) ->
     super
 
-    @container = params?.container
-    @activeItem = params?.activeItem
-    @focused = params?.focused
+    {
+      @activeItem, @focused, @applicationDelegate, @notificationManager, @config,
+      @deserializerManager
+    } = params
 
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
@@ -61,7 +62,7 @@ class Pane extends Model
   getContainer: -> @container
 
   setContainer: (container) ->
-    unless container is @container
+    if container and container isnt @container
       @container = container
       container.didAddPane({pane: this})
 
@@ -395,7 +396,7 @@ class Pane extends Model
     @items.splice(index, 1)
     @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
     @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
-    @destroy() if @items.length is 0 and atom.config.get('core.destroyEmptyPanes')
+    @destroy() if @items.length is 0 and @config.get('core.destroyEmptyPanes')
 
   # Public: Move the given item to the given index.
   #
@@ -461,7 +462,7 @@ class Pane extends Model
     else
       return true
 
-    chosen = atom.confirm
+    chosen = @applicationDelegate.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
       buttons: ["Save", "Cancel", "Don't Save"]
@@ -514,7 +515,7 @@ class Pane extends Model
 
     saveOptions = item.getSaveDialogOptions?() ? {}
     saveOptions.defaultPath ?= item.getPath()
-    newItemPath = atom.showSaveDialogSync(saveOptions)
+    newItemPath = @applicationDelegate.showSaveDialog(saveOptions)
     if newItemPath
       try
         item.saveAs(newItemPath)
@@ -524,7 +525,8 @@ class Pane extends Model
 
   # Public: Save all items.
   saveItems: ->
-    @saveItem(item) for item in @getItems()
+    for item in @getItems()
+      @saveItem(item) if item.isModified?()
     return
 
   # Public: Return the first item that matches the given URI or undefined if
@@ -554,7 +556,7 @@ class Pane extends Model
 
   copyActiveItem: ->
     if @activeItem?
-      @activeItem.copy?() ? atom.deserializers.deserialize(@activeItem.serialize())
+      @activeItem.copy?() ? @deserializerManager.deserialize(@activeItem.serialize())
 
   ###
   Section: Lifecycle
@@ -646,7 +648,7 @@ class Pane extends Model
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
       @setFlexScale(1)
 
-    newPane = new @constructor(params)
+    newPane = new Pane(extend({@applicationDelegate, @deserializerManager, @config}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
@@ -678,6 +680,30 @@ class Pane extends Model
     else
       @splitRight()
 
+  # If the parent is a vertical axis, returns its first child if it is a pane;
+  # otherwise returns this pane.
+  findTopmostSibling: ->
+    if @parent.orientation is 'vertical'
+      [topmostSibling] = @parent.children
+      if topmostSibling instanceof PaneAxis
+        this
+      else
+        topmostSibling
+    else
+      this
+
+  # If the parent is a vertical axis, returns its last child if it is a pane;
+  # otherwise returns a new pane created by splitting this pane bottomward.
+  findOrCreateBottommostSibling: ->
+    if @parent.orientation is 'vertical'
+      bottommostSibling = last(@parent.children)
+      if bottommostSibling instanceof PaneAxis
+        @splitRight()
+      else
+        bottommostSibling
+    else
+      @splitDown()
+
   close: ->
     @destroy() if @confirmClose()
 
@@ -688,12 +714,12 @@ class Pane extends Model
 
   handleSaveError: (error, item) ->
     itemPath = error.path ? item?.getPath?()
-    addWarningWithPath = (message, options) ->
+    addWarningWithPath = (message, options) =>
       message = "#{message} '#{itemPath}'" if itemPath
-      atom.notifications.addWarning(message, options)
+      @notificationManager.addWarning(message, options)
 
     if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
-      atom.notifications.addWarning("Unable to save file: #{error.message}")
+      @notificationManager.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES'
       addWarningWithPath('Unable to save file: Permission denied')
     else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST']
@@ -716,6 +742,6 @@ class Pane extends Model
       addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
-      atom.notifications.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
+      @notificationManager.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
     else
       throw error

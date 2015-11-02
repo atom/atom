@@ -7,12 +7,12 @@ module.exports =
 class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool}) ->
+  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool, @views}) ->
     @visible = true
 
     @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
 
-    @domNode = atom.views.getView(@gutter)
+    @domNode = @views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
     @lineNumbersNode.innerHTML = ''
 
