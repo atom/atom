@@ -168,6 +168,37 @@ describe "TextEditor", ->
         buffer.setPath(undefined)
         expect(editor.getLongTitle()).toBe 'untitled'
 
+    describe ".getUniqueTitle()", ->
+      it "returns file name when there is no opened file with identical name", ->
+        expect(editor.getUniqueTitle()).toBe 'sample.js'
+        buffer.setPath(undefined)
+        expect(editor.getLongTitle()).toBe 'untitled'
+
+      it "returns <parent-directory>/<filename> when opened files has identical file names", ->
+        editor1 = null
+        editor2 = null
+        waitsForPromise ->
+          atom.workspace.open(path.join('sample-theme-1', 'readme')).then (o) ->
+            editor1 = o
+            atom.workspace.open(path.join('sample-theme-2', 'readme')).then (o) ->
+              editor2 = o
+        runs ->
+          expect(editor1.getUniqueTitle()).toBe 'sample-theme-1/readme'
+          expect(editor2.getUniqueTitle()).toBe 'sample-theme-2/readme'
+
+      it "or returns <parent-directory>/.../<filename> when opened files has identical file names", ->
+        editor1 = null
+        editor2 = null
+        waitsForPromise ->
+          atom.workspace.open(path.join('sample-theme-1', 'src', 'js', 'main.js')).then (o) ->
+            editor1 = o
+            atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
+              editor2 = o
+        runs ->
+          expect(editor1.getUniqueTitle()).toBe 'sample-theme-1/.../main.js'
+          expect(editor2.getUniqueTitle()).toBe 'sample-theme-2/.../main.js'
+
+
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
       observed = []
       editor.onDidChangeTitle (title) -> observed.push(title)
