@@ -1837,6 +1837,33 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
 
+          describe "when the cursor is at the beginning of a fold", ->
+            it "moves the line to the following row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[4, 2], [4, 9]], preserveFolds: true)
+              expect(editor.getSelectedBufferRange()).toEqual [[4, 2], [4, 9]]
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[3, 2], [3, 9]]
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+
+
           describe "when the preceding row consists of folded code", ->
             it "moves the line above the folded row and preseveres the correct folds", ->
               expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
@@ -1875,6 +1902,63 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
             expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
             expect(editor.lineTextForBufferRow(4)).toBe "    if (items.length <= 1) return items;"
+
+          describe "when the selection's end intersects a fold", ->
+            it "moves the lines to the following row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[3, 2], [4, 9]], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [3, 9]]
+              expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    if (items.length <= 1) return items;"
+
+              expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+
+          describe "when the selection's start intersects a fold", ->
+            it "moves the lines to the following row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[4, 2], [8, 9]], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[3, 2], [7, 9]]
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+              expect(editor.lineTextForBufferRow(8)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
 
         describe "when the selection spans multiple lines, but ends at column 0", ->
           it "does not move the last line of the selection", ->
@@ -1994,6 +2078,31 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
 
+          describe "when the cursor is at the beginning of a fold", ->
+            it "moves the line to the following row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[4, 2], [4, 9]], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.moveLineDown()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[5, 2], [5, 9]]
+              expect(editor.lineTextForBufferRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+              expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
           describe "when the following row is a folded row", ->
             it "moves the line below the folded row and preserves the fold", ->
               expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
@@ -2048,6 +2157,63 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
             expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+        describe "when the selection's end intersects a fold", ->
+          it "moves the lines to the following row without breaking the fold", ->
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.createFold(4, 7)
+            editor.setSelectedBufferRange([[3, 2], [4, 9]], preserveFolds: true)
+
+            expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+            editor.moveLineDown()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[4, 2], [5, 9]]
+            expect(editor.lineTextForBufferRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(editor.lineTextForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+
+            expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+        describe "when the selection's start intersects a fold", ->
+          it "moves the lines to the following row without breaking the fold", ->
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.createFold(4, 7)
+            editor.setSelectedBufferRange([[4, 2], [8, 9]], preserveFolds: true)
+
+            expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+            editor.moveLineDown()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[5, 2], [9, 9]]
+            expect(editor.lineTextForBufferRow(4)).toBe "  };"
+            expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+            expect(editor.lineTextForBufferRow(9)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+
+            expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(10)).toBeFalsy()
 
         describe "when the following row is a folded row", ->
           it "moves the lines spanned by the selection to the following row, but preserves the folded code", ->

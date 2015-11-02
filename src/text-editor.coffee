@@ -899,6 +899,15 @@ class TextEditor extends Model
         else
           linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
+        # If there's a fold containing either the starting row or the end row
+        # of the selection then the whole fold needs to be moved.
+        if fold = @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+          newEndRow = fold.getBufferRange().end.row + 1
+          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
+        else if fold = @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+          newEndRow = fold.getBufferRange().end.row + 1
+          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
+
         # If selected line range is preceded by a fold, one line above on screen
         # could be multiple lines in the buffer.
         precedingScreenRow = @screenRowForBufferRow(linesRange.start.row) - 1
@@ -960,6 +969,15 @@ class TextEditor extends Model
           linesRange = new Range(linesRangeStart, selection.end)
         else
           linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
+
+        # If there's a fold containing either the starting row or the end row
+        # of the selection then the whole fold needs to be moved.
+        if fold = @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+          newEndRow = fold.getBufferRange().end.row + 1
+          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
+        else if fold = @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+          newEndRow = fold.getBufferRange().end.row + 1
+          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
 
         # If selected line range is followed by a fold, one line below on screen
         # could be multiple lines in the buffer. But at the same time, if the
