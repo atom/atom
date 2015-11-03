@@ -15,13 +15,6 @@
         console.error('Unhandled promise rejection %o with error: %o', promise, error)
       })
 
-      // Ensure ATOM_HOME is always set before anything else is required
-      // This is because of a difference in Linux not inherited between browser and render processes
-      // issue #5142
-      if (loadSettings && loadSettings.atomHome) {
-        process.env.ATOM_HOME = loadSettings.atomHome
-      }
-
       blobStore = FileSystemBlobStore.load(
         path.join(process.env.ATOM_HOME, 'blob-store/')
       )
@@ -176,6 +169,16 @@
     }, false)
   }
 
+  var setupAtomHome = function () {
+    // Ensure ATOM_HOME is always set before anything else is required
+    // This is because of a difference in Linux not inherited between browser and render processes
+    // issue #5142
+    if (loadSettings && loadSettings.atomHome) {
+      process.env.ATOM_HOME = loadSettings.atomHome
+    }
+  }
+
   parseLoadSettings()
+  setupAtomHome()
   setupWindowBackground()
 })()
