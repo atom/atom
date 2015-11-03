@@ -1,10 +1,15 @@
-{Directory} = require 'pathwatcher'
-fs = require 'fs-plus'
-path = require 'path'
-url = require 'url'
+Directory = null
+fs = null
+path = null
+url = null
 
 module.exports =
 class DefaultDirectoryProvider
+  constructor: ->
+    Directory ?= (require 'pathwatcher').Directory
+    fs ?= require 'fs-plus'
+    path ?= require 'path'
+    url ?= require 'url'
 
   # Public: Create a Directory that corresponds to the specified URI.
   #

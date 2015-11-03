@@ -1,6 +1,7 @@
 {CompositeDisposable} = require 'event-kit'
 Panel = require './panel'
 
+module.exports =
 class PanelElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
@@ -33,5 +34,3 @@ class PanelElement extends HTMLElement
   destroyed: ->
     @subscriptions.dispose()
     @remove()
-
-module.exports = PanelElement = document.registerElement 'atom-panel', prototype: PanelElement.prototype

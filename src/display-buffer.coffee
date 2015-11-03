@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
-{Point, Range} = require 'text-buffer'
+{Point, Range} = __AtomEnvironment__.TextBuffer
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'

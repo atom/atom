@@ -1,5 +1,5 @@
 TokenIterator = require './token-iterator'
-{Point} = require 'text-buffer'
+{Point} = __AtomEnvironment__.TextBuffer
 
 module.exports =
 class LinesYardstick

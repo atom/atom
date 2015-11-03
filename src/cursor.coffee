@@ -1,4 +1,4 @@
-{Point, Range} = require 'text-buffer'
+{Point, Range} = __AtomEnvironment__.TextBuffer
 {Emitter} = require 'event-kit'
 _ = require 'underscore-plus'
 Model = require './model'

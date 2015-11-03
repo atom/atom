@@ -1,4 +1,4 @@
-{Point, Range} = require 'text-buffer'
+{Point, Range} = __AtomEnvironment__.TextBuffer
 
 # Represents a fold that collapses multiple buffer lines into a single
 # line on the screen.

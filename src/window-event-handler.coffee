@@ -1,12 +1,15 @@
-path = require 'path'
+path = null
+fs = null
 {Disposable, CompositeDisposable} = require 'event-kit'
-fs = require 'fs-plus'
 listen = require './delegated-listener'
 
 # Handles low-level events related to the @window.
 module.exports =
 class WindowEventHandler
   constructor: ({@atomEnvironment, @applicationDelegate, @window, @document}) ->
+    path ?= require 'path'
+    fs ?= require 'fs-plus'
+
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 

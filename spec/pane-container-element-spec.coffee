@@ -1,5 +1,4 @@
 PaneContainer = require '../src/pane-container'
-PaneAxisElement = require '../src/pane-axis-element'
 PaneAxis = require '../src/pane-axis'
 
 describe "PaneContainerElement", ->
@@ -9,7 +8,7 @@ describe "PaneContainerElement", ->
         child.nodeName.toLowerCase() for child in paneAxisElement.children
 
       paneAxis = new PaneAxis
-      paneAxisElement = new PaneAxisElement().initialize(paneAxis, atom)
+      paneAxisElement = document.createElement("atom-pane-axis").initialize(paneAxis, atom)
 
       expect(childTagNames()).toEqual []
 

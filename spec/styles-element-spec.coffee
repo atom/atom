@@ -5,7 +5,7 @@ describe "StylesElement", ->
   [element, addedStyleElements, removedStyleElements, updatedStyleElements] = []
 
   beforeEach ->
-    element = new StylesElement
+    element = document.createElement("atom-styles")
     element.initialize(atom.styles)
     document.querySelector('#jasmine-content').appendChild(element)
     addedStyleElements = []
@@ -99,7 +99,7 @@ describe "StylesElement", ->
       expect(element.firstChild.sheet.cssRules[2].selectorText).toBe ':host(:focus)'
 
     it "defers selector upgrade until the element is attached", ->
-      element = new StylesElement
+      element = document.createElement("atom-styles")
       element.initialize(atom.styles)
       element.setAttribute('context', 'atom-text-editor')
 

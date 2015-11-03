@@ -1,6 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
-PaneResizeHandleElement = require './pane-resize-handle-element'
 
+module.exports =
 class PaneAxisElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
@@ -62,5 +62,3 @@ class PaneAxisElement extends HTMLElement
 
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
-
-module.exports = PaneAxisElement = document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype

@@ -1,5 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
 
+module.exports =
 class PanelContainerElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
@@ -41,5 +42,3 @@ class PanelContainerElement extends HTMLElement
     for panel in @model.getPanels()
       panel.hide() unless panel is excludedPanel
     return
-
-module.exports = PanelContainerElement = document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype

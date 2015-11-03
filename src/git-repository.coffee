@@ -1,9 +1,9 @@
-{basename, join} = require 'path'
+Path = null
+fs = null
+GitUtils = null
 
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-fs = require 'fs-plus'
-GitUtils = require 'git-utils'
 
 Task = require './task'
 
@@ -68,6 +68,10 @@ class GitRepository
       null
 
   constructor: (path, options={}) ->
+    Path ?= require 'path'
+    fs ?= require 'fs-plus'
+    GitUtils ?= require 'git-utils'
+
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
@@ -208,7 +212,7 @@ class GitRepository
       true
     else
       # Check if the path is a working directory in a repo that isn't the root.
-      repo isnt @getRepo() and repo.relativize(join(path, 'dir')) is 'dir'
+      repo isnt @getRepo() and repo.relativize(Path.join(path, 'dir')) is 'dir'
 
   # Public: Returns the number of commits behind the current branch is from the
   # its upstream remote branch.

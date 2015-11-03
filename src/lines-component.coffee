@@ -2,26 +2,14 @@ CursorsComponent = require './cursors-component'
 LinesTileComponent = require './lines-tile-component'
 TiledComponent = require './tiled-component'
 
-DummyLineNode = document.createElement('div')
-DummyLineNode.className = 'line'
-DummyLineNode.style.position = 'absolute'
-DummyLineNode.style.visibility = 'hidden'
-DummyLineNode.appendChild(document.createElement('span'))
-DummyLineNode.appendChild(document.createElement('span'))
-DummyLineNode.appendChild(document.createElement('span'))
-DummyLineNode.appendChild(document.createElement('span'))
-DummyLineNode.children[0].textContent = 'x'
-DummyLineNode.children[1].textContent = '我'
-DummyLineNode.children[2].textContent = 'ﾊ'
-DummyLineNode.children[3].textContent = '세'
-
-RangeForMeasurement = document.createRange()
+DummyLineNode = null
 
 module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
   constructor: ({@presenter, @useShadowDOM, @domElementPool, @assert, @grammars}) ->
+    DummyLineNode ?= @buildDummyLineNode()
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
@@ -38,6 +26,21 @@ class LinesComponent extends TiledComponent
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', '.overlayer')
       @domNode.appendChild(insertionPoint)
+
+  buildDummyLineNode: ->
+    node = document.createElement('div')
+    node.className = 'line'
+    node.style.position = 'absolute'
+    node.style.visibility = 'hidden'
+    node.appendChild(document.createElement('span'))
+    node.appendChild(document.createElement('span'))
+    node.appendChild(document.createElement('span'))
+    node.appendChild(document.createElement('span'))
+    node.children[0].textContent = 'x' # latin
+    node.children[1].textContent = '我' # double width
+    node.children[2].textContent = 'ﾊ' # half width
+    node.children[3].textContent = '세' # korean
+    node
 
   getDomNode: ->
     @domNode

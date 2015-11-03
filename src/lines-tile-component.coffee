@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 
 HighlightsComponent = require './highlights-component'
 TokenIterator = require './token-iterator'
-AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
+AcceptFilter = null
 TokenTextEscapeRegex = /[&"'<>]/g
 MaxTokenLength = 20000
 
@@ -14,6 +14,7 @@ cloneObject = (object) ->
 module.exports =
 class LinesTileComponent
   constructor: ({@presenter, @id, @domElementPool, @assert, grammars}) ->
+    AcceptFilter ?= {acceptNode: -> NodeFilter.FILTER_ACCEPT}
     @tokenIterator = new TokenIterator(grammarRegistry: grammars)
     @measuredLines = new Set
     @lineNodesByLineId = {}

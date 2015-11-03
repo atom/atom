@@ -1,20 +1,20 @@
-crypto = require 'crypto'
-path = require 'path'
+crypto = null
+path = null
+fs = null
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
-fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
-StorageFolder = require './storage-folder'
+StorageFolder = __AtomEnvironment__.StorageFolder
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
-DeserializerManager = require './deserializer-manager'
-ViewRegistry = require './view-registry'
+DeserializerManager = __AtomEnvironment__.DeserializerManager
+ViewRegistry = __AtomEnvironment__.ViewRegistry
 NotificationManager = require './notification-manager'
 Config = require './config'
 KeymapManager = require './keymap-extensions'
@@ -37,17 +37,20 @@ PaneAxis = require './pane-axis'
 Pane = require './pane'
 Project = require './project'
 TextEditor = require './text-editor'
-TextBuffer = require 'text-buffer'
+TextBuffer = __AtomEnvironment__.TextBuffer
 Gutter = require './gutter'
 
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
 PanelElement = require './panel-element'
 PaneContainerElement = require './pane-container-element'
+PaneResizeHandleElement = require './pane-resize-handle-element'
 PaneAxisElement = require './pane-axis-element'
 PaneElement = require './pane-element'
 TextEditorElement = require './text-editor-element'
 {createGutterView} = require './gutter-component-helpers'
+
+hasRegisteredCustomElements = false
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
 #
@@ -114,10 +117,28 @@ class AtomEnvironment extends Model
   Section: Construction and Destruction
   ###
 
+  registerCustomElements: ->
+    return if hasRegisteredCustomElements
+
+    WorkspaceElement = @document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype
+    PanelContainerElement = @document.registerElement 'atom-panel-container', prototype: PanelContainerElement.prototype
+    PanelElement = @document.registerElement 'atom-panel', prototype: PanelElement.prototype
+    PaneResizeHandleElement = @document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
+    PaneAxisElement = @document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype
+    PaneElement = @document.registerElement 'atom-pane', prototype: PaneElement.prototype
+    StylesElement = @document.registerElement 'atom-styles', prototype: StylesElement.prototype
+
+    hasRegisteredCustomElements = true
+
   # Call .loadOrCreate instead
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
+    crypto ?= require 'crypto'
+    path ?= require 'path'
+    fs ?= require 'fs-plus'
+
+    @registerCustomElements()
     @state = {version: @constructor.version}
 
     @loadTime = null

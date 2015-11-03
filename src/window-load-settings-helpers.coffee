@@ -1,9 +1,11 @@
-remote = require 'remote'
+remote = null
 _ = require 'underscore-plus'
 
 windowLoadSettings = null
 
 exports.getWindowLoadSettings = ->
+  remote ?= require 'remote'
+
   windowLoadSettings ?= JSON.parse(window.decodeURIComponent(window.location.hash.substr(1)))
   clone = _.deepClone(windowLoadSettings)
 

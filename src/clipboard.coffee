@@ -1,5 +1,5 @@
-crypto = require 'crypto'
-clipboard = require './safe-clipboard'
+crypto = null
+clipboard = null
 
 # Extended: Represents the clipboard used for copying and pasting in Atom.
 #
@@ -15,6 +15,9 @@ clipboard = require './safe-clipboard'
 module.exports =
 class Clipboard
   constructor: ->
+    crypto ?= require 'crypto'
+    clipboard ?= require './safe-clipboard'
+
     @reset()
 
   reset: ->

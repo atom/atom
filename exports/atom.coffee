@@ -1,4 +1,4 @@
-TextBuffer = require 'text-buffer'
+TextBuffer = __AtomEnvironment__.TextBuffer
 {Point, Range} = TextBuffer
 {File, Directory} = require 'pathwatcher'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'

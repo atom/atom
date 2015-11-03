@@ -1,6 +1,8 @@
-ipc = require 'ipc'
+ipc = null
 
 module.exports = ({commandRegistry, commandInstaller, config}) ->
+  ipc ?= require 'ipc'
+
   commandRegistry.add 'atom-workspace',
     'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
     'pane:show-previous-item': -> @getModel().getActivePane().activatePreviousItem()

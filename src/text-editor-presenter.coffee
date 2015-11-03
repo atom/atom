@@ -1,5 +1,5 @@
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
-{Point, Range} = require 'text-buffer'
+{Point, Range} = __AtomEnvironment__.TextBuffer
 _ = require 'underscore-plus'
 Decoration = require './decoration'
 
