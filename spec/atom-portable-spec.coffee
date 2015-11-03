@@ -5,9 +5,9 @@ rimraf = require "rimraf"
 AtomPortable = require "../src/browser/atom-portable"
 
 describe "Set Portable Mode", ->
-  portableAtomHomePath = path.join(path.dirname(process.execPath), "../.atom").toString()
+  portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
   portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
-  portableAtomHomeBackupPath = portableAtomHomePath + ".temp"
+  portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
 
   beforeEach ->
     fs.renameSync(portableAtomHomePath, portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomePath)
