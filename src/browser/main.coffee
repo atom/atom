@@ -66,7 +66,7 @@ setupAtomHome = ({setPortable}) ->
     try
       AtomPortable.setPortable(atomHome)
     catch error
-      console.log("Failed converting portable directory: #{error.message} #{error.stack}")
+      console.log("Failed copying portable directory: #{atomHome} to #{AtomPortable.getPortableAtomHomePath()}. #{error.message} #{error.stack}")
 
   if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
     atomHome = AtomPortable.getPortableAtomHomePath()
