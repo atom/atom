@@ -181,6 +181,7 @@ class TextEditor extends Model
     @disposables.dispose()
     @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
+    @selectionsMarkerLayer.destroy()
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()

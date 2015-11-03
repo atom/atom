@@ -5060,11 +5060,12 @@ describe "TextEditor", ->
         expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
 
   describe ".destroy()", ->
-    it "destroys all markers associated with the edit session", ->
-      editor.foldAll()
-      expect(buffer.getMarkerCount()).toBeGreaterThan 0
+    it "destroys marker layers associated with the text editor", ->
+      selectionsMarkerLayerId = editor.selectionsMarkerLayer.id
+      foldsMarkerLayerId = editor.displayBuffer.foldsMarkerLayer.id
       editor.destroy()
-      expect(buffer.getMarkerCount()).toBe 0
+      expect(buffer.getMarkerLayer(selectionsMarkerLayerId)).toBeUndefined()
+      expect(buffer.getMarkerLayer(foldsMarkerLayerId)).toBeUndefined()
 
     it "notifies ::onDidDestroy observers when the editor is destroyed", ->
       destroyObserverCalled = false
