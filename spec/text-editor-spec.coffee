@@ -4601,16 +4601,16 @@ describe "TextEditor", ->
       expect(cursor1.getBufferPosition()).toEqual([0, 3])
       expect(cursor2.getBufferPosition()).toEqual([1, 6])
 
-  it "works with non-English characters", ->
-    editor.setText("supåTøåst \n")
-    editor.setCursorBufferPosition([0, 9])
-    editor.moveToPreviousSubwordBoundary()
-    expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+    it "works with non-English characters", ->
+      editor.setText("supåTøåst \n")
+      editor.setCursorBufferPosition([0, 9])
+      editor.moveToPreviousSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
 
-    editor.setText("supaÖast \n")
-    editor.setCursorBufferPosition([0, 8])
-    editor.moveToPreviousSubwordBoundary()
-    expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+      editor.setText("supaÖast \n")
+      editor.setCursorBufferPosition([0, 8])
+      editor.moveToPreviousSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
 
   describe ".moveToNextSubwordBoundary", ->
     it "does not move the cursor when there is no next subword boundary", ->
@@ -4690,16 +4690,16 @@ describe "TextEditor", ->
       expect(cursor1.getBufferPosition()).toEqual([0, 3])
       expect(cursor2.getBufferPosition()).toEqual([1, 6])
 
-  it "works with non-English characters", ->
-    editor.setText("supåTøåst \n")
-    editor.setCursorBufferPosition([0, 0])
-    editor.moveToNextSubwordBoundary()
-    expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+    it "works with non-English characters", ->
+      editor.setText("supåTøåst \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
 
-    editor.setText("supaÖast \n")
-    editor.setCursorBufferPosition([0, 0])
-    editor.moveToNextSubwordBoundary()
-    expect(editor.getCursorBufferPosition()).toEqual([0, 4])
+      editor.setText("supaÖast \n")
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveToNextSubwordBoundary()
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
 
   describe ".selectToPreviousSubwordBoundary", ->
     it "selects subwords", ->
