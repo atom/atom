@@ -19,7 +19,7 @@ describe "Set Portable Mode on #win32", ->
       rimraf.sync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
     rimraf.sync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
 
-  it "creates portable home directory", ->
+  it "creates a portable home directory", ->
     expect(fs.existsSync(portableAtomHomePath)).toBe false
 
     AtomPortable.setPortable(process.env.ATOM_HOME)
