@@ -63,7 +63,7 @@
 
   function setupWindow (loadSettings) {
     var CompileCache = require('../src/compile-cache')
-    CompileCache.setAtomHomeDirectory(loadSettings.atomHome)
+    CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
     var ModuleCache = require('../src/module-cache')
     ModuleCache.register(loadSettings)
