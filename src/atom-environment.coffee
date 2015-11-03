@@ -1,5 +1,6 @@
 crypto = require 'crypto'
 path = require 'path'
+ipc = require 'ipc'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -202,6 +203,15 @@ class AtomEnvironment extends Model
     @installWindowEventHandler()
 
     @observeAutoHideMenuBar()
+
+    checkPortableHomeWritable = ->
+      responseChannel = "check-portable-home-writable-response"
+      ipc.on responseChannel, (response) ->
+        ipc.removeAllListeners(responseChannel)
+        atom.notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
+      ipc.send('check-portable-home-writable', responseChannel)
+
+    checkPortableHomeWritable()
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
