@@ -120,6 +120,10 @@ class GitRepository
       @subscriptions.dispose()
       @subscriptions = null
 
+    if @async?
+      @async.destroy()
+      @async = null
+
   # Public: Invoke the given callback when this GitRepository's destroy() method
   # is invoked.
   #
