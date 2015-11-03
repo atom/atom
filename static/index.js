@@ -170,6 +170,10 @@
   }
 
   var setupAtomHome = function () {
+    if (process.env.ATOM_HOME) {
+      return
+    }
+
     // Ensure ATOM_HOME is always set before anything else is required
     // This is because of a difference in Linux not inherited between browser and render processes
     // issue #5142
