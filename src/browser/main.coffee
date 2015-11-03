@@ -113,7 +113,7 @@ parseCommandLine = ->
   options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
-  options.boolean('set-portable').describe('set-portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location.')
+  options.boolean('portable').describe('portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
@@ -143,7 +143,7 @@ parseCommandLine = ->
   profileStartup = args['profile-startup']
   urlsToOpen = []
   devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
-  setPortable = args['set-portable']
+  setPortable = args.portable
 
   if args['resource-path']
     devMode = true
