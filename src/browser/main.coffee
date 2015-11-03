@@ -56,15 +56,21 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-setupAtomHome = (args) ->
+setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
+
   atomHome = path.join(app.getHomeDir(), '.atom')
   AtomPortable = require './atom-portable'
 
-  AtomPortable.setPortable(atomHome) if not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome) and args.setPortable
-  atomHome = AtomPortable.getPortableAtomHomePath() if AtomPortable.isPortableInstall process.platform, process.env.ATOM_HOME, atomHome
+  if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+    AtomPortable.setPortable(atomHome)
+
+  if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+    atomHome = AtomPortable.getPortableAtomHomePath()
+
   try
     atomHome = fs.realpathSync(atomHome)
+
   process.env.ATOM_HOME = atomHome
 
 setupCompileCache = ->
