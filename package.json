@@ -157,5 +157,21 @@
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
     "test": "node script/test"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+      "globals": [
+        "atom",
+        "afterEach",
+        "beforeEach",
+        "describe",
+        "expect",
+        "it",
+        "jasmine",
+        "runs",
+        "spyOn",
+        "waitsFor",
+        "waitsForPromise"
+      ]
   }
 }
