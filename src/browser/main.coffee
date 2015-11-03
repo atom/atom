@@ -63,7 +63,10 @@ setupAtomHome = ({setPortable}) ->
   AtomPortable = require './atom-portable'
 
   if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
-    AtomPortable.setPortable(atomHome)
+    try
+      AtomPortable.setPortable(atomHome)
+    catch error
+      console.log("Failed converting portable directory: #{error.message} #{error.stack}")
 
   if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
     atomHome = AtomPortable.getPortableAtomHomePath()
