@@ -4,7 +4,7 @@ temp = require "temp"
 rimraf = require "rimraf"
 AtomPortable = require "../src/browser/atom-portable"
 
-describe "Set Portable Mode", ->
+describe "Set Portable Mode on #win32", ->
   portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
   portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
   portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
