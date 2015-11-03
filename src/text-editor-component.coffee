@@ -38,15 +38,15 @@ class TextEditorComponent
   Object.defineProperty @prototype, "domNode",
     get: -> @domNodeValue
     set: (domNode) ->
-      atom.assert domNode?, "TextEditorComponent::domNode was set to null."
+      @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
     @observeConfig()
-    @setScrollSensitivity(atom.config.get('editor.scrollSensitivity'))
+    @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
     @presenter = new TextEditorPresenter
       model: @editor
@@ -58,6 +58,7 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
+      config: @config
 
     @presenter.onDidUpdateState(@requestUpdate)
 
@@ -70,10 +71,10 @@ class TextEditorComponent
       insertionPoint = document.createElement('content')
       insertionPoint.setAttribute('select', 'atom-overlay')
       @domNode.appendChild(insertionPoint)
-      @overlayManager = new OverlayManager(@presenter, @hostElement)
+      @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
     else
       @domNode.classList.add('editor-contents')
-      @overlayManager = new OverlayManager(@presenter, @domNode)
+      @overlayManager = new OverlayManager(@presenter, @domNode, @views)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -82,10 +83,10 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent)
+    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -103,11 +104,11 @@ class TextEditorComponent
     @disposables.add @stylesElement.onDidAddStyleElement @onStylesheetsChanged
     @disposables.add @stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
     @disposables.add @stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
-    unless atom.themes.isInitialLoadComplete()
-      @disposables.add atom.themes.onDidChangeActiveThemes @onAllThemesLoaded
+    unless @themes.isInitialLoadComplete()
+      @disposables.add @themes.onDidChangeActiveThemes @onAllThemesLoaded
     @disposables.add scrollbarStyle.onDidChangePreferredScrollbarStyle @refreshScrollbars
 
-    @disposables.add atom.views.pollDocument(@pollDOM)
+    @disposables.add @views.pollDocument(@pollDOM)
 
     @updateSync()
     @checkForVisibilityChange()
@@ -177,7 +178,7 @@ class TextEditorComponent
     @overlayManager?.measureOverlays()
 
   mountGutterContainerComponent: ->
-    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool})
+    @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
     @domNode.insertBefore(@gutterContainerComponent.getDomNode(), @domNode.firstChild)
 
   becameVisible: ->
@@ -204,10 +205,10 @@ class TextEditorComponent
       @updateSync()
     else unless @updateRequested
       @updateRequested = true
-      atom.views.updateDocument =>
+      @views.updateDocument =>
         @updateRequested = false
         @updateSync() if @canUpdate()
-      atom.views.readDocument(@readAfterUpdateSync)
+      @views.readDocument(@readAfterUpdateSync)
 
   canUpdate: ->
     @mounted and @editor.isAlive()
@@ -275,13 +276,13 @@ class TextEditorComponent
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
   observeConfig: ->
-    @disposables.add atom.config.onDidChange 'editor.fontSize', =>
+    @disposables.add @config.onDidChange 'editor.fontSize', =>
       @sampleFontStyling()
       @invalidateCharacterWidths()
-    @disposables.add atom.config.onDidChange 'editor.fontFamily', =>
+    @disposables.add @config.onDidChange 'editor.fontFamily', =>
       @sampleFontStyling()
       @invalidateCharacterWidths()
-    @disposables.add atom.config.onDidChange 'editor.lineHeight', =>
+    @disposables.add @config.onDidChange 'editor.lineHeight', =>
       @sampleFontStyling()
       @invalidateCharacterWidths()
 
@@ -294,7 +295,7 @@ class TextEditorComponent
     @disposables.add(@scopedConfigDisposables)
 
     scope = @editor.getRootScopeDescriptor()
-    @scopedConfigDisposables.add atom.config.observe 'editor.scrollSensitivity', {scope}, @setScrollSensitivity
+    @scopedConfigDisposables.add @config.observe 'editor.scrollSensitivity', {scope}, @setScrollSensitivity
 
   focused: ->
     if @mounted
@@ -354,11 +355,11 @@ class TextEditorComponent
     {wheelDeltaX, wheelDeltaY} = event
 
     # Ctrl+MouseWheel adjusts font size.
-    if event.ctrlKey and atom.config.get('editor.zoomFontWhenCtrlScrolling')
+    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling')
       if wheelDeltaY > 0
-        atom.workspace.increaseFontSize()
+        @workspace.increaseFontSize()
       else if wheelDeltaY < 0
-        atom.workspace.decreaseFontSize()
+        @workspace.decreaseFontSize()
       event.preventDefault()
       return
 
@@ -419,6 +420,9 @@ class TextEditorComponent
 
   getScrollWidth: ->
     @presenter.getScrollWidth()
+
+  getMaxScrollTop: ->
+    @presenter.getMaxScrollTop()
 
   getVerticalScrollbarWidth: ->
     @presenter.getVerticalScrollbarWidth()
@@ -543,7 +547,7 @@ class TextEditorComponent
 
   onStylesheetsChanged: (styleElement) =>
     return unless @performedInitialMeasurement
-    return unless atom.themes.isInitialLoadComplete()
+    return unless @themes.isInitialLoadComplete()
 
     # This delay prevents the styling from going haywire when stylesheets are
     # reloaded in dev mode. It seems like a workaround for a browser bug, but
@@ -650,7 +654,7 @@ class TextEditorComponent
 
   isVisible: ->
     # Investigating an exception that occurs here due to ::domNode being null.
-    atom.assert @domNode?, "TextEditorComponent::domNode was null.", (error) =>
+    @assert @domNode?, "TextEditorComponent::domNode was null.", (error) =>
       error.metadata = {@initialized}
 
     @domNode? and (@domNode.offsetHeight > 0 or @domNode.offsetWidth > 0)
@@ -848,7 +852,7 @@ class TextEditorComponent
     @presenter.characterWidthsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
-    atom.config.set("editor.showIndentGuide", showIndentGuide)
+    @config.set("editor.showIndentGuide", showIndentGuide)
 
   setScrollSensitivity: (scrollSensitivity) =>
     if scrollSensitivity = parseInt(scrollSensitivity)

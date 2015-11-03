@@ -12,7 +12,7 @@ describe "TextEditor", ->
 
   beforeEach ->
     waitsForPromise ->
-      atom.project.open('sample.js', autoIndent: false).then (o) -> editor = o
+      atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
 
     runs ->
       buffer = editor.buffer
@@ -27,11 +27,11 @@ describe "TextEditor", ->
       editor1 = null
 
       waitsForPromise ->
-        atom.project.open(pathToOpen).then (o) -> editor1 = o
+        atom.workspace.open(pathToOpen).then (o) -> editor1 = o
 
       runs ->
         fs.mkdirSync(pathToOpen)
-        expect(TextEditor.deserialize(editor1.serialize())).toBeUndefined()
+        expect(TextEditor.deserialize(editor1.serialize(), atom)).toBeUndefined()
 
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
@@ -39,7 +39,7 @@ describe "TextEditor", ->
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
-      editor2 = TextEditor.deserialize(editor.serialize())
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(editor2.id).toBe editor.id
       expect(editor2.getBuffer().getPath()).toBe editor.getBuffer().getPath()
@@ -52,7 +52,7 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
 
-      editor2 = TextEditor.deserialize(editor.serialize())
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
 
       expect(previousInvisibles).toBeDefined()
       expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
@@ -62,7 +62,7 @@ describe "TextEditor", ->
 
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
-      editor2 = TextEditor.deserialize(state)
+      editor2 = TextEditor.deserialize(state, atom)
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
@@ -71,7 +71,7 @@ describe "TextEditor", ->
       editor = null
 
       waitsForPromise ->
-        atom.workspace.open('sample.js', largeFileMode: true).then (o) -> editor = o
+        atom.workspace.openTextFile('sample.js', largeFileMode: true).then (o) -> editor = o
 
       runs ->
         buffer = editor.getBuffer()
@@ -114,7 +114,7 @@ describe "TextEditor", ->
       atom.config.set('core.fileEncoding', 'utf16le')
 
       waitsForPromise ->
-        atom.workspace.open('a').then (o) -> editor1 = o
+        atom.workspace.open('dir/a').then (o) -> editor1 = o
 
       runs ->
         expect(editor1.getTabLength()).toBe 4
@@ -128,7 +128,7 @@ describe "TextEditor", ->
         atom.config.set('core.fileEncoding', 'macroman')
 
       waitsForPromise ->
-        atom.workspace.open('b').then (o) -> editor2 = o
+        atom.workspace.open('dir/b').then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getTabLength()).toBe 8
@@ -144,13 +144,13 @@ describe "TextEditor", ->
       atom.config.set('core.fileEncoding', 'macroman', scopeSelector: '.js')
 
       waitsForPromise ->
-        atom.workspace.open('a').then (o) -> editor1 = o
+        atom.workspace.open('dir/a').then (o) -> editor1 = o
 
       runs ->
         expect(editor1.getEncoding()).toBe 'utf16le'
 
       waitsForPromise ->
-        atom.workspace.open('test.js').then (o) -> editor2 = o
+        atom.workspace.open('sample-with-comments.js').then (o) -> editor2 = o
 
       runs ->
         expect(editor2.getEncoding()).toBe 'macroman'
@@ -167,6 +167,37 @@ describe "TextEditor", ->
         expect(editor.getLongTitle()).toBe 'sample.js - fixtures'
         buffer.setPath(undefined)
         expect(editor.getLongTitle()).toBe 'untitled'
+
+    describe ".getUniqueTitle()", ->
+      it "returns file name when there is no opened file with identical name", ->
+        expect(editor.getUniqueTitle()).toBe 'sample.js'
+        buffer.setPath(undefined)
+        expect(editor.getLongTitle()).toBe 'untitled'
+
+      it "returns <parent-directory>/<filename> when opened files has identical file names", ->
+        editor1 = null
+        editor2 = null
+        waitsForPromise ->
+          atom.workspace.open(path.join('sample-theme-1', 'readme')).then (o) ->
+            editor1 = o
+            atom.workspace.open(path.join('sample-theme-2', 'readme')).then (o) ->
+              editor2 = o
+        runs ->
+          expect(editor1.getUniqueTitle()).toBe 'sample-theme-1/readme'
+          expect(editor2.getUniqueTitle()).toBe 'sample-theme-2/readme'
+
+      it "or returns <parent-directory>/.../<filename> when opened files has identical file names", ->
+        editor1 = null
+        editor2 = null
+        waitsForPromise ->
+          atom.workspace.open(path.join('sample-theme-1', 'src', 'js', 'main.js')).then (o) ->
+            editor1 = o
+            atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
+              editor2 = o
+        runs ->
+          expect(editor1.getUniqueTitle()).toBe 'sample-theme-1/.../main.js'
+          expect(editor2.getUniqueTitle()).toBe 'sample-theme-2/.../main.js'
+
 
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
       observed = []
@@ -272,6 +303,7 @@ describe "TextEditor", ->
       describe "when soft-wrap is enabled and code is folded", ->
         beforeEach ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
           editor.createFold(2, 3)
 
@@ -327,6 +359,7 @@ describe "TextEditor", ->
       describe "when the cursor was moved down from the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the previous line", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
 
           editor.setCursorScreenPosition([3, 0])
@@ -379,6 +412,7 @@ describe "TextEditor", ->
       describe "when the cursor is at the beginning of an indented soft-wrapped line", ->
         it "moves to the beginning of the line's continuation on the next screen row", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
 
           editor.setCursorScreenPosition([3, 0])
@@ -446,6 +480,7 @@ describe "TextEditor", ->
         describe "when line is wrapped and follow previous line indentation", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(50)
 
           it "wraps to the end of the previous line", ->
@@ -604,6 +639,7 @@ describe "TextEditor", ->
       describe "when soft wrap is on", ->
         it "moves cursor to the beginning of the screen line", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition([1, 2])
           editor.moveToEndOfScreenLine()
@@ -623,6 +659,7 @@ describe "TextEditor", ->
     describe ".moveToBeginningOfLine()", ->
       it "moves cursor to the beginning of the buffer line", ->
         editor.setSoftWrapped(true)
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([1, 2])
         editor.moveToBeginningOfLine()
@@ -632,6 +669,7 @@ describe "TextEditor", ->
     describe ".moveToEndOfLine()", ->
       it "moves cursor to the end of the buffer line", ->
         editor.setSoftWrapped(true)
+        editor.setDefaultCharWidth(1)
         editor.setEditorWidthInChars(10)
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
@@ -642,6 +680,7 @@ describe "TextEditor", ->
       describe "when soft wrap is on", ->
         it "moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(10)
           editor.setCursorScreenPosition [2, 5]
           editor.addCursorAtScreenPosition [8, 7]
@@ -1331,7 +1370,7 @@ describe "TextEditor", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-coffee-script')
           waitsForPromise ->
-            atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+            atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         it 'selects the correct surrounding word for the given scoped setting', ->
           coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
@@ -1523,6 +1562,7 @@ describe "TextEditor", ->
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
           editor.setEditorWidthInChars(40)
+          editor.setDefaultCharWidth(1)
 
           editor.setSelectedScreenRange([[3, 10], [3, 15]])
           editor.addSelectionBelow()
@@ -1533,7 +1573,7 @@ describe "TextEditor", ->
 
         it "takes atomic tokens into account", ->
           waitsForPromise ->
-            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+            atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
 
           runs ->
             editor.setSelectedBufferRange([[2, 1], [2, 3]])
@@ -1548,6 +1588,7 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
@@ -1633,6 +1674,7 @@ describe "TextEditor", ->
 
         it "can add selections to soft-wrapped line segments", ->
           editor.setSoftWrapped(true)
+          editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(40)
 
           editor.setSelectedScreenRange([[4, 10], [4, 15]])
@@ -1644,7 +1686,7 @@ describe "TextEditor", ->
 
         it "takes atomic tokens into account", ->
           waitsForPromise ->
-            atom.project.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
+            atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', autoIndent: false).then (o) -> editor = o
 
           runs ->
             editor.setSelectedBufferRange([[3, 1], [3, 2]])
@@ -1659,6 +1701,7 @@ describe "TextEditor", ->
         describe "when lines are soft-wrapped", ->
           beforeEach ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(40)
 
           it "skips soft-wrap indentation tokens", ->
@@ -1769,9 +1812,11 @@ describe "TextEditor", ->
     it "does not share selections between different edit sessions for the same buffer", ->
       editor2 = null
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor2 = o
+        atom.workspace.getActivePane().splitRight()
+        atom.workspace.open(editor.getPath()).then (o) -> editor2 = o
 
       runs ->
+        expect(editor2.getText()).toBe(editor.getText())
         editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
         editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
         expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
@@ -1791,6 +1836,33 @@ describe "TextEditor", ->
               expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [2, 9]]
               expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
+
+          describe "when the cursor is at the beginning of a fold", ->
+            it "moves the line to the previous row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[4, 2], [4, 9]], preserveFolds: true)
+              expect(editor.getSelectedBufferRange()).toEqual [[4, 2], [4, 9]]
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[3, 2], [3, 9]]
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+
 
           describe "when the preceding row consists of folded code", ->
             it "moves the line above the folded row and preseveres the correct folds", ->
@@ -1831,6 +1903,63 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
             expect(editor.lineTextForBufferRow(4)).toBe "    if (items.length <= 1) return items;"
 
+          describe "when the selection's end intersects a fold", ->
+            it "moves the lines to the previous row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[3, 2], [4, 9]], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[2, 2], [3, 9]]
+              expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    if (items.length <= 1) return items;"
+
+              expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+
+          describe "when the selection's start intersects a fold", ->
+            it "moves the lines to the previous row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[4, 2], [8, 9]], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[3, 2], [7, 9]]
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+              expect(editor.lineTextForBufferRow(8)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+
         describe "when the selection spans multiple lines, but ends at column 0", ->
           it "does not move the last line of the selection", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
@@ -1845,7 +1974,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-        describe "when there are multiple selections and the preceeding row is a folded row", ->
+        describe "when the preceeding row is a folded row", ->
           it "moves the lines spanned by the selection to the preceeding row, but preserves the folded code", ->
             expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
             expect(editor.lineTextForBufferRow(9)).toBe "  };"
@@ -1886,6 +2015,46 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(4)).toBe "      current = items.shift();"
               expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
 
+          describe "when one selection intersects a fold", ->
+            it "moves the lines to the previous row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRanges([
+                [[2, 2], [2, 9]],
+                [[4, 2], [4, 9]]
+              ], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+              editor.moveLineUp()
+
+              expect(editor.getSelectedBufferRanges()).toEqual([
+                [[1, 2], [1, 9]],
+                [[3, 2], [3, 9]]
+              ])
+
+              expect(editor.lineTextForBufferRow(1)).toBe "    if (items.length <= 1) return items;"
+              expect(editor.lineTextForBufferRow(2)).toBe "  var sort = function(items) {"
+              expect(editor.lineTextForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+              expect(editor.isFoldedAtBufferRow(1)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
           describe "when there is a fold", ->
             it "moves all lines that spanned by a selection to preceding row, preserving all folds", ->
               editor.createFold(4, 7)
@@ -1903,6 +2072,39 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
               expect(editor.lineTextForBufferRow(10)).toBe "  return sort(Array.apply(this, arguments));"
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+        describe 'when there are many folds', ->
+          beforeEach ->
+            waitsForPromise ->
+              atom.workspace.open('sample-with-many-folds.js', autoIndent: false).then (o) -> editor = o
+
+          describe 'and many selections intersects folded rows', ->
+            it 'moves and preserves all the folds', ->
+              editor.createFold(2, 4)
+              editor.createFold(7, 9)
+
+              editor.setSelectedBufferRanges([
+                [[1, 0], [5, 4]],
+                [[7, 0], [7, 4]]
+              ], preserveFolds: true)
+
+              editor.moveLineUp()
+
+              expect(editor.lineTextForBufferRow(1)).toEqual "function f3() {"
+              expect(editor.lineTextForBufferRow(4)).toEqual "6;"
+              expect(editor.lineTextForBufferRow(5)).toEqual "1;"
+              expect(editor.lineTextForBufferRow(6)).toEqual "function f8() {"
+              expect(editor.lineTextForBufferRow(9)).toEqual "7;"
+
+              expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
@@ -1948,6 +2150,31 @@ describe "TextEditor", ->
               expect(editor.getSelectedBufferRange()).toEqual [[3, 2], [3, 9]]
               expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
+
+          describe "when the cursor is at the beginning of a fold", ->
+            it "moves the line to the following row without breaking the fold", ->
+              expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+              editor.createFold(4, 7)
+              editor.setSelectedBufferRange([[4, 2], [4, 9]], preserveFolds: true)
+
+              expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+              editor.moveLineDown()
+
+              expect(editor.getSelectedBufferRange()).toEqual [[5, 2], [5, 9]]
+              expect(editor.lineTextForBufferRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+              expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+
+              expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+              expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
 
           describe "when the following row is a folded row", ->
             it "moves the line below the folded row and preserves the fold", ->
@@ -2004,6 +2231,63 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
+        describe "when the selection's end intersects a fold", ->
+          it "moves the lines to the following row without breaking the fold", ->
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.createFold(4, 7)
+            editor.setSelectedBufferRange([[3, 2], [4, 9]], preserveFolds: true)
+
+            expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+
+            editor.moveLineDown()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[4, 2], [5, 9]]
+            expect(editor.lineTextForBufferRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(editor.lineTextForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+
+            expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+        describe "when the selection's start intersects a fold", ->
+          it "moves the lines to the following row without breaking the fold", ->
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.createFold(4, 7)
+            editor.setSelectedBufferRange([[4, 2], [8, 9]], preserveFolds: true)
+
+            expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+            editor.moveLineDown()
+
+            expect(editor.getSelectedBufferRange()).toEqual [[5, 2], [9, 9]]
+            expect(editor.lineTextForBufferRow(4)).toBe "  };"
+            expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+            expect(editor.lineTextForBufferRow(9)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+
+            expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(10)).toBeFalsy()
+
         describe "when the following row is a folded row", ->
           it "moves the lines spanned by the selection to the following row, but preserves the folded code", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
@@ -2043,6 +2327,41 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(5)).toBe "      current < pivot ? left.push(current) : right.push(current);"
               expect(editor.lineTextForBufferRow(6)).toBe "      current = items.shift();"
+
+          describe 'when there are many folds', ->
+            beforeEach ->
+              waitsForPromise ->
+                atom.workspace.open('sample-with-many-folds.js', autoIndent: false).then (o) -> editor = o
+
+            describe 'and many selections intersects folded rows', ->
+              it 'moves and preserves all the folds', ->
+                editor.createFold(2, 4)
+                editor.createFold(7, 9)
+
+                editor.setSelectedBufferRanges([
+                  [[2, 0], [2, 4]],
+                  [[6, 0], [10, 4]]
+                ], preserveFolds: true)
+
+                editor.moveLineDown()
+
+                expect(editor.lineTextForBufferRow(2)).toEqual "6;"
+                expect(editor.lineTextForBufferRow(3)).toEqual "function f3() {"
+                expect(editor.lineTextForBufferRow(6)).toEqual "12;"
+                expect(editor.lineTextForBufferRow(7)).toEqual "7;"
+                expect(editor.lineTextForBufferRow(8)).toEqual "function f8() {"
+                expect(editor.lineTextForBufferRow(11)).toEqual "11;"
+
+                expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+                expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
+                expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
+                expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(9)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(10)).toBeTruthy()
+                expect(editor.isFoldedAtBufferRow(11)).toBeFalsy()
 
           describe "when there is a fold below one of the selected row", ->
             it "moves all lines spanned by a selection to the following row, preserving the fold", ->
@@ -2089,6 +2408,48 @@ describe "TextEditor", ->
               expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
               expect(editor.lineTextForBufferRow(6)).toBe "    if (items.length <= 1) return items;"
               expect(editor.lineTextForBufferRow(7)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+        describe "when one selection intersects a fold", ->
+          it "moves the lines to the previous row without breaking the fold", ->
+            expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
+
+            editor.createFold(4, 7)
+            editor.setSelectedBufferRanges([
+              [[2, 2], [2, 9]],
+              [[4, 2], [4, 9]]
+            ], preserveFolds: true)
+
+            expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
+
+            editor.moveLineDown()
+
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[5, 2], [5, 9]]
+              [[3, 2], [3, 9]],
+            ])
+
+            expect(editor.lineTextForBufferRow(2)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineTextForBufferRow(3)).toBe "    if (items.length <= 1) return items;"
+            expect(editor.lineTextForBufferRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+
+            expect(editor.lineTextForBufferRow(5)).toBe "    while(items.length > 0) {"
+            expect(editor.lineTextForBufferRow(9)).toBe "  };"
+
+            expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
+            expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
+            expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
 
         describe "when some of the selections span the same lines", ->
           it "moves lines that contain multiple selections correctly", ->
@@ -3045,6 +3406,7 @@ describe "TextEditor", ->
         describe "when soft wrap is on", ->
           it "cuts up to the end of the line", ->
             editor.setSoftWrapped(true)
+            editor.setDefaultCharWidth(1)
             editor.setEditorWidthInChars(10)
             editor.setCursorScreenPosition([2, 2])
             editor.cutToEndOfLine()
@@ -4015,7 +4377,7 @@ describe "TextEditor", ->
         editor.destroy()
 
         waitsForPromise ->
-          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+          atom.workspace.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe true
@@ -4088,7 +4450,7 @@ describe "TextEditor", ->
         editor.destroy()
 
         waitsForPromise ->
-          atom.project.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
+          atom.workspace.open('sample-with-tabs-and-leading-comment.coffee').then (o) -> editor = o
 
         runs ->
           expect(editor.softTabs).toBe true
@@ -4143,7 +4505,7 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
         waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
       afterEach: ->
         atom.packages.deactivatePackages()
@@ -4346,7 +4708,7 @@ describe "TextEditor", ->
         waitsForPromise ->
           atom.packages.activatePackage('language-coffee-script')
         waitsForPromise ->
-          atom.project.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
 
         runs ->
           atom.config.set('editor.autoIndent', true, scopeSelector: '.source.js')
@@ -4496,7 +4858,8 @@ describe "TextEditor", ->
 
       editor2 = null
       waitsForPromise ->
-        atom.project.open('sample.js', autoIndent: false).then (o) -> editor2 = o
+        atom.workspace.getActivePane().splitRight()
+        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor2 = o
 
       runs ->
         expect(editor.shouldPromptToSave()).toBeFalsy()
@@ -4750,11 +5113,10 @@ describe "TextEditor", ->
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
-      TextBuffer = require 'text-buffer'
-      newEditor = new TextEditor
-        buffer: new TextBuffer
+      newEditor = atom.workspace.buildTextEditor(
         mini: true
         placeholderText: 'yep'
+      )
       expect(newEditor.getPlaceholderText()).toBe 'yep'
 
     it 'models placeholderText and emits an event when changed', ->
@@ -4782,7 +5144,7 @@ describe "TextEditor", ->
 
     describe "when there's no repository for the editor's file", ->
       it "doesn't do anything", ->
-        editor = new TextEditor({})
+        editor = atom.workspace.buildTextEditor()
         editor.setText("stuff")
         editor.checkoutHeadRevision()
 

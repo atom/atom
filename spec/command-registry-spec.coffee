@@ -16,6 +16,7 @@ describe "CommandRegistry", ->
     document.querySelector('#jasmine-content').appendChild(parent)
 
     registry = new CommandRegistry
+    registry.attach(parent)
 
   afterEach ->
     registry.destroy()
@@ -277,3 +278,18 @@ describe "CommandRegistry", ->
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
+
+  describe "::attach(rootNode)", ->
+    it "adds event listeners for any previously-added commands", ->
+      registry2 = new CommandRegistry
+
+      commandSpy = jasmine.createSpy('command-callback')
+      registry2.add '.grandchild', 'command-1', commandSpy
+
+      grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+      expect(commandSpy).not.toHaveBeenCalled()
+
+      registry2.attach(parent)
+
+      grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+      expect(commandSpy).toHaveBeenCalled()
