@@ -93,10 +93,6 @@
     require('ipc').sendChannel('window-command', 'window:loaded')
   }
 
-  function setupAtomHome (atomHome) {
-    process.env.ATOM_HOME = atomHome
-  }
-
   function setupCsonCache (cacheDir) {
     require('season').setCacheDir(path.join(cacheDir, 'cson'))
   }
