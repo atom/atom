@@ -19,7 +19,7 @@ start = ->
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
 
-  parseCommandLine()
+  args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
