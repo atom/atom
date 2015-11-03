@@ -4191,6 +4191,37 @@ describe "TextEditor", ->
       """
       expect(editor.getSelectedBufferRange()).toEqual [[13, 0], [14, 2]]
 
+  describe ".moveLineUp()", ->
+    it "moves line up", ->
+      editor.setCursorBufferPosition([1, 0])
+      editor.moveLineUp()
+      expect(editor.getTextInBufferRange([[0, 0], [0, 30]])).toBe "  var sort = function(items) {"
+      expect(editor.indentationForBufferRow(0)).toBe 1
+      expect(editor.indentationForBufferRow(1)).toBe 0
+      
+    it "update indentation when config editor.autoIndent is true", ->
+      atom.config.set('editor.autoIndent', true)
+      editor.setCursorBufferPosition([1, 0])
+      editor.moveLineUp()
+      expect(editor.indentationForBufferRow(0)).toBe 0
+      expect(editor.indentationForBufferRow(1)).toBe 0
+      
+  describe ".moveLineDown()", ->
+    it "moves line down", ->
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveLineDown()
+      expect(editor.getTextInBufferRange([[1, 0], [1, 31]])).toBe "var quicksort = function () {"
+      expect(editor.indentationForBufferRow(0)).toBe 1
+      expect(editor.indentationForBufferRow(1)).toBe 0
+         
+    it "update indentation when config editor.autoIndent is true", ->
+      atom.config.set('editor.autoIndent', true)
+      editor.setCursorBufferPosition([0, 0])
+      editor.moveLineDown()
+      expect(editor.indentationForBufferRow(0)).toBe 1
+      expect(editor.indentationForBufferRow(1)).toBe 2
+      
+
   describe ".shouldPromptToSave()", ->
     it "returns false when an edit session's buffer is in use by more than one session", ->
       jasmine.unspy(editor, 'shouldPromptToSave')
