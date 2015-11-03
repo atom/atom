@@ -12,13 +12,14 @@ yargs = require 'yargs'
 console.log = require 'nslog'
 
 start = ->
-  args = parseCommandLine()
-  args.atomHome = setupAtomHome()
+  setupAtomHome()
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
+
+  parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
