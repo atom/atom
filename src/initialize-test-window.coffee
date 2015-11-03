@@ -1,69 +1,78 @@
-# Start the crash reporter before anything else.
-require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
-remote = require 'remote'
+cloneObject = (object) ->
+  clone = {}
+  clone[key] = value for key, value of object
+  clone
 
-exitWithStatusCode = (status) ->
-  remote.require('app').emit('will-quit')
-  remote.process.exit(status)
+module.exports = ({blobStore}) ->
+  # Start the crash reporter before anything else.
+  require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
+  remote = require 'remote'
 
-try
-  path = require 'path'
-  ipc = require 'ipc'
-  {getWindowLoadSettings} = require './window-load-settings-helpers'
-  AtomEnvironment = require '../src/atom-environment'
-  ApplicationDelegate = require '../src/application-delegate'
+  exitWithStatusCode = (status) ->
+    remote.require('app').emit('will-quit')
+    remote.process.exit(status)
 
-  {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
+  try
+    path = require 'path'
+    ipc = require 'ipc'
+    {getWindowLoadSettings} = require './window-load-settings-helpers'
+    AtomEnvironment = require '../src/atom-environment'
+    ApplicationDelegate = require '../src/application-delegate'
 
-  if headless
-    # Override logging in headless mode so it goes to the console, regardless
-    # of the --enable-logging flag to Electron.
-    console.log = (args...) ->
-      ipc.send 'write-to-stdout', args.join(' ') + '\n'
-    console.warn = (args...) ->
-      ipc.send 'write-to-stderr', args.join(' ') + '\n'
-    console.error = (args...) ->
-      ipc.send 'write-to-stderr', args.join(' ') + '\n'
-  else
-    # Show window synchronously so a focusout doesn't fire on input elements
-    # that are focused in the very first spec run.
-    remote.getCurrentWindow().show()
+    {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
 
-  handleKeydown = (event) ->
-    # Reload: cmd-r / ctrl-r
-    if (event.metaKey or event.ctrlKey) and event.keyCode is 82
-      ipc.send('call-window-method', 'restart')
+    if headless
+      # Override logging in headless mode so it goes to the console, regardless
+      # of the --enable-logging flag to Electron.
+      console.log = (args...) ->
+        ipc.send 'write-to-stdout', args.join(' ') + '\n'
+      console.warn = (args...) ->
+        ipc.send 'write-to-stderr', args.join(' ') + '\n'
+      console.error = (args...) ->
+        ipc.send 'write-to-stderr', args.join(' ') + '\n'
+    else
+      # Show window synchronously so a focusout doesn't fire on input elements
+      # that are focused in the very first spec run.
+      remote.getCurrentWindow().show()
 
-    # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
-    if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
-      ipc.send('call-window-method', 'toggleDevTools')
+    handleKeydown = (event) ->
+      # Reload: cmd-r / ctrl-r
+      if (event.metaKey or event.ctrlKey) and event.keyCode is 82
+        ipc.send('call-window-method', 'restart')
 
-    # Reload: cmd-w / ctrl-w
-    if (event.metaKey or event.ctrlKey) and event.keyCode is 87
-      ipc.send('call-window-method', 'close')
+      # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
+      if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
+        ipc.send('call-window-method', 'toggleDevTools')
 
-  window.addEventListener('keydown', handleKeydown, true)
+      # Reload: cmd-w / ctrl-w
+      if (event.metaKey or event.ctrlKey) and event.keyCode is 87
+        ipc.send('call-window-method', 'close')
 
-  # Add 'exports' to module search path.
-  exportsPath = path.join(getWindowLoadSettings().resourcePath, 'exports')
-  require('module').globalPaths.push(exportsPath)
-  process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
+    window.addEventListener('keydown', handleKeydown, true)
 
-  document.title = "Spec Suite"
+    # Add 'exports' to module search path.
+    exportsPath = path.join(getWindowLoadSettings().resourcePath, 'exports')
+    require('module').globalPaths.push(exportsPath)
+    process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
 
-  testRunner = require(testRunnerPath)
-  legacyTestRunner = require(legacyTestRunnerPath)
-  buildAtomEnvironment = (params) -> new AtomEnvironment(params)
-  buildDefaultApplicationDelegate = (params) -> new ApplicationDelegate()
+    document.title = "Spec Suite"
 
-  promise = testRunner({
-    logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner
-  })
+    testRunner = require(testRunnerPath)
+    legacyTestRunner = require(legacyTestRunnerPath)
+    buildDefaultApplicationDelegate = -> new ApplicationDelegate()
+    buildAtomEnvironment = (params) ->
+      params = cloneObject(params)
+      params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
+      new AtomEnvironment(params)
 
-  promise.then(exitWithStatusCode) if getWindowLoadSettings().headless
-catch error
-  if getWindowLoadSettings().headless
-    console.error(error.stack ? error)
-    exitWithStatusCode(1)
-  else
-    throw error
+    promise = testRunner({
+      logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner
+    })
+
+    promise.then(exitWithStatusCode) if getWindowLoadSettings().headless
+  catch error
+    if getWindowLoadSettings().headless
+      console.error(error.stack ? error)
+      exitWithStatusCode(1)
+    else
+      throw error

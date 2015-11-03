@@ -6,7 +6,7 @@
 
   var loadSettings = null
   var loadSettingsError = null
-  window.blobStore = null
+  var blobStore = null
 
   window.onload = function () {
     try {
@@ -19,10 +19,10 @@
       // Ensure ATOM_HOME is always set before anything else is required
       setupAtomHome()
 
-      window.blobStore = FileSystemBlobStore.load(
+      blobStore = FileSystemBlobStore.load(
         path.join(process.env.ATOM_HOME, 'blob-store/')
       )
-      NativeCompileCache.setCacheStore(window.blobStore)
+      NativeCompileCache.setCacheStore(blobStore)
       NativeCompileCache.install()
 
       // Normalize to make sure drive letter case is consistent on Windows
@@ -85,7 +85,8 @@
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())
 
-    require(loadSettings.windowInitializationScript)
+    var initialize = require(loadSettings.windowInitializationScript)
+    initialize({blobStore: blobStore})
     require('ipc').sendChannel('window-command', 'window:loaded')
   }
 

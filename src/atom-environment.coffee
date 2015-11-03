@@ -116,7 +116,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
+    {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
     @state = {version: @constructor.version}
 
@@ -306,6 +306,7 @@ class AtomEnvironment extends Model
     @project = null
     @commands.clear()
     @stylesElement.remove()
+    @config.destroy()
 
     @uninstallWindowEventHandler()
 
@@ -763,7 +764,7 @@ class AtomEnvironment extends Model
   saveBlobStoreSync: ->
     return unless @enablePersistence
 
-    @window.blobStore.save()
+    @blobStore.save()
 
   saveStateSync: ->
     return unless @enablePersistence
