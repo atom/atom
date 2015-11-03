@@ -116,7 +116,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
+    {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
     @state = {version: @constructor.version}
 
@@ -306,6 +306,7 @@ class AtomEnvironment extends Model
     @project = null
     @commands.clear()
     @stylesElement.remove()
+    @config.unobserveUserConfig()
 
     @uninstallWindowEventHandler()
 
@@ -636,6 +637,7 @@ class AtomEnvironment extends Model
     @state.packageStates = @packages.packageStates
     @state.fullScreen = @isFullScreen()
     @saveStateSync()
+    @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
@@ -758,6 +760,11 @@ class AtomEnvironment extends Model
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
+
+  saveBlobStoreSync: ->
+    return unless @enablePersistence
+
+    @blobStore.save()
 
   saveStateSync: ->
     return unless @enablePersistence
