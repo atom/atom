@@ -306,7 +306,7 @@ class AtomEnvironment extends Model
     @project = null
     @commands.clear()
     @stylesElement.remove()
-    @config.destroy()
+    @config.unobserveUserConfig()
 
     @uninstallWindowEventHandler()
 

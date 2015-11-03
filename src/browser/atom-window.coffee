@@ -75,9 +75,6 @@ class AtomWindow
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  saveBlobStore: ->
-    @browserWindow.webContents?.send('save-blob-store')
-
   setLoadSettings: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
     # be quite large.

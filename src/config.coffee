@@ -360,10 +360,6 @@ class Config
       @save()
     debouncedSave = _.debounce(save, 100)
 
-  destroy: ->
-    @clear()
-    @unobserveUserConfig()
-
   shouldNotAccessFileSystem: -> not @enablePersistence
 
   ###
