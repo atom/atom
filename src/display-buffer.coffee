@@ -926,6 +926,8 @@ class DisplayBuffer extends Model
     else if bufferLayer = @buffer.getMarkerLayer(id)
       @customMarkerLayersById[id] = new TextEditorMarkerLayer(this, bufferLayer)
 
+  getDefaultMarkerLayer: -> @defaultMarkerLayer
+
   findFoldMarker: (params) ->
     @findFoldMarkers(params)[0]
 

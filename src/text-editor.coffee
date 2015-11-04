@@ -1403,9 +1403,9 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
-  # Essential: Adds a decoration that tracks a {TextEditorMarker}. When the marker moves,
-  # is invalidated, or is destroyed, the decoration will be updated to reflect
-  # the marker's state.
+  # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
+  # marker moves, is invalidated, or is destroyed, the decoration will be
+  # updated to reflect the marker's state.
   #
   # The following are the supported decorations types:
   #
@@ -1469,10 +1469,22 @@ class TextEditor extends Model
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
 
+  # Essential: *Experimental:* Add a decoration to every marker in the given
+  # marker layer. Can be used to decorate a large number of markers without
+  # having to create and manage many individual decorations.
+  #
+  # * `markerLayer` A {TextEditorMarkerLayer} or {MarkerLayer} to decorate.
+  # * `decorationParams` The same parameters that are passed to
+  #   {decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {LayerDecoration}.
   decorateMarkerLayer: (markerLayer, decorationParams) ->
     @displayBuffer.decorateMarkerLayer(markerLayer, decorationParams)
 
-  # Essential: Get all the decorations within a screen row range.
+  # Deprecated: Get all the decorations within a screen row range on the default
+  # layer.
   #
   # * `startScreenRow` the {Number} beginning screen row
   # * `endScreenRow` the {Number} end screen row (inclusive)
@@ -1543,10 +1555,10 @@ class TextEditor extends Model
   Section: Markers
   ###
 
-  # Essential: Create a marker with the given range in buffer coordinates. This
-  # marker will maintain its logical location as the buffer is changed, so if
-  # you mark a particular word, the marker will remain over that word even if
-  # the word's location in the buffer changes.
+  # Essential: Create a marker on the default marker layer with the given range
+  # in buffer coordinates. This marker will maintain its logical location as the
+  # buffer is changed, so if you mark a particular word, the marker will remain
+  # over that word even if the word's location in the buffer changes.
   #
   # * `range` A {Range} or range-compatible {Array}
   # * `properties` A hash of key-value pairs to associate with the marker. There
@@ -1578,10 +1590,10 @@ class TextEditor extends Model
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Essential: Create a marker with the given range in screen coordinates. This
-  # marker will maintain its logical location as the buffer is changed, so if
-  # you mark a particular word, the marker will remain over that word even if
-  # the word's location in the buffer changes.
+  # Essential: Create a marker on the default marker layer with the given range
+  # in screen coordinates. This marker will maintain its logical location as the
+  # buffer is changed, so if you mark a particular word, the marker will remain
+  # over that word even if the word's location in the buffer changes.
   #
   # * `range` A {Range} or range-compatible {Array}
   # * `properties` A hash of key-value pairs to associate with the marker. There
@@ -1613,7 +1625,8 @@ class TextEditor extends Model
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
-  # Essential: Mark the given position in buffer coordinates.
+  # Essential: Mark the given position in buffer coordinates on the default
+  # marker layer.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
@@ -1622,7 +1635,8 @@ class TextEditor extends Model
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # Essential: Mark the given position in screen coordinates.
+  # Essential: Mark the given position in screen coordinates on the default
+  # marker layer.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
@@ -1631,7 +1645,8 @@ class TextEditor extends Model
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Essential: Find all {TextEditorMarker}s that match the given properties.
+  # Essential: Find all {TextEditorMarker}s on the default marker layer that
+  # match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1653,36 +1668,19 @@ class TextEditor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
-  # Extended: Observe changes in the set of markers that intersect a particular
-  # region of the editor.
-  #
-  # * `callback` A {Function} to call whenever one or more {TextEditorMarker}s appears,
-  #    disappears, or moves within the given region.
-  #   * `event` An {Object} with the following keys:
-  #     * `insert` A {Set} containing the ids of all markers that appeared
-  #        in the range.
-  #     * `update` A {Set} containing the ids of all markers that moved within
-  #        the region.
-  #     * `remove` A {Set} containing the ids of all markers that disappeared
-  #        from the region.
-  #
-  # Returns a {MarkerObservationWindow}, which allows you to specify the region
-  # of interest by calling {MarkerObservationWindow::setBufferRange} or
-  # {MarkerObservationWindow::setScreenRange}.
-  observeMarkers: (callback) ->
-    @displayBuffer.observeMarkers(callback)
-
-  # Extended: Get the {TextEditorMarker} for the given marker id.
+  # Extended: Get the {TextEditorMarker} on the default layer for the given
+  # marker id.
   #
   # * `id` {Number} id of the marker
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
-  # Extended: Get all {TextEditorMarker}s. Consider using {::findMarkers}
+  # Extended: Get all {TextEditorMarker}s on the default marker layer. Consider
+  # using {::findMarkers}
   getMarkers: ->
     @displayBuffer.getMarkers()
 
-  # Extended: Get the number of markers in this editor's buffer.
+  # Extended: Get the number of markers in the default marker layer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
@@ -1691,11 +1689,39 @@ class TextEditor extends Model
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
 
+  # Extended: *Experimental:* Create a marker layer to group related markers.
+  #
+  # * `options` An {Object} containing the following keys:
+  #   * `maintainHistory` A {Boolean} indicating whether marker state should be
+  #     restored on undo/redo. Defaults to `false`.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {TextEditorMarkerLayer}.
   addMarkerLayer: (options) ->
     @displayBuffer.addMarkerLayer(options)
 
+  # Public: *Experimental:* Get a {TextEditorMarkerLayer} by id.
+  #
+  # * `id` The id of the marker layer to retrieve.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {MarkerLayer} or `undefined` if no layer exists with the given
+  # id.
   getMarkerLayer: (id) ->
     @displayBuffer.getMarkerLayer(id)
+
+  # Public: *Experimental:* Get the default {TextEditorMarkerLayer}.
+  #
+  # All marker APIs not tied to an explicit layer interact with this default
+  # layer.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {TextEditorMarkerLayer}.
+  getDefaultMarkerLayer: ->
+    @displayBuffer.getDefaultMarkerLayer()
 
   ###
   Section: Cursors
