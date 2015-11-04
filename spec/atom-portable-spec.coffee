@@ -3,6 +3,38 @@ fs = require 'fs-plus'
 temp = require "temp"
 AtomPortable = require "../src/browser/atom-portable"
 
+portableModeCommonPlatformBehavior = (platform) ->
+  describe "with ATOM_HOME environment variable", ->
+    it "returns false", ->
+      expect(AtomPortable.isPortableInstall(platform, "C:\\some\\path")).toBe false
+
+  describe "without ATOM_HOME environment variable", ->
+    environmentAtomHome = undefined
+    portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
+    portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
+    portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
+
+    beforeEach ->
+      fs.renameSync(portableAtomHomePath, portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomePath)
+
+    afterEach ->
+      if portableAtomHomeNaturallyExists
+        fs.renameSync(portableAtomHomeBackupPath, portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
+      else
+        fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
+      fs.removeSync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
+
+    describe "with .atom directory sibling to exec", ->
+      beforeEach ->
+        fs.mkdirSync(portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
+
+    describe "without .atom directory sibling to exec", ->
+      beforeEach ->
+        fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
+
+      it "returns false", ->
+        expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe false
+
 describe "Set Portable Mode on #win32", ->
   portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
   portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
@@ -26,44 +58,11 @@ describe "Set Portable Mode on #win32", ->
 
 describe "Check for Portable Mode", ->
   describe "Windows", ->
-    describe "with ATOM_HOME environment variable", ->
-      it "returns false", ->
-        expect(AtomPortable.isPortableInstall("win32", "C:\\some\\path")).toBe false
-
-    describe "without ATOM_HOME environment variable", ->
-      environmentAtomHome = undefined
-      portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
-      portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
-      portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
-
-      beforeEach ->
-        fs.renameSync(portableAtomHomePath, portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomePath)
-
-      afterEach ->
-        if portableAtomHomeNaturallyExists
-          fs.renameSync(portableAtomHomeBackupPath, portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
-        else
-          fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
-        fs.removeSync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
-
-      describe "with .atom directory sibling to exec", ->
-        beforeEach ->
-          fs.mkdirSync(portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
-
-        it "returns true", ->
-          expect(AtomPortable.isPortableInstall("win32", environmentAtomHome)).toBe true
-
-      describe "without .atom directory sibling to exec", ->
-        beforeEach ->
-          fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
-
-        it "returns false", ->
-          expect(AtomPortable.isPortableInstall("win32", environmentAtomHome)).toBe false
+    portableModeCommonPlatformBehavior "win32"
 
   describe "Mac", ->
     it "returns false", ->
       expect(AtomPortable.isPortableInstall("darwin", "darwin")).toBe false
 
   describe "Linux", ->
-    it "returns false", ->
-      expect(AtomPortable.isPortableInstall("linux", "linux")).toBe false
+    portableModeCommonPlatformBehavior "linux"
