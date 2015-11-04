@@ -12,7 +12,7 @@ class AtomPortable
     fs.copySync(existingAtomHome, @getPortableAtomHomePath())
 
   @isPortableInstall: (platform, environmentAtomHome, defaultHome) ->
-    return false unless platform is 'win32' or platform is 'linux'
+    return false unless platform in ['linux', 'win32']
     return false if environmentAtomHome
     return false if not fs.existsSync(@getPortableAtomHomePath())
     # currently checking only that the directory exists  and is writable,
