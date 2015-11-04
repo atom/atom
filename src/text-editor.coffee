@@ -54,13 +54,11 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  callDisplayBufferCreatedHook: false
   buffer: null
   languageMode: null
   cursors: null
   selections: null
   suppressSelectionMerging: false
-  updateBatchDepth: 0
   selectionFlashDuration: 500
   gutterContainer: null
 
