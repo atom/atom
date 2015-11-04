@@ -27,6 +27,7 @@ class DisplayBuffer extends Model
   height: null
   width: null
   didUpdateDecorationsEventScheduled: false
+  updatedSynchronously: false
 
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
@@ -185,6 +186,8 @@ class DisplayBuffer extends Model
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
+  setUpdatedSynchronously: (@updatedSynchronously) ->
 
   getVerticalScrollMargin: ->
     maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
@@ -1065,6 +1068,10 @@ class DisplayBuffer extends Model
       @emitter.emit 'did-create-marker', marker
 
   scheduleUpdateDecorationsEvent: ->
+    if @updatedSynchronously
+      @emitter.emit 'did-update-decorations'
+      return
+
     unless @didUpdateDecorationsEventScheduled
       @didUpdateDecorationsEventScheduled = true
       process.nextTick =>

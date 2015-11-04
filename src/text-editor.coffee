@@ -506,6 +506,9 @@ class TextEditor extends Model
 
   isMini: -> @mini
 
+  setUpdatedSynchronously: (updatedSynchronously) ->
+    @displayBuffer.setUpdatedSynchronously(updatedSynchronously)
+
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
 
