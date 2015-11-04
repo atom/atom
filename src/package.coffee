@@ -317,7 +317,7 @@ class Package
         if error?
           detail = "#{error.message} in #{settingsPath}"
           stack = "#{error.stack}\n  at #{settingsPath}:1:1"
-          @notificationManager.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
+          @notificationManager.addFatalError("Failed to load the #{@name} package settings", {stack, detail, packageName: @name, dismissable: true})
         else
           @settings.push(settings)
           settings.activate() if @settingsActivated
