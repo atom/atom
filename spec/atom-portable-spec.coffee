@@ -1,8 +1,28 @@
 path = require "path"
 fs = require 'fs-plus'
 temp = require "temp"
-rimraf = require "rimraf"
 AtomPortable = require "../src/browser/atom-portable"
+
+describe "Set Portable Mode on #win32", ->
+  portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
+  portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
+  portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
+
+  beforeEach ->
+    fs.renameSync(portableAtomHomePath, portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomePath)
+
+  afterEach ->
+    if portableAtomHomeNaturallyExists
+      fs.renameSync(portableAtomHomeBackupPath, portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
+    else
+      fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
+    fs.removeSync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
+
+  it "creates a portable home directory", ->
+    expect(fs.existsSync(portableAtomHomePath)).toBe false
+
+    AtomPortable.setPortable(process.env.ATOM_HOME)
+    expect(fs.existsSync(portableAtomHomePath)).toBe true
 
 describe "Check for Portable Mode", ->
   describe "Windows", ->
@@ -23,8 +43,8 @@ describe "Check for Portable Mode", ->
         if portableAtomHomeNaturallyExists
           fs.renameSync(portableAtomHomeBackupPath, portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
         else
-          rimraf.sync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
-        rimraf.sync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
+          fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
+        fs.removeSync(portableAtomHomeBackupPath) if fs.existsSync(portableAtomHomeBackupPath)
 
       describe "with .atom directory sibling to exec", ->
         beforeEach ->
@@ -35,7 +55,7 @@ describe "Check for Portable Mode", ->
 
       describe "without .atom directory sibling to exec", ->
         beforeEach ->
-          rimraf.sync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
+          fs.removeSync(portableAtomHomePath) if fs.existsSync(portableAtomHomePath)
 
         it "returns false", ->
           expect(AtomPortable.isPortableInstall("win32", environmentAtomHome)).toBe false
