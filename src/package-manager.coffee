@@ -467,7 +467,7 @@ class PackageManager
     detail = "#{error.message} in #{metadataPath}"
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
-    @notificationManager.addError(message, {stack, detail, dismissable: true})
+    @notificationManager.addError(message, {stack, detail, packageName: path.basename(packagePath), dismissable: true})
 
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->

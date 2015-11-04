@@ -293,7 +293,7 @@ class Package
         if error?
           detail = "#{error.message} in #{grammarPath}"
           stack = "#{error.stack}\n  at #{grammarPath}:1:1"
-          @notificationManager.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, dismissable: true})
+          @notificationManager.addFatalError("Failed to load a #{@name} package grammar", {stack, detail, packageName: @name, dismissable: true})
         else
           grammar.packageName = @name
           grammar.bundledPackage = @bundledPackage
@@ -317,7 +317,7 @@ class Package
         if error?
           detail = "#{error.message} in #{settingsPath}"
           stack = "#{error.stack}\n  at #{settingsPath}:1:1"
-          @notificationManager.addFatalError("Failed to load the #{@name} package settings", {stack, detail, dismissable: true})
+          @notificationManager.addFatalError("Failed to load the #{@name} package settings", {stack, detail, packageName: @name, dismissable: true})
         else
           @settings.push(settings)
           settings.activate() if @settingsActivated
@@ -634,4 +634,4 @@ class Package
       detail = error.message
       stack = error.stack ? error
 
-    @notificationManager.addFatalError(message, {stack, detail, dismissable: true})
+    @notificationManager.addFatalError(message, {stack, detail, packageName: @name, dismissable: true})
