@@ -3,14 +3,13 @@ fs = require 'fs-plus'
 temp = require "temp"
 AtomPortable = require "../src/browser/atom-portable"
 
-portableModeCommonPlatformBehavior = (platform) ->
+portableModeCommonPlatformBehavior = (platform, portableAtomHomePath) ->
   describe "with ATOM_HOME environment variable", ->
     it "returns false", ->
       expect(AtomPortable.isPortableInstall(platform, "C:\\some\\path")).toBe false
 
   describe "without ATOM_HOME environment variable", ->
     environmentAtomHome = undefined
-    portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
     portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
     portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
 
@@ -27,6 +26,9 @@ portableModeCommonPlatformBehavior = (platform) ->
     describe "with .atom directory sibling to exec", ->
       beforeEach ->
         fs.mkdirSync(portableAtomHomePath) if not fs.existsSync(portableAtomHomePath)
+
+      it "returns true", ->
+        expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe true
 
     describe "without .atom directory sibling to exec", ->
       beforeEach ->
@@ -57,12 +59,12 @@ describe "Set Portable Mode on #win32", ->
     expect(fs.existsSync(portableAtomHomePath)).toBe true
 
 describe "Check for Portable Mode", ->
+  simplePortableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom")
   describe "Windows", ->
-    portableModeCommonPlatformBehavior "win32"
+    portableModeCommonPlatformBehavior "win32", simplePortableAtomHomePath
 
   describe "Mac", ->
-    it "returns false", ->
-      expect(AtomPortable.isPortableInstall("darwin", "darwin")).toBe false
+    portableModeCommonPlatformBehavior "darwin", path.join(process.resourcesPath, "..", "..", '..', ".atom")
 
   describe "Linux", ->
-    portableModeCommonPlatformBehavior "linux"
+    portableModeCommonPlatformBehavior "linux", simplePortableAtomHomePath

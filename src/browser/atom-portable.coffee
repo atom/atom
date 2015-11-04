@@ -4,31 +4,33 @@ ipc = require 'ipc'
 
 module.exports =
 class AtomPortable
-  @getPortableAtomHomePath: ->
+  @getPortableAtomHomePath: (platform) ->
+    return path.join(process.resourcesPath, '..', '..', '..', '.atom') if platform is 'darwin'
     execDirectoryPath = path.dirname(process.execPath)
     path.join(execDirectoryPath, '..', '.atom')
 
   @setPortable: (existingAtomHome) ->
-    fs.copySync(existingAtomHome, @getPortableAtomHomePath())
+    fs.copySync(existingAtomHome, @getPortableAtomHomePath platform)
 
   @isPortableInstall: (platform, environmentAtomHome, defaultHome) ->
-    return false unless platform in ['linux', 'win32']
+    return false unless platform in ['linux', 'win32', 'darwin']
     return false if environmentAtomHome
-    return false if not fs.existsSync(@getPortableAtomHomePath())
+    return false if not fs.existsSync(@getPortableAtomHomePath platform)
     # currently checking only that the directory exists  and is writable,
     # probably want to do some integrity checks on contents in future
+
     @isPortableAtomHomePathWritable(defaultHome)
 
-  @isPortableAtomHomePathWritable: (defaultHome) ->
+  @isPortableAtomHomePathWritable: (platform, defaultHome) ->
     writable = false
     message = ""
     try
-      writePermissionTestFile = path.join(@getPortableAtomHomePath(), "write.test")
+      writePermissionTestFile = path.join(@getPortableAtomHomePath(platform), "write.test")
       fs.writeFileSync(writePermissionTestFile, "test") if not fs.existsSync(writePermissionTestFile)
       fs.removeSync(writePermissionTestFile)
       writable = true
     catch error
-      message = "Failed to use portable Atom home directory (#{@getPortableAtomHomePath()}).  Using the default instead (#{defaultHome}).  #{error.message}"
+      message = "Failed to use portable Atom home directory (#{@getPortableAtomHomePath platform}).  Using the default instead (#{defaultHome}).  #{error.message}"
 
     ipc.on 'check-portable-home-writable', (event) ->
       event.sender.send 'check-portable-home-writable-response', {writable, message}
