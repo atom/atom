@@ -13,15 +13,12 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @config, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
-    {horizontalScrollbarHeight, verticalScrollbarWidth} = params
-    {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
-    @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
-    @measuredVerticalScrollbarWidth = verticalScrollbarWidth
-    @gutterWidth ?= 0
-    @tileSize ?= 6
+    {@model, @config} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
+    {@contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow} = params
 
+    @gutterWidth = 0
+    @tileSize ?= 6
     @realScrollTop = @scrollTop
     @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
