@@ -15,7 +15,7 @@ class TextEditorPresenter
   constructor: (params) ->
     {@model, @config} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
-    {@contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow} = params
+    {@contentFrameWidth} = params
 
     @gutterWidth = 0
     @tileSize ?= 6
@@ -72,7 +72,6 @@ class TextEditorPresenter
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
-    @restoreScrollPosition()
     @commitPendingLogicalScrollTopPosition()
     @commitPendingScrollTopPosition()
 
@@ -777,8 +776,7 @@ class TextEditorPresenter
     if scrollTop isnt @realScrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
-      @scrollRow = Math.round(@scrollTop / @lineHeight)
-      @model.setScrollRow(@scrollRow)
+      @model.setFirstVisibleScreenRow(Math.round(@scrollTop / @lineHeight))
 
       @updateStartRow()
       @updateEndRow()
@@ -794,8 +792,7 @@ class TextEditorPresenter
     if scrollLeft isnt @realScrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
-      @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
-      @model.setScrollColumn(@scrollColumn)
+      @model.setFirstVisibleScreenColumn(Math.round(@scrollLeft / @baseCharacterWidth))
 
       @emitter.emit 'did-change-scroll-left', @scrollLeft
 
@@ -1106,6 +1103,8 @@ class TextEditorPresenter
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
+      unless @scrollTop?
+        @updateScrollTop(@model.getFirstVisibleScreenRow() * lineHeight)
       @model.setLineHeightInPixels(lineHeight)
       @shouldUpdateHeightState = true
       @shouldUpdateHorizontalScrollState = true
@@ -1133,6 +1132,8 @@ class TextEditorPresenter
       @halfWidthCharWidth = halfWidthCharWidth
       @koreanCharWidth = koreanCharWidth
       @model.setDefaultCharWidth(baseCharacterWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
+      unless @scrollLeft?
+        @updateScrollLeft(@model.getFirstVisibleScreenColumn() * baseCharacterWidth)
       @characterWidthsChanged()
 
   characterWidthsChanged: ->
@@ -1616,14 +1617,6 @@ class TextEditorPresenter
     if @pendingScrollTop?
       @updateScrollTop(@pendingScrollTop)
       @pendingScrollTop = null
-
-  restoreScrollPosition: ->
-    return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()
-
-    @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
-    @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
-
-    @hasRestoredScrollPosition = true
 
   clearPendingScrollPosition: ->
     @pendingScrollLogicalPosition = null

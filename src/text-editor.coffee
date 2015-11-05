@@ -87,7 +87,7 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
       lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
       @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
@@ -102,6 +102,8 @@ class TextEditor extends Model
     throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
+    @firstVisibleScreenRow ?= 0
+    @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
@@ -141,8 +143,8 @@ class TextEditor extends Model
     deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
-    scrollRow: @getScrollRow()
-    scrollColumn: @getScrollColumn()
+    firstVisibleScreenRow: @getFirstVisibleScreenRow()
+    firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
 
   subscribeToBuffer: ->
@@ -3086,11 +3088,12 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @displayBuffer.getWidth()
 
-  getScrollRow: -> @scrollRow
-  setScrollRow: (@scrollRow) ->
+  setFirstVisibleScreenRow: (@firstVisibleScreenRow) ->
+  getFirstVisibleScreenRow: -> @firstVisibleScreenRow
 
-  getScrollColumn: -> @scrollColumn
-  setScrollColumn: (@scrollColumn) ->
+  setFirstVisibleScreenColumn: (@firstVisibleScreenColumn) ->
+  getFirstVisibleScreenColumn: -> @firstVisibleScreenColumn
+
 
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
