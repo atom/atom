@@ -320,7 +320,7 @@
 				<string>dtd</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>DTD.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Document Type Definition</string>
 			<key>CFBundleTypeRole</key>
