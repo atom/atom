@@ -64,7 +64,7 @@ setupAtomHome = ({setPortable}) ->
 
   if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
     try
-      AtomPortable.setPortable(atomHome)
+      AtomPortable.setPortable(process.platform, atomHome)
     catch error
       console.log("Failed copying portable directory '#{atomHome}' to '#{AtomPortable.getPortableAtomHomePath process.platform}'")
       console.log("#{error.message} #{error.stack}")

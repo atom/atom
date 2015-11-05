@@ -9,11 +9,10 @@ class AtomPortable
     execDirectoryPath = path.dirname(process.execPath)
     path.join(execDirectoryPath, '..', '.atom')
 
-  @setPortable: (existingAtomHome) ->
-    fs.copySync(existingAtomHome, @getPortableAtomHomePath platform)
+  @setPortable: (platform, existingAtomHome) ->
+    fs.copySync(existingAtomHome, @getPortableAtomHomePath(platform))
 
   @isPortableInstall: (platform, environmentAtomHome, defaultHome) ->
-    return false unless platform in ['linux', 'win32', 'darwin']
     return false if environmentAtomHome
     return false if not fs.existsSync(@getPortableAtomHomePath platform)
     # currently checking only that the directory exists  and is writable,
