@@ -1057,7 +1057,7 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>ext</string>
+				<string>etx</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>Blank.icns</string>
@@ -1329,7 +1329,7 @@
 				<string>yml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>YAML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>YAML document</string>
 			<key>CFBundleTypeRole</key>
