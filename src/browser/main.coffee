@@ -12,14 +12,13 @@ yargs = require 'yargs'
 console.log = require 'nslog'
 
 start = ->
-  setupAtomHome()
+  args = parseCommandLine()
+  setupAtomHome(args)
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
-
-  args = parseCommandLine()
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
@@ -57,11 +56,25 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
-setupAtomHome = ->
+setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
+
   atomHome = path.join(app.getHomeDir(), '.atom')
+  AtomPortable = require './atom-portable'
+
+  if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+    try
+      AtomPortable.setPortable(atomHome)
+    catch error
+      console.log("Failed copying portable directory '#{atomHome}' to '#{AtomPortable.getPortableAtomHomePath()}'")
+      console.log("#{error.message} #{error.stack}")
+
+  if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+    atomHome = AtomPortable.getPortableAtomHomePath()
+
   try
     atomHome = fs.realpathSync(atomHome)
+
   process.env.ATOM_HOME = atomHome
 
 setupCompileCache = ->
@@ -100,6 +113,7 @@ parseCommandLine = ->
   options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
+  options.boolean('portable').describe('portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
@@ -129,6 +143,7 @@ parseCommandLine = ->
   profileStartup = args['profile-startup']
   urlsToOpen = []
   devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
+  setPortable = args.portable
 
   if args['resource-path']
     devMode = true
@@ -149,6 +164,6 @@ parseCommandLine = ->
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
    version, pidToKillWhenClosed, devMode, safeMode, newWindow,
-   logFile, socketPath, profileStartup, timeout}
+   logFile, socketPath, profileStartup, timeout, setPortable}
 
 start()
