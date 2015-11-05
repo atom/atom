@@ -58,7 +58,7 @@
 				<string>ads</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>ADA.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>ADA source</string>
 			<key>CFBundleTypeRole</key>
@@ -220,7 +220,7 @@
 				<string>cfdg</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>CFDG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Context Free Design Grammar</string>
 			<key>CFBundleTypeRole</key>
@@ -234,7 +234,7 @@
 				<string>csv</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>CSV.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Comma separated values</string>
 			<key>CFBundleTypeRole</key>
@@ -248,7 +248,7 @@
 				<string>tsv</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>TSV.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Tab separated values</string>
 			<key>CFBundleTypeRole</key>
@@ -263,7 +263,7 @@
 				<string>fcgi</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>CGI.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>CGI script</string>
 			<key>CFBundleTypeRole</key>
@@ -278,7 +278,7 @@
 				<string>htaccess</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>CFG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Configuration file</string>
 			<key>CFBundleTypeRole</key>
@@ -334,7 +334,7 @@
 				<string>dylan</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Dylan.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Dylan source</string>
 			<key>CFBundleTypeRole</key>
@@ -363,7 +363,7 @@
 				<string>fscript</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>F-Script.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>F-Script source</string>
 			<key>CFBundleTypeRole</key>
@@ -475,7 +475,7 @@
 				<string>inc</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Inc.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Include file</string>
 			<key>CFBundleTypeRole</key>
@@ -489,7 +489,7 @@
 				<string>ics</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>ICS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>iCalendar schedule</string>
 			<key>CFBundleTypeRole</key>
@@ -517,7 +517,7 @@
 				<string>io</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>IO.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Io source</string>
 			<key>CFBundleTypeRole</key>
@@ -545,7 +545,7 @@
 				<string>bsh</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>BeanShell.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>BeanShell script</string>
 			<key>CFBundleTypeRole</key>
@@ -588,7 +588,7 @@
 				<string>jsp</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>JSP.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Java Server Page</string>
 			<key>CFBundleTypeRole</key>
@@ -602,7 +602,7 @@
 				<string>json</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>JSON.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>JSON file</string>
 			<key>CFBundleTypeRole</key>
@@ -616,7 +616,7 @@
 				<string>ldif</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>LDIF.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>LDAP Data Interchange Format</string>
 			<key>CFBundleTypeRole</key>
@@ -649,7 +649,7 @@
 				<string>log</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Log.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Log file</string>
 			<key>CFBundleTypeRole</key>
@@ -663,7 +663,7 @@
 				<string>logo</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Logo.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Logo source</string>
 			<key>CFBundleTypeRole</key>
@@ -710,7 +710,7 @@
 				<string>mediawiki</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Mediawiki.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Mediawiki document</string>
 			<key>CFBundleTypeRole</key>
@@ -727,7 +727,7 @@
 				<string>asm</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>MIPS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>MIPS assembler source</string>
 			<key>CFBundleTypeRole</key>
@@ -742,7 +742,7 @@
 				<string>cm3</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Modula-3.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Modula-3 source</string>
 			<key>CFBundleTypeRole</key>
@@ -756,7 +756,7 @@
 				<string>moinmoin</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>MoinMoin.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>MoinMoin document</string>
 			<key>CFBundleTypeRole</key>
@@ -801,7 +801,7 @@
 				<string>mly</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>OCaml.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>OCaml source</string>
 			<key>CFBundleTypeRole</key>
@@ -860,7 +860,7 @@
 				<string>pm</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>PerlModule.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Perl module</string>
 			<key>CFBundleTypeRole</key>
@@ -892,7 +892,7 @@
 				<string>eps</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>PostScript.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>PostScript source</string>
 			<key>CFBundleTypeRole</key>
@@ -971,7 +971,7 @@
 				<string>remind</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Remind.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Remind document</string>
 			<key>CFBundleTypeRole</key>
@@ -1014,7 +1014,7 @@
 				<string>erbsql</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>ERBSQL.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>SQL with embedded Ruby</string>
 			<key>CFBundleTypeRole</key>
@@ -1046,7 +1046,7 @@
 				<string>sch</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Scheme.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Scheme source</string>
 			<key>CFBundleTypeRole</key>
@@ -1060,7 +1060,7 @@
 				<string>etx</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Setext.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Setext document</string>
 			<key>CFBundleTypeRole</key>
@@ -1094,7 +1094,7 @@
 				<string>slate</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Slate.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Slate source</string>
 			<key>CFBundleTypeRole</key>
@@ -1122,7 +1122,7 @@
 				<string>sml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>SML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Standard ML source</string>
 			<key>CFBundleTypeRole</key>
@@ -1150,7 +1150,7 @@
 				<string>svg</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>SVG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Scalable vector graphics</string>
 			<key>CFBundleTypeRole</key>
@@ -1179,7 +1179,7 @@
 				<string>tcl</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Tcl.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Tcl source</string>
 			<key>CFBundleTypeRole</key>
@@ -1235,7 +1235,7 @@
 				<string>textile</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Textile.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Textile document</string>
 			<key>CFBundleTypeRole</key>
@@ -1249,7 +1249,7 @@
 				<string>xhtml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>XHTML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>XHTML document</string>
 			<key>CFBundleTypeRole</key>
@@ -1285,7 +1285,7 @@
 				<string>xslt</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>XSL.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>XSL stylesheet</string>
 			<key>CFBundleTypeRole</key>
@@ -1300,7 +1300,7 @@
 				<string>vcard</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Vcard.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Electronic business card</string>
 			<key>CFBundleTypeRole</key>
@@ -1314,7 +1314,7 @@
 				<string>vb</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>VB.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Visual Basic source</string>
 			<key>CFBundleTypeRole</key>
@@ -1343,7 +1343,7 @@
 				<string>nfo</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>NFO.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Text document</string>
 			<key>CFBundleTypeRole</key>
@@ -1368,7 +1368,7 @@
 				<string>lgt</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Source.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Source</string>
 			<key>CFBundleTypeRole</key>
@@ -1407,7 +1407,7 @@
 				<string>*</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Blank.icns</string>
+			<string>Document.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Document</string>
 			<key>CFBundleTypeRole</key>
