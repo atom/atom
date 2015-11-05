@@ -5,6 +5,8 @@ ipc = require 'ipc'
 module.exports =
 class AtomPortable
   @getPortableAtomHomePath: (platform) ->
+    # Mac has a deeper path for the executable in the application package, so need a different
+    # relative path to find the portable home directory
     return path.join(process.resourcesPath, '..', '..', '..', '.atom') if platform is 'darwin'
     execDirectoryPath = path.dirname(process.execPath)
     path.join(execDirectoryPath, '..', '.atom')
