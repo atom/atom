@@ -866,8 +866,8 @@ class TextEditor extends Model
       @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
 
-  # Move lines intersection the most recent selection or multiple selections up by one row in screen
-  # coordinates.
+  # Move lines intersecting the most recent selection or multiple selections
+  # up by one row in screen coordinates.
   moveLineUp: ->
     selections = @getSelectedBufferRanges()
     selections.sort (a, b) -> a.compare(b)
@@ -951,8 +951,8 @@ class TextEditor extends Model
       @autoIndentSelectedRows() if @shouldAutoIndent()
       @scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
 
-  # Move lines intersecting the most recent selection or muiltiple selections down by one row in screen
-  # coordinates.
+  # Move lines intersecting the most recent selection or muiltiple selections
+  # down by one row in screen coordinates.
   moveLineDown: ->
     selections = @getSelectedBufferRanges()
     selections.sort (a, b) -> a.compare(b)
