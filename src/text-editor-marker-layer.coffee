@@ -147,6 +147,16 @@ class TextEditorMarkerLayer
     bufferMarkerParams = {}
     for key, value of params
       switch key
+        when 'startBufferPosition'
+          key = 'startPosition'
+        when 'endBufferPosition'
+          key = 'endPosition'
+        when 'startScreenPosition'
+          key = 'startPosition'
+          value = @displayBuffer.bufferPositionForScreenPosition(value)
+        when 'endScreenPosition'
+          key = 'endPosition'
+          value = @displayBuffer.bufferPositionForScreenPosition(value)
         when 'startBufferRow'
           key = 'startRow'
         when 'endBufferRow'
