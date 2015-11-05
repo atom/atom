@@ -38,6 +38,7 @@ describe "PackageManager", ->
       expect(-> pack.reloadStylesheets()).not.toThrow()
       expect(addErrorHandler.callCount).toBe 2
       expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to reload the package-with-invalid-styles package stylesheets")
+      expect(addErrorHandler.argsForCall[1][0].options.packageName).toEqual "package-with-invalid-styles"
 
     it "returns null if the package has an invalid package.json", ->
       addErrorHandler = jasmine.createSpy()
@@ -45,6 +46,7 @@ describe "PackageManager", ->
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
       expect(addErrorHandler.callCount).toBe 1
       expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
+      expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-broken-package-json"
 
     it "normalizes short repository urls in package.json", ->
       {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
@@ -230,6 +232,7 @@ describe "PackageManager", ->
           expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
           expect(addErrorHandler.callCount).toBe 1
           expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-activation-commands package")
+          expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-activation-commands"
 
         it "adds a notification when the context menu is invalid", ->
           addErrorHandler = jasmine.createSpy()
@@ -237,6 +240,7 @@ describe "PackageManager", ->
           expect(-> atom.packages.activatePackage('package-with-invalid-context-menu')).not.toThrow()
           expect(addErrorHandler.callCount).toBe 1
           expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-context-menu package")
+          expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-context-menu"
 
         it "adds a notification when the grammar is invalid", ->
           addErrorHandler = jasmine.createSpy()
@@ -250,6 +254,7 @@ describe "PackageManager", ->
           runs ->
             expect(addErrorHandler.callCount).toBe 1
             expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load a package-with-invalid-grammar package grammar")
+            expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-grammar"
 
         it "adds a notification when the settings are invalid", ->
           addErrorHandler = jasmine.createSpy()
@@ -263,6 +268,7 @@ describe "PackageManager", ->
           runs ->
             expect(addErrorHandler.callCount).toBe 1
             expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-invalid-settings package settings")
+            expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-settings"
 
     describe "when the package metadata includes `activationHooks`", ->
       [mainModule, promise] = []
@@ -351,6 +357,7 @@ describe "PackageManager", ->
         expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
         expect(addErrorHandler.callCount).toBe 1
         expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
+        expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-that-throws-an-exception"
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
