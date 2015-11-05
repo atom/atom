@@ -38,8 +38,8 @@ portableModeCommonPlatformBehavior = (platform, portableAtomHomePath) ->
         expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe false
 
 describe "Set Portable Mode", ->
-  portableAtomHomePath = path.join(process.resourcesPath, "..", "..", '..', ".atom") if platform is 'darwin'
-  portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom") if not platform is 'darwin'
+  portableAtomHomePath = path.join(process.resourcesPath, "..", "..", '..', ".atom") if process.platform is 'darwin'
+  portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom") if not process.platform is 'darwin'
   portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
   portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
 
@@ -56,7 +56,7 @@ describe "Set Portable Mode", ->
   it "creates a portable home directory", ->
     expect(fs.existsSync(portableAtomHomePath)).toBe false
 
-    AtomPortable.setPortable(platform, process.env.ATOM_HOME)
+    AtomPortable.setPortable(process.platform, process.env.ATOM_HOME)
     expect(fs.existsSync(portableAtomHomePath)).toBe true
 
 describe "Check for Portable Mode", ->
