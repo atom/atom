@@ -25,9 +25,7 @@ describe('GitRepositoryAsync', function () {
 
       atom.project.setPaths([copyRepository()])
       waitsForPromise(async function () {
-        await atom.workspace.open('other.txt').then((o) => {
-          editor = o
-        })
+        editor = await atom.workspace.open('other.txt')
         editor.insertNewline()
         let repo = atom.project.getRepositories()[0]
         repo.async.onDidChangeStatus((c) => {
@@ -51,9 +49,7 @@ describe('GitRepositoryAsync', function () {
       let reloadHandler = jasmine.createSpy('reloadHandler')
 
       waitsForPromise(async function() {
-        await atom.workspace.open('other.txt').then((o) => {
-          editor = o
-        })
+        editor = await atom.workspace.open('other.txt')
 
         fs.writeFileSync(editor.getPath(), 'changed')
 
