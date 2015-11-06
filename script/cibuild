@@ -92,10 +92,13 @@ cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(
     require('fs-plus').removeSync.bind(global, path.join(homeDir, '.atom'))
     var async = require('async');
     var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
-    var tasks = [
-      cp.safeExec.bind(global, 'git clean -dff'),
-      cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
-    ]
+    var tasks = [cp.safeExec.bind(global, 'git clean -dff')]
+    if (process.env.JANKY_SHA1) {
+      tasks.push(cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'));
+    }
+    if (process.env.CI) {
+      tasks.push(cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile-ci.coffee --stack --no-color'));
+    }
     async.series(tasks, function(error) {
       process.exit(error ? 1 : 0);
     });

@@ -13,18 +13,30 @@ platform:
   - x64
 
 environment:
-  ATOM_DEV_RESOURCE_PATH: c:\projects\atom
-  ATOM_ACCESS_TOKEN:
-    secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
+  global:
+    ATOM_DEV_RESOURCE_PATH: c:\projects\atom
+    ATOM_ACCESS_TOKEN:
+      secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
+
+  matrix:
+  - NODE_VERSION: 4.2.1
+  - NODE_VERSION: 0.10.35
+
+matrix:
+  allow_failures:
+    - NODE_VERSION: 0.10.35
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - ps: Install-Product node 4.2.1 $env:PLATFORM
+  - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
+  - copy /y C:\projects\atom\apm\package-node-%NODE_VERSION%.json C:\projects\atom\apm\package.json
   - C:\projects\atom\script\cibuild.cmd
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
 
 test: off
 deploy: off
+artifacts:
+  - path: C:\projects\atom\atom-build

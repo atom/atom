@@ -66,7 +66,14 @@ function bootstrap() {
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
-  var apmInstallCommand = npmPath + npmFlags + '--target=4.2.1 ' + 'install';
+  var nodeVersion = '4.2.1';
+  if (process.env.JANKY_SHA1) {
+    nodeVersion = '0.10.35';
+  }
+  if (process.env.NODE_VERSION) {
+    nodeVersion = process.env.NODE_VERSION;
+  }
+  var apmInstallCommand = npmPath + npmFlags + '--target=' + nodeVersion + ' install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
