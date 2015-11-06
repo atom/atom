@@ -2,7 +2,7 @@ LinesYardstick = require "../src/lines-yardstick"
 {toArray} = require 'underscore-plus'
 
 describe "LinesYardstick", ->
-  [editor, mockPresenter, mockLineNodesProvider, createdLineNodes, linesYardstick] = []
+  [editor, mockPresenter, mockLineNodesProvider, createdLineNodes, linesYardstick, buildLineNode] = []
 
   beforeEach ->
     waitsForPromise ->
@@ -49,10 +49,10 @@ describe "LinesYardstick", ->
           buildLineNode(screenRow)
         textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
           lineNode = @lineNodeForLineIdAndScreenRow(lineId, screenRow)
+          iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
           textNodes = []
-          for span in lineNode.children
-            for textNode in span.childNodes
-              textNodes.push(textNode)
+          while textNode = iterator.nextNode()
+            textNodes.push(textNode)
           textNodes
 
       editor.setLineHeightInPixels(14)
@@ -125,6 +125,33 @@ describe "LinesYardstick", ->
       expect(linesYardstick.pixelPositionForScreenPosition([0, 7]).left).toBe 50
       expect(linesYardstick.pixelPositionForScreenPosition([0, 9]).left).toBe 67
       expect(linesYardstick.pixelPositionForScreenPosition([0, 11]).left).toBe 84
+
+    it "doesn't report a width greater than 0 when the character to measure is at the beginning of a text node", ->
+      # This spec documents what seems to be a bug in Chromium, because we'd
+      # expect that Range(0, 0).getBoundingClientRect().width to always be zero.
+      atom.styles.addStyleSheet """
+      * {
+        font-size: 11px;
+        font-family: monospace;
+      }
+      """
+
+      text = "    \\vec{w}_j^r(\\text{new}) &= \\vec{w}_j^r(\\text{old}) + \\Delta\\vec{w}_j^r, \\\\"
+      buildLineNode = (screenRow) ->
+        lineNode = document.createElement("div")
+        lineNode.style.whiteSpace = "pre"
+        # We couldn't reproduce the problem with a simple string, so we're
+        # attaching the full one that comes from a bug report.
+        lineNode.innerHTML = '<span><span>  </span><span>  </span><span><span>\\</span>vec</span><span><span>{</span>w<span>}</span></span>_j^r(<span><span>\\</span>text</span><span><span>{</span>new<span>}</span></span>) &amp;= <span><span>\\</span>vec</span><span><span>{</span>w<span>}</span></span>_j^r(<span><span>\\</span>text</span><span><span>{</span>old<span>}</span></span>) + <span><span>\\</span>Delta</span><span><span>\\</span>vec</span><span><span>{</span>w<span>}</span></span>_j^r, <span>\\\\</span></span>'
+        jasmine.attachToDOM(lineNode)
+        createdLineNodes.push(lineNode)
+        lineNode
+
+      editor.setText(text)
+
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 35]).left).toBe 230.90625
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 36]).left).toBe 237.5
+      expect(linesYardstick.pixelPositionForScreenPosition([0, 37]).left).toBe 244.09375
 
     it "doesn't measure invisible lines if it is explicitly told so", ->
       atom.styles.addStyleSheet """

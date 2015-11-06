@@ -1,5 +1,6 @@
 crypto = require 'crypto'
 path = require 'path'
+ipc = require 'ipc'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -116,7 +117,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
+    {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
 
     @state = {version: @constructor.version}
 
@@ -202,6 +203,15 @@ class AtomEnvironment extends Model
     @installWindowEventHandler()
 
     @observeAutoHideMenuBar()
+
+    checkPortableHomeWritable = ->
+      responseChannel = "check-portable-home-writable-response"
+      ipc.on responseChannel, (response) ->
+        ipc.removeAllListeners(responseChannel)
+        atom.notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
+      ipc.send('check-portable-home-writable', responseChannel)
+
+    checkPortableHomeWritable()
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
@@ -306,6 +316,7 @@ class AtomEnvironment extends Model
     @project = null
     @commands.clear()
     @stylesElement.remove()
+    @config.unobserveUserConfig()
 
     @uninstallWindowEventHandler()
 
@@ -636,6 +647,7 @@ class AtomEnvironment extends Model
     @state.packageStates = @packages.packageStates
     @state.fullScreen = @isFullScreen()
     @saveStateSync()
+    @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
@@ -758,6 +770,11 @@ class AtomEnvironment extends Model
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
+
+  saveBlobStoreSync: ->
+    return unless @enablePersistence
+
+    @blobStore.save()
 
   saveStateSync: ->
     return unless @enablePersistence

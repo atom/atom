@@ -49,6 +49,7 @@ class AtomWindow
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false
     loadSettings.safeMode ?= false
+    loadSettings.atomHome = process.env.ATOM_HOME
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
