@@ -202,12 +202,12 @@ describe "TokenizedBuffer", ->
 
             # previous line 3 should be combined with input to form line 1
             expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
             # lines below deleted regions should be shifted upward
             expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[2]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[4]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[4]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.comparison.js'])
 
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
@@ -254,7 +254,7 @@ describe "TokenizedBuffer", ->
             expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
             # previous line 3 is pushed down to become line 5
-            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
