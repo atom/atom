@@ -4,10 +4,12 @@ const fs = require('fs-plus')
 const path = require('path')
 const temp = require('temp')
 
+temp.track()
+
 const GitRepositoryAsync = require('../src/git-repository-async')
 
 const openFixture = (fixture) => {
-  GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
+  return GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 }
 
 const copyRepository = () => {
@@ -18,7 +20,7 @@ const copyRepository = () => {
 }
 
 
-describe('GitRepositoryAsync', () => {
+fdescribe('GitRepositoryAsync', () => {
   describe('@open(path)', () => {
     it('repo is null when no repository is found', () => {
       let repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
@@ -39,7 +41,7 @@ describe('GitRepositoryAsync', () => {
     it('returns the repository path for a repository path', () => {
       let repo = openFixture('master.git')
       let onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise(repo.getPath().then(onSuccess))
+      waitsForPromise(() => repo.getPath().then(onSuccess))
 
       runs(() => {
         expect(onSuccess.mostRecentCall.args[0]).toBe(
@@ -49,7 +51,7 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
-  fdescribe('buffer events', () => {
+  describe('buffer events', () => {
     beforeEach(() => {
       // This is sync, should be fine in a beforeEach
       atom.project.setPaths([copyRepository()])
