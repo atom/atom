@@ -3,6 +3,7 @@
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+GitRepositoryAsync = require './git-repository-async'
 GitUtils = require 'git-utils'
 
 Task = require './task'
@@ -74,6 +75,8 @@ class GitRepository
     @repo = GitUtils.open(path)
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
+
+    @async = GitRepositoryAsync.open(path, options)
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
