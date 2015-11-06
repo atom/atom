@@ -12,7 +12,19 @@ class AtomPortable
     path.join(execDirectoryPath, '..', '.atom')
 
   @setPortable: (platform, existingAtomHome) ->
-    fs.copySync(existingAtomHome, @getPortableAtomHomePath(platform))
+    @copyHomeDirectory(existingAtomHome, @getPortableAtomHomePath(platform))
+
+  @copyHomeDirectory: (sourcePath, destinationRoot) ->
+    fs.makeTreeSync(destinationRoot)
+    sourceContents = fs.readdirSync(sourcePath)
+    for source in sourceContents
+      sourceContentPath = path.join(sourcePath, source)
+      destinationContentPath = path.join(destinationRoot, source)
+      if fs.isDirectorySync(sourceContentPath)
+        fs.copySync(sourceContentPath, destinationContentPath) if source is 'packages'
+      else
+        content = fs.readFileSync(sourceContentPath)
+        fs.writeFileSync(destinationContentPath, content)
 
   @isPortableInstall: (platform, environmentAtomHome, defaultHome) ->
     return false if environmentAtomHome
