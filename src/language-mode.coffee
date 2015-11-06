@@ -97,7 +97,7 @@ class LanguageMode
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
-    for fold in @editor.displayBuffer.foldsContainingBufferRowRange(0, @buffer.getLastRow()) by -1
+    for fold in @editor.displayBuffer.foldsIntersectingBufferRowRange(0, @buffer.getLastRow()) by -1
       fold.destroy()
     return
 
