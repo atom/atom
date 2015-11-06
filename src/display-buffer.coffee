@@ -465,6 +465,10 @@ class DisplayBuffer extends Model
 
     folds
 
+  # Returns all the folds that contain the given row range.
+  foldsContainingBufferRowRange: (startRow, endRow) ->
+    @foldForMarker(marker) for marker in @findFoldMarkers(intersectsRowRange: [startRow, endRow])
+
   # Public: Given a buffer row, this returns folds that include it.
   #
   #
