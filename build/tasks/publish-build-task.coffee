@@ -9,7 +9,6 @@ request = require 'request'
 
 grunt = null
 
-commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
   Authorization: "token #{token}"
@@ -31,7 +30,15 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
-    branchName = process.env.JANKY_BRANCH
+    # TODO: Not sure how commitSha is used? It doesn't appear to be. Keeping it here for future master 'bleeding edge' releases.
+    commitSha = ''
+    commitSha = process.env.APPVEYOR_REPO_COMMIT if process.env.APPVEYOR and not process.env.APPVEYOR_PULL_REQUEST_NUMBER
+    commitSha = process.env.TRAVIS_COMMIT if process.env.TRAVIS and not process.env.TRAVIS_PULL_REQUEST
+    commitSha = process.env.JANKY_SHA1 if process.env.JANKY_SHA1
+    branchName = ''
+    branchName = process.env.APPVEYOR_REPO_BRANCH if process.env.APPVEYOR and not process.env.APPVEYOR_PULL_REQUEST_NUMBER
+    branchName = process.env.TRAVIS_BRANCH if process.env.TRAVIS and not process.env.TRAVIS_PULL_REQUEST
+    branchName = process.env.JANKY_BRANCH if process.env.JANKY_BRANCH
     switch branchName
       when 'stable'
         isPrerelease = false

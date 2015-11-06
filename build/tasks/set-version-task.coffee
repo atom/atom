@@ -5,10 +5,15 @@ module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
   getVersion = (callback) ->
-    onBuildMachine = process.env.JANKY_SHA1 and process.env.JANKY_BRANCH in ['stable', 'beta']
+    releasableBranches = ['stable', 'beta']
+    inCI = process.env.CI or process.env.JANKY_SHA1
+    shouldUseCommitHash = true
+    shouldUseCommitHash = false if process.env.TRAVIS and not process.env.TRAVIS_PULL_REQUEST and process.env.TRAVIS_BRANCH in releasableBranches
+    shouldUseCommitHash = false if process.env.APPVEYOR and not process.env.APPVEYOR_PULL_REQUEST_NUMBER and process.env.APPVEYOR_REPO_BRANCH in releasableBranches
+    shouldUseCommitHash = false if process.env.JANKY_SHA1 and process.env.JANKY_BRANCH in releasableBranches
     inRepository = fs.existsSync(path.resolve(__dirname, '..', '..', '.git'))
     {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
-    if onBuildMachine or not inRepository
+    unless shouldUseCommitHash and inRepository
       callback(null, version)
     else
       cmd = 'git'

@@ -8,16 +8,22 @@ skip_tags: true
 clone_folder: c:\projects\atom
 clone_depth: 10
 
+platform:
+  - x86
+  - x64
+
 environment:
   ATOM_DEV_RESOURCE_PATH: c:\projects\atom
+  ATOM_ACCESS_TOKEN:
+    secure: +hmvoppBKxdP3dD+uSRYCA==
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - ps: Install-Product node 4.2.1
+  - ps: Install-Product node 4.2.1 $env:PLATFORM
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - C:\projects\atom\script\build.cmd
+  - C:\projects\atom\script\cibuild.cmd
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
 
 test: off

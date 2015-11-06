@@ -7,7 +7,7 @@ async = require 'async'
 # TODO: This should really be parallel on every platform, however:
 # - On Windows, our fixtures step on each others toes.
 # - On Travis, Mac workers haven't enough horsepower.
-if process.env.TRAVIS or process.platform is 'win32'
+if process.env.CI or process.platform is 'win32'
   concurrency = 1
 else
   concurrency = 2
@@ -157,7 +157,7 @@ module.exports = (grunt) ->
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
-      if process.platform is 'win32' and process.env.JANKY_SHA1
+      if process.platform is 'win32' and process.env.JANKY_SHA1 # TODO: Remove This Once Switch To Appveyor Is Complete
         done()
       else
         done(not coreSpecFailed and failedPackages.length is 0)
