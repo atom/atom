@@ -215,6 +215,17 @@ describe "AtomEnvironment", ->
       expect(atom.project.getPaths()).toEqual(initialPaths)
 
   describe "::unloadEditorWindow()", ->
+    it "saves the BlobStore so it can be loaded after reload", ->
+      configDirPath = temp.mkdirSync()
+      fakeBlobStore = jasmine.createSpyObj("blob store", ["save"])
+      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, enablePersistence: true, configDirPath, blobStore: fakeBlobStore, window, document})
+
+      atomEnvironment.unloadEditorWindow()
+
+      expect(fakeBlobStore.save).toHaveBeenCalled()
+
+      atomEnvironment.destroy()
+
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
       spyOn(atomEnvironment, 'saveStateSync')
