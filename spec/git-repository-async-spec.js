@@ -45,7 +45,45 @@ describe('GitRepositoryAsync', function () {
       })
     })
 
-    xit('emits a status-changed event when a buffer is reloaded')
+    it('emits a status-changed event when a buffer is reloaded', () => {
+      let editor
+      let statusHandler = jasmine.createSpy('statusHandler')
+      let reloadHandler = jasmine.createSpy('reloadHandler')
+
+      waitsForPromise(async function() {
+        await atom.workspace.open('other.txt').then((o) => {
+          editor = o
+        })
+
+        fs.writeFileSync(editor.getPath(), 'changed')
+
+        atom.project.getRepositories()[0].async.onDidChangeStatus(statusHandler)
+        editor.getBuffer().reload()
+
+        waitsFor(function () {
+          return statusHandler.callCount === 1
+        })
+      })
+
+      runs(function () {
+        expect(statusHandler.callCount).toBe(1)
+        // Not sure why the sync spec expects WT_MODIFIED, `other.txt` is not in
+        // the index yet.
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: Git.Status.STATUS.WT_NEW})
+
+        let buffer = editor.getBuffer()
+        buffer.onDidReload(reloadHandler)
+        buffer.reload()
+      })
+
+      waitsFor(function () {
+        return reloadHandler.callCount === 1
+      })
+
+      runs(function () {
+        expect(statusHandler.callCount).toBe(1)
+      })
+    })
 
     xit('emits a status-changed event when a buffer\'s path changes')
   })
