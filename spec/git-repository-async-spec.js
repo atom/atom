@@ -20,27 +20,24 @@ const copyRepository = () => {
 describe('GitRepositoryAsync', function () {
   describe('buffer events', () => {
 
-    fit('emits a status-changed events when a buffer is saved', () => {
+    it('emits a status-changed events when a buffer is saved', () => {
       let editor, called
 
       atom.project.setPaths([copyRepository()])
-      waitsForPromise(function () {
-        return atom.workspace.open('other.txt').then((o) => {
+      waitsForPromise(async function () {
+        await atom.workspace.open('other.txt').then((o) => {
           editor = o
         })
-      })
-
-      runs(() => {
         editor.insertNewline()
         let repo = atom.project.getRepositories()[0]
         repo.async.onDidChangeStatus((c) => {
           called = c
         })
         editor.save()
-      })
 
-      waitsFor(() => {
-        return Boolean(called)
+        waitsFor(() => {
+          return Boolean(called)
+        })
       })
 
       runs(() => {
