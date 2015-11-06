@@ -38,8 +38,11 @@ portableModeCommonPlatformBehavior = (platform, portableAtomHomePath) ->
         expect(AtomPortable.isPortableInstall(platform, environmentAtomHome)).toBe false
 
 describe "Set Portable Mode", ->
-  portableAtomHomePath = path.join(process.resourcesPath, "..", "..", '..', ".atom") if process.platform is 'darwin'
-  portableAtomHomePath = path.join(path.dirname(process.execPath), "..", ".atom") if not process.platform is 'darwin'
+  portableAtomHomePath =
+    if process.platform is 'darwin'
+      path.join(process.resourcesPath, "..", "..", '..', ".atom")
+    else
+      path.join(path.dirname(process.execPath), "..", ".atom")
   portableAtomHomeNaturallyExists = fs.existsSync(portableAtomHomePath)
   portableAtomHomeBackupPath =  "#{portableAtomHomePath}.temp"
 
