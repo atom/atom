@@ -215,7 +215,7 @@ describe "GitRepositoryAsync", ->
       runs ->
         expect(statusHandler.callCount).toBe 1
 
-  describe ".checkoutHeadForEditor(editor)", ->
+  xdescribe ".checkoutHeadForEditor(editor)", ->
     [filePath, editor] = []
 
     beforeEach ->
@@ -230,7 +230,7 @@ describe "GitRepositoryAsync", ->
       runs ->
         editor = atom.workspace.getActiveTextEditor()
 
-    it "displays a confirmation dialog by default", ->
+    xit "displays a confirmation dialog by default", ->
       spyOn(atom, 'confirm').andCallFake ({buttons}) -> buttons.OK()
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
@@ -239,7 +239,7 @@ describe "GitRepositoryAsync", ->
       runs ->
         expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
-    it "does not display a dialog when confirmation is disabled", ->
+    xit "does not display a dialog when confirmation is disabled", ->
       spyOn(atom, 'confirm')
       atom.config.set('editor.confirmCheckoutHeadRevision', false)
 
@@ -393,7 +393,7 @@ describe "GitRepositoryAsync", ->
         runs ->
           expect(statusHandler.callCount).toBe 1
 
-    it "emits a status-changed event when a buffer's path changes", ->
+    fit "emits a status-changed event when a buffer's path changes", ->
       waitsForPromise ->
         atom.workspace.open('other.txt').then (o) ->
           editor = o
