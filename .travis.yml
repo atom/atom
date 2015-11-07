@@ -35,6 +35,12 @@ install:
 
 script: script/cibuild
 
+after_build: dir %USERPROFILE\.atom\.npm
+
+cache:
+  directories:
+    - $HOME/.atom/.npm
+
 notifications:
   email:
     on_success: never
