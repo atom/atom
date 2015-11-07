@@ -10,6 +10,7 @@ RepeatedSpaceRegex = /[ ]/g
 CommentScopeRegex = /(\b|\.)comment/
 TabCharCode = 9
 SpaceCharCode = 32
+NonBreakingSpaceCharCode = 160
 SpaceString = ' '
 TabStringsByLength = {
   1: ' '
@@ -97,7 +98,7 @@ class TokenizedLine
         tokenOffset = 0
 
       # split out leading soft tabs
-      else if charCode is SpaceCharCode
+      else if charCode is SpaceCharCode or charCode is NonBreakingSpaceCharCode
         if firstNonWhitespaceColumn?
           substringEnd += 1
         else
