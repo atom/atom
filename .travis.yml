@@ -31,6 +31,7 @@ install:
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
   - yes | cp apm/package-node-$NODE_VERSION.json apm/package.json
+  - yes | cp build/package-node-$NODE_VERSION.json build/package.json
 
 script: script/cibuild
 

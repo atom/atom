@@ -28,12 +28,16 @@ function readEnvironmentVariables() {
     } else if (process.platform === 'darwin') {
       loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
       loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
-    } else if (process.platform === 'linux') {
-      // Use Clang for building native code, the GCC on Precise is too old.
-      process.env.CC = 'clang';
-      process.env.CXX = 'clang++';
-      process.env.npm_config_clang = '1';
     }
+  }
+}
+
+function setEnvironmentVariables() {
+  if (process.platform === 'linux') {
+    // Use Clang for building native code, the GCC on Precise is too old.
+    process.env.CC = 'clang';
+    process.env.CXX = 'clang++';
+    process.env.npm_config_clang = '1';
   }
 }
 
@@ -83,6 +87,7 @@ function removeTempFolders() {
 }
 
 readEnvironmentVariables();
+setEnvironmentVariables();
 removeNodeModules();
 removeTempFolders();
 cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
