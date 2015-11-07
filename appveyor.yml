@@ -42,3 +42,6 @@ test: off
 deploy: off
 artifacts:
   - path: atom-build
+
+cache:
+  - '%USERHOME%\.atom\.npm'
