@@ -1988,6 +1988,7 @@ describe('TextEditorComponent', function () {
       })
     })
   })
+
   describe('hidden input field', function () {
     it('renders the hidden input field at the position of the last cursor if the cursor is on screen and the editor is focused', async function () {
       editor.setVerticalScrollMargin(0)
