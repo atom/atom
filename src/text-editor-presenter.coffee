@@ -48,6 +48,9 @@ class TextEditorPresenter
 
   destroy: ->
     @disposables.dispose()
+    clearTimeout(@stoppedScrollingTimeoutId) if @stoppedScrollingTimeoutId?
+    clearInterval(@reflowingInterval) if @reflowingInterval?
+    @stopBlinkingCursors()
 
   # Calls your `callback` when some changes in the model occurred and the current state has been updated.
   onDidUpdateState: (callback) ->
