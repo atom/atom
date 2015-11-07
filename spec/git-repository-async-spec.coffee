@@ -393,7 +393,7 @@ describe "GitRepositoryAsync", ->
         runs ->
           expect(statusHandler.callCount).toBe 1
 
-    fit "emits a status-changed event when a buffer's path changes", ->
+    it "emits a status-changed event when a buffer's path changes", ->
       waitsForPromise ->
         atom.workspace.open('other.txt').then (o) ->
           editor = o

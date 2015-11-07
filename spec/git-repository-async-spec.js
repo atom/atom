@@ -21,90 +21,69 @@ const copyRepository = () => {
   return fs.realpathSync(workingDirPath)
 }
 
-async function waitBetter(fn) {
+async function terribleWait(fn) {
   const p = new Promise()
-  let first = true
-  const check = () => {
-    if (fn()) {
-      p.resolve()
-      first = false
-      return true
-    } else if (first) {
-      first = false
-      return false
-    } else {
-      p.reject()
-      return false
-    }
-  }
+  waitsFor(fn)
+  runs(() => p.resolve())
+}
 
-  if (!check()) {
-    window.setTimeout(check, 500)
-  }
-  return p
+// Git uses heuristics to avoid having to hash a file to tell if it changed. One
+// of those is mtime. So our tests are running Super Fast, we could end up
+// changing a file multiple times within the same mtime tick, which could lead
+// git to think the file didn't change at all. So sometimes we'll need to sleep.
+function terribleSleep() {
+  for (let _ of range(1, 1000)) { ; }
 }
 
 fdescribe('GitRepositoryAsync-js', () => {
-  let subscriptions
-
-  beforeEach(() => {
-    jasmine.useRealClock()
-    subscriptions = new CompositeDisposable()
-  })
+  let repo
 
   afterEach(() => {
-    subscriptions.dispose()
+    if (repo != null) repo.destroy()
   })
 
   describe('@open(path)', () => {
-    it('repo is null when no repository is found', () => {
-      let repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
+    it('repo is null when no repository is found', async () => {
+      repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
 
-      waitsForPromise({shouldReject: true}, () => {
-        return repo.repoPromise
-      })
+      let threw = false
+      try {
+        await repo.repoPromise
+      } catch (e) {
+        threw = true
+      }
 
-      runs(() => {
-        expect(repo.repo).toBe(null)
-      })
+      expect(threw).toBeTruthy()
+      expect(repo.repo).toBe(null)
     })
   })
 
   describe('.getPath()', () => {
     xit('returns the repository path for a .git directory path')
 
-    it('returns the repository path for a repository path', () => {
-      let repo = openFixture('master.git')
-      let onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise(() => repo.getPath().then(onSuccess))
-
-      runs(() => {
-        expect(onSuccess.mostRecentCall.args[0]).toBe(
-          path.join(__dirname, 'fixtures', 'git', 'master.git')
-        )
-      })
+    it('returns the repository path for a repository path', async () => {
+      repo = openFixture('master.git')
+      let path = await repo.getPath()
+      expect(path).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
     })
   })
 
   describe('.isPathIgnored(path)', () => {
-    it('resolves true for an ignored path', () => {
-      let repo = openFixture('ignore.git')
-      let onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise(() => repo.isPathIgnored('a.txt').then(onSuccess).catch(e => console.log(e)))
-
-      runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeTruthy())
+    it('resolves true for an ignored path', async () => {
+      repo = openFixture('ignore.git')
+      let ignored = await repo.isPathIgnored('a.txt')
+      expect(ignored).toBeTruthy()
     })
 
-    it('resolves false for a non-ignored path', () => {
-      let repo = openFixture('ignore.git')
-      let onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise(() => repo.isPathIgnored('b.txt').then(onSuccess))
-      runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeFalsy())
+    it('resolves false for a non-ignored path', async () => {
+      repo = openFixture('ignore.git')
+      let ignored = await repo.isPathIgnored('b.txt')
+      expect(ignored).toBeFalsy()
     })
   })
 
   describe('.isPathModified(path)', () => {
-    let repo, filePath, newPath, emptyPath
+    let filePath, newPath, emptyPath
 
     beforeEach(() => {
       let workingDirPath = copyRepository()
@@ -116,35 +95,31 @@ fdescribe('GitRepositoryAsync-js', () => {
     })
 
     describe('when the path is unstaged', () => {
-      it('resolves false if the path has not been modified', () => {
-        let onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise(() => repo.isPathModified(filePath).then(onSuccess))
-        runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeFalsy())
+      it('resolves false if the path has not been modified', async () => {
+        let modified = await repo.isPathModified(filePath)
+        expect(modified).toBeFalsy()
       })
 
-      it('resolves true if the path is modified', () => {
+      it('resolves true if the path is modified', async () => {
         fs.writeFileSync(filePath, "change")
-        let onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise(() => repo.isPathModified(filePath).then(onSuccess))
-        runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeTruthy())
+        let modified = await repo.isPathModified(filePath)
+        expect(modified).toBeTruthy()
       })
 
-      it('resolves false if the path is new', () => {
-        let onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise(() => repo.isPathModified(newPath).then(onSuccess))
-        runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeFalsy())
+      it('resolves false if the path is new', async () => {
+        let modified = await repo.isPathModified(newPath)
+        expect(modified).toBeFalsy()
       })
 
-      it('resolves false if the path is invalid', () => {
-        let onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise(() => repo.isPathModified(emptyPath).then(onSuccess))
-        runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeFalsy())
+      it('resolves false if the path is invalid', async () => {
+        let modified = await repo.isPathModified(emptyPath)
+        expect(modified).toBeFalsy()
       })
     })
   })
 
   describe('.isPathNew(path)', () => {
-    let filePath, newPath, repo
+    let filePath, newPath
 
     beforeEach(() => {
       let workingDirPath = copyRepository()
@@ -155,23 +130,20 @@ fdescribe('GitRepositoryAsync-js', () => {
     })
 
     describe('when the path is unstaged', () => {
-      it('returns true if the path is new', () => {
-        let onSuccess = jasmine.createSpy('onSuccess')
-        waitsForPromise(() => repo.isPathNew(newPath).then(onSuccess))
-        runs(() => expect(onSuccess.mostRecentCall.args[0]).toBeTruthy())
+      it('returns true if the path is new', async () => {
+        let isNew = await repo.isPathNew(newPath)
+        expect(isNew).toBeTruthy()
       })
 
       it("returns false if the path isn't new", async () => {
-        let onSuccess = jasmine.createSpy('onSuccess')
-
-        let modified = await repo.isPathModified(newPath).then(onSuccess)
+        let modified = await repo.isPathModified(newPath)
         expect(modified).toBeFalsy()
       })
     })
   })
 
   describe('.checkoutHead(path)', () => {
-    let filePath, repo
+    let filePath
 
     beforeEach(() => {
       let workingDirPath = copyRepository()
@@ -182,14 +154,15 @@ fdescribe('GitRepositoryAsync-js', () => {
     it('no longer reports a path as modified after checkout', async () => {
       let modified = await repo.isPathModified(filePath)
       expect(modified).toBeFalsy()
+
       fs.writeFileSync(filePath, 'ch ch changes')
+      terribleSleep()
 
       modified = await repo.isPathModified(filePath)
       expect(modified).toBeTruthy()
 
-      // Don't need to assert that this succeded because waitsForPromise should
-      // fail if it was rejected..
       await repo.checkoutHead(filePath)
+      terribleSleep()
 
       modified = await repo.isPathModified(filePath)
       expect(modified).toBeFalsy()
@@ -207,10 +180,11 @@ fdescribe('GitRepositoryAsync-js', () => {
       await repo.getPathStatus(filePath)
 
       let statusHandler = jasmine.createSpy('statusHandler')
-      subscriptions.add(repo.onDidChangeStatus(statusHandler))
+      repo.onDidChangeStatus(statusHandler)
 
       await repo.checkoutHead(filePath)
 
+      await terribleWait(() => statusHandler.callCount > 0)
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: 0})
 
@@ -220,7 +194,7 @@ fdescribe('GitRepositoryAsync-js', () => {
   })
 
   xdescribe('.checkoutHeadForEditor(editor)', () => {
-    let filePath, editor, repo
+    let filePath, editor
 
     beforeEach(() => {
       let workingDirPath = copyRepository()
@@ -253,7 +227,7 @@ fdescribe('GitRepositoryAsync-js', () => {
   })
 
   describe('.getPathStatus(path)', () => {
-    let filePath, repo
+    let filePath
 
     beforeEach(() => {
       let workingDirectory = copyRepository()
@@ -263,10 +237,12 @@ fdescribe('GitRepositoryAsync-js', () => {
 
     it('trigger a status-changed event when the new status differs from the last cached one', async () => {
       let statusHandler = jasmine.createSpy("statusHandler")
-      subscriptions.add(repo.onDidChangeStatus(statusHandler))
+      repo.onDidChangeStatus(statusHandler)
       fs.writeFileSync(filePath, '')
 
       await repo.getPathStatus(filePath)
+
+      await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       let status = Git.Status.STATUS.WT_MODIFIED
@@ -279,7 +255,7 @@ fdescribe('GitRepositoryAsync-js', () => {
   })
 
   describe('.getDirectoryStatus(path)', () => {
-    let directoryPath, filePath, repo
+    let directoryPath, filePath
 
     beforeEach(() => {
       let workingDirectory = copyRepository()
@@ -289,12 +265,14 @@ fdescribe('GitRepositoryAsync-js', () => {
     })
 
     it('gets the status based on the files inside the directory', async () => {
+      await repo.checkoutHead(filePath)
+      terribleSleep()
+
       let result = await repo.getDirectoryStatus(directoryPath)
       expect(repo.isStatusModified(result)).toBe(false)
 
       fs.writeFileSync(filePath, 'abc')
-
-      await repo.getPathStatus(filePath)
+      terribleSleep()
 
       result = await repo.getDirectoryStatus(directoryPath)
       expect(repo.isStatusModified(result)).toBe(true)
@@ -302,7 +280,7 @@ fdescribe('GitRepositoryAsync-js', () => {
   })
 
   describe('.refreshStatus()', () => {
-    let newPath, modifiedPath, cleanPath, originalModifiedPathText, repo
+    let newPath, modifiedPath, cleanPath, originalModifiedPathText
 
     beforeEach(() => {
       let workingDirectory = copyRepository()
@@ -338,10 +316,10 @@ fdescribe('GitRepositoryAsync-js', () => {
 
       let repository = atom.project.getRepositories()[0].async
       let called
-      subscriptions.add(repository.onDidChangeStatus(c => called = c))
+      repository.onDidChangeStatus(c => called = c)
       editor.save()
 
-      await waitBetter(() => Boolean(called))
+      await terribleWait(() => Boolean(called))
       expect(called).toEqual({path: editor.getPath(), pathStatus: 256})
     })
 
@@ -354,19 +332,19 @@ fdescribe('GitRepositoryAsync-js', () => {
       fs.writeFileSync(editor.getPath(), 'changed')
 
       let repository = atom.project.getRepositories()[0].async
-      subscriptions.add(repository.onDidChangeStatus(statusHandler))
+      repository.onDidChangeStatus(statusHandler)
       editor.getBuffer().reload()
 
-      await waitBetter(() => statusHandler.callCount > 0)
+      await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
 
       let buffer = editor.getBuffer()
-      subscriptions.add(buffer.onDidReload(reloadHandler))
+      buffer.onDidReload(reloadHandler)
       buffer.reload()
 
-      await waitBetter(() => reloadHandler.callCount > 0)
+      await terribleWait(() => reloadHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
     })
@@ -378,18 +356,18 @@ fdescribe('GitRepositoryAsync-js', () => {
 
       let statusHandler = jasmine.createSpy('statusHandler')
       let repository = atom.project.getRepositories()[0].async
-      subscriptions.add(repository.onDidChangeStatus(statusHandler))
+      repository.onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
-      await waitBetter(() => statusHandler.callCount >= 1)
+      await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
 
       let pathHandler = jasmine.createSpy('pathHandler')
       let buffer = editor.getBuffer()
-      subscriptions.add(buffer.onDidChangePath(pathHandler))
+      buffer.onDidChangePath(pathHandler)
       buffer.emitter.emit('did-change-path')
-      await waitBetter(() => pathHandler.callCount >= 1)
+      await terribleWait(() => pathHandler.callCount > 0)
       expect(statusHandler.callCount).toBe(1)
     })
 
