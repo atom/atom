@@ -43,7 +43,7 @@ _ = require 'underscore-plus'
 # ```
 module.exports =
 class ViewRegistry
-  documentUpdateRequested: false
+  animationFrameRequest: null
   documentReadInProgress: false
   performDocumentPollAfterUpdate: false
   debouncedPerformDocumentPoll: null
@@ -203,16 +203,16 @@ class ViewRegistry
     @documentReaders = []
     @documentWriters = []
     @documentPollers = []
-    @documentUpdateRequested = false
+    if @animationFrameRequest?
+      cancelAnimationFrame(@animationFrameRequest)
+      @animationFrameRequest = null
     @stopPollingDocument()
 
   requestDocumentUpdate: ->
-    unless @documentUpdateRequested
-      @documentUpdateRequested = true
-      requestAnimationFrame(@performDocumentUpdate)
+    @animationFrameRequest ?= requestAnimationFrame(@performDocumentUpdate)
 
   performDocumentUpdate: =>
-    @documentUpdateRequested = false
+    @animationFrameRequest = null
     writer() while writer = @documentWriters.shift()
 
     @documentReadInProgress = true
@@ -238,7 +238,7 @@ class ViewRegistry
     @observer.disconnect()
 
   requestDocumentPoll: =>
-    if @documentUpdateRequested
+    if @animationFrameRequest?
       @performDocumentPollAfterUpdate = true
     else
       @debouncedPerformDocumentPoll()
