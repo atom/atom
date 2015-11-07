@@ -30,13 +30,16 @@ install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
 
-build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%
+before_build:
   - copy /y %APPVEYOR_BUILD_FOLDER%\apm\package-node-%NODE_VERSION%.json %APPVEYOR_BUILD_FOLDER%\apm\package.json
   - copy /y %APPVEYOR_BUILD_FOLDER%\build\package-node-%NODE_VERSION%.json %APPVEYOR_BUILD_FOLDER%\build\package.json
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
   - C:\projects\atom\script\cibuild.cmd
-  - dir %USERPROFILE\.atom\.npm
-  - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
+
+after_build:
+  - dir %USERPROFILE%\.atom\.npm
 
 test: off
 deploy: off
@@ -44,4 +47,4 @@ artifacts:
   - path: atom-build
 
 cache:
-  - '%USERHOME%\.atom\.npm'
+  - '%USERPROFILE%\.atom\.npm'
