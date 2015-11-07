@@ -32,11 +32,11 @@ install:
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - copy /y C:\projects\atom\apm\package-node-%NODE_VERSION%.json C:\projects\atom\apm\package.json
+  - copy /y %APPVEYOR_BUILD_FOLDER%\apm\package-node-%NODE_VERSION%.json %APPVEYOR_BUILD_FOLDER%\apm\package.json
   - C:\projects\atom\script\cibuild.cmd
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
 
 test: off
 deploy: off
 artifacts:
-  - path: C:\projects\atom\atom-build
+  - path: atom-build
