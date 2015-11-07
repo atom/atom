@@ -33,9 +33,9 @@ install:
   - yes | cp apm/package-node-$NODE_VERSION.json apm/package.json
   - yes | cp build/package-node-$NODE_VERSION.json build/package.json
 
-script: script/cibuild
+script: script/cibuild | ts
 
-after_build: dir %USERPROFILE\.atom\.npm
+after_build: ls -al ~\.atom\.npm
 
 cache:
   directories:
@@ -53,3 +53,4 @@ addons:
     - git
     - libgnome-keyring-dev
     - fakeroot
+    - moreutils

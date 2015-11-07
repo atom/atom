@@ -35,6 +35,7 @@ build_script:
   - copy /y %APPVEYOR_BUILD_FOLDER%\apm\package-node-%NODE_VERSION%.json %APPVEYOR_BUILD_FOLDER%\apm\package.json
   - copy /y %APPVEYOR_BUILD_FOLDER%\build\package-node-%NODE_VERSION%.json %APPVEYOR_BUILD_FOLDER%\build\package.json
   - C:\projects\atom\script\cibuild.cmd
+  - dir %USERPROFILE\.atom\.npm
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
 
 test: off
