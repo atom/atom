@@ -97,8 +97,8 @@ class LanguageMode
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
-    for row in [@buffer.getLastRow()..0] by -1
-      fold.destroy() for fold in @editor.displayBuffer.foldsStartingAtBufferRow(row)
+    for fold in @editor.displayBuffer.foldsIntersectingBufferRowRange(0, @buffer.getLastRow()) by -1
+      fold.destroy()
     return
 
   # Fold all comment and code blocks at a given indentLevel
