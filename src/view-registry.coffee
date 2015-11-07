@@ -224,8 +224,10 @@ class ViewRegistry
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
 
+    resolveNextUpdatePromise = @resolveNextUpdatePromise
     @nextUpdatePromise = null
-    @resolveNextUpdatePromise?()
+    @resolveNextUpdatePromise = null
+    resolveNextUpdatePromise?()
 
   startPollingDocument: ->
     window.addEventListener('resize', @requestDocumentPoll)
