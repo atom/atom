@@ -2,6 +2,7 @@
 # mkdeb name version channel arch control-file-path desktop-file-path icon-path deb-file-path
 
 set -e
+set -x
 
 SCRIPT=`readlink -f "$0"`
 ROOT=`readlink -f $(dirname $SCRIPT)/..`
