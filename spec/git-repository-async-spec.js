@@ -27,10 +27,11 @@ async function terribleWait(fn) {
   runs(() => p.resolve())
 }
 
-// Git uses heuristics to avoid having to hash a file to tell if it changed. One
-// of those is mtime. So our tests are running Super Fast, we could end up
-// changing a file multiple times within the same mtime tick, which could lead
-// git to think the file didn't change at all. So sometimes we'll need to sleep.
+// Git uses heuristics to avoid having to needlessly hash a file to tell if it
+// changed. One of those is mtime. If our tests are running Super Fast, we could
+// end up changing a file multiple times within the same mtime tick, which could
+// lead git to think the file didn't change at all. So sometimes we'll need to
+// sleep. (https://www.kernel.org/pub/software/scm/git/docs/technical/racy-git.txt)
 function terribleSleep() {
   for (let _ of range(1, 1000)) { ; }
 }
