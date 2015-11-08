@@ -67,8 +67,6 @@ class Decoration
     @emitter = new Emitter
     @id = nextId()
     @setProperties properties
-    @properties.id = @id
-    @flashQueue = null
     @destroyed = false
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
@@ -81,6 +79,7 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
+    @displayBuffer.didDestroyDecoration(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -150,9 +149,9 @@ class Decoration
     return if @destroyed
     oldProperties = @properties
     @properties = translateDecorationParamsOldToNew(newProperties)
-    @properties.id = @id
     if newProperties.type?
       @displayBuffer.decorationDidChangeType(this)
+    @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -165,15 +164,10 @@ class Decoration
       return false if @properties[key] isnt value
     true
 
-  onDidFlash: (callback) ->
-    @emitter.on 'did-flash', callback
-
   flash: (klass, duration=500) ->
-    flashObject = {class: klass, duration}
-    @flashQueue ?= []
-    @flashQueue.push(flashObject)
+    @properties.flashCount ?= 0
+    @properties.flashCount++
+    @properties.flashClass = klass
+    @properties.flashDuration = duration
+    @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-flash'
-
-  consumeNextFlash: ->
-    return @flashQueue.shift() if @flashQueue?.length > 0
-    null

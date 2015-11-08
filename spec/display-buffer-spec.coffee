@@ -1237,11 +1237,6 @@ describe "DisplayBuffer", ->
       decoration.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
-    it "does not leak disposables", ->
-      disposablesSize = displayBuffer.disposables.disposables.size
-      decoration.destroy()
-      expect(displayBuffer.disposables.disposables.size).toBe(disposablesSize - 1)
-
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
         decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
@@ -1249,7 +1244,7 @@ describe "DisplayBuffer", ->
 
         {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
         expect(oldProperties).toEqual decorationProperties
-        expect(newProperties).toEqual type: 'line-number', gutterName: 'line-number', class: 'two', id: decoration.id
+        expect(newProperties).toEqual {type: 'line-number', gutterName: 'line-number', class: 'two'}
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->

@@ -468,6 +468,9 @@ class TextEditor extends Model
   onDidUpdateMarkers: (callback) ->
     @displayBuffer.onDidUpdateMarkers(callback)
 
+  onDidUpdateDecorations: (callback) ->
+    @displayBuffer.onDidUpdateDecorations(callback)
+
   # Essential: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -1459,6 +1462,9 @@ class TextEditor extends Model
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
 
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    @displayBuffer.decorateMarkerLayer(markerLayer, decorationParams)
+
   # Essential: Get all the decorations within a screen row range.
   #
   # * `startScreenRow` the {Number} beginning screen row
@@ -1471,6 +1477,9 @@ class TextEditor extends Model
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
+
+  decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    @displayBuffer.decorationsStateForScreenRowRange(startScreenRow, endScreenRow)
 
   # Extended: Get all decorations.
   #
