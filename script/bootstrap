@@ -73,6 +73,9 @@ function bootstrap() {
   if (process.env.NODE_VERSION) {
     nodeVersion = process.env.NODE_VERSION;
   }
+  if (process.env.TRAVIS_NODE_VERSION) {
+    nodeVersion = process.env.TRAVIS_NODE_VERSION
+  }
   var apmInstallCommand = npmPath + npmFlags + '--target=' + nodeVersion + ' install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;

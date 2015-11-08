@@ -11,27 +11,22 @@ env:
 
 compiler: clang
 
+language: node_js
+
+node_js:
+  - "4.2.1" # apm 1.5.x
+  - "0.10.35" # apm 1.4.x
+
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4.2.1
-    - os: linux
-      env: NODE_VERSION=0.10.35
     - os: osx
-      env: NODE_VERSION=4.2.1
-    - os: osx
-      env: NODE_VERSION=0.10.35
 
 sudo: false
 
 install:
-  - git clone https://github.com/creationix/nvm.git /tmp/.nvm
-  - npm config delete prefix
-  - source /tmp/.nvm/nvm.sh
-  - nvm install $NODE_VERSION
-  - nvm use --delete-prefix $NODE_VERSION
-  - yes | cp apm/package-node-$NODE_VERSION.json apm/package.json
-  - yes | cp build/package-node-$NODE_VERSION.json build/package.json
+  - yes | cp apm/package-node-$TRAVIS_NODE_VERSION.json apm/package.json
+  - yes | cp build/package-node-$TRAVIS_NODE_VERSION.json build/package.json
   - if [ $TRAVIS_OS_NAME == "osx" ]; then brew install moreutils; fi
 
 script: script/cibuild | ts
