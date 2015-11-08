@@ -90,9 +90,7 @@ describe('GitRepositoryAsync', function () {
 
       runs(function () {
         expect(statusHandler.callCount).toBe(1)
-        // Not sure why the sync spec expects WT_MODIFIED, `other.txt` is not in
-        // the index yet.
-        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: Git.Status.STATUS.WT_NEW})
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: Git.Status.STATUS.WT_MODIFIED})
 
         let buffer = editor.getBuffer()
         buffer.onDidReload(reloadHandler)
@@ -108,7 +106,41 @@ describe('GitRepositoryAsync', function () {
       })
     })
 
-    xit('emits a status-changed event when a buffer\'s path changes')
+    it('emits a status-changed event when a buffer\'s path changes', function () {
+      let editor
+      let statusHandler = jasmine.createSpy('statusHandler')
+      let pathHandler = jasmine.createSpy('pathHandler')
+
+      waitsForPromise(async function () {
+        editor = await atom.workspace.open('other.txt')
+        let buffer = editor.getBuffer()
+        let repo = atom.project.getRepositories()[0].async
+
+        fs.writeFileSync(editor.getPath(), 'changed')
+
+        repo.onDidChangeStatus(statusHandler)
+
+        buffer.emitter.emit('did-change-path')
+        waitsFor(function () { return statusHandler.callCount === 1 })
+      })
+
+      runs(function () {
+        expect(statusHandler.callCount).toBe(1)
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: Git.Status.STATUS.WT_MODIFIED})
+        let buffer = editor.getBuffer()
+        buffer.onDidChangePath(pathHandler)
+        buffer.emitter.emit('did-change-path')
+      })
+
+      waitsFor(function () {
+        return pathHandler.callCount === 1
+      })
+
+      runs(function () {
+        // The first result should be cached so the status should only change once.
+        expect(statusHandler.callCount).toBe(1)
+      })
+    })
   })
 
   xdescribe('GitRepositoryAsync::relativize(filePath)')

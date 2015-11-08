@@ -174,10 +174,17 @@ module.exports = class GitRepositoryAsync {
     }).then(statuses => {
       let cachedStatus = this.pathStatusCache[relativePath] || 0
       let status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
+
+      if (status > 0) {
+        this.pathStatusCache[relativePath] = status
+      } else {
+        delete this.pathStatusCache[relativePath]
+      }
+
       if (status !== cachedStatus) {
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
-      this.pathStatusCache[relativePath] = status
+
       return status
     }).catch(e => {
       console.trace(e)
