@@ -146,7 +146,7 @@ Include details about your configuration and environment:
     **Atom version:** [Enter Atom version here]
     **OS and version:** [Enter OS name and version here]
 
-    **Instaled packages:**
+    **Installed packages:**
 
     [List of installed packages here]
 
