@@ -1,6 +1,7 @@
 'use babel'
 
 const fs = require('fs-plus')
+const Git = require('nodegit')
 const path = require('path')
 const temp = require('temp')
 
@@ -18,6 +19,28 @@ const copyRepository = () => {
 }
 
 describe('GitRepositoryAsync', function () {
+  describe('getPathStatus', function () {
+    it('trigger a status-changed event when the new status differs from the last cached one', function () {
+      let workingDirectory = copyRepository()
+      let repo = GitRepositoryAsync.open(workingDirectory)
+      let filePath = path.join(workingDirectory, 'file.txt')
+      let statusHandler = jasmine.createSpy('statusHandler')
+
+      repo.onDidChangeStatus(statusHandler)
+      fs.writeFileSync(filePath, '')
+
+      waitsForPromise(async function () {
+        await repo.getPathStatus(filePath)
+        expect(statusHandler.callCount).toBe(1)
+        let expectedStatus = Git.Status.STATUS.WT_MODIFIED
+        expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: expectedStatus})
+        fs.writeFileSync(filePath, 'abc')
+        await repo.getPathStatus(filePath)
+        expect(statusHandler.callCount).toBe(1)
+      })
+    })
+  })
+
   describe('buffer events', () => {
 
     it('emits a status-changed events when a buffer is saved', () => {
