@@ -203,6 +203,8 @@ class ViewRegistry
     @documentReaders = []
     @documentWriters = []
     @documentPollers = []
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise = null
     if @animationFrameRequest?
       cancelAnimationFrame(@animationFrameRequest)
       @animationFrameRequest = null
