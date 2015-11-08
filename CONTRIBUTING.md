@@ -139,9 +139,9 @@ Include details about your configuration and environment:
 
     [Enter observed behavior here]
 
-    **GIFs and screenshots**
+    **Screenshots and GIFs**
 
-    ![Screenshots and GIFs which follow steps to reproduce problem](url)
+    ![Screenshots and GIFs which follow reproduction steps to demonstrate the problem](url)
 
     **Atom version:** [Enter Atom version here]
     **OS and version:** [Enter OS name and version here]
