@@ -44,4 +44,5 @@ artifacts:
   - path: atom-build
 
 cache:
+  - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\.npm'
