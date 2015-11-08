@@ -45,4 +45,5 @@ artifacts:
 
 cache:
   - '%USERPROFILE%\.atom\.apm'
+  - '%USERPROFILE%\.atom\.node-gyp\.atom'
   - '%USERPROFILE%\.atom\.npm'
