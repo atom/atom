@@ -38,9 +38,6 @@ build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - C:\projects\atom\script\cibuild.cmd
 
-after_build:
-  - dir %USERPROFILE%\.atom\.npm
-
 test: off
 deploy: off
 artifacts:
