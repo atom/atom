@@ -42,11 +42,15 @@ describe('GitRepositoryAsync', function () {
   })
 
   describe('buffer events', () => {
+    beforeEach(function () {
+      atom.project.setPaths([copyRepository()])
+    })
 
     it('emits a status-changed events when a buffer is saved', () => {
+      // TODO might as well use jasmine spies for consistency rather than `called`
+      // here
       let editor, called
 
-      atom.project.setPaths([copyRepository()])
       waitsForPromise(async function () {
         editor = await atom.workspace.open('other.txt')
         editor.insertNewline()
