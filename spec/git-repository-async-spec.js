@@ -377,7 +377,7 @@ describe('GitRepositoryAsync-js', () => {
       })
     })
 
-    xasyncIt('stops listening to the buffer when the repository is destroyed (regression)', async () => {
+    asyncIt('stops listening to the buffer when the repository is destroyed (regression)', async () => {
       let editor = await atom.workspace.open('other.txt')
       atom.project.getRepositories()[0].destroy()
       expect(() => editor.save()).not.toThrow()
