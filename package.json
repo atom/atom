@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "electronVersion": "0.34.0",
+  "electronVersion": "0.34.3",
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^6.1.0",
@@ -116,7 +116,7 @@
     "symbols-view": "0.110.0",
     "tabs": "0.88.0",
     "timecop": "0.33.0",
-    "tree-view": "0.196.0",
+    "tree-view": "0.197.0",
     "update-package-dependencies": "0.10.0",
     "welcome": "0.32.0",
     "whitespace": "0.32.0",
@@ -139,7 +139,7 @@
     "language-mustache": "0.13.0",
     "language-objective-c": "0.15.0",
     "language-perl": "0.30.0",
-    "language-php": "0.32.0",
+    "language-php": "0.33.0",
     "language-property-list": "0.8.0",
     "language-python": "0.41.0",
     "language-ruby": "0.60.0",
