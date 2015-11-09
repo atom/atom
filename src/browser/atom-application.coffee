@@ -158,7 +158,6 @@ class AtomApplication
   # Configures required javascript environment flags.
   setupJavaScriptArguments: ->
     app.commandLine.appendSwitch 'js-flags', '--harmony'
-    app.commandLine.appendSwitch 'disable-renderer-backgrounding'
 
   # Registers basic application commands, non-idempotent.
   handleEvents: ->
