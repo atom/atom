@@ -214,7 +214,11 @@ class ViewRegistry
     @animationFrameRequest ?= requestAnimationFrame(@performDocumentUpdate)
 
   performDocumentUpdate: =>
+    resolveNextUpdatePromise = @resolveNextUpdatePromise
     @animationFrameRequest = null
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise = null
+
     writer() while writer = @documentWriters.shift()
 
     @documentReadInProgress = true
@@ -226,9 +230,6 @@ class ViewRegistry
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
 
-    resolveNextUpdatePromise = @resolveNextUpdatePromise
-    @nextUpdatePromise = null
-    @resolveNextUpdatePromise = null
     resolveNextUpdatePromise?()
 
   startPollingDocument: ->
