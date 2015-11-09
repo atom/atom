@@ -3321,6 +3321,7 @@ describe('TextEditorComponent', function () {
 
     describe('when the mousewheel event\'s target is a line', function () {
       it('keeps the line on the DOM if it is scrolled off-screen', async function () {
+        component.presenter.stoppedScrollingDelay = 3000 // account for slower build machines
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
         component.measureDimensions()
@@ -3337,7 +3338,7 @@ describe('TextEditorComponent', function () {
           }
         })
         componentNode.dispatchEvent(wheelEvent)
-        await nextAnimationFramePromise()
+        await nextViewUpdatePromise()
 
         expect(componentNode.contains(lineNode)).toBe(true)
       })
@@ -4707,7 +4708,7 @@ describe('TextEditorComponent', function () {
       let timeout = window.setTimeout(function () {
         window.clearInterval(interval)
         reject(timeoutError)
-      }, 3000)
+      }, 5000)
     })
   }
 
