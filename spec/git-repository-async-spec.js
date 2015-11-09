@@ -384,4 +384,6 @@ describe('GitRepositoryAsync-js', () => {
     })
   })
 
+  xdescribe('GitRepositoryAsync::relativize(filePath)')
+
 })
