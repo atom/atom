@@ -67,7 +67,7 @@ describe "TextEditorPresenter", ->
         fn?()
         disposable = presenter.onDidUpdateState ->
           disposable.dispose()
-          done()
+          process.nextTick(done)
 
     tiledContentContract = (stateFn) ->
       it "contains states for tiles that are visible on screen", ->
