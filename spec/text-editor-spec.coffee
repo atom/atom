@@ -4784,6 +4784,71 @@ describe "TextEditor", ->
       editor.selectPageUp()
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [12, 2]]]
 
+  describe "::setFirstVisibleScreenRow() and ::getFirstVisibleScreenRow()", ->
+    beforeEach ->
+      line = Array(9).join('0123456789')
+      editor.setText([1..100].map(-> line).join('\n'))
+      expect(editor.getLineCount()).toBe 100
+      expect(editor.lineTextForBufferRow(0).length).toBe 80
+
+    describe "when the editor doesn't have a height and lineHeightInPixels", ->
+      it "does not affect the editor's visible row range", ->
+        expect(editor.getVisibleRowRange()).toBeNull()
+
+        editor.setFirstVisibleScreenRow(1)
+        expect(editor.getFirstVisibleScreenRow()).toEqual 1
+
+        editor.setFirstVisibleScreenRow(3)
+        expect(editor.getFirstVisibleScreenRow()).toEqual 3
+
+        expect(editor.getVisibleRowRange()).toBeNull()
+
+    describe "when the editor has a height and lineHeightInPixels", ->
+      beforeEach ->
+        atom.config.set('editor.scrollPastEnd', true)
+        editor.setHeight(100, true)
+        editor.setLineHeightInPixels(10)
+
+      it "updates the editor's visible row range", ->
+        editor.setFirstVisibleScreenRow(2)
+        expect(editor.getFirstVisibleScreenRow()).toEqual 2
+        expect(editor.getVisibleRowRange()).toEqual [2, 12]
+
+      it "notifies ::onDidChangeFirstVisibleScreenRow observers", ->
+        changeCount = 0
+        editor.onDidChangeFirstVisibleScreenRow -> changeCount++
+
+        editor.setFirstVisibleScreenRow(2)
+        expect(changeCount).toBe 1
+
+        editor.setFirstVisibleScreenRow(2)
+        expect(changeCount).toBe 1
+
+        editor.setFirstVisibleScreenRow(3)
+        expect(changeCount).toBe 2
+
+      it "ensures that the top row is less than the buffer's line count", ->
+        editor.setFirstVisibleScreenRow(102)
+        expect(editor.getFirstVisibleScreenRow()).toEqual 99
+        expect(editor.getVisibleRowRange()).toEqual [99, 99]
+
+      it "ensures that the left column is less than the length of the longest screen line", ->
+        editor.setFirstVisibleScreenRow(10)
+        expect(editor.getFirstVisibleScreenRow()).toEqual 10
+
+        editor.setText("\n\n\n")
+
+        editor.setFirstVisibleScreenRow(10)
+        expect(editor.getFirstVisibleScreenRow()).toEqual 3
+
+      describe "when the 'editor.scrollPastEnd' option is set to false", ->
+        it "ensures that the bottom row is less than the buffer's line count", ->
+          atom.config.set('editor.scrollPastEnd', false)
+
+          editor.setFirstVisibleScreenRow(95)
+          expect(editor.getFirstVisibleScreenRow()).toEqual 89
+          expect(editor.getVisibleRowRange()).toEqual [89, 99]
+
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
       newEditor = atom.workspace.buildTextEditor(

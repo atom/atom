@@ -213,6 +213,7 @@ class TextEditorPresenter
     @disposables.add @model.onDidAddDecoration(@didAddDecoration.bind(this))
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
+    @disposables.add @model.onDidChangeFirstVisibleScreenRow(@didChangeFirstVisibleScreenRow.bind(this))
     @observeDecoration(decoration) for decoration in @model.getDecorations()
     @observeCursor(cursor) for cursor in @model.getCursors()
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
@@ -776,7 +777,7 @@ class TextEditorPresenter
     if scrollTop isnt @realScrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
-      @model.setFirstVisibleScreenRow(Math.round(@scrollTop / @lineHeight))
+      @model.setFirstVisibleScreenRow(Math.round(@scrollTop / @lineHeight), true)
 
       @updateStartRow()
       @updateEndRow()
@@ -1538,6 +1539,9 @@ class TextEditorPresenter
     @shouldUpdateVerticalScrollState = true
 
     @emitDidUpdateState()
+
+  didChangeFirstVisibleScreenRow: (screenRow) ->
+    @updateScrollTop(screenRow * @lineHeight)
 
   getVerticalScrollMarginInPixels: ->
     Math.round(@model.getVerticalScrollMargin() * @lineHeight)

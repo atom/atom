@@ -448,6 +448,9 @@ class TextEditor extends Model
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
 
+  onDidChangeFirstVisibleScreenRow: (callback, fromView) ->
+    @emitter.on 'did-change-first-visible-screen-row', callback
+
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
@@ -3088,12 +3091,26 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @displayBuffer.getWidth()
 
-  setFirstVisibleScreenRow: (@firstVisibleScreenRow) ->
+  # Experimental: Scroll the editor such that the given screen row is at the
+  # top of the visible area.
+  setFirstVisibleScreenRow: (screenRow, fromView) ->
+    unless fromView
+      maxScreenRow = @getLineCount() - 1
+      unless @config.get('editor.scrollPastEnd')
+        height = @displayBuffer.getHeight()
+        lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
+        if height? and lineHeightInPixels?
+          maxScreenRow -= Math.floor(height / lineHeightInPixels)
+      screenRow = Math.min(screenRow, maxScreenRow)
+
+    unless screenRow is @firstVisibleScreenRow
+      @emitter.emit 'did-change-first-visible-screen-row', screenRow unless fromView
+      @firstVisibleScreenRow = screenRow
+
   getFirstVisibleScreenRow: -> @firstVisibleScreenRow
 
   setFirstVisibleScreenColumn: (@firstVisibleScreenColumn) ->
   getFirstVisibleScreenColumn: -> @firstVisibleScreenColumn
-
 
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
@@ -3151,9 +3168,15 @@ class TextEditor extends Model
     @viewRegistry.getView(this).getMaxScrollTop()
 
   getVisibleRowRange: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
-
-    @viewRegistry.getView(this).getVisibleRowRange()
+    height = @displayBuffer.getHeight()
+    lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
+    if height? and lineHeightInPixels?
+      [
+        @firstVisibleScreenRow,
+        Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getLineCount() - 1)
+      ]
+    else
+      null
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
