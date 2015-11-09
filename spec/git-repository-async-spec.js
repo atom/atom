@@ -36,7 +36,7 @@ function terribleSleep() {
   for (let _ of range(1, 1000)) { ; }
 }
 
-fdescribe('GitRepositoryAsync-js', () => {
+describe('GitRepositoryAsync-js', () => {
   let repo
 
   afterEach(() => {
