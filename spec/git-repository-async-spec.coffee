@@ -16,7 +16,7 @@ copyRepository = ->
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   fs.realpathSync(workingDirPath)
 
-openFixture = (fixture)->
+openFixture = (fixture) ->
   GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 
 describe "GitRepositoryAsync", ->
