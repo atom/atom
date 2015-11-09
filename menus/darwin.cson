@@ -19,7 +19,7 @@
       { type: 'separator' }
       { label: 'Install Shell Commands', command: 'window:install-shell-commands' }
       { type: 'separator' }
-      { label: 'Services', submenu: [] }
+      { label: 'Services', role: 'services', submenu: [] }
       { type: 'separator' }
       { label: 'Hide Atom', command: 'application:hide' }
       { label: 'Hide Others', command: 'application:hide-other-applications' }
@@ -184,16 +184,18 @@
 
   {
     label: 'Window'
+    role: 'window'
     submenu: [
       { label: 'Minimize', command: 'application:minimize' }
       { label: 'Zoom', command: 'application:zoom' }
       { type: 'separator' }
-      { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front' }
+      { label: 'Bring All to Front', command: 'application:bring-all-windows-to-front'}
     ]
   }
 
   {
     label: 'Help'
+    role: 'help'
     submenu: [
       { label: 'Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'Documentation', command: 'application:open-documentation' }
