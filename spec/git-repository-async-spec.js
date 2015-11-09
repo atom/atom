@@ -38,7 +38,7 @@ function xasyncIt(name, fn) {
   })
 }
 
-fdescribe('GitRepositoryAsync-js', () => {
+describe('GitRepositoryAsync-js', () => {
   let repo
 
   afterEach(() => {
