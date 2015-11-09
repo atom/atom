@@ -4802,6 +4802,7 @@ describe "TextEditor", ->
         expect(editor.getFirstVisibleScreenRow()).toEqual 3
 
         expect(editor.getVisibleRowRange()).toBeNull()
+        expect(editor.getLastVisibleScreenRow()).toBeNull()
 
     describe "when the editor has a height and lineHeightInPixels", ->
       beforeEach ->
@@ -4812,6 +4813,7 @@ describe "TextEditor", ->
       it "updates the editor's visible row range", ->
         editor.setFirstVisibleScreenRow(2)
         expect(editor.getFirstVisibleScreenRow()).toEqual 2
+        expect(editor.getLastVisibleScreenRow()).toBe 12
         expect(editor.getVisibleRowRange()).toEqual [2, 12]
 
       it "notifies ::onDidChangeFirstVisibleScreenRow observers", ->
