@@ -27,6 +27,12 @@ function asyncIt(name, fn) {
   })
 }
 
+function fasyncIt(name, fn) {
+  fit(name, () => {
+    waitsForPromise(fn)
+  })
+}
+
 function xasyncIt(name, fn) {
   xit(name, () => {
     waitsForPromise(fn)
