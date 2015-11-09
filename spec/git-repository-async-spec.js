@@ -41,20 +41,18 @@ fdescribe('GitRepositoryAsync-js', () => {
   })
 
   describe('@open(path)', () => {
-    it('repo is null when no repository is found', () => {
-      waitsForPromise(async () => {
-        repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
+    asyncIt('repo is null when no repository is found', async () => {
+      repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
 
-        let threw = false
-        try {
-          await repo.repoPromise
-        } catch(e) {
-          threw = true
-        }
+      let threw = false
+      try {
+        await repo.repoPromise
+      } catch(e) {
+        threw = true
+      }
 
-        expect(threw).toBeTruthy()
-        expect(repo.repo).toBe(null)
-      })
+      expect(threw).toBeTruthy()
+      expect(repo.repo).toBe(null)
     })
   })
 
