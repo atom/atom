@@ -372,15 +372,16 @@ describe('GitRepositoryAsync-js', () => {
       expect(statusHandler.callCount).toBe(1)
     })
 
-    // it('stops listening to the buffer when the repository is destroyed (regression)', () => {
-    //   waitsForPromise(() => {
-    //     atom.workspace.open('other.txt').then(o => editor = o)
-    //   })
-    //   runs(() => {
-    //     atom.project.getRepositories()[0].destroy()
-    //     expect(-> editor.save()).not.toThrow()
-    //   })
-    // })
+    it('stops listening to the buffer when the repository is destroyed (regression)', function () {
+      let editor
+      waitsForPromise(async function () {
+        editor = await atom.workspace.open('other.txt')
+      })
+      runs(function () {
+        atom.project.getRepositories()[0].destroy()
+        expect(function () { editor.save() }).not.toThrow()
+      })
+    })
   })
 
 })
