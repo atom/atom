@@ -4,11 +4,10 @@ const fs = require('fs-plus')
 const path = require('path')
 const temp = require('temp')
 const Git = require('nodegit')
-const CompositeDisposable = require('event-kit').CompositeDisposable
-
-temp.track()
 
 const GitRepositoryAsync = require('../src/git-repository-async')
+
+temp.track()
 
 function openFixture(fixture) {
   return GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
@@ -302,7 +301,8 @@ fdescribe('GitRepositoryAsync-js', () => {
 
   describe('buffer events', () => {
     beforeEach(() => {
-      atom.project.setPaths([copyRepository()])
+      const workingDirectory = copyRepository()
+      atom.project.setPaths([workingDirectory])
 
       // When the path is added to the project, the repository is refreshed. We
       // need to wait for that to complete before the tests continue so that
