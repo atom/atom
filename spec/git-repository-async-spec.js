@@ -10,11 +10,11 @@ temp.track()
 
 const GitRepositoryAsync = require('../src/git-repository-async')
 
-const openFixture = (fixture) => {
+function openFixture(fixture) {
   return GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 }
 
-const copyRepository = () => {
+function copyRepository() {
   let workingDirPath = temp.mkdirSync('atom-working-dir')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
@@ -23,20 +23,17 @@ const copyRepository = () => {
 
 async function terribleWait(fn) {
   const p = new Promise()
-  waitsFor(fn)
-  runs(() => p.resolve())
+  p.resolve()
+  expect(fn()).toBeTruthy()
 }
 
-// Git uses heuristics to avoid having to needlessly hash a file to tell if it
-// changed. One of those is mtime. If our tests are running Super Fast, we could
-// end up changing a file multiple times within the same mtime tick, which could
-// lead git to think the file didn't change at all. So sometimes we'll need to
-// sleep. (https://www.kernel.org/pub/software/scm/git/docs/technical/racy-git.txt)
-function terribleSleep() {
-  for (let _ of range(1, 1000)) { ; }
+function asyncIt(name, fn) {
+  it(name, () => {
+    waitsForPromise(fn)
+  })
 }
 
-describe('GitRepositoryAsync-js', () => {
+fdescribe('GitRepositoryAsync-js', () => {
   let repo
 
   afterEach(() => {
@@ -44,39 +41,41 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('@open(path)', () => {
-    it('repo is null when no repository is found', async () => {
-      repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
+    it('repo is null when no repository is found', () => {
+      waitsForPromise(async () => {
+        repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
 
-      let threw = false
-      try {
-        await repo.repoPromise
-      } catch (e) {
-        threw = true
-      }
+        let threw = false
+        try {
+          await repo.repoPromise
+        } catch(e) {
+          threw = true
+        }
 
-      expect(threw).toBeTruthy()
-      expect(repo.repo).toBe(null)
+        expect(threw).toBeTruthy()
+        expect(repo.repo).toBe(null)
+      })
     })
   })
 
   describe('.getPath()', () => {
     xit('returns the repository path for a .git directory path')
 
-    it('returns the repository path for a repository path', async () => {
+    asyncIt('returns the repository path for a repository path', async () => {
       repo = openFixture('master.git')
-      let path = await repo.getPath()
-      expect(path).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      let repoPath = await repo.getPath()
+      expect(repoPath).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
     })
   })
 
   describe('.isPathIgnored(path)', () => {
-    it('resolves true for an ignored path', async () => {
+    asyncIt('resolves true for an ignored path', async () => {
       repo = openFixture('ignore.git')
       let ignored = await repo.isPathIgnored('a.txt')
       expect(ignored).toBeTruthy()
     })
 
-    it('resolves false for a non-ignored path', async () => {
+    asyncIt('resolves false for a non-ignored path', async () => {
       repo = openFixture('ignore.git')
       let ignored = await repo.isPathIgnored('b.txt')
       expect(ignored).toBeFalsy()
@@ -96,23 +95,23 @@ describe('GitRepositoryAsync-js', () => {
     })
 
     describe('when the path is unstaged', () => {
-      it('resolves false if the path has not been modified', async () => {
+      asyncIt('resolves false if the path has not been modified', async () => {
         let modified = await repo.isPathModified(filePath)
         expect(modified).toBeFalsy()
       })
 
-      it('resolves true if the path is modified', async () => {
+      asyncIt('resolves true if the path is modified', async () => {
         fs.writeFileSync(filePath, "change")
         let modified = await repo.isPathModified(filePath)
         expect(modified).toBeTruthy()
       })
 
-      it('resolves false if the path is new', async () => {
+      asyncIt('resolves false if the path is new', async () => {
         let modified = await repo.isPathModified(newPath)
         expect(modified).toBeFalsy()
       })
 
-      it('resolves false if the path is invalid', async () => {
+      asyncIt('resolves false if the path is invalid', async () => {
         let modified = await repo.isPathModified(emptyPath)
         expect(modified).toBeFalsy()
       })
@@ -131,12 +130,12 @@ describe('GitRepositoryAsync-js', () => {
     })
 
     describe('when the path is unstaged', () => {
-      it('returns true if the path is new', async () => {
+      asyncIt('returns true if the path is new', async () => {
         let isNew = await repo.isPathNew(newPath)
         expect(isNew).toBeTruthy()
       })
 
-      it("returns false if the path isn't new", async () => {
+      asyncIt("returns false if the path isn't new", async () => {
         let modified = await repo.isPathModified(newPath)
         expect(modified).toBeFalsy()
       })
@@ -152,30 +151,28 @@ describe('GitRepositoryAsync-js', () => {
       filePath = path.join(workingDirPath, 'a.txt')
     })
 
-    it('no longer reports a path as modified after checkout', async () => {
+    asyncIt('no longer reports a path as modified after checkout', async () => {
       let modified = await repo.isPathModified(filePath)
       expect(modified).toBeFalsy()
 
       fs.writeFileSync(filePath, 'ch ch changes')
-      terribleSleep()
 
       modified = await repo.isPathModified(filePath)
       expect(modified).toBeTruthy()
 
       await repo.checkoutHead(filePath)
-      terribleSleep()
 
       modified = await repo.isPathModified(filePath)
       expect(modified).toBeFalsy()
     })
 
-    it('restores the contents of the path to the original text', async () => {
+    asyncIt('restores the contents of the path to the original text', async () => {
       fs.writeFileSync(filePath, 'ch ch changes')
       await repo.checkoutHead(filePath)
-      xxpect(fs.readFileSync(filePath, 'utf8')).toBe('')
+      expect(fs.readFileSync(filePath, 'utf8')).toBe('')
     })
 
-    it('fires a did-change-status event if the checkout completes successfully', async () => {
+    asyncIt('fires a did-change-status event if the checkout completes successfully', async () => {
       fs.writeFileSync(filePath, 'ch ch changes')
 
       await repo.getPathStatus(filePath)
@@ -185,7 +182,7 @@ describe('GitRepositoryAsync-js', () => {
 
       await repo.checkoutHead(filePath)
 
-      await terribleWait(() => statusHandler.callCount > 0)
+      // await terribleWait(() => statusHandler.callCount > 0)
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: 0})
 
@@ -236,14 +233,14 @@ describe('GitRepositoryAsync-js', () => {
       filePath = path.join(workingDirectory, 'file.txt')
     })
 
-    it('trigger a status-changed event when the new status differs from the last cached one', async () => {
+    asyncIt('trigger a status-changed event when the new status differs from the last cached one', async () => {
       let statusHandler = jasmine.createSpy("statusHandler")
       repo.onDidChangeStatus(statusHandler)
       fs.writeFileSync(filePath, '')
 
       await repo.getPathStatus(filePath)
 
-      await terribleWait(() => statusHandler.callCount > 0)
+      // await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       let status = Git.Status.STATUS.WT_MODIFIED
@@ -265,15 +262,13 @@ describe('GitRepositoryAsync-js', () => {
       filePath = path.join(directoryPath, 'b.txt')
     })
 
-    it('gets the status based on the files inside the directory', async () => {
+    asyncIt('gets the status based on the files inside the directory', async () => {
       await repo.checkoutHead(filePath)
-      terribleSleep()
 
       let result = await repo.getDirectoryStatus(directoryPath)
       expect(repo.isStatusModified(result)).toBe(false)
 
       fs.writeFileSync(filePath, 'abc')
-      terribleSleep()
 
       result = await repo.getDirectoryStatus(directoryPath)
       expect(repo.isStatusModified(result)).toBe(true)
@@ -294,7 +289,7 @@ describe('GitRepositoryAsync-js', () => {
       newPath = fs.absolute(newPath) // specs could be running under symbol path.
     })
 
-    it('returns status information for all new and modified files', async () => {
+    asyncIt('returns status information for all new and modified files', async () => {
       fs.writeFileSync(modifiedPath, 'making this path modified')
       await repo.refreshStatus()
 
@@ -310,7 +305,7 @@ describe('GitRepositoryAsync-js', () => {
       atom.project.setPaths([copyRepository()])
     })
 
-    it('emits a status-changed events when a buffer is saved', async () => {
+    asyncIt('emits a status-changed event when a buffer is saved', async () => {
       let editor = await atom.workspace.open('other.txt')
 
       editor.insertNewline()
@@ -320,11 +315,11 @@ describe('GitRepositoryAsync-js', () => {
       repository.onDidChangeStatus(c => called = c)
       editor.save()
 
-      await terribleWait(() => Boolean(called))
+      // await terribleWait(() => Boolean(called))
       expect(called).toEqual({path: editor.getPath(), pathStatus: 256})
     })
 
-    it('emits a status-changed event when a buffer is reloaded', async () => {
+    asyncIt('emits a status-changed event when a buffer is reloaded', async () => {
       let statusHandler = jasmine.createSpy('statusHandler')
       let reloadHandler = jasmine.createSpy('reloadHandler')
 
@@ -336,7 +331,7 @@ describe('GitRepositoryAsync-js', () => {
       repository.onDidChangeStatus(statusHandler)
       editor.getBuffer().reload()
 
-      await terribleWait(() => statusHandler.callCount > 0)
+      // await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -345,12 +340,12 @@ describe('GitRepositoryAsync-js', () => {
       buffer.onDidReload(reloadHandler)
       buffer.reload()
 
-      await terribleWait(() => reloadHandler.callCount > 0)
+      // await terribleWait(() => reloadHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
     })
 
-    it("emits a status-changed event when a buffer's path changes", async () => {
+    asyncIt("emits a status-changed event when a buffer's path changes", async () => {
       let editor = await atom.workspace.open('other.txt')
 
       fs.writeFileSync(editor.getPath(), 'changed')
@@ -359,7 +354,7 @@ describe('GitRepositoryAsync-js', () => {
       let repository = atom.project.getRepositories()[0].async
       repository.onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
-      await terribleWait(() => statusHandler.callCount > 0)
+      // await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -368,19 +363,15 @@ describe('GitRepositoryAsync-js', () => {
       let buffer = editor.getBuffer()
       buffer.onDidChangePath(pathHandler)
       buffer.emitter.emit('did-change-path')
-      await terribleWait(() => pathHandler.callCount > 0)
+      // await terribleWait(() => pathHandler.callCount > 0)
       expect(statusHandler.callCount).toBe(1)
     })
 
-    // it('stops listening to the buffer when the repository is destroyed (regression)', () => {
-    //   waitsForPromise(() => {
-    //     atom.workspace.open('other.txt').then(o => editor = o)
-    //   })
-    //   runs(() => {
-    //     atom.project.getRepositories()[0].destroy()
-    //     expect(-> editor.save()).not.toThrow()
-    //   })
-    // })
+    asyncIt('stops listening to the buffer when the repository is destroyed (regression)', async () => {
+      let editor = await atom.workspace.open('other.txt')
+      atom.project.getRepositories()[0].destroy()
+      expect(() => editor.save()).not.toThrow()
+    })
   })
 
 })
