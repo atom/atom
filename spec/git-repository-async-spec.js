@@ -21,14 +21,14 @@ function copyRepository() {
   return fs.realpathSync(workingDirPath)
 }
 
-async function terribleWait(fn) {
-  const p = new Promise()
-  p.resolve()
-  expect(fn()).toBeTruthy()
-}
-
 function asyncIt(name, fn) {
   it(name, () => {
+    waitsForPromise(fn)
+  })
+}
+
+function xasyncIt(name, fn) {
+  xit(name, () => {
     waitsForPromise(fn)
   })
 }
@@ -180,7 +180,6 @@ fdescribe('GitRepositoryAsync-js', () => {
 
       await repo.checkoutHead(filePath)
 
-      // await terribleWait(() => statusHandler.callCount > 0)
       expect(statusHandler.callCount).toBe(1)
       expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: 0})
 
@@ -237,8 +236,6 @@ fdescribe('GitRepositoryAsync-js', () => {
       fs.writeFileSync(filePath, '')
 
       await repo.getPathStatus(filePath)
-
-      // await terribleWait(() => statusHandler.callCount > 0)
 
       expect(statusHandler.callCount).toBe(1)
       let status = Git.Status.STATUS.WT_MODIFIED
@@ -313,8 +310,8 @@ fdescribe('GitRepositoryAsync-js', () => {
       repository.onDidChangeStatus(c => called = c)
       editor.save()
 
-      // await terribleWait(() => Boolean(called))
-      expect(called).toEqual({path: editor.getPath(), pathStatus: 256})
+      waitsFor(() => Boolean(called))
+      runs(() => expect(called).toEqual({path: editor.getPath(), pathStatus: 256}))
     })
 
     asyncIt('emits a status-changed event when a buffer is reloaded', async () => {
@@ -329,18 +326,18 @@ fdescribe('GitRepositoryAsync-js', () => {
       repository.onDidChangeStatus(statusHandler)
       editor.getBuffer().reload()
 
-      // await terribleWait(() => statusHandler.callCount > 0)
+      waitsFor(() => statusHandler.callCount > 0)
+      runs(() => {
+        expect(statusHandler.callCount).toBe(1)
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
 
-      expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+        let buffer = editor.getBuffer()
+        buffer.onDidReload(reloadHandler)
+        buffer.reload()
 
-      let buffer = editor.getBuffer()
-      buffer.onDidReload(reloadHandler)
-      buffer.reload()
-
-      // await terribleWait(() => reloadHandler.callCount > 0)
-
-      expect(statusHandler.callCount).toBe(1)
+        waitsFor(() => reloadHandler.callCount > 0)
+        runs(() => expect(statusHandler.callCount).toBe(1))
+      })
     })
 
     asyncIt("emits a status-changed event when a buffer's path changes", async () => {
@@ -352,20 +349,22 @@ fdescribe('GitRepositoryAsync-js', () => {
       let repository = atom.project.getRepositories()[0].async
       repository.onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
-      // await terribleWait(() => statusHandler.callCount > 0)
+      waitsFor(() => statusHandler.callCount > 0)
+      runs(() => {
+        expect(statusHandler.callCount).toBe(1)
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
 
-      expect(statusHandler.callCount).toBe(1)
-      expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+        let pathHandler = jasmine.createSpy('pathHandler')
+        let buffer = editor.getBuffer()
+        buffer.onDidChangePath(pathHandler)
+        buffer.emitter.emit('did-change-path')
 
-      let pathHandler = jasmine.createSpy('pathHandler')
-      let buffer = editor.getBuffer()
-      buffer.onDidChangePath(pathHandler)
-      buffer.emitter.emit('did-change-path')
-      // await terribleWait(() => pathHandler.callCount > 0)
-      expect(statusHandler.callCount).toBe(1)
+        waitsFor(() => pathHandler.callCount > 0)
+        runs(() => expect(statusHandler.callCount).toBe(1))
+      })
     })
 
-    asyncIt('stops listening to the buffer when the repository is destroyed (regression)', async () => {
+    xasyncIt('stops listening to the buffer when the repository is destroyed (regression)', async () => {
       let editor = await atom.workspace.open('other.txt')
       atom.project.getRepositories()[0].destroy()
       expect(() => editor.save()).not.toThrow()
