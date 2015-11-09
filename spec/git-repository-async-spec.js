@@ -288,9 +288,9 @@ fdescribe('GitRepositoryAsync-js', () => {
       fs.writeFileSync(modifiedPath, 'making this path modified')
       await repo.refreshStatus()
 
-      expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
-      expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBeTruthy()
-      expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
+      expect(repo.getCachedPathStatus(cleanPath)).toBeUndefined()
+      expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
+      expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
     })
   })
 
