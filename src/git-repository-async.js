@@ -2,7 +2,7 @@
 
 const Git = require('nodegit')
 const path = require('path')
-const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
+const {Emitter, CompositeDisposable} = require('event-kit')
 
 const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
 const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
@@ -210,7 +210,6 @@ module.exports = class GitRepositoryAsync {
         this.subscriptions.remove(bufferSubscriptions)
       })
     )
-
 
     this.subscriptions.add(bufferSubscriptions)
     return
