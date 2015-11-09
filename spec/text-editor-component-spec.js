@@ -4725,17 +4725,19 @@ describe('TextEditorComponent', function () {
   }
 
   function nextViewUpdatePromise () {
-    let timeoutError = new Error("Timed out waiting on a view update")
+    let timeoutError = new Error('Timed out waiting on a view update.')
     Error.captureStackTrace(timeoutError, nextViewUpdatePromise)
 
     return new Promise(function (resolve, reject) {
-      atom.views.getNextUpdatePromise().then(function (ts) {
+      let nextUpdatePromise = atom.views.getNextUpdatePromise()
+      nextUpdatePromise.then(function (ts) {
         window.clearTimeout(timeout)
         resolve(ts)
       })
       let timeout = window.setTimeout(function () {
+        timeoutError.message += ' Frame pending? ' + atom.views.animationFrameRequest + ' Same next update promise pending? ' + (nextUpdatePromise === atom.views.nextUpdatePromise)
         reject(timeoutError)
-      }, 3000)
+      }, 5000)
     })
   }
 
