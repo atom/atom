@@ -496,7 +496,7 @@ class AtomApplication
   #   :specPath - The directory to load specs from.
   #   :safeMode - A Boolean that, if true, won't run specs from ~/.atom/packages
   #               and ~/.atom/dev/packages, defaults to false.
-  runTests: ({headless, devMode, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout}) ->
+  runTests: ({headless, resourcePath, executedFrom, pathsToOpen, logFile, safeMode, timeout}) ->
     if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
       resourcePath = @resourcePath
 
@@ -523,6 +523,7 @@ class AtomApplication
 
     legacyTestRunnerPath = @resolveLegacyTestRunnerPath()
     testRunnerPath = @resolveTestRunnerPath(testPaths[0])
+    devMode = true
     isSpec = true
     safeMode ?= false
     new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode})
