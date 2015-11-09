@@ -6,6 +6,7 @@ const temp = require('temp')
 const Git = require('nodegit')
 
 const GitRepositoryAsync = require('../src/git-repository-async')
+const Project = require('../src/project')
 
 temp.track()
 
@@ -381,6 +382,46 @@ describe('GitRepositoryAsync-js', () => {
       let editor = await atom.workspace.open('other.txt')
       atom.project.getRepositories()[0].destroy()
       expect(() => editor.save()).not.toThrow()
+    })
+  })
+
+  describe('when a project is deserialized', () => {
+    let project2
+
+    beforeEach(() => {
+      atom.project.setPaths([copyRepository()])
+
+      let repository = atom.project.getRepositories()[0].async
+      let statusHandler = jasmine.createSpy('statusHandler')
+      repository.onDidChangeStatuses(statusHandler)
+      waitsFor(() => statusHandler.callCount > 0)
+    })
+
+    afterEach(() => {
+      if (project2) project2.destroy()
+    })
+
+    asyncIt('subscribes to all the serialized buffers in the project', async () => {
+      await atom.workspace.open('file.txt')
+
+      project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      project2.deserialize(atom.project.serialize(), atom.deserializers)
+      let buffer = project2.getBuffers()[0]
+
+      waitsFor(() => buffer.loaded)
+      runs(() => {
+        buffer.append('changes')
+
+        let statusHandler = jasmine.createSpy('statusHandler')
+        project2.getRepositories()[0].async.onDidChangeStatus(statusHandler)
+        buffer.save()
+
+        waitsFor(() => statusHandler.callCount > 0)
+        runs(() => {
+          expect(statusHandler.callCount).toBe(1)
+          expect(statusHandler).toHaveBeenCalledWith({path: buffer.getPath(), pathStatus: 256})
+        })
+      })
     })
   })
 
