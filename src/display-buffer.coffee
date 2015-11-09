@@ -1076,7 +1076,7 @@ class DisplayBuffer extends Model
 
     unless @didUpdateDecorationsEventScheduled
       @didUpdateDecorationsEventScheduled = true
-      global.setImmediate =>
+      process.nextTick =>
         @didUpdateDecorationsEventScheduled = false
         @emitter.emit 'did-update-decorations'
 
