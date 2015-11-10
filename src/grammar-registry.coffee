@@ -46,7 +46,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
     score = @getGrammarPathScore(grammar, filePath)
-    if not grammar.bundledPackage
+    if score > 0 and not grammar.bundledPackage
       score += 0.25
     if @grammarMatchesContents(grammar, contents)
       score += 0.125
