@@ -277,7 +277,7 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['standard', 'coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
-  ciTasks = ['output-disk-space', 'download-electron', 'download-electron-chromedriver', 'build']
+  ciTasks = ['download-electron', 'download-electron-chromedriver', 'build']
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux' and not process.env.CI
