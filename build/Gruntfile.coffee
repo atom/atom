@@ -39,7 +39,16 @@ module.exports = (grunt) ->
   disableAutoUpdate = grunt.option('no-auto-update') ? false
 
   channel = grunt.option('channel')
-  channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
+  releasableBranches = ['stable', 'beta']
+  if process.env.APPVEYOR and not process.env.APPVEYOR_PULL_REQUEST_NUMBER
+    channel ?= process.env.APPVEYOR_REPO_BRANCH if process.env.APPVEYOR_REPO_BRANCH in releasableBranches
+
+  if process.env.TRAVIS and not process.env.TRAVIS_PULL_REQUEST
+    channel ?= process.env.TRAVIS_BRANCH if process.env.TRAVIS_BRANCH in releasableBranches
+
+  if process.env.JANKY_BRANCH
+    channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in releasableBranches
+
   channel ?= 'dev'
 
   metadata = packageJson
@@ -270,16 +279,20 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['standard', 'coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
-  ciTasks = ['output-disk-space', 'download-electron', 'download-electron-chromedriver', 'build']
+  ciTasks = []
+  ciTasks.push('output-disk-space') unless process.env.CI
+  ciTasks.push('download-electron')
+  ciTasks.push('download-electron-chromedriver')
+  ciTasks.push('build')
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
-  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.TRAVIS
+  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI
   ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
-  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.TRAVIS
-  ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.TRAVIS
-  ciTasks.push('publish-build') unless process.env.TRAVIS
+  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.CI
+  ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.CI
+  ciTasks.push('publish-build') unless process.env.CI
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']

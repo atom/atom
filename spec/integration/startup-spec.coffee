@@ -4,7 +4,7 @@
 return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # Integration tests require a fast machine and, for now, we cannot afford to
 # run them on Travis.
-return if process.env.TRAVIS
+return if process.env.CI
 
 fs = require "fs-plus"
 path = require "path"
