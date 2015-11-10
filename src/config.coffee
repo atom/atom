@@ -671,13 +671,13 @@ class Config
   #
   # * `callback` {Function} to execute while suppressing calls to handlers.
   transact: (callback) ->
-    @startTransaction()
+    @beginTransaction()
     try
       callback()
     finally
       @endTransaction()
 
-  startTransaction: ->
+  beginTransaction: ->
     @transactDepth++
 
   endTransaction: ->

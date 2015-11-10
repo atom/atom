@@ -416,7 +416,7 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    @config.startTransaction()
+    @config.beginTransaction()
     for pack in packages
       promise = @activatePackage(pack.name)
       promises.push(promise) unless pack.hasActivationCommands()
