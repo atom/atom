@@ -416,11 +416,13 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    @config.transact =>
-      for pack in packages
-        promise = @activatePackage(pack.name)
-        promises.push(promise) unless pack.hasActivationCommands()
-      return
+    @config.startTransaction()
+    for pack in packages
+      promise = @activatePackage(pack.name)
+      promises.push(promise) unless pack.hasActivationCommands()
+    Promise.all(promises)
+      .then(=> @config.endTransaction())
+      .catch(=> @config.endTransaction())
     @observeDisabledPackages()
     @observePackagesWithKeymapsDisabled()
     promises
