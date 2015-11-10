@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 # targets, misspelled words, and anything else that needs to track a logical
 # location in the buffer over time.
 #
-# ### Marker Creation
+# ### TextEditorMarker Creation
 #
 # Use {TextEditor::markBufferRange} rather than creating Markers directly.
 #
@@ -40,7 +40,7 @@ _ = require 'underscore-plus'
 #
 # See {TextEditor::markBufferRange} for usage.
 module.exports =
-class Marker
+class TextEditorMarker
   bufferMarkerSubscription: null
   oldHeadBufferPosition: null
   oldHeadScreenPosition: null
@@ -53,7 +53,8 @@ class Marker
   Section: Construction and Destruction
   ###
 
-  constructor: ({@bufferMarker, @displayBuffer}) ->
+  constructor: (@layer, @bufferMarker) ->
+    {@displayBuffer} = @layer
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @id = @bufferMarker.id
@@ -66,7 +67,7 @@ class Marker
     @bufferMarker.destroy()
     @disposables.dispose()
 
-  # Essential: Creates and returns a new {Marker} with the same properties as
+  # Essential: Creates and returns a new {TextEditorMarker} with the same properties as
   # this marker.
   #
   # {Selection} markers (markers with a custom property `type: "selection"`)
@@ -79,9 +80,9 @@ class Marker
   # marker. The new marker's properties are computed by extending this marker's
   # properties with `properties`.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   copy: (properties) ->
-    @displayBuffer.getMarker(@bufferMarker.copy(properties).id)
+    @layer.getMarker(@bufferMarker.copy(properties).id)
 
   ###
   Section: Event Subscription
@@ -129,7 +130,7 @@ class Marker
     @emitter.on 'did-destroy', callback
 
   ###
-  Section: Marker Details
+  Section: TextEditorMarker Details
   ###
 
   # Essential: Returns a {Boolean} indicating whether the marker is valid. Markers can be
@@ -140,7 +141,7 @@ class Marker
   # Essential: Returns a {Boolean} indicating whether the marker has been destroyed. A marker
   # can be invalid without being destroyed, in which case undoing the invalidating
   # operation would restore the marker. Once a marker is destroyed by calling
-  # {Marker::destroy}, no undo/redo operation can ever bring it back.
+  # {TextEditorMarker::destroy}, no undo/redo operation can ever bring it back.
   isDestroyed: ->
     @bufferMarker.isDestroyed()
 
@@ -169,7 +170,7 @@ class Marker
     @bufferMarker.setProperties(properties)
 
   matchesProperties: (attributes) ->
-    attributes = @displayBuffer.translateToBufferMarkerParams(attributes)
+    attributes = @layer.translateToBufferMarkerParams(attributes)
     @bufferMarker.matchesParams(attributes)
 
   ###
@@ -179,14 +180,14 @@ class Marker
   # Essential: Returns a {Boolean} indicating whether this marker is equivalent to
   # another marker, meaning they have the same range and options.
   #
-  # * `other` {Marker} other marker
+  # * `other` {TextEditorMarker} other marker
   isEqual: (other) ->
     return false unless other instanceof @constructor
     @bufferMarker.isEqual(other.bufferMarker)
 
   # Essential: Compares this marker to another based on their ranges.
   #
-  # * `other` {Marker}
+  # * `other` {TextEditorMarker}
   #
   # Returns a {Number}
   compare: (other) ->
@@ -225,28 +226,28 @@ class Marker
     @setBufferRange(@displayBuffer.bufferRangeForScreenRange(screenRange), options)
 
   # Essential: Retrieves the buffer position of the marker's start. This will always be
-  # less than or equal to the result of {Marker::getEndBufferPosition}.
+  # less than or equal to the result of {TextEditorMarker::getEndBufferPosition}.
   #
   # Returns a {Point}.
   getStartBufferPosition: ->
     @bufferMarker.getStartPosition()
 
   # Essential: Retrieves the screen position of the marker's start. This will always be
-  # less than or equal to the result of {Marker::getEndScreenPosition}.
+  # less than or equal to the result of {TextEditorMarker::getEndScreenPosition}.
   #
   # Returns a {Point}.
   getStartScreenPosition: ->
     @displayBuffer.screenPositionForBufferPosition(@getStartBufferPosition(), wrapAtSoftNewlines: true)
 
   # Essential: Retrieves the buffer position of the marker's end. This will always be
-  # greater than or equal to the result of {Marker::getStartBufferPosition}.
+  # greater than or equal to the result of {TextEditorMarker::getStartBufferPosition}.
   #
   # Returns a {Point}.
   getEndBufferPosition: ->
     @bufferMarker.getEndPosition()
 
   # Essential: Retrieves the screen position of the marker's end. This will always be
-  # greater than or equal to the result of {Marker::getStartScreenPosition}.
+  # greater than or equal to the result of {TextEditorMarker::getStartScreenPosition}.
   #
   # Returns a {Point}.
   getEndScreenPosition: ->
@@ -330,10 +331,10 @@ class Marker
 
   # Returns a {String} representation of the marker
   inspect: ->
-    "Marker(id: #{@id}, bufferRange: #{@getBufferRange()})"
+    "TextEditorMarker(id: #{@id}, bufferRange: #{@getBufferRange()})"
 
   destroyed: ->
-    delete @displayBuffer.markers[@id]
+    @layer.didDestroyMarker(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 

@@ -209,3 +209,21 @@ describe "ViewRegistry", ->
       window.dispatchEvent(new UIEvent('resize'))
 
       expect(events).toEqual ['poll 1', 'poll 2']
+
+  describe "::getNextUpdatePromise()", ->
+    it "returns a promise that resolves at the end of the next update cycle", ->
+      updateCalled = false
+      readCalled = false
+      pollCalled = false
+
+      waitsFor 'getNextUpdatePromise to resolve', (done) ->
+        registry.getNextUpdatePromise().then ->
+          expect(updateCalled).toBe true
+          expect(readCalled).toBe true
+          expect(pollCalled).toBe true
+          done()
+
+        registry.updateDocument -> updateCalled = true
+        registry.readDocument -> readCalled = true
+        registry.pollDocument -> pollCalled = true
+        registry.pollAfterNextUpdate()

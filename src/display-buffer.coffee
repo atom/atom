@@ -7,7 +7,8 @@ Fold = require './fold'
 Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
-Marker = require './marker'
+LayerDecoration = require './layer-decoration'
+TextEditorMarkerLayer = require './text-editor-marker-layer'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -25,9 +26,12 @@ class DisplayBuffer extends Model
   defaultCharWidth: null
   height: null
   width: null
+  didUpdateDecorationsEventScheduled: false
+  updatedSynchronously: false
 
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+    state.foldsMarkerLayer = state.tokenizedBuffer.buffer.getMarkerLayer(state.foldsMarkerLayerId)
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
     state.grammarRegistry = atomEnvironment.grammars
@@ -38,8 +42,8 @@ class DisplayBuffer extends Model
     super
 
     {
-      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles,
-      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+      tabLength, @editorWidthInChars, @tokenizedBuffer, @foldsMarkerLayer, buffer,
+      ignoreInvisibles, @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
     } = params
 
     @emitter = new Emitter
@@ -51,17 +55,22 @@ class DisplayBuffer extends Model
     })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
-    @markers = {}
+    @defaultMarkerLayer = new TextEditorMarkerLayer(this, @buffer.getDefaultMarkerLayer(), true)
+    @customMarkerLayersById = {}
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
     @overlayDecorationsById = {}
+    @layerDecorationsByMarkerLayerId = {}
+    @decorationCountsByLayerId = {}
+    @layerUpdateDisposablesByLayerId = {}
+
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
-    @disposables.add @buffer.onDidCreateMarker @handleBufferMarkerCreated
-    @disposables.add @buffer.onDidUpdateMarkers => @emitter.emit 'did-update-markers'
-    @foldMarkerAttributes = Object.freeze({class: 'fold', displayBufferId: @id})
-    folds = (new Fold(this, marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes()))
+    @disposables.add @buffer.onDidCreateMarker @didCreateDefaultLayerMarker
+
+    @foldsMarkerLayer ?= @buffer.addMarkerLayer()
+    folds = (new Fold(this, marker) for marker in @foldsMarkerLayer.getMarkers())
     @updateAllScreenLines()
     @decorateFold(fold) for fold in folds
 
@@ -107,16 +116,14 @@ class DisplayBuffer extends Model
     editorWidthInChars: @editorWidthInChars
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
+    foldsMarkerLayerId: @foldsMarkerLayer.id
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({
+    foldsMarkerLayer = @foldsMarkerLayer.copy()
+    new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
-      @grammarRegistry, @packageManager
+      @grammarRegistry, @packageManager, foldsMarkerLayer
     })
-
-    for marker in @findMarkers(displayBufferId: @id)
-      marker.copy(displayBufferId: newDisplayBuffer.id)
-    newDisplayBuffer
 
   updateAllScreenLines: ->
     @maxLineLength = 0
@@ -158,6 +165,9 @@ class DisplayBuffer extends Model
   onDidUpdateMarkers: (callback) ->
     @emitter.on 'did-update-markers', callback
 
+  onDidUpdateDecorations: (callback) ->
+    @emitter.on 'did-update-decorations', callback
+
   emitDidChange: (eventProperties, refreshMarkers=true) ->
     @emitter.emit 'did-change', eventProperties
     if refreshMarkers
@@ -176,6 +186,8 @@ class DisplayBuffer extends Model
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
+  setUpdatedSynchronously: (@updatedSynchronously) ->
 
   getVerticalScrollMargin: ->
     maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
@@ -386,10 +398,14 @@ class DisplayBuffer extends Model
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
     unless @largeFileMode
-      foldMarker =
-        @findFoldMarker({startRow, endRow}) ?
-          @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
-      @foldForMarker(foldMarker)
+      if foldMarker = @findFoldMarker({startRow, endRow})
+        @foldForMarker(foldMarker)
+      else
+        foldMarker = @foldsMarkerLayer.markRange([[startRow, 0], [endRow, Infinity]])
+        fold = new Fold(this, foldMarker)
+        fold.updateDisplayBuffer()
+        @decorateFold(fold)
+        fold
 
   isFoldedAtBufferRow: (bufferRow) ->
     @largestFoldContainingBufferRow(bufferRow)?
@@ -769,52 +785,68 @@ class DisplayBuffer extends Model
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
+  decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    decorationsState = {}
+
+    for layerId of @decorationCountsByLayerId
+      layer = @getMarkerLayer(layerId)
+
+      for marker in layer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow]) when marker.isValid()
+        screenRange = marker.getScreenRange()
+        rangeIsReversed = marker.isReversed()
+
+        if decorations = @decorationsByMarkerId[marker.id]
+          for decoration in decorations
+            decorationsState[decoration.id] = {
+              properties: decoration.properties
+              screenRange, rangeIsReversed
+            }
+
+        if layerDecorations = @layerDecorationsByMarkerLayerId[layerId]
+          for layerDecoration in layerDecorations
+            decorationsState["#{layerDecoration.id}-#{marker.id}"] = {
+              properties: layerDecoration.overridePropertiesByMarkerId[marker.id] ? layerDecoration.properties
+              screenRange, rangeIsReversed
+            }
+
+    decorationsState
+
   decorateMarker: (marker, decorationParams) ->
-    marker = @getMarker(marker.id)
+    marker = @getMarkerLayer(marker.layer.id).getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
-    decorationDestroyedDisposable = decoration.onDidDestroy =>
-      @removeDecoration(decoration)
-      @disposables.remove(decorationDestroyedDisposable)
-    @disposables.add(decorationDestroyedDisposable)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
     @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
     @decorationsById[decoration.id] = decoration
+    @observeDecoratedLayer(marker.layer)
+    @scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-add-decoration', decoration
     decoration
 
-  removeDecoration: (decoration) ->
-    {marker} = decoration
-    return unless decorations = @decorationsByMarkerId[marker.id]
-    index = decorations.indexOf(decoration)
-
-    if index > -1
-      decorations.splice(index, 1)
-      delete @decorationsById[decoration.id]
-      @emitter.emit 'did-remove-decoration', decoration
-      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
-      delete @overlayDecorationsById[decoration.id]
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    decoration = new LayerDecoration(markerLayer, this, decorationParams)
+    @layerDecorationsByMarkerLayerId[markerLayer.id] ?= []
+    @layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
+    @observeDecoratedLayer(markerLayer)
+    @scheduleUpdateDecorationsEvent()
+    decoration
 
   decorationsForMarkerId: (markerId) ->
     @decorationsByMarkerId[markerId]
 
-  # Retrieves a {Marker} based on its id.
+  # Retrieves a {TextEditorMarker} based on its id.
   #
   # id - A {Number} representing a marker id
   #
-  # Returns the {Marker} (if it exists).
+  # Returns the {TextEditorMarker} (if it exists).
   getMarker: (id) ->
-    unless marker = @markers[id]
-      if bufferMarker = @buffer.getMarker(id)
-        marker = new Marker({bufferMarker, displayBuffer: this})
-        @markers[id] = marker
-    marker
+    @defaultMarkerLayer.getMarker(id)
 
   # Retrieves the active markers in the buffer.
   #
-  # Returns an {Array} of existing {Marker}s.
+  # Returns an {Array} of existing {TextEditorMarker}s.
   getMarkers: ->
-    @buffer.getMarkers().map ({id}) => @getMarker(id)
+    @defaultMarkerLayer.getMarkers()
 
   getMarkerCount: ->
     @buffer.getMarkerCount()
@@ -822,54 +854,46 @@ class DisplayBuffer extends Model
   # Public: Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markScreenRange: (args...) ->
-    bufferRange = @bufferRangeForScreenRange(args.shift())
-    @markBufferRange(bufferRange, args...)
+  markScreenRange: (screenRange, options) ->
+    @defaultMarkerLayer.markScreenRange(screenRange, options)
 
   # Public: Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markBufferRange: (range, options) ->
-    @getMarker(@buffer.markRange(range, options).id)
+  markBufferRange: (bufferRange, options) ->
+    @defaultMarkerLayer.markBufferRange(bufferRange, options)
 
   # Public: Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
-    @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
+    @defaultMarkerLayer.markScreenPosition(screenPosition, options)
 
   # Public: Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
-    @getMarker(@buffer.markPosition(bufferPosition, options).id)
-
-  # Public: Removes the marker with the given id.
-  #
-  # id - The {Number} of the ID to remove
-  destroyMarker: (id) ->
-    @buffer.destroyMarker(id)
-    delete @markers[id]
+    @defaultMarkerLayer.markBufferPosition(bufferPosition, options)
 
   # Finds the first marker satisfying the given attributes
   #
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
-  # Returns a {Marker} or null
+  # Returns a {TextEditorMarker} or null
   findMarker: (params) ->
-    @findMarkers(params)[0]
+    @defaultMarkerLayer.findMarkers(params)[0]
 
   # Public: Find all markers satisfying a set of parameters.
   #
@@ -888,69 +912,36 @@ class DisplayBuffer extends Model
   #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
   #     returns markers contained within this range.
   #
-  # Returns an {Array} of {Marker}s
+  # Returns an {Array} of {TextEditorMarker}s
   findMarkers: (params) ->
-    params = @translateToBufferMarkerParams(params)
-    @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
+    @defaultMarkerLayer.findMarkers(params)
 
-  translateToBufferMarkerParams: (params) ->
-    bufferMarkerParams = {}
-    for key, value of params
-      switch key
-        when 'startBufferRow'
-          key = 'startRow'
-        when 'endBufferRow'
-          key = 'endRow'
-        when 'startScreenRow'
-          key = 'startRow'
-          value = @bufferRowForScreenRow(value)
-        when 'endScreenRow'
-          key = 'endRow'
-          value = @bufferRowForScreenRow(value)
-        when 'intersectsBufferRowRange'
-          key = 'intersectsRowRange'
-        when 'intersectsScreenRowRange'
-          key = 'intersectsRowRange'
-          [startRow, endRow] = value
-          value = [@bufferRowForScreenRow(startRow), @bufferRowForScreenRow(endRow)]
-        when 'containsBufferRange'
-          key = 'containsRange'
-        when 'containsBufferPosition'
-          key = 'containsPosition'
-        when 'containedInBufferRange'
-          key = 'containedInRange'
-        when 'containedInScreenRange'
-          key = 'containedInRange'
-          value = @bufferRangeForScreenRange(value)
-        when 'intersectsBufferRange'
-          key = 'intersectsRange'
-        when 'intersectsScreenRange'
-          key = 'intersectsRange'
-          value = @bufferRangeForScreenRange(value)
-      bufferMarkerParams[key] = value
+  addMarkerLayer: (options) ->
+    bufferLayer = @buffer.addMarkerLayer(options)
+    @getMarkerLayer(bufferLayer.id)
 
-    bufferMarkerParams
+  getMarkerLayer: (id) ->
+    if layer = @customMarkerLayersById[id]
+      layer
+    else if bufferLayer = @buffer.getMarkerLayer(id)
+      @customMarkerLayersById[id] = new TextEditorMarkerLayer(this, bufferLayer)
 
-  findFoldMarker: (attributes) ->
-    @findFoldMarkers(attributes)[0]
+  getDefaultMarkerLayer: -> @defaultMarkerLayer
 
-  findFoldMarkers: (attributes) ->
-    @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
+  findFoldMarker: (params) ->
+    @findFoldMarkers(params)[0]
 
-  getFoldMarkerAttributes: (attributes) ->
-    if attributes
-      _.extend(attributes, @foldMarkerAttributes)
-    else
-      @foldMarkerAttributes
+  findFoldMarkers: (params) ->
+    @foldsMarkerLayer.findMarkers(params)
 
   refreshMarkerScreenPositions: ->
-    for marker in @getMarkers()
-      marker.notifyObservers(textChanged: false)
+    @defaultMarkerLayer.refreshMarkerScreenPositions()
+    layer.refreshMarkerScreenPositions() for id, layer of @customMarkerLayersById
     return
 
   destroyed: ->
-    fold.destroy() for markerId, fold of @foldsByMarkerId
-    marker.disposables.dispose() for id, marker of @markers
+    @defaultMarkerLayer.destroy()
+    @foldsMarkerLayer.destroy()
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
     @tokenizedBuffer.destroy()
@@ -1072,16 +1063,22 @@ class DisplayBuffer extends Model
         @longestScreenRow = screenRow
         @maxLineLength = length
 
-  handleBufferMarkerCreated: (textBufferMarker) =>
-    if textBufferMarker.matchesParams(@getFoldMarkerAttributes())
-      fold = new Fold(this, textBufferMarker)
-      fold.updateDisplayBuffer()
-      @decorateFold(fold)
-
+  didCreateDefaultLayerMarker: (textBufferMarker) =>
     if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
       @emitter.emit 'did-create-marker', marker
+
+  scheduleUpdateDecorationsEvent: ->
+    if @updatedSynchronously
+      @emitter.emit 'did-update-decorations'
+      return
+
+    unless @didUpdateDecorationsEventScheduled
+      @didUpdateDecorationsEventScheduled = true
+      process.nextTick =>
+        @didUpdateDecorationsEventScheduled = false
+        @emitter.emit 'did-update-decorations'
 
   decorateFold: (fold) ->
     @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
@@ -1094,6 +1091,42 @@ class DisplayBuffer extends Model
       @overlayDecorationsById[decoration.id] = decoration
     else
       delete @overlayDecorationsById[decoration.id]
+
+  didDestroyDecoration: (decoration) ->
+    {marker} = decoration
+    return unless decorations = @decorationsByMarkerId[marker.id]
+    index = decorations.indexOf(decoration)
+
+    if index > -1
+      decorations.splice(index, 1)
+      delete @decorationsById[decoration.id]
+      @emitter.emit 'did-remove-decoration', decoration
+      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
+      delete @overlayDecorationsById[decoration.id]
+      @unobserveDecoratedLayer(marker.layer)
+    @scheduleUpdateDecorationsEvent()
+
+  didDestroyLayerDecoration: (decoration) ->
+    {markerLayer} = decoration
+    return unless decorations = @layerDecorationsByMarkerLayerId[markerLayer.id]
+    index = decorations.indexOf(decoration)
+
+    if index > -1
+      decorations.splice(index, 1)
+      delete @layerDecorationsByMarkerLayerId[markerLayer.id] if decorations.length is 0
+      @unobserveDecoratedLayer(markerLayer)
+    @scheduleUpdateDecorationsEvent()
+
+  observeDecoratedLayer: (layer) ->
+    @decorationCountsByLayerId[layer.id] ?= 0
+    if ++@decorationCountsByLayerId[layer.id] is 1
+      @layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(@scheduleUpdateDecorationsEvent.bind(this))
+
+  unobserveDecoratedLayer: (layer) ->
+    if --@decorationCountsByLayerId[layer.id] is 0
+      @layerUpdateDisposablesByLayerId[layer.id].dispose()
+      delete @decorationCountsByLayerId[layer.id]
+      delete @layerUpdateDisposablesByLayerId[layer.id]
 
   checkScreenLinesInvariant: ->
     return if @isSoftWrapped()

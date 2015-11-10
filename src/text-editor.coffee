@@ -74,6 +74,7 @@ class TextEditor extends Model
         throw error
 
     state.displayBuffer = displayBuffer
+    state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
     state.packageManager = atomEnvironment.packages
@@ -90,9 +91,10 @@ class TextEditor extends Model
 
     {
       @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
-      softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
-      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
+      softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
+      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
+      @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
+      @project, @assert, @applicationDelegate
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -115,8 +117,9 @@ class TextEditor extends Model
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
+    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
 
-    for marker in @findMarkers(@getSelectionMarkerAttributes())
+    for marker in @selectionsMarkerLayer.getMarkers()
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
@@ -146,6 +149,7 @@ class TextEditor extends Model
     scrollRow: @getScrollRow()
     scrollColumn: @getScrollColumn()
     displayBuffer: @displayBuffer.serialize()
+    selectionsMarkerLayerId: @selectionsMarkerLayer.id
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -161,9 +165,9 @@ class TextEditor extends Model
     @preserveCursorPositionOnBufferReload()
 
   subscribeToDisplayBuffer: ->
-    @disposables.add @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @disposables.add @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
-    @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
+    @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
+    @disposables.add @displayBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
+    @disposables.add @displayBuffer.onDidTokenize @handleTokenization.bind(this)
     @disposables.add @displayBuffer.onDidChange (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
@@ -177,6 +181,7 @@ class TextEditor extends Model
     @disposables.dispose()
     @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
+    @selectionsMarkerLayer.destroy()
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
@@ -468,6 +473,9 @@ class TextEditor extends Model
   onDidUpdateMarkers: (callback) ->
     @displayBuffer.onDidUpdateMarkers(callback)
 
+  onDidUpdateDecorations: (callback) ->
+    @displayBuffer.onDidUpdateDecorations(callback)
+
   # Essential: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -477,14 +485,13 @@ class TextEditor extends Model
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
     displayBuffer = @displayBuffer.copy()
+    selectionsMarkerLayer = displayBuffer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
-      @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert, @applicationDelegate
+      @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
+      suppressCursorCreation: true, @config, @notificationManager, @packageManager,
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
-    for marker in @findMarkers(editorId: @id)
-      marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
 
   # Controls visibility based on the given {Boolean}.
@@ -498,6 +505,9 @@ class TextEditor extends Model
     @mini
 
   isMini: -> @mini
+
+  setUpdatedSynchronously: (updatedSynchronously) ->
+    @displayBuffer.setUpdatedSynchronously(updatedSynchronously)
 
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
@@ -1393,9 +1403,9 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
-  # Essential: Adds a decoration that tracks a {Marker}. When the marker moves,
-  # is invalidated, or is destroyed, the decoration will be updated to reflect
-  # the marker's state.
+  # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
+  # marker moves, is invalidated, or is destroyed, the decoration will be
+  # updated to reflect the marker's state.
   #
   # The following are the supported decorations types:
   #
@@ -1414,28 +1424,28 @@ class TextEditor extends Model
   #     </div>
   #     ```
   # * __overlay__: Positions the view associated with the given item at the head
-  #     or tail of the given `Marker`.
-  # * __gutter__: A decoration that tracks a {Marker} in a {Gutter}. Gutter
+  #     or tail of the given `TextEditorMarker`.
+  # * __gutter__: A decoration that tracks a {TextEditorMarker} in a {Gutter}. Gutter
   #     decorations are created by calling {Gutter::decorateMarker} on the
   #     desired `Gutter` instance.
   #
   # ## Arguments
   #
-  # * `marker` A {Marker} you want this decoration to follow.
+  # * `marker` A {TextEditorMarker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
   #   `{type: 'line-number', class: 'linter-error'}`
   #   * `type` There are several supported decoration types. The behavior of the
   #     types are as follows:
   #     * `line` Adds the given `class` to the lines overlapping the rows
-  #        spanned by the `Marker`.
+  #        spanned by the `TextEditorMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
-  #       the rows spanned by the `Marker`.
+  #       the rows spanned by the `TextEditorMarker`.
   #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `Marker`.
+  #       to 3 nested regions that fill the area spanned by the `TextEditorMarker`.
   #     * `overlay` Positions the view associated with the given item at the
-  #       head or tail of the given `Marker`, depending on the `position`
+  #       head or tail of the given `TextEditorMarker`, depending on the `position`
   #       property.
-  #     * `gutter` Tracks a {Marker} in a {Gutter}. Created by calling
+  #     * `gutter` Tracks a {TextEditorMarker} in a {Gutter}. Created by calling
   #       {Gutter::decorateMarker} on the desired `Gutter` instance.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
@@ -1443,34 +1453,52 @@ class TextEditor extends Model
   #     corresponding view registered. Only applicable to the `gutter` and
   #     `overlay` types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
-  #     the head of the `Marker`. Only applicable to the `line` and
+  #     the head of the `TextEditorMarker`. Only applicable to the `line` and
   #     `line-number` types.
   #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
-  #     the associated `Marker` is empty. Only applicable to the `gutter`,
+  #     the associated `TextEditorMarker` is empty. Only applicable to the `gutter`,
   #     `line`, and `line-number` types.
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
-  #     if the associated `Marker` is non-empty. Only applicable to the
+  #     if the associated `TextEditorMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
   #   * `position` (optional) Only applicable to decorations of type `overlay`,
-  #     controls where the overlay view is positioned relative to the `Marker`.
+  #     controls where the overlay view is positioned relative to the `TextEditorMarker`.
   #     Values can be `'head'` (the default), or `'tail'`.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
 
-  # Essential: Get all the decorations within a screen row range.
+  # Essential: *Experimental:* Add a decoration to every marker in the given
+  # marker layer. Can be used to decorate a large number of markers without
+  # having to create and manage many individual decorations.
+  #
+  # * `markerLayer` A {TextEditorMarkerLayer} or {MarkerLayer} to decorate.
+  # * `decorationParams` The same parameters that are passed to
+  #   {decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {LayerDecoration}.
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    @displayBuffer.decorateMarkerLayer(markerLayer, decorationParams)
+
+  # Deprecated: Get all the decorations within a screen row range on the default
+  # layer.
   #
   # * `startScreenRow` the {Number} beginning screen row
   # * `endScreenRow` the {Number} end screen row (inclusive)
   #
   # Returns an {Object} of decorations in the form
   #  `{1: [{id: 10, type: 'line-number', class: 'someclass'}], 2: ...}`
-  #   where the keys are {Marker} IDs, and the values are an array of decoration
+  #   where the keys are {TextEditorMarker} IDs, and the values are an array of decoration
   #   params objects attached to the marker.
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
+
+  decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    @displayBuffer.decorationsStateForScreenRowRange(startScreenRow, endScreenRow)
 
   # Extended: Get all decorations.
   #
@@ -1527,10 +1555,10 @@ class TextEditor extends Model
   Section: Markers
   ###
 
-  # Essential: Create a marker with the given range in buffer coordinates. This
-  # marker will maintain its logical location as the buffer is changed, so if
-  # you mark a particular word, the marker will remain over that word even if
-  # the word's location in the buffer changes.
+  # Essential: Create a marker on the default marker layer with the given range
+  # in buffer coordinates. This marker will maintain its logical location as the
+  # buffer is changed, so if you mark a particular word, the marker will remain
+  # over that word even if the word's location in the buffer changes.
   #
   # * `range` A {Range} or range-compatible {Array}
   # * `properties` A hash of key-value pairs to associate with the marker. There
@@ -1558,14 +1586,14 @@ class TextEditor extends Model
   #       region in any way, including changes that end at the marker's
   #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Essential: Create a marker with the given range in screen coordinates. This
-  # marker will maintain its logical location as the buffer is changed, so if
-  # you mark a particular word, the marker will remain over that word even if
-  # the word's location in the buffer changes.
+  # Essential: Create a marker on the default marker layer with the given range
+  # in screen coordinates. This marker will maintain its logical location as the
+  # buffer is changed, so if you mark a particular word, the marker will remain
+  # over that word even if the word's location in the buffer changes.
   #
   # * `range` A {Range} or range-compatible {Array}
   # * `properties` A hash of key-value pairs to associate with the marker. There
@@ -1593,29 +1621,32 @@ class TextEditor extends Model
   #       region in any way, including changes that end at the marker's
   #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
-  # Essential: Mark the given position in buffer coordinates.
+  # Essential: Mark the given position in buffer coordinates on the default
+  # marker layer.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # Essential: Mark the given position in screen coordinates.
+  # Essential: Mark the given position in screen coordinates on the default
+  # marker layer.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Essential: Find all {Marker}s that match the given properties.
+  # Essential: Find all {TextEditorMarker}s on the default marker layer that
+  # match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1637,44 +1668,60 @@ class TextEditor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
-  # Extended: Observe changes in the set of markers that intersect a particular
-  # region of the editor.
-  #
-  # * `callback` A {Function} to call whenever one or more {Marker}s appears,
-  #    disappears, or moves within the given region.
-  #   * `event` An {Object} with the following keys:
-  #     * `insert` A {Set} containing the ids of all markers that appeared
-  #        in the range.
-  #     * `update` A {Set} containing the ids of all markers that moved within
-  #        the region.
-  #     * `remove` A {Set} containing the ids of all markers that disappeared
-  #        from the region.
-  #
-  # Returns a {MarkerObservationWindow}, which allows you to specify the region
-  # of interest by calling {MarkerObservationWindow::setBufferRange} or
-  # {MarkerObservationWindow::setScreenRange}.
-  observeMarkers: (callback) ->
-    @displayBuffer.observeMarkers(callback)
-
-  # Extended: Get the {Marker} for the given marker id.
+  # Extended: Get the {TextEditorMarker} on the default layer for the given
+  # marker id.
   #
   # * `id` {Number} id of the marker
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
-  # Extended: Get all {Marker}s. Consider using {::findMarkers}
+  # Extended: Get all {TextEditorMarker}s on the default marker layer. Consider
+  # using {::findMarkers}
   getMarkers: ->
     @displayBuffer.getMarkers()
 
-  # Extended: Get the number of markers in this editor's buffer.
+  # Extended: Get the number of markers in the default marker layer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
-  # {Delegates to: DisplayBuffer.destroyMarker}
-  destroyMarker: (args...) ->
-    @displayBuffer.destroyMarker(args...)
+  destroyMarker: (id) ->
+    @getMarker(id)?.destroy()
+
+  # Extended: *Experimental:* Create a marker layer to group related markers.
+  #
+  # * `options` An {Object} containing the following keys:
+  #   * `maintainHistory` A {Boolean} indicating whether marker state should be
+  #     restored on undo/redo. Defaults to `false`.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {TextEditorMarkerLayer}.
+  addMarkerLayer: (options) ->
+    @displayBuffer.addMarkerLayer(options)
+
+  # Public: *Experimental:* Get a {TextEditorMarkerLayer} by id.
+  #
+  # * `id` The id of the marker layer to retrieve.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {MarkerLayer} or `undefined` if no layer exists with the given
+  # id.
+  getMarkerLayer: (id) ->
+    @displayBuffer.getMarkerLayer(id)
+
+  # Public: *Experimental:* Get the default {TextEditorMarkerLayer}.
+  #
+  # All marker APIs not tied to an explicit layer interact with this default
+  # layer.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {TextEditorMarkerLayer}.
+  getDefaultMarkerLayer: ->
+    @displayBuffer.getDefaultMarkerLayer()
 
   ###
   Section: Cursors
@@ -1744,7 +1791,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition, options) ->
-    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -1754,7 +1801,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtScreenPosition: (screenPosition, options) ->
-    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -1879,7 +1926,7 @@ class TextEditor extends Model
   getCursorsOrderedByBufferPosition: ->
     @getCursors().sort (a, b) -> a.compare(b)
 
-  # Add a cursor based on the given {Marker}.
+  # Add a cursor based on the given {TextEditorMarker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker, config: @config)
     @cursors.push(cursor)
@@ -2032,7 +2079,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -2045,7 +2092,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
-    @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -2228,7 +2275,7 @@ class TextEditor extends Model
 
   # Extended: Select the range of the given marker if it is valid.
   #
-  # * `marker` A {Marker}
+  # * `marker` A {TextEditorMarker}
   #
   # Returns the selected {Range} or `undefined` if the marker is invalid.
   selectMarker: (marker) ->
@@ -2354,9 +2401,9 @@ class TextEditor extends Model
     _.reduce(tail, reducer, [head])
     return result if fn?
 
-  # Add a {Selection} based on the given {Marker}.
+  # Add a {Selection} based on the given {TextEditorMarker}.
   #
-  # * `marker` The {Marker} to highlight
+  # * `marker` The {TextEditorMarker} to highlight
   # * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
@@ -3064,10 +3111,6 @@ class TextEditor extends Model
     @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
-  handleMarkerCreated: (marker) =>
-    if marker.matchesProperties(@getSelectionMarkerAttributes())
-      @addSelection(marker)
-
   ###
   Section: TextEditor Rendering
   ###
@@ -3104,7 +3147,7 @@ class TextEditor extends Model
     @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
-    {type: 'selection', editorId: @id, invalidate: 'never', maintainHistory: true}
+    {type: 'selection', invalidate: 'never'}
 
   getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
   setVerticalScrollMargin: (verticalScrollMargin) -> @displayBuffer.setVerticalScrollMargin(verticalScrollMargin)
