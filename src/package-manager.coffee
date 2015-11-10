@@ -336,8 +336,10 @@ class PackageManager
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
-      @getLoadedPackage(packageName).deactivateKeymaps() for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
-      @getLoadedPackage(packageName).activateKeymaps() for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+      for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
+        @getLoadedPackage(packageName)?.deactivateKeymaps()
+      for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+        @getLoadedPackage(packageName)?.activateKeymaps()
       null
 
   loadPackages: ->
