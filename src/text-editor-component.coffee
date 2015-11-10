@@ -220,7 +220,7 @@ class TextEditorComponent
       @updatesPaused = false
       if @updateRequestedWhilePaused and @canUpdate()
         @updateRequestedWhilePaused = false
-        @updateSync()
+        @requestUpdate()
 
   getTopmostDOMNode: ->
     @hostElement

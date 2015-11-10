@@ -418,11 +418,11 @@ describe "DisplayBuffer", ->
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
           fold = displayBuffer.createFold(0, 10)
-          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
+          expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
           newFold = displayBuffer.createFold(0, 10)
           expect(newFold).toBe fold
-          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
+          expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
       describe "when a fold is created inside an existing folded region", ->
         it "creates/destroys the fold, but does not trigger change event", ->
@@ -829,7 +829,6 @@ describe "DisplayBuffer", ->
     it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
       marker = displayBuffer.markBufferPosition([12, 2])
       displayBuffer.destroy()
-      expect(marker.bufferMarker.getSubscriptionCount()).toBe 0
       expect( -> buffer.insert([12, 2], '\n')).not.toThrow()
 
   describe "markers", ->
@@ -879,7 +878,7 @@ describe "DisplayBuffer", ->
       [markerChangedHandler, marker] = []
 
       beforeEach ->
-        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]], maintainHistory: true)
+        marker = displayBuffer.addMarkerLayer(maintainHistory: true).markScreenRange([[5, 4], [5, 10]])
         marker.onDidChange markerChangedHandler = jasmine.createSpy("markerChangedHandler")
 
       it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
@@ -1016,7 +1015,7 @@ describe "DisplayBuffer", ->
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
-        marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]], maintainHistory: true)
+        marker2 = displayBuffer.addMarkerLayer(maintainHistory: true).markBufferRange([[8, 1], [8, 1]])
         marker2.onDidChange marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
         displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 
@@ -1237,11 +1236,6 @@ describe "DisplayBuffer", ->
       decoration.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
-    it "does not leak disposables", ->
-      disposablesSize = displayBuffer.disposables.disposables.size
-      decoration.destroy()
-      expect(displayBuffer.disposables.disposables.size).toBe(disposablesSize - 1)
-
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
         decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
@@ -1249,7 +1243,7 @@ describe "DisplayBuffer", ->
 
         {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
         expect(oldProperties).toEqual decorationProperties
-        expect(newProperties).toEqual type: 'line-number', gutterName: 'line-number', class: 'two', id: decoration.id
+        expect(newProperties).toEqual {type: 'line-number', gutterName: 'line-number', class: 'two'}
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->

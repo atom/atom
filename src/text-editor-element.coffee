@@ -103,6 +103,7 @@ class TextEditorElement extends HTMLElement
     return if model.isDestroyed()
 
     @model = model
+    @model.setUpdatedSynchronously(@isUpdatedSynchronously())
     @initializeContent()
     @mountComponent()
     @addGrammarScopeAttribute()
@@ -194,7 +195,9 @@ class TextEditorElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-  setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
+  setUpdatedSynchronously: (@updatedSynchronously) ->
+    @model?.setUpdatedSynchronously(@updatedSynchronously)
+    @updatedSynchronously
 
   isUpdatedSynchronously: -> @updatedSynchronously
 
