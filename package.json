@@ -36,6 +36,7 @@
     "key-path-helpers": "^0.4.0",
     "less-cache": "0.22",
     "marked": "^0.3.4",
+    "node-pre-gyp": "^0.6.15",
     "nodegit": "~0.5.0",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
@@ -158,18 +159,18 @@
   "standard": {
     "ignore": [],
     "parser": "babel-eslint",
-      "globals": [
-        "atom",
-        "afterEach",
-        "beforeEach",
-        "describe",
-        "expect",
-        "it",
-        "jasmine",
-        "runs",
-        "spyOn",
-        "waitsFor",
-        "waitsForPromise"
-      ]
+    "globals": [
+      "atom",
+      "afterEach",
+      "beforeEach",
+      "describe",
+      "expect",
+      "it",
+      "jasmine",
+      "runs",
+      "spyOn",
+      "waitsFor",
+      "waitsForPromise"
+    ]
   }
 }
