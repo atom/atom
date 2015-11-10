@@ -419,7 +419,7 @@ class PackageManager
     @config.transact =>
       for pack in packages
         promise = @activatePackage(pack.name)
-        promises.push(promise) unless pack.hasActivationCommands()
+        promises.push(promise) unless pack.activationShouldBeDeferred()
       return
     @observeDisabledPackages()
     @observePackagesWithKeymapsDisabled()
