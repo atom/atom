@@ -696,9 +696,7 @@ class Config
         fn(args...)
       result = callback()
       new Promise (resolve, reject) =>
-        result
-          .then(endTransaction(resolve))
-          .catch(endTransaction(reject))
+        result.then(endTransaction(resolve)).catch(endTransaction(reject))
     catch error
       @endTransaction()
       Promise.reject(error)
