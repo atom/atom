@@ -336,8 +336,10 @@ class PackageManager
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
-      @getLoadedPackage(packageName).deactivateKeymaps() for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
-      @getLoadedPackage(packageName).activateKeymaps() for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+      for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
+        @getLoadedPackage(packageName)?.deactivateKeymaps()
+      for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+        @getLoadedPackage(packageName)?.activateKeymaps()
       null
 
   loadPackages: ->
@@ -419,7 +421,7 @@ class PackageManager
     @config.beginTransaction()
     for pack in packages
       promise = @activatePackage(pack.name)
-      promises.push(promise) unless pack.hasActivationCommands()
+      promises.push(promise) unless pack.activationShouldBeDeferred()
     Promise.all(promises)
       .then(=> @config.endTransaction())
       .catch(=> @config.endTransaction())
