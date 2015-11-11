@@ -88,7 +88,7 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine,initialColumn, tabLength,
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
