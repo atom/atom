@@ -57,6 +57,12 @@ module.exports = ({blobStore}) ->
 
     document.title = "Spec Suite"
 
+    # Avoid throttling of test window by playing silence
+    context = new AudioContext()
+    source = context.createBufferSource()
+    source.connect(context.destination)
+    source.start(0)
+
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)
     buildDefaultApplicationDelegate = -> new ApplicationDelegate()

@@ -28,7 +28,6 @@ class AtomWindow
       title: 'Atom'
       'web-preferences':
         'direct-write': true
-        'subpixel-font-scaling': true
 
     if @isSpec
       options['web-preferences']['page-visibility'] = true

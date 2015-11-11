@@ -43,7 +43,7 @@ _ = require 'underscore-plus'
 # ```
 module.exports =
 class ViewRegistry
-  documentUpdateRequested: false
+  animationFrameRequest: null
   documentReadInProgress: false
   performDocumentPollAfterUpdate: false
   debouncedPerformDocumentPoll: null
@@ -195,20 +195,30 @@ class ViewRegistry
   pollAfterNextUpdate: ->
     @performDocumentPollAfterUpdate = true
 
+  getNextUpdatePromise: ->
+    @nextUpdatePromise ?= new Promise (resolve) =>
+      @resolveNextUpdatePromise = resolve
+
   clearDocumentRequests: ->
     @documentReaders = []
     @documentWriters = []
     @documentPollers = []
-    @documentUpdateRequested = false
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise = null
+    if @animationFrameRequest?
+      cancelAnimationFrame(@animationFrameRequest)
+      @animationFrameRequest = null
     @stopPollingDocument()
 
   requestDocumentUpdate: ->
-    unless @documentUpdateRequested
-      @documentUpdateRequested = true
-      requestAnimationFrame(@performDocumentUpdate)
+    @animationFrameRequest ?= requestAnimationFrame(@performDocumentUpdate)
 
   performDocumentUpdate: =>
-    @documentUpdateRequested = false
+    resolveNextUpdatePromise = @resolveNextUpdatePromise
+    @animationFrameRequest = null
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise = null
+
     writer() while writer = @documentWriters.shift()
 
     @documentReadInProgress = true
@@ -220,6 +230,8 @@ class ViewRegistry
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
 
+    resolveNextUpdatePromise?()
+
   startPollingDocument: ->
     window.addEventListener('resize', @requestDocumentPoll)
     @observer.observe(document, {subtree: true, childList: true, attributes: true})
@@ -229,7 +241,7 @@ class ViewRegistry
     @observer.disconnect()
 
   requestDocumentPoll: =>
-    if @documentUpdateRequested
+    if @animationFrameRequest?
       @performDocumentPollAfterUpdate = true
     else
       @debouncedPerformDocumentPoll()

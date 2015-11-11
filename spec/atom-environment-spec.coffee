@@ -243,23 +243,6 @@ describe "AtomEnvironment", ->
 
       atomEnvironment.destroy()
 
-  describe "::destroy()", ->
-    it "unsubscribes from all buffers", ->
-      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
-
-      waitsForPromise ->
-        atomEnvironment.workspace.open("sample.js")
-
-      runs ->
-        buffer = atomEnvironment.workspace.getActivePaneItem().buffer
-        pane = atomEnvironment.workspace.getActivePane()
-        pane.splitRight(copyActiveItem: true)
-        expect(atomEnvironment.workspace.getTextEditors().length).toBe 2
-
-        atomEnvironment.destroy()
-
-        expect(buffer.getSubscriptionCount()).toBe 0
-
   describe "::openLocations(locations) (called via IPC from browser process)", ->
     beforeEach ->
       spyOn(atom.workspace, 'open')
