@@ -43,6 +43,19 @@ describe "CommandInstaller on #darwin", ->
       detailedMessage: "another error"
     })
 
+  it "shows a success dialog when installing commands interactively succeeds", ->
+    appDelegate = jasmine.createSpyObj("appDelegate", ["confirm"])
+    installer = new CommandInstaller("2.0.2", appDelegate)
+    spyOn(installer, "installAtomCommand").andCallFake (__, callback) -> callback()
+    spyOn(installer, "installApmCommand").andCallFake (__, callback) -> callback()
+
+    installer.installShellCommandsInteractively()
+
+    expect(appDelegate.confirm).toHaveBeenCalledWith({
+      message: "Commands installed."
+      detailedMessage: "The shell commands `atom` and `apm` are installed."
+    })
+
   describe "when using a stable version of atom", ->
     beforeEach ->
       installer = new CommandInstaller("2.0.2")
