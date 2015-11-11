@@ -690,11 +690,10 @@ class Config
   # rejected {Promise} will be returned instead.
   transactAsync: (callback) ->
     @beginTransaction()
-    endTransaction = (resolveOrReject) => (args...) =>
-      @endTransaction()
-      resolveOrReject(args...)
-
     try
+      endTransaction = (fn) => (args...) =>
+        @endTransaction()
+        fn(args...)
       result = callback()
       new Promise (resolve, reject) =>
         result
