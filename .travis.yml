@@ -32,6 +32,12 @@ install:
 
 script: script/cibuild
 
+cache:
+  directories:
+    - $HOME/.atom/.apm
+    - $HOME/.atom/.node-gyp/.atom
+    - $HOME/.atom/.npm
+
 notifications:
   email:
     on_success: never
