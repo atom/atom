@@ -3200,8 +3200,8 @@ class TextEditor extends Model
       screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)
 
     unless screenRow is @firstVisibleScreenRow
-      @emitter.emit 'did-change-first-visible-screen-row', screenRow unless fromView
       @firstVisibleScreenRow = screenRow
+      @emitter.emit 'did-change-first-visible-screen-row', screenRow unless fromView
 
   getFirstVisibleScreenRow: -> @firstVisibleScreenRow
 
