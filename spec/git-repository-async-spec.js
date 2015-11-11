@@ -310,8 +310,6 @@ describe('GitRepositoryAsync-js', () => {
       // we're in a known state. *But* it's really hard to observe that from the
       // outside in a non-racy fashion. So let's refresh again and wait for it
       // to complete before we continue.
-      let repository = atom.project.getRepositories()[0]
-      waitsForPromise(() => repository.refreshStatus())
       let repository = atom.project.getRepositories()[0].async
       waitsForPromise(() => { return repository.refreshStatus })
     })
