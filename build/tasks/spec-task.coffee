@@ -6,8 +6,7 @@ async = require 'async'
 
 # TODO: This should really be parallel on every platform, however:
 # - On Windows, our fixtures step on each others toes.
-# - On Travis, Mac workers haven't enough horsepower.
-if process.env.TRAVIS or process.platform is 'win32'
+if process.platform is 'win32'
   concurrency = 1
 else
   concurrency = 2
