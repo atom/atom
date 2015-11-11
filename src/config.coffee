@@ -687,7 +687,7 @@ class Config
   #
   # Returns a {Promise} that is either resolved or rejected according to the
   # `{Promise}` returned by `callback`. If `callback` throws an error, a
-  # rejected {Promise} will be returned.
+  # rejected {Promise} will be returned instead.
   transactAsync: (callback) ->
     @beginTransaction()
     endTransaction = (resolveOrReject) => (args...) =>
