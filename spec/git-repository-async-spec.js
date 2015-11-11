@@ -307,11 +307,11 @@ describe('GitRepositoryAsync-js', () => {
 
       // When the path is added to the project, the repository is refreshed. We
       // need to wait for that to complete before the tests continue so that
-      // we're in a known state.
-      let repository = atom.project.getRepositories()[0].async
-      let statusHandler = jasmine.createSpy('statusHandler')
-      repository.onDidChangeStatuses(statusHandler)
-      waitsFor(() => statusHandler.callCount > 0)
+      // we're in a known state. *But* it's really hard to observe that from the
+      // outside in a non-racy fashion. So let's refresh again and wait for it
+      // to complete before we continue.
+      let repository = atom.project.getRepositories()[0]
+      waitsForPromise(() => repository.refreshStatus())
     })
 
     asyncIt('emits a status-changed event when a buffer is saved', async () => {
@@ -391,10 +391,10 @@ describe('GitRepositoryAsync-js', () => {
     beforeEach(() => {
       atom.project.setPaths([copyRepository()])
 
-      let repository = atom.project.getRepositories()[0].async
-      let statusHandler = jasmine.createSpy('statusHandler')
-      repository.onDidChangeStatuses(statusHandler)
-      waitsFor(() => statusHandler.callCount > 0)
+      // See the comment in the 'buffer events' beforeEach for why we need to do
+      // this.
+      let repository = atom.project.getRepositories()[0]
+      waitsForPromise(() => repository.refreshStatus())
     })
 
     afterEach(() => {

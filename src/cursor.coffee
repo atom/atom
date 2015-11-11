@@ -7,7 +7,7 @@ Model = require './model'
 # where text can be inserted.
 #
 # Cursors belong to {TextEditor}s and have some metadata attached in the form
-# of a {Marker}.
+# of a {TextEditorMarker}.
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -127,7 +127,7 @@ class Cursor extends Model
   Section: Cursor Position Details
   ###
 
-  # Public: Returns the underlying {Marker} for the cursor.
+  # Public: Returns the underlying {TextEditorMarker} for the cursor.
   # Useful with overlay {Decoration}s.
   getMarker: -> @marker
 

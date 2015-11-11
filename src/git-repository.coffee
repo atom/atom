@@ -470,24 +470,31 @@ class GitRepository
 
   # Refreshes the current git status in an outside process and asynchronously
   # updates the relevant properties.
+  #
+  # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
-    @async.refreshStatus()
-    @handlerPath ?= require.resolve('./repository-status-handler')
+    asyncRefresh = @async.refreshStatus()
+    syncRefresh = new Promise (resolve, reject) =>
+      @handlerPath ?= require.resolve('./repository-status-handler')
 
-    @statusTask?.terminate()
-    @statusTask = Task.once @handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
-      statusesUnchanged = _.isEqual(statuses, @statuses) and
-                          _.isEqual(upstream, @upstream) and
-                          _.isEqual(branch, @branch) and
-                          _.isEqual(submodules, @submodules)
+      @statusTask?.terminate()
+      @statusTask = Task.once @handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
+        statusesUnchanged = _.isEqual(statuses, @statuses) and
+                            _.isEqual(upstream, @upstream) and
+                            _.isEqual(branch, @branch) and
+                            _.isEqual(submodules, @submodules)
 
-      @statuses = statuses
-      @upstream = upstream
-      @branch = branch
-      @submodules = submodules
+        @statuses = statuses
+        @upstream = upstream
+        @branch = branch
+        @submodules = submodules
 
-      for submodulePath, submoduleRepo of @getRepo().submodules
-        submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
+        for submodulePath, submoduleRepo of @getRepo().submodules
+          submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
-      unless statusesUnchanged
-        @emitter.emit 'did-change-statuses'
+        resolve()
+
+        unless statusesUnchanged
+          @emitter.emit 'did-change-statuses'
+
+    return Promise.all([asyncRefresh, syncRefresh])
