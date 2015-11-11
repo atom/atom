@@ -312,6 +312,8 @@ describe('GitRepositoryAsync-js', () => {
       // to complete before we continue.
       let repository = atom.project.getRepositories()[0]
       waitsForPromise(() => repository.refreshStatus())
+      let repository = atom.project.getRepositories()[0].async
+      waitsForPromise(() => { return repository.refreshStatus })
     })
 
     asyncIt('emits a status-changed event when a buffer is saved', async () => {
