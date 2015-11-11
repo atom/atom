@@ -418,11 +418,13 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    @config.transact =>
-      for pack in packages
-        promise = @activatePackage(pack.name)
-        promises.push(promise) unless pack.activationShouldBeDeferred()
-      return
+    @config.beginTransaction()
+    for pack in packages
+      promise = @activatePackage(pack.name)
+      promises.push(promise) unless pack.activationShouldBeDeferred()
+    Promise.all(promises)
+      .then(=> @config.endTransaction())
+      .catch(=> @config.endTransaction())
     @observeDisabledPackages()
     @observePackagesWithKeymapsDisabled()
     promises

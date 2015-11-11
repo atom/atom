@@ -671,12 +671,18 @@ class Config
   #
   # * `callback` {Function} to execute while suppressing calls to handlers.
   transact: (callback) ->
-    @transactDepth++
+    @beginTransaction()
     try
       callback()
     finally
-      @transactDepth--
-      @emitChangeEvent()
+      @endTransaction()
+
+  beginTransaction: ->
+    @transactDepth++
+
+  endTransaction: ->
+    @transactDepth--
+    @emitChangeEvent()
 
   ###
   Section: Internal methods used by core
