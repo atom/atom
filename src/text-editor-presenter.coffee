@@ -1090,8 +1090,7 @@ class TextEditorPresenter
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
-      unless @scrollTop?
-        @updateScrollTop(@model.getFirstVisibleScreenRow() * lineHeight)
+      @restoreScrollTopIfNeeded()
       @model.setLineHeightInPixels(lineHeight)
       @shouldUpdateHeightState = true
       @shouldUpdateHorizontalScrollState = true
@@ -1119,8 +1118,7 @@ class TextEditorPresenter
       @halfWidthCharWidth = halfWidthCharWidth
       @koreanCharWidth = koreanCharWidth
       @model.setDefaultCharWidth(baseCharacterWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
-      unless @scrollLeft?
-        @updateScrollLeft(@model.getFirstVisibleScreenColumn() * baseCharacterWidth)
+      @restoreScrollLeftIfNeeded()
       @characterWidthsChanged()
 
   characterWidthsChanged: ->
@@ -1524,6 +1522,14 @@ class TextEditorPresenter
 
   canScrollTopTo: (scrollTop) ->
     @scrollTop isnt @constrainScrollTop(scrollTop)
+
+  restoreScrollTopIfNeeded: ->
+    unless @scrollTop?
+      @updateScrollTop(@model.getFirstVisibleScreenRow() * @lineHeight)
+
+  restoreScrollLeftIfNeeded: ->
+    unless @scrollLeft?
+      @updateScrollLeft(@model.getFirstVisibleScreenColumn() * @baseCharacterWidth)
 
   onDidChangeScrollTop: (callback) ->
     @emitter.on 'did-change-scroll-top', callback
