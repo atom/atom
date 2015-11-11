@@ -294,9 +294,9 @@ describe('GitRepositoryAsync-js', () => {
       fs.writeFileSync(modifiedPath, 'making this path modified')
       await repo.refreshStatus()
 
-      expect(repo.getCachedPathStatus(cleanPath)).toBeUndefined()
-      expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
-      expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
+      expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
+      expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBeTruthy()
+      expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
     })
   })
 
@@ -425,6 +425,33 @@ describe('GitRepositoryAsync-js', () => {
     })
   })
 
-  xdescribe('GitRepositoryAsync::relativize(filePath)')
+  describe('GitRepositoryAsync::relativize(filePath, workdir)', () => {
+    let repository
+
+    beforeEach(() => {
+      atom.project.setPaths([copyRepository()])
+      repository = atom.project.getRepositories()[0].async
+    })
+
+    // This is a change in implementation from the git-utils version
+    it('just returns path if workdir is not provided', () => {
+      let _path = '/foo/bar/baz.txt'
+      let relPath = repository.relativize(_path)
+      expect(_path).toEqual(relPath)
+    })
+
+    it('relativizes a repo path', () => {
+      let workdir = '/tmp/foo/bar/baz/'
+      let relativizedPath = repository.relativize(`${workdir}a/b.txt`, workdir)
+      expect(relativizedPath).toBe('a/b.txt')
+    })
+
+    it("doesn't require workdir to end in a slash", () => {
+      let workdir = '/tmp/foo/bar/baz'
+      let relativizedPath = repository.relativize(`${workdir}/a/b.txt`, workdir)
+      expect(relativizedPath).toBe('a/b.txt')
+    })
+
+  })
 
 })

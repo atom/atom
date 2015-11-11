@@ -1,5 +1,6 @@
 'use babel'
 
+const fs = require('fs-plus')
 const Git = require('nodegit')
 const path = require('path')
 const {Emitter, CompositeDisposable} = require('event-kit')
@@ -9,11 +10,6 @@ const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
 const deletedStatusFlags = Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED
 const indexStatusFlags = Git.Status.STATUS.INDEX_NEW | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.INDEX_RENAMED | Git.Status.STATUS.INDEX_TYPECHANGE
 
-// Temporary requires
-// ==================
-// GitUtils is temporarily used for ::relativize only, because I don't want
-// to port it just yet. TODO: remove
-const GitUtils = require('git-utils')
 // Just using this for _.isEqual and _.object, we should impl our own here
 const _ = require('underscore-plus')
 
@@ -32,8 +28,8 @@ module.exports = class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    this._gitUtilsRepo = GitUtils.open(path) // TODO remove after porting ::relativize
     this.repoPromise = Git.Repository.open(path)
+    this.isCaseInsensitive = fs.isCaseInsensitive()
 
     let {project, refreshOnWindowFocus} = options
     this.project = project
@@ -96,7 +92,7 @@ module.exports = class GitRepositoryAsync {
   checkoutHead (_path) {
     return this.repoPromise.then((repo) => {
       let checkoutOptions = new Git.CheckoutOptions()
-      checkoutOptions.paths = [this._gitUtilsRepo.relativize(_path)]
+      checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
       checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
       return Git.Checkout.head(repo, checkoutOptions)
     }).then(() => {
@@ -123,8 +119,9 @@ module.exports = class GitRepositoryAsync {
   // Returns a Promise that resolves to the status bit of a given path if it has
   // one, otherwise 'current'.
   getPathStatus (_path) {
-    let relativePath = this._gitUtilsRepo.relativize(_path)
+    let relativePath
     return this.repoPromise.then((repo) => {
+      relativePath = this.relativize(_path, repo.workdir())
       return this._filterStatusesByPath(_path)
     }).then((statuses) => {
       let cachedStatus = this.pathStatusCache[relativePath] || 0
@@ -145,9 +142,10 @@ module.exports = class GitRepositoryAsync {
   // {::isStatusModified} or {::isStatusNew} to get more information.
 
   getDirectoryStatus (directoryPath) {
-    let relativePath = this._gitUtilsRepo.relativize(directoryPath)
+    let relativePath
     // XXX _filterSBD already gets repoPromise
     return this.repoPromise.then((repo) => {
+      relativePath = this.relativize(directoryPath, repo.workdir())
       return this._filterStatusesByDirectory(relativePath)
     }).then((statuses) => {
       return Promise.all(statuses.map(function (s) { return s.statusBit() })).then(function (bits) {
@@ -215,8 +213,52 @@ module.exports = class GitRepositoryAsync {
     return
   }
 
+  relativize (_path, workingDirectory) {
+    // Cargo-culted from git-utils. The original implementation also handles
+    // this.openedWorkingDirectory, which is set by git-utils when the
+    // repository is opened. Those branches of the if tree aren't included here
+    // yet, but if we determine we still need that here it should be simple to
+    // port.
+    //
+    // The original implementation also handled null workingDirectory as it
+    // pulled it from a sync function that could return null. We require it
+    // to be passed here.
+    if (!_path || !workingDirectory) {
+      return _path
+    }
+
+    if (process.platform === 'win32') {
+      _path = _path.replace(/\\/g, '/')
+    } else {
+      if (_path[0] !== '/') {
+        return _path
+      }
+    }
+
+    if (!/\/$/.test(workingDirectory)) {
+      workingDirectory = `${workingDirectory}/`
+    }
+
+    if (this.isCaseInsensitive) {
+      let lowerCasePath = _path.toLowerCase()
+
+      workingDirectory = workingDirectory.toLowerCase()
+      if (lowerCasePath.indexOf(workingDirectory) === 0) {
+        return _path.substring(workingDirectory.length)
+      } else {
+        if (lowerCasePath === workingDirectory) {
+          return ''
+        }
+      }
+    }
+
+    return _path
+  }
+
   getCachedPathStatus (_path) {
-    return this.pathStatusCache[this._gitUtilsRepo.relativize(_path)]
+    return this.repoPromise.then((repo) => {
+      return this.pathStatusCache[this.relativize(_path, repo.workdir())]
+    })
   }
 
   isStatusNew (statusBit) {
