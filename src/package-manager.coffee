@@ -37,6 +37,7 @@ class PackageManager
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
+    @deferredActivationHooks = []
     if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
@@ -409,6 +410,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     Promise.all(promises).then =>
+      @triggerDeferredActivationHooks()
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
@@ -439,9 +441,17 @@ class PackageManager
     else
       Promise.reject(new Error("Failed to load package '#{name}'"))
 
+  triggerDeferredActivationHooks: ->
+    return unless @deferredActivationHooks?
+    @activationHookEmitter.emit(hook) for hook in @deferredActivationHooks
+    @deferredActivationHooks = null
+
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
-    @activationHookEmitter.emit(hook)
+    if @deferredActivationHooks?
+      @deferredActivationHooks.push hook
+    else
+      @activationHookEmitter.emit(hook)
 
   onDidTriggerActivationHook: (hook, callback) ->
     return unless hook? and _.isString(hook) and hook.length > 0

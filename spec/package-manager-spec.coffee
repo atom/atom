@@ -284,6 +284,7 @@ describe "PackageManager", ->
         expect(Package.prototype.requireMainModule.callCount).toBe 0
 
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
 
         waitsForPromise ->
           promise
