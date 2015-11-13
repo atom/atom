@@ -70,6 +70,7 @@ module.exports = ({blobStore}) ->
     buildAtomEnvironment = (params) ->
       params = cloneObject(params)
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
+      params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       new AtomEnvironment(params)
 
     promise = testRunner({
