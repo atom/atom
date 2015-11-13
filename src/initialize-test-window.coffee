@@ -6,6 +6,11 @@ exitWithStatusCode = (status) ->
   remote.require('app').emit('will-quit')
   remote.process.exit(status)
 
+cloneObject = (object) ->
+  clone = {}
+  clone[key] = value for key, value of object
+  clone
+
 try
   path = require 'path'
   ipc = require 'ipc'
@@ -53,7 +58,10 @@ try
 
   testRunner = require(testRunnerPath)
   legacyTestRunner = require(legacyTestRunnerPath)
-  buildAtomEnvironment = (params) -> new AtomEnvironment(params)
+  buildAtomEnvironment = (params) ->
+    params = cloneObject(params)
+    params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
+    new AtomEnvironment(params)
   buildDefaultApplicationDelegate = (params) -> new ApplicationDelegate()
 
   promise = testRunner({

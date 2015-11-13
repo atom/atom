@@ -116,7 +116,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@applicationDelegate, @window, @document, configDirPath, @enablePersistence} = params
+    {@applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @state = {version: @constructor.version}
 
@@ -182,7 +182,7 @@ class AtomEnvironment extends Model
 
     @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
-    @themes.initialLoadComplete = true
+    @themes.initialLoadComplete = true if onlyLoadBaseStyleSheets
     @setBodyPlatformClass()
 
     @stylesElement = @styles.buildStylesElement()
