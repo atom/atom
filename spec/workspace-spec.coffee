@@ -1438,11 +1438,11 @@ describe "Workspace", ->
         save = -> atom.workspace.saveActivePaneItem()
         expect(save).toThrow()
 
-  describe "::destroyActivePaneItemOrEmptyPane", ->
+  describe "::closeActivePaneItemOrEmptyPaneOrWindow", ->
     beforeEach ->
       waitsForPromise -> atom.workspace.open()
 
-    it "closes the active pane item until all that remains is a single empty pane", ->
+    it "closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane", ->
       atom.config.set('core.destroyEmptyPanes', false)
 
       pane1 = atom.workspace.getActivePane()
@@ -1450,19 +1450,23 @@ describe "Workspace", ->
 
       expect(atom.workspace.getPanes().length).toBe 2
       expect(pane2.getItems().length).toBe 1
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
       expect(atom.workspace.getPanes().length).toBe 2
       expect(pane2.getItems().length).toBe 0
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
       expect(atom.workspace.getPanes().length).toBe 1
       expect(pane1.getItems().length).toBe 1
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
       expect(pane1.getItems().length).toBe 0
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
+
+      spyOn(atom, 'close')
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      expect(atom.close).toHaveBeenCalled()
