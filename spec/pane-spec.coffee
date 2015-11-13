@@ -751,6 +751,12 @@ describe "Pane", ->
         pane2.destroy()
         expect(container.root).toBe pane1
 
+  describe "::focus()", ->
+    it "doesn't blow up if the pane has been destroyed", ->
+      pane = new Pane(paneParams())
+      pane.destroy()
+      pane.focus()
+
   describe "serialization", ->
     pane = null
 

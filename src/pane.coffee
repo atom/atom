@@ -248,7 +248,7 @@ class Pane extends Model
   # Called by the view layer to indicate that the pane has gained focus.
   focus: ->
     @focused = true
-    @activate() unless @isActive()
+    @activate() unless @isActive() or @isDestroyed()
 
   # Called by the view layer to indicate that the pane has lost focus.
   blur: ->
