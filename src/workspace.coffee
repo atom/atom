@@ -488,9 +488,6 @@ class Workspace extends Model
         if initialLine >= 0 or initialColumn >= 0
           item.setCursorBufferPosition?([initialLine, initialColumn])
 
-        path = item.getPath?()
-        @applicationDelegate.addRecentDocument(path) if path?
-
         index = pane.getActiveItemIndex()
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
