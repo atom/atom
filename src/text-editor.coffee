@@ -586,18 +586,18 @@ class TextEditor extends Model
     else
       'untitled'
 
-  # Essential: Get unique title for display in other parts of the UI
-  # such as the window title.
+  # Essential: Get unique title for display in other parts of the UI, such as
+  # the window title.
   #
   # If the editor's buffer is unsaved, its title is "untitled"
   # If the editor's buffer is saved, its unique title is formatted as one
   # of the following,
   # * "<filename>" when it is the only editing buffer with this file name.
   # * "<unique-dir-prefix>/.../<filename>", where the "..." may be omitted
-  # if the the direct parent directory is already different.
+  #   if the the direct parent directory is already different.
   #
   # Returns a {String}
-  getUniqueTitle: ->
+  getLongTitle: ->
     if sessionPath = @getPath()
       title = @getTitle()
 
@@ -622,22 +622,6 @@ class TextEditor extends Model
         path.join(directory, "...", fileName)
       else
         path.join(directory, fileName)
-    else
-      'untitled'
-
-  # Essential: Get the editor's long title for display in other parts of the UI
-  # such as the window title.
-  #
-  # If the editor's buffer is saved, its long title is formatted as
-  # "<filename> - <directory>". If it is unsaved, its title is "untitled"
-  #
-  # Returns a {String}.
-  getLongTitle: ->
-    if sessionPath = @getPath()
-      fileName = path.basename(sessionPath)
-      directory = @project.relativize(path.dirname(sessionPath))
-      directory = if directory.length > 0 then directory else path.basename(path.dirname(sessionPath))
-      "#{fileName} - #{directory}"
     else
       'untitled'
 
