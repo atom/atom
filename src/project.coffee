@@ -55,7 +55,7 @@ class Project extends Model
   ###
 
   deserialize: (state, deserializerManager) ->
-    states.paths = [state.path] if state.path? # backward compatibility
+    state.paths = [state.path] if state.path? # backward compatibility
 
     @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
