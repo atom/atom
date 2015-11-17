@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 var cp = require('./utils/child-process-wrapper.js');
+var crypto = require('crypto')
 var fs = require('fs');
 var path = require('path');
 
 process.chdir(path.dirname(__dirname));
 
 var homeDir = process.platform == 'win32' ? process.env.USERPROFILE : process.env.HOME;
+var fingerprintPath = path.resolve(__dirname, '..', '.atom-ci-fingerprint')
 
 function loadEnvironmentVariables(filePath) {
   try {
@@ -42,6 +44,12 @@ function setEnvironmentVariables() {
 }
 
 function removeNodeModules() {
+  var fingerprint = generateModuleFingerprint()
+  if (fs.existsSync(fingerprintPath) && fs.readFileSync(fingerprintPath).toString() === fingerprint) {
+    console.log('node_modules matches current fingerprint ' + fingerprint + ' - not removing')
+    return
+  }
+
   var fsPlus;
   try {
     fsPlus = require('fs-plus');
@@ -55,6 +63,17 @@ function removeNodeModules() {
     console.error(error.message);
     process.exit(1);
   }
+}
+
+function generateModuleFingerprint () {
+  var packageJson = fs.readFileSync(path.resolve(__dirname, '..', 'package.json'))
+  var body = packageJson.toString() + process.platform
+  return crypto.createHash('sha1').update(body).digest('hex')
+}
+
+function fingerprintNodeModules (callback) {
+  fs.writeFileSync(fingerprintPath, generateModuleFingerprint())
+  callback(null, fingerprintPath)
 }
 
 function removeTempFolders() {
@@ -98,7 +117,7 @@ cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(
     var async = require('async');
     var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
     var tasks = [
-      cp.safeExec.bind(global, 'git clean -dff'),
+      cp.safeExec.bind(global, 'git clean -dff -e node_modules -e .atom-ci-fingerprint'), // If we left them behind in removeNodeModules() they are OK to use
       cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
     ]
     async.series(tasks, function(error) {
