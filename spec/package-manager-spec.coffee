@@ -284,6 +284,7 @@ describe "PackageManager", ->
         expect(Package.prototype.requireMainModule.callCount).toBe 0
 
         atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
 
         waitsForPromise ->
           promise
@@ -432,6 +433,13 @@ describe "PackageManager", ->
 
           runs ->
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
+
+      describe "when setting core.packagesWithKeymapsDisabled", ->
+        it "ignores package names in the array that aren't loaded", ->
+          atom.packages.observePackagesWithKeymapsDisabled()
+
+          expect(-> atom.config.set("core.packagesWithKeymapsDisabled", ["package-does-not-exist"])).not.toThrow()
+          expect(-> atom.config.set("core.packagesWithKeymapsDisabled", [])).not.toThrow()
 
       describe "when the package's keymaps are disabled and re-enabled after it is activated", ->
         it "removes and re-adds the keymaps", ->

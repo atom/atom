@@ -13,15 +13,12 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @config, @autoHeight, @explicitHeight, @contentFrameWidth, @scrollTop, @scrollLeft, @scrollColumn, @scrollRow, @boundingClientRect, @windowWidth, @windowHeight, @gutterWidth} = params
-    {horizontalScrollbarHeight, verticalScrollbarWidth} = params
-    {@lineHeight, @baseCharacterWidth, @backgroundColor, @gutterBackgroundColor, @tileSize} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @focused} = params
-    @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
-    @measuredVerticalScrollbarWidth = verticalScrollbarWidth
-    @gutterWidth ?= 0
-    @tileSize ?= 6
+    {@model, @config} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
+    {@contentFrameWidth} = params
 
+    @gutterWidth = 0
+    @tileSize ?= 6
     @realScrollTop = @scrollTop
     @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
@@ -77,7 +74,6 @@ class TextEditorPresenter
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
-    @restoreScrollPosition()
     @commitPendingLogicalScrollTopPosition()
     @commitPendingScrollTopPosition()
 
@@ -218,6 +214,7 @@ class TextEditorPresenter
 
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
+    @disposables.add @model.onDidChangeFirstVisibleScreenRow(@didChangeFirstVisibleScreenRow.bind(this))
     @observeCursor(cursor) for cursor in @model.getCursors()
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
     return
@@ -778,8 +775,7 @@ class TextEditorPresenter
     if scrollTop isnt @realScrollTop and not Number.isNaN(scrollTop)
       @realScrollTop = scrollTop
       @scrollTop = Math.round(scrollTop)
-      @scrollRow = Math.round(@scrollTop / @lineHeight)
-      @model.setScrollRow(@scrollRow)
+      @model.setFirstVisibleScreenRow(Math.round(@scrollTop / @lineHeight), true)
 
       @updateStartRow()
       @updateEndRow()
@@ -795,8 +791,7 @@ class TextEditorPresenter
     if scrollLeft isnt @realScrollLeft and not Number.isNaN(scrollLeft)
       @realScrollLeft = scrollLeft
       @scrollLeft = Math.round(scrollLeft)
-      @scrollColumn = Math.round(@scrollLeft / @baseCharacterWidth)
-      @model.setScrollColumn(@scrollColumn)
+      @model.setFirstVisibleScreenColumn(Math.round(@scrollLeft / @baseCharacterWidth))
 
       @emitter.emit 'did-change-scroll-left', @scrollLeft
 
@@ -1095,6 +1090,7 @@ class TextEditorPresenter
   setLineHeight: (lineHeight) ->
     unless @lineHeight is lineHeight
       @lineHeight = lineHeight
+      @restoreScrollTopIfNeeded()
       @model.setLineHeightInPixels(lineHeight)
       @shouldUpdateHeightState = true
       @shouldUpdateHorizontalScrollState = true
@@ -1122,6 +1118,7 @@ class TextEditorPresenter
       @halfWidthCharWidth = halfWidthCharWidth
       @koreanCharWidth = koreanCharWidth
       @model.setDefaultCharWidth(baseCharacterWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
+      @restoreScrollLeftIfNeeded()
       @characterWidthsChanged()
 
   characterWidthsChanged: ->
@@ -1433,6 +1430,9 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
+  didChangeFirstVisibleScreenRow: (screenRow) ->
+    @updateScrollTop(screenRow * @lineHeight)
+
   getVerticalScrollMarginInPixels: ->
     Math.round(@model.getVerticalScrollMargin() * @lineHeight)
 
@@ -1512,14 +1512,6 @@ class TextEditorPresenter
       @updateScrollTop(@pendingScrollTop)
       @pendingScrollTop = null
 
-  restoreScrollPosition: ->
-    return if @hasRestoredScrollPosition or not @hasPixelPositionRequirements()
-
-    @setScrollTop(@scrollRow * @lineHeight) if @scrollRow?
-    @setScrollLeft(@scrollColumn * @baseCharacterWidth) if @scrollColumn?
-
-    @hasRestoredScrollPosition = true
-
   clearPendingScrollPosition: ->
     @pendingScrollLogicalPosition = null
     @pendingScrollTop = null
@@ -1530,6 +1522,14 @@ class TextEditorPresenter
 
   canScrollTopTo: (scrollTop) ->
     @scrollTop isnt @constrainScrollTop(scrollTop)
+
+  restoreScrollTopIfNeeded: ->
+    unless @scrollTop?
+      @updateScrollTop(@model.getFirstVisibleScreenRow() * @lineHeight)
+
+  restoreScrollLeftIfNeeded: ->
+    unless @scrollLeft?
+      @updateScrollLeft(@model.getFirstVisibleScreenColumn() * @baseCharacterWidth)
 
   onDidChangeScrollTop: (callback) ->
     @emitter.on 'did-change-scroll-top', callback

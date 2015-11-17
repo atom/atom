@@ -36,21 +36,21 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       if score > highestScore or not bestMatch?
         bestMatch = grammar
         highestScore = score
-      else if score is highestScore and bestMatch?.bundledPackage
-        bestMatch = grammar unless grammar.bundledPackage
     bestMatch
 
   # Extended: Returns a {Number} representing how well the grammar matches the
   # `filePath` and `contents`.
   getGrammarScore: (grammar, filePath, contents) ->
+    return Infinity if @grammarOverrideForPath(filePath) is grammar.scopeName
+
     contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
-    if @grammarOverrideForPath(filePath) is grammar.scopeName
-      2 + (filePath?.length ? 0)
-    else if @grammarMatchesContents(grammar, contents)
-      1 + (filePath?.length ? 0)
-    else
-      @getGrammarPathScore(grammar, filePath)
+    score = @getGrammarPathScore(grammar, filePath)
+    if score > 0 and not grammar.bundledPackage
+      score += 0.25
+    if @grammarMatchesContents(grammar, contents)
+      score += 0.125
+    score
 
   getGrammarPathScore: (grammar, filePath) ->
     return -1 unless filePath

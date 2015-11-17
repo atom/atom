@@ -54,13 +54,11 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  callDisplayBufferCreatedHook: false
   buffer: null
   languageMode: null
   cursors: null
   selections: null
   suppressSelectionMerging: false
-  updateBatchDepth: 0
   selectionFlashDuration: 500
   gutterContainer: null
 
@@ -90,7 +88,7 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
@@ -106,6 +104,8 @@ class TextEditor extends Model
     throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
+    @firstVisibleScreenRow ?= 0
+    @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
@@ -146,8 +146,8 @@ class TextEditor extends Model
     deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
-    scrollRow: @getScrollRow()
-    scrollColumn: @getScrollColumn()
+    firstVisibleScreenRow: @getFirstVisibleScreenRow()
+    firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
 
@@ -453,6 +453,9 @@ class TextEditor extends Model
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
 
+  onDidChangeFirstVisibleScreenRow: (callback, fromView) ->
+    @emitter.on 'did-change-first-visible-screen-row', callback
+
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
@@ -583,18 +586,18 @@ class TextEditor extends Model
     else
       'untitled'
 
-  # Essential: Get unique title for display in other parts of the UI
-  # such as the window title.
+  # Essential: Get unique title for display in other parts of the UI, such as
+  # the window title.
   #
   # If the editor's buffer is unsaved, its title is "untitled"
   # If the editor's buffer is saved, its unique title is formatted as one
   # of the following,
   # * "<filename>" when it is the only editing buffer with this file name.
   # * "<unique-dir-prefix>/.../<filename>", where the "..." may be omitted
-  # if the the direct parent directory is already different.
+  #   if the the direct parent directory is already different.
   #
   # Returns a {String}
-  getUniqueTitle: ->
+  getLongTitle: ->
     if sessionPath = @getPath()
       title = @getTitle()
 
@@ -619,22 +622,6 @@ class TextEditor extends Model
         path.join(directory, "...", fileName)
       else
         path.join(directory, fileName)
-    else
-      'untitled'
-
-  # Essential: Get the editor's long title for display in other parts of the UI
-  # such as the window title.
-  #
-  # If the editor's buffer is saved, its long title is formatted as
-  # "<filename> - <directory>". If it is unsaved, its title is "untitled"
-  #
-  # Returns a {String}.
-  getLongTitle: ->
-    if sessionPath = @getPath()
-      fileName = path.basename(sessionPath)
-      directory = @project.relativize(path.dirname(sessionPath))
-      directory = if directory.length > 0 then directory else path.basename(path.dirname(sessionPath))
-      "#{fileName} - #{directory}"
     else
       'untitled'
 
@@ -3130,14 +3117,6 @@ class TextEditor extends Model
     @placeholderText = placeholderText
     @emitter.emit 'did-change-placeholder-text', @placeholderText
 
-  getFirstVisibleScreenRow: ->
-    deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
-    @viewRegistry.getView(this).getVisibleRowRange()[0]
-
-  getLastVisibleScreenRow: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
-    @viewRegistry.getView(this).getVisibleRowRange()[1]
-
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
     @viewRegistry.getView(this).pixelPositionForBufferPosition(bufferPosition)
@@ -3192,11 +3171,40 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @displayBuffer.getWidth()
 
-  getScrollRow: -> @scrollRow
-  setScrollRow: (@scrollRow) ->
+  # Experimental: Scroll the editor such that the given screen row is at the
+  # top of the visible area.
+  setFirstVisibleScreenRow: (screenRow, fromView) ->
+    unless fromView
+      maxScreenRow = @getLineCount() - 1
+      unless @config.get('editor.scrollPastEnd')
+        height = @displayBuffer.getHeight()
+        lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
+        if height? and lineHeightInPixels?
+          maxScreenRow -= Math.floor(height / lineHeightInPixels)
+      screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)
 
-  getScrollColumn: -> @scrollColumn
-  setScrollColumn: (@scrollColumn) ->
+    unless screenRow is @firstVisibleScreenRow
+      @firstVisibleScreenRow = screenRow
+      @emitter.emit 'did-change-first-visible-screen-row', screenRow unless fromView
+
+  getFirstVisibleScreenRow: -> @firstVisibleScreenRow
+
+  getLastVisibleScreenRow: ->
+    height = @displayBuffer.getHeight()
+    lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
+    if height? and lineHeightInPixels?
+      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getLineCount() - 1)
+    else
+      null
+
+  getVisibleRowRange: ->
+    if lastVisibleScreenRow = @getLastVisibleScreenRow()
+      [@firstVisibleScreenRow, lastVisibleScreenRow]
+    else
+      null
+
+  setFirstVisibleScreenColumn: (@firstVisibleScreenColumn) ->
+  getFirstVisibleScreenColumn: -> @firstVisibleScreenColumn
 
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
@@ -3252,11 +3260,6 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getMaxScrollTop instead.")
 
     @viewRegistry.getView(this).getMaxScrollTop()
-
-  getVisibleRowRange: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
-
-    @viewRegistry.getView(this).getVisibleRowRange()
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")

@@ -12,7 +12,7 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'pane:show-item-6': -> @getModel().getActivePane().activateItemAtIndex(5)
     'pane:show-item-7': -> @getModel().getActivePane().activateItemAtIndex(6)
     'pane:show-item-8': -> @getModel().getActivePane().activateItemAtIndex(7)
-    'pane:show-item-9': -> @getModel().getActivePane().activateItemAtIndex(8)
+    'pane:show-item-9': -> @getModel().getActivePane().activateLastItem()
     'pane:move-item-right': -> @getModel().getActivePane().moveItemRight()
     'pane:move-item-left': -> @getModel().getActivePane().moveItemLeft()
     'window:increase-font-size': -> @getModel().increaseFontSize()

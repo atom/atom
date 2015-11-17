@@ -671,16 +671,46 @@ class Config
   #
   # * `callback` {Function} to execute while suppressing calls to handlers.
   transact: (callback) ->
-    @transactDepth++
+    @beginTransaction()
     try
       callback()
     finally
-      @transactDepth--
-      @emitChangeEvent()
+      @endTransaction()
 
   ###
   Section: Internal methods used by core
   ###
+
+  # Private: Suppress calls to handler functions registered with {::onDidChange}
+  # and {::observe} for the duration of the {Promise} returned by `callback`.
+  # After the {Promise} is either resolved or rejected, handlers will be called
+  # once if the value for their key-path has changed.
+  #
+  # * `callback` {Function} that returns a {Promise}, which will be executed
+  #   while suppressing calls to handlers.
+  #
+  # Returns a {Promise} that is either resolved or rejected according to the
+  # `{Promise}` returned by `callback`. If `callback` throws an error, a
+  # rejected {Promise} will be returned instead.
+  transactAsync: (callback) ->
+    @beginTransaction()
+    try
+      endTransaction = (fn) => (args...) =>
+        @endTransaction()
+        fn(args...)
+      result = callback()
+      new Promise (resolve, reject) =>
+        result.then(endTransaction(resolve)).catch(endTransaction(reject))
+    catch error
+      @endTransaction()
+      Promise.reject(error)
+
+  beginTransaction: ->
+    @transactDepth++
+
+  endTransaction: ->
+    @transactDepth--
+    @emitChangeEvent()
 
   pushAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []

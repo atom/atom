@@ -58,6 +58,7 @@ module.exports = ({blobStore}) ->
     document.title = "Spec Suite"
 
     # Avoid throttling of test window by playing silence
+    # See related discussion in https://github.com/atom/atom/pull/9485
     context = new AudioContext()
     source = context.createBufferSource()
     source.connect(context.destination)
@@ -69,6 +70,7 @@ module.exports = ({blobStore}) ->
     buildAtomEnvironment = (params) ->
       params = cloneObject(params)
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
+      params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       new AtomEnvironment(params)
 
     promise = testRunner({

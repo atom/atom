@@ -168,6 +168,15 @@ describe "Pane", ->
       pane.activateNextItem()
       expect(pane.getActiveItem()).toBe item1
 
+  describe "::activateLastItem()", ->
+    it "sets the active item to the last item", ->
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
+      [item1, item2, item3] = pane.getItems()
+
+      expect(pane.getActiveItem()).toBe item1
+      pane.activateLastItem()
+      expect(pane.getActiveItem()).toBe item3
+
   describe "::moveItemRight() and ::moveItemLeft()", ->
     it "moves the active item to the right and left, without looping around at either end", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))

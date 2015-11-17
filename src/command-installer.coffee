@@ -35,7 +35,7 @@ class CommandInstaller
     process.resourcesPath
 
   installShellCommandsInteractively: ->
-    showErrorDialog = (error) ->
+    showErrorDialog = (error) =>
       @applicationDelegate.confirm
         message: "Failed to install shell commands"
         detailedMessage: error.message

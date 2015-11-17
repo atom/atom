@@ -589,6 +589,59 @@ describe "Config", ->
       atom.config.transact ->
       expect(changeSpy).not.toHaveBeenCalled()
 
+  describe ".transactAsync(callback)", ->
+    changeSpy = null
+
+    beforeEach ->
+      changeSpy = jasmine.createSpy('onDidChange callback')
+      atom.config.onDidChange("foo.bar.baz", changeSpy)
+
+    it "allows only one change event for the duration of the given promise if it gets resolved", ->
+      promiseResult = null
+      transactionPromise = atom.config.transactAsync ->
+        atom.config.set("foo.bar.baz", 1)
+        atom.config.set("foo.bar.baz", 2)
+        atom.config.set("foo.bar.baz", 3)
+        Promise.resolve("a result")
+
+      waitsForPromise -> transactionPromise.then (r) -> promiseResult = r
+
+      runs ->
+        expect(promiseResult).toBe("a result")
+        expect(changeSpy.callCount).toBe(1)
+        expect(changeSpy.argsForCall[0][0]).toEqual(newValue: 3, oldValue: undefined)
+
+    it "allows only one change event for the duration of the given promise if it gets rejected", ->
+      promiseError = null
+      transactionPromise = atom.config.transactAsync ->
+        atom.config.set("foo.bar.baz", 1)
+        atom.config.set("foo.bar.baz", 2)
+        atom.config.set("foo.bar.baz", 3)
+        Promise.reject("an error")
+
+      waitsForPromise -> transactionPromise.catch (e) -> promiseError = e
+
+      runs ->
+        expect(promiseError).toBe("an error")
+        expect(changeSpy.callCount).toBe(1)
+        expect(changeSpy.argsForCall[0][0]).toEqual(newValue: 3, oldValue: undefined)
+
+    it "allows only one change event even when the given callback throws", ->
+      error = new Error("Oops!")
+      promiseError = null
+      transactionPromise = atom.config.transactAsync ->
+        atom.config.set("foo.bar.baz", 1)
+        atom.config.set("foo.bar.baz", 2)
+        atom.config.set("foo.bar.baz", 3)
+        throw error
+
+      waitsForPromise -> transactionPromise.catch (e) -> promiseError = e
+
+      runs ->
+        expect(promiseError).toBe(error)
+        expect(changeSpy.callCount).toBe(1)
+        expect(changeSpy.argsForCall[0][0]).toEqual(newValue: 3, oldValue: undefined)
+
   describe ".getSources()", ->
     it "returns an array of all of the config's source names", ->
       expect(atom.config.getSources()).toEqual([])

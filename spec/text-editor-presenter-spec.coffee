@@ -25,25 +25,32 @@ describe "TextEditorPresenter", ->
       editor.destroy()
       buffer.destroy()
 
-    buildPresenter = (params={}) ->
+    buildPresenterWithoutMeasurements = (params={}) ->
       _.defaults params,
         model: editor
-        explicitHeight: 130
-        contentFrameWidth: 500
-        windowWidth: 500
-        windowHeight: 130
-        boundingClientRect: {left: 0, top: 0, width: 500, height: 130}
-        gutterWidth: 0
-        lineHeight: 10
-        baseCharacterWidth: 10
-        horizontalScrollbarHeight: 10
-        verticalScrollbarWidth: 10
-        scrollTop: 0
-        scrollLeft: 0
         config: atom.config
-
+        contentFrameWidth: 500
       presenter = new TextEditorPresenter(params)
       presenter.setLinesYardstick(new FakeLinesYardstick(editor, presenter))
+      presenter
+
+    buildPresenter = (params={}) ->
+      presenter = buildPresenterWithoutMeasurements(params)
+      presenter.setScrollTop(params.scrollTop) if params.scrollTop?
+      presenter.setScrollLeft(params.scrollLeft) if params.scrollLeft?
+      presenter.setExplicitHeight(params.explicitHeight ? 130)
+      presenter.setWindowSize(params.windowWidth ? 500, params.windowHeight ? 130)
+      presenter.setBoundingClientRect(params.boundingClientRect ? {
+        left: 0
+        top: 0
+        width: 500
+        height: 130
+      })
+      presenter.setGutterWidth(params.gutterWidth ? 0)
+      presenter.setLineHeight(params.lineHeight ? 10)
+      presenter.setBaseCharacterWidth(params.baseCharacterWidth ? 10)
+      presenter.setHorizontalScrollbarHeight(params.horizontalScrollbarHeight ? 10)
+      presenter.setVerticalScrollbarWidth(params.verticalScrollbarWidth ? 10)
       presenter
 
     expectValues = (actual, expected) ->
@@ -167,16 +174,14 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[12]).toBeDefined()
 
       it "is empty until all of the required measurements are assigned", ->
-        presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null)
+        presenter = buildPresenterWithoutMeasurements()
         expect(stateFn(presenter).tiles).toEqual({})
 
         presenter.setExplicitHeight(25)
         expect(stateFn(presenter).tiles).toEqual({})
 
+        # Sets scroll row from model's logical position
         presenter.setLineHeight(10)
-        expect(stateFn(presenter).tiles).toEqual({})
-
-        presenter.setScrollTop(0)
         expect(stateFn(presenter).tiles).not.toEqual({})
 
       it "updates when ::scrollTop changes", ->
@@ -619,6 +624,8 @@ describe "TextEditorPresenter", ->
       describe ".scrollingVertically", ->
         it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
           presenter = buildPresenter(scrollTop: 10, stoppedScrollingDelay: 200, explicitHeight: 100)
+          expect(presenter.getState().content.scrollingVertically).toBe true
+          advanceClock(300)
           expect(presenter.getState().content.scrollingVertically).toBe false
           expectStateUpdate presenter, -> presenter.setScrollTop(0)
           expect(presenter.getState().content.scrollingVertically).toBe true
@@ -761,7 +768,8 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe(10)
 
         it "corresponds to the passed logical coordinates when building the presenter", ->
-          presenter = buildPresenter(scrollRow: 4, lineHeight: 10, explicitHeight: 20)
+          editor.setFirstVisibleScreenRow(4)
+          presenter = buildPresenter(lineHeight: 10, explicitHeight: 20)
           expect(presenter.getState().content.scrollTop).toBe(40)
 
         it "tracks the value of ::scrollTop", ->
@@ -775,11 +783,11 @@ describe "TextEditorPresenter", ->
 
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
           presenter.getState() # commits scroll position
-          expect(editor.getScrollRow()).toBe(5)
+          expect(editor.getFirstVisibleScreenRow()).toBe 5
 
           expectStateUpdate presenter, -> presenter.setScrollTop(57)
           presenter.getState() # commits scroll position
-          expect(editor.getScrollRow()).toBe(6)
+          expect(editor.getFirstVisibleScreenRow()).toBe 6
 
         it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
           presenter = buildPresenter(scrollTop: 80, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 0)
@@ -888,7 +896,8 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollLeft).toBe(50)
 
         it "corresponds to the passed logical coordinates when building the presenter", ->
-          presenter = buildPresenter(scrollColumn: 3, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
+          editor.setFirstVisibleScreenColumn(3)
+          presenter = buildPresenter(lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expect(presenter.getState().content.scrollLeft).toBe(30)
 
         it "tracks the value of ::scrollLeft", ->
@@ -902,11 +911,11 @@ describe "TextEditorPresenter", ->
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
           presenter.getState() # commits scroll position
-          expect(editor.getScrollColumn()).toBe(5)
+          expect(editor.getFirstVisibleScreenColumn()).toBe 5
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(57)
           presenter.getState() # commits scroll position
-          expect(editor.getScrollColumn()).toBe(6)
+          expect(editor.getFirstVisibleScreenColumn()).toBe 6
 
         it "is always rounded to the nearest integer", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
@@ -1006,20 +1015,25 @@ describe "TextEditorPresenter", ->
 
       describe ".backgroundColor", ->
         it "is assigned to ::backgroundColor unless the editor is mini", ->
-          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter()
+          presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
           expect(presenter.getState().content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+
           editor.setMini(true)
-          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter()
+          presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
           expect(presenter.getState().content.backgroundColor).toBeNull()
 
         it "updates when ::backgroundColor changes", ->
-          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter()
+          presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
           expect(presenter.getState().content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           expectStateUpdate presenter, -> presenter.setBackgroundColor('rgba(0, 0, 255, 0)')
           expect(presenter.getState().content.backgroundColor).toBe 'rgba(0, 0, 255, 0)'
 
         it "updates when ::mini changes", ->
-          presenter = buildPresenter(backgroundColor: 'rgba(255, 0, 0, 0)')
+          presenter = buildPresenter()
+          presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
           expect(presenter.getState().content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           expectStateUpdate presenter, -> editor.setMini(true)
           expect(presenter.getState().content.backgroundColor).toBeNull()
@@ -1047,6 +1061,7 @@ describe "TextEditorPresenter", ->
         describe "[tileId].lines[lineId]", -> # line state objects
           it "includes the state for visible lines in a tile", ->
             presenter = buildPresenter(explicitHeight: 3, scrollTop: 4, lineHeight: 1, tileSize: 3, stoppedScrollingDelay: 200)
+            presenter.setExplicitHeight(3)
 
             expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
 
@@ -1320,7 +1335,7 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 4)).toBeUndefined()
 
         it "is empty until all of the required measurements are assigned", ->
-          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null, baseCharacterWidth: null, horizontalScrollbarHeight: null)
+          presenter = buildPresenterWithoutMeasurements()
           expect(presenter.getState().content.cursors).toEqual({})
 
           presenter.setExplicitHeight(25)
@@ -1333,6 +1348,15 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.cursors).toEqual({})
 
           presenter.setBaseCharacterWidth(8)
+          expect(presenter.getState().content.cursors).toEqual({})
+
+          presenter.setBoundingClientRect(top: 0, left: 0, width: 500, height: 130)
+          expect(presenter.getState().content.cursors).toEqual({})
+
+          presenter.setWindowSize(500, 130)
+          expect(presenter.getState().content.cursors).toEqual({})
+
+          presenter.setVerticalScrollbarWidth(10)
           expect(presenter.getState().content.cursors).toEqual({})
 
           presenter.setHorizontalScrollbarHeight(10)
@@ -1466,7 +1490,8 @@ describe "TextEditorPresenter", ->
         it "alternates between true and false twice per ::cursorBlinkPeriod when the editor is focused", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
-          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay, focused: true})
+          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
+          presenter.setFocused(true)
 
           expect(presenter.getState().content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
@@ -1493,7 +1518,8 @@ describe "TextEditorPresenter", ->
         it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
           cursorBlinkPeriod = 100
           cursorBlinkResumeDelay = 200
-          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay, focused: true})
+          presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
+          presenter.setFocused(true)
 
           expect(presenter.getState().content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
@@ -1643,7 +1669,7 @@ describe "TextEditorPresenter", ->
             [[0, 2], [2, 4]],
           ])
 
-          presenter = buildPresenter(explicitHeight: null, lineHeight: null, scrollTop: null, baseCharacterWidth: null, tileSize: 2)
+          presenter = buildPresenterWithoutMeasurements(tileSize: 2)
           for tileId, tileState of presenter.getState().content.tiles
             expect(tileState.highlights).toEqual({})
 
@@ -1970,7 +1996,7 @@ describe "TextEditorPresenter", ->
           marker = editor.markBufferRange([[2, 13], [4, 14]], invalidate: 'touch')
           decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
 
-          presenter = buildPresenter(baseCharacterWidth: null, lineHeight: null, windowWidth: null, windowHeight: null, boundingClientRect: null)
+          presenter = buildPresenterWithoutMeasurements()
           expect(presenter.getState().content.overlays).toEqual({})
 
           presenter.setBaseCharacterWidth(10)
@@ -1980,6 +2006,12 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.overlays).toEqual({})
 
           presenter.setWindowSize(500, 100)
+          expect(presenter.getState().content.overlays).toEqual({})
+
+          presenter.setVerticalScrollbarWidth(10)
+          expect(presenter.getState().content.overlays).toEqual({})
+
+          presenter.setHorizontalScrollbarHeight(10)
           expect(presenter.getState().content.overlays).toEqual({})
 
           presenter.setBoundingClientRect({top: 0, left: 0, height: 100, width: 500})
@@ -2168,7 +2200,8 @@ describe "TextEditorPresenter", ->
         expect(editor.getRowsPerPage()).toBe(20)
 
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
-        presenter = buildPresenter(explicitHeight: null, autoHeight: true)
+        presenter = buildPresenter(explicitHeight: null)
+        presenter.setAutoHeight(true)
         expect(presenter.getState().height).toBe editor.getScreenLineCount() * 10
 
         expectStateUpdate presenter, -> presenter.setAutoHeight(false)
@@ -2185,7 +2218,9 @@ describe "TextEditorPresenter", ->
 
     describe ".focused", ->
       it "tracks the value of ::focused", ->
-        presenter = buildPresenter(focused: false)
+        presenter = buildPresenter()
+        presenter.setFocused(false)
+
         expect(presenter.getState().focused).toBe false
         expectStateUpdate presenter, -> presenter.setFocused(true)
         expect(presenter.getState().focused).toBe true
@@ -2882,7 +2917,9 @@ describe "TextEditorPresenter", ->
 
         describe ".backgroundColor", ->
           it "is assigned to ::gutterBackgroundColor if present, and to ::backgroundColor otherwise", ->
-            presenter = buildPresenter(backgroundColor: "rgba(255, 0, 0, 0)", gutterBackgroundColor: "rgba(0, 255, 0, 0)")
+            presenter = buildPresenter()
+            presenter.setBackgroundColor("rgba(255, 0, 0, 0)")
+            presenter.setGutterBackgroundColor("rgba(0, 255, 0, 0)")
             expect(getStylesForGutterWithName(presenter, 'line-number').backgroundColor).toBe "rgba(0, 255, 0, 0)"
             expect(getStylesForGutterWithName(presenter, 'test-gutter').backgroundColor).toBe "rgba(0, 255, 0, 0)"
 

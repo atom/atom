@@ -312,6 +312,9 @@ class Pane extends Model
     else
       @activateItemAtIndex(@items.length - 1)
 
+  activateLastItem: ->
+    @activateItemAtIndex(@items.length - 1)
+
   # Public: Move the active tab to the right.
   moveItemRight: ->
     index = @getActiveItemIndex()
@@ -722,7 +725,7 @@ class Pane extends Model
       @notificationManager.addWarning("Unable to save file: #{error.message}")
     else if error.code is 'EACCES'
       addWarningWithPath('Unable to save file: Permission denied')
-    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST']
+    else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST', 'ELOOP', 'EAGAIN']
       addWarningWithPath('Unable to save file', detail: error.message)
     else if error.code is 'EROFS'
       addWarningWithPath('Unable to save file: Read-only file system')
