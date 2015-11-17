@@ -3,7 +3,7 @@
 const fs = require('fs-plus')
 const Git = require('nodegit')
 const path = require('path')
-const {Emitter, CompositeDisposable} = require('event-kit')
+const {Emitter, CompositeDisposable, Disposable} = require('event-kit')
 
 const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
 const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
@@ -37,7 +37,11 @@ module.exports = class GitRepositoryAsync {
       refreshOnWindowFocus = true
     }
     if (refreshOnWindowFocus) {
-      // TODO
+      const onWindowFocus = () => {
+        this.refreshStatus()
+      }
+      window.addEventListener('focus', onWindowFocus)
+      this.subscriptions.add(new Disposable(() => window.removeEventListener('focus', onWindowFocus)))
     }
 
     if (this.project) {
