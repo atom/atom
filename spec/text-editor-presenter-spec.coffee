@@ -1704,6 +1704,18 @@ describe "TextEditorPresenter", ->
 
           expectUndefinedStateForHighlight(presenter, highlight)
 
+        it "does not include highlights that end before the first visible row", ->
+          editor.setText("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.")
+          editor.setSoftWrapped(true)
+          editor.setWidth(100, true)
+          editor.setDefaultCharWidth(10)
+
+          marker = editor.markBufferRange([[0, 0], [0, 4]], invalidate: 'never')
+          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
+          presenter = buildPresenter(explicitHeight: 30, scrollTop: 10, tileSize: 2)
+
+          expect(stateForHighlightInTile(presenter, highlight, 0)).toBeUndefined()
+
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
             [[6, 2], [6, 4]],
