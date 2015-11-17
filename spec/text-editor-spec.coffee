@@ -163,14 +163,8 @@ describe "TextEditor", ->
         expect(editor.getTitle()).toBe 'untitled'
 
     describe ".getLongTitle()", ->
-      it "appends the name of the containing directory to the basename of the file", ->
-        expect(editor.getLongTitle()).toBe 'sample.js - fixtures'
-        buffer.setPath(undefined)
-        expect(editor.getLongTitle()).toBe 'untitled'
-
-    describe ".getUniqueTitle()", ->
       it "returns file name when there is no opened file with identical name", ->
-        expect(editor.getUniqueTitle()).toBe 'sample.js'
+        expect(editor.getLongTitle()).toBe 'sample.js'
         buffer.setPath(undefined)
         expect(editor.getLongTitle()).toBe 'untitled'
 
@@ -183,8 +177,8 @@ describe "TextEditor", ->
             atom.workspace.open(path.join('sample-theme-2', 'readme')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getUniqueTitle()).toBe 'sample-theme-1/readme'
-          expect(editor2.getUniqueTitle()).toBe 'sample-theme-2/readme'
+          expect(editor1.getLongTitle()).toBe 'sample-theme-1/readme'
+          expect(editor2.getLongTitle()).toBe 'sample-theme-2/readme'
 
       it "or returns <parent-directory>/.../<filename> when opened files has identical file names", ->
         editor1 = null
@@ -195,8 +189,8 @@ describe "TextEditor", ->
             atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getUniqueTitle()).toBe 'sample-theme-1/.../main.js'
-          expect(editor2.getUniqueTitle()).toBe 'sample-theme-2/.../main.js'
+          expect(editor1.getLongTitle()).toBe 'sample-theme-1/.../main.js'
+          expect(editor2.getLongTitle()).toBe 'sample-theme-2/.../main.js'
 
 
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
