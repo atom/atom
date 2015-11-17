@@ -15,7 +15,7 @@ module.exports = {
     var fingerprint = this.fingerprint()
     fs.writeFileSync(fingerprintPath, fingerprint)
     console.log('Wrote ci fingerprint:', fingerprintPath, fingerprint)
-  }
+  },
 
   readFingerprint: function() {
     if (fs.existsSync(fingerprintPath)) {
@@ -23,7 +23,7 @@ module.exports = {
     } else {
       return null
     }
-  }
+  },
 
   fingerprintMatches: function () {
     return this.readFingerprint() && this.readFingerprint() === this.fingerprint()
