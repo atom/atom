@@ -343,17 +343,17 @@ module.exports = class GitRepositoryAsync {
   // Returns a {Promise} that resolves true if the given path is a submodule in
   // the repository.
   isSubmodule (_path) {
-    return this.repoPromise.then(function (repo) {
-      return repo.openIndex()
-    }).then(function (index) {
-      let entry = index.getByPath(_path)
-      let submoduleMode = 57344 // TODO compose this from libgit2 constants
+    return this.repoPromise
+      .then(repo => repo.openIndex())
+      .then(index => {
+        let entry = index.getByPath(_path)
+        let submoduleMode = 57344 // TODO compose this from libgit2 constants
 
-      if (entry.mode === submoduleMode) {
-        return true
-      } else {
-        return false
-      }
-    })
+        if (entry.mode === submoduleMode) {
+          return true
+        } else {
+          return false
+        }
+      })
   }
 }
