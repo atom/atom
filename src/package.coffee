@@ -256,8 +256,14 @@ class Package
 
   loadDeserializers: ->
     for name, implementationPath of @metadata['atom-deserializers']
-      deserialize = require(path.join(@path, implementationPath))
-      atom.deserializers.add({name, deserialize})
+      do =>
+        deserializePath = path.join(@path, implementationPath)
+        deserializeFunction = null
+        atom.deserializers.add
+          name: name,
+          deserialize: ->
+            deserializeFunction ?= require(deserializePath)
+            deserializeFunction.apply(this, arguments)
     return
 
   getStylesheetsPath: ->

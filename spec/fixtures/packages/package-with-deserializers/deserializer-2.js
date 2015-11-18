@@ -1,6 +1,6 @@
 module.exports = function (state) {
   return {
-    wasDeserializedBy: 'TheDeserializer',
+    wasDeserializedBy: 'Deserializer2',
     state: state
   }
 }

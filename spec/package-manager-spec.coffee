@@ -82,11 +82,16 @@ describe "PackageManager", ->
     it "registers any deserializers specified in the package's package.json", ->
       atom.packages.loadPackage("package-with-deserializers")
 
-      state = {deserializer: 'TheDeserializerName', a: 'b'}
+      state1 = {deserializer: 'Deserializer1', a: 'b'}
+      expect(atom.deserializers.deserialize(state1)).toEqual {
+        wasDeserializedBy: 'Deserializer1'
+        state: state1
+      }
 
-      expect(atom.deserializers.deserialize(state)).toEqual {
-        wasDeserializedBy: 'TheDeserializer'
-        state: state
+      state2 = {deserializer: 'Deserializer2', c: 'd'}
+      expect(atom.deserializers.deserialize(state2)).toEqual {
+        wasDeserializedBy: 'Deserializer2'
+        state: state2
       }
 
   describe "::unloadPackage(name)", ->

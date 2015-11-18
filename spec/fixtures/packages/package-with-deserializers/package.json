@@ -2,6 +2,7 @@
   "name": "package-with-deserializers",
   "version": "1.0.0",
   "atom-deserializers": {
-    "TheDeserializerName": "./the-deserializer.js"
+    "Deserializer1": "./deserializer-1.js",
+    "Deserializer2": "./deserializer-2.js"
   }
 }
