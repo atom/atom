@@ -1,0 +1,43 @@
+COFFEE=./node_modules/.bin/coffee
+UGLIFY=./node_modules/.bin/uglifyjs
+
+# Was unsure where to place these since putting them in build/ is too late.
+npm install coffee-script@1.8.0
+npm install uglify-js@2.6.1
+
+# Find the two commits to compare against: [START-1 ... END]
+if [ -z ${TRAVIS_COMMIT} ]
+then
+  START_COMMIT=$(git rev-parse HEAD)
+  END_COMMIT=$(git rev-parse HEAD)
+
+# If this is the first commit on a branch then TRAVIS_COMMIT_RANGE is empty
+# so just use the current commit
+elif [ -z ${TRAVIS_COMMIT_RANGE} ]
+then
+  START_COMMIT=${TRAVIS_COMMIT}
+  END_COMMIT=${TRAVIS_COMMIT}
+else
+  START_COMMIT=$(echo ${TRAVIS_COMMIT_RANGE} | sed 's/\([a-z0-9]*\).*/\1/')
+  END_COMMIT=${TRAVIS_COMMIT}
+fi
+
+# Check out the version *just before* the testing range
+git checkout $(git rev-parse ${START_COMMIT}^1)
+
+cat $(find ./src -name "*.coffee") | ${COFFEE} --compile --stdio | ${UGLIFY} --beautify > .ci-cache-previous.txt
+
+
+git checkout ${END_COMMIT}
+
+cat $(find ./src -name "*.coffee") | ${COFFEE} --compile --stdio | ${UGLIFY} --beautify > .ci-cache-this.txt
+
+diff ./.ci-cache-previous.txt ./.ci-cache-this.txt > /dev/null
+
+if [ $? -eq 0 ]
+then
+  echo "Just a documentation change. No need to run tests"
+else
+  echo "Code changed. Running tests"
+  script/cibuild
+fi
