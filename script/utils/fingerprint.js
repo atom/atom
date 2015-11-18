@@ -7,7 +7,7 @@ var fingerprintPath = path.resolve(__dirname, '..', '..', 'node_modules', '.atom
 module.exports = {
   fingerprint: function () {
     var packageJson = fs.readFileSync(path.resolve(__dirname, '..', '..', 'package.json'))
-    var body = packageJson.toString() + process.platform
+    var body = packageJson.toString() + process.platform + process.version
     return crypto.createHash('sha1').update(body).digest('hex')
   },
 
