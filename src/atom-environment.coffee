@@ -623,7 +623,7 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-
+    @loadStateSync()
     @document.body.appendChild(@views.getView(@workspace))
 
     @watchProjectPath()

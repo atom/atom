@@ -243,6 +243,21 @@ describe "AtomEnvironment", ->
 
       atomEnvironment.destroy()
 
+  describe "::destroy()", ->
+    it "does not throw exceptions when unsubscribing from ipc events (regression)", ->
+      configDirPath = temp.mkdirSync()
+      fakeDocument = {
+        addEventListener: ->
+        removeEventListener: ->
+        head: document.createElement('head')
+        body: document.createElement('body')
+      }
+      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
+      spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
+      atomEnvironment.startEditorWindow()
+      atomEnvironment.unloadEditorWindow()
+      atomEnvironment.destroy()
+
   describe "::openLocations(locations) (called via IPC from browser process)", ->
     beforeEach ->
       spyOn(atom.workspace, 'open')
