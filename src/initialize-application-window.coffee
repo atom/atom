@@ -24,7 +24,6 @@ window.atom = new AtomEnvironment({
 })
 
 atom.displayWindow()
-atom.loadStateSync()
 atom.startEditorWindow()
 
 # Workaround for focus getting cleared upon window creation
