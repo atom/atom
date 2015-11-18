@@ -37,6 +37,7 @@ module.exports = (grunt) ->
   buildDir ?= path.join(os.tmpdir(), 'atom-build')
   buildDir = path.resolve(buildDir)
   disableAutoUpdate = grunt.option('no-auto-update') ? false
+  disableShortcut = grunt.option('no-shortcut') ? false
 
   channel = grunt.option('channel')
   releasableBranches = ['stable', 'beta']
@@ -179,7 +180,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata, disableAutoUpdate,
+      appName, channel, metadata, disableAutoUpdate, disableShortcut,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
