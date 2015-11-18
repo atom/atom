@@ -79,6 +79,16 @@ describe "PackageManager", ->
 
       expect(loadedPackage.name).toBe "package-with-main"
 
+    it "registers any deserializers specified in the package's package.json", ->
+      atom.packages.loadPackage("package-with-deserializers")
+
+      state = {deserializer: 'TheDeserializerName', a: 'b'}
+
+      expect(atom.deserializers.deserialize(state)).toEqual {
+        wasDeserializedBy: 'TheDeserializer'
+        state: state
+      }
+
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
       it "throws an error", ->

@@ -1,0 +1,7 @@
+{
+  "name": "package-with-deserializers",
+  "version": "1.0.0",
+  "atom-deserializers": {
+    "TheDeserializerName": "./the-deserializer.js"
+  }
+}

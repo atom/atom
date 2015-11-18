@@ -84,6 +84,7 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
+        @loadDeserializers()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @mainModule? or @activationShouldBeDeferred()
       catch error
@@ -252,6 +253,12 @@ class Package
   loadStylesheets: ->
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
       [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
+
+  loadDeserializers: ->
+    for name, implementationPath of @metadata['atom-deserializers']
+      deserialize = require(path.join(@path, implementationPath))
+      atom.deserializers.add({name, deserialize})
+    return
 
   getStylesheetsPath: ->
     path.join(@path, 'styles')
