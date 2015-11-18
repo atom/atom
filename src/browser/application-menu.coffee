@@ -1,5 +1,5 @@
 app = require 'app'
-ipc = require 'ipc'
+ipc = require 'ipc-main'
 Menu = require 'menu'
 _ = require 'underscore-plus'
 

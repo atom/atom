@@ -83,7 +83,7 @@
 
     var initialize = require(loadSettings.windowInitializationScript)
     initialize({blobStore: blobStore})
-    require('ipc').sendChannel('window-command', 'window:loaded')
+    require('ipc-main').send('window-command', 'window:loaded')
   }
 
   function setupCsonCache (cacheDir) {

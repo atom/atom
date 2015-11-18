@@ -5,7 +5,7 @@ SquirrelUpdate = require './squirrel-update'
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
-  setFeedUrl: (@updateUrl) ->
+  setFeedURL: (@updateUrl) ->
 
   quitAndInstall: ->
     if SquirrelUpdate.existsSync()

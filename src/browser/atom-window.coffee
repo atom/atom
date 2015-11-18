@@ -81,7 +81,7 @@ class AtomWindow
     loadSettings = _.clone(loadSettingsObj)
     delete loadSettings['windowState']
 
-    @browserWindow.loadUrl url.format
+    @browserWindow.loadURL url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true

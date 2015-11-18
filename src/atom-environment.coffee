@@ -1,6 +1,6 @@
 crypto = require 'crypto'
 path = require 'path'
-ipc = require 'ipc'
+ipc = require 'ipc-main'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -671,7 +671,7 @@ class AtomEnvironment extends Model
 
       if openDevTools
         @openDevTools()
-        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+        @webContents.executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
@@ -729,7 +729,7 @@ class AtomEnvironment extends Model
     @applicationDelegate.toggleWindowDevTools()
 
   # Extended: Execute code in dev tools.
-  executeJavaScriptInDevTools: (code) ->
+  webContents.executeJavaScriptInDevTools: (code) ->
     @applicationDelegate.executeJavaScriptInWindowDevTools(code)
 
   ###

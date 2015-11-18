@@ -31,7 +31,7 @@ class AutoUpdateManager
       @setState(ErrorState)
       console.error "Error Downloading Update: #{message}"
 
-    autoUpdater.setFeedUrl @feedUrl
+    autoUpdater.setFeedURL @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)

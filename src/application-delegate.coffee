@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-ipc = require 'ipc'
+ipc = require 'ipc-main'
 remote = require 'remote'
 shell = require 'shell'
 webFrame = require 'web-frame'
@@ -72,7 +72,7 @@ class ApplicationDelegate
     remote.getCurrentWindow().toggleDevTools()
 
   executeJavaScriptInWindowDevTools: (code) ->
-    remote.getCurrentWindow().executeJavaScriptInDevTools(code)
+    remote.getCurrentWindow().webContents.executeJavaScriptInDevTools(code)
 
   setWindowDocumentEdited: (edited) ->
     ipc.send("call-window-method", "setDocumentEdited", edited)
