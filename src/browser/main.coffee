@@ -59,7 +59,7 @@ setupCrashReporter = ->
 setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
 
-  atomHome = path.join(app.getPath(), '.atom')
+  atomHome = path.join(app.getPath('home'), '.atom')
   AtomPortable = require './atom-portable'
 
   if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
@@ -142,7 +142,7 @@ parseCommandLine = ->
   socketPath = args['socket-path']
   profileStartup = args['profile-startup']
   urlsToOpen = []
-  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getPath(), 'github', 'atom')
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getPath('home'), 'github', 'atom')
   setPortable = args.portable
 
   if args['resource-path']
