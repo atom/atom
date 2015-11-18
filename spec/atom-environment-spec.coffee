@@ -47,7 +47,7 @@ describe "AtomEnvironment", ->
   describe "window onerror handler", ->
     beforeEach ->
       spyOn atom, 'openDevTools'
-      spyOn atom, 'webContents.executeJavaScriptInDevTools'
+      spyOn atom, 'executeJavaScriptInDevTools'
 
     it "will open the dev tools when an error is triggered", ->
       try
@@ -56,7 +56,7 @@ describe "AtomEnvironment", ->
         window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
 
       expect(atom.openDevTools).toHaveBeenCalled()
-      expect(atom.webContents.executeJavaScriptInDevTools).toHaveBeenCalled()
+      expect(atom.executeJavaScriptInDevTools).toHaveBeenCalled()
 
     describe "::onWillThrowError", ->
       willThrowSpy = null
@@ -91,7 +91,7 @@ describe "AtomEnvironment", ->
 
         expect(willThrowSpy).toHaveBeenCalled()
         expect(atom.openDevTools).not.toHaveBeenCalled()
-        expect(atom.webContents.executeJavaScriptInDevTools).not.toHaveBeenCalled()
+        expect(atom.executeJavaScriptInDevTools).not.toHaveBeenCalled()
 
     describe "::onDidThrowError", ->
       didThrowSpy = null

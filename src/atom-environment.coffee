@@ -671,7 +671,7 @@ class AtomEnvironment extends Model
 
       if openDevTools
         @openDevTools()
-        @webContents.executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
@@ -729,7 +729,7 @@ class AtomEnvironment extends Model
     @applicationDelegate.toggleWindowDevTools()
 
   # Extended: Execute code in dev tools.
-  webContents.executeJavaScriptInDevTools: (code) ->
+  executeJavaScriptInDevTools: (code) ->
     @applicationDelegate.executeJavaScriptInWindowDevTools(code)
 
   ###
