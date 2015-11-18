@@ -138,7 +138,7 @@ class ApplicationDelegate
 
     ipc.on('message', outerCallback)
     new Disposable ->
-      ipc.removeEventListener('message', outerCallback)
+      ipc.removeListener('message', outerCallback)
 
   onUpdateAvailable: (callback) ->
     outerCallback = (message, detail) ->
@@ -147,17 +147,17 @@ class ApplicationDelegate
 
     ipc.on('message', outerCallback)
     new Disposable ->
-      ipc.removeEventListener('message', outerCallback)
+      ipc.removeListener('message', outerCallback)
 
   onApplicationMenuCommand: (callback) ->
     ipc.on('command', callback)
     new Disposable ->
-      ipc.removeEventListener('command', callback)
+      ipc.removeListener('command', callback)
 
   onContextMenuCommand: (callback) ->
     ipc.on('context-command', callback)
     new Disposable ->
-      ipc.removeEventListener('context-command', callback)
+      ipc.removeListener('context-command', callback)
 
   didCancelWindowUnload: ->
     ipc.send('did-cancel-window-unload')
