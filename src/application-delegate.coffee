@@ -4,7 +4,7 @@ remote = require 'remote'
 shell = require 'shell'
 webFrame = require 'web-frame'
 {Disposable} = require 'event-kit'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+getWindowLoadSettings = require './get-window-load-settings'
 
 module.exports =
 class ApplicationDelegate
@@ -80,10 +80,8 @@ class ApplicationDelegate
   setRepresentedFilename: (filename) ->
     ipc.send("call-window-method", "setRepresentedFilename", filename)
 
-  setRepresentedDirectoryPaths: (paths) ->
-    loadSettings = getWindowLoadSettings()
-    loadSettings['initialPaths'] = paths
-    setWindowLoadSettings(loadSettings)
+  setProjectDirectoryPaths: (paths) ->
+    ipc.send("window-command", "set-project-directory-paths", paths)
 
   setAutoHideWindowMenuBar: (autoHide) ->
     ipc.send("call-window-method", "setAutoHideMenuBar", autoHide)
@@ -124,7 +122,7 @@ class ApplicationDelegate
     else
       params = _.clone(params)
     params.title ?= 'Save File'
-    params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
+    params.defaultPath ?= getWindowLoadSettings().projectDirectoryPaths[0]
     dialog = remote.require('dialog')
     dialog.showSaveDialog remote.getCurrentWindow(), params
 

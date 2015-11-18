@@ -151,7 +151,7 @@ describe "AtomEnvironment", ->
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
       loadSettings = _.extend atom.getLoadSettings(),
-        initialPaths: [dir1]
+        projectDirectoryPaths: [dir1]
         windowState: null
 
       spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
@@ -165,7 +165,7 @@ describe "AtomEnvironment", ->
       atom.loadStateSync()
       expect(atom.state.stuff).toBeUndefined()
 
-      loadSettings.initialPaths = [dir2, dir1]
+      loadSettings.projectDirectoryPaths = [dir2, dir1]
       atom.state = {}
       atom.loadStateSync()
       expect(atom.state.stuff).toBe("cool")
@@ -173,7 +173,7 @@ describe "AtomEnvironment", ->
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
       beforeEach ->
-        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: [])
+        spyOn(atom, 'getLoadSettings').andReturn(projectDirectoryPaths: [])
 
       it "opens an empty buffer", ->
         spyOn(atom.workspace, 'open')
@@ -191,7 +191,7 @@ describe "AtomEnvironment", ->
 
     describe "when the project has a path", ->
       beforeEach ->
-        spyOn(atom, 'getLoadSettings').andReturn(initialPaths: ['something'])
+        spyOn(atom, 'getLoadSettings').andReturn(projectDirectoryPaths: ['something'])
         spyOn(atom.workspace, 'open')
 
       it "does not open an empty buffer", ->

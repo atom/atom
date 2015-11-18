@@ -11,7 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
+getWindowLoadSettings = require './get-window-load-settings'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = require './deserializer-manager'
@@ -651,7 +651,7 @@ class AtomEnvironment extends Model
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
-    if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
+    if @getLoadSettings().projectDirectoryPaths?.length is 0 and @workspace.getPaneItems().length is 0
       @workspace.open(null)
 
   installUncaughtErrorHandler: ->
@@ -753,7 +753,7 @@ class AtomEnvironment extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
-      @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
+      @applicationDelegate.setProjectDirectoryPaths(@project.getPaths())
 
   setDocumentEdited: (edited) ->
     @applicationDelegate.setWindowDocumentEdited?(edited)
@@ -789,7 +789,7 @@ class AtomEnvironment extends Model
 
     startTime = Date.now()
 
-    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+    if stateKey = @getStateKey(@getLoadSettings().projectDirectoryPaths)
       if state = @getStorageFolder().load(stateKey)
         @state = state
 

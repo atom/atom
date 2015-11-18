@@ -437,9 +437,8 @@ class AtomApplication
     return if @quitting
     states = []
     for window in @windows
-      unless window.isSpec
-        if loadSettings = window.getLoadSettings()
-          states.push(initialPaths: loadSettings.initialPaths)
+      if not window.isSpec and window.projectDirectoryPaths?
+        states.push(projectDirectoryPaths: window.projectDirectoryPaths)
     if states.length > 0 or allowEmpty
       @storageFolder.store('application.json', states)
 
@@ -447,7 +446,7 @@ class AtomApplication
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(_.extend(options, {
-          pathsToOpen: state.initialPaths
+          pathsToOpen: state.projectDirectoryPaths
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
