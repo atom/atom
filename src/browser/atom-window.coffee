@@ -55,14 +55,15 @@ class AtomWindow
       @constructor.includeShellLoadTime = false
       loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
-    loadSettings.initialPaths =
+    loadSettings.projectDirectoryPaths =
       for {pathToOpen} in locationsToOpen when pathToOpen
         if fs.statSyncNoException(pathToOpen).isFile?()
           path.dirname(pathToOpen)
         else
           pathToOpen
 
-    loadSettings.initialPaths.sort()
+    loadSettings.projectDirectoryPaths.sort()
+    @setProjectDirectoryPaths(loadSettings.projectDirectoryPaths)
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', =>
@@ -87,12 +88,9 @@ class AtomWindow
       slashes: true
       hash: encodeURIComponent(JSON.stringify(loadSettings))
 
-  getLoadSettings: ->
-    if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
-      JSON.parse(decodeURIComponent(hash))
+  setProjectDirectoryPaths: (@projectDirectoryPaths) ->
 
-  hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
+  hasProjectPath: -> @projectDirectoryPaths?.length > 0
 
   setupContextMenu: ->
     ContextMenu = require './context-menu'
@@ -106,7 +104,7 @@ class AtomWindow
     true
 
   containsPath: (pathToCheck) ->
-    @getLoadSettings()?.initialPaths?.some (projectPath) ->
+    @projectDirectoryPaths?.some (projectPath) ->
       if not projectPath
         false
       else if not pathToCheck
@@ -121,6 +119,8 @@ class AtomWindow
         false
 
   handleEvents: ->
+    @browserWindow.on 'set-project-directory-paths', @setProjectDirectoryPaths.bind(this)
+
     @browserWindow.on 'closed', =>
       global.atomApplication.removeWindow(this)
 

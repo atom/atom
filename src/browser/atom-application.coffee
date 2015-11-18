@@ -373,6 +373,8 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window}={}) ->
+    devMode = Boolean(devMode)
+    safeMode = Boolean(safeMode)
     locationsToOpen = (@locationForPathToOpen(pathToOpen, executedFrom) for pathToOpen in pathsToOpen)
     pathsToOpen = (locationToOpen.pathToOpen for locationToOpen in locationsToOpen)
 
@@ -437,9 +439,8 @@ class AtomApplication
     return if @quitting
     states = []
     for window in @windows
-      unless window.isSpec
-        if loadSettings = window.getLoadSettings()
-          states.push(initialPaths: loadSettings.initialPaths)
+      if not window.isSpec and window.projectDirectoryPaths?
+        states.push(projectDirectoryPaths: window.projectDirectoryPaths)
     if states.length > 0 or allowEmpty
       @storageFolder.store('application.json', states)
 
@@ -447,7 +448,7 @@ class AtomApplication
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(_.extend(options, {
-          pathsToOpen: state.initialPaths
+          pathsToOpen: state.projectDirectoryPaths
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode

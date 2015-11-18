@@ -2,7 +2,7 @@
 module.exports = ({blobStore}) ->
   path = require 'path'
   require './window'
-  {getWindowLoadSettings} = require './window-load-settings-helpers'
+  getWindowLoadSettings = require './get-window-load-settings'
 
   {resourcePath, isSpec, devMode} = getWindowLoadSettings()
 
