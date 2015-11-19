@@ -255,7 +255,7 @@ class Package
       [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
 
   loadDeserializers: ->
-    for name, implementationPath of @metadata['atom-deserializers']
+    for name, implementationPath of @metadata.deserializers
       do =>
         deserializePath = path.join(@path, implementationPath)
         deserializeFunction = null
