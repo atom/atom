@@ -23,10 +23,15 @@ module.exports =
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
 
+  InternalTextEditor = require('../src/text-editor')
+
+  module.exports.isTextEditor = (object) ->
+    object instanceof InternalTextEditor
+
   TextEditor = (params) ->
     atom.workspace.buildTextEditor(params)
 
-  TextEditor.prototype = require('../src/text-editor').prototype
+  TextEditor.prototype = InternalTextEditor.prototype
 
   Object.defineProperty module.exports, 'TextEditor',
     enumerable: true
