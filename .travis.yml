@@ -34,9 +34,6 @@ script: script/cibuild
 
 cache:
   directories:
-    - $HOME/.atom/.apm
-    - $HOME/.atom/.node-gyp/.atom
-    - $HOME/.atom/.npm
     - node_modules
 
 notifications:
