@@ -1,4 +1,4 @@
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'

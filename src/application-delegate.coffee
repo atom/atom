@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 remote = require 'remote'
 shell = require 'shell'
 webFrame = require 'web-frame'

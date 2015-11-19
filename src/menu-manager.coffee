@@ -1,7 +1,7 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Disposable} = require 'event-kit'

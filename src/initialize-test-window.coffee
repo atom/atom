@@ -14,7 +14,7 @@ module.exports = ({blobStore}) ->
 
   try
     path = require 'path'
-    ipc = require 'ipc-main'
+    ipc = require 'ipc-renderer'
     {getWindowLoadSettings} = require './window-load-settings-helpers'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'

@@ -1,4 +1,4 @@
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 path = require 'path'
 temp = require('temp').track()
 

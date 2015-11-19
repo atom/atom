@@ -4585,7 +4585,7 @@ describe('TextEditorComponent', function () {
 
     it('pastes the previously selected text at the clicked location', async function () {
       let clipboardWrittenTo = false
-      spyOn(require('ipc-main'), 'send').andCallFake(function (eventName, selectedText) {
+      spyOn(require('ipc-renderer'), 'send').andCallFake(function (eventName, selectedText) {
         if (eventName === 'write-text-to-selection-clipboard') {
           require('../src/safe-clipboard').writeText(selectedText, 'selection')
           clipboardWrittenTo = true

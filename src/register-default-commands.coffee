@@ -1,4 +1,4 @@
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 
 module.exports = ({commandRegistry, commandInstaller, config}) ->
   commandRegistry.add 'atom-workspace',

@@ -2,7 +2,7 @@ fs = require 'fs'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'

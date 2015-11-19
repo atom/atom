@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
-ipc = require 'ipc-main'
+ipc = require 'ipc-renderer'
 
 describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
