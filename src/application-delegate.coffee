@@ -72,7 +72,8 @@ class ApplicationDelegate
     remote.getCurrentWindow().toggleDevTools()
 
   executeJavaScriptInWindowDevTools: (code) ->
-    remote.getCurrentWindow().webContents.executeJavaScriptInDevTools(code)
+    webContents = remote.getCurrentWindow.webContents
+    webContents.executeJavaScript(code)
 
   setWindowDocumentEdited: (edited) ->
     ipc.send("call-window-method", "setDocumentEdited", edited)
