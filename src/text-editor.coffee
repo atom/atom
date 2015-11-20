@@ -2429,6 +2429,7 @@ class TextEditor extends Model
     selections = @getSelections()
     if selections.length > 1
       selection.destroy() for selection in selections[1...(selections.length)]
+      selections[0].autoscroll()
       true
     else
       false
