@@ -238,7 +238,7 @@ uploadAssets = (release, buildDir, assets, callback) ->
     s3Secret = process.env.BUILD_ATOM_RELEASES_S3_SECRET
     s3Bucket = process.env.BUILD_ATOM_RELEASES_S3_BUCKET
 
-    unless s3Key && s3Secret && s3Bucket
+    unless s3Key and s3Secret and s3Bucket
       callback(new Error('BUILD_ATOM_RELEASES_S3_KEY, BUILD_ATOM_RELEASES_S3_SECRET, and BUILD_ATOM_RELEASES_S3_BUCKET environment variables must be set.'))
       return
 
