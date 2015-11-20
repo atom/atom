@@ -133,11 +133,14 @@ class Package
   activateConfig: ->
     return if @configActivated
 
-    @requireMainModule() unless @mainModule?
-    if @mainModule?
-      if @mainModule.config? and typeof @mainModule.config is 'object'
-        @config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      @mainModule.activateConfig?()
+    if configSchema = @metadata.configSchema
+      @config.setSchema @name, {type: 'object', properties: configSchema}
+    else
+      @requireMainModule() unless @mainModule?
+      if @mainModule?
+        if @mainModule.config? and typeof @mainModule.config is 'object'
+          @config.setSchema @name, {type: 'object', properties: @mainModule.config}
+        @mainModule.activateConfig?()
     @configActivated = true
 
   activateStylesheets: ->

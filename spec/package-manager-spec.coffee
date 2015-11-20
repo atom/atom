@@ -194,6 +194,21 @@ describe "PackageManager", ->
           expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
           expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
 
+      it "assigns the config schema when the package contains a schema in its package.json", ->
+        expect(atom.config.get('package-with-json-config-schema')).toBeUndefined()
+
+        waitsForPromise ->
+          atom.packages.activatePackage('package-with-json-config-schema')
+
+        runs ->
+          expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
+            type: 'object'
+            properties: {
+              a: {type: 'number', default: 5}
+              b: {type: 'string', default: 'five'}
+            }
+          }
+
       describe "when the package metadata includes `activationCommands`", ->
         [mainModule, promise, workspaceCommandListener, registration] = []
 
