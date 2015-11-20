@@ -94,6 +94,19 @@ describe "PackageManager", ->
         state: state2
       }
 
+    it "registers any view providers specified in the package's package.json", ->
+      atom.packages.loadPackage("package-with-view-providers")
+
+      model1 = {worksWithViewProvider1: true}
+      element1 = atom.views.getView(model1)
+      expect(element1 instanceof HTMLDivElement).toBe true
+      expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+      model2 = {worksWithViewProvider2: true}
+      element2 = atom.views.getView(model2)
+      expect(element2 instanceof HTMLDivElement).toBe true
+      expect(element2.dataset.createdBy).toBe 'view-provider-2'
+
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
       it "throws an error", ->

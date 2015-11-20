@@ -1,0 +1,8 @@
+{
+  "name": "package-with-view-providers",
+  "version": "1.0.0",
+  "viewProviders": [
+    "./view-provider-1",
+    "./view-provider-2"
+  ]
+}

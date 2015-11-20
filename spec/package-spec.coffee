@@ -10,6 +10,7 @@ describe "Package", ->
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,
       menuManager: atom.menu, contextMenuManager: atom.contextMenu,
+      deserializerManager: atom.deserializers, viewRegistry: atom.views,
       devMode: false
     )
 

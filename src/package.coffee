@@ -33,7 +33,7 @@ class Package
     {
       @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
       @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
-      @menuManager, @contextMenuManager
+      @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
@@ -85,6 +85,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @loadDeserializers()
+        @loadViewProviders()
         @settingsPromise = @loadSettings()
         @requireMainModule() unless @mainModule? or @activationShouldBeDeferred()
       catch error
@@ -264,6 +265,11 @@ class Package
           deserialize: ->
             deserializeFunction ?= require(deserializePath)
             deserializeFunction.apply(this, arguments)
+    return
+
+  loadViewProviders: ->
+    for implementationPath in @metadata.viewProviders
+      @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
     return
 
   getStylesheetsPath: ->
