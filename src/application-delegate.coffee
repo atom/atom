@@ -72,7 +72,7 @@ class ApplicationDelegate
     remote.getCurrentWindow().toggleDevTools()
 
   executeJavaScriptInWindowDevTools: (code) ->
-    webContents = remote.getCurrentWindow.webContents
+    webContents = remote.getCurrentWindow().webContents
     webContents.executeJavaScript(code)
 
   setWindowDocumentEdited: (edited) ->
