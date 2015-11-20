@@ -658,6 +658,13 @@ describe "Workspace", ->
       waitsForPromise -> workspace.openLicense()
       runs -> expect(workspace.getActivePaneItem().getText()).toMatch /Copyright/
 
+  describe "::isTextEditor(obj)", ->
+    it "returns true when the passed object is an instance of `TextEditor`", ->
+      expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
+      expect(workspace.isTextEditor({getText: ->})).toBe(false)
+      expect(workspace.isTextEditor(null)).toBe(false)
+      expect(workspace.isTextEditor(undefined)).toBe(false)
+
   describe "::observeTextEditors()", ->
     it "invokes the observer with current and future text editors", ->
       observed = []
