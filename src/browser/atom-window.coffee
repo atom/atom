@@ -89,7 +89,7 @@ class AtomWindow
 
   getLoadSettings: ->
     if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
+      hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
@@ -147,7 +147,7 @@ class AtomWindow
         when 1 then @browserWindow.restart()
 
     @browserWindow.webContents.on 'will-navigate', (event, url) =>
-      unless url is @browserWindow.webContents.getUrl()
+      unless url is @browserWindow.webContents.getURL()
         event.preventDefault()
 
     @setupContextMenu()
