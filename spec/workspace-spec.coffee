@@ -1440,6 +1440,7 @@ describe "Workspace", ->
 
   describe "::closeActivePaneItemOrEmptyPaneOrWindow", ->
     beforeEach ->
+      spyOn(atom, 'close')
       waitsForPromise -> atom.workspace.open()
 
     it "closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane", ->
@@ -1467,6 +1468,5 @@ describe "Workspace", ->
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
 
-      spyOn(atom, 'close')
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.close).toHaveBeenCalled()
