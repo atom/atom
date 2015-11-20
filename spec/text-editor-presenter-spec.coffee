@@ -694,6 +694,20 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(explicitHeight: 100, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10, verticalScrollbarWidth: 10)
           expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 20 - 10 # subtract vertical scrollbar width
 
+        describe "when the longest screen row is the first one and it's hidden", ->
+          it "doesn't compute an invalid value (regression)", ->
+            presenter = buildPresenter(tileSize: 2, contentFrameWidth: 10, explicitHeight: 20)
+            editor.setText """
+            a very long long long long long long line
+            b
+            c
+            d
+            e
+            """
+
+            expectStateUpdate presenter, -> presenter.setScrollTop(40)
+            expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
