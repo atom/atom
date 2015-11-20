@@ -259,21 +259,23 @@ class Package
       [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
 
   loadDeserializers: ->
-    for name, implementationPath of @metadata.deserializers
-      do =>
-        deserializePath = path.join(@path, implementationPath)
-        deserializeFunction = null
-        atom.deserializers.add
-          name: name,
-          deserialize: ->
-            deserializeFunction ?= require(deserializePath)
-            deserializeFunction.apply(this, arguments)
-    return
+    if @metadata.deserializers?
+      for name, implementationPath of @metadata.deserializers
+        do =>
+          deserializePath = path.join(@path, implementationPath)
+          deserializeFunction = null
+          atom.deserializers.add
+            name: name,
+            deserialize: ->
+              deserializeFunction ?= require(deserializePath)
+              deserializeFunction.apply(this, arguments)
+      return
 
   loadViewProviders: ->
-    for implementationPath in @metadata.viewProviders
-      @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
-    return
+    if @metadata.viewProviders?
+      for implementationPath in @metadata.viewProviders
+        @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
+      return
 
   getStylesheetsPath: ->
     path.join(@path, 'styles')
