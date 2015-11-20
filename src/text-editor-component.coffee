@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+path = require 'path'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
@@ -227,6 +228,7 @@ class TextEditorComponent
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
     @domNode.addEventListener 'textInput', @onTextInput
+    @domNode.addEventListener 'drop', @onDrop
     @scrollViewNode.addEventListener 'mousedown', @onMouseDown
     @scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
 
@@ -322,6 +324,24 @@ class TextEditorComponent
 
     insertedRange = @editor.insertText(event.data, groupUndo: true)
     inputNode.value = event.data if insertedRange
+
+  onDrop: (event) =>
+    event.stopPropagation()
+    event.preventDefault()
+
+    return unless @isInputEnabled()
+
+    initialPath = event.dataTransfer.getData("initialPath")
+
+    return if initialPath.length is 0
+
+    currentPath = @editor.getPath()
+    directoryPath = path.dirname(currentPath) if currentPath?
+    directoryPath ?= atom.project.getPaths()[0]
+    relativePath = path.relative(directoryPath, initialPath) if directoryPath?
+    relativePath ?= initialPath
+
+    @editor.insertText(relativePath)
 
   onVerticalScroll: (scrollTop) =>
     return if @updateRequested or scrollTop is @presenter.getScrollTop()
