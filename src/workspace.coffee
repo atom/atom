@@ -682,7 +682,7 @@ class Workspace extends Model
       @destroyActivePaneItem()
     else if @getPanes().length > 1
       @destroyActivePane()
-    else
+    else if @config.get('core.closeEmptyWindows')
       atom.close()
 
   # Increase the editor font size by 1px.
