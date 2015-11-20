@@ -23,15 +23,10 @@ module.exports =
 unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
   module.exports.Task = require '../src/task'
 
-  InternalTextEditor = require('../src/text-editor')
-
-  module.exports.isTextEditor = (object) ->
-    object instanceof InternalTextEditor
-
   TextEditor = (params) ->
     atom.workspace.buildTextEditor(params)
 
-  TextEditor.prototype = InternalTextEditor.prototype
+  TextEditor.prototype = require('../src/text-editor').prototype
 
   Object.defineProperty module.exports, 'TextEditor',
     enumerable: true
@@ -40,7 +35,7 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
         The `TextEditor` constructor is no longer public.
 
         To construct a text editor, use `atom.workspace.buildTextEditor()`.
-        To check if an object is a text editor, use the `isTextEditor`
-        function in the `atom` exports. (e.g. `{isTextEditor} = require('atom'))`
+        To check if an object is a text editor, look for for the existence of
+        a public method that you're using (e.g. `::getText`).
       """
       TextEditor

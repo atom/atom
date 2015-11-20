@@ -518,6 +518,12 @@ class Workspace extends Model
     @project.bufferForPath(filePath, options).then (buffer) =>
       @buildTextEditor(_.extend({buffer, largeFileMode}, options))
 
+  # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
+  #
+  # * `object` An {Object} you want to perform the check against.
+  isTextEditor: (object) ->
+    object instanceof TextEditor
+
   # Extended: Create a new text editor.
   #
   # Returns a {TextEditor}.
