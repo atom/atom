@@ -1244,14 +1244,7 @@ class TextEditorPresenter
   updateHighlightState: (decorationId, properties, screenRange) ->
     return unless @startRow? and @endRow? and @lineHeight? and @hasPixelPositionRequirements()
 
-    return if screenRange.isEmpty()
-
-    if screenRange.start.row < @startRow
-      screenRange.start.row = @startRow
-      screenRange.start.column = 0
-    if screenRange.end.row >= @endRow
-      screenRange.end.row = @endRow
-      screenRange.end.column = 0
+    @constrainRangeToVisibleRowRange(screenRange)
 
     return if screenRange.isEmpty()
 
@@ -1280,6 +1273,23 @@ class TextEditorPresenter
       @visibleHighlights[tileStartRow][decorationId] = true
 
     true
+
+  constrainRangeToVisibleRowRange: (screenRange) ->
+    if screenRange.start.row < @startRow
+      screenRange.start.row = @startRow
+      screenRange.start.column = 0
+
+    if screenRange.end.row < @startRow
+      screenRange.end.row = @startRow
+      screenRange.end.column = 0
+
+    if screenRange.start.row >= @endRow
+      screenRange.start.row = @endRow
+      screenRange.start.column = 0
+
+    if screenRange.end.row >= @endRow
+      screenRange.end.row = @endRow
+      screenRange.end.column = 0
 
   repositionRegionWithinTile: (region, tileStartRow) ->
     region.top  += @scrollTop - tileStartRow * @lineHeight
