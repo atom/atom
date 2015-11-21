@@ -581,10 +581,7 @@ class TextEditor extends Model
   #
   # Returns a {String}.
   getTitle: ->
-    if sessionPath = @getPath()
-      path.basename(sessionPath)
-    else
-      'untitled'
+    @getFileName() ? 'untitled'
 
   # Essential: Get unique title for display in other parts of the UI, such as
   # the window title.
@@ -593,40 +590,51 @@ class TextEditor extends Model
   # If the editor's buffer is saved, its unique title is formatted as one
   # of the following,
   # * "<filename>" when it is the only editing buffer with this file name.
-  # * "<unique-dir-prefix>/.../<filename>", where the "..." may be omitted
-  #   if the the direct parent directory is already different.
+  # * "<filename> — <unique-dir-prefix>" when other buffers have this file name.
   #
   # Returns a {String}
   getLongTitle: ->
-    if sessionPath = @getPath()
-      title = @getTitle()
+    if @getPath()
+      fileName = @getFileName()
 
-      # find text editors with identical file name.
-      paths = []
+      allPathSegments = []
       for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
-        if textEditor.getTitle() is title
-          paths.push(textEditor.getPath())
-      if paths.length is 0
-        return title
-      fileName = path.basename(sessionPath)
+        if textEditor.getFileName() is fileName
+          allPathSegments.push(textEditor.getDirectoryPath().split(path.sep))
 
-      # find the first directory in all these paths that is unique
-      nLevel = 0
-      while (_.some(paths, (apath) -> path.basename(apath) is path.basename(sessionPath)))
-        sessionPath = path.dirname(sessionPath)
-        paths = _.map(paths, (apath) -> path.dirname(apath))
-        nLevel += 1
+      if allPathSegments.length is 0
+        return fileName
 
-      directory = path.basename sessionPath
-      if nLevel > 1
-        path.join(directory, "...", fileName)
-      else
-        path.join(directory, fileName)
+      ourPathSegments = @getDirectoryPath().split(path.sep)
+      allPathSegments.push ourPathSegments
+
+      loop
+        firstSegment = ourPathSegments[0]
+
+        commonBase = _.all(allPathSegments, (pathSegments) -> pathSegments.length > 1 and pathSegments[0] is firstSegment)
+        if commonBase
+          pathSegments.shift() for pathSegments in allPathSegments
+        else
+          break
+
+      "#{fileName} \u2014 #{path.join(pathSegments...)}"
     else
       'untitled'
 
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
+
+  getFileName: ->
+    if fullPath = @getPath()
+      path.basename(fullPath)
+    else
+      null
+
+  getDirectoryPath: ->
+    if fullPath = @getPath()
+      path.dirname(fullPath)
+    else
+      null
 
   # Extended: Returns the {String} character set encoding of this editor's text
   # buffer.
@@ -678,16 +686,16 @@ class TextEditor extends Model
   getSaveDialogOptions: -> {}
 
   checkoutHeadRevision: ->
-    if filePath = this.getPath()
+    if @getPath()
       checkoutHead = =>
-        @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
+        @project.repositoryForDirectory(new Directory(@getDirectoryPath()))
           .then (repository) =>
             repository?.checkoutHeadForEditor(this)
 
       if @config.get('editor.confirmCheckoutHeadRevision')
         @applicationDelegate.confirm
           message: 'Confirm Checkout HEAD Revision'
-          detailedMessage: "Are you sure you want to discard all changes to \"#{path.basename(filePath)}\" since the last Git commit?"
+          detailedMessage: "Are you sure you want to discard all changes to \"#{@getFileName()}\" since the last Git commit?"
           buttons:
             OK: checkoutHead
             Cancel: null
