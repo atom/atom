@@ -55,7 +55,7 @@ module.exports = (gruntObject) ->
 
     zipAssets buildDir, assets, (error) ->
       return done(error) if error?
-      uploadAssets(null, buildDir, assets, done)
+      uploadAssets({tag_name: '1.1'}, buildDir, assets, done)
 
     # zipAssets buildDir, assets, (error) ->
     #   return done(error) if error?
