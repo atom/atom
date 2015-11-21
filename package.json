@@ -16,7 +16,6 @@
   "dependencies": {
     "async": "0.2.6",
     "atom-keymap": "^6.1.1",
-    "aws-sdk": "^2.2.18",
     "babel-core": "^5.8.21",
     "bootstrap": "^3.3.4",
     "cached-run-in-this-context": "0.4.0",
