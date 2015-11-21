@@ -155,7 +155,7 @@ class Workspace extends Model
     projectPaths = @project.getPaths() ? []
     if item = @getActivePaneItem()
       itemPath = item.getPath?()
-      itemTitle = item.getTitle?()
+      itemTitle = item.getLongTitle?() ? item.getTitle?()
       projectPath = _.find projectPaths, (projectPath) ->
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
