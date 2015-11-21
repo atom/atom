@@ -247,10 +247,11 @@ uploadAssets = (release, buildDir, assets, callback) ->
       secretAccessKey: s3Secret
     s3 = new AWS.S3 s3Info
 
+    key = "releases/#{release.tag_name}/#{assetName}"
     uploadParams =
       Bucket: s3Bucket
       ACL: 'public-read'
-      Key: "releases/#{assetName}"
+      Key: key
       Body: fs.createReadStream(assetPath)
     s3.upload uploadParams, (error, data) ->
       if error?
