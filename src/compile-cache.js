@@ -166,10 +166,17 @@ function prepareStackTraceWithRawStack (error, frames) {
   return sourceMapPrepareStackTrace(error, frames)
 }
 
+let prepareStackTrace = prepareStackTraceWithRawStack
+
 // Prevent coffee-script from reassigning Error.prepareStackTrace
 Object.defineProperty(Error, 'prepareStackTrace', {
-  get: function () { return prepareStackTraceWithRawStack },
-  set: function (newValue) {}
+  get: function () { return prepareStackTrace },
+  set: function (newValue) {
+    prepareStackTrace = newValue
+    process.nextTick(function () {
+      prepareStackTrace = prepareStackTraceWithRawStack
+    })
+  }
 })
 
 Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native

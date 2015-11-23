@@ -69,3 +69,15 @@ describe 'CompileCache', ->
 
         CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome)
         expect(CSONParser.parse.callCount).toBe 1
+
+  describe 'overriding Error.prepareStackTrace', ->
+    it 'removes the override on the next tick', ->
+      Error.prepareStackTrace = -> 'a-stack-trace'
+
+      error = new Error("Oops")
+      expect(error.stack).toBe 'a-stack-trace'
+
+      waits(1)
+      runs ->
+        error = new Error("Oops again")
+        expect(error.stack).not.toBe 'a-stack-trace'
