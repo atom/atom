@@ -8,3 +8,4 @@ See https://atom.io/releases
 * Fixed copying and pasting in native input fields.
 * By default, windows with no pane items are now closed via the `core:close` command. The previous behavior can be restored via the `Close Empty Windows` option in settings.
 * Fixed an issue where characters were inserted when toggling the settings view on some keyboard layouts.
+* Modules can now temporarily override `Error.prepareStackTrace`. There is also an `Error.prototype.getRawStack()` method if you just need access to the raw v8 trace structure.
