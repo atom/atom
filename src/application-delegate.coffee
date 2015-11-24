@@ -66,13 +66,13 @@ class ApplicationDelegate
     ipc.send("call-window-method", "setFullScreen", fullScreen)
 
   openWindowDevTools: ->
-    remote.getCurrentWindow().openDevTools()
+    ipc.send("call-window-method", "openDevTools")
 
   toggleWindowDevTools: ->
-    remote.getCurrentWindow().toggleDevTools()
+    ipc.send("call-window-method", "toggleDevTools")
 
   executeJavaScriptInWindowDevTools: (code) ->
-    remote.getCurrentWindow().executeJavaScriptInDevTools(code)
+    ipc.send("call-window-method", "executeJavaScriptInDevTools", code)
 
   setWindowDocumentEdited: (edited) ->
     ipc.send("call-window-method", "setDocumentEdited", edited)
