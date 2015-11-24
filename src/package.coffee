@@ -86,11 +86,21 @@ class Package
         @loadStylesheets()
         @loadDeserializers()
         @loadViewProviders()
+        @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
-        @requireMainModule() unless @mainModule? or @activationShouldBeDeferred()
+        if @shouldRequireMainModuleOnLoad() and not @mainModule?
+          @requireMainModule()
       catch error
         @handleError("Failed to load the #{@name} package", error)
     this
+
+  shouldRequireMainModuleOnLoad: ->
+    not (
+      @metadata.deserializers? or
+      @metadata.viewProviders? or
+      @metadata.configSchema? or
+      @activationShouldBeDeferred()
+    )
 
   reset: ->
     @stylesheets = []
@@ -119,9 +129,11 @@ class Package
 
   activateNow: ->
     try
-      @activateConfig()
+      @requireMainModule() unless @mainModule?
+      @registerConfigSchemaFromMainModule()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
+        @mainModule.activateConfig?()
         @mainModule.activate?(@packageManager.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
@@ -130,18 +142,19 @@ class Package
 
     @resolveActivationPromise?()
 
-  activateConfig: ->
-    return if @configActivated
-
+  registerConfigSchemaFromMetadata: ->
     if configSchema = @metadata.configSchema
       @config.setSchema @name, {type: 'object', properties: configSchema}
-    else
-      @requireMainModule() unless @mainModule?
-      if @mainModule?
-        if @mainModule.config? and typeof @mainModule.config is 'object'
-          @config.setSchema @name, {type: 'object', properties: @mainModule.config}
-        @mainModule.activateConfig?()
-    @configActivated = true
+      @configSchemaRegistered = true
+
+  registerConfigSchemaFromMainModule: ->
+    return if @configSchemaRegistered
+
+    if @mainModule?
+      if @mainModule.config? and typeof @mainModule.config is 'object'
+        @config.setSchema @name, {type: 'object', properties: @mainModule.config}
+
+    @configSchemaRegistered = true
 
   activateStylesheets: ->
     return if @stylesheetsActivated
@@ -368,19 +381,15 @@ class Package
     @resolveActivationPromise = null
     @activationCommandSubscriptions?.dispose()
     @deactivateResources()
-    @deactivateConfig()
     @deactivateKeymaps()
     if @mainActivated
       try
         @mainModule?.deactivate?()
+        @mainModule?.deactivateConfig?()
         @mainActivated = false
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
     @emitter.emit 'did-deactivate'
-
-  deactivateConfig: ->
-    @mainModule?.deactivateConfig?()
-    @configActivated = false
 
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars

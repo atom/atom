@@ -1,5 +1,6 @@
 {
   "name": "package-with-view-providers",
+  "main": "./index",
   "version": "1.0.0",
   "viewProviders": [
     "./view-provider-1",
