@@ -96,20 +96,57 @@ describe "PackageManager", ->
 
       expect(pack.mainModule).toBeNull()
 
-    it "registers any view providers specified in the package's package.json", ->
-      pack = atom.packages.loadPackage("package-with-view-providers")
-
+    describe "when there are view providers specified in the package's package.json", ->
       model1 = {worksWithViewProvider1: true}
-      element1 = atom.views.getView(model1)
-      expect(element1 instanceof HTMLDivElement).toBe true
-      expect(element1.dataset.createdBy).toBe 'view-provider-1'
-
       model2 = {worksWithViewProvider2: true}
-      element2 = atom.views.getView(model2)
-      expect(element2 instanceof HTMLDivElement).toBe true
-      expect(element2.dataset.createdBy).toBe 'view-provider-2'
 
-      expect(pack.mainModule).toBeNull()
+      afterEach ->
+        atom.packages.deactivatePackage('package-with-view-providers')
+        atom.packages.unloadPackage('package-with-view-providers')
+
+      it "does not load the view providers immediately", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+        expect(pack.mainModule).toBeNull()
+
+        expect(-> atom.views.getView(model1)).toThrow()
+        expect(-> atom.views.getView(model2)).toThrow()
+
+      it "registers the view providers when the package is activated", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-view-providers").then ->
+            element1 = atom.views.getView(model1)
+            expect(element1 instanceof HTMLDivElement).toBe true
+            expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+            element2 = atom.views.getView(model2)
+            expect(element2 instanceof HTMLDivElement).toBe true
+            expect(element2.dataset.createdBy).toBe 'view-provider-2'
+
+      it "registers the view providers when any of the package's deserializers are used", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+
+        spyOn(atom.views, 'addViewProvider').andCallThrough()
+        atom.deserializers.deserialize({
+          deserializer: 'DeserializerFromPackageWithViewProviders',
+          a: 'b'
+        })
+        expect(atom.views.addViewProvider.callCount).toBe 2
+
+        atom.deserializers.deserialize({
+          deserializer: 'DeserializerFromPackageWithViewProviders',
+          a: 'b'
+        })
+        expect(atom.views.addViewProvider.callCount).toBe 2
+
+        element1 = atom.views.getView(model1)
+        expect(element1 instanceof HTMLDivElement).toBe true
+        expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+        element2 = atom.views.getView(model2)
+        expect(element2 instanceof HTMLDivElement).toBe true
+        expect(element2.dataset.createdBy).toBe 'view-provider-2'
 
     it "registers the config schema in the package's metadata, if present", ->
       pack = atom.packages.loadPackage("package-with-json-config-schema")

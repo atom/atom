@@ -85,7 +85,6 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @loadDeserializers()
-        @loadViewProviders()
         @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -131,6 +130,7 @@ class Package
     try
       @requireMainModule() unless @mainModule?
       @registerConfigSchemaFromMainModule()
+      @registerViewProviders()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
         @mainModule.activateConfig?()
@@ -279,16 +279,17 @@ class Package
           deserializeFunction = null
           atom.deserializers.add
             name: name,
-            deserialize: ->
+            deserialize: =>
+              @registerViewProviders()
               deserializeFunction ?= require(deserializePath)
               deserializeFunction.apply(this, arguments)
       return
 
-  loadViewProviders: ->
-    if @metadata.viewProviders?
+  registerViewProviders: ->
+    if @metadata.viewProviders? and not @registeredViewProviders
       for implementationPath in @metadata.viewProviders
         @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
-      return
+      @registeredViewProviders = true
 
   getStylesheetsPath: ->
     path.join(@path, 'styles')
