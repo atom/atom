@@ -381,8 +381,8 @@ class Config
   # ```
   #
   # * `keyPath` {String} name of the key to observe
-  # * `options` {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -412,8 +412,8 @@ class Config
   #
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
-  # * `optional` (optional) {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
