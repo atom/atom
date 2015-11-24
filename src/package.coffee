@@ -85,7 +85,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @loadDeserializers()
-        @registerConfigSchemaFromMetadata()
+        @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
           @requireMainModule()
@@ -130,7 +130,7 @@ class Package
   activateNow: ->
     try
       @requireMainModule() unless @mainModule?
-      @registerConfigSchemaFromMainModule()
+      @configSchemaRegisteredOnActivate = @registerConfigSchemaFromMainModule()
       @registerViewProviders()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
@@ -146,16 +146,16 @@ class Package
   registerConfigSchemaFromMetadata: ->
     if configSchema = @metadata.configSchema
       @config.setSchema @name, {type: 'object', properties: configSchema}
-      @configSchemaRegistered = true
+      true
+    else
+      false
 
   registerConfigSchemaFromMainModule: ->
-    return if @configSchemaRegistered
-
-    if @mainModule?
+    if @mainModule? and not @configSchemaRegisteredOnLoad
       if @mainModule.config? and typeof @mainModule.config is 'object'
         @config.setSchema @name, {type: 'object', properties: @mainModule.config}
-
-    @configSchemaRegistered = true
+        return true
+    false
 
   activateStylesheets: ->
     return if @stylesheetsActivated
@@ -382,6 +382,7 @@ class Package
     @activationPromise = null
     @resolveActivationPromise = null
     @activationCommandSubscriptions?.dispose()
+    @configSchemaRegisteredOnActivate = false
     @deactivateResources()
     @deactivateKeymaps()
     if @mainActivated
