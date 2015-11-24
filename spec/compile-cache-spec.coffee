@@ -69,3 +69,18 @@ describe 'CompileCache', ->
 
         CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome)
         expect(CSONParser.parse.callCount).toBe 1
+
+  describe 'overriding Error.prepareStackTrace', ->
+    it 'removes the override on the next tick, and always assigns the raw stack', ->
+      Error.prepareStackTrace = -> 'a-stack-trace'
+
+      error = new Error("Oops")
+      expect(error.stack).toBe 'a-stack-trace'
+      expect(Array.isArray(error.getRawStack())).toBe true
+
+      waits(1)
+      runs ->
+        error = new Error("Oops again")
+        console.log error.stack
+        expect(error.stack).toContain('compile-cache-spec.coffee')
+        expect(Array.isArray(error.getRawStack())).toBe true
