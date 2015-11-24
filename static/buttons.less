@@ -32,7 +32,7 @@
   height: auto;
   line-height: 1.3em;
   &.icon:before {
-    font-size: 12px;
+    font-size: @font-size - 2px;
   }
 }
 .btn.btn-sm,
@@ -41,7 +41,7 @@
   height: auto;
   line-height: 1.3em;
   &.icon:before {
-    font-size: 14px;
+    font-size: @font-size + 1px;
   }
 }
 .btn.btn-lg,
@@ -50,6 +50,9 @@
   padding: @component-padding - 2px  @component-padding + 2px;
   height: auto;
   line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size + 6px;
+  }
 }
 
 .btn-group > .btn {
