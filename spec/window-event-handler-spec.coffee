@@ -200,3 +200,34 @@ describe "WindowEventHandler", ->
 
       expect(dispatchedCommands.length).toBe 1
       expect(dispatchedCommands[0].type).toBe 'foo-command'
+
+  describe "native key bindings", ->
+    it "correctly dispatches them to active elements with the '.native-key-bindings' class", ->
+      webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
+      spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
+        webContents: webContentsSpy
+      })
+
+      nativeKeyBindingsInput = document.createElement("input")
+      nativeKeyBindingsInput.classList.add("native-key-bindings")
+      jasmine.attachToDOM(nativeKeyBindingsInput)
+      nativeKeyBindingsInput.focus()
+
+      atom.dispatchApplicationMenuCommand("core:copy")
+      atom.dispatchApplicationMenuCommand("core:paste")
+
+      expect(webContentsSpy.copy).toHaveBeenCalled()
+      expect(webContentsSpy.paste).toHaveBeenCalled()
+
+      webContentsSpy.copy.reset()
+      webContentsSpy.paste.reset()
+
+      normalInput = document.createElement("input")
+      jasmine.attachToDOM(normalInput)
+      normalInput.focus()
+
+      atom.dispatchApplicationMenuCommand("core:copy")
+      atom.dispatchApplicationMenuCommand("core:paste")
+
+      expect(webContentsSpy.copy).not.toHaveBeenCalled()
+      expect(webContentsSpy.paste).not.toHaveBeenCalled()
