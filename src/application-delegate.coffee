@@ -67,6 +67,9 @@ class ApplicationDelegate
 
   openWindowDevTools: ->
     new Promise (resolve) ->
+      # Defer DevTools interaction to the next tick, because using them during
+      # event handling causes some wrong input events to be triggered on
+      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
       process.nextTick ->
         if remote.getCurrentWindow().isDevToolsOpened()
           resolve()
@@ -76,6 +79,9 @@ class ApplicationDelegate
 
   closeWindowDevTools: ->
     new Promise (resolve) ->
+      # Defer DevTools interaction to the next tick, because using them during
+      # event handling causes some wrong input events to be triggered on
+      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
       process.nextTick ->
         unless remote.getCurrentWindow().isDevToolsOpened()
           resolve()
@@ -85,6 +91,9 @@ class ApplicationDelegate
 
   toggleWindowDevTools: ->
     new Promise (resolve) =>
+      # Defer DevTools interaction to the next tick, because using them during
+      # event handling causes some wrong input events to be triggered on
+      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
       process.nextTick =>
         if remote.getCurrentWindow().isDevToolsOpened()
           @closeWindowDevTools().then(resolve)
