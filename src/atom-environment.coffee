@@ -726,9 +726,6 @@ class AtomEnvironment extends Model
     @applicationDelegate.openWindowDevTools()
 
   # Extended: Toggle the visibility of the dev tools for the current window.
-  #
-  # Returns a {Promise} that resolves when the DevTools have been opened or
-  # closed.
   toggleDevTools: ->
     @applicationDelegate.toggleWindowDevTools()
 

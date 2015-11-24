@@ -73,19 +73,8 @@ class ApplicationDelegate
         remote.getCurrentWindow().once("devtools-opened", -> resolve())
         ipc.send("call-window-method", "openDevTools")
 
-  closeWindowDevTools: ->
-    unless remote.getCurrentWindow().isDevToolsOpened()
-      Promise.resolve()
-    else
-      new Promise (resolve) ->
-        remote.getCurrentWindow().once("devtools-closed", -> resolve())
-        ipc.send("call-window-method", "closeDevTools")
-
   toggleWindowDevTools: ->
-    if remote.getCurrentWindow().isDevToolsOpened()
-      @closeWindowDevTools()
-    else
-      @openWindowDevTools()
+    ipc.send("call-window-method", "toggleDevTools")
 
   executeJavaScriptInWindowDevTools: (code) ->
     ipc.send("call-window-method", "executeJavaScriptInDevTools", code)
