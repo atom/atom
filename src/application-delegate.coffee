@@ -66,15 +66,30 @@ class ApplicationDelegate
     ipc.send("call-window-method", "setFullScreen", fullScreen)
 
   openWindowDevTools: ->
-    if remote.getCurrentWindow().isDevToolsOpened()
-      Promise.resolve()
-    else
-      new Promise (resolve) ->
-        remote.getCurrentWindow().once("devtools-opened", -> resolve())
-        ipc.send("call-window-method", "openDevTools")
+    new Promise (resolve) ->
+      process.nextTick ->
+        if remote.getCurrentWindow().isDevToolsOpened()
+          resolve()
+        else
+          remote.getCurrentWindow().once("devtools-opened", -> resolve())
+          ipc.send("call-window-method", "openDevTools")
+
+  closeWindowDevTools: ->
+    new Promise (resolve) ->
+      process.nextTick ->
+        unless remote.getCurrentWindow().isDevToolsOpened()
+          resolve()
+        else
+          remote.getCurrentWindow().once("devtools-closed", -> resolve())
+          ipc.send("call-window-method", "closeDevTools")
 
   toggleWindowDevTools: ->
-    ipc.send("call-window-method", "toggleDevTools")
+    new Promise (resolve) =>
+      process.nextTick =>
+        if remote.getCurrentWindow().isDevToolsOpened()
+          @closeWindowDevTools().then(resolve)
+        else
+          @openWindowDevTools().then(resolve)
 
   executeJavaScriptInWindowDevTools: (code) ->
     ipc.send("call-window-method", "executeJavaScriptInDevTools", code)
