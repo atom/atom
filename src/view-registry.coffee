@@ -106,6 +106,9 @@ class ViewRegistry
     new Disposable =>
       @providers = @providers.filter (p) -> p isnt provider
 
+  getViewProviderCount: ->
+    @providers.length
+
   # Essential: Get the view associated with an object in the workspace.
   #
   # If you're just *using* the workspace, you shouldn't need to access the view

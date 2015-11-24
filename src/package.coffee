@@ -98,7 +98,8 @@ class Package
       @metadata.deserializers? or
       @metadata.viewProviders? or
       @metadata.configSchema? or
-      @activationShouldBeDeferred()
+      @activationShouldBeDeferred() or
+      localStorage.getItem(@getCanDeferMainModuleRequireStorageKey()) is 'true'
     )
 
   reset: ->
@@ -426,7 +427,13 @@ class Package
     mainModulePath = @getMainModulePath()
     if fs.isFileSync(mainModulePath)
       @mainModuleRequired = true
+
+      previousViewProviderCount = @viewRegistry.getViewProviderCount()
+      previousDeserializerCount = @deserializerManager.getDeserializerCount()
       @mainModule = require(mainModulePath)
+      if (@viewRegistry.getViewProviderCount() is previousViewProviderCount and
+          @deserializerManager.getDeserializerCount() is previousDeserializerCount)
+        localStorage.setItem(@getCanDeferMainModuleRequireStorageKey(), 'true')
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
@@ -619,6 +626,9 @@ class Package
   getIncompatibleNativeModulesStorageKey: ->
     electronVersion = process.versions['electron'] ? process.versions['atom-shell']
     "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
+
+  getCanDeferMainModuleRequireStorageKey: ->
+    "installed-packages:#{@name}:#{@metadata.version}:can-defer-main-module-require"
 
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that

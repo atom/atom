@@ -1,6 +1,7 @@
 path = require 'path'
 Package = require '../src/package'
 {Disposable} = require 'atom'
+{mockLocalStorage} = require './spec-helper'
 
 describe "PackageManager", ->
   workspaceElement = null
@@ -160,6 +161,29 @@ describe "PackageManager", ->
       }
 
       expect(pack.mainModule).toBeNull()
+
+    describe "when a package does not have deserializers, view providers or a config schema in its package.json", ->
+      beforeEach ->
+        atom.packages.unloadPackage('package-with-main')
+        mockLocalStorage()
+
+      it "defers loading the package's main module if the package previously used no Atom APIs when its main module was required", ->
+        pack1 = atom.packages.loadPackage('package-with-main')
+        expect(pack1.mainModule).toBeDefined()
+
+        atom.packages.unloadPackage('package-with-main')
+
+        pack2 = atom.packages.loadPackage('package-with-main')
+        expect(pack2.mainModule).toBeNull()
+
+      it "does not defer loading the package's main module if the package previously used Atom APIs when its main module was required", ->
+        pack1 = atom.packages.loadPackage('package-with-eval-time-api-calls')
+        expect(pack1.mainModule).toBeDefined()
+
+        atom.packages.unloadPackage('package-with-eval-time-api-calls')
+
+        pack2 = atom.packages.loadPackage('package-with-eval-time-api-calls')
+        expect(pack2.mainModule).not.toBeNull()
 
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
