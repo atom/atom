@@ -23,10 +23,11 @@ FOR %%a IN (%*) DO (
 )
 
 rem Getting the process ID in cmd of the current cmd process: http://superuser.com/questions/881789/identify-and-kill-batch-script-started-before
-set T=%TEMP%\sthUnique.tmp
+set T=%TEMP%\atomCmdProcessId-%time::=%.tmp
 wmic process where (Name="WMIC.exe" AND CommandLine LIKE "%%%TIME%%%") get ParentProcessId /value | find "ParentProcessId" >%T%
 set /P A=<%T%
 set PID=%A:~16%
+del %T%
 
 IF "%EXPECT_OUTPUT%"=="YES" (
   SET ELECTRON_ENABLE_LOGGING=YES
