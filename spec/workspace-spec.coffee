@@ -76,7 +76,7 @@ describe "Workspace", ->
           expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
-          expect(document.title).toBe "#{path.basename(editor3.getPath())} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toBe "#{path.basename(editor3.getLongTitle())} - #{atom.project.getPaths()[0]} - Atom"
 
     describe "where there are no open panes or editors", ->
       it "constructs the view with no open editors", ->
@@ -783,8 +783,8 @@ describe "Workspace", ->
           applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
-        item = atom.workspace.getActivePaneItem()
-        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+        item = workspace2.getActivePaneItem()
+        expect(document.title).toBe "#{item.getLongTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()
 
   describe "document edited status", ->
