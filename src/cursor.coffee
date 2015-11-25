@@ -606,7 +606,7 @@ class Cursor extends Model
   wordRegExp: ({includeNonWordCharacters}={}) ->
     includeNonWordCharacters ?= true
     nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
-    segments = ["^[\t ]*$"]
+    segments = ["\\r?\\n[\\t\\s]*\\r?\\n"]
     segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
     if includeNonWordCharacters
       segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
