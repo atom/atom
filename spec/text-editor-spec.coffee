@@ -723,20 +723,19 @@ describe "TextEditor", ->
         editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [9, 2]
 
-      buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
-
-      it "treats lines with only whitespace as a word with CRLF line ending", ->
+      it "treats lines with only whitespace as a word (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
         editor.setCursorBufferPosition([11, 0])
         editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
+        editor.buffer.setText(buffer.getText().replace(/\r\n/g, "\n"))
 
-      it "works when the current line is blank with CRLF line ending", ->
+      it "works when the current line is blank (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
         editor.setCursorBufferPosition([10, 0])
         editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [9, 2]
-
-      buffer.setText(buffer.getText().replace(/\r\n/g, "\n"))
-
+        editor.buffer.setText(buffer.getText().replace(/\r\n/g, "\n"))
 
     describe ".moveToPreviousWordBoundary()", ->
       it "moves the cursor to the previous word boundary", ->
@@ -797,19 +796,18 @@ describe "TextEditor", ->
         editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 8]
 
-      buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
-
-      it "treats lines with only whitespace as a word with CRLF line ending", ->
+      it "treats lines with only whitespace as a word (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
         editor.setCursorBufferPosition([9, 4])
         editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
-      it "works when the current line is blank  with CRLF line ending", ->
+      it "works when the current line is blank (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
         editor.setCursorBufferPosition([10, 0])
         editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 8]
-
-      buffer.setText(buffer.getText().replace(/\r\n/g, "\n"))
+        editor.buffer.setText(buffer.getText().replace(/\r\n/g, "\n"))
 
     describe ".moveToBeginningOfNextWord()", ->
       it "moves the cursor before the first character of the next word", ->
