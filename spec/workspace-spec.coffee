@@ -76,7 +76,7 @@ describe "Workspace", ->
           expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
-          expect(document.title).toBe "#{path.basename(editor3.getPath())} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toBe "#{path.basename(editor3.getLongTitle())} - #{atom.project.getPaths()[0]} - Atom"
 
     describe "where there are no open panes or editors", ->
       it "constructs the view with no open editors", ->
@@ -658,6 +658,13 @@ describe "Workspace", ->
       waitsForPromise -> workspace.openLicense()
       runs -> expect(workspace.getActivePaneItem().getText()).toMatch /Copyright/
 
+  describe "::isTextEditor(obj)", ->
+    it "returns true when the passed object is an instance of `TextEditor`", ->
+      expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
+      expect(workspace.isTextEditor({getText: ->})).toBe(false)
+      expect(workspace.isTextEditor(null)).toBe(false)
+      expect(workspace.isTextEditor(undefined)).toBe(false)
+
   describe "::observeTextEditors()", ->
     it "invokes the observer with current and future text editors", ->
       observed = []
@@ -776,8 +783,8 @@ describe "Workspace", ->
           applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
-        item = atom.workspace.getActivePaneItem()
-        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+        item = workspace2.getActivePaneItem()
+        expect(document.title).toBe "#{item.getLongTitle()} - #{atom.project.getPaths()[0]} - Atom"
         workspace2.destroy()
 
   describe "document edited status", ->
@@ -1438,11 +1445,12 @@ describe "Workspace", ->
         save = -> atom.workspace.saveActivePaneItem()
         expect(save).toThrow()
 
-  describe "::destroyActivePaneItemOrEmptyPane", ->
+  describe "::closeActivePaneItemOrEmptyPaneOrWindow", ->
     beforeEach ->
+      spyOn(atom, 'close')
       waitsForPromise -> atom.workspace.open()
 
-    it "closes the active pane item until all that remains is a single empty pane", ->
+    it "closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane", ->
       atom.config.set('core.destroyEmptyPanes', false)
 
       pane1 = atom.workspace.getActivePane()
@@ -1450,19 +1458,22 @@ describe "Workspace", ->
 
       expect(atom.workspace.getPanes().length).toBe 2
       expect(pane2.getItems().length).toBe 1
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
       expect(atom.workspace.getPanes().length).toBe 2
       expect(pane2.getItems().length).toBe 0
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
       expect(atom.workspace.getPanes().length).toBe 1
       expect(pane1.getItems().length).toBe 1
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
       expect(pane1.getItems().length).toBe 0
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
+
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      expect(atom.close).toHaveBeenCalled()

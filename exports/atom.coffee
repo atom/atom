@@ -35,7 +35,6 @@ unless process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE
         The `TextEditor` constructor is no longer public.
 
         To construct a text editor, use `atom.workspace.buildTextEditor()`.
-        To check if an object is a text editor, look for for the existence of
-        a public method that you're using (e.g. `::getText`).
+        To check if an object is a text editor, use `atom.workspace.isTextEditor(object)`.
       """
       TextEditor

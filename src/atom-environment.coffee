@@ -670,8 +670,7 @@ class AtomEnvironment extends Model
       @emitter.emit 'will-throw-error', eventObject
 
       if openDevTools
-        @openDevTools()
-        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+        @openDevTools().then => @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
@@ -721,10 +720,15 @@ class AtomEnvironment extends Model
   ###
 
   # Extended: Open the dev tools for the current window.
+  #
+  # Returns a {Promise} that resolves when the DevTools have been opened.
   openDevTools: ->
     @applicationDelegate.openWindowDevTools()
 
   # Extended: Toggle the visibility of the dev tools for the current window.
+  #
+  # Returns a {Promise} that resolves when the DevTools have been opened or
+  # closed.
   toggleDevTools: ->
     @applicationDelegate.toggleWindowDevTools()
 
