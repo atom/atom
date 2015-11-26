@@ -28,6 +28,7 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
+    @blockDecorationsDimensions = new Map
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -71,6 +72,7 @@ class TextEditorPresenter
   getPreMeasurementState: ->
     @updating = true
 
+    @updateBlockDecorations() if @shouldUpdateBlockDecorations
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
@@ -140,6 +142,7 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = false
     @shouldUpdateContentState = false
     @shouldUpdateDecorations = false
+    @shouldUpdateBlockDecorations = false
     @shouldUpdateLinesState = false
     @shouldUpdateTilesState = false
     @shouldUpdateCursorsState = false
@@ -158,6 +161,7 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = true
     @shouldUpdateContentState = true
     @shouldUpdateDecorations = true
+    @shouldUpdateBlockDecorations = true
     @shouldUpdateLinesState = true
     @shouldUpdateTilesState = true
     @shouldUpdateCursorsState = true
@@ -188,6 +192,8 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateDecorations = true
       @shouldUpdateOverlaysState = true
+      @shouldUpdateBlockDecorations = true
+      @shouldUpdateVerticalScrollState = true
       @shouldUpdateCustomGutterDecorationState = true
       @emitDidUpdateState()
 
@@ -727,10 +733,19 @@ class TextEditorPresenter
       @scrollHeight = scrollHeight
       @updateScrollTop(@scrollTop)
 
+  getLinesHeight: ->
+    @lineHeight * @model.getScreenLineCount()
+
+  getBlockDecorationsHeight: ->
+    sizes = Array.from(@blockDecorationsDimensions.values())
+    sum = (a, b) -> a + b
+    height = sizes.map((size) -> size.height).reduce(sum, 0)
+    height
+
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      @contentHeight = @lineHeight * @model.getScreenLineCount()
+      @contentHeight = Math.round(@getLinesHeight() + @getBlockDecorationsHeight())
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
@@ -1363,6 +1378,24 @@ class TextEditorPresenter
       @shouldUpdateOverlaysState = true
 
       @emitDidUpdateState()
+
+  setBlockDecorationSize: (decoration, width, height) ->
+    @blockDecorationsDimensions.set(decoration.id, {width, height})
+
+    @shouldUpdateBlockDecorations = true
+    @shouldUpdateVerticalScrollState = true
+    @emitDidUpdateState()
+
+  updateBlockDecorations: ->
+    blockDecorations = {}
+    for decoration in @model.getDecorations(type: "block")
+      blockDecorations[decoration.id] = decoration
+
+    @blockDecorationsDimensions.forEach (value, key) =>
+      unless blockDecorations.hasOwnProperty(key)
+        @blockDecorationsDimensions.delete(key)
+
+    @shouldUpdateVerticalScrollState = true
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

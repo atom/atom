@@ -486,6 +486,39 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 500)
           expect(presenter.getState().verticalScrollbar.scrollHeight).toBe 500
 
+        it "updates when new block decorations are measured, changed or destroyed", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
+          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+          addBlockDecorationAtScreenRow = (screenRow) ->
+            editor.decorateMarker(
+              editor.markScreenPosition([screenRow, 0], invalidate: "never"),
+              type: "block",
+              item: document.createElement("div")
+            )
+
+          blockDecoration1 = addBlockDecorationAtScreenRow(0)
+          blockDecoration2 = addBlockDecorationAtScreenRow(3)
+          blockDecoration3 = addBlockDecorationAtScreenRow(7)
+
+          presenter.setBlockDecorationSize(blockDecoration1, 0, 35.8)
+          presenter.setBlockDecorationSize(blockDecoration2, 0, 50.3)
+          presenter.setBlockDecorationSize(blockDecoration3, 0, 95.2)
+
+          linesHeight = editor.getScreenLineCount() * 10
+          blockDecorationsHeight = Math.round(35.8 + 50.3 + 95.2)
+          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
+
+          presenter.setBlockDecorationSize(blockDecoration2, 0, 100.3)
+
+          blockDecorationsHeight = Math.round(35.8 + 100.3 + 95.2)
+          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
+
+          waitsForStateToUpdate presenter, -> blockDecoration3.destroy()
+          runs ->
+            blockDecorationsHeight = Math.round(35.8 + 100.3)
+            expect(presenter.getState().verticalScrollbar.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
+
         it "updates when the ::lineHeight changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
