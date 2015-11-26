@@ -28,7 +28,7 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
-    @blockDecorationsDimensions = new Map
+    @blockDecorationsDimensionsById = new Map
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -737,7 +737,7 @@ class TextEditorPresenter
     @lineHeight * @model.getScreenLineCount()
 
   getBlockDecorationsHeight: ->
-    sizes = Array.from(@blockDecorationsDimensions.values())
+    sizes = Array.from(@blockDecorationsDimensionsById.values())
     sum = (a, b) -> a + b
     height = sizes.map((size) -> size.height).reduce(sum, 0)
     height
@@ -1380,7 +1380,7 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setBlockDecorationSize: (decoration, width, height) ->
-    @blockDecorationsDimensions.set(decoration.id, {width, height})
+    @blockDecorationsDimensionsById.set(decoration.id, {width, height})
 
     @shouldUpdateBlockDecorations = true
     @shouldUpdateVerticalScrollState = true
@@ -1391,9 +1391,9 @@ class TextEditorPresenter
     for decoration in @model.getDecorations(type: "block")
       blockDecorations[decoration.id] = decoration
 
-    @blockDecorationsDimensions.forEach (value, key) =>
+    @blockDecorationsDimensionsById.forEach (value, key) =>
       unless blockDecorations.hasOwnProperty(key)
-        @blockDecorationsDimensions.delete(key)
+        @blockDecorationsDimensionsById.delete(key)
 
     @shouldUpdateVerticalScrollState = true
 
