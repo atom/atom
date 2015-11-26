@@ -679,6 +679,34 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.maxHeight).toBe(50)
 
       describe ".scrollHeight", ->
+        it "updates when new block decorations are measured, changed or destroyed", ->
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
+          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
+
+          # Setting `null` as the DOM element, as it doesn't really matter here.
+          # Maybe a signal that we should separate models from views?
+          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
+          blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
+          blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
+
+          presenter.setBlockDecorationSize(blockDecoration1, 0, 35.8)
+          presenter.setBlockDecorationSize(blockDecoration2, 0, 50.3)
+          presenter.setBlockDecorationSize(blockDecoration3, 0, 95.2)
+
+          linesHeight = editor.getScreenLineCount() * 10
+          blockDecorationsHeight = Math.round(35.8 + 50.3 + 95.2)
+          expect(presenter.getState().content.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
+
+          presenter.setBlockDecorationSize(blockDecoration2, 0, 100.3)
+
+          blockDecorationsHeight = Math.round(35.8 + 100.3 + 95.2)
+          expect(presenter.getState().content.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
+
+          waitsForStateToUpdate presenter, -> blockDecoration3.destroy()
+          runs ->
+            blockDecorationsHeight = Math.round(35.8 + 100.3)
+            expect(presenter.getState().content.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
+
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(presenter.getState().content.scrollHeight).toBe editor.getScreenLineCount() * 10
