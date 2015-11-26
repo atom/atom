@@ -1398,6 +1398,13 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
+  addBlockDecorationForScreenRow: (screenRow, element) ->
+    @decorateMarker(
+      @markScreenPosition([screenRow, 0], invalidate: "never"),
+      type: "block",
+      element: element
+    )
+
   # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
   # marker moves, is invalidated, or is destroyed, the decoration will be
   # updated to reflect the marker's state.

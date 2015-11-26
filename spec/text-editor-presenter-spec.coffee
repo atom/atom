@@ -490,16 +490,11 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          addBlockDecorationAtScreenRow = (screenRow) ->
-            editor.decorateMarker(
-              editor.markScreenPosition([screenRow, 0], invalidate: "never"),
-              type: "block",
-              item: document.createElement("div")
-            )
-
-          blockDecoration1 = addBlockDecorationAtScreenRow(0)
-          blockDecoration2 = addBlockDecorationAtScreenRow(3)
-          blockDecoration3 = addBlockDecorationAtScreenRow(7)
+          # Setting `null` as the DOM element, as it doesn't really matter here.
+          # Maybe a signal that we should separate models from views?
+          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
+          blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
+          blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
 
           presenter.setBlockDecorationSize(blockDecoration1, 0, 35.8)
           presenter.setBlockDecorationSize(blockDecoration2, 0, 50.3)
