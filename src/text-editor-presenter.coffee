@@ -1379,7 +1379,7 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setBlockDecorationSize: (decoration, width, height) ->
+  setBlockDecorationDimensions: (decoration, width, height) ->
     @blockDecorationsDimensionsById.set(decoration.id, {width, height})
 
     @shouldUpdateBlockDecorations = true

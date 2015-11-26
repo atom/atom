@@ -496,15 +496,15 @@ describe "TextEditorPresenter", ->
           blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
           blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
 
-          presenter.setBlockDecorationSize(blockDecoration1, 0, 35.8)
-          presenter.setBlockDecorationSize(blockDecoration2, 0, 50.3)
-          presenter.setBlockDecorationSize(blockDecoration3, 0, 95.2)
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 35.8)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 50.3)
+          presenter.setBlockDecorationDimensions(blockDecoration3, 0, 95.2)
 
           linesHeight = editor.getScreenLineCount() * 10
           blockDecorationsHeight = Math.round(35.8 + 50.3 + 95.2)
           expect(presenter.getState().verticalScrollbar.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
 
-          presenter.setBlockDecorationSize(blockDecoration2, 0, 100.3)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 100.3)
 
           blockDecorationsHeight = Math.round(35.8 + 100.3 + 95.2)
           expect(presenter.getState().verticalScrollbar.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
@@ -689,15 +689,15 @@ describe "TextEditorPresenter", ->
           blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
           blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
 
-          presenter.setBlockDecorationSize(blockDecoration1, 0, 35.8)
-          presenter.setBlockDecorationSize(blockDecoration2, 0, 50.3)
-          presenter.setBlockDecorationSize(blockDecoration3, 0, 95.2)
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 35.8)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 50.3)
+          presenter.setBlockDecorationDimensions(blockDecoration3, 0, 95.2)
 
           linesHeight = editor.getScreenLineCount() * 10
           blockDecorationsHeight = Math.round(35.8 + 50.3 + 95.2)
           expect(presenter.getState().content.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
 
-          presenter.setBlockDecorationSize(blockDecoration2, 0, 100.3)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 100.3)
 
           blockDecorationsHeight = Math.round(35.8 + 100.3 + 95.2)
           expect(presenter.getState().content.scrollHeight).toBe(linesHeight + blockDecorationsHeight)
@@ -2912,15 +2912,15 @@ describe "TextEditorPresenter", ->
             blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
             blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
 
-            presenter.setBlockDecorationSize(blockDecoration1, 0, 35.8)
-            presenter.setBlockDecorationSize(blockDecoration2, 0, 50.3)
-            presenter.setBlockDecorationSize(blockDecoration3, 0, 95.2)
+            presenter.setBlockDecorationDimensions(blockDecoration1, 0, 35.8)
+            presenter.setBlockDecorationDimensions(blockDecoration2, 0, 50.3)
+            presenter.setBlockDecorationDimensions(blockDecoration3, 0, 95.2)
 
             linesHeight = editor.getScreenLineCount() * 10
             blockDecorationsHeight = Math.round(35.8 + 50.3 + 95.2)
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe(linesHeight + blockDecorationsHeight)
 
-            presenter.setBlockDecorationSize(blockDecoration2, 0, 100.3)
+            presenter.setBlockDecorationDimensions(blockDecoration2, 0, 100.3)
 
             blockDecorationsHeight = Math.round(35.8 + 100.3 + 95.2)
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe(linesHeight + blockDecorationsHeight)
