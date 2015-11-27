@@ -477,6 +477,7 @@ class TextEditorPresenter
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
+        lineState.blockDecorations = @blockDecorationsByScreenRow[screenRow]
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -493,6 +494,7 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
+          blockDecorations: @blockDecorationsByScreenRow[screenRow]
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -1397,6 +1399,7 @@ class TextEditorPresenter
 
   updateBlockDecorations: ->
     @heightsByScreenRow = {}
+    @blockDecorationsByScreenRow = {}
     blockDecorations = {}
 
     # TODO: move into DisplayBuffer
@@ -1409,6 +1412,10 @@ class TextEditorPresenter
 
     for decorationId, decoration of blockDecorations
       screenRow = decoration.getMarker().getHeadScreenPosition().row
+      @blockDecorationsByScreenRow[screenRow] ?= []
+      @blockDecorationsByScreenRow[screenRow].push(decoration)
+
+      continue unless @blockDecorationsDimensionsById.hasOwnProperty(decorationId)
       @heightsByScreenRow[screenRow] ?= @lineHeight
       @heightsByScreenRow[screenRow] += @blockDecorationsDimensionsById[decorationId].height
 
