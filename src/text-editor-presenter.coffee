@@ -706,6 +706,12 @@ class TextEditorPresenter
   getScreenRowHeight: (screenRow) ->
     @heightsByScreenRow[screenRow] or @lineHeight
 
+  getScreenRowsHeight: (startRow, endRow) ->
+    height = 0
+    for screenRow in [startRow...endRow] by 1
+      height += @getScreenRowHeight(screenRow)
+    Math.round(height)
+
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
 
@@ -746,17 +752,11 @@ class TextEditorPresenter
   getLinesHeight: ->
     @lineHeight * @model.getScreenLineCount()
 
-  getBlockDecorationsHeight: (blockDecorations) ->
-    sum = (a, b) -> a + b
-    Array.from(blockDecorations).map((size) -> size.height).reduce(sum, 0)
-
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
       allBlockDecorations = _.values(@blockDecorationsDimensionsById)
-      @contentHeight = Math.round(
-        @getLinesHeight() + @getBlockDecorationsHeight(allBlockDecorations)
-      )
+      @contentHeight = @getScreenRowsHeight(0, @model.getScreenLineCount())
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()

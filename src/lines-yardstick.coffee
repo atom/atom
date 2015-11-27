@@ -186,13 +186,7 @@ class LinesYardstick
     @model.getScreenLineCount()
 
   topPixelPositionForRow: (targetRow) ->
-    top = 0
-    for tileStartRow in [0..@model.getScreenLineCount()] by @presenter.getTileSize()
-      tileEndRow = Math.min(tileStartRow + @presenter.getTileSize(), @model.getScreenLineCount())
-      for row in [tileStartRow...tileEndRow] by 1
-        return top if row is targetRow
-        top += @presenter.getScreenRowHeight(row)
-    top
+    @presenter.getScreenRowsHeight(0, targetRow)
 
   pixelRectForScreenRange: (screenRange, measureVisibleLinesOnly) ->
     if screenRange.end.row > screenRange.start.row
