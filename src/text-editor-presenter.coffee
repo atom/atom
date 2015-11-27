@@ -74,7 +74,7 @@ class TextEditorPresenter
   getPreMeasurementState: ->
     @updating = true
 
-    @updateBlockDecorations() if @shouldUpdateBlockDecorations
+    @updateBlockDecorations()
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
@@ -144,7 +144,6 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = false
     @shouldUpdateContentState = false
     @shouldUpdateDecorations = false
-    @shouldUpdateBlockDecorations = false
     @shouldUpdateLinesState = false
     @shouldUpdateTilesState = false
     @shouldUpdateCursorsState = false
@@ -163,7 +162,6 @@ class TextEditorPresenter
     @shouldUpdateHiddenInputState = true
     @shouldUpdateContentState = true
     @shouldUpdateDecorations = true
-    @shouldUpdateBlockDecorations = true
     @shouldUpdateLinesState = true
     @shouldUpdateTilesState = true
     @shouldUpdateCursorsState = true
@@ -194,7 +192,6 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateDecorations = true
       @shouldUpdateOverlaysState = true
-      @shouldUpdateBlockDecorations = true
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateCustomGutterDecorationState = true
       @emitDidUpdateState()
@@ -1410,32 +1407,27 @@ class TextEditorPresenter
   setBlockDecorationDimensions: (decoration, width, height) ->
     screenRow = decoration.getMarker().getHeadScreenPosition().row
     dimensions = {width, height}
-
-    screenRowDecorations = @blockDecorationsDimensionsByScreenRow[screenRow] ?= {}
-    screenRowDecorations[decoration.id] = dimensions
     @blockDecorationsDimensionsById[decoration.id] = dimensions
 
-    @setScreenRowHeight(
-      screenRow,
-      @lineHeight + @getBlockDecorationsHeight(_.values(screenRowDecorations))
-    )
-
-    @shouldUpdateBlockDecorations = true
     @shouldUpdateVerticalScrollState = true
     @emitDidUpdateState()
 
   updateBlockDecorations: ->
-    # TODO: Move this inside `DisplayBuffer`
+    @heightsByScreenRow = {}
     blockDecorations = {}
+
+    # TODO: move into DisplayBuffer
     for decoration in @model.getDecorations(type: "block")
       blockDecorations[decoration.id] = decoration
 
-    for screenRow, decorations of @blockDecorationsDimensionsByScreenRow
-      for decorationId of decorations when not blockDecorations.hasOwnProperty(decorationId)
+    for decorationId of @blockDecorationsDimensionsById
+      unless blockDecorations.hasOwnProperty(decorationId)
         delete @blockDecorationsDimensionsById[decorationId]
-        delete @blockDecorationsDimensionsByScreenRow[screenRow][decorationId]
 
-    @shouldUpdateVerticalScrollState = true
+    for decorationId, decoration of blockDecorations
+      screenRow = decoration.getMarker().getHeadScreenPosition().row
+      @heightsByScreenRow[screenRow] ?= @lineHeight
+      @heightsByScreenRow[screenRow] += @blockDecorationsDimensionsById[decorationId].height
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
