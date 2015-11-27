@@ -374,6 +374,9 @@ class TextEditorPresenter
   getEndTileRow: ->
     @constrainRow(@tileForRow(@endRow))
 
+  getTileSize: ->
+    @tileSize
+
   isValidScreenRow: (screenRow) ->
     screenRow >= 0 and screenRow < @model.getScreenLineCount()
 
@@ -424,8 +427,8 @@ class TextEditorPresenter
 
       continue if rowsWithinTile.length is 0
 
-      top = @positionForRow(tileStartRow)
-      height = @positionForRow(tileStartRow + @tileSize) - top
+      top = @linesYardstick.topPixelPositionForRow(tileStartRow)
+      height = @linesYardstick.topPixelPositionForRow(tileStartRow + @tileSize) - top
 
       tile = @state.content.tiles[tileStartRow] ?= {}
       tile.top = top - @scrollTop
@@ -697,38 +700,15 @@ class TextEditorPresenter
   getScreenRowHeight: (screenRow) ->
     @heightsByScreenRow[screenRow] or @lineHeight
 
-  setScreenRowHeight: (screenRow, height) ->
-    @heightsByScreenRow[screenRow] = height
-
-  rowForPosition: (position, floor = true) ->
-    top = 0
-    for tileRow in [0..@model.getScreenLineCount()] by @tileSize
-      for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
-        nextTop = top + @getScreenRowHeight(row)
-        if floor
-          return row if nextTop > position
-        else
-          return row if top >= position
-        top = nextTop
-    @model.getScreenLineCount()
-
-  positionForRow: (targetRow) ->
-    top = 0
-    for tileRow in [0..@model.getScreenLineCount()] by @tileSize
-      for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
-        return top if row is targetRow
-        top += @getScreenRowHeight(row)
-    top
-
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
 
-    @startRow = Math.max(0, @rowForPosition(@scrollTop))
+    @startRow = Math.max(0, @linesYardstick.rowForTopPixelPosition(@scrollTop))
 
   updateEndRow: ->
     return unless @scrollTop? and @lineHeight? and @height?
 
-    @endRow = @rowForPosition(@scrollTop + @height + @lineHeight, false)
+    @endRow = @linesYardstick.rowForTopPixelPosition(@scrollTop + @height + @lineHeight, false)
 
   updateRowsPerPage: ->
     rowsPerPage = Math.floor(@getClientHeight() / @lineHeight)

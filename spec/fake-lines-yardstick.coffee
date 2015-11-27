@@ -31,7 +31,7 @@ class FakeLinesYardstick
     targetColumn = screenPosition.column
     baseCharacterWidth = @model.getDefaultCharWidth()
 
-    top = targetRow * @model.getLineHeightInPixels()
+    top = @topPixelPositionForRow(targetRow)
     left = 0
     column = 0
 
@@ -60,17 +60,37 @@ class FakeLinesYardstick
 
     {top, left}
 
-  pixelRectForScreenRange: (screenRange) ->
-    lineHeight = @model.getLineHeightInPixels()
+  rowForTopPixelPosition: (position, floor = true) ->
+    top = 0
+    for tileStartRow in [0..@model.getScreenLineCount()] by @presenter.getTileSize()
+      tileEndRow = Math.min(tileStartRow + @presenter.getTileSize(), @model.getScreenLineCount())
+      for row in [tileStartRow...tileEndRow] by 1
+        nextTop = top + @presenter.getScreenRowHeight(row)
+        if floor
+          return row if nextTop > position
+        else
+          return row if top >= position
+        top = nextTop
+    @model.getScreenLineCount()
 
+  topPixelPositionForRow: (targetRow) ->
+    top = 0
+    for tileStartRow in [0..@model.getScreenLineCount()] by @presenter.getTileSize()
+      tileEndRow = Math.min(tileStartRow + @presenter.getTileSize(), @model.getScreenLineCount())
+      for row in [tileStartRow...tileEndRow] by 1
+        return top if row is targetRow
+        top += @presenter.getScreenRowHeight(row)
+    top
+
+  pixelRectForScreenRange: (screenRange) ->
     if screenRange.end.row > screenRange.start.row
       top = @pixelPositionForScreenPosition(screenRange.start).top
       left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
+      height = @topPixelPositionForRow(screenRange.end.row + 1) - top
       width = @presenter.getScrollWidth()
     else
       {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = lineHeight
+      height = @topPixelPositionForRow(screenRange.end.row + 1) - top
       width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
 
     {top, left, width, height}
