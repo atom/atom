@@ -30,6 +30,7 @@ class TextEditorPresenter
     @customGutterDecorationsByGutterName = {}
     @blockDecorationsDimensionsById = {}
     @blockDecorationsDimensionsByScreenRow = {}
+    @heightsByScreenRow = {}
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -426,17 +427,20 @@ class TextEditorPresenter
 
       continue if rowsWithinTile.length is 0
 
+      top = @positionForRow(tileStartRow)
+      height = @positionForRow(tileStartRow + @tileSize) - top
+
       tile = @state.content.tiles[tileStartRow] ?= {}
-      tile.top = @positionForRow(tileStartRow) - @scrollTop
+      tile.top = top - @scrollTop
       tile.left = -@scrollLeft
-      tile.height = @positionForRow(tileStartRow + @tileSize) - @positionForRow(tileStartRow)
+      tile.height = height
       tile.display = "block"
       tile.zIndex = zIndex
       tile.highlights ?= {}
 
       gutterTile = @lineNumberGutter.tiles[tileStartRow] ?= {}
-      gutterTile.top = @positionForRow(tileStartRow) - @scrollTop
-      gutterTile.height = @positionForRow(tileStartRow + @tileSize) - @positionForRow(tileStartRow)
+      gutterTile.top = top - @scrollTop
+      gutterTile.height = height
       gutterTile.display = "block"
       gutterTile.zIndex = zIndex
 
@@ -693,12 +697,17 @@ class TextEditorPresenter
 
     return
 
+  getScreenRowHeight: (screenRow) ->
+    @heightsByScreenRow[screenRow] or @lineHeight
+
+  setScreenRowHeight: (screenRow, height) ->
+    @heightsByScreenRow[screenRow] = height
+
   rowForPosition: (position, floor = true) ->
     top = 0
     for tileRow in [0..@model.getScreenLineCount()] by @tileSize
       for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
-        blockDecorationsForCurrentRow = _.values(@blockDecorationsDimensionsByScreenRow[row])
-        nextTop = top + @lineHeight + @getBlockDecorationsHeight(blockDecorationsForCurrentRow)
+        nextTop = top + @getScreenRowHeight(row)
         if floor
           return row if nextTop > position
         else
@@ -711,8 +720,7 @@ class TextEditorPresenter
     for tileRow in [0..@model.getScreenLineCount()] by @tileSize
       for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
         return top if row is targetRow
-        blockDecorationsForNextRow = _.values(@blockDecorationsDimensionsByScreenRow[row + 1])
-        top += @lineHeight + @getBlockDecorationsHeight(blockDecorationsForNextRow)
+        top += @getScreenRowHeight(row + 1)
     top
 
   updateStartRow: ->
@@ -1403,9 +1411,14 @@ class TextEditorPresenter
     screenRow = decoration.getMarker().getHeadScreenPosition().row
     dimensions = {width, height}
 
-    @blockDecorationsDimensionsByScreenRow[screenRow] ?= {}
-    @blockDecorationsDimensionsByScreenRow[screenRow][decoration.id] = dimensions
+    screenRowDecorations = @blockDecorationsDimensionsByScreenRow[screenRow] ?= {}
+    screenRowDecorations[decoration.id] = dimensions
     @blockDecorationsDimensionsById[decoration.id] = dimensions
+
+    @setScreenRowHeight(
+      screenRow,
+      @lineHeight + @getBlockDecorationsHeight(_.values(screenRowDecorations))
+    )
 
     @shouldUpdateBlockDecorations = true
     @shouldUpdateVerticalScrollState = true
