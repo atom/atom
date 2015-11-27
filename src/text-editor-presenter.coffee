@@ -638,9 +638,11 @@ class TextEditorPresenter
 
       continue unless @gutterIsVisible(gutter)
       for decorationId, {properties, screenRange} of @customGutterDecorationsByGutterName[gutterName]
+        top = @linesYardstick.topPixelPositionForRow(screenRange.start.row)
+        bottom = @linesYardstick.topPixelPositionForRow(screenRange.end.row + 1)
         @customGutterDecorations[gutterName][decorationId] =
-          top: @lineHeight * screenRange.start.row
-          height: @lineHeight * screenRange.getRowCount()
+          top: top
+          height: bottom - top
           item: properties.item
           class: properties.class
 
@@ -1313,7 +1315,7 @@ class TextEditorPresenter
       screenRange.end.column = 0
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - tileStartRow * @lineHeight
+    region.top  += @scrollTop - @linesYardstick.topPixelPositionForRow(tileStartRow)
     region.left += @scrollLeft
 
   buildHighlightRegions: (screenRange) ->
@@ -1487,7 +1489,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   didChangeFirstVisibleScreenRow: (screenRow) ->
-    @updateScrollTop(screenRow * @lineHeight)
+    @updateScrollTop(@linesYardstick.topPixelPositionForRow(screenRow))
 
   getVerticalScrollMarginInPixels: ->
     Math.round(@model.getVerticalScrollMargin() * @lineHeight)
@@ -1508,8 +1510,8 @@ class TextEditorPresenter
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
 
-    top = screenRange.start.row * @lineHeight
-    bottom = (screenRange.end.row + 1) * @lineHeight
+    top = @linesYardstick.topPixelPositionForRow(screenRange.start.row)
+    bottom = @linesYardstick.topPixelPositionForRow(screenRange.end.row + 1)
 
     if options?.center
       desiredScrollCenter = (top + bottom) / 2
@@ -1581,7 +1583,7 @@ class TextEditorPresenter
 
   restoreScrollTopIfNeeded: ->
     unless @scrollTop?
-      @updateScrollTop(@model.getFirstVisibleScreenRow() * @lineHeight)
+      @updateScrollTop(@linesYardstick.topPixelPositionForRow(@model.getFirstVisibleScreenRow()))
 
   restoreScrollLeftIfNeeded: ->
     unless @scrollLeft?
