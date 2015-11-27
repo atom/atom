@@ -509,6 +509,7 @@ class TextEditorPresenter
     return unless cursor.isVisible() and @startRow <= screenRange.start.row < @endRow
 
     pixelRect = @pixelRectForScreenRange(screenRange)
+    pixelRect.height = @lineHeight
     pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
 
