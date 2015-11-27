@@ -429,14 +429,14 @@ class TextEditorPresenter
       tile = @state.content.tiles[tileStartRow] ?= {}
       tile.top = @positionForRow(tileStartRow) - @scrollTop
       tile.left = -@scrollLeft
-      tile.height = @tileSize * @lineHeight
+      tile.height = @positionForRow(tileStartRow + @tileSize) - @positionForRow(tileStartRow)
       tile.display = "block"
       tile.zIndex = zIndex
       tile.highlights ?= {}
 
       gutterTile = @lineNumberGutter.tiles[tileStartRow] ?= {}
-      gutterTile.top = tileStartRow * @lineHeight - @scrollTop
-      gutterTile.height = @tileSize * @lineHeight
+      gutterTile.top = @positionForRow(tileStartRow) - @scrollTop
+      gutterTile.height = @positionForRow(tileStartRow + @tileSize) - @positionForRow(tileStartRow)
       gutterTile.display = "block"
       gutterTile.zIndex = zIndex
 
@@ -697,7 +697,8 @@ class TextEditorPresenter
     top = 0
     for tileRow in [0..@model.getScreenLineCount()] by @tileSize
       for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
-        nextTop = top + @lineHeight
+        blockDecorationsForCurrentRow = _.values(@blockDecorationsDimensionsByScreenRow[row])
+        nextTop = top + @lineHeight + @getBlockDecorationsHeight(blockDecorationsForCurrentRow)
         if floor
           return row if nextTop > position
         else
@@ -710,7 +711,8 @@ class TextEditorPresenter
     for tileRow in [0..@model.getScreenLineCount()] by @tileSize
       for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
         return top if row is targetRow
-        top += @lineHeight
+        blockDecorationsForNextRow = _.values(@blockDecorationsDimensionsByScreenRow[row + 1])
+        top += @lineHeight + @getBlockDecorationsHeight(blockDecorationsForNextRow)
     top
 
   updateStartRow: ->
