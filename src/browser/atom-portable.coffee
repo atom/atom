@@ -1,6 +1,6 @@
 fs = require 'fs-plus'
 path = require 'path'
-ipc = require 'ipc-renderer'
+ipc = require 'ipc-main'
 
 module.exports =
 class AtomPortable
