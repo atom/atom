@@ -28,7 +28,8 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
-    @blockDecorationsDimensionsById = new Map
+    @blockDecorationsDimensionsById = {}
+    @blockDecorationsDimensionsByScreenRow = {}
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -426,7 +427,7 @@ class TextEditorPresenter
       continue if rowsWithinTile.length is 0
 
       tile = @state.content.tiles[tileStartRow] ?= {}
-      tile.top = tileStartRow * @lineHeight - @scrollTop
+      tile.top = @positionForRow(tileStartRow) - @scrollTop
       tile.left = -@scrollLeft
       tile.height = @tileSize * @lineHeight
       tile.display = "block"
@@ -692,19 +693,35 @@ class TextEditorPresenter
 
     return
 
+  rowForPosition: (position, floor = true) ->
+    top = 0
+    for tileRow in [0..@model.getScreenLineCount()] by @tileSize
+      for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
+        nextTop = top + @lineHeight
+        if floor
+          return row if nextTop > position
+        else
+          return row if top >= position
+        top = nextTop
+    @model.getScreenLineCount()
+
+  positionForRow: (targetRow) ->
+    top = 0
+    for tileRow in [0..@model.getScreenLineCount()] by @tileSize
+      for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
+        return top if row is targetRow
+        top += @lineHeight
+    top
+
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
 
-    startRow = Math.floor(@scrollTop / @lineHeight)
-    @startRow = Math.max(0, startRow)
+    @startRow = Math.max(0, @rowForPosition(@scrollTop))
 
   updateEndRow: ->
     return unless @scrollTop? and @lineHeight? and @height?
 
-    startRow = Math.max(0, Math.floor(@scrollTop / @lineHeight))
-    visibleLinesCount = Math.ceil(@height / @lineHeight) + 1
-    endRow = startRow + visibleLinesCount
-    @endRow = Math.min(@model.getScreenLineCount(), endRow)
+    @endRow = @rowForPosition(@scrollTop + @height + @lineHeight, false)
 
   updateRowsPerPage: ->
     rowsPerPage = Math.floor(@getClientHeight() / @lineHeight)
@@ -736,16 +753,17 @@ class TextEditorPresenter
   getLinesHeight: ->
     @lineHeight * @model.getScreenLineCount()
 
-  getBlockDecorationsHeight: ->
-    sizes = Array.from(@blockDecorationsDimensionsById.values())
+  getBlockDecorationsHeight: (blockDecorations) ->
     sum = (a, b) -> a + b
-    height = sizes.map((size) -> size.height).reduce(sum, 0)
-    height
+    Array.from(blockDecorations).map((size) -> size.height).reduce(sum, 0)
 
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      @contentHeight = Math.round(@getLinesHeight() + @getBlockDecorationsHeight())
+      allBlockDecorations = _.values(@blockDecorationsDimensionsById)
+      @contentHeight = Math.round(
+        @getLinesHeight() + @getBlockDecorationsHeight(allBlockDecorations)
+      )
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
@@ -1380,20 +1398,27 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setBlockDecorationDimensions: (decoration, width, height) ->
-    @blockDecorationsDimensionsById.set(decoration.id, {width, height})
+    screenRow = decoration.getMarker().getHeadScreenPosition().row
+    dimensions = {width, height}
+
+    @blockDecorationsDimensionsByScreenRow[screenRow] ?= {}
+    @blockDecorationsDimensionsByScreenRow[screenRow][decoration.id] = dimensions
+    @blockDecorationsDimensionsById[decoration.id] = dimensions
 
     @shouldUpdateBlockDecorations = true
     @shouldUpdateVerticalScrollState = true
     @emitDidUpdateState()
 
   updateBlockDecorations: ->
+    # TODO: Move this inside `DisplayBuffer`
     blockDecorations = {}
     for decoration in @model.getDecorations(type: "block")
       blockDecorations[decoration.id] = decoration
 
-    @blockDecorationsDimensionsById.forEach (value, key) =>
-      unless blockDecorations.hasOwnProperty(key)
-        @blockDecorationsDimensionsById.delete(key)
+    for screenRow, decorations of @blockDecorationsDimensionsByScreenRow
+      for decorationId of decorations when not blockDecorations.hasOwnProperty(decorationId)
+        delete @blockDecorationsDimensionsById[decorationId]
+        delete @blockDecorationsDimensionsByScreenRow[screenRow][decorationId]
 
     @shouldUpdateVerticalScrollState = true
 
