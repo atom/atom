@@ -171,22 +171,24 @@ describe "TextEditorPresenter", ->
       it "computes each tile's height and scrollTop based on block decorations' height", ->
         presenter = buildPresenter(explicitHeight: 120, scrollTop: 0, lineHeight: 10, tileSize: 2)
 
-        blockDecoration1 = editor.addBlockDecorationForScreenRow(3)
-        blockDecoration2 = editor.addBlockDecorationForScreenRow(5)
-        presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
-        presenter.setBlockDecorationDimensions(blockDecoration2, 0, 40)
+        blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+        blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
+        blockDecoration3 = editor.addBlockDecorationForScreenRow(5)
+        presenter.setBlockDecorationDimensions(blockDecoration1, 0, 1)
+        presenter.setBlockDecorationDimensions(blockDecoration2, 0, 30)
+        presenter.setBlockDecorationDimensions(blockDecoration3, 0, 40)
 
-        expect(stateFn(presenter).tiles[0].height).toBe(20)
+        expect(stateFn(presenter).tiles[0].height).toBe(20 + 1)
         expect(stateFn(presenter).tiles[0].top).toBe(0)
         expect(stateFn(presenter).tiles[2].height).toBe(20 + 30)
-        expect(stateFn(presenter).tiles[2].top).toBe(20)
+        expect(stateFn(presenter).tiles[2].top).toBe(20 + 1)
         expect(stateFn(presenter).tiles[4].height).toBe(20 + 40)
-        expect(stateFn(presenter).tiles[4].top).toBe(20 + 30 + 20)
+        expect(stateFn(presenter).tiles[4].top).toBe(20 + 30 + 20 + 1)
         expect(stateFn(presenter).tiles[6].height).toBe(20)
-        expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30) + 20)
+        expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30) + 20 + 1)
         expect(stateFn(presenter).tiles[8]).toBeUndefined()
 
-        presenter.setScrollTop(20)
+        presenter.setScrollTop(21)
 
         expect(stateFn(presenter).tiles[0]).toBeUndefined()
         expect(stateFn(presenter).tiles[2].height).toBe(20 + 30)

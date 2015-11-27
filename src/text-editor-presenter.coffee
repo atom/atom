@@ -720,7 +720,7 @@ class TextEditorPresenter
     for tileRow in [0..@model.getScreenLineCount()] by @tileSize
       for row in [tileRow...Math.min(tileRow + @tileSize, @model.getScreenLineCount())] by 1
         return top if row is targetRow
-        top += @getScreenRowHeight(row + 1)
+        top += @getScreenRowHeight(row)
     top
 
   updateStartRow: ->
