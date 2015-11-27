@@ -2563,6 +2563,71 @@ describe "TextEditorPresenter", ->
               expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 5, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 6, softWrapped: false}
 
+          describe ".blockDecorations", ->
+            it "adds block decorations' height to the relevant line number state objects, both initially and when decorations change", ->
+              blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+              presenter = buildPresenter()
+              blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
+              blockDecoration3 = editor.addBlockDecorationForScreenRow(3)
+              blockDecoration4 = editor.addBlockDecorationForScreenRow(7)
+
+              presenter.setBlockDecorationDimensions(blockDecoration1, 0, 10)
+              presenter.setBlockDecorationDimensions(blockDecoration2, 0, 20)
+              presenter.setBlockDecorationDimensions(blockDecoration3, 0, 30)
+              presenter.setBlockDecorationDimensions(blockDecoration4, 0, 40)
+
+              waitsForStateToUpdate presenter
+              runs ->
+                expect(lineNumberStateForScreenRow(presenter, 0).blockDecorationsHeight).toBe(10)
+                expect(lineNumberStateForScreenRow(presenter, 1).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 2).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 3).blockDecorationsHeight).toBe(20 + 30)
+                expect(lineNumberStateForScreenRow(presenter, 4).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 5).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 6).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 7).blockDecorationsHeight).toBe(40)
+                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 9).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 10).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(0)
+
+              waitsForStateToUpdate presenter, ->
+                blockDecoration1.getMarker().setHeadBufferPosition([1, 0])
+                blockDecoration2.getMarker().setHeadBufferPosition([5, 0])
+                blockDecoration3.getMarker().setHeadBufferPosition([9, 0])
+
+              runs ->
+                expect(lineNumberStateForScreenRow(presenter, 0).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 1).blockDecorationsHeight).toBe(10)
+                expect(lineNumberStateForScreenRow(presenter, 2).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 3).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 4).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 5).blockDecorationsHeight).toBe(20)
+                expect(lineNumberStateForScreenRow(presenter, 6).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 7).blockDecorationsHeight).toBe(40)
+                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 9).blockDecorationsHeight).toBe(30)
+                expect(lineNumberStateForScreenRow(presenter, 10).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(0)
+
+              waitsForStateToUpdate presenter, ->
+                blockDecoration1.destroy()
+                blockDecoration3.destroy()
+
+              runs ->
+                expect(lineNumberStateForScreenRow(presenter, 0).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 1).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 2).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 3).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 4).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 5).blockDecorationsHeight).toBe(20)
+                expect(lineNumberStateForScreenRow(presenter, 6).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 7).blockDecorationsHeight).toBe(40)
+                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 9).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 10).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(0)
+
             describe ".decorationClasses", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
                 marker1 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
