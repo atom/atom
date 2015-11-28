@@ -24,11 +24,14 @@ class ScrollbarComponent
     switch @orientation
       when 'vertical'
         @newState = state.verticalScrollbar
+        @updateVisible()
         @updateVertical()
       when 'horizontal'
         @newState = state.horizontalScrollbar
+        @updateVisible()
         @updateHorizontal()
 
+  updateVisible: ->
     if @newState.visible isnt @oldState.visible
       if @newState.visible
         @domNode.style.display = ''
