@@ -76,6 +76,7 @@ class TextEditorPresenter
 
     @blockDecorationsPresenter.update()
 
+    @updateBlockDecorationsState()
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
@@ -485,7 +486,7 @@ class TextEditorPresenter
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
-      blockDecorations = this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow)
+      blockDecorations = this.blockDecorationsPresenter.decorationsForScreenRow(screenRow)
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
@@ -1204,6 +1205,13 @@ class TextEditorPresenter
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
     @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
+
+  updateBlockDecorationsState: ->
+    @state.content.blockDecorations = {}
+
+    @blockDecorationsPresenter.getAllDecorationsByScreenRow().forEach (decorations, screenRow) =>
+      decorations.forEach (decoration) =>
+        @state.content.blockDecorations[decoration.id] = {decoration, screenRow}
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}

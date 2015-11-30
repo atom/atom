@@ -2064,6 +2064,72 @@ describe "TextEditorPresenter", ->
               flashCount: 2
             }
 
+      describe ".blockDecorations", ->
+        stateForBlockDecoration = (presenter, decoration) ->
+          presenter.getState().content.blockDecorations[decoration.id]
+
+        it "contains state for block decorations, indicating the screen row they belong to both initially and when their markers move", ->
+          item = {}
+          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, item)
+          blockDecoration2 = editor.addBlockDecorationForScreenRow(4, item)
+          blockDecoration3 = editor.addBlockDecorationForScreenRow(4, item)
+          blockDecoration4 = editor.addBlockDecorationForScreenRow(10, item)
+          presenter = buildPresenter(explicitHeight: 30, scrollTop: 0)
+
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 0
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration2), {
+            decoration: blockDecoration2
+            screenRow: 4
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+            decoration: blockDecoration3
+            screenRow: 4
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration4), {
+            decoration: blockDecoration4
+            screenRow: 10
+          }
+
+          waitsForStateToUpdate presenter, ->
+            editor.getBuffer().insert([0, 0], 'Hello world \n\n\n\n')
+
+          runs ->
+            expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+              decoration: blockDecoration1
+              screenRow: 4
+            }
+            expectValues stateForBlockDecoration(presenter, blockDecoration2), {
+              decoration: blockDecoration2
+              screenRow: 8
+            }
+            expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+              decoration: blockDecoration3
+              screenRow: 8
+            }
+            expectValues stateForBlockDecoration(presenter, blockDecoration4), {
+              decoration: blockDecoration4
+              screenRow: 14
+            }
+
+          waitsForStateToUpdate presenter, ->
+            blockDecoration2.destroy()
+            blockDecoration4.destroy()
+
+          runs ->
+            expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+              decoration: blockDecoration1
+              screenRow: 4
+            }
+            expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
+            expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+              decoration: blockDecoration3
+              screenRow: 8
+            }
+            expect(stateForBlockDecoration(presenter, blockDecoration4)).toBeUndefined()
+
       describe ".overlays", ->
         [item] = []
         stateForOverlay = (presenter, decoration) ->

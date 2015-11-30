@@ -90,7 +90,7 @@ class BlockDecorationsPresenter {
   }
 
   addDecorationToScreenRow (screenRow, decoration) {
-    let decorations = this.getDecorationsByScreenRow(screenRow)
+    let decorations = this.decorationsForScreenRow(screenRow)
     if (!decorations.has(decoration)) {
       decorations.add(decoration)
       this.screenRowByDecoration.set(decoration, screenRow)
@@ -103,19 +103,23 @@ class BlockDecorationsPresenter {
       return
     }
 
-    let decorations = this.getDecorationsByScreenRow(screenRow)
+    let decorations = this.decorationsForScreenRow(screenRow)
     if (decorations.has(decoration)) {
       decorations.delete(decoration)
       this.recalculateScreenRowHeight(screenRow)
     }
   }
 
-  getDecorationsByScreenRow (screenRow) {
+  decorationsForScreenRow (screenRow) {
     if (!this.decorationsByScreenRow.has(screenRow)) {
       this.decorationsByScreenRow.set(screenRow, new Set())
     }
 
     return this.decorationsByScreenRow.get(screenRow)
+  }
+
+  getAllDecorationsByScreenRow () {
+    return this.decorationsByScreenRow
   }
 
   getDecorationDimensions (decoration) {
@@ -124,7 +128,7 @@ class BlockDecorationsPresenter {
 
   recalculateScreenRowHeight (screenRow) {
     let height = 0
-    for (let decoration of this.getDecorationsByScreenRow(screenRow)) {
+    for (let decoration of this.decorationsForScreenRow(screenRow)) {
       height += this.getDecorationDimensions(decoration).height
     }
     this.heightByScreenRow.set(screenRow, height)
