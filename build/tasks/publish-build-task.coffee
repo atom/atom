@@ -251,7 +251,7 @@ uploadAssets = (release, buildDir, assets, callback) ->
       Body: fs.createReadStream(assetPath)
     s3.upload uploadParams, (error, data) ->
       if error?
-        console.log("Upload release asset #{assetName} to S3 failed", error)
+        logError("Upload release asset #{assetName} to S3 failed", error)
         callback(error)
       else
         callback(null, release)
