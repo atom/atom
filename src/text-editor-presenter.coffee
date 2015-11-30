@@ -46,6 +46,7 @@ class TextEditorPresenter
   getLinesYardstick: -> @linesYardstick
 
   destroy: ->
+    @blockDecorationsPresenter.destroy()
     @disposables.dispose()
     clearTimeout(@stoppedScrollingTimeoutId) if @stoppedScrollingTimeoutId?
     clearInterval(@reflowingInterval) if @reflowingInterval?
@@ -199,31 +200,6 @@ class TextEditorPresenter
     @disposables.add @blockDecorationsPresenter.onDidUpdateState =>
       @shouldUpdateVerticalScrollState = true
       @emitDidUpdateState()
-
-    # @disposables.add @
-
-    # @disposables.add @model.onDidAddDecoration (decoration) =>
-    #   return unless decoration.isType("block")
-    #
-    #   didMoveDisposable = decoration.getMarker().onDidChange ({oldHeadScreenPosition, newHeadScreenPosition}) =>
-    #     # @blockDecorationsMoveOperations.add()
-    #     # @moveBlockDecoration(decoration, oldHeadScreenPosition, newHeadScreenPosition)
-    #     @emitDidUpdateState()
-    #   didChangeDisposable = decoration.onDidChangeProperties (properties) =>
-    #     # @changePropertiesOperations.add()
-    #     # @updateBlockDecoration(decoration)
-    #     @emitDidUpdateState()
-    #   didDestroyDisposable = decoration.onDidDestroy =>
-    #     didMoveDisposable.dispose()
-    #     didChangeDisposable.dispose()
-    #     didDestroyDisposable.dispose()
-    #
-    #     # @destroyOperations.add()
-    #     # @destroyBlockDecoration(decoration)
-    #     @emitDidUpdateState()
-    #
-    #   # @addBlockDecoration(decoration)
-    #   @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText =>
@@ -506,7 +482,7 @@ class TextEditorPresenter
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.blockDecorations = this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow)
+        lineState.blockDecorations = Array.from(this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow))
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -523,7 +499,7 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          blockDecorations: this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow)
+          blockDecorations: Array.from(this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow))
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)

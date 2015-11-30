@@ -1280,18 +1280,18 @@ describe "TextEditorPresenter", ->
               waitsForStateToUpdate presenter
               runs ->
                 expect(lineStateForScreenRow(presenter, 0).blockDecorations).toEqual [blockDecoration1]
-                expect(lineStateForScreenRow(presenter, 1).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 1).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toEqual []
                 expect(lineStateForScreenRow(presenter, 3).blockDecorations).toEqual [blockDecoration2]
-                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 5).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 5).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toEqual []
                 expect(lineStateForScreenRow(presenter, 7).blockDecorations).toEqual [blockDecoration3]
-                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 9).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 9).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toEqual []
 
               waitsForStateToUpdate presenter, ->
                 blockDecoration1.getMarker().setHeadBufferPosition([1, 0])
@@ -1299,38 +1299,38 @@ describe "TextEditorPresenter", ->
                 blockDecoration3.getMarker().setHeadBufferPosition([9, 0])
 
               runs ->
-                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toEqual []
                 expect(lineStateForScreenRow(presenter, 1).blockDecorations).toEqual [blockDecoration1]
-                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 3).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 3).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toEqual []
                 expect(lineStateForScreenRow(presenter, 5).blockDecorations).toEqual [blockDecoration2]
-                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 7).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 7).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toEqual []
                 expect(lineStateForScreenRow(presenter, 9).blockDecorations).toEqual [blockDecoration3]
-                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toEqual []
 
               waitsForStateToUpdate presenter, ->
                 blockDecoration1.destroy()
                 blockDecoration3.destroy()
 
               runs ->
-                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 1).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 3).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 1).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 3).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toEqual []
                 expect(lineStateForScreenRow(presenter, 5).blockDecorations).toEqual [blockDecoration2]
-                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 7).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 9).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toBeUndefined()
-                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toBeUndefined()
+                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 7).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 9).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toEqual []
+                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toEqual []
 
           describe ".decorationClasses", ->
             it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
