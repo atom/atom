@@ -421,7 +421,14 @@ class TextEditorPresenter
     screenRowIndex = screenRows.length - 1
     zIndex = 0
 
+    tilesPositions = @linesYardstick.topPixelPositionForRows(
+      @tileForRow(startRow),
+      @tileForRow(endRow) + @tileSize,
+      @tileSize
+    )
+
     for tileStartRow in [@tileForRow(endRow)..@tileForRow(startRow)] by -@tileSize
+      tileEndRow = @constrainRow(tileStartRow + @tileSize)
       rowsWithinTile = []
 
       while screenRowIndex >= 0
@@ -432,8 +439,8 @@ class TextEditorPresenter
 
       continue if rowsWithinTile.length is 0
 
-      top = @linesYardstick.topPixelPositionForRow(tileStartRow)
-      height = @linesYardstick.topPixelPositionForRow(tileStartRow + @tileSize) - top
+      top = Math.round(tilesPositions[tileStartRow])
+      height = Math.round(tilesPositions[tileEndRow] - top)
 
       tile = @state.content.tiles[tileStartRow] ?= {}
       tile.top = top - @scrollTop
@@ -709,13 +716,7 @@ class TextEditorPresenter
     return
 
   getScreenRowHeight: (screenRow) ->
-     @lineHeight + @blockDecorationsPresenter.heightForScreenRow(screenRow)
-
-  getScreenRowsHeight: (startRow, endRow) ->
-    height = 0
-    for screenRow in [startRow...endRow] by 1
-      height += @getScreenRowHeight(screenRow)
-    Math.round(height)
+    @lineHeight + @blockDecorationsPresenter.heightForScreenRow(screenRow)
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
@@ -760,7 +761,9 @@ class TextEditorPresenter
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      @contentHeight = @getScreenRowsHeight(0, @model.getScreenLineCount())
+      @contentHeight = Math.round(
+        @linesYardstick.topPixelPositionForRow(@model.getScreenLineCount())
+      )
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
