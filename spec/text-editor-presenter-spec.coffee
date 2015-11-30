@@ -694,6 +694,20 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(explicitHeight: 100, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10, verticalScrollbarWidth: 10)
           expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 20 - 10 # subtract vertical scrollbar width
 
+        describe "when the longest screen row is the first one and it's hidden", ->
+          it "doesn't compute an invalid value (regression)", ->
+            presenter = buildPresenter(tileSize: 2, contentFrameWidth: 10, explicitHeight: 20)
+            editor.setText """
+            a very long long long long long long line
+            b
+            c
+            d
+            e
+            """
+
+            expectStateUpdate presenter, -> presenter.setScrollTop(40)
+            expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
@@ -1703,6 +1717,18 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> editor.getBuffer().insert([2, 2], "stuff")
 
           expectUndefinedStateForHighlight(presenter, highlight)
+
+        it "does not include highlights that end before the first visible row", ->
+          editor.setText("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.")
+          editor.setSoftWrapped(true)
+          editor.setWidth(100, true)
+          editor.setDefaultCharWidth(10)
+
+          marker = editor.markBufferRange([[0, 0], [0, 4]], invalidate: 'never')
+          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
+          presenter = buildPresenter(explicitHeight: 30, scrollTop: 10, tileSize: 2)
+
+          expect(stateForHighlightInTile(presenter, highlight, 0)).toBeUndefined()
 
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
