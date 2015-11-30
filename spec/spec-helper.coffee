@@ -265,3 +265,9 @@ window.advanceClock = (delta=1) ->
       true
 
   callback() for callback in callbacks
+
+exports.mockLocalStorage = ->
+  items = {}
+  spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item.toString(); undefined
+  spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
+  spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
