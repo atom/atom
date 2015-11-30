@@ -485,11 +485,12 @@ class TextEditorPresenter
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
+      blockDecorations = this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow)
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.blockDecorations = Array.from(this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow))
+        lineState.hasBlockDecorations = blockDecorations.size isnt 0
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -506,7 +507,7 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          blockDecorations: Array.from(this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow))
+          hasBlockDecorations: blockDecorations.size isnt 0
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
