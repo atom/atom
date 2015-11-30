@@ -37,8 +37,8 @@ module.exports = (gruntObject) ->
         isPrerelease = false
       when 'beta'
         isPrerelease = true
-      # else
-      #   return
+      else
+        return
 
     doneCallback = @async()
     startTime = Date.now()
@@ -55,16 +55,12 @@ module.exports = (gruntObject) ->
 
     zipAssets buildDir, assets, (error) ->
       return done(error) if error?
-      uploadAssets({tag_name: 'v1.1'}, buildDir, assets, done)
-
-    # zipAssets buildDir, assets, (error) ->
-    #   return done(error) if error?
-    #   getAtomDraftRelease isPrerelease, channel, (error, release) ->
-    #     return done(error) if error?
-    #     assetNames = (asset.assetName for asset in assets)
-    #     deleteExistingAssets release, assetNames, (error) ->
-    #       return done(error) if error?
-    #       uploadAssets(release, buildDir, assets, done)
+      getAtomDraftRelease isPrerelease, channel, (error, release) ->
+        return done(error) if error?
+        assetNames = (asset.assetName for asset in assets)
+        deleteExistingAssets release, assetNames, (error) ->
+          return done(error) if error?
+          uploadAssets(release, buildDir, assets, done)
 
 getAssets = ->
   {cp} = require('./task-helpers')(grunt)
@@ -263,6 +259,6 @@ uploadAssets = (release, buildDir, assets, callback) ->
   tasks = []
   for {assetName} in assets
     assetPath = path.join(buildDir, assetName)
-    # tasks.push(uploadToReleases.bind(this, release, assetName, assetPath))
+    tasks.push(uploadToReleases.bind(this, release, assetName, assetPath))
     tasks.push(uploadToS3.bind(this, release, assetName, assetPath))
   async.parallel(tasks, callback)
