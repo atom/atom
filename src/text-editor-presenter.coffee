@@ -506,7 +506,7 @@ class TextEditorPresenter
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.blockDecorations = this.blockDecorationsPresenter.blockDecorationsForScreenRow(screenRow)
+        lineState.blockDecorations = this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow)
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -523,7 +523,7 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          blockDecorations: this.blockDecorationsPresenter.blockDecorationsForScreenRow(screenRow)
+          blockDecorations: this.blockDecorationsPresenter.getDecorationsByScreenRow(screenRow)
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -722,7 +722,7 @@ class TextEditorPresenter
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
-        blockDecorationsHeight = @blockDecorationsPresenter.blockDecorationsHeightForScreenRow(screenRow)
+        blockDecorationsHeight = @blockDecorationsPresenter.heightForScreenRow(screenRow)
 
         tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
         visibleLineNumberIds[line.id] = true
@@ -733,7 +733,7 @@ class TextEditorPresenter
     return
 
   getScreenRowHeight: (screenRow) ->
-     @lineHeight + @blockDecorationsPresenter.blockDecorationsHeightForScreenRow(screenRow)
+     @lineHeight + @blockDecorationsPresenter.heightForScreenRow(screenRow)
 
   getScreenRowsHeight: (startRow, endRow) ->
     height = 0
@@ -1419,7 +1419,7 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setBlockDecorationDimensions: (decoration, width, height) ->
-    @blockDecorationsPresenter.setBlockDecorationDimensions(arguments...)
+    @blockDecorationsPresenter.setDimensionsForDecoration(arguments...)
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

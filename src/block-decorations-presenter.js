@@ -7,8 +7,8 @@ class BlockDecorationsPresenter {
   constructor (model) {
     this.model = model
     this.emitter = new Emitter()
-    this.blockDecorationsDimensionsById = new Map
-    this.blockDecorationsByScreenRow = new Map
+    this.dimensionsByDecorationId = new Map
+    this.decorationsByScreenRow = new Map
     this.heightsByScreenRow = new Map
   }
 
@@ -18,58 +18,58 @@ class BlockDecorationsPresenter {
 
   update () {
     this.heightsByScreenRow.clear()
-    this.blockDecorationsByScreenRow.clear()
-    let blockDecorations = new Map
+    this.decorationsByScreenRow.clear()
+    let decorations = new Map
 
     // TODO: move into DisplayBuffer
     for (let decoration of this.model.getDecorations({type: "block"})) {
-      blockDecorations.set(decoration.id, decoration)
+      decorations.set(decoration.id, decoration)
     }
 
-    for (let [decorationId] of this.blockDecorationsDimensionsById) {
-      if (!blockDecorations.has(decorationId)) {
-        this.blockDecorationsDimensionsById.delete(decorationId)
+    for (let [decorationId] of this.dimensionsByDecorationId) {
+      if (!decorations.has(decorationId)) {
+        this.dimensionsByDecorationId.delete(decorationId)
       }
     }
 
-    for (let [decorationId, decoration] of blockDecorations) {
+    for (let [decorationId, decoration] of decorations) {
       let screenRow = decoration.getMarker().getHeadScreenPosition().row
-      this.addBlockDecorationToScreenRow(screenRow, decoration)
-      if (this.hasMeasuredBlockDecoration(decoration)) {
+      this.addDecorationToScreenRow(screenRow, decoration)
+      if (this.hasMeasurementsForDecoration(decoration)) {
         this.addHeightToScreenRow(
           screenRow,
-          this.blockDecorationsDimensionsById.get(decorationId).height
+          this.dimensionsByDecorationId.get(decorationId).height
         )
       }
     }
   }
 
-  setBlockDecorationDimensions (decoration, width, height) {
-    this.blockDecorationsDimensionsById.set(decoration.id, {width, height})
+  setDimensionsForDecoration (decoration, width, height) {
+    this.dimensionsByDecorationId.set(decoration.id, {width, height})
     this.emitter.emit('did-update-state')
   }
 
-  blockDecorationsHeightForScreenRow (screenRow) {
+  heightForScreenRow (screenRow) {
     return Number(this.heightsByScreenRow.get(screenRow)) || 0
   }
 
   addHeightToScreenRow (screenRow, height) {
-    let previousHeight = this.blockDecorationsHeightForScreenRow(screenRow)
+    let previousHeight = this.heightForScreenRow(screenRow)
     let newHeight = previousHeight + height
     this.heightsByScreenRow.set(screenRow, newHeight)
   }
 
-  addBlockDecorationToScreenRow (screenRow, decoration) {
-    let decorations = this.blockDecorationsForScreenRow(screenRow) || []
+  addDecorationToScreenRow (screenRow, decoration) {
+    let decorations = this.getDecorationsByScreenRow(screenRow) || []
     decorations.push(decoration)
-    this.blockDecorationsByScreenRow.set(screenRow, decorations)
+    this.decorationsByScreenRow.set(screenRow, decorations)
   }
 
-  blockDecorationsForScreenRow (screenRow) {
-    return this.blockDecorationsByScreenRow.get(screenRow)
+  getDecorationsByScreenRow (screenRow) {
+    return this.decorationsByScreenRow.get(screenRow)
   }
 
-  hasMeasuredBlockDecoration (decoration) {
-    return this.blockDecorationsDimensionsById.has(decoration.id)
+  hasMeasurementsForDecoration (decoration) {
+    return this.dimensionsByDecorationId.has(decoration.id)
   }
 }
