@@ -168,7 +168,7 @@ describe "TextEditor", ->
         buffer.setPath(undefined)
         expect(editor.getLongTitle()).toBe 'untitled'
 
-      it "returns <parent-directory>/<filename> when opened files has identical file names", ->
+      it "returns '<filename> — <parent-directory>' when opened files have identical file names", ->
         editor1 = null
         editor2 = null
         waitsForPromise ->
@@ -177,10 +177,10 @@ describe "TextEditor", ->
             atom.workspace.open(path.join('sample-theme-2', 'readme')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe 'sample-theme-1/readme'
-          expect(editor2.getLongTitle()).toBe 'sample-theme-2/readme'
+          expect(editor1.getLongTitle()).toBe "readme \u2014 sample-theme-1"
+          expect(editor2.getLongTitle()).toBe "readme \u2014 sample-theme-2"
 
-      it "or returns <parent-directory>/.../<filename> when opened files has identical file names", ->
+      it "returns '<filename> — <parent-directories>' when opened files have identical file and dir names", ->
         editor1 = null
         editor2 = null
         waitsForPromise ->
@@ -189,9 +189,20 @@ describe "TextEditor", ->
             atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe 'sample-theme-1/.../main.js'
-          expect(editor2.getLongTitle()).toBe 'sample-theme-2/.../main.js'
+          expect(editor1.getLongTitle()).toBe "main.js \u2014 sample-theme-1/src/js"
+          expect(editor2.getLongTitle()).toBe "main.js \u2014 sample-theme-2/src/js"
 
+      it "returns '<filename> — <parent-directories>' when opened files have identical file and same parent dir name", ->
+        editor1 = null
+        editor2 = null
+        waitsForPromise ->
+          atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
+            editor1 = o
+            atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'plugin', 'main.js')).then (o) ->
+              editor2 = o
+        runs ->
+          expect(editor1.getLongTitle()).toBe "main.js \u2014 js"
+          expect(editor2.getLongTitle()).toBe "main.js \u2014 js/plugin"
 
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
       observed = []
