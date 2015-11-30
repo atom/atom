@@ -2,6 +2,7 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
+BlockDecorationsPresenter = require './block-decorations-presenter'
 
 module.exports =
 class TextEditorPresenter
@@ -28,9 +29,7 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
-    @blockDecorationsDimensionsById = {}
-    @blockDecorationsDimensionsByScreenRow = {}
-    @heightsByScreenRow = {}
+    @blockDecorationsPresenter = new BlockDecorationsPresenter(@model)
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -74,7 +73,8 @@ class TextEditorPresenter
   getPreMeasurementState: ->
     @updating = true
 
-    @updateBlockDecorations()
+    @blockDecorationsPresenter.update()
+
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
@@ -195,6 +195,35 @@ class TextEditorPresenter
       @shouldUpdateVerticalScrollState = true
       @shouldUpdateCustomGutterDecorationState = true
       @emitDidUpdateState()
+
+    @disposables.add @blockDecorationsPresenter.onDidUpdateState =>
+      @shouldUpdateVerticalScrollState = true
+      @emitDidUpdateState()
+
+    # @disposables.add @
+
+    # @disposables.add @model.onDidAddDecoration (decoration) =>
+    #   return unless decoration.isType("block")
+    #
+    #   didMoveDisposable = decoration.getMarker().onDidChange ({oldHeadScreenPosition, newHeadScreenPosition}) =>
+    #     # @blockDecorationsMoveOperations.add()
+    #     # @moveBlockDecoration(decoration, oldHeadScreenPosition, newHeadScreenPosition)
+    #     @emitDidUpdateState()
+    #   didChangeDisposable = decoration.onDidChangeProperties (properties) =>
+    #     # @changePropertiesOperations.add()
+    #     # @updateBlockDecoration(decoration)
+    #     @emitDidUpdateState()
+    #   didDestroyDisposable = decoration.onDidDestroy =>
+    #     didMoveDisposable.dispose()
+    #     didChangeDisposable.dispose()
+    #     didDestroyDisposable.dispose()
+    #
+    #     # @destroyOperations.add()
+    #     # @destroyBlockDecoration(decoration)
+    #     @emitDidUpdateState()
+    #
+    #   # @addBlockDecoration(decoration)
+    #   @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText =>
@@ -477,7 +506,7 @@ class TextEditorPresenter
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.blockDecorations = @blockDecorationsByScreenRow[screenRow]
+        lineState.blockDecorations = this.blockDecorationsPresenter.blockDecorationsForScreenRow(screenRow)
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -494,7 +523,7 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          blockDecorations: @blockDecorationsByScreenRow[screenRow]
+          blockDecorations: this.blockDecorationsPresenter.blockDecorationsForScreenRow(screenRow)
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -693,7 +722,7 @@ class TextEditorPresenter
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
-        blockDecorationsHeight = @getScreenRowHeight(screenRow) - @lineHeight
+        blockDecorationsHeight = @blockDecorationsPresenter.blockDecorationsHeightForScreenRow(screenRow)
 
         tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
         visibleLineNumberIds[line.id] = true
@@ -704,7 +733,7 @@ class TextEditorPresenter
     return
 
   getScreenRowHeight: (screenRow) ->
-    @heightsByScreenRow[screenRow] or @lineHeight
+     @lineHeight + @blockDecorationsPresenter.blockDecorationsHeightForScreenRow(screenRow)
 
   getScreenRowsHeight: (startRow, endRow) ->
     height = 0
@@ -755,7 +784,6 @@ class TextEditorPresenter
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      allBlockDecorations = _.values(@blockDecorationsDimensionsById)
       @contentHeight = @getScreenRowsHeight(0, @model.getScreenLineCount())
 
     if @contentHeight isnt oldContentHeight
@@ -1391,34 +1419,7 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setBlockDecorationDimensions: (decoration, width, height) ->
-    screenRow = decoration.getMarker().getHeadScreenPosition().row
-    dimensions = {width, height}
-    @blockDecorationsDimensionsById[decoration.id] = dimensions
-
-    @shouldUpdateVerticalScrollState = true
-    @emitDidUpdateState()
-
-  updateBlockDecorations: ->
-    @heightsByScreenRow = {}
-    @blockDecorationsByScreenRow = {}
-    blockDecorations = {}
-
-    # TODO: move into DisplayBuffer
-    for decoration in @model.getDecorations(type: "block")
-      blockDecorations[decoration.id] = decoration
-
-    for decorationId of @blockDecorationsDimensionsById
-      unless blockDecorations.hasOwnProperty(decorationId)
-        delete @blockDecorationsDimensionsById[decorationId]
-
-    for decorationId, decoration of blockDecorations
-      screenRow = decoration.getMarker().getHeadScreenPosition().row
-      @blockDecorationsByScreenRow[screenRow] ?= []
-      @blockDecorationsByScreenRow[screenRow].push(decoration)
-
-      continue unless @blockDecorationsDimensionsById.hasOwnProperty(decorationId)
-      @heightsByScreenRow[screenRow] ?= @lineHeight
-      @heightsByScreenRow[screenRow] += @blockDecorationsDimensionsById[decorationId].height
+    @blockDecorationsPresenter.setBlockDecorationDimensions(arguments...)
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
