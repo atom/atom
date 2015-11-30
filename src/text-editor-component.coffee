@@ -13,6 +13,7 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
+BlockDecorationsComponent = require './block-decorations-component'
 
 module.exports =
 class TextEditorComponent
@@ -59,6 +60,7 @@ class TextEditorComponent
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
+    @blockDecorationsComponent = new BlockDecorationsComponent(@views, @domElementPool)
 
     @domNode = document.createElement('div')
     if @useShadowDOM
@@ -68,9 +70,11 @@ class TextEditorComponent
       insertionPoint.setAttribute('select', 'atom-overlay')
       @domNode.appendChild(insertionPoint)
       @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+      @hostElement.appendChild(@blockDecorationsComponent.getDomNode())
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode, @views)
+      @domNode.appendChild(@blockDecorationsComponent.getDomNode())
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -156,6 +160,7 @@ class TextEditorComponent
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
+    @blockDecorationsComponent.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)

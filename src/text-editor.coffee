@@ -1398,11 +1398,11 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
-  addBlockDecorationForScreenRow: (screenRow, element) ->
+  addBlockDecorationForScreenRow: (screenRow, item) ->
     @decorateMarker(
       @markScreenPosition([screenRow, 0], invalidate: "never"),
       type: "block",
-      element: element
+      item: item
     )
 
   # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
