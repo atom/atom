@@ -249,7 +249,6 @@ uploadAssets = (release, buildDir, assets, callback) ->
       ACL: 'public-read'
       Key: key
       Body: fs.createReadStream(assetPath)
-      CacheControl: 'max-age=0'
     s3.upload uploadParams, (error, data) ->
       if error?
         console.log("Upload release asset #{assetName} to S3 failed", error)
