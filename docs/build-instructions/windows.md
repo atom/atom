@@ -34,7 +34,6 @@ These instructions will assume the use of Git Shell.
   * `--install-dir` - Creates the final built application in this directory.
   * `--build-dir` - Build the application in this directory.
   * `--verbose` - Verbose mode. A lot more information output.
-  * `--no-shortcut` - Don't create a desktop shortcut.
 
 ## Why do I have to use GitHub Desktop?
 
