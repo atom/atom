@@ -31,15 +31,15 @@ module.exports = class GitRepositoryAsync {
     this.repoPromise = Git.Repository.open(path)
     this.isCaseInsensitive = fs.isCaseInsensitive()
 
-    let {project} = options
+    const {project} = options
     this.project = project
 
     if (this.project) {
-      this.subscriptions.add(this.project.onDidAddBuffer((buffer) => {
+      this.subscriptions.add(this.project.onDidAddBuffer(buffer => {
         this.subscribeToBuffer(buffer)
       }))
 
-      this.project.getBuffers().forEach((buffer) => { this.subscribeToBuffer(buffer) })
+      this.project.getBuffers().forEach(buffer => { this.subscribeToBuffer(buffer) })
     }
   }
 
@@ -56,47 +56,39 @@ module.exports = class GitRepositoryAsync {
   }
 
   getPath () {
-    return this.repoPromise.then((repo) => {
-      return repo.path().replace(/\/$/, '')
-    })
+    return this.repoPromise.then(repo => repo.path().replace(/\/$/, ''))
   }
 
   isPathIgnored (_path) {
-    return this.repoPromise.then((repo) => {
-      return Git.Ignore.pathIsIgnored(repo, _path)
-    })
+    return this.repoPromise.then(repo => Git.Ignore.pathIsIgnored(repo, _path))
   }
 
   isPathModified (_path) {
-    return this._filterStatusesByPath(_path).then(function (statuses) {
-      return statuses.filter((status) => {
-        return status.isModified()
-      }).length > 0
+    return this._filterStatusesByPath(_path).then(statuses => {
+      return statuses.filter(status => status.isModified()).length > 0
     })
   }
 
   isPathNew (_path) {
-    return this._filterStatusesByPath(_path).then(function (statuses) {
-      return statuses.filter((status) => {
-        return status.isNew()
-      }).length > 0
+    return this._filterStatusesByPath(_path).then(statuses => {
+      return statuses.filter(status => status.isNew()).length > 0
     })
   }
 
   checkoutHead (_path) {
-    return this.repoPromise.then((repo) => {
-      let checkoutOptions = new Git.CheckoutOptions()
-      checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
-      checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
-      return Git.Checkout.head(repo, checkoutOptions)
-    }).then(() => {
-      return this.getPathStatus(_path)
-    })
+    return this.repoPromise
+      .then(repo => {
+        let checkoutOptions = new Git.CheckoutOptions()
+        checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
+        checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
+        return Git.Checkout.head(repo, checkoutOptions)
+      })
+      .then(() => this.getPathStatus(_path))
   }
 
   checkoutHeadForEditor (editor) {
-    return new Promise(function (resolve, reject) {
-      let filePath = editor.getPath()
+    return new Promise((resolve, reject) => {
+      const filePath = editor.getPath()
       if (filePath) {
         if (editor.buffer.isModified()) {
           editor.buffer.reload()
@@ -105,27 +97,27 @@ module.exports = class GitRepositoryAsync {
       } else {
         reject()
       }
-    }).then((filePath) => {
-      return this.checkoutHead(filePath)
-    })
+    }).then(filePath => this.checkoutHead(filePath))
   }
 
   // Returns a Promise that resolves to the status bit of a given path if it has
   // one, otherwise 'current'.
   getPathStatus (_path) {
     let relativePath
-    return this.repoPromise.then((repo) => {
-      relativePath = this.relativize(_path, repo.workdir())
-      return this._filterStatusesByPath(_path)
-    }).then((statuses) => {
-      let cachedStatus = this.pathStatusCache[relativePath] || 0
-      let status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
-      if (status !== cachedStatus && this.emitter != null) {
-        this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
-      }
-      this.pathStatusCache[relativePath] = status
-      return status
-    })
+    return this.repoPromise
+      .then(repo => {
+        relativePath = this.relativize(_path, repo.workdir())
+        return this._filterStatusesByPath(_path)
+      })
+      .then(statuses => {
+        const cachedStatus = this.pathStatusCache[relativePath] || 0
+        const status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
+        if (status !== cachedStatus && this.emitter != null) {
+          this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
+        }
+        this.pathStatusCache[relativePath] = status
+        return status
+      })
   }
 
   // Get the status of a directory in the repository's working directory.
@@ -138,22 +130,22 @@ module.exports = class GitRepositoryAsync {
   getDirectoryStatus (directoryPath) {
     let relativePath
     // XXX _filterSBD already gets repoPromise
-    return this.repoPromise.then((repo) => {
-      relativePath = this.relativize(directoryPath, repo.workdir())
-      return this._filterStatusesByDirectory(relativePath)
-    }).then((statuses) => {
-      return Promise.all(statuses.map(function (s) { return s.statusBit() })).then(function (bits) {
-        let directoryStatus = 0
-        let filteredBits = bits.filter(function (b) { return b > 0 })
-        if (filteredBits.length > 0) {
-          filteredBits.forEach(function (bit) {
-            directoryStatus |= bit
-          })
-        }
-
-        return directoryStatus
+    return this.repoPromise
+      .then(repo => {
+        relativePath = this.relativize(directoryPath, repo.workdir())
+        return this._filterStatusesByDirectory(relativePath)
       })
-    })
+      .then(statuses => {
+        return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
+          let directoryStatus = 0
+          const filteredBits = bits.filter(b => b > 0)
+          if (filteredBits.length > 0) {
+            filteredBits.forEach(bit => directoryStatus |= bit)
+          }
+
+          return directoryStatus
+        })
+      })
   }
 
   // Get the current branch and update this.branch.
@@ -195,7 +187,7 @@ module.exports = class GitRepositoryAsync {
   // ================
 
   subscribeToBuffer (buffer) {
-    let bufferSubscriptions = new CompositeDisposable()
+    const bufferSubscriptions = new CompositeDisposable()
 
     let getBufferPathStatus = () => {
       let _path = buffer.getPath()
@@ -247,7 +239,7 @@ module.exports = class GitRepositoryAsync {
     }
 
     if (this.isCaseInsensitive) {
-      let lowerCasePath = _path.toLowerCase()
+      const lowerCasePath = _path.toLowerCase()
 
       workingDirectory = workingDirectory.toLowerCase()
       if (lowerCasePath.indexOf(workingDirectory) === 0) {
@@ -263,7 +255,7 @@ module.exports = class GitRepositoryAsync {
   }
 
   getCachedPathStatus (_path) {
-    return this.repoPromise.then((repo) => {
+    return this.repoPromise.then(repo => {
       return this.pathStatusCache[this.relativize(_path, repo.workdir())]
     })
   }
@@ -291,24 +283,22 @@ module.exports = class GitRepositoryAsync {
   _filterStatusesByPath (_path) {
     // Surely I'm missing a built-in way to do this
     let basePath = null
-    return this.repoPromise.then((repo) => {
-      basePath = repo.workdir()
-      return repo.getStatus()
-    }).then((statuses) => {
-      return statuses.filter(function (status) {
-        return _path === path.join(basePath, status.path())
+    return this.repoPromise
+      .then(repo => {
+        basePath = repo.workdir()
+        return repo.getStatus()
       })
-    })
+      .then(statuses => {
+        return statuses.filter(status => _path === path.join(basePath, status.path()))
+      })
   }
 
   _filterStatusesByDirectory (directoryPath) {
-    return this.repoPromise.then(function (repo) {
-      return repo.getStatus()
-    }).then(function (statuses) {
-      return statuses.filter((status) => {
-        return status.path().indexOf(directoryPath) === 0
+    return this.repoPromise
+      .then(repo => repo.getStatus())
+      .then(statuses => {
+        return statuses.filter(status => status.path().indexOf(directoryPath) === 0)
       })
-    })
   }
   // Event subscription
   // ==================
@@ -334,9 +324,7 @@ module.exports = class GitRepositoryAsync {
   isProjectAtRoot () {
     if (this.projectAtRoot === undefined) {
       this.projectAtRoot = Promise.resolve(() => {
-        return this.repoPromise.then((repo) => {
-          return this.project.relativize(repo.workdir)
-        })
+        return this.repoPromise.then(repo => this.project.relativize(repo.workdir))
       })
     }
 
