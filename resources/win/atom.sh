@@ -33,7 +33,6 @@ directory=$(dirname "$0")
 
 WINPS=`ps | grep -i $$`
 PID=`echo $WINPS | cut -d' ' -f 4`
-echo $PID
 
 if [ $EXPECT_OUTPUT ]; then
   export ELECTRON_ENABLE_LOGGING=1

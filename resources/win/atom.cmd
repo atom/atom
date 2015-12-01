@@ -34,7 +34,7 @@ IF "%EXPECT_OUTPUT%"=="YES" (
   IF "%WAIT%"=="YES" (
     "%~dp0\..\..\atom.exe" --pid=%PID% %*
     rem If the wait flag is set, don't exit this process until Atom tells it to.
-	  goto waitLoop
+    goto waitLoop
   )
   ELSE (
     "%~dp0\..\..\atom.exe" %*
@@ -46,7 +46,7 @@ IF "%EXPECT_OUTPUT%"=="YES" (
 goto end
 
 :waitLoop
-	sleep 1
-	goto waitLoop
+  sleep 1
+  goto waitLoop
 
 :end
