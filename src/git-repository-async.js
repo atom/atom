@@ -78,7 +78,7 @@ module.exports = class GitRepositoryAsync {
   checkoutHead (_path) {
     return this.repoPromise
       .then(repo => {
-        let checkoutOptions = new Git.CheckoutOptions()
+        const checkoutOptions = new Git.CheckoutOptions()
         checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
         checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
         return Git.Checkout.head(repo, checkoutOptions)
@@ -189,8 +189,8 @@ module.exports = class GitRepositoryAsync {
   subscribeToBuffer (buffer) {
     const bufferSubscriptions = new CompositeDisposable()
 
-    let getBufferPathStatus = () => {
-      let _path = buffer.getPath()
+    const getBufferPathStatus = () => {
+      const _path = buffer.getPath()
       if (_path) {
         // We don't need to do anything with this promise, we just want the
         // emitted event side effect
