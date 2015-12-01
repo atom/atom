@@ -1,12 +1,14 @@
 'use babel'
 
-const fs = require('fs-plus')
-const path = require('path')
-const temp = require('temp')
-const Git = require('nodegit')
+import fs from 'fs-plus'
+import path from 'path'
+import temp from 'temp'
+import Git from 'nodegit'
 
-const GitRepositoryAsync = require('../src/git-repository-async')
-const Project = require('../src/project')
+import {it, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+
+import GitRepositoryAsync from '../src/git-repository-async'
+import Project from '../src/project'
 
 temp.track()
 
@@ -21,24 +23,6 @@ function copyRepository() {
   return fs.realpathSync(workingDirPath)
 }
 
-function asyncIt(name, fn) {
-  it(name, () => {
-    waitsForPromise(fn)
-  })
-}
-
-function fasyncIt(name, fn) {
-  fit(name, () => {
-    waitsForPromise(fn)
-  })
-}
-
-function xasyncIt(name, fn) {
-  xit(name, () => {
-    waitsForPromise(fn)
-  })
-}
-
 describe('GitRepositoryAsync-js', () => {
   let repo
 
@@ -47,7 +31,7 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('@open(path)', () => {
-    asyncIt('repo is null when no repository is found', async () => {
+    it('repo is null when no repository is found', async () => {
       repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
 
       let threw = false
@@ -65,7 +49,7 @@ describe('GitRepositoryAsync-js', () => {
   describe('.getPath()', () => {
     xit('returns the repository path for a .git directory path')
 
-    asyncIt('returns the repository path for a repository path', async () => {
+    it('returns the repository path for a repository path', async () => {
       repo = openFixture('master.git')
       let repoPath = await repo.getPath()
       expect(repoPath).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
@@ -73,13 +57,13 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('.isPathIgnored(path)', () => {
-    asyncIt('resolves true for an ignored path', async () => {
+    it('resolves true for an ignored path', async () => {
       repo = openFixture('ignore.git')
       let ignored = await repo.isPathIgnored('a.txt')
       expect(ignored).toBeTruthy()
     })
 
-    asyncIt('resolves false for a non-ignored path', async () => {
+    it('resolves false for a non-ignored path', async () => {
       repo = openFixture('ignore.git')
       let ignored = await repo.isPathIgnored('b.txt')
       expect(ignored).toBeFalsy()
@@ -99,23 +83,23 @@ describe('GitRepositoryAsync-js', () => {
     })
 
     describe('when the path is unstaged', () => {
-      asyncIt('resolves false if the path has not been modified', async () => {
+      it('resolves false if the path has not been modified', async () => {
         let modified = await repo.isPathModified(filePath)
         expect(modified).toBeFalsy()
       })
 
-      asyncIt('resolves true if the path is modified', async () => {
+      it('resolves true if the path is modified', async () => {
         fs.writeFileSync(filePath, "change")
         let modified = await repo.isPathModified(filePath)
         expect(modified).toBeTruthy()
       })
 
-      asyncIt('resolves false if the path is new', async () => {
+      it('resolves false if the path is new', async () => {
         let modified = await repo.isPathModified(newPath)
         expect(modified).toBeFalsy()
       })
 
-      asyncIt('resolves false if the path is invalid', async () => {
+      it('resolves false if the path is invalid', async () => {
         let modified = await repo.isPathModified(emptyPath)
         expect(modified).toBeFalsy()
       })
@@ -134,12 +118,12 @@ describe('GitRepositoryAsync-js', () => {
     })
 
     describe('when the path is unstaged', () => {
-      asyncIt('returns true if the path is new', async () => {
+      it('returns true if the path is new', async () => {
         let isNew = await repo.isPathNew(newPath)
         expect(isNew).toBeTruthy()
       })
 
-      asyncIt("returns false if the path isn't new", async () => {
+      it("returns false if the path isn't new", async () => {
         let modified = await repo.isPathModified(newPath)
         expect(modified).toBeFalsy()
       })
@@ -155,7 +139,7 @@ describe('GitRepositoryAsync-js', () => {
       filePath = path.join(workingDirPath, 'a.txt')
     })
 
-    asyncIt('no longer reports a path as modified after checkout', async () => {
+    it('no longer reports a path as modified after checkout', async () => {
       let modified = await repo.isPathModified(filePath)
       expect(modified).toBeFalsy()
 
@@ -170,13 +154,13 @@ describe('GitRepositoryAsync-js', () => {
       expect(modified).toBeFalsy()
     })
 
-    asyncIt('restores the contents of the path to the original text', async () => {
+    it('restores the contents of the path to the original text', async () => {
       fs.writeFileSync(filePath, 'ch ch changes')
       await repo.checkoutHead(filePath)
       expect(fs.readFileSync(filePath, 'utf8')).toBe('')
     })
 
-    asyncIt('fires a did-change-status event if the checkout completes successfully', async () => {
+    it('fires a did-change-status event if the checkout completes successfully', async () => {
       fs.writeFileSync(filePath, 'ch ch changes')
 
       await repo.getPathStatus(filePath)
@@ -236,7 +220,7 @@ describe('GitRepositoryAsync-js', () => {
       filePath = path.join(workingDirectory, 'file.txt')
     })
 
-    asyncIt('trigger a status-changed event when the new status differs from the last cached one', async () => {
+    it('trigger a status-changed event when the new status differs from the last cached one', async () => {
       let statusHandler = jasmine.createSpy("statusHandler")
       repo.onDidChangeStatus(statusHandler)
       fs.writeFileSync(filePath, '')
@@ -263,7 +247,7 @@ describe('GitRepositoryAsync-js', () => {
       filePath = path.join(directoryPath, 'b.txt')
     })
 
-    asyncIt('gets the status based on the files inside the directory', async () => {
+    it('gets the status based on the files inside the directory', async () => {
       await repo.checkoutHead(filePath)
 
       let result = await repo.getDirectoryStatus(directoryPath)
@@ -290,7 +274,7 @@ describe('GitRepositoryAsync-js', () => {
       newPath = fs.absolute(newPath) // specs could be running under symbol path.
     })
 
-    asyncIt('returns status information for all new and modified files', async () => {
+    it('returns status information for all new and modified files', async () => {
       fs.writeFileSync(modifiedPath, 'making this path modified')
       await repo.refreshStatus()
 
@@ -314,7 +298,7 @@ describe('GitRepositoryAsync-js', () => {
       waitsForPromise(() => { return repository.refreshStatus() })
     })
 
-    asyncIt('emits a status-changed event when a buffer is saved', async () => {
+    it('emits a status-changed event when a buffer is saved', async () => {
       let editor = await atom.workspace.open('other.txt')
 
       editor.insertNewline()
@@ -328,7 +312,7 @@ describe('GitRepositoryAsync-js', () => {
       runs(() => expect(called).toEqual({path: editor.getPath(), pathStatus: 256}))
     })
 
-    asyncIt('emits a status-changed event when a buffer is reloaded', async () => {
+    it('emits a status-changed event when a buffer is reloaded', async () => {
       let statusHandler = jasmine.createSpy('statusHandler')
       let reloadHandler = jasmine.createSpy('reloadHandler')
 
@@ -354,7 +338,7 @@ describe('GitRepositoryAsync-js', () => {
       })
     })
 
-    asyncIt("emits a status-changed event when a buffer's path changes", async () => {
+    it("emits a status-changed event when a buffer's path changes", async () => {
       let editor = await atom.workspace.open('other.txt')
 
       fs.writeFileSync(editor.getPath(), 'changed')
@@ -378,7 +362,7 @@ describe('GitRepositoryAsync-js', () => {
       })
     })
 
-    asyncIt('stops listening to the buffer when the repository is destroyed (regression)', async () => {
+    it('stops listening to the buffer when the repository is destroyed (regression)', async () => {
       let editor = await atom.workspace.open('other.txt')
       atom.project.getRepositories()[0].destroy()
       expect(() => editor.save()).not.toThrow()
@@ -401,7 +385,7 @@ describe('GitRepositoryAsync-js', () => {
       if (project2) project2.destroy()
     })
 
-    asyncIt('subscribes to all the serialized buffers in the project', async () => {
+    it('subscribes to all the serialized buffers in the project', async () => {
       await atom.workspace.open('file.txt')
 
       project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
