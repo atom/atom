@@ -124,10 +124,12 @@ module.exports =
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     """
   'tweetnacl@0.13.2':
-    license: 'CC0-1.0'
+    repository: 'https://github.com/dchest/tweetnacl-js'
+    license: 'Public Domain'
     source: 'https://github.com/dchest/tweetnacl-js/blob/2f328394f74d83564634fb89ea2798caa3a4edb9/README.md says public domain.'
   'json-schema@0.2.2':
-    license: 'AFLv2.1'
+    repository: 'https://github.com/kriszyp/json-schema'
+    license: 'BSD'
     source: 'README links to https://github.com/dojo/dojo/blob/8b6a5e4c42f9cf777dd39eaae8b188e0ebb59a4c/LICENSE'
     sourceText: """
     Dojo is available under *either* the terms of the modified BSD license *or* the
