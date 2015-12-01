@@ -20,6 +20,7 @@ class LinesTileComponent
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @textNodesByLineId = {}
+    @insertionPointsByLineId = {}
     @domNode = @domElementPool.buildElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
@@ -80,6 +81,8 @@ class LinesTileComponent
 
   removeLineNode: (id) ->
     @domElementPool.freeElementAndDescendants(@lineNodesByLineId[id])
+    @removeBlockDecorationInsertionPoint(id)
+
     delete @lineNodesByLineId[id]
     delete @textNodesByLineId[id]
     delete @lineIdsByScreenRow[@screenRowsByLineId[id]]
@@ -115,6 +118,31 @@ class LinesTileComponent
         @domNode.insertBefore(lineNode, nextNode)
       else
         @domNode.appendChild(lineNode)
+
+      @insertBlockDecorationInsertionPoint(id)
+
+  removeBlockDecorationInsertionPoint: (id) ->
+    if insertionPoint = @insertionPointsByLineId[id]
+      @domElementPool.freeElementAndDescendants(insertionPoint)
+      delete @insertionPointsByLineId[id]
+
+  insertBlockDecorationInsertionPoint: (id) ->
+    {hasBlockDecorations} = @newTileState.lines[id]
+
+    if hasBlockDecorations
+      lineNode = @lineNodesByLineId[id]
+      insertionPoint = @domElementPool.buildElement("content")
+      @domNode.insertBefore(insertionPoint, lineNode)
+      @insertionPointsByLineId[id] = insertionPoint
+
+      @updateBlockDecorationInsertionPoint(id)
+
+  updateBlockDecorationInsertionPoint: (id) ->
+    {screenRow} = @newTileState.lines[id]
+
+    if insertionPoint = @insertionPointsByLineId[id]
+      insertionPoint.dataset.screenRow = screenRow
+      insertionPoint.setAttribute("select", ".block-decoration-row-#{screenRow}")
 
   findNodeNextTo: (node) ->
     for nextNode, index in @domNode.children
@@ -336,7 +364,16 @@ class LinesTileComponent
 
     oldLineState.decorationClasses = newLineState.decorationClasses
 
+    if not oldLineState.hasBlockDecorations and newLineState.hasBlockDecorations
+      @insertBlockDecorationInsertionPoint(id)
+    else if oldLineState.hasBlockDecorations and not newLineState.hasBlockDecorations
+      @removeBlockDecorationInsertionPoint(id)
+
+    oldLineState.hasBlockDecorations = newLineState.hasBlockDecorations
+
     if newLineState.screenRow isnt oldLineState.screenRow
+      @updateBlockDecorationInsertionPoint(id)
+
       lineNode.dataset.screenRow = newLineState.screenRow
       oldLineState.screenRow = newLineState.screenRow
       @lineIdsByScreenRow[newLineState.screenRow] = id

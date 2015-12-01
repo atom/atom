@@ -5,18 +5,20 @@ cloneObject = (object) ->
 
 module.exports =
 class BlockDecorationsComponent
-  constructor: (@views, @domElementPool) ->
-    @domNode = @domElementPool.buildElement("div")
+  constructor: (@container, @views, @presenter, @domElementPool) ->
     @newState = null
     @oldState = null
     @blockDecorationNodesById = {}
 
-  getDomNode: ->
-    @domNode
-
   updateSync: (state) ->
     @newState = state.content
     @oldState ?= {blockDecorations: {}}
+
+    for id, blockDecorationState of @oldState.blockDecorations
+      unless @newState.blockDecorations.hasOwnProperty(id)
+        @blockDecorationNodesById[id].remove()
+        delete @blockDecorationNodesById[id]
+        delete @oldState.blockDecorations[id]
 
     for id, blockDecorationState of @newState.blockDecorations
       if @oldState.blockDecorations.hasOwnProperty(id)
@@ -26,12 +28,21 @@ class BlockDecorationsComponent
 
       @oldState.blockDecorations[id] = cloneObject(blockDecorationState)
 
+  measureBlockDecorations: ->
+    for decorationId, blockDecorationNode of @blockDecorationNodesById
+      decoration = @newState.blockDecorations[decorationId].decoration
+      @presenter.setBlockDecorationDimensions(
+        decoration,
+        blockDecorationNode.offsetWidth,
+        blockDecorationNode.offsetHeight
+      )
+
   createAndAppendBlockDecorationNode: (id) ->
     blockDecorationState = @newState.blockDecorations[id]
     blockDecorationNode = @views.getView(blockDecorationState.decoration.getProperties().item)
     blockDecorationNode.classList.add("block-decoration-row-#{blockDecorationState.screenRow}")
 
-    @domNode.appendChild(blockDecorationNode)
+    @container.appendChild(blockDecorationNode)
 
     @blockDecorationNodesById[id] = blockDecorationNode
 

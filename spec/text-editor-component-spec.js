@@ -1651,6 +1651,110 @@ describe('TextEditorComponent', function () {
     })
   })
 
+  describe('block decorations rendering', function () {
+    function createBlockDecorationForScreenRowWith(screenRow, {className}) {
+      let item = document.createElement("div")
+      item.className = className || ""
+      let blockDecoration = editor.addBlockDecorationForScreenRow(screenRow, item)
+      return [item, blockDecoration]
+    }
+
+    afterEach(function () {
+      atom.themes.removeStylesheet('test')
+    })
+
+    it("renders all the editor's block decorations, inserting them in the appropriate spots between lines", async function () {
+      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      await nextViewUpdatePromise()
+
+      let [item1, blockDecoration1] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
+      let [item2, blockDecoration2] = createBlockDecorationForScreenRowWith(2, {className: "decoration-2"})
+      let [item3, blockDecoration3] = createBlockDecorationForScreenRowWith(4, {className: "decoration-3"})
+      let [item4, blockDecoration4] = createBlockDecorationForScreenRowWith(7, {className: "decoration-4"})
+
+      atom.styles.addStyleSheet `
+      atom-text-editor .decoration-1 { width: 30px; height: 80px; }
+      atom-text-editor .decoration-2 { width: 30px; height: 40px; }
+      atom-text-editor .decoration-3 { width: 30px; height: 100px; }
+      atom-text-editor .decoration-4 { width: 30px; height: 120px; }
+      `
+
+      await nextViewUpdatePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 80 + 40 + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBe(item1)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+
+      expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 4 + 80 + 40)
+      expect(item4.getBoundingClientRect().height).toBe(0) // hidden
+
+      editor.setCursorScreenPosition([0, 0])
+      editor.insertNewline()
+      blockDecoration1.destroy()
+
+      await nextViewUpdatePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+
+      expect(item1.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
+      expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 40 + 100)
+
+      await nextViewUpdatePromise()
+
+      atom.styles.addStyleSheet `
+      atom-text-editor .decoration-2 { height: 60px !important; }
+      `
+
+      await nextViewUpdatePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+
+      expect(item1.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
+      expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 60 + 100)
+    })
+  })
+
   describe('highlight decoration rendering', function () {
     let decoration, marker, scrollViewClientLeft
 

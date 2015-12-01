@@ -60,7 +60,6 @@ class TextEditorComponent
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
-    @blockDecorationsComponent = new BlockDecorationsComponent(@views, @domElementPool)
 
     @domNode = document.createElement('div')
     if @useShadowDOM
@@ -70,11 +69,11 @@ class TextEditorComponent
       insertionPoint.setAttribute('select', 'atom-overlay')
       @domNode.appendChild(insertionPoint)
       @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
-      @hostElement.appendChild(@blockDecorationsComponent.getDomNode())
+      @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode, @views)
-      @domNode.appendChild(@blockDecorationsComponent.getDomNode())
+      @blockDecorationsComponent = new BlockDecorationsComponent(@domNode, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -177,6 +176,7 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
+    @blockDecorationsComponent.measureBlockDecorations()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
