@@ -661,7 +661,7 @@ describe "Workspace", ->
   describe "::isTextEditor(obj)", ->
     it "returns true when the passed object is an instance of `TextEditor`", ->
       expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
-      expect(workspace.isTextEditor({getText: ->})).toBe(false)
+      expect(workspace.isTextEditor({getText: -> null})).toBe(false)
       expect(workspace.isTextEditor(null)).toBe(false)
       expect(workspace.isTextEditor(undefined)).toBe(false)
 
