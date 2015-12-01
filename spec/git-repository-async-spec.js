@@ -5,18 +5,18 @@ import path from 'path'
 import temp from 'temp'
 import Git from 'nodegit'
 
-import {it, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, beforeEach, afterEach} from './async-spec-helpers'
 
 import GitRepositoryAsync from '../src/git-repository-async'
 import Project from '../src/project'
 
 temp.track()
 
-function openFixture(fixture) {
+function openFixture (fixture) {
   return GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 }
 
-function copyRepository() {
+function copyRepository () {
   let workingDirPath = temp.mkdirSync('atom-working-dir')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
@@ -37,7 +37,7 @@ describe('GitRepositoryAsync-js', () => {
       let threw = false
       try {
         await repo.repoPromise
-      } catch(e) {
+      } catch (e) {
         threw = true
       }
 
@@ -89,7 +89,7 @@ describe('GitRepositoryAsync-js', () => {
       })
 
       it('resolves true if the path is modified', async () => {
-        fs.writeFileSync(filePath, "change")
+        fs.writeFileSync(filePath, 'change')
         let modified = await repo.isPathModified(filePath)
         expect(modified).toBeTruthy()
       })
@@ -107,12 +107,11 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('.isPathNew(path)', () => {
-    let filePath, newPath
+    let newPath
 
     beforeEach(() => {
       let workingDirPath = copyRepository()
       repo = GitRepositoryAsync.open(workingDirPath)
-      filePath = path.join(workingDirPath, 'a.txt')
       newPath = path.join(workingDirPath, 'new-path.txt')
       fs.writeFileSync(newPath, "i'm new here")
     })
@@ -192,7 +191,7 @@ describe('GitRepositoryAsync-js', () => {
     })
 
     xit('displays a confirmation dialog by default', () => {
-      spyOn(atom, 'confirm').andCallFake(buttons, () => buttons[0].OK())
+      spyOn(atom, 'confirm').andCallFake(buttons, () => buttons[0].OK()) // eslint-disable-line
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
 
       waitsForPromise(() => repo.checkoutHeadForEditor(editor))
@@ -221,7 +220,7 @@ describe('GitRepositoryAsync-js', () => {
     })
 
     it('trigger a status-changed event when the new status differs from the last cached one', async () => {
-      let statusHandler = jasmine.createSpy("statusHandler")
+      let statusHandler = jasmine.createSpy('statusHandler')
       repo.onDidChangeStatus(statusHandler)
       fs.writeFileSync(filePath, '')
 
@@ -261,7 +260,7 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('.refreshStatus()', () => {
-    let newPath, modifiedPath, cleanPath, originalModifiedPathText
+    let newPath, modifiedPath, cleanPath
 
     beforeEach(() => {
       let workingDirectory = copyRepository()
@@ -435,7 +434,5 @@ describe('GitRepositoryAsync-js', () => {
       let relativizedPath = repository.relativize(`${workdir}/a/b.txt`, workdir)
       expect(relativizedPath).toBe('a/b.txt')
     })
-
   })
-
 })
