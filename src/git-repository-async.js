@@ -120,7 +120,7 @@ module.exports = class GitRepositoryAsync {
     }).then((statuses) => {
       let cachedStatus = this.pathStatusCache[relativePath] || 0
       let status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
-      if (status !== cachedStatus) {
+      if (status !== cachedStatus && this.emitter != null) {
         this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
       }
       this.pathStatusCache[relativePath] = status
@@ -156,26 +156,39 @@ module.exports = class GitRepositoryAsync {
     })
   }
 
+  // Get the current branch and update this.branch.
+  //
+  // Returns :: Promise<String>
+  //            The branch name.
+  _refreshBranch () {
+    return this.repoPromise
+      .then(repo => repo.getCurrentBranch())
+      .then(ref => ref.name())
+      .then(branchRef => this.branch = branchRef)
+  }
+
   // Refreshes the git status. Note: the sync GitRepository class does this with
   // a separate process, let's see if we can avoid that.
   refreshStatus () {
     // TODO add upstream, branch, and submodule tracking
-    return this.repoPromise.then((repo) => {
-      return repo.getStatus()
-    }).then((statuses) => {
-      // update the status cache
-      return Promise.all(statuses.map((status) => {
-        return [status.path(), status.statusBit()]
-      })).then((statusesByPath) => {
-        return _.object(statusesByPath)
+    const status = this.repoPromise
+      .then(repo => repo.getStatus())
+      .then(statuses => {
+        // update the status cache
+        return Promise.all(statuses.map(status => [status.path(), status.statusBit()]))
+          .then(statusesByPath => _.object(statusesByPath))
       })
-    }).then((newPathStatusCache) => {
-      if (!_.isEqual(this.pathStatusCache, newPathStatusCache)) {
-        this.emitter.emit('did-change-statuses')
-      }
-      this.pathStatusCache = newPathStatusCache
-      return newPathStatusCache
-    })
+      .then(newPathStatusCache => {
+        if (!_.isEqual(this.pathStatusCache, newPathStatusCache) && this.emitter != null) {
+          this.emitter.emit('did-change-statuses')
+        }
+        this.pathStatusCache = newPathStatusCache
+        return newPathStatusCache
+      })
+
+    const branch = this._refreshBranch()
+
+    return Promise.all([status, branch])
   }
 
   // Section: Private
