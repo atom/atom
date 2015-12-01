@@ -90,7 +90,7 @@ class LinesYardstick
 
     @prepareScreenRowsForMeasurement([targetRow]) unless measureVisibleLinesOnly
 
-    top = @topPixelPositionForRow(targetRow)
+    top = @bottomPixelPositionForRow(targetRow)
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
     @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
@@ -191,6 +191,9 @@ class LinesYardstick
       return top if targetRow is row
       top += @presenter.getScreenRowHeight(row)
     top
+
+  bottomPixelPositionForRow: (targetRow) ->
+    @topPixelPositionForRow(targetRow + 1) - @model.getLineHeightInPixels()
 
   topPixelPositionForRows: (startRow, endRow, step) ->
     results = {}

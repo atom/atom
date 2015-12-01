@@ -199,7 +199,19 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
     @disposables.add @blockDecorationsPresenter.onDidUpdateState =>
+      @shouldUpdateHeightState = true
       @shouldUpdateVerticalScrollState = true
+      @shouldUpdateHorizontalScrollState = true
+      @shouldUpdateScrollbarsState = true
+      @shouldUpdateContentState = true
+      @shouldUpdateDecorations = true
+      @shouldUpdateCursorsState = true
+      @shouldUpdateLinesState = true
+      @shouldUpdateLineNumberGutterState = true
+      @shouldUpdateLineNumbersState = true
+      @shouldUpdateGutterOrderState = true
+      @shouldUpdateCustomGutterDecorationState = true
+
       @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
@@ -1406,7 +1418,7 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setBlockDecorationDimensions: (decoration, width, height) ->
+  setBlockDecorationDimensions: ->
     @blockDecorationsPresenter.setDimensionsForDecoration(arguments...)
 
   observeCursor: (cursor) ->

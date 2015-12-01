@@ -1527,6 +1527,35 @@ describe "TextEditorPresenter", ->
           presenter.setHorizontalScrollbarHeight(10)
           expect(presenter.getState().content.cursors).not.toEqual({})
 
+        it "updates when block decorations change", ->
+          editor.setSelectedBufferRanges([
+            [[1, 2], [1, 2]],
+            [[2, 4], [2, 4]],
+            [[3, 4], [3, 5]]
+            [[5, 12], [5, 12]],
+            [[8, 4], [8, 4]]
+          ])
+          presenter = buildPresenter(explicitHeight: 80, scrollTop: 0)
+
+          expect(stateForCursor(presenter, 0)).toEqual {top: 10, left: 2 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 1)).toEqual {top: 20, left: 4 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 2)).toBeUndefined()
+          expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
+          expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10, left: 4 * 10, width: 10, height: 10}
+
+          blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+          blockDecoration2 = editor.addBlockDecorationForScreenRow(1)
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
+
+          waitsForStateToUpdate presenter
+          runs ->
+            expect(stateForCursor(presenter, 0)).toEqual {top: 50, left: 2 * 10, width: 10, height: 10}
+            expect(stateForCursor(presenter, 1)).toEqual {top: 60, left: 4 * 10, width: 10, height: 10}
+            expect(stateForCursor(presenter, 2)).toBeUndefined()
+            expect(stateForCursor(presenter, 3)).toBeUndefined()
+            expect(stateForCursor(presenter, 4)).toBeUndefined()
+
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
             [[1, 2], [1, 2]],

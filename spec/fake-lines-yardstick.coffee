@@ -31,7 +31,7 @@ class FakeLinesYardstick
     targetColumn = screenPosition.column
     baseCharacterWidth = @model.getDefaultCharWidth()
 
-    top = @topPixelPositionForRow(targetRow)
+    top = @bottomPixelPositionForRow(targetRow)
     left = 0
     column = 0
 
@@ -79,6 +79,9 @@ class FakeLinesYardstick
       return top if targetRow is row
       top += @presenter.getScreenRowHeight(row)
     top
+
+  bottomPixelPositionForRow: (targetRow) ->
+    @topPixelPositionForRow(targetRow + 1) - @model.getLineHeightInPixels()
 
   topPixelPositionForRows: (startRow, endRow, step) ->
     results = {}
