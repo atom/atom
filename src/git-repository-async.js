@@ -83,7 +83,7 @@ module.exports = class GitRepositoryAsync {
         checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
         return Git.Checkout.head(repo, checkoutOptions)
       })
-      .then(() => this.getPathStatus(_path))
+      .then(() => this.refreshStatusForPath(_path))
   }
 
   checkoutHeadForEditor (editor) {
@@ -100,9 +100,17 @@ module.exports = class GitRepositoryAsync {
     }).then(filePath => this.checkoutHead(filePath))
   }
 
-  // Returns a Promise that resolves to the status bit of a given path if it has
-  // one, otherwise 'current'.
-  getPathStatus (_path) {
+  // Refresh the status bit for the given path.
+  //
+  // Note that if the status of the path has changed, this will emit a
+  // 'did-change-status' event.
+  //
+  // path    :: String
+  //            The path whose status should be refreshed.
+  //
+  // Returns :: Promise<Number>
+  //            The refreshed status bit for the path.
+  refreshStatusForPath (_path) {
     let relativePath
     return this.repoPromise
       .then(repo => {
@@ -112,12 +120,19 @@ module.exports = class GitRepositoryAsync {
       .then(statuses => {
         const cachedStatus = this.pathStatusCache[relativePath] || 0
         const status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
-        if (status !== cachedStatus && this.emitter != null) {
+        if (status !== cachedStatus) {
+          this.pathStatusCache[relativePath] = status
           this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
         }
-        this.pathStatusCache[relativePath] = status
+
         return status
       })
+  }
+
+  // Returns a Promise that resolves to the status bit of a given path if it has
+  // one, otherwise 'current'.
+  getPathStatus (_path) {
+    return this.refreshStatusForPath(_path)
   }
 
   // Get the status of a directory in the repository's working directory.
@@ -192,9 +207,7 @@ module.exports = class GitRepositoryAsync {
     const getBufferPathStatus = () => {
       const _path = buffer.getPath()
       if (_path) {
-        // We don't need to do anything with this promise, we just want the
-        // emitted event side effect
-        this.getPathStatus(_path)
+        this.refreshStatusForPath(_path)
       }
     }
 
