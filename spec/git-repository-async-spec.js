@@ -336,7 +336,7 @@ describe('GitRepositoryAsync-js', () => {
         buffer.reload()
 
         waitsFor(() => reloadHandler.callCount > 0)
-        runs(() => expect(statusHandler.callCount).toBe(1))
+        runs(() => expect(reloadHandler.callCount).toBe(1))
       })
     })
 
