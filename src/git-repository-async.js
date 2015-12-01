@@ -3,7 +3,7 @@
 const fs = require('fs-plus')
 const Git = require('nodegit')
 const path = require('path')
-const {Emitter, CompositeDisposable, Disposable} = require('event-kit')
+const {Emitter, CompositeDisposable} = require('event-kit')
 
 const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
 const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
@@ -31,18 +31,8 @@ module.exports = class GitRepositoryAsync {
     this.repoPromise = Git.Repository.open(path)
     this.isCaseInsensitive = fs.isCaseInsensitive()
 
-    let {project, refreshOnWindowFocus} = options
+    let {project} = options
     this.project = project
-    if (refreshOnWindowFocus === undefined) {
-      refreshOnWindowFocus = true
-    }
-    if (refreshOnWindowFocus) {
-      const onWindowFocus = () => {
-        this.refreshStatus()
-      }
-      window.addEventListener('focus', onWindowFocus)
-      this.subscriptions.add(new Disposable(() => window.removeEventListener('focus', onWindowFocus)))
-    }
 
     if (this.project) {
       this.subscriptions.add(this.project.onDidAddBuffer((buffer) => {
