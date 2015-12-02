@@ -166,9 +166,11 @@ export default class GitRepositoryAsync {
   // * `path` An optional {String} path in the repository to get this information
   //   for, only needed if the repository contains submodules.
   //
-  // Returns a {String}.
-  getShortHead (path) {
-    throw new Error('Unimplemented')
+  // Returns a {Promise} which resolves to a {String}.
+  getShortHead (_path) {
+    return this._getRepo(_path)
+      .then(repo => repo.getCurrentBranch())
+      .then(branch => branch.shorthand())
   }
 
   // Public: Is the given path a submodule in the repository?
@@ -466,6 +468,19 @@ export default class GitRepositoryAsync {
 
   _isRefreshing () {
     return this._refreshingCount === 0
+  }
+
+  _getRepo (_path) {
+    if (!_path) return this.repoPromise
+
+    return this.isSubmodule(_path)
+      .then(isSubmodule => {
+        if (isSubmodule) {
+          return Git.Repository.open(_path)
+        } else {
+          return this.repoPromise
+        }
+      })
   }
 
   subscribeToBuffer (buffer) {

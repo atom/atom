@@ -397,4 +397,16 @@ describe('GitRepositoryAsync', () => {
       expect(relativizedPath).toBe('a/b.txt')
     })
   })
+
+  describe('.getShortHead(path)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns the human-readable branch name', async () => {
+      const head = await repo.getShortHead()
+      expect(head).toBe('master')
+    })
+  })
 })
