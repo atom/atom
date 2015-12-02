@@ -87,6 +87,8 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
+    @scrollViewNode.appendChild(@blockDecorationsComponent.getDomNode())
+
     @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent, lineTopIndex, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
 

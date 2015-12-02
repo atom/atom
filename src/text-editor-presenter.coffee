@@ -76,7 +76,6 @@ class TextEditorPresenter
 
     @blockDecorationsPresenter.update()
 
-    @updateBlockDecorationsState()
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
@@ -87,6 +86,8 @@ class TextEditorPresenter
     @updateEndRow()
     @updateCommonGutterState()
     @updateReflowState()
+
+    @updateBlockDecorationsState()
 
     if @shouldUpdateDecorations
       @fetchDecorations()
@@ -1217,7 +1218,8 @@ class TextEditorPresenter
 
     @blockDecorationsPresenter.getAllDecorationsByScreenRow().forEach (decorations, screenRow) =>
       for decoration in decorations
-        @state.content.blockDecorations[decoration.id] = {decoration, screenRow}
+        isVisible = @getStartTileRow() <= screenRow < @getEndTileRow() + @tileSize
+        @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}

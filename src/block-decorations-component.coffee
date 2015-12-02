@@ -9,6 +9,13 @@ class BlockDecorationsComponent
     @newState = null
     @oldState = null
     @blockDecorationNodesById = {}
+    @domNode = @domElementPool.buildElement("content")
+    @domNode.setAttribute("select", ".atom--invisible-block-decoration")
+    @domNode.style.visibility = "hidden"
+    @domNode.style.position = "absolute"
+
+  getDomNode: ->
+    @domNode
 
   updateSync: (state) ->
     @newState = state.content
@@ -41,6 +48,8 @@ class BlockDecorationsComponent
     blockDecorationState = @newState.blockDecorations[id]
     blockDecorationNode = @views.getView(blockDecorationState.decoration.getProperties().item)
     blockDecorationNode.classList.add("block-decoration-row-#{blockDecorationState.screenRow}")
+    unless blockDecorationState.isVisible
+      blockDecorationNode.classList.add("atom--invisible-block-decoration")
 
     @container.appendChild(blockDecorationNode)
 
@@ -50,6 +59,11 @@ class BlockDecorationsComponent
     newBlockDecorationState = @newState.blockDecorations[id]
     oldBlockDecorationState = @oldState.blockDecorations[id]
     blockDecorationNode = @blockDecorationNodesById[id]
+
+    if newBlockDecorationState.isVisible and not oldBlockDecorationState.isVisible
+      blockDecorationNode.classList.remove("atom--invisible-block-decoration")
+    else if not newBlockDecorationState.isVisible and oldBlockDecorationState.isVisible
+      blockDecorationNode.classList.add("atom--invisible-block-decoration")
 
     if newBlockDecorationState.screenRow isnt oldBlockDecorationState.screenRow
       blockDecorationNode.classList.remove("block-decoration-row-#{oldBlockDecorationState.screenRow}")
