@@ -186,7 +186,6 @@ module.exports = class GitRepositoryAsync {
     const status = this.repoPromise
       .then(repo => repo.getStatus())
       .then(statuses => {
-        console.log(Object.keys(statuses))
         // update the status cache
         const statusPairs = statuses.map(status => [status.path(), status.statusBit()])
         return Promise.all(statusPairs)
