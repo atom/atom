@@ -23,7 +23,7 @@ function copyRepository () {
   return fs.realpathSync(workingDirPath)
 }
 
-describe('GitRepositoryAsync-js', () => {
+describe('GitRepositoryAsync', () => {
   let repo
 
   afterEach(() => {
