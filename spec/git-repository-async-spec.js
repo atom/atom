@@ -351,21 +351,22 @@ describe('GitRepositoryAsync-js', () => {
 
       const repo = project2.getRepositories()[0].async
       waitsFor(() => !repo._isRefreshing())
-
-      const buffer = project2.getBuffers()[0]
-
-      waitsFor(() => buffer.loaded)
       runs(() => {
-        buffer.append('changes')
+        const buffer = project2.getBuffers()[0]
 
-        const statusHandler = jasmine.createSpy('statusHandler')
-        repo.onDidChangeStatus(statusHandler)
-        buffer.save()
-
-        waitsFor(() => statusHandler.callCount > 0)
+        waitsFor(() => buffer.loaded)
         runs(() => {
-          expect(statusHandler.callCount).toBe(1)
-          expect(statusHandler).toHaveBeenCalledWith({path: buffer.getPath(), pathStatus: 256})
+          buffer.append('changes')
+
+          const statusHandler = jasmine.createSpy('statusHandler')
+          repo.onDidChangeStatus(statusHandler)
+          buffer.save()
+
+          waitsFor(() => statusHandler.callCount > 0)
+          runs(() => {
+            expect(statusHandler.callCount).toBeGreaterThan(0)
+            expect(statusHandler).toHaveBeenCalledWith({path: buffer.getPath(), pathStatus: 256})
+          })
         })
       })
     })
