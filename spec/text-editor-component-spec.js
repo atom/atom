@@ -1699,7 +1699,8 @@ describe('TextEditorComponent', function () {
       expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 4 + 80 + 40)
-      expect(item4.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item4.getBoundingClientRect().top).toBe(0) // hidden
+      expect(item4.getBoundingClientRect().height).toBe(120)
 
       editor.setCursorScreenPosition([0, 0])
       editor.insertNewline()
@@ -1713,7 +1714,7 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
 
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
@@ -1721,10 +1722,11 @@ describe('TextEditorComponent', function () {
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
 
-      expect(item1.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item1.getBoundingClientRect().height).toBe(0) // deleted
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
-      expect(item4.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item4.getBoundingClientRect().top).toBe(0) // hidden
+      expect(item4.getBoundingClientRect().height).toBe(120)
 
       await nextViewUpdatePromise()
 
@@ -1740,7 +1742,7 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
 
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
@@ -1748,10 +1750,11 @@ describe('TextEditorComponent', function () {
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
 
-      expect(item1.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item1.getBoundingClientRect().height).toBe(0) // deleted
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
-      expect(item4.getBoundingClientRect().height).toBe(0) // hidden
+      expect(item4.getBoundingClientRect().top).toBe(0) // hidden
+      expect(item4.getBoundingClientRect().height).toBe(120) // hidden
     })
   })
 
