@@ -366,7 +366,8 @@ describe('GitRepositoryAsync-js', () => {
 
     it('stops listening to the buffer when the repository is destroyed (regression)', async () => {
       const editor = await atom.workspace.open('other.txt')
-      repository.destroy()
+      const repo = atom.project.getRepositories()[0]
+      repo.destroy()
       expect(() => editor.save()).not.toThrow()
     })
   })
