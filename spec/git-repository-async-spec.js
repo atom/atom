@@ -296,11 +296,9 @@ describe('GitRepositoryAsync-js', () => {
 
       // When the path is added to the project, the repository is refreshed. We
       // need to wait for that to complete before the tests continue so that
-      // we're in a known state. *But* it's really hard to observe that from the
-      // outside in a non-racy fashion. So let's refresh again and wait for it
-      // to complete before we continue.
+      // we're in a known state.
       repository = atom.project.getRepositories()[0].async
-      waitsForPromise(() => repository.refreshStatus())
+      waitsFor(() => !repository._isRefreshing())
     })
 
     it('emits a status-changed event when a buffer is saved', async () => {
@@ -329,14 +327,6 @@ describe('GitRepositoryAsync-js', () => {
       runs(() => {
         expect(statusHandler.callCount).toBe(1)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
-
-        const buffer = editor.getBuffer()
-        const reloadHandler = jasmine.createSpy('reloadHandler')
-        buffer.onDidReload(reloadHandler)
-        buffer.reload()
-
-        waitsFor(() => reloadHandler.callCount > 0)
-        runs(() => expect(reloadHandler.callCount).toBe(1))
       })
     })
 
@@ -381,7 +371,7 @@ describe('GitRepositoryAsync-js', () => {
       // See the comment in the 'buffer events' beforeEach for why we need to do
       // this.
       const repository = atom.project.getRepositories()[0].async
-      waitsForPromise(() => repository.refreshStatus())
+      waitsFor(() => !repository._isRefreshing())
     })
 
     afterEach(() => {
@@ -393,6 +383,10 @@ describe('GitRepositoryAsync-js', () => {
 
       project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       project2.deserialize(atom.project.serialize(), atom.deserializers)
+
+      const repo = project2.getRepositories()[0].async
+      waitsFor(() => !repo._isRefreshing())
+
       const buffer = project2.getBuffers()[0]
 
       waitsFor(() => buffer.loaded)
@@ -400,7 +394,7 @@ describe('GitRepositoryAsync-js', () => {
         buffer.append('changes')
 
         const statusHandler = jasmine.createSpy('statusHandler')
-        project2.getRepositories()[0].async.onDidChangeStatus(statusHandler)
+        repo.onDidChangeStatus(statusHandler)
         buffer.save()
 
         waitsFor(() => statusHandler.callCount > 0)

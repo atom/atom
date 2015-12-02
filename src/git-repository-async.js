@@ -30,6 +30,7 @@ module.exports = class GitRepositoryAsync {
     this.pathStatusCache = {}
     this.repoPromise = Git.Repository.open(path)
     this.isCaseInsensitive = fs.isCaseInsensitive()
+    this._refreshingCount = 0
 
     const {project} = options
     this.project = project
@@ -174,15 +175,21 @@ module.exports = class GitRepositoryAsync {
       .then(branchRef => this.branch = branchRef)
   }
 
-  // Refreshes the git status. Note: the sync GitRepository class does this with
-  // a separate process, let's see if we can avoid that.
+  // Refreshes the git status.
+  //
+  // Returns :: Promise<???>
+  //            Resolves when refresh has completed.
   refreshStatus () {
+    this._refreshingCount++
+
     // TODO add upstream, branch, and submodule tracking
     const status = this.repoPromise
       .then(repo => repo.getStatus())
       .then(statuses => {
+        console.log(Object.keys(statuses))
         // update the status cache
-        return Promise.all(statuses.map(status => [status.path(), status.statusBit()]))
+        const statusPairs = statuses.map(status => [status.path(), status.statusBit()])
+        return Promise.all(statusPairs)
           .then(statusesByPath => _.object(statusesByPath))
       })
       .then(newPathStatusCache => {
@@ -195,11 +202,15 @@ module.exports = class GitRepositoryAsync {
 
     const branch = this._refreshBranch()
 
-    return Promise.all([status, branch])
+    return Promise.all([status, branch]).then(_ => this._refreshingCount--)
   }
 
   // Section: Private
   // ================
+
+  _isRefreshing () {
+    return this._refreshingCount === 0
+  }
 
   subscribeToBuffer (buffer) {
     const bufferSubscriptions = new CompositeDisposable()
