@@ -324,7 +324,7 @@ class GitRepository
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
     # Trigger events emitted on the async repo as well
-    @async.getPathStatus(path)
+    @async.refreshStatusForPath(path)
 
     repo = @getRepo(path)
     relativePath = @relativize(path)
