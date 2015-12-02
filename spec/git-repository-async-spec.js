@@ -413,29 +413,27 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('GitRepositoryAsync::relativize(filePath, workdir)', () => {
-    let repository
-
     beforeEach(() => {
-      atom.project.setPaths([copyRepository()])
-      repository = atom.project.getRepositories()[0].async
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
     })
 
     // This is a change in implementation from the git-utils version
     it('just returns path if workdir is not provided', () => {
       const _path = '/foo/bar/baz.txt'
-      const relPath = repository.relativize(_path)
+      const relPath = repo.relativize(_path)
       expect(_path).toEqual(relPath)
     })
 
     it('relativizes a repo path', () => {
       const workdir = '/tmp/foo/bar/baz/'
-      const relativizedPath = repository.relativize(`${workdir}a/b.txt`, workdir)
+      const relativizedPath = repo.relativize(`${workdir}a/b.txt`, workdir)
       expect(relativizedPath).toBe('a/b.txt')
     })
 
     it("doesn't require workdir to end in a slash", () => {
       const workdir = '/tmp/foo/bar/baz'
-      const relativizedPath = repository.relativize(`${workdir}/a/b.txt`, workdir)
+      const relativizedPath = repo.relativize(`${workdir}/a/b.txt`, workdir)
       expect(relativizedPath).toBe('a/b.txt')
     })
   })
