@@ -50,6 +50,11 @@ class LineTopIndex {
     return this.blocks
   }
 
+  blocksHeightForRow (row) {
+    let blocksForRow = this.blocks.filter((block) => block.row == row)
+    return blocksForRow.reduce((a, b) => a + b.height, 0)
+  }
+
   splice (startRow, oldExtent, newExtent) {
     this.blocks.forEach(function (block) {
       if (block.row >= startRow) {

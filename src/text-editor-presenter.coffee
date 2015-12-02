@@ -715,7 +715,7 @@ class TextEditorPresenter
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
-        blockDecorationsHeight = @blockDecorationsPresenter.heightForScreenRow(screenRow)
+        blockDecorationsHeight = @lineTopIndex.blocksHeightForRow(screenRow)
 
         tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
         visibleLineNumberIds[line.id] = true
@@ -724,9 +724,6 @@ class TextEditorPresenter
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
 
     return
-
-  getScreenRowHeight: (screenRow) ->
-    @lineHeight + @blockDecorationsPresenter.heightForScreenRow(screenRow)
 
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?

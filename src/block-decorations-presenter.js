@@ -45,20 +45,11 @@ class BlockDecorationsPresenter {
 
   update () {
     if (this.firstUpdate) {
-      this.fullUpdate()
+      for (let decoration of this.model.getDecorations({type: "block"})) {
+        this.observeDecoration(decoration)
+      }
       this.firstUpdate = false
-    } else {
-      this.incrementalUpdate()
     }
-  }
-
-  fullUpdate () {
-    for (let decoration of this.model.getDecorations({type: "block"})) {
-      this.observeDecoration(decoration)
-    }
-  }
-
-  incrementalUpdate () {
   }
 
   setDimensionsForDecoration (decoration, width, height) {
@@ -72,10 +63,6 @@ class BlockDecorationsPresenter {
     }
 
     this.emitter.emit("did-update-state")
-  }
-
-  heightForScreenRow (screenRow) {
-    return this.lineTopIndex.bottomPixelPositionForRow(screenRow) - this.lineTopIndex.topPixelPositionForRow(screenRow)
   }
 
   decorationsForScreenRow (screenRow) {
@@ -103,18 +90,21 @@ class BlockDecorationsPresenter {
       return
     }
 
-    // TODO: change this with a "on manual did change" event.
-    let didMoveDisposable = decoration.getMarker().onDidChange((markerEvent) => {
+    let didMoveDisposable = decoration.getMarker().bufferMarker.onDidChange((markerEvent) => {
       this.didMoveDecoration(decoration, markerEvent)
     })
 
     let didDestroyDisposable = decoration.onDidDestroy(() => {
+      this.disposables.remove(didMoveDisposable)
+      this.disposables.remove(didDestroyDisposable)
       didMoveDisposable.dispose()
       didDestroyDisposable.dispose()
       this.observedDecorations.delete(decoration)
       this.didDestroyDecoration(decoration)
     })
 
+    this.disposables.add(didMoveDisposable)
+    this.disposables.add(didDestroyDisposable)
     this.didAddDecoration(decoration)
     this.observedDecorations.add(decoration)
   }
@@ -127,7 +117,12 @@ class BlockDecorationsPresenter {
     this.emitter.emit("did-update-state")
   }
 
-  didMoveDecoration (decoration, {oldHeadScreenPosition, newHeadScreenPosition}) {
+  didMoveDecoration (decoration, {textChanged}) {
+    if (textChanged) {
+      // No need to move blocks because of a text change, because we already splice on buffer change.
+      return
+    }
+
     let block = this.blocksByDecoration.get(decoration)
     let newScreenRow = decoration.getMarker().getHeadScreenPosition().row
     this.lineTopIndex.moveBlock(block, newScreenRow)
