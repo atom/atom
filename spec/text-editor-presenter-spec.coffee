@@ -5,6 +5,7 @@ TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 FakeLinesYardstick = require './fake-lines-yardstick'
+LineTopIndex = require '../src/linear-line-top-index'
 
 describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
@@ -26,12 +27,14 @@ describe "TextEditorPresenter", ->
       buffer.destroy()
 
     buildPresenterWithoutMeasurements = (params={}) ->
+      lineTopIndex = new LineTopIndex
       _.defaults params,
         model: editor
         config: atom.config
         contentFrameWidth: 500
+        lineTopIndex: lineTopIndex
       presenter = new TextEditorPresenter(params)
-      presenter.setLinesYardstick(new FakeLinesYardstick(editor, presenter))
+      presenter.setLinesYardstick(new FakeLinesYardstick(editor, presenter, lineTopIndex))
       presenter
 
     buildPresenter = (params={}) ->

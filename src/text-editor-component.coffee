@@ -14,6 +14,7 @@ OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
 BlockDecorationsComponent = require './block-decorations-component'
+LineTopIndex = require './linear-line-top-index'
 
 module.exports =
 class TextEditorComponent
@@ -49,6 +50,7 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
+    lineTopIndex = new LineTopIndex(@editor)
     @presenter = new TextEditorPresenter
       model: @editor
       tileSize: tileSize
@@ -56,11 +58,11 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
       config: @config
+      lineTopIndex: lineTopIndex
 
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
-
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
@@ -85,7 +87,7 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent, @grammars)
+    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent, lineTopIndex, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})

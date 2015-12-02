@@ -5,12 +5,12 @@ const LineTopIndex = require('./linear-line-top-index')
 
 module.exports =
 class BlockDecorationsPresenter {
-  constructor (model) {
+  constructor (model, lineTopIndex) {
     this.model = model
     this.disposables = new CompositeDisposable()
     this.emitter = new Emitter()
     this.firstUpdate = true
-    this.lineTopIndex = new LineTopIndex
+    this.lineTopIndex = lineTopIndex
     this.blocksByDecoration = new Map
     this.decorationsByBlock = new Map
     this.observedDecorations = new Set

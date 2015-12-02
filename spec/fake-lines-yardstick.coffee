@@ -2,7 +2,7 @@
 
 module.exports =
 class FakeLinesYardstick
-  constructor: (@model, @presenter) ->
+  constructor: (@model, @presenter, @lineTopIndex) ->
     @characterWidthsByScope = {}
 
   prepareScreenRowsForMeasurement: ->
@@ -31,7 +31,7 @@ class FakeLinesYardstick
     targetColumn = screenPosition.column
     baseCharacterWidth = @model.getDefaultCharWidth()
 
-    top = @bottomPixelPositionForRow(targetRow)
+    top = @lineTopIndex.bottomPixelPositionForRow(targetRow)
     left = 0
     column = 0
 
@@ -60,48 +60,15 @@ class FakeLinesYardstick
 
     {top, left}
 
-  rowForTopPixelPosition: (position, floor = true) ->
-    top = 0
-    for tileStartRow in [0..@model.getScreenLineCount()] by @presenter.getTileSize()
-      tileEndRow = Math.min(tileStartRow + @presenter.getTileSize(), @model.getScreenLineCount())
-      for row in [tileStartRow...tileEndRow] by 1
-        nextTop = top + @presenter.getScreenRowHeight(row)
-        if floor
-          return row if nextTop > position
-        else
-          return row if top >= position
-        top = nextTop
-    @model.getScreenLineCount()
-
-  topPixelPositionForRow: (targetRow) ->
-    top = 0
-    for row in [0..targetRow]
-      return top if targetRow is row
-      top += @presenter.getScreenRowHeight(row)
-    top
-
-  bottomPixelPositionForRow: (targetRow) ->
-    @topPixelPositionForRow(targetRow + 1) - @model.getLineHeightInPixels()
-
-  topPixelPositionForRows: (startRow, endRow, step) ->
-    results = {}
-    top = 0
-    for tileStartRow in [0..endRow] by step
-      tileEndRow = Math.min(tileStartRow + step, @model.getScreenLineCount())
-      results[tileStartRow] = top
-      for row in [tileStartRow...tileEndRow] by 1
-        top += @presenter.getScreenRowHeight(row)
-    results
-
   pixelRectForScreenRange: (screenRange) ->
     if screenRange.end.row > screenRange.start.row
       top = @pixelPositionForScreenPosition(screenRange.start).top
       left = 0
-      height = @topPixelPositionForRow(screenRange.end.row + 1) - top
+      height = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1) - top
       width = @presenter.getScrollWidth()
     else
       {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @topPixelPositionForRow(screenRange.end.row + 1) - top
+      height = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1) - top
       width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
 
     {top, left, width, height}

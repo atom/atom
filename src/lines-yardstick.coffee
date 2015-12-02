@@ -3,7 +3,7 @@ TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @presenter, @lineNodesProvider, grammarRegistry) ->
+  constructor: (@model, @presenter, @lineNodesProvider, @lineTopIndex, grammarRegistry) ->
     @tokenIterator = new TokenIterator({grammarRegistry})
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
@@ -22,7 +22,7 @@ class LinesYardstick
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
-    row = @rowForTopPixelPosition(targetTop)
+    row = @lineTopIndex.rowForTopPixelPosition(targetTop, 'floor')
     targetLeft = 0 if targetTop < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
 
@@ -90,7 +90,7 @@ class LinesYardstick
 
     @prepareScreenRowsForMeasurement([targetRow]) unless measureVisibleLinesOnly
 
-    top = @bottomPixelPositionForRow(targetRow)
+    top = @lineTopIndex.bottomPixelPositionForRow(targetRow)
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
     @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
@@ -172,48 +172,15 @@ class LinesYardstick
 
     left + width - offset
 
-  rowForTopPixelPosition: (position, floor = true) ->
-    top = 0
-    for tileStartRow in [0..@model.getScreenLineCount()] by @presenter.getTileSize()
-      tileEndRow = Math.min(tileStartRow + @presenter.getTileSize(), @model.getScreenLineCount())
-      for row in [tileStartRow...tileEndRow] by 1
-        nextTop = top + @presenter.getScreenRowHeight(row)
-        if floor
-          return row if nextTop > position
-        else
-          return row if top >= position
-        top = nextTop
-    @model.getScreenLineCount()
-
-  topPixelPositionForRow: (targetRow) ->
-    top = 0
-    for row in [0..targetRow]
-      return top if targetRow is row
-      top += @presenter.getScreenRowHeight(row)
-    top
-
-  bottomPixelPositionForRow: (targetRow) ->
-    @topPixelPositionForRow(targetRow + 1) - @model.getLineHeightInPixels()
-
-  topPixelPositionForRows: (startRow, endRow, step) ->
-    results = {}
-    top = 0
-    for tileStartRow in [0..endRow] by step
-      tileEndRow = Math.min(tileStartRow + step, @model.getScreenLineCount())
-      results[tileStartRow] = top
-      for row in [tileStartRow...tileEndRow] by 1
-        top += @presenter.getScreenRowHeight(row)
-    results
-
   pixelRectForScreenRange: (screenRange, measureVisibleLinesOnly) ->
     if screenRange.end.row > screenRange.start.row
       top = @pixelPositionForScreenPosition(screenRange.start, true, measureVisibleLinesOnly).top
       left = 0
-      height = @topPixelPositionForRow(screenRange.end.row + 1) - top
+      height = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1) - top
       width = @presenter.getScrollWidth()
     else
       {top, left} = @pixelPositionForScreenPosition(screenRange.start, false, measureVisibleLinesOnly)
-      height = @topPixelPositionForRow(screenRange.end.row + 1) - top
+      height = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1) - top
       width = @pixelPositionForScreenPosition(screenRange.end, false, measureVisibleLinesOnly).left - left
 
     {top, left, width, height}

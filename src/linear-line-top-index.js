@@ -76,7 +76,7 @@ class LineTopIndex {
     return this.topPixelPositionForRow(row + 1) - this.defaultLineHeight
   }
 
-  rowForTopPixelPosition (top) {
+  rowForTopPixelPosition (top, roundingStrategy='round') {
     let blocksHeight = 0
     let lastRow = 0
     let lastTop = 0
@@ -97,7 +97,16 @@ class LineTopIndex {
     }
 
     let remainingHeight = Math.max(0, top - lastTop)
-    let remainingRows = Math.round(remainingHeight / this.defaultLineHeight)
-    return Math.min(this.maxRow, lastRow + remainingRows)
+    let remainingRows = Math.min(this.maxRow, lastRow + remainingHeight / this.defaultLineHeight)
+    switch (roundingStrategy) {
+      case "round":
+        return Math.round(remainingRows)
+      case "floor":
+        return Math.floor(remainingRows)
+      case "ceil":
+        return Math.ceil(remainingRows)
+      default:
+        throw new Error(`Cannot use '${roundingStrategy}' as a rounding strategy!`)
+    }
   }
 }
