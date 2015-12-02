@@ -191,17 +191,17 @@ describe "TextEditorPresenter", ->
         expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30) + 20 + 1)
         expect(stateFn(presenter).tiles[8]).toBeUndefined()
 
-        presenter.setScrollTop(21)
+        presenter.setScrollTop(22)
 
         expect(stateFn(presenter).tiles[0]).toBeUndefined()
         expect(stateFn(presenter).tiles[2].height).toBe(20 + 30)
-        expect(stateFn(presenter).tiles[2].top).toBe(0)
+        expect(stateFn(presenter).tiles[2].top).toBe(-1)
         expect(stateFn(presenter).tiles[4].height).toBe(20 + 40)
-        expect(stateFn(presenter).tiles[4].top).toBe(30 + 20)
+        expect(stateFn(presenter).tiles[4].top).toBe(30 + 20 - 1)
         expect(stateFn(presenter).tiles[6].height).toBe(20)
-        expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30))
+        expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30) - 1)
         expect(stateFn(presenter).tiles[8].height).toBe(20)
-        expect(stateFn(presenter).tiles[8].top).toBe((20 + 40) + (20 + 30) + 20)
+        expect(stateFn(presenter).tiles[8].top).toBe((20 + 40) + (20 + 30) + 20 - 1)
         expect(stateFn(presenter).tiles[10]).toBeUndefined()
 
       it "includes state for all tiles if no external ::explicitHeight is assigned", ->

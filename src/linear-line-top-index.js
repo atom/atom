@@ -76,7 +76,7 @@ class LineTopIndex {
     return this.topPixelPositionForRow(row + 1) - this.defaultLineHeight
   }
 
-  rowForTopPixelPosition (top, roundingStrategy='round') {
+  rowForTopPixelPosition (top, roundingStrategy='floor') {
     let blocksHeight = 0
     let lastRow = 0
     let lastTop = 0
@@ -84,7 +84,7 @@ class LineTopIndex {
       let nextBlocksHeight = blocksHeight + block.height
       let linesHeight = block.row * this.defaultLineHeight
       if (nextBlocksHeight + linesHeight > top) {
-        while (lastRow < block.row && lastTop + this.defaultLineHeight / 2 < top) {
+        while (lastRow < block.row && lastTop + this.defaultLineHeight < top) {
           lastTop += this.defaultLineHeight
           lastRow++
         }
@@ -99,8 +99,6 @@ class LineTopIndex {
     let remainingHeight = Math.max(0, top - lastTop)
     let remainingRows = Math.min(this.maxRow, lastRow + remainingHeight / this.defaultLineHeight)
     switch (roundingStrategy) {
-      case "round":
-        return Math.round(remainingRows)
       case "floor":
         return Math.floor(remainingRows)
       case "ceil":
