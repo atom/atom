@@ -109,6 +109,8 @@ module.exports = class GitRepositoryAsync {
   // Returns :: Promise<Number>
   //            The refreshed status bit for the path.
   refreshStatusForPath (_path) {
+    this._refreshingCount++
+
     let relativePath
     return this.repoPromise
       .then(repo => {
@@ -125,6 +127,7 @@ module.exports = class GitRepositoryAsync {
 
         return status
       })
+      .then(_ => this._refreshingCount--)
   }
 
   // Returns a Promise that resolves to the status bit of a given path if it has
