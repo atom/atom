@@ -84,7 +84,7 @@ class LineTopIndex {
       let nextBlocksHeight = blocksHeight + block.height
       let linesHeight = block.row * this.defaultLineHeight
       if (nextBlocksHeight + linesHeight > top) {
-        while (lastRow < block.row && lastTop + this.defaultLineHeight < top) {
+        while (lastRow < block.row && lastTop + this.defaultLineHeight <= top) {
           lastTop += this.defaultLineHeight
           lastRow++
         }
