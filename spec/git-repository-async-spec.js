@@ -290,7 +290,7 @@ describe('GitRepositoryAsync-js', () => {
 
       waitsFor(() => statusHandler.callCount > 0)
       runs(() => {
-        expect(statusHandler.callCount).toBe(1)
+        expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
       })
     })
@@ -306,7 +306,7 @@ describe('GitRepositoryAsync-js', () => {
 
       waitsFor(() => statusHandler.callCount > 0)
       runs(() => {
-        expect(statusHandler.callCount).toBe(1)
+        expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
 
         const pathHandler = jasmine.createSpy('pathHandler')
@@ -315,7 +315,7 @@ describe('GitRepositoryAsync-js', () => {
         buffer.emitter.emit('did-change-path')
 
         waitsFor(() => pathHandler.callCount > 0)
-        runs(() => expect(pathHandler.callCount).toBe(1))
+        runs(() => expect(pathHandler.callCount).toBeGreaterThan(0))
       })
     })
 
