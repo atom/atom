@@ -47,8 +47,6 @@ describe('GitRepositoryAsync-js', () => {
   })
 
   describe('.getPath()', () => {
-    xit('returns the repository path for a .git directory path')
-
     it('returns the repository path for a repository path', async () => {
       repo = openFixture('master.git')
       const repoPath = await repo.getPath()
@@ -178,39 +176,6 @@ describe('GitRepositoryAsync-js', () => {
 
       await repo.checkoutHead(filePath)
       expect(statusHandler.callCount).toBe(1)
-    })
-  })
-
-  xdescribe('.checkoutHeadForEditor(editor)', () => {
-    let filePath, editor
-
-    beforeEach(() => {
-      const workingDirPath = copyRepository()
-      repo = GitRepositoryAsync.open(workingDirPath)
-      filePath = path.join(workingDirPath, 'a.txt')
-      fs.writeFileSync(filePath, 'ch ch changes')
-
-      waitsForPromise(() => atom.workspace.open(filePath))
-      runs(() => editor = atom.workspace.getActiveTextEditor())
-    })
-
-    xit('displays a confirmation dialog by default', () => {
-      spyOn(atom, 'confirm').andCallFake(buttons, () => buttons[0].OK()) // eslint-disable-line
-      atom.config.set('editor.confirmCheckoutHeadRevision', true)
-
-      waitsForPromise(() => repo.checkoutHeadForEditor(editor))
-      runs(() => expect(fs.readFileSync(filePath, 'utf8')).toBe(''))
-    })
-
-    xit('does not display a dialog when confirmation is disabled', () => {
-      spyOn(atom, 'confirm')
-      atom.config.set('editor.confirmCheckoutHeadRevision', false)
-
-      waitsForPromise(() => repo.checkoutHeadForEditor(editor))
-      runs(() => {
-        expect(fs.readFileSync(filePath, 'utf8')).toBe('')
-        expect(atom.confirm).not.toHaveBeenCalled()
-      })
     })
   })
 
