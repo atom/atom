@@ -39,7 +39,6 @@ class LineTopIndex {
   }
 
   splice (startRow, oldExtent, newExtent) {
-    let blocksHeight = 0
     this.blocks.forEach(function (block) {
       if (block.row >= startRow) {
         if (block.row >= startRow + oldExtent) {
@@ -48,9 +47,6 @@ class LineTopIndex {
           block.row = startRow + newExtent
           // invalidate marker?
         }
-
-        block.top = block.row * this.defaultLineHeight + blocksHeight
-        blocksHeight += block.height
       }
     })
 
