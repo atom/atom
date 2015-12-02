@@ -13,7 +13,7 @@ const indexStatusFlags = Git.Status.STATUS.INDEX_NEW | Git.Status.STATUS.INDEX_M
 // Just using this for _.isEqual and _.object, we should impl our own here
 import _ from 'underscore-plus'
 
-module.exports = class GitRepositoryAsync {
+export default class GitRepositoryAsync {
   static open (path, options = {}) {
     // QUESTION: Should this wrap Git.Repository and reject with a nicer message?
     return new GitRepositoryAsync(path, options)
