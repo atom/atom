@@ -36,11 +36,8 @@ module.exports = class GitRepositoryAsync {
     this.project = project
 
     if (this.project) {
-      this.subscriptions.add(this.project.onDidAddBuffer(buffer => {
-        this.subscribeToBuffer(buffer)
-      }))
-
-      this.project.getBuffers().forEach(buffer => { this.subscribeToBuffer(buffer) })
+      this.project.getBuffers().forEach(buffer => this.subscribeToBuffer(buffer))
+      this.subscriptions.add(this.project.onDidAddBuffer(buffer => this.subscribeToBuffer(buffer)))
     }
   }
 
@@ -214,7 +211,7 @@ module.exports = class GitRepositoryAsync {
   subscribeToBuffer (buffer) {
     const bufferSubscriptions = new CompositeDisposable()
 
-    const getBufferPathStatus = () => {
+    const refreshStatusForBuffer = () => {
       const _path = buffer.getPath()
       if (_path) {
         this.refreshStatusForPath(_path)
@@ -222,9 +219,9 @@ module.exports = class GitRepositoryAsync {
     }
 
     bufferSubscriptions.add(
-      buffer.onDidSave(getBufferPathStatus),
-      buffer.onDidReload(getBufferPathStatus),
-      buffer.onDidChangePath(getBufferPathStatus),
+      buffer.onDidSave(refreshStatusForBuffer),
+      buffer.onDidReload(refreshStatusForBuffer),
+      buffer.onDidChangePath(refreshStatusForBuffer),
       buffer.onDidDestroy(() => {
         bufferSubscriptions.dispose()
         this.subscriptions.remove(bufferSubscriptions)
