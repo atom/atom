@@ -409,4 +409,31 @@ describe('GitRepositoryAsync', () => {
       expect(head).toBe('master')
     })
   })
+
+  describe('.getAheadBehindCount(reference, path)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns 0, 0 for a branch with no upstream', async () => {
+      const {ahead, behind} = await repo.getAheadBehindCount('master')
+      expect(ahead).toBe(0)
+      expect(behind).toBe(0)
+    })
+  })
+
+  describe('.getCachedUpstreamAheadBehindCount(path)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns 0, 0 for a branch with no upstream', async () => {
+      await repo.refreshStatus()
+      const {ahead, behind} = repo.getCachedUpstreamAheadBehindCount()
+      expect(ahead).toBe(0)
+      expect(behind).toBe(0)
+    })
+  })
 })

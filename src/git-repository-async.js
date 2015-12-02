@@ -23,13 +23,15 @@ export default class GitRepositoryAsync {
     return Git
   }
 
-  constructor (path, options) {
+  constructor (_path, options) {
     this.repo = null
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    this.repoPromise = Git.Repository.open(path)
+    this.repoPromise = Git.Repository.open(_path)
     this.isCaseInsensitive = fs.isCaseInsensitive()
+    this.upstreamByPath = {}
+
     this._refreshingCount = 0
 
     let {refreshOnWindowFocus} = options || true
@@ -193,10 +195,21 @@ export default class GitRepositoryAsync {
   // its upstream remote branch.
   //
   // * `reference` The {String} branch reference name.
-  // * `path`      The {String} path in the repository to get this information for,
-  //   only needed if the repository contains submodules.
-  getAheadBehindCount (reference, path) {
-    throw new Error('Unimplemented')
+  // * `path`      The {String} path in the repository to get this information
+  //               for, only needed if the repository contains submodules.
+  //
+  // Returns a {Promise} which resolves to an {Object} with the following keys:
+  //   * `ahead`  The {Number} of commits ahead.
+  //   * `behind` The {Number} of commits behind.
+  getAheadBehindCount (reference, _path) {
+    return this._getRepo(_path)
+      .then(repo => Promise.all([repo, repo.getBranch(reference)]))
+      .then(([repo, local]) => Promise.all([repo, local, Git.Branch.upstream(local)]))
+      .then(([repo, local, upstream]) => {
+        if (!upstream) return {ahead: 0, behind: 0}
+
+        return Git.Graph.aheadBehind(repo, local.target(), upstream.target())
+      })
   }
 
   // Public: Get the cached ahead/behind commit counts for the current branch's
@@ -208,15 +221,15 @@ export default class GitRepositoryAsync {
   // Returns an {Object} with the following keys:
   //   * `ahead`  The {Number} of commits ahead.
   //   * `behind` The {Number} of commits behind.
-  getCachedUpstreamAheadBehindCount (path) {
-    throw new Error('Unimplemented')
+  getCachedUpstreamAheadBehindCount (_path) {
+    return this.upstreamByPath[_path || '.']
   }
 
   // Public: Returns the git configuration value specified by the key.
   //
   // * `path` An optional {String} path in the repository to get this information
   //   for, only needed if the repository has submodules.
-  getConfigValue (key, path) {
+  getConfigValue (key, _path) {
     throw new Error('Unimplemented')
   }
 
@@ -224,7 +237,7 @@ export default class GitRepositoryAsync {
   //
   // * `path` (optional) {String} path in the repository to get this information
   //   for, only needed if the repository has submodules.
-  getOriginURL (path) {
+  getOriginURL (_path) {
     throw new Error('Unimplemented')
   }
 
@@ -235,7 +248,7 @@ export default class GitRepositoryAsync {
   //   only needed if the repository contains submodules.
   //
   // Returns a {String} branch name such as `refs/remotes/origin/master`.
-  getUpstreamBranch (path) {
+  getUpstreamBranch (_path) {
     throw new Error('Unimplemented')
   }
 
@@ -248,7 +261,7 @@ export default class GitRepositoryAsync {
   //  * `heads`   An {Array} of head reference names.
   //  * `remotes` An {Array} of remote reference names.
   //  * `tags`    An {Array} of tag reference names.
-  getReferences (path) {
+  getReferences (_path) {
     throw new Error('Unimplemented')
   }
 
@@ -257,7 +270,7 @@ export default class GitRepositoryAsync {
   // * `reference` The {String} reference to get the target of.
   // * `path` An optional {String} path in the repo to get the reference target
   //   for. Only needed if the repository contains submodules.
-  getReferenceTarget (reference, path) {
+  getReferenceTarget (reference, _path) {
     throw new Error('Unimplemented')
   }
 
@@ -431,18 +444,16 @@ export default class GitRepositoryAsync {
     return this.repoPromise
       .then(repo => repo.getCurrentBranch())
       .then(ref => ref.name())
-      .then(branchRef => this.branch = branchRef)
+      .then(branchName => this.branch = branchName)
   }
 
-  // Refreshes the git status.
-  //
-  // Returns :: Promise<???>
-  //            Resolves when refresh has completed.
-  refreshStatus () {
-    this._refreshingCount++
+  _refreshAheadBehindCount (branchName) {
+    return this.getAheadBehindCount(branchName)
+      .then(counts => this.upstreamByPath['.'] = counts)
+  }
 
-    // TODO add upstream, branch, and submodule tracking
-    const status = this.repoPromise
+  _refreshStatus () {
+    return this.repoPromise
       .then(repo => repo.getStatus())
       .then(statuses => {
         // update the status cache
@@ -457,10 +468,22 @@ export default class GitRepositoryAsync {
         this.pathStatusCache = newPathStatusCache
         return newPathStatusCache
       })
+  }
 
+  // Refreshes the git status.
+  //
+  // Returns :: Promise<???>
+  //            Resolves when refresh has completed.
+  refreshStatus () {
+    this._refreshingCount++
+
+    // TODO add submodule tracking
+
+    const status = this._refreshStatus()
     const branch = this._refreshBranch()
+    const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
 
-    return Promise.all([status, branch]).then(_ => this._refreshingCount--)
+    return Promise.all([status, branch, aheadBehind]).then(_ => this._refreshingCount--)
   }
 
   // Section: Private
