@@ -503,7 +503,7 @@ class TextEditorPresenter
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.hasBlockDecorations = blockDecorations.size isnt 0
+        lineState.hasBlockDecorations = blockDecorations.length isnt 0
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -520,7 +520,7 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          hasBlockDecorations: blockDecorations.size isnt 0
+          hasBlockDecorations: blockDecorations.length isnt 0
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -1140,6 +1140,7 @@ class TextEditorPresenter
       @lineHeight = lineHeight
       @restoreScrollTopIfNeeded()
       @model.setLineHeightInPixels(lineHeight)
+      @blockDecorationsPresenter.setLineHeight(lineHeight)
       @shouldUpdateHeightState = true
       @shouldUpdateHorizontalScrollState = true
       @shouldUpdateVerticalScrollState = true
@@ -1222,7 +1223,7 @@ class TextEditorPresenter
     @state.content.blockDecorations = {}
 
     @blockDecorationsPresenter.getAllDecorationsByScreenRow().forEach (decorations, screenRow) =>
-      decorations.forEach (decoration) =>
+      for decoration in decorations
         @state.content.blockDecorations[decoration.id] = {decoration, screenRow}
 
   updateLineDecorations: ->

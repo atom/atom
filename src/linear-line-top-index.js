@@ -3,7 +3,7 @@
 module.exports =
 class LineTopIndex {
   constructor () {
-    this.idCounter = 0
+    this.idCounter = 1
     this.blocks = []
     this.maxRow = 0
     this.defaultLineHeight = 0
@@ -24,10 +24,18 @@ class LineTopIndex {
     return id
   }
 
-  changeBlockHeight (id, height) {
+  resizeBlock (id, height) {
     let block = this.blocks.find((block) => block.id == id)
     if (block) {
       block.height = height
+    }
+  }
+
+  moveBlock (id, newRow) {
+    let block = this.blocks.find((block) => block.id == id)
+    if (block) {
+      block.row = newRow
+      this.blocks.sort((a, b) => a.row - b.row)
     }
   }
 
@@ -36,6 +44,10 @@ class LineTopIndex {
     if (index != -1) {
       this.blocks.splice(index, 1)
     }
+  }
+
+  allBlocks () {
+    return this.blocks
   }
 
   splice (startRow, oldExtent, newExtent) {

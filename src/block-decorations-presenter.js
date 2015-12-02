@@ -1,6 +1,7 @@
 /** @babel */
 
 const {CompositeDisposable, Emitter} = require('event-kit')
+const LineTopIndex = require('./linear-line-top-index')
 
 module.exports =
 class BlockDecorationsPresenter {
@@ -8,14 +9,11 @@ class BlockDecorationsPresenter {
     this.model = model
     this.disposables = new CompositeDisposable()
     this.emitter = new Emitter()
-    this.decorationsByScreenRow = new Map
-    this.heightByScreenRow = new Map
-    this.screenRowByDecoration = new Map
-    this.dimensionsByDecoration = new Map
-    this.moveOperationsByDecoration = new Map
-    this.addOperationsByDecoration = new Map
-    this.changeOperationsByDecoration = new Map
     this.firstUpdate = true
+    this.lineTopIndex = new LineTopIndex
+    this.blocksByDecoration = new Map
+    this.decorationsByBlock = new Map
+    this.observedDecorations = new Set
 
     this.observeModel()
   }
@@ -28,10 +26,21 @@ class BlockDecorationsPresenter {
     return this.emitter.on("did-update-state", callback)
   }
 
+  setLineHeight (lineHeight) {
+    this.lineTopIndex.setDefaultLineHeight(lineHeight)
+  }
+
   observeModel () {
-    this.disposables.add(
-      this.model.onDidAddDecoration((decoration) => this.observeDecoration(decoration))
-    )
+    this.lineTopIndex.setMaxRow(this.model.getScreenLineCount())
+    this.lineTopIndex.setDefaultLineHeight(this.model.getLineHeightInPixels())
+    this.disposables.add(this.model.onDidAddDecoration((decoration) => {
+      this.observeDecoration(decoration)
+    }))
+    this.disposables.add(this.model.onDidChange(({start, end, screenDelta}) => {
+      let oldExtent = end - start
+      let newExtent = Math.max(0, end - start + screenDelta)
+      this.lineTopIndex.splice(start, oldExtent, newExtent)
+    }))
   }
 
   update () {
@@ -44,101 +53,57 @@ class BlockDecorationsPresenter {
   }
 
   fullUpdate () {
-    this.decorationsByScreenRow.clear()
-    this.screenRowByDecoration.clear()
-    this.moveOperationsByDecoration.clear()
-    this.addOperationsByDecoration.clear()
-
     for (let decoration of this.model.getDecorations({type: "block"})) {
-      let screenRow = decoration.getMarker().getHeadScreenPosition().row
-      this.addDecorationToScreenRow(screenRow, decoration)
       this.observeDecoration(decoration)
     }
   }
 
   incrementalUpdate () {
-    for (let [changedDecoration] of this.changeOperationsByDecoration) {
-      let screenRow = changedDecoration.getMarker().getHeadScreenPosition().row
-      this.recalculateScreenRowHeight(screenRow)
-    }
-
-    for (let [addedDecoration] of this.addOperationsByDecoration) {
-      let screenRow = addedDecoration.getMarker().getHeadScreenPosition().row
-      this.addDecorationToScreenRow(screenRow, addedDecoration)
-    }
-
-    for (let [movedDecoration, moveOperations] of this.moveOperationsByDecoration) {
-      let {oldHeadScreenPosition} = moveOperations[0]
-      let {newHeadScreenPosition} = moveOperations[moveOperations.length - 1]
-      this.removeDecorationFromScreenRow(oldHeadScreenPosition.row, movedDecoration)
-      this.addDecorationToScreenRow(newHeadScreenPosition.row, movedDecoration)
-    }
-
-    this.addOperationsByDecoration.clear()
-    this.moveOperationsByDecoration.clear()
-    this.changeOperationsByDecoration.clear()
   }
 
   setDimensionsForDecoration (decoration, width, height) {
-    this.changeOperationsByDecoration.set(decoration, true)
-    this.dimensionsByDecoration.set(decoration, {width, height})
+    let block = this.blocksByDecoration.get(decoration)
+    if (block) {
+      this.lineTopIndex.resizeBlock(block, height)
+    } else {
+      this.observeDecoration(decoration)
+      block = this.blocksByDecoration.get(decoration)
+      this.lineTopIndex.resizeBlock(block, height)
+    }
+
     this.emitter.emit("did-update-state")
   }
 
   heightForScreenRow (screenRow) {
-    return this.heightByScreenRow.get(screenRow) || 0
-  }
-
-  addDecorationToScreenRow (screenRow, decoration) {
-    let decorations = this.decorationsForScreenRow(screenRow)
-    if (!decorations.has(decoration)) {
-      decorations.add(decoration)
-      this.screenRowByDecoration.set(decoration, screenRow)
-      this.recalculateScreenRowHeight(screenRow)
-    }
-  }
-
-  removeDecorationFromScreenRow (screenRow, decoration) {
-    if (!Number.isInteger(screenRow) || !decoration) {
-      return
-    }
-
-    let decorations = this.decorationsForScreenRow(screenRow)
-    if (decorations.has(decoration)) {
-      decorations.delete(decoration)
-      this.recalculateScreenRowHeight(screenRow)
-    }
+    return this.lineTopIndex.bottomPixelPositionForRow(screenRow) - this.lineTopIndex.topPixelPositionForRow(screenRow)
   }
 
   decorationsForScreenRow (screenRow) {
-    if (!this.decorationsByScreenRow.has(screenRow)) {
-      this.decorationsByScreenRow.set(screenRow, new Set())
-    }
-
-    return this.decorationsByScreenRow.get(screenRow)
+    let blocks = this.lineTopIndex.allBlocks().filter((block) => block.row == screenRow)
+    return blocks.map((block) => this.decorationsByBlock.get(block.id)).filter((decoration) => decoration)
   }
 
   getAllDecorationsByScreenRow () {
-    return this.decorationsByScreenRow
-  }
-
-  getDecorationDimensions (decoration) {
-    return this.dimensionsByDecoration.get(decoration) || {width: 0, height: 0}
-  }
-
-  recalculateScreenRowHeight (screenRow) {
-    let height = 0
-    for (let decoration of this.decorationsForScreenRow(screenRow)) {
-      height += this.getDecorationDimensions(decoration).height
+    let blocks = this.lineTopIndex.allBlocks()
+    let decorationsByScreenRow = new Map
+    for (let block of blocks) {
+      let decoration = this.decorationsByBlock.get(block.id)
+      if (decoration) {
+        let decorations = decorationsByScreenRow.get(block.row) || []
+        decorations.push(decoration)
+        decorationsByScreenRow.set(block.row, decorations)
+      }
     }
-    this.heightByScreenRow.set(screenRow, height)
+
+    return decorationsByScreenRow
   }
 
   observeDecoration (decoration) {
-    if (!decoration.isType("block")) {
+    if (!decoration.isType("block") || this.observedDecorations.has(decoration)) {
       return
     }
 
+    // TODO: change this with a "on manual did change" event.
     let didMoveDisposable = decoration.getMarker().onDidChange((markerEvent) => {
       this.didMoveDecoration(decoration, markerEvent)
     })
@@ -146,31 +111,36 @@ class BlockDecorationsPresenter {
     let didDestroyDisposable = decoration.onDidDestroy(() => {
       didMoveDisposable.dispose()
       didDestroyDisposable.dispose()
+      this.observedDecorations.delete(decoration)
       this.didDestroyDecoration(decoration)
     })
 
     this.didAddDecoration(decoration)
+    this.observedDecorations.add(decoration)
   }
 
   didAddDecoration (decoration) {
-    this.addOperationsByDecoration.set(decoration, true)
+    let screenRow = decoration.getMarker().getHeadScreenPosition().row
+    let block = this.lineTopIndex.insertBlock(screenRow, 0)
+    this.decorationsByBlock.set(block, decoration)
+    this.blocksByDecoration.set(decoration, block)
     this.emitter.emit("did-update-state")
   }
 
-  didMoveDecoration (decoration, markerEvent) {
-    let moveOperations = this.moveOperationsByDecoration.get(decoration) || []
-    moveOperations.push(markerEvent)
-    this.moveOperationsByDecoration.set(decoration, moveOperations)
+  didMoveDecoration (decoration, {oldHeadScreenPosition, newHeadScreenPosition}) {
+    let block = this.blocksByDecoration.get(decoration)
+    let newScreenRow = decoration.getMarker().getHeadScreenPosition().row
+    this.lineTopIndex.moveBlock(block, newScreenRow)
     this.emitter.emit("did-update-state")
   }
 
   didDestroyDecoration (decoration) {
-    this.moveOperationsByDecoration.delete(decoration)
-    this.addOperationsByDecoration.delete(decoration)
-
-    this.removeDecorationFromScreenRow(
-      this.screenRowByDecoration.get(decoration), decoration
-    )
+    let block = this.blocksByDecoration.get(decoration)
+    if (block) {
+      this.lineTopIndex.removeBlock(block)
+      this.blocksByDecoration.delete(decoration)
+      this.decorationsByBlock.delete(block)
+    }
     this.emitter.emit("did-update-state")
   }
 }
