@@ -1514,8 +1514,8 @@ class TextEditorPresenter
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
 
-    top = @lineTopIndex.topPixelPositionForRow(screenRange.start.row)
-    bottom = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1)
+    top = @lineTopIndex.bottomPixelPositionForRow(screenRange.start.row)
+    bottom = @lineTopIndex.bottomPixelPositionForRow(screenRange.end.row + 1)
 
     if options?.center
       desiredScrollCenter = (top + bottom) / 2
