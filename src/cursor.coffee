@@ -467,10 +467,13 @@ class Cursor extends Model
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
-        beginningOfWordPosition = range.start
-      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, matchText, stop}) ->
+      # Ignore 'empty line' matches between '\r' and '\n'
+      return if matchText is '' and range.start.column isnt 0
+
+      if range.start.isLessThan(currentBufferPosition)
+        if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+          beginningOfWordPosition = range.start
         stop()
 
     if beginningOfWordPosition?
@@ -496,13 +499,12 @@ class Cursor extends Model
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if allowNext
-        if range.end.isGreaterThan(currentBufferPosition)
-          endOfWordPosition = range.end
-          stop()
-      else
-        if range.start.isLessThanOrEqual(currentBufferPosition)
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, matchText, stop}) ->
+      # Ignore 'empty line' matches between '\r' and '\n'
+      return if matchText is '' and range.start.column isnt 0
+
+      if range.end.isGreaterThan(currentBufferPosition)
+        if allowNext or range.start.isLessThanOrEqual(currentBufferPosition)
           endOfWordPosition = range.end
         stop()
 
@@ -603,14 +605,14 @@ class Cursor extends Model
   #     non-word characters in the regex. (default: true)
   #
   # Returns a {RegExp}.
-  wordRegExp: ({includeNonWordCharacters}={}) ->
-    includeNonWordCharacters ?= true
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
-    segments = ["\\r?\\n[\\t\\s]*\\r?\\n"]
-    segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
-    if includeNonWordCharacters
-      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
-    new RegExp(segments.join("|"), "g")
+  wordRegExp: (options) ->
+    scope = @getScopeDescriptor()
+    nonWordCharacters = _.escapeRegExp(@config.get('editor.nonWordCharacters', {scope}))
+
+    source = "^[\t ]*$|[^\\s#{nonWordCharacters}]+"
+    if options?.includeNonWordCharacters ? true
+      source += "|" + "[#{nonWordCharacters}]+"
+    new RegExp(source, "g")
 
   # Public: Get the RegExp used by the cursor to determine what a "subword" is.
   #
