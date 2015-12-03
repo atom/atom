@@ -2103,6 +2103,25 @@ describe "TextEditorPresenter", ->
         stateForBlockDecoration = (presenter, decoration) ->
           presenter.getState().content.blockDecorations[decoration.id]
 
+        it "contains state for measured block decorations that are not visible when they are on ::mouseWheelScreenRow", ->
+          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
+          presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0, stoppedScrollingDelay: 200)
+          presenter.getState() # flush pending state
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 0)
+
+          presenter.setScrollTop(100)
+          presenter.setMouseWheelScreenRow(0)
+
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 0
+            isVisible: true
+          }
+
+          advanceClock(presenter.stoppedScrollingDelay)
+
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+
         it "contains state for block decorations, indicating the screen row they belong to both initially and when their markers move", ->
           item = {}
           blockDecoration1 = editor.addBlockDecorationForScreenRow(0, item)

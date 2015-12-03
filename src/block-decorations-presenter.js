@@ -75,13 +75,14 @@ class BlockDecorationsPresenter {
     return blocks.map((block) => this.decorationsByBlock.get(block.id)).filter((decoration) => decoration)
   }
 
-  decorationsForScreenRowRange (startRow, endRow) {
+  decorationsForScreenRowRange (startRow, endRow, mouseWheelScreenRow) {
     let blocks = this.lineTopIndex.allBlocks()
     let decorationsByScreenRow = new Map()
     for (let block of blocks) {
       let decoration = this.decorationsByBlock.get(block.id)
       let hasntMeasuredDecoration = !this.measuredDecorations.has(decoration)
-      let isVisible = startRow <= block.row && block.row < endRow
+      let isWithinVisibleRange = startRow <= block.row && block.row < endRow
+      let isVisible = isWithinVisibleRange || block.row === mouseWheelScreenRow
       if (decoration && (isVisible || hasntMeasuredDecoration)) {
         let decorations = decorationsByScreenRow.get(block.row) || []
         decorations.push({decoration, isVisible})

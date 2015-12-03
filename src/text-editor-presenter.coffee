@@ -1208,7 +1208,7 @@ class TextEditorPresenter
 
     startRow = @getStartTileRow()
     endRow = @getEndTileRow() + @tileSize
-    decorations = @blockDecorationsPresenter.decorationsForScreenRowRange(startRow, endRow)
+    decorations = @blockDecorationsPresenter.decorationsForScreenRowRange(startRow, endRow, @mouseWheelScreenRow)
     decorations.forEach (decorations, screenRow) =>
       for {decoration, isVisible} in decorations
         @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
