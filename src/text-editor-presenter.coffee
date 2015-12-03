@@ -391,9 +391,6 @@ class TextEditorPresenter
   getEndTileRow: ->
     @constrainRow(@tileForRow(@endRow))
 
-  getTileSize: ->
-    @tileSize
-
   isValidScreenRow: (screenRow) ->
     screenRow >= 0 and screenRow < @model.getScreenLineCount()
 
@@ -533,7 +530,6 @@ class TextEditorPresenter
     return unless cursor.isVisible() and @startRow <= screenRange.start.row < @endRow
 
     pixelRect = @pixelRectForScreenRange(screenRange)
-    pixelRect.height = @lineHeight
     pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
     @state.content.cursors[cursor.id] = pixelRect
 
@@ -761,9 +757,6 @@ class TextEditorPresenter
     unless @scrollHeight is scrollHeight
       @scrollHeight = scrollHeight
       @updateScrollTop(@scrollTop)
-
-  getLinesHeight: ->
-    @lineHeight * @model.getScreenLineCount()
 
   updateVerticalDimensions: ->
     if @lineHeight?
