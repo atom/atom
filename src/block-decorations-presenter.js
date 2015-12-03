@@ -1,7 +1,6 @@
 /** @babel */
 
 const {CompositeDisposable, Emitter} = require('event-kit')
-const LineTopIndex = require('./linear-line-top-index')
 
 module.exports =
 class BlockDecorationsPresenter {
