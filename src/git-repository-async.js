@@ -350,7 +350,10 @@ export default class GitRepositoryAsync {
 
         return status
       })
-      .then(_ => this._refreshingCount--)
+      .then(status => {
+        this._refreshingCount--
+        return status
+      })
   }
 
   // Returns a Promise that resolves to the status bit of a given path if it has
@@ -491,6 +494,8 @@ export default class GitRepositoryAsync {
   }
 
   _refreshStatus () {
+    this._refreshingCount++
+
     return this.repoPromise
       .then(repo => repo.getStatus())
       .then(statuses => {
@@ -506,22 +511,21 @@ export default class GitRepositoryAsync {
         this.pathStatusCache = newPathStatusCache
         return newPathStatusCache
       })
+      .then(_ => this._refreshingCount--)
   }
 
   // Refreshes the git status.
   //
-  // Returns :: Promise<???>
+  // Returns :: Promise<null>
   //            Resolves when refresh has completed.
   refreshStatus () {
-    this._refreshingCount++
-
     // TODO add submodule tracking
 
     const status = this._refreshStatus()
     const branch = this._refreshBranch()
     const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
 
-    return Promise.all([status, branch, aheadBehind]).then(_ => this._refreshingCount--)
+    return Promise.all([status, branch, aheadBehind]).then(_ => null)
   }
 
   // Section: Private
