@@ -611,7 +611,7 @@ describe "TextEditorPresenter", ->
             expect(presenter.getState().hiddenInput.width).toBe 15
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'r', 20)
               presenter.characterWidthsChanged()
             expect(presenter.getState().hiddenInput.width).toBe 20
 
