@@ -251,9 +251,12 @@ export default class GitRepositoryAsync {
   // * `path` An optional {String} path in the repo to get this information for,
   //   only needed if the repository contains submodules.
   //
-  // Returns a {String} branch name such as `refs/remotes/origin/master`.
+  // Returns a {Promise} which resolves to a {String} branch name such as
+  // `refs/remotes/origin/master`.
   getUpstreamBranch (_path) {
-    throw new Error('Unimplemented')
+    return this._getRepo(_path)
+      .then(repo => repo.getCurrentBranch())
+      .then(branch => Git.Branch.upstream(branch))
   }
 
   // Public: Gets all the local and remote references.
