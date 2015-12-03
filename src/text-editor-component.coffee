@@ -283,13 +283,13 @@ class TextEditorComponent
   observeConfig: ->
     @disposables.add @config.onDidChange 'editor.fontSize', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
     @disposables.add @config.onDidChange 'editor.fontFamily', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
     @disposables.add @config.onDidChange 'editor.lineHeight', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
@@ -576,7 +576,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
@@ -730,7 +730,7 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
@@ -840,7 +840,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -848,16 +848,16 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
-  invalidateCharacterWidths: ->
+  invalidateMeasurements: ->
     @linesYardstick.invalidateCache()
-    @presenter.characterWidthsChanged()
+    @presenter.measurementsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
     @config.set("editor.showIndentGuide", showIndentGuide)

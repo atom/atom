@@ -1152,9 +1152,12 @@ class TextEditorPresenter
       @koreanCharWidth = koreanCharWidth
       @model.setDefaultCharWidth(baseCharacterWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
       @restoreScrollLeftIfNeeded()
-      @characterWidthsChanged()
+      @measurementsChanged()
 
-  characterWidthsChanged: ->
+  measurementsChanged: ->
+    @blockDecorationsPresenter.measurementsChanged()
+
+    @shouldUpdateHeightState = true
     @shouldUpdateHorizontalScrollState = true
     @shouldUpdateVerticalScrollState = true
     @shouldUpdateScrollbarsState = true
@@ -1162,8 +1165,10 @@ class TextEditorPresenter
     @shouldUpdateContentState = true
     @shouldUpdateDecorations = true
     @shouldUpdateLinesState = true
+    @shouldUpdateLineNumbersState = true
     @shouldUpdateCursorsState = true
     @shouldUpdateOverlaysState = true
+    @shouldUpdateCustomGutterDecorationState = true
 
     @emitDidUpdateState()
 

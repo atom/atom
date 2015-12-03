@@ -70,6 +70,11 @@ class BlockDecorationsPresenter {
     this.emitter.emit('did-update-state')
   }
 
+  measurementsChanged () {
+    this.measuredDecorations.clear()
+    this.emitter.emit('did-update-state')
+  }
+
   decorationsForScreenRow (screenRow) {
     let blocks = this.lineTopIndex.allBlocks().filter((block) => block.row === screenRow)
     return blocks.map((block) => this.decorationsByBlock.get(block.id)).filter((decoration) => decoration)

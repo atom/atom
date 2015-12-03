@@ -1663,7 +1663,7 @@ describe('TextEditorComponent', function () {
       atom.themes.removeStylesheet('test')
     })
 
-    it("renders all the editor's block decorations, inserting them in the appropriate spots between lines", async function () {
+    it("renders visible and yet-to-be-measured block decorations, inserting them in the appropriate spots between lines and refreshing them when needed", async function () {
       wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
       component.measureDimensions()
       await nextViewUpdatePromise()
@@ -1680,7 +1680,7 @@ describe('TextEditorComponent', function () {
       atom-text-editor .decoration-4 { width: 30px; height: 120px; }
       `
 
-      await nextViewUpdatePromise()
+      await nextAnimationFramePromise()
 
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
 
@@ -1694,19 +1694,17 @@ describe('TextEditorComponent', function () {
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBe(item1)
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
 
       expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 4 + 80 + 40)
-      expect(item4.getBoundingClientRect().top).toBe(0) // hidden
-      expect(item4.getBoundingClientRect().height).toBe(120)
 
       editor.setCursorScreenPosition([0, 0])
       editor.insertNewline()
       blockDecoration1.destroy()
 
-      await nextViewUpdatePromise()
+      await nextAnimationFramePromise()
 
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
 
@@ -1720,21 +1718,19 @@ describe('TextEditorComponent', function () {
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
 
-      expect(item1.getBoundingClientRect().height).toBe(0) // deleted
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
-      expect(item4.getBoundingClientRect().top).toBe(0) // hidden
-      expect(item4.getBoundingClientRect().height).toBe(120)
 
-      await nextViewUpdatePromise()
+      await nextAnimationFramePromise()
 
       atom.styles.addStyleSheet `
       atom-text-editor .decoration-2 { height: 60px !important; }
       `
 
-      await nextViewUpdatePromise()
+      await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
+      await nextAnimationFramePromise() // applies the changes
 
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
 
@@ -1748,13 +1744,10 @@ describe('TextEditorComponent', function () {
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
-      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
 
-      expect(item1.getBoundingClientRect().height).toBe(0) // deleted
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
-      expect(item4.getBoundingClientRect().top).toBe(0) // hidden
-      expect(item4.getBoundingClientRect().height).toBe(120) // hidden
     })
   })
 

@@ -144,7 +144,7 @@ class LinesTileComponent
     return unless insertionPoint?
 
     if newLineState.screenRow isnt oldLineState.screenRow
-      insertionPoint.dataset.screenRow = screenRow
+      insertionPoint.dataset.screenRow = newLineState.screenRow
 
     blockDecorationsSelector = newLineState.blockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
     if blockDecorationsSelector isnt oldLineState.blockDecorationsSelector

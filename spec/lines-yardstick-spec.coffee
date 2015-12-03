@@ -1,4 +1,5 @@
-LinesYardstick = require "../src/lines-yardstick"
+LinesYardstick = require '../src/lines-yardstick'
+LineTopIndex = require '../src/linear-line-top-index'
 {toArray} = require 'underscore-plus'
 
 describe "LinesYardstick", ->
@@ -56,7 +57,7 @@ describe "LinesYardstick", ->
           textNodes
 
       editor.setLineHeightInPixels(14)
-      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider, atom.grammars)
+      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider, new LineTopIndex(), atom.grammars)
 
   afterEach ->
     lineNode.remove() for lineNode in createdLineNodes
