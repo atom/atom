@@ -500,7 +500,6 @@ describe('GitRepositoryAsync', () => {
   describe('.getConfigValue(key, path)', () => {
     beforeEach(() => {
       const workingDirectory = copyRepository()
-      console.log(workingDirectory)
       repo = GitRepositoryAsync.open(workingDirectory)
     })
 
@@ -518,7 +517,6 @@ describe('GitRepositoryAsync', () => {
   describe('.checkoutReference(reference, create)', () => {
     beforeEach(() => {
       const workingDirectory = copyRepository()
-      console.log(workingDirectory)
       repo = GitRepositoryAsync.open(workingDirectory)
     })
 
@@ -532,6 +530,21 @@ describe('GitRepositoryAsync', () => {
         expect(success).toBeTruthy()
         expect(threw).toBeFalsy()
       })
+    })
+  })
+
+  describe('.getLineDiffs(path, text)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('can get the line diff', async () => {
+      const {oldStart, newStart, oldLines, newLines} = await repo.getLineDiffs('a.txt', 'hi there')
+      expect(oldStart).toBe(0)
+      expect(oldLines).toBe(0)
+      expect(newStart).toBe(1)
+      expect(newLines).toBe(1)
     })
   })
 })

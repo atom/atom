@@ -433,6 +433,18 @@ export default class GitRepositoryAsync {
     return (statusBit & deletedStatusFlags) > 0
   }
 
+  _getDiffHunks (diff) {
+    return diff.patches()
+      .then(patches => Promise.all(patches.map(p => p.hunks()))) // patches :: Array<Patch>
+      .then(hunks => _.flatten(hunks)) // hunks :: Array<Array<Hunk>>
+  }
+
+  _getDiffLines (diff) {
+    return this._getDiffHunks(diff)
+      .then(hunks => Promise.all(hunks.map(h => h.lines())))
+      .then(lines => _.flatten(lines)) // lines :: Array<Array<Line>>
+  }
+
   // Retrieving Diffs
   // ================
   // Public: Retrieves the number of lines added and removed to a path.
@@ -454,12 +466,10 @@ export default class GitRepositoryAsync {
         options.pathspec = _path
         return Git.Diff.treeToWorkdir(repo, tree, options)
       })
-      .then(diff => diff.patches())
-      .then(patches => Promise.all(patches.map(p => p.hunks()))) // patches :: Array<Patch>
-      .then(hunks => Promise.all(_.flatten(hunks).map(h => h.lines()))) // hunks :: Array<Array<Hunk>>
-      .then(lines => { // lines :: Array<Array<Line>>
+      .then(diff => this._getDiffLines(diff))
+      .then(lines => {
         const stats = {added: 0, deleted: 0}
-        for (const line of _.flatten(lines)) {
+        for (const line of lines) {
           const origin = line.origin()
           if (origin === Git.Diff.LINE.ADDITION) {
             stats.added++
@@ -469,6 +479,14 @@ export default class GitRepositoryAsync {
         }
         return stats
       })
+  }
+
+  _diffBlobToBuffer (blob, buffer, options) {
+    const hunks = []
+    const hunkCallback = (delta, hunk, payload) => {
+      hunks.push(hunk)
+    }
+    return Git.Diff.blobToBuffer(blob, null, buffer, null, null, options, null, null, hunkCallback, null, null).then(_ => hunks)
   }
 
   // Public: Retrieves the line diffs comparing the `HEAD` version of the given
@@ -483,12 +501,32 @@ export default class GitRepositoryAsync {
   //   * `oldLines` The {Number} of lines in the old hunk.
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
-    // # Ignore eol of line differences on windows so that files checked in as
-    // # LF don't report every line modified when the text contains CRLF endings.
-    // options = ignoreEolWhitespace: process.platform is 'win32'
-    // repo = @getRepo(path)
-    // repo.getLineDiffs(repo.relativize(path), text, options)
-    throw new Error('Unimplemented')
+    return this.repoPromise
+      .then(repo => repo.getHeadCommit())
+      .then(commit => commit.getEntry(_path))
+      .then(entry => entry.getBlob())
+      .then(blob => {
+        const options = new Git.DiffOptions()
+        if (process.platform === 'win32') {
+          // Ignore eol of line differences on windows so that files checked in
+          // as LF don't report every line modified when the text contains CRLF
+          // endings.
+          // TODO: set GIT_DIFF_IGNORE_WHITESPACE_EOL
+        }
+        return this._diffBlobToBuffer(blob, text, options)
+      })
+      .then(hunks => {
+        // TODO: The old implementation just takes into account the last hunk.
+        // That's probably safe for most cases but maybe wrong in some edge
+        // cases?
+        const hunk = hunks[hunks.length - 1]
+        return {
+          oldStart: hunk.oldStart(),
+          newStart: hunk.newStart(),
+          oldLines: hunk.oldLines(),
+          newLines: hunk.newLines()
+        }
+      })
   }
 
   // Checking Out
