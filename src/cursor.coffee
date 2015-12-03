@@ -3,6 +3,8 @@
 _ = require 'underscore-plus'
 Model = require './model'
 
+EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
+
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
@@ -668,10 +670,9 @@ class Cursor extends Model
     {row, column} = eof
     position = new Point(row, column - 1)
 
-    @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      unless range.start.isEqual(start)
-        position = range.start
-        stop()
+    @editor.scanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
+      position = range.start.traverse(Point(1, 0))
+      stop() unless position.isEqual(start)
     position
 
   getBeginningOfPreviousParagraphBufferPosition: ->
@@ -681,8 +682,7 @@ class Cursor extends Model
     scanRange = [[row-1, column], [0, 0]]
     position = new Point(0, 0)
     zero = new Point(0, 0)
-    @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      unless range.start.isEqual(zero)
-        position = range.start
-        stop()
+    @editor.backwardsScanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
+      position = range.start.traverse(Point(1, 0))
+      stop() unless position.isEqual(start)
     position

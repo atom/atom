@@ -1080,8 +1080,36 @@ describe "TextEditor", ->
         editor.moveToBeginningOfNextParagraph()
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
+      it "moves the cursor before the first line of the next paragraph (CRLF line endings)", ->
+        editor.setText(editor.getText().replace(/\n/g, '\r\n'))
+
+        editor.setCursorBufferPosition [0, 6]
+        editor.foldBufferRow(4)
+
+        editor.moveToBeginningOfNextParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual  [10, 0]
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0, 0]
+        editor.moveToBeginningOfNextParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
     describe ".moveToBeginningOfPreviousParagraph()", ->
-      it "moves the cursor before the first line of the pevious paragraph", ->
+      it "moves the cursor before the first line of the previous paragraph", ->
+        editor.setCursorBufferPosition [10, 0]
+        editor.foldBufferRow(4)
+
+        editor.moveToBeginningOfPreviousParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0, 0]
+        editor.moveToBeginningOfPreviousParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+      it "moves the cursor before the first line of the previous paragraph (CRLF line endings)", ->
+        editor.setText(editor.getText().replace(/\n/g, '\r\n'))
+
         editor.setCursorBufferPosition [10, 0]
         editor.foldBufferRow(4)
 
