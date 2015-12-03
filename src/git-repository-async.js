@@ -41,9 +41,9 @@ export default class GitRepositoryAsync {
       this.subscriptions.add(new Disposable(() => window.removeEventListener('focus', onWindowFocus)))
     }
 
-    const {project} = options
+    const {project, subscribeToBuffers} = options
     this.project = project
-    if (this.project) {
+    if (this.project && subscribeToBuffers) {
       this.project.getBuffers().forEach(buffer => this.subscribeToBuffer(buffer))
       this.subscriptions.add(this.project.onDidAddBuffer(buffer => this.subscribeToBuffer(buffer)))
     }

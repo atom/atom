@@ -76,7 +76,14 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
-    @async = GitRepositoryAsync.open(path, options)
+    asyncOptions = {}
+    for key, val of options
+      asyncOptions[key] = val
+    # GitRepository itself will handle these cases by manually calling through
+    # to the async repo.
+    asyncOptions.refreshOnWindowFocus = false
+    asyncOptions.subscribeToBuffers = false
+    @async = GitRepositoryAsync.open(path, asyncOptions)
 
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
