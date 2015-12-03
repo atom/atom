@@ -96,7 +96,7 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to the {String} working
   // directory path of the repository.
   getWorkingDirectory () {
-    throw new Error('Unimplemented')
+    return this.repoPromise.then(repo => repo.workdir())
   }
 
   // Public: Returns a {Promise} that resolves to true if at the root, false if
@@ -104,7 +104,7 @@ export default class GitRepositoryAsync {
   isProjectAtRoot () {
     if (!this.projectAtRoot && this.project) {
       this.projectAtRoot = Promise.resolve(() => {
-        return this.repoPromise.then(repo => this.project.relativize(repo.workdir))
+        return this.repoPromise.then(repo => this.project.relativize(repo.workdir()))
       })
     }
 
@@ -154,9 +154,13 @@ export default class GitRepositoryAsync {
     return _path
   }
 
-  // Public: Returns true if the given branch exists.
+  // Public: Returns a {Promise} which resolves to whether the given branch
+  // exists.
   hasBranch (branch) {
-    throw new Error('Unimplemented')
+    return this.repoPromise
+      .then(repo => repo.getBranch(branch))
+      .then(branch => branch != null)
+      .catch(_ => false)
   }
 
   // Public: Retrieves a shortened version of the HEAD reference value.

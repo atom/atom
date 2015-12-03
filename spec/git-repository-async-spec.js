@@ -453,4 +453,21 @@ describe('GitRepositoryAsync', () => {
       expect(deleted).toBe(0)
     })
   })
+
+  describe('.hasBranch(branch)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('resolves true when the branch exists', async () => {
+      const hasBranch = await repo.hasBranch('master')
+      expect(hasBranch).toBe(true)
+    })
+
+    it("resolves false when the branch doesn't exist", async () => {
+      const hasBranch = await repo.hasBranch('trolleybus')
+      expect(hasBranch).toBe(false)
+    })
+  })
 })
