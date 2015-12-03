@@ -462,12 +462,12 @@ describe('GitRepositoryAsync', () => {
 
     it('resolves true when the branch exists', async () => {
       const hasBranch = await repo.hasBranch('master')
-      expect(hasBranch).toBe(true)
+      expect(hasBranch).toBeTruthy()
     })
 
     it("resolves false when the branch doesn't exist", async () => {
       const hasBranch = await repo.hasBranch('trolleybus')
-      expect(hasBranch).toBe(false)
+      expect(hasBranch).toBeFalsy()
     })
   })
 
@@ -511,7 +511,27 @@ describe('GitRepositoryAsync', () => {
 
     it("resolves to null if there's no value", async () => {
       const value = await repo.getConfigValue('my.special.key')
-      expect(value).toBe(null)
+      expect(value).toBeNull()
+    })
+  })
+
+  describe('.checkoutReference(reference, create)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      console.log(workingDirectory)
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('can create new branches', () => {
+      let success = false
+      let threw = false
+      waitsForPromise(() => repo.checkoutReference('my-b', true)
+        .then(_ => success = true)
+        .catch(_ => threw = true))
+      runs(() => {
+        expect(success).toBeTruthy()
+        expect(threw).toBeFalsy()
+      })
     })
   })
 })

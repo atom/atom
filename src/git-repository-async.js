@@ -483,6 +483,11 @@ export default class GitRepositoryAsync {
   //   * `oldLines` The {Number} of lines in the old hunk.
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
+    // # Ignore eol of line differences on windows so that files checked in as
+    // # LF don't report every line modified when the text contains CRLF endings.
+    // options = ignoreEolWhitespace: process.platform is 'win32'
+    // repo = @getRepo(path)
+    // repo.getLineDiffs(repo.relativize(path), text, options)
     throw new Error('Unimplemented')
   }
 
@@ -514,16 +519,31 @@ export default class GitRepositoryAsync {
       .then(() => this.refreshStatusForPath(_path))
   }
 
+  _createBranch (name) {
+    return this.repoPromise
+      .then(repo => Promise.all([repo, repo.getHeadCommit()]))
+      .then(([repo, commit]) => repo.createBranch(name, commit))
+  }
+
   // Public: Checks out a branch in your repository.
   //
   // * `reference` The {String} reference to checkout.
   // * `create`    A {Boolean} value which, if true creates the new reference if
   //   it doesn't exist.
   //
-  // Returns a Boolean that's true if the method was successful.
+  // Returns a {Promise} that resolves if the method was successful.
   checkoutReference (reference, create) {
-    throw new Error('Unimplemented')
-    // @getRepo().checkoutReference(reference, create)
+    return this.repoPromise
+      .then(repo => repo.checkoutBranch(reference))
+      .catch(error => {
+        if (create) {
+          return this._createBranch(reference)
+            .then(_ => this.checkoutReference(reference, false))
+        } else {
+          throw error
+        }
+      })
+      .then(_ => null)
   }
 
   // Private
