@@ -20,9 +20,6 @@ module.exports = (grunt) ->
       copyFolder = path.resolve 'script', 'copy-folder.cmd'
       if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: true) isnt 0
         grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
-
-      createShortcut = path.resolve 'script', 'create-shortcut.cmd'
-      runas('cmd', ['/c', createShortcut, path.join(installDir, 'atom.exe'), appName])
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
