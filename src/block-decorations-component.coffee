@@ -47,7 +47,7 @@ class BlockDecorationsComponent
   createAndAppendBlockDecorationNode: (id) ->
     blockDecorationState = @newState.blockDecorations[id]
     blockDecorationNode = @views.getView(blockDecorationState.decoration.getProperties().item)
-    blockDecorationNode.classList.add("block-decoration-row-#{blockDecorationState.screenRow}")
+    blockDecorationNode.id = "atom--block-decoration-#{id}"
     unless blockDecorationState.isVisible
       blockDecorationNode.classList.add("atom--invisible-block-decoration")
 
@@ -57,14 +57,9 @@ class BlockDecorationsComponent
 
   updateBlockDecorationNode: (id) ->
     newBlockDecorationState = @newState.blockDecorations[id]
-    oldBlockDecorationState = @oldState.blockDecorations[id]
     blockDecorationNode = @blockDecorationNodesById[id]
 
     if newBlockDecorationState.isVisible
       blockDecorationNode.classList.remove("atom--invisible-block-decoration")
     else
       blockDecorationNode.classList.add("atom--invisible-block-decoration")
-
-    if newBlockDecorationState.screenRow isnt oldBlockDecorationState.screenRow
-      blockDecorationNode.classList.remove("block-decoration-row-#{oldBlockDecorationState.screenRow}")
-      blockDecorationNode.classList.add("block-decoration-row-#{newBlockDecorationState.screenRow}")

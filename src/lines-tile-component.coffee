@@ -138,11 +138,11 @@ class LinesTileComponent
       @updateBlockDecorationInsertionPoint(id)
 
   updateBlockDecorationInsertionPoint: (id) ->
-    {screenRow} = @newTileState.lines[id]
-
+    {blockDecorations, screenRow} = @newTileState.lines[id]
+    elementsIds = blockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
     if insertionPoint = @insertionPointsByLineId[id]
       insertionPoint.dataset.screenRow = screenRow
-      insertionPoint.setAttribute("select", ".block-decoration-row-#{screenRow}")
+      insertionPoint.setAttribute("select", elementsIds)
 
   findNodeNextTo: (node) ->
     for nextNode, index in @domNode.children

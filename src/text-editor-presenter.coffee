@@ -499,7 +499,8 @@ class TextEditorPresenter
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.hasBlockDecorations = blockDecorations.length isnt 0
+        lineState.blockDecorations = blockDecorations
+        lineState.hasBlockDecorations = blockDecorations.length > 0
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -516,7 +517,8 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          hasBlockDecorations: blockDecorations.length isnt 0
+          blockDecorations: blockDecorations
+          hasBlockDecorations: blockDecorations.length > 0
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
