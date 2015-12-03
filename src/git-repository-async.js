@@ -412,10 +412,10 @@ export default class GitRepositoryAsync {
         options.pathspec = _path
         return Git.Diff.treeToWorkdir(repo, tree, options)
       })
-      .then(diff => diff.patches()) // :: Array<Patch>
-      .then(patches => Promise.all(patches.map(p => p.hunks()))) // :: Array<Array<Hunk>>
-      .then(hunks => Promise.all(_.flatten(hunks).map(h => h.lines()))) // :: Array<Array<Line>>
-      .then(lines => {
+      .then(diff => diff.patches())
+      .then(patches => Promise.all(patches.map(p => p.hunks()))) // patches :: Array<Patch>
+      .then(hunks => Promise.all(_.flatten(hunks).map(h => h.lines()))) // hunks :: Array<Array<Hunk>>
+      .then(lines => { // lines :: Array<Array<Line>>
         const stats = {added: 0, deleted: 0}
         for (const line of _.flatten(lines)) {
           const origin = line.origin()
