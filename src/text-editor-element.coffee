@@ -347,4 +347,7 @@ class TextEditorElement extends HTMLElement
   getHeight: ->
     @offsetHeight
 
+  invalidateBlockDecorationDimensions: ->
+    @component.invalidateBlockDecorationDimensions(arguments...)
+
 module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype

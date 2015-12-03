@@ -1213,9 +1213,11 @@ class TextEditorPresenter
   updateBlockDecorationsState: ->
     @state.content.blockDecorations = {}
 
-    @blockDecorationsPresenter.getAllDecorationsByScreenRow().forEach (decorations, screenRow) =>
-      for decoration in decorations
-        isVisible = @getStartTileRow() <= screenRow < @getEndTileRow() + @tileSize
+    startRow = @getStartTileRow()
+    endRow = @getEndTileRow() + @tileSize
+    decorations = @blockDecorationsPresenter.decorationsForScreenRowRange(startRow, endRow)
+    decorations.forEach (decorations, screenRow) =>
+      for {decoration, isVisible} in decorations
         @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
 
   updateLineDecorations: ->
@@ -1413,6 +1415,9 @@ class TextEditorPresenter
 
   setBlockDecorationDimensions: ->
     @blockDecorationsPresenter.setDimensionsForDecoration(arguments...)
+
+  invalidateBlockDecorationDimensions: ->
+    @blockDecorationsPresenter.invalidateDimensionsForDecoration(arguments...)
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>

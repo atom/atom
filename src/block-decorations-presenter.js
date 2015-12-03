@@ -14,6 +14,7 @@ class BlockDecorationsPresenter {
     this.blocksByDecoration = new Map
     this.decorationsByBlock = new Map
     this.observedDecorations = new Set
+    this.measuredDecorations = new Set
 
     this.observeModel()
   }
@@ -62,6 +63,12 @@ class BlockDecorationsPresenter {
       this.lineTopIndex.resizeBlock(block, height)
     }
 
+    this.measuredDecorations.add(decoration)
+    this.emitter.emit("did-update-state")
+  }
+
+  invalidateDimensionsForDecoration (decoration) {
+    this.measuredDecorations.delete(decoration)
     this.emitter.emit("did-update-state")
   }
 
@@ -70,14 +77,16 @@ class BlockDecorationsPresenter {
     return blocks.map((block) => this.decorationsByBlock.get(block.id)).filter((decoration) => decoration)
   }
 
-  getAllDecorationsByScreenRow () {
+  decorationsForScreenRowRange (startRow, endRow) {
     let blocks = this.lineTopIndex.allBlocks()
     let decorationsByScreenRow = new Map
     for (let block of blocks) {
       let decoration = this.decorationsByBlock.get(block.id)
-      if (decoration) {
+      let hasntMeasuredDecoration = !this.measuredDecorations.has(decoration)
+      let isVisible = startRow <= block.row && block.row < endRow
+      if (decoration && (isVisible || hasntMeasuredDecoration)) {
         let decorations = decorationsByScreenRow.get(block.row) || []
-        decorations.push(decoration)
+        decorations.push({decoration, isVisible})
         decorationsByScreenRow.set(block.row, decorations)
       }
     }

@@ -60,9 +60,9 @@ class BlockDecorationsComponent
     oldBlockDecorationState = @oldState.blockDecorations[id]
     blockDecorationNode = @blockDecorationNodesById[id]
 
-    if newBlockDecorationState.isVisible and not oldBlockDecorationState.isVisible
+    if newBlockDecorationState.isVisible
       blockDecorationNode.classList.remove("atom--invisible-block-decoration")
-    else if not newBlockDecorationState.isVisible and oldBlockDecorationState.isVisible
+    else
       blockDecorationNode.classList.add("atom--invisible-block-decoration")
 
     if newBlockDecorationState.screenRow isnt oldBlockDecorationState.screenRow

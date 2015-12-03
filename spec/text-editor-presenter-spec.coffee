@@ -2129,62 +2129,61 @@ describe "TextEditorPresenter", ->
             isVisible: false
           }
 
-          waitsForStateToUpdate presenter, ->
-            editor.getBuffer().insert([0, 0], 'Hello world \n\n\n\n')
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 10)
+          presenter.setBlockDecorationDimensions(blockDecoration4, 0, 20)
 
-          runs ->
-            expectValues stateForBlockDecoration(presenter, blockDecoration1), {
-              decoration: blockDecoration1
-              screenRow: 4
-              isVisible: true
-            }
-            expectValues stateForBlockDecoration(presenter, blockDecoration2), {
-              decoration: blockDecoration2
-              screenRow: 8
-              isVisible: false
-            }
-            expectValues stateForBlockDecoration(presenter, blockDecoration3), {
-              decoration: blockDecoration3
-              screenRow: 8
-              isVisible: false
-            }
-            expectValues stateForBlockDecoration(presenter, blockDecoration4), {
-              decoration: blockDecoration4
-              screenRow: 14
-              isVisible: false
-            }
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 0
+            isVisible: true
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration2), {
+            decoration: blockDecoration2
+            screenRow: 4
+            isVisible: false
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+            decoration: blockDecoration3
+            screenRow: 4
+            isVisible: false
+          }
+          expect(stateForBlockDecoration(presenter, blockDecoration4)).toBeUndefined()
 
-          waitsForStateToUpdate presenter, ->
-            blockDecoration2.destroy()
-            blockDecoration4.destroy()
-            presenter.setBlockDecorationDimensions(blockDecoration1, 0, 20)
+          presenter.setScrollTop(90)
 
-          runs ->
-            expectValues stateForBlockDecoration(presenter, blockDecoration1), {
-              decoration: blockDecoration1
-              screenRow: 4
-              isVisible: true
-            }
-            expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
-            expectValues stateForBlockDecoration(presenter, blockDecoration3), {
-              decoration: blockDecoration3
-              screenRow: 8
-              isVisible: false
-            }
-            expect(stateForBlockDecoration(presenter, blockDecoration4)).toBeUndefined()
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+          expectValues stateForBlockDecoration(presenter, blockDecoration2), {
+            decoration: blockDecoration2
+            screenRow: 4
+            isVisible: false
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+            decoration: blockDecoration3
+            screenRow: 4
+            isVisible: false
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration4), {
+            decoration: blockDecoration4
+            screenRow: 10
+            isVisible: true
+          }
 
-            presenter.setScrollTop(80)
+          presenter.invalidateBlockDecorationDimensions(blockDecoration1)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
+          presenter.setBlockDecorationDimensions(blockDecoration3, 0, 10)
 
-            expectValues stateForBlockDecoration(presenter, blockDecoration1), {
-              decoration: blockDecoration1
-              screenRow: 4
-              isVisible: false
-            }
-            expectValues stateForBlockDecoration(presenter, blockDecoration3), {
-              decoration: blockDecoration3
-              screenRow: 8
-              isVisible: true
-            }
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 0
+            isVisible: false
+          }
+          expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
+          expect(stateForBlockDecoration(presenter, blockDecoration3)).toBeUndefined()
+          expectValues stateForBlockDecoration(presenter, blockDecoration4), {
+            decoration: blockDecoration4
+            screenRow: 10
+            isVisible: true
+          }
 
       describe ".overlays", ->
         [item] = []
