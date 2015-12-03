@@ -138,11 +138,18 @@ class LinesTileComponent
       @updateBlockDecorationInsertionPoint(id)
 
   updateBlockDecorationInsertionPoint: (id) ->
-    {blockDecorations, screenRow} = @newTileState.lines[id]
-    elementsIds = blockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
-    if insertionPoint = @insertionPointsByLineId[id]
+    oldLineState = @oldTileState.lines[id]
+    newLineState = @newTileState.lines[id]
+    insertionPoint = @insertionPointsByLineId[id]
+    return unless insertionPoint?
+
+    if newLineState.screenRow isnt oldLineState.screenRow
       insertionPoint.dataset.screenRow = screenRow
-      insertionPoint.setAttribute("select", elementsIds)
+
+    blockDecorationsSelector = newLineState.blockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
+    if blockDecorationsSelector isnt oldLineState.blockDecorationsSelector
+      insertionPoint.setAttribute("select", blockDecorationsSelector)
+      oldLineState.blockDecorationsSelector = blockDecorationsSelector
 
   findNodeNextTo: (node) ->
     for nextNode, index in @domNode.children
@@ -369,15 +376,15 @@ class LinesTileComponent
     else if oldLineState.hasBlockDecorations and not newLineState.hasBlockDecorations
       @removeBlockDecorationInsertionPoint(id)
 
-    oldLineState.hasBlockDecorations = newLineState.hasBlockDecorations
-
     if newLineState.screenRow isnt oldLineState.screenRow
-      @updateBlockDecorationInsertionPoint(id)
-
       lineNode.dataset.screenRow = newLineState.screenRow
-      oldLineState.screenRow = newLineState.screenRow
       @lineIdsByScreenRow[newLineState.screenRow] = id
       @screenRowsByLineId[id] = newLineState.screenRow
+
+    @updateBlockDecorationInsertionPoint(id)
+
+    oldLineState.screenRow = newLineState.screenRow
+    oldLineState.hasBlockDecorations = newLineState.hasBlockDecorations
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
