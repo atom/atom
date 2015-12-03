@@ -189,6 +189,8 @@ export default class GitRepositoryAsync {
     return this.repoPromise
       .then(repo => repo.openIndex())
       .then(index => {
+        // TODO: This'll probably be wrong if the submodule doesn't exist in the
+        // index yet? Is that a thing?
         const entry = index.getByPath(_path)
         const submoduleMode = 57344 // TODO compose this from libgit2 constants
         return entry.mode === submoduleMode
@@ -469,6 +471,21 @@ export default class GitRepositoryAsync {
       })
   }
 
+  // Public: Retrieves the line diffs comparing the `HEAD` version of the given
+  // path and the given text.
+  //
+  // * `path` The {String} path relative to the repository.
+  // * `text` The {String} to compare against the `HEAD` contents
+  //
+  // Returns an {Array} of hunk {Object}s with the following keys:
+  //   * `oldStart` The line {Number} of the old hunk.
+  //   * `newStart` The line {Number} of the new hunk.
+  //   * `oldLines` The {Number} of lines in the old hunk.
+  //   * `newLines` The {Number} of lines in the new hunk
+  getLineDiffs (_path, text) {
+    throw new Error('Unimplemented')
+  }
+
   // Checking Out
   // ============
 
@@ -497,6 +514,21 @@ export default class GitRepositoryAsync {
       .then(() => this.refreshStatusForPath(_path))
   }
 
+  // Public: Checks out a branch in your repository.
+  //
+  // * `reference` The {String} reference to checkout.
+  // * `create`    A {Boolean} value which, if true creates the new reference if
+  //   it doesn't exist.
+  //
+  // Returns a Boolean that's true if the method was successful.
+  checkoutReference (reference, create) {
+    throw new Error('Unimplemented')
+    // @getRepo().checkoutReference(reference, create)
+  }
+
+  // Private
+  // =======
+
   checkoutHeadForEditor (editor) {
     return new Promise((resolve, reject) => {
       const filePath = editor.getPath()
@@ -510,9 +542,6 @@ export default class GitRepositoryAsync {
       }
     }).then(filePath => this.checkoutHead(filePath))
   }
-
-  // Private
-  // =======
 
   // Get the current branch and update this.branch.
   //
