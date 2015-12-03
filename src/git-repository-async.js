@@ -243,12 +243,15 @@ export default class GitRepositoryAsync {
       .catch(_ => null)
   }
 
-  // Public: Returns the origin url of the repository.
+  // Public: Get the URL for the 'origin' remote.
   //
   // * `path` (optional) {String} path in the repository to get this information
   //   for, only needed if the repository has submodules.
+  //
+  // Returns a {Promise} which resolves to the {String} origin url of the
+  // repository.
   getOriginURL (_path) {
-    throw new Error('Unimplemented')
+    return this.getConfigValue('remote.origin.url', _path)
   }
 
   // Public: Returns the upstream branch for the current HEAD, or null if there
