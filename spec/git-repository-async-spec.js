@@ -470,4 +470,19 @@ describe('GitRepositoryAsync', () => {
       expect(hasBranch).toBe(false)
     })
   })
+
+  describe('.getReferences(path)', () => {
+    let workingDirectory
+    beforeEach(() => {
+      workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns the heads, remotes, and tags', async () => {
+      const {heads, remotes, tags} = await repo.getReferences()
+      expect(heads.length).toBe(1)
+      expect(remotes.length).toBe(0)
+      expect(tags.length).toBe(0)
+    })
+  })
 })

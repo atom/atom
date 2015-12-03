@@ -264,12 +264,28 @@ export default class GitRepositoryAsync {
   // * `path` An optional {String} path in the repository to get this information
   //   for, only needed if the repository has submodules.
   //
-  // Returns an {Object} with the following keys:
+  // Returns a {Promise} which resolves to an {Object} with the following keys:
   //  * `heads`   An {Array} of head reference names.
   //  * `remotes` An {Array} of remote reference names.
   //  * `tags`    An {Array} of tag reference names.
   getReferences (_path) {
-    throw new Error('Unimplemented')
+    return this._getRepo(_path)
+      .then(repo => repo.getReferences(Git.Reference.TYPE.LISTALL))
+      .then(refs => {
+        const heads = []
+        const remotes = []
+        const tags = []
+        for (const ref of refs) {
+          if (ref.isTag()) {
+            tags.push(ref.name())
+          } else if (ref.isRemote()) {
+            remotes.push(ref.name())
+          } else if (ref.isBranch()) {
+            heads.push(ref.name())
+          }
+        }
+        return {heads, remotes, tags}
+      })
   }
 
   // Public: Returns the current {String} SHA for the given reference.
