@@ -2978,6 +2978,54 @@ describe "TextEditorPresenter", ->
             expect(decorationState[decoration1.id]).toBeUndefined()
             expect(decorationState[decoration3.id].top).toBeDefined()
 
+          it "updates when block decorations are added, changed or removed", ->
+            # block decoration before decoration1
+            blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+            presenter.setBlockDecorationDimensions(blockDecoration1, 0, 3)
+            # block decoration between decoration1 and decoration2
+            blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
+            presenter.setBlockDecorationDimensions(blockDecoration2, 0, 5)
+            # block decoration between decoration2 and decoration3
+            blockDecoration3 = editor.addBlockDecorationForScreenRow(10)
+            presenter.setBlockDecorationDimensions(blockDecoration3, 0, 7)
+
+            decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id].top).toBe lineHeight * marker1.getScreenRange().start.row
+            expect(decorationState[decoration1.id].height).toBe lineHeight * marker1.getScreenRange().getRowCount() + 3
+            expect(decorationState[decoration1.id].item).toBe decorationItem
+            expect(decorationState[decoration1.id].class).toBe 'test-class'
+            expect(decorationState[decoration2.id].top).toBe lineHeight * marker2.getScreenRange().start.row + 3 + 5
+            expect(decorationState[decoration2.id].height).toBe lineHeight * marker2.getScreenRange().getRowCount() + 7
+            expect(decorationState[decoration2.id].item).toBe decorationItem
+            expect(decorationState[decoration2.id].class).toBe 'test-class'
+            expect(decorationState[decoration3.id]).toBeUndefined()
+
+            presenter.setScrollTop(scrollTop + lineHeight * 5)
+
+            decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+            expect(decorationState[decoration1.id]).toBeUndefined()
+            expect(decorationState[decoration2.id].top).toBe lineHeight * marker2.getScreenRange().start.row + 3 + 5
+            expect(decorationState[decoration2.id].height).toBe lineHeight * marker2.getScreenRange().getRowCount() + 7
+            expect(decorationState[decoration2.id].item).toBe decorationItem
+            expect(decorationState[decoration2.id].class).toBe 'test-class'
+            expect(decorationState[decoration3.id].top).toBe lineHeight * marker3.getScreenRange().start.row + 3 + 5 + 7
+            expect(decorationState[decoration3.id].height).toBe lineHeight * marker3.getScreenRange().getRowCount()
+            expect(decorationState[decoration3.id].item).toBe decorationItem
+            expect(decorationState[decoration3.id].class).toBe 'test-class'
+
+            waitsForStateToUpdate presenter, -> blockDecoration1.destroy()
+            runs ->
+              decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+              expect(decorationState[decoration1.id]).toBeUndefined()
+              expect(decorationState[decoration2.id].top).toBe lineHeight * marker2.getScreenRange().start.row + 5
+              expect(decorationState[decoration2.id].height).toBe lineHeight * marker2.getScreenRange().getRowCount() + 7
+              expect(decorationState[decoration2.id].item).toBe decorationItem
+              expect(decorationState[decoration2.id].class).toBe 'test-class'
+              expect(decorationState[decoration3.id].top).toBe lineHeight * marker3.getScreenRange().start.row + 5 + 7
+              expect(decorationState[decoration3.id].height).toBe lineHeight * marker3.getScreenRange().getRowCount()
+              expect(decorationState[decoration3.id].item).toBe decorationItem
+              expect(decorationState[decoration3.id].class).toBe 'test-class'
+
           it "updates when ::scrollTop changes", ->
             # This update will scroll decoration1 out of view, and decoration3 into view.
             expectStateUpdate presenter, -> presenter.setScrollTop(scrollTop + lineHeight * 5)
