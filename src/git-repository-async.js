@@ -304,8 +304,8 @@ export default class GitRepositoryAsync {
   // given reference.
   getReferenceTarget (reference, _path) {
     return this._getRepo(_path)
-      .then(repo => repo.getReference(reference))
-      .then(ref => ref.target().tostrS())
+      .then(repo => Git.Reference.nameToId(repo, reference))
+      .then(oid => oid.tostrS())
   }
 
   // Reading Status
