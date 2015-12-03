@@ -910,7 +910,7 @@ describe "TextEditorPresenter", ->
           expect(presenter.getState().content.scrollTop).toBe 13
 
         it "scrolls down automatically when the model is changed", ->
-          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 10)
 
           editor.setText("")
           editor.insertNewline()
@@ -918,6 +918,9 @@ describe "TextEditorPresenter", ->
 
           editor.insertNewline()
           expect(presenter.getState().content.scrollTop).toBe(10)
+
+          editor.insertNewline()
+          expect(presenter.getState().content.scrollTop).toBe(20)
 
         it "never exceeds the computed scroll height minus the computed client height", ->
           didChangeScrollTopSpy = jasmine.createSpy()
