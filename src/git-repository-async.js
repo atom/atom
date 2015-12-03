@@ -511,7 +511,7 @@ export default class GitRepositoryAsync {
           // Ignore eol of line differences on windows so that files checked in
           // as LF don't report every line modified when the text contains CRLF
           // endings.
-          // TODO: set GIT_DIFF_IGNORE_WHITESPACE_EOL
+          options.flags = Git.Diff.OPTION.IGNORE_WHITESPACE_EOL
         }
         return this._diffBlobToBuffer(blob, text, options)
       })
