@@ -485,4 +485,17 @@ describe('GitRepositoryAsync', () => {
       expect(tags.length).toBe(0)
     })
   })
+
+  describe('.getReferenceTarget(reference, path)', () => {
+    let workingDirectory
+    beforeEach(() => {
+      workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns the SHA target', async () => {
+      const SHA = await repo.getReferenceTarget('refs/heads/master')
+      expect(SHA).toBe('8a9c86f1cb1f14b8f436eb91f4b052c8802ca99e')
+    })
+  })
 })

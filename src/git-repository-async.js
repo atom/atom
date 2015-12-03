@@ -288,13 +288,18 @@ export default class GitRepositoryAsync {
       })
   }
 
-  // Public: Returns the current {String} SHA for the given reference.
+  // Public: Get the SHA for the given reference.
   //
   // * `reference` The {String} reference to get the target of.
   // * `path` An optional {String} path in the repo to get the reference target
   //   for. Only needed if the repository contains submodules.
+  //
+  // Returns a {Promise} which resolves to the current {String} SHA for the
+  // given reference.
   getReferenceTarget (reference, _path) {
-    throw new Error('Unimplemented')
+    return this._getRepo(_path)
+      .then(repo => repo.getReference(reference))
+      .then(ref => ref.target().tostrS())
   }
 
   // Reading Status
