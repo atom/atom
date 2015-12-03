@@ -820,7 +820,7 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    @notificationManager.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager.addError(errorMessage, {detail, dismissable: true}) if @notificationManager
 
   save: ->
     return if @shouldNotAccessFileSystem()

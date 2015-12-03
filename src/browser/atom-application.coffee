@@ -74,8 +74,7 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    disableAutoUpdate = require(path.join(@resourcePath, 'package.json'))._disableAutoUpdate ? false
-    @autoUpdateManager = new AutoUpdateManager(@version, options.test, disableAutoUpdate)
+    @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
