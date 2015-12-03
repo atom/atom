@@ -195,7 +195,6 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateDecorations = true
       @shouldUpdateOverlaysState = true
-      @shouldUpdateVerticalScrollState = true
       @shouldUpdateCustomGutterDecorationState = true
       @emitDidUpdateState()
 
@@ -212,7 +211,6 @@ class TextEditorPresenter
       @shouldUpdateLineNumbersState = true
       @shouldUpdateGutterOrderState = true
       @shouldUpdateCustomGutterDecorationState = true
-
       @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
