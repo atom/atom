@@ -472,9 +472,8 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.getReferences(path)', () => {
-    let workingDirectory
     beforeEach(() => {
-      workingDirectory = copyRepository()
+      const workingDirectory = copyRepository()
       repo = GitRepositoryAsync.open(workingDirectory)
     })
 
@@ -487,15 +486,32 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.getReferenceTarget(reference, path)', () => {
-    let workingDirectory
     beforeEach(() => {
-      workingDirectory = copyRepository()
+      const workingDirectory = copyRepository()
       repo = GitRepositoryAsync.open(workingDirectory)
     })
 
     it('returns the SHA target', async () => {
       const SHA = await repo.getReferenceTarget('refs/heads/master')
       expect(SHA).toBe('8a9c86f1cb1f14b8f436eb91f4b052c8802ca99e')
+    })
+  })
+
+  describe('.getConfigValue(key, path)', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      console.log(workingDirectory)
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('looks up the value for the key', async () => {
+      const bare = await repo.getConfigValue('core.bare')
+      expect(bare).toBe('false')
+    })
+
+    it("resolves to null if there's no value", async () => {
+      const value = await repo.getConfigValue('my.special.key')
+      expect(value).toBe(null)
     })
   })
 })

@@ -233,8 +233,14 @@ export default class GitRepositoryAsync {
   //
   // * `path` An optional {String} path in the repository to get this information
   //   for, only needed if the repository has submodules.
+  //
+  // Returns a {Promise} which resolves to the {String} git configuration value
+  // specified by the key.
   getConfigValue (key, _path) {
-    throw new Error('Unimplemented')
+    return this._getRepo(_path)
+      .then(repo => repo.configSnapshot())
+      .then(config => config.getStringBuf(key))
+      .catch(_ => null)
   }
 
   // Public: Returns the origin url of the repository.
