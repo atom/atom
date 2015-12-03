@@ -1320,11 +1320,11 @@ describe "TextEditorPresenter", ->
                 expect(lineStateForScreenRow(presenter, 12).blockDecorations).toEqual([])
 
               waitsForStateToUpdate presenter, ->
-                blockDecoration1.destroy()
                 blockDecoration3.destroy()
+                blockDecoration1.getMarker().setHeadBufferPosition([0, 0])
 
               runs ->
-                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toEqual([blockDecoration1])
                 expect(lineStateForScreenRow(presenter, 1).blockDecorations).toEqual([])
                 expect(lineStateForScreenRow(presenter, 2).blockDecorations).toEqual([])
                 expect(lineStateForScreenRow(presenter, 3).blockDecorations).toEqual([])
@@ -1335,6 +1335,25 @@ describe "TextEditorPresenter", ->
                 expect(lineStateForScreenRow(presenter, 8).blockDecorations).toEqual([])
                 expect(lineStateForScreenRow(presenter, 9).blockDecorations).toEqual([blockDecoration2])
                 expect(lineStateForScreenRow(presenter, 10).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 11).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 12).blockDecorations).toEqual([])
+
+              waitsForStateToUpdate presenter, ->
+                editor.setCursorBufferPosition([0, 0])
+                editor.insertNewline()
+
+              runs ->
+                expect(lineStateForScreenRow(presenter, 0).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 1).blockDecorations).toEqual([blockDecoration1])
+                expect(lineStateForScreenRow(presenter, 2).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 3).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 4).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 5).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 6).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 7).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 8).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 9).blockDecorations).toEqual([])
+                expect(lineStateForScreenRow(presenter, 10).blockDecorations).toEqual([blockDecoration2])
                 expect(lineStateForScreenRow(presenter, 11).blockDecorations).toEqual([])
                 expect(lineStateForScreenRow(presenter, 12).blockDecorations).toEqual([])
 
@@ -1551,16 +1570,26 @@ describe "TextEditorPresenter", ->
 
           blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
           blockDecoration2 = editor.addBlockDecorationForScreenRow(1)
-          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
-          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
 
-          waitsForStateToUpdate presenter
+          waitsForStateToUpdate presenter, ->
+            presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
+            presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
+
           runs ->
             expect(stateForCursor(presenter, 0)).toEqual {top: 50, left: 2 * 10, width: 10, height: 10}
             expect(stateForCursor(presenter, 1)).toEqual {top: 60, left: 4 * 10, width: 10, height: 10}
             expect(stateForCursor(presenter, 2)).toBeUndefined()
             expect(stateForCursor(presenter, 3)).toBeUndefined()
             expect(stateForCursor(presenter, 4)).toBeUndefined()
+
+          waitsForStateToUpdate presenter, ->
+            blockDecoration2.destroy()
+            editor.setCursorBufferPosition([0, 0])
+            editor.insertNewline()
+            editor.setCursorBufferPosition([0, 0])
+
+          runs ->
+            expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 0, width: 10, height: 10}
 
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([

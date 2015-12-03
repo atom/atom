@@ -127,14 +127,14 @@ class LinesTileComponent
       delete @insertionPointsByLineId[id]
 
   insertBlockDecorationInsertionPoint: (id) ->
-    {hasBlockDecorations} = @newTileState.lines[id]
+    {hasBlockDecorations, screenRow} = @newTileState.lines[id]
 
     if hasBlockDecorations
       lineNode = @lineNodesByLineId[id]
       insertionPoint = @domElementPool.buildElement("content")
       @domNode.insertBefore(insertionPoint, lineNode)
       @insertionPointsByLineId[id] = insertionPoint
-
+      insertionPoint.dataset.screenRow = screenRow
       @updateBlockDecorationInsertionPoint(id)
 
   updateBlockDecorationInsertionPoint: (id) ->

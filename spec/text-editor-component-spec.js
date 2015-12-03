@@ -1663,7 +1663,7 @@ describe('TextEditorComponent', function () {
       atom.themes.removeStylesheet('test')
     })
 
-    it("renders visible and yet-to-be-measured block decorations, inserting them in the appropriate spots between lines and refreshing them when needed", async function () {
+    it("renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed", async function () {
       wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
       component.measureDimensions()
       await nextViewUpdatePromise()
