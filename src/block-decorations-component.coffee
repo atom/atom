@@ -31,9 +31,8 @@ class BlockDecorationsComponent
       if @oldState.blockDecorations.hasOwnProperty(id)
         @updateBlockDecorationNode(id)
       else
+        @oldState.blockDecorations[id] = {}
         @createAndAppendBlockDecorationNode(id)
-
-      @oldState.blockDecorations[id] = cloneObject(blockDecorationState)
 
   measureBlockDecorations: ->
     for decorationId, blockDecorationNode of @blockDecorationNodesById
@@ -48,18 +47,20 @@ class BlockDecorationsComponent
     blockDecorationState = @newState.blockDecorations[id]
     blockDecorationNode = @views.getView(blockDecorationState.decoration.getProperties().item)
     blockDecorationNode.id = "atom--block-decoration-#{id}"
-    unless blockDecorationState.isVisible
-      blockDecorationNode.classList.add("atom--invisible-block-decoration")
-
     @container.appendChild(blockDecorationNode)
-
     @blockDecorationNodesById[id] = blockDecorationNode
+    @updateBlockDecorationNode(id)
 
   updateBlockDecorationNode: (id) ->
     newBlockDecorationState = @newState.blockDecorations[id]
+    oldBlockDecorationState = @oldState.blockDecorations[id]
     blockDecorationNode = @blockDecorationNodesById[id]
 
     if newBlockDecorationState.isVisible
       blockDecorationNode.classList.remove("atom--invisible-block-decoration")
     else
       blockDecorationNode.classList.add("atom--invisible-block-decoration")
+
+    if oldBlockDecorationState.screenRow isnt newBlockDecorationState.screenRow
+      blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
+      oldBlockDecorationState.screenRow = newBlockDecorationState.screenRow
