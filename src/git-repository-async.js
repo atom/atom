@@ -391,6 +391,44 @@ export default class GitRepositoryAsync {
     return (statusBit & deletedStatusFlags) > 0
   }
 
+  // Retrieving Diffs
+  // ================
+  // Public: Retrieves the number of lines added and removed to a path.
+  //
+  // This compares the working directory contents of the path to the `HEAD`
+  // version.
+  //
+  // * `path` The {String} path to check.
+  //
+  // Returns a {Promise} which resolves to an {Object} with the following keys:
+  //   * `added` The {Number} of added lines.
+  //   * `deleted` The {Number} of deleted lines.
+  getDiffStats (_path) {
+    return this.repoPromise
+      .then(repo => Promise.all([repo, repo.getHeadCommit()]))
+      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
+      .then(([repo, tree]) => {
+        const options = new Git.DiffOptions()
+        options.pathspec = _path
+        return Git.Diff.treeToWorkdir(repo, tree, options)
+      })
+      .then(diff => diff.patches()) // :: Array<Patch>
+      .then(patches => Promise.all(patches.map(p => p.hunks()))) // :: Array<Array<Hunk>>
+      .then(hunks => Promise.all(_.flatten(hunks).map(h => h.lines()))) // :: Array<Array<Line>>
+      .then(lines => {
+        const stats = {added: 0, deleted: 0}
+        for (const line of _.flatten(lines)) {
+          const origin = line.origin()
+          if (origin === Git.Diff.LINE.ADDITION) {
+            stats.added++
+          } else if (origin === Git.Diff.LINE.DELETION) {
+            stats.deleted++
+          }
+        }
+        return stats
+      })
+  }
+
   // Checking Out
   // ============
 

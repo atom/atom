@@ -436,4 +436,21 @@ describe('GitRepositoryAsync', () => {
       expect(behind).toBe(0)
     })
   })
+
+  describe('.getDiffStats(path)', () => {
+    let workingDirectory
+    beforeEach(() => {
+      workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns the diff stat', async () => {
+      const filePath = path.join(workingDirectory, 'a.txt')
+      fs.writeFileSync(filePath, 'change')
+
+      const {added, deleted} = await repo.getDiffStats('a.txt')
+      expect(added).toBe(1)
+      expect(deleted).toBe(0)
+    })
+  })
 })
