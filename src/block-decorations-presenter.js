@@ -11,10 +11,10 @@ class BlockDecorationsPresenter {
     this.emitter = new Emitter()
     this.firstUpdate = true
     this.lineTopIndex = lineTopIndex
-    this.blocksByDecoration = new Map
-    this.decorationsByBlock = new Map
-    this.observedDecorations = new Set
-    this.measuredDecorations = new Set
+    this.blocksByDecoration = new Map()
+    this.decorationsByBlock = new Map()
+    this.observedDecorations = new Set()
+    this.measuredDecorations = new Set()
 
     this.observeModel()
   }
@@ -24,7 +24,7 @@ class BlockDecorationsPresenter {
   }
 
   onDidUpdateState (callback) {
-    return this.emitter.on("did-update-state", callback)
+    return this.emitter.on('did-update-state', callback)
   }
 
   setLineHeight (lineHeight) {
@@ -46,7 +46,7 @@ class BlockDecorationsPresenter {
 
   update () {
     if (this.firstUpdate) {
-      for (let decoration of this.model.getDecorations({type: "block"})) {
+      for (let decoration of this.model.getDecorations({type: 'block'})) {
         this.observeDecoration(decoration)
       }
       this.firstUpdate = false
@@ -64,22 +64,22 @@ class BlockDecorationsPresenter {
     }
 
     this.measuredDecorations.add(decoration)
-    this.emitter.emit("did-update-state")
+    this.emitter.emit('did-update-state')
   }
 
   invalidateDimensionsForDecoration (decoration) {
     this.measuredDecorations.delete(decoration)
-    this.emitter.emit("did-update-state")
+    this.emitter.emit('did-update-state')
   }
 
   decorationsForScreenRow (screenRow) {
-    let blocks = this.lineTopIndex.allBlocks().filter((block) => block.row == screenRow)
+    let blocks = this.lineTopIndex.allBlocks().filter((block) => block.row === screenRow)
     return blocks.map((block) => this.decorationsByBlock.get(block.id)).filter((decoration) => decoration)
   }
 
   decorationsForScreenRowRange (startRow, endRow) {
     let blocks = this.lineTopIndex.allBlocks()
-    let decorationsByScreenRow = new Map
+    let decorationsByScreenRow = new Map()
     for (let block of blocks) {
       let decoration = this.decorationsByBlock.get(block.id)
       let hasntMeasuredDecoration = !this.measuredDecorations.has(decoration)
@@ -95,7 +95,7 @@ class BlockDecorationsPresenter {
   }
 
   observeDecoration (decoration) {
-    if (!decoration.isType("block") || this.observedDecorations.has(decoration)) {
+    if (!decoration.isType('block') || this.observedDecorations.has(decoration)) {
       return
     }
 
@@ -123,7 +123,7 @@ class BlockDecorationsPresenter {
     let block = this.lineTopIndex.insertBlock(screenRow, 0)
     this.decorationsByBlock.set(block, decoration)
     this.blocksByDecoration.set(decoration, block)
-    this.emitter.emit("did-update-state")
+    this.emitter.emit('did-update-state')
   }
 
   didMoveDecoration (decoration, {textChanged}) {
@@ -135,7 +135,7 @@ class BlockDecorationsPresenter {
     let block = this.blocksByDecoration.get(decoration)
     let newScreenRow = decoration.getMarker().getHeadScreenPosition().row
     this.lineTopIndex.moveBlock(block, newScreenRow)
-    this.emitter.emit("did-update-state")
+    this.emitter.emit('did-update-state')
   }
 
   didDestroyDecoration (decoration) {
@@ -145,6 +145,6 @@ class BlockDecorationsPresenter {
       this.blocksByDecoration.delete(decoration)
       this.decorationsByBlock.delete(block)
     }
-    this.emitter.emit("did-update-state")
+    this.emitter.emit('did-update-state')
   }
 }

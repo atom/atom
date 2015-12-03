@@ -25,14 +25,14 @@ class LineTopIndex {
   }
 
   resizeBlock (id, height) {
-    let block = this.blocks.find((block) => block.id == id)
+    let block = this.blocks.find((block) => block.id === id)
     if (block) {
       block.height = height
     }
   }
 
   moveBlock (id, newRow) {
-    let block = this.blocks.find((block) => block.id == id)
+    let block = this.blocks.find((block) => block.id === id)
     if (block) {
       block.row = newRow
       this.blocks.sort((a, b) => a.row - b.row)
@@ -40,8 +40,8 @@ class LineTopIndex {
   }
 
   removeBlock (id) {
-    let index = this.blocks.findIndex((block) => block.id == id)
-    if (index != -1) {
+    let index = this.blocks.findIndex((block) => block.id === id)
+    if (index !== -1) {
       this.blocks.splice(index, 1)
     }
   }
@@ -51,7 +51,7 @@ class LineTopIndex {
   }
 
   blocksHeightForRow (row) {
-    let blocksForRow = this.blocks.filter((block) => block.row == row)
+    let blocksForRow = this.blocks.filter((block) => block.row === row)
     return blocksForRow.reduce((a, b) => a + b.height, 0)
   }
 
@@ -104,9 +104,9 @@ class LineTopIndex {
     let remainingHeight = Math.max(0, top - lastTop)
     let remainingRows = Math.min(this.maxRow, lastRow + remainingHeight / this.defaultLineHeight)
     switch (roundingStrategy) {
-      case "floor":
+      case 'floor':
         return Math.floor(remainingRows)
-      case "ceil":
+      case 'ceil':
         return Math.ceil(remainingRows)
       default:
         throw new Error(`Cannot use '${roundingStrategy}' as a rounding strategy!`)
