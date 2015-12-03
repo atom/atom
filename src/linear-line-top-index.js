@@ -1,4 +1,4 @@
-/** @babel */
+'use strict'
 
 module.exports =
 class LineTopIndex {
@@ -81,7 +81,8 @@ class LineTopIndex {
     return this.topPixelPositionForRow(row + 1) - this.defaultLineHeight
   }
 
-  rowForTopPixelPosition (top, roundingStrategy='floor') {
+  rowForTopPixelPosition (top, strategy) {
+    const roundingStrategy = strategy || 'floor'
     let blocksHeight = 0
     let lastRow = 0
     let lastTop = 0

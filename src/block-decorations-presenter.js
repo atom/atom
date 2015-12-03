@@ -1,13 +1,13 @@
-/** @babel */
+'use strict'
 
-const {CompositeDisposable, Emitter} = require('event-kit')
+const EventKit = require('event-kit')
 
 module.exports =
 class BlockDecorationsPresenter {
   constructor (model, lineTopIndex) {
     this.model = model
-    this.disposables = new CompositeDisposable()
-    this.emitter = new Emitter()
+    this.disposables = new EventKit.CompositeDisposable()
+    this.emitter = new EventKit.Emitter()
     this.firstUpdate = true
     this.lineTopIndex = lineTopIndex
     this.blocksByDecoration = new Map()
@@ -33,13 +33,12 @@ class BlockDecorationsPresenter {
   observeModel () {
     this.lineTopIndex.setMaxRow(this.model.getScreenLineCount())
     this.lineTopIndex.setDefaultLineHeight(this.model.getLineHeightInPixels())
-    this.disposables.add(this.model.onDidAddDecoration((decoration) => {
-      this.observeDecoration(decoration)
-    }))
-    this.disposables.add(this.model.onDidChange(({start, end, screenDelta}) => {
-      let oldExtent = end - start
-      let newExtent = Math.max(0, end - start + screenDelta)
-      this.lineTopIndex.splice(start, oldExtent, newExtent)
+
+    this.disposables.add(this.model.onDidAddDecoration(this.observeDecoration.bind(this)))
+    this.disposables.add(this.model.onDidChange((changeEvent) => {
+      let oldExtent = changeEvent.end - changeEvent.start
+      let newExtent = Math.max(0, changeEvent.end - changeEvent.start + changeEvent.screenDelta)
+      this.lineTopIndex.splice(changeEvent.start, oldExtent, newExtent)
     }))
   }
 
@@ -125,8 +124,8 @@ class BlockDecorationsPresenter {
     this.emitter.emit('did-update-state')
   }
 
-  didMoveDecoration (decoration, {textChanged}) {
-    if (textChanged) {
+  didMoveDecoration (decoration, markerEvent) {
+    if (markerEvent.textChanged) {
       // No need to move blocks because of a text change, because we already splice on buffer change.
       return
     }
