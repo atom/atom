@@ -25,6 +25,7 @@ class LinesYardstick
     row = @lineTopIndex.rowForTopPixelPosition(targetTop, 'floor')
     targetLeft = 0 if targetTop < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
+    row = Math.min(row, @model.getLastScreenRow())
 
     @prepareScreenRowsForMeasurement([row]) unless measureVisibleLinesOnly
 
