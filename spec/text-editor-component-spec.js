@@ -1673,13 +1673,13 @@ describe('TextEditorComponent', function () {
       let [item3, blockDecoration3] = createBlockDecorationForScreenRowWith(4, {className: "decoration-3"})
       let [item4, blockDecoration4] = createBlockDecorationForScreenRowWith(7, {className: "decoration-4"})
 
-      atom.styles.addStyleSheet `
-      atom-text-editor .decoration-1 { width: 30px; height: 80px; }
-      atom-text-editor .decoration-2 { width: 30px; height: 40px; }
-      atom-text-editor .decoration-3 { width: 30px; height: 100px; }
-      atom-text-editor .decoration-4 { width: 30px; height: 120px; }
-      `
-
+      atom.styles.addStyleSheet(
+        `atom-text-editor .decoration-1 { width: 30px; height: 80px; }
+         atom-text-editor .decoration-2 { width: 30px; height: 40px; }
+         atom-text-editor .decoration-3 { width: 30px; height: 100px; }
+         atom-text-editor .decoration-4 { width: 30px; height: 120px; }`,
+         {context: 'atom-text-editor'}
+      )
       await nextAnimationFramePromise()
 
       expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
@@ -1723,11 +1723,10 @@ describe('TextEditorComponent', function () {
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
 
-      await nextAnimationFramePromise()
-
-      atom.styles.addStyleSheet `
-      atom-text-editor .decoration-2 { height: 60px !important; }
-      `
+      atom.styles.addStyleSheet(
+        `atom-text-editor .decoration-2 { height: 60px !important; }`,
+        {context: 'atom-text-editor'}
+      )
 
       await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
       await nextAnimationFramePromise() // applies the changes
