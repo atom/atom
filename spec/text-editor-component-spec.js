@@ -1724,7 +1724,7 @@ describe('TextEditorComponent', function () {
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
 
       atom.styles.addStyleSheet(
-        `atom-text-editor .decoration-2 { height: 60px !important; }`,
+        'atom-text-editor .decoration-2 { height: 60px !important; }',
         {context: 'atom-text-editor'}
       )
 
@@ -1747,6 +1747,56 @@ describe('TextEditorComponent', function () {
 
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
+    })
+
+    it("correctly sets screen rows on <content> elements, both initially and when decorations move", async function () {
+      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      await nextViewUpdatePromise()
+
+      let [item, blockDecoration] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
+      atom.styles.addStyleSheet(
+        'atom-text-editor .decoration-1 { width: 30px; height: 80px; }',
+         {context: 'atom-text-editor'}
+      )
+
+      await nextAnimationFramePromise()
+
+      let tileNode, contentElements
+
+      tileNode = component.tileNodesForLines()[0]
+      contentElements = tileNode.querySelectorAll("content")
+
+      expect(contentElements.length).toBe(1)
+      expect(contentElements[0].dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertNewline()
+      await nextAnimationFramePromise()
+
+      tileNode = component.tileNodesForLines()[0]
+      contentElements = tileNode.querySelectorAll("content")
+
+      expect(contentElements.length).toBe(1)
+      expect(contentElements[0].dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+
+      blockDecoration.getMarker().setHeadBufferPosition([2, 0])
+      await nextAnimationFramePromise()
+
+      tileNode = component.tileNodesForLines()[0]
+      contentElements = tileNode.querySelectorAll("content")
+
+      expect(contentElements.length).toBe(1)
+      expect(contentElements[0].dataset.screenRow).toBe("2")
+      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
     })
   })
 
