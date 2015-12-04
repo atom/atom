@@ -47,6 +47,21 @@ describe "ViewRegistry", ->
           expect(view2 instanceof TestView).toBe true
           expect(view2.model).toBe subclassModel
 
+      describe "when a view provider is registered generically, and works with the object", ->
+        it "constructs a view element and assigns the model on it", ->
+          model = {a: 'b'}
+
+          registry.addViewProvider (model) ->
+            if model.a is 'b'
+              element = document.createElement('div')
+              element.className = 'test-element'
+              element
+
+          view = registry.getView({a: 'b'})
+          expect(view.className).toBe 'test-element'
+
+          expect(-> registry.getView({a: 'c'})).toThrow()
+
       describe "when no view provider is registered for the object's constructor", ->
         it "throws an exception", ->
           expect(-> registry.getView(new Object)).toThrow()
