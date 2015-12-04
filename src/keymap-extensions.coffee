@@ -32,7 +32,7 @@ KeymapManager::loadUserKeymap = ->
   return unless fs.isFileSync(userKeymapPath)
 
   try
-    @loadKeymap(userKeymapPath, watch: true, suppressErrors: true)
+    @loadKeymap(userKeymapPath, watch: true, suppressErrors: true, priority: 100)
   catch error
     if error.message.indexOf('Unable to watch path') > -1
       message = """

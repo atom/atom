@@ -1,6 +1,9 @@
 path = require 'path'
 Package = require '../src/package'
+temp = require 'temp'
+fs = require 'fs-plus'
 {Disposable} = require 'atom'
+{buildKeydownEvent} = require '../src/keymap-extensions'
 {mockLocalStorage} = require './spec-helper'
 
 describe "PackageManager", ->
@@ -561,6 +564,54 @@ describe "PackageManager", ->
 
             atom.config.set("core.packagesWithKeymapsDisabled", [])
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe 'keymap-1'
+
+      describe "when the package is de-activated and re-activated", ->
+        [element, events, userKeymapPath] = []
+
+        beforeEach ->
+          userKeymapPath = path.join(temp.path(), "user-keymaps.cson")
+          spyOn(atom.keymaps, "getUserKeymapPath").andReturn(userKeymapPath)
+
+          element = createTestElement('test-1')
+          jasmine.attachToDOM(element)
+
+          events = []
+          element.addEventListener 'user-command', (e) -> events.push(e)
+          element.addEventListener 'test-1', (e) -> events.push(e)
+
+        afterEach ->
+          element.remove()
+
+          # Avoid leaking user keymap subscription
+          atom.keymaps.watchSubscriptions[userKeymapPath].dispose()
+          delete atom.keymaps.watchSubscriptions[userKeymapPath]
+
+        it "doesn't override user-defined keymaps", ->
+          fs.writeFileSync userKeymapPath, """
+          ".test-1":
+            "ctrl-z": "user-command"
+          """
+          atom.keymaps.loadUserKeymap()
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            atom.keymaps.handleKeyboardEvent(buildKeydownEvent("z", ctrl: true, target: element))
+
+            expect(events.length).toBe(1)
+            expect(events[0].type).toBe("user-command")
+
+            atom.packages.deactivatePackage("package-with-keymaps")
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            atom.keymaps.handleKeyboardEvent(buildKeydownEvent("z", ctrl: true, target: element))
+
+            expect(events.length).toBe(2)
+            expect(events[1].type).toBe("user-command")
 
     describe "menu loading", ->
       beforeEach ->
