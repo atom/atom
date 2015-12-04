@@ -1724,7 +1724,7 @@ describe('TextEditorComponent', function () {
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
 
       atom.styles.addStyleSheet(
-        'atom-text-editor .decoration-2 { height: 60px !important; }',
+        'atom-text-editor .decoration-2 { height: 60px; }',
         {context: 'atom-text-editor'}
       )
 
@@ -1747,6 +1747,28 @@ describe('TextEditorComponent', function () {
 
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
+
+      item2.style.height = "20px"
+      wrapperNode.invalidateBlockDecorationDimensions(blockDecoration2)
+      await nextAnimationFramePromise()
+      await nextAnimationFramePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
     })
 
     it("correctly sets screen rows on <content> elements, both initially and when decorations move", async function () {
