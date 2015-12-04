@@ -30,7 +30,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 
 ### Code of Conduct
 
-This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
+This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
 

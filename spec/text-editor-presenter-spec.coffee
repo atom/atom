@@ -675,7 +675,7 @@ describe "TextEditorPresenter", ->
             expect(presenter.getState().hiddenInput.width).toBe 15
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'r', 20)
               presenter.measurementsChanged()
             expect(presenter.getState().hiddenInput.width).toBe 20
 
@@ -1664,12 +1664,12 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(explicitHeight: 20)
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'v', 20)
               presenter.measurementsChanged()
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'r', 20)
               presenter.measurementsChanged()
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
