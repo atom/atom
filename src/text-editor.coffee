@@ -1398,11 +1398,16 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
+  # Experimental: Mark and add a block decoration to the specified screen row.
+  #
+  # * `screenRow` A {Number} representing the screen row where to add the block decoration.
+  # * `item` A {ViewRegistry::getView}-compatible object to render.
+  #
+  # Returns a {Decoration} object.
   addBlockDecorationForScreenRow: (screenRow, item) ->
     @decorateMarker(
       @markScreenPosition([screenRow, 0], invalidate: "never"),
-      type: "block",
-      item: item
+      type: "block", item: item
     )
 
   # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
