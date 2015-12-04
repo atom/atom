@@ -3,6 +3,8 @@
 _ = require 'underscore-plus'
 Model = require './model'
 
+EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
+
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
@@ -467,10 +469,13 @@ class Cursor extends Model
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
-        beginningOfWordPosition = range.start
-      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, matchText, stop}) ->
+      # Ignore 'empty line' matches between '\r' and '\n'
+      return if matchText is '' and range.start.column isnt 0
+
+      if range.start.isLessThan(currentBufferPosition)
+        if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+          beginningOfWordPosition = range.start
         stop()
 
     if beginningOfWordPosition?
@@ -496,13 +501,12 @@ class Cursor extends Model
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if allowNext
-        if range.end.isGreaterThan(currentBufferPosition)
-          endOfWordPosition = range.end
-          stop()
-      else
-        if range.start.isLessThanOrEqual(currentBufferPosition)
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, matchText, stop}) ->
+      # Ignore 'empty line' matches between '\r' and '\n'
+      return if matchText is '' and range.start.column isnt 0
+
+      if range.end.isGreaterThan(currentBufferPosition)
+        if allowNext or range.start.isLessThanOrEqual(currentBufferPosition)
           endOfWordPosition = range.end
         stop()
 
@@ -603,14 +607,14 @@ class Cursor extends Model
   #     non-word characters in the regex. (default: true)
   #
   # Returns a {RegExp}.
-  wordRegExp: ({includeNonWordCharacters}={}) ->
-    includeNonWordCharacters ?= true
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
-    segments = ["^[\t ]*$"]
-    segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
-    if includeNonWordCharacters
-      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
-    new RegExp(segments.join("|"), "g")
+  wordRegExp: (options) ->
+    scope = @getScopeDescriptor()
+    nonWordCharacters = _.escapeRegExp(@config.get('editor.nonWordCharacters', {scope}))
+
+    source = "^[\t ]*$|[^\\s#{nonWordCharacters}]+"
+    if options?.includeNonWordCharacters ? true
+      source += "|" + "[#{nonWordCharacters}]+"
+    new RegExp(source, "g")
 
   # Public: Get the RegExp used by the cursor to determine what a "subword" is.
   #
@@ -666,10 +670,9 @@ class Cursor extends Model
     {row, column} = eof
     position = new Point(row, column - 1)
 
-    @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      unless range.start.isEqual(start)
-        position = range.start
-        stop()
+    @editor.scanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
+      position = range.start.traverse(Point(1, 0))
+      stop() unless position.isEqual(start)
     position
 
   getBeginningOfPreviousParagraphBufferPosition: ->
@@ -679,8 +682,7 @@ class Cursor extends Model
     scanRange = [[row-1, column], [0, 0]]
     position = new Point(0, 0)
     zero = new Point(0, 0)
-    @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      unless range.start.isEqual(zero)
-        position = range.start
-        stop()
+    @editor.backwardsScanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
+      position = range.start.traverse(Point(1, 0))
+      stop() unless position.isEqual(start)
     position
