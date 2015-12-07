@@ -827,6 +827,7 @@ class Config
 
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
     catch error
@@ -1189,6 +1190,13 @@ Config.addSchemaEnforcers
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
+
+sortObject = (value) ->
+  return value unless isPlainObject(value)
+  result = {}
+  for key in Object.keys(value).sort()
+    result[key] = sortObject(value[key])
+  result
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined
