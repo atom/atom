@@ -158,6 +158,8 @@ require('source-map-support').install({
   }
 })
 
+Error.stackTraceLimit = 30
+
 var sourceMapPrepareStackTrace = Error.prepareStackTrace
 var prepareStackTrace = sourceMapPrepareStackTrace
 
