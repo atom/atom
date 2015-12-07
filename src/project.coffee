@@ -337,9 +337,6 @@ class Project extends Model
     else
       @buildBuffer(absoluteFilePath)
 
-  bufferForId: (id) ->
-    _.find @buffers, (buffer) -> buffer.id is id
-
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})

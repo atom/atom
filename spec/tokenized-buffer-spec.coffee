@@ -26,7 +26,7 @@ describe "TokenizedBuffer", ->
 
   describe "serialization", ->
     describe "when the underlying buffer has a path", ->
-      it "deserializes it searching for its path in the current project", ->
+      it "deserializes it searching among the buffers in the current project", ->
         buffer = atom.project.bufferForPathSync('sample.js')
         tokenizedBufferA = new TokenizedBuffer({
           buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
@@ -39,7 +39,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
 
     describe "when the underlying buffer has no path", ->
-      it "deserializes it searching for its id in the current project", ->
+      it "deserializes it searching among the buffers in the current project", ->
         buffer = atom.project.bufferForPathSync(null)
 
         tokenizedBufferA = new TokenizedBuffer({
