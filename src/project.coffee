@@ -320,7 +320,7 @@ class Project extends Model
   # Only to be used when deserializing
   bufferForIdSync: (id) ->
     existingBuffer = @findBufferForId(id) if id
-    existingBuffer ? @buildBufferSync(absoluteFilePath)
+    existingBuffer ? @buildBufferSync()
 
   # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
