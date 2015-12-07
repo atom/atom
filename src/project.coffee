@@ -308,10 +308,18 @@ class Project extends Model
   findBufferForPath: (filePath) ->
     _.find @buffers, (buffer) -> buffer.getPath() is filePath
 
+  findBufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.getId() is id
+
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
+    existingBuffer ? @buildBufferSync(absoluteFilePath)
+
+  # Only to be used when deserializing
+  bufferForIdSync: (id) ->
+    existingBuffer = @findBufferForId(id) if id
     existingBuffer ? @buildBufferSync(absoluteFilePath)
 
   # Given a file path, this retrieves or creates a new {TextBuffer}.

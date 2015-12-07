@@ -24,6 +24,34 @@ describe "TokenizedBuffer", ->
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
 
+  describe "serialization", ->
+    describe "when the underlying buffer has a path", ->
+      it "deserializes it searching for its path in the current project", ->
+        buffer = atom.project.bufferForPathSync('sample.js')
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
+
+    describe "when the underlying buffer has no path", ->
+      it "deserializes it searching for its id in the current project", ->
+        buffer = atom.project.bufferForPathSync(null)
+
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
+
   describe "when the buffer is destroyed", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
