@@ -62,6 +62,7 @@ class PackageManager
   reset: ->
     @serviceHub.clear()
     @deactivatePackages()
+    @loadedPackages = {}
     @packageStates = {}
 
   ###
