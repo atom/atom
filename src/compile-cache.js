@@ -171,6 +171,8 @@ function prepareStackTraceWithRawStackAssignment (error, frames) {
   }
 }
 
+Error.stackTraceLimit = 30
+
 Object.defineProperty(Error, 'prepareStackTrace', {
   get: function () {
     return prepareStackTraceWithRawStackAssignment
