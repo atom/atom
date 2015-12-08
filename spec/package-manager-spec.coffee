@@ -154,7 +154,6 @@ describe "PackageManager", ->
 
     it "registers the config schema in the package's metadata, if present", ->
       pack = atom.packages.loadPackage("package-with-json-config-schema")
-
       expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
         type: 'object'
         properties: {
@@ -165,9 +164,20 @@ describe "PackageManager", ->
 
       expect(pack.mainModule).toBeNull()
 
+      atom.packages.unloadPackage('package-with-json-config-schema')
+      atom.config.clear()
+
+      pack = atom.packages.loadPackage("package-with-json-config-schema")
+      expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
+        type: 'object'
+        properties: {
+          a: {type: 'number', default: 5}
+          b: {type: 'string', default: 'five'}
+        }
+      }
+
     describe "when a package does not have deserializers, view providers or a config schema in its package.json", ->
       beforeEach ->
-        atom.packages.unloadPackage('package-with-main')
         mockLocalStorage()
 
       it "defers loading the package's main module if the package previously used no Atom APIs when its main module was required", ->
