@@ -167,7 +167,6 @@ describe "PackageManager", ->
 
     describe "when a package does not have deserializers, view providers or a config schema in its package.json", ->
       beforeEach ->
-        atom.packages.unloadPackage('package-with-main')
         mockLocalStorage()
 
       it "defers loading the package's main module if the package previously used no Atom APIs when its main module was required", ->
