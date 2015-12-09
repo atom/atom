@@ -45,13 +45,6 @@ function setEnvironmentVariables() {
     process.env.BUILD_ATOM_RELEASES_S3_SECRET = process.env.BUILD_ATOM_WIN_RELEASES_S3_SECRET
     process.env.BUILD_ATOM_RELEASES_S3_BUCKET = process.env.BUILD_ATOM_WIN_RELEASES_S3_BUCKET
   }
-
-  // `node-pre-gyp` will look for these when determining which binary to
-  // download or how to rebuild.
-  process.env.npm_config_runtime = 'electron';
-  // TODO: get this from package.json
-  process.env.npm_config_target = '0.34.5';
-  process.env.npm_config_disturl = 'https://atom.io/download/atom-shell';
 }
 
 function removeNodeModules() {
