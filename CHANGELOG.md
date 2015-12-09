@@ -3,6 +3,7 @@ See https://atom.io/releases
 ## 1.4.0
 
 * Switching encoding is now fast also with large files.
+* Fixed an issue where disabling and re-enabling a package caused custom keymaps to be overridden.
 
 ## 1.3.0
 
