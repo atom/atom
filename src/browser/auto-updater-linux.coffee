@@ -37,11 +37,11 @@ class AutoUpdater
 
   stdout = ChildProcess.execSync('cat /etc/issue').toString().replace(/\\./g, "")
 
-  if distros.ubuntu.test(stdout) || distros.debian.test(stdout)
+  if distros.ubuntu.test(stdout) or distros.debian.test(stdout)
     @pkg = 'atom-amd64.deb'
     @pkgType = 'deb'
     @installCmd = 'dpkg --install -y'
-  else if distros.redhat.test(stdout) || distros.centos.test(stdout)
+  else if distros.redhat.test(stdout) or distros.centos.test(stdout)
     @pkg = 'atom.x86_64.rpm'
     @pkgType = 'rpm'
     @installCmd = 'yum localinstall -y'
