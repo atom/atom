@@ -281,6 +281,9 @@ class AtomApplication
     ipc.on 'write-to-stderr', (event, output) ->
       process.stderr.write(output)
 
+    ipc.on 'add-recent-document', (event, filename) ->
+      app.addRecentDocument(filename)
+
   setupDockMenu: ->
     if process.platform is 'darwin'
       dockMenu = Menu.buildFromTemplate [
