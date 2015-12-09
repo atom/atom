@@ -44,6 +44,9 @@ describe "Workspace", ->
         pane4 = null
 
         waitsForPromise ->
+          atom.workspace.open(null).then (editor) -> editor.setText("An untitled editor.")
+
+        waitsForPromise ->
           atom.workspace.open('b').then (editor) ->
             pane2.activateItem(editor.copy())
 
@@ -65,15 +68,16 @@ describe "Workspace", ->
 
           simulateReload()
 
-          expect(atom.workspace.getTextEditors().length).toBe 4
-          [editor1, editor2, editor3, editor4] = atom.workspace.getTextEditors()
-
+          expect(atom.workspace.getTextEditors().length).toBe 5
+          [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           expect(editor1.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
           expect(editor2.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
           expect(editor2.getCursorScreenPosition()).toEqual [0, 2]
           expect(editor3.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
           expect(editor4.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
           expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
+          expect(untitledEditor.getPath()).toBeUndefined()
+          expect(untitledEditor.getText()).toBe("An untitled editor.")
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
           expect(document.title).toMatch ///^#{path.basename(editor3.getLongTitle())}\ \u2014\ #{atom.project.getPaths()[0]}///
