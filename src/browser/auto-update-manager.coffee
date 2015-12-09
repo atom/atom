@@ -58,9 +58,7 @@ class AutoUpdateManager
     @scheduleUpdateCheck() unless /\w{7}/.test(@version)
 
     switch process.platform
-      when 'win32'
-        @setState(UnsupportedState) unless autoUpdater.supportsUpdates()
-      when 'linux'
+      when 'win32', 'linux'
         @setState(UnsupportedState) unless autoUpdater.supportsUpdates()
 
   emitUpdateAvailableEvent: (windows...) ->
