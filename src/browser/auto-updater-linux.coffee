@@ -35,7 +35,7 @@ spawn = (command, args, callback) ->
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
-  stdout = ChildProcess.execSync('cat /etc/issue').toString().replace(/\\./g, "");
+  stdout = ChildProcess.execSync('cat /etc/issue').toString().replace(/\\./g, "")
 
   # Detect distro.  Some may call my methods hackish.  I call them engineered
   if distros.ubuntu.test(stdout) | distros.debian.test(stdout)
@@ -70,7 +70,7 @@ class AutoUpdater
         spawn 'atom', ['--version'], (error, stdout) ->
           return callback(error) if error?
 
-          if update.name != stdout.trim().split('\n')
+          if update.name isnt stdout.trim().split('\n')
             callback(null, update)
 
           else callback()
@@ -84,7 +84,7 @@ class AutoUpdater
       callback()
 
   supportsUpdates: ->
-    return true unless @distro == 'unsupported'
+    return true unless @distro is 'unsupported'
 
   checkForUpdates: ->
     throw new Error('Update URL is not set') unless @updateUrl
