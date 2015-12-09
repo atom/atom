@@ -64,6 +64,12 @@ function bootstrap() {
 
   process.env.ATOM_RESOURCE_PATH = path.resolve(__dirname, '..');
 
+  // `node-pre-gyp` will look for these when determining which binary to
+  // download or how to rebuild.
+  process.env.npm_config_target = require('../package.json').electronVersion;
+  process.env.npm_config_runtime = 'electron';
+  process.env.npm_config_disturl = 'https://atom.io/download/atom-shell';
+
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
   var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
