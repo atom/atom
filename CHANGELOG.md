@@ -1,5 +1,11 @@
 See https://atom.io/releases
 
+## 1.4.0
+
+* Switching encoding is now fast also with large files.
+* Fixed an issue where disabling and re-enabling a package caused custom keymaps to be overridden.
+* Fixed restoring untitled editors on restart. The new behavior never prompts to save new/changed files when closing a window or quitting Atom.
+
 ## 1.3.0
 
 * The tree-view now sorts directory entries more naturally, in a locale-sensitive way.
