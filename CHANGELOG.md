@@ -1,5 +1,9 @@
 See https://atom.io/releases
 
+## 1.4.0
+
+* Switching encoding is now fast also with large files.
+
 ## 1.3.0
 
 * The tree-view now sorts directory entries more naturally, in a locale-sensitive way.
@@ -10,7 +14,3 @@ See https://atom.io/releases
 * Fixed an issue where characters were inserted when toggling the settings view on some keyboard layouts.
 * Modules can now temporarily override `Error.prepareStackTrace`. There is also an `Error.prototype.getRawStack()` method if you just need access to the raw v8 trace structure.
 * Fixed a problem that caused blurry fonts on monitors that have a slightly higher resolution than 96 DPI.
-
-## 1.4.0
-
-* Switching encoding is now fast also with large files.
