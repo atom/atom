@@ -679,6 +679,26 @@ describe "Config", ->
           writtenConfig = CSON.writeFileSync.argsForCall[0][1]
           expect(writtenConfig).toEqual '*': atom.config.settings
 
+        it 'writes properties in alphabetical order', ->
+          atom.config.set('foo', 1)
+          atom.config.set('bar', 2)
+          atom.config.set('baz.foo', 3)
+          atom.config.set('baz.bar', 4)
+
+          CSON.writeFileSync.reset()
+          atom.config.save()
+
+          expect(CSON.writeFileSync.argsForCall[0][0]).toBe atom.config.configFilePath
+          writtenConfig = CSON.writeFileSync.argsForCall[0][1]
+          expect(writtenConfig).toEqual '*': atom.config.settings
+
+          expectedKeys = ['bar', 'baz', 'foo']
+          foundKeys = (key for key of writtenConfig['*'] when key in expectedKeys)
+          expect(foundKeys).toEqual expectedKeys
+          expectedKeys = ['bar', 'foo']
+          foundKeys = (key for key of writtenConfig['*']['baz'] when key in expectedKeys)
+          expect(foundKeys).toEqual expectedKeys
+
       describe "when ~/.atom/config.json doesn't exist", ->
         it "writes any non-default properties to ~/.atom/config.cson", ->
           atom.config.set("a.b.c", 1)
