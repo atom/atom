@@ -43,8 +43,8 @@ class AutoUpdateManager
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
-    autoUpdater.on 'update-not-available', =>
 
+    autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
 
     autoUpdater.on 'update-available', =>
