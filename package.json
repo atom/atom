@@ -36,7 +36,7 @@
     "key-path-helpers": "^0.4.0",
     "less-cache": "0.22",
     "marked": "^0.3.4",
-    "nodegit-atom": "0.5.1",
+    "nodegit": "0.6.0",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "^5",
