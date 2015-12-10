@@ -9,6 +9,7 @@ const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.IN
 const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
 const deletedStatusFlags = Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED
 const indexStatusFlags = Git.Status.STATUS.INDEX_NEW | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.INDEX_RENAMED | Git.Status.STATUS.INDEX_TYPECHANGE
+const submoduleMode = 57344 // TODO compose this from libgit2 constants
 
 // Just using this for _.isEqual and _.object, we should impl our own here
 import _ from 'underscore-plus'
@@ -229,7 +230,6 @@ export default class GitRepositoryAsync {
         // TODO: This'll probably be wrong if the submodule doesn't exist in the
         // index yet? Is that a thing?
         const entry = index.getByPath(_path)
-        const submoduleMode = 57344 // TODO compose this from libgit2 constants
         return entry.mode === submoduleMode
       })
   }
