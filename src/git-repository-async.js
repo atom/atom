@@ -382,7 +382,9 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is ignored.
   isPathIgnored (_path) {
-    return this.repoPromise.then(repo => Git.Ignore.pathIsIgnored(repo, _path))
+    return this.repoPromise
+      .then(repo => Git.Ignore.pathIsIgnored(repo, _path))
+      .then(ignored => Boolean(ignored))
   }
 
   // Get the status of a directory in the repository's working directory.
