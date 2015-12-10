@@ -210,7 +210,10 @@ export default class GitRepositoryAsync {
   getAheadBehindCount (reference, _path) {
     return this._getRepo(_path)
       .then(repo => Promise.all([repo, repo.getBranch(reference)]))
-      .then(([repo, local]) => Promise.all([repo, local, Git.Branch.upstream(local)]))
+      .then(([repo, local]) => {
+        const upstream = Git.Branch.upstream(local).catch(_ => null)
+        return Promise.all([repo, local, upstream])
+      })
       .then(([repo, local, upstream]) => {
         if (!upstream) return {ahead: 0, behind: 0}
 
