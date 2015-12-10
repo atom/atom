@@ -395,8 +395,9 @@ export default class GitRepositoryAsync {
   //
   // * `directoryPath` The {String} path to check.
   //
-  // Returns a promise resolving to a {Number} representing the status. This value can be passed to
-  // {::isStatusModified} or {::isStatusNew} to get more information.
+  // Returns a {Promise} resolving to a {Number} representing the status. This
+  // value can be passed to {::isStatusModified} or {::isStatusNew} to get more
+  // information.
   getDirectoryStatus (directoryPath) {
     let relativePath
     // XXX _filterSBD already gets repoPromise
@@ -423,11 +424,10 @@ export default class GitRepositoryAsync {
   // Note that if the status of the path has changed, this will emit a
   // 'did-change-status' event.
   //
-  // path    :: String
-  //            The path whose status should be refreshed.
+  // * `path` The {String} path whose status should be refreshed.
   //
-  // Returns :: Promise<Number>
-  //            The refreshed status bit for the path.
+  // Returns a {Promise} which resolves to a {Number} which is the refreshed
+  // status bit for the path.
   refreshStatusForPath (_path) {
     this._refreshingCount++
 
@@ -663,11 +663,10 @@ export default class GitRepositoryAsync {
 
   // Create a new branch with the given name.
   //
-  // name    :: String
-  //            The name of the new branch.
+  // * `name` The {String} name of the new branch.
   //
-  // Returns :: Promise<NodeGit.Ref>
-  //            A reference to the created branch.
+  // Returns a {Promise} which resolves to a {NodeGit.Ref} reference to the
+  // created branch.
   _createBranch (name) {
     return this.repoPromise
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
@@ -676,9 +675,9 @@ export default class GitRepositoryAsync {
 
   // Get all the hunks in the diff.
   //
-  // diff    :: NodeGit.Diff
+  // * `diff` The {NodeGit.Diff} whose hunks should be retrieved.
   //
-  // Returns :: Promise<Array<NodeGit.Hunk>>
+  // Returns a {Promise} which resolves to an {Array} of {NodeGit.Hunk}.
   _getDiffHunks (diff) {
     return diff.patches()
       .then(patches => Promise.all(patches.map(p => p.hunks()))) // patches :: Array<Patch>
@@ -687,9 +686,9 @@ export default class GitRepositoryAsync {
 
   // Get all the lines contained in the diff.
   //
-  // diff    :: NodeGit.Diff
+  // * `diff` The {NodeGit.Diff} use lines should be retrieved.
   //
-  // Returns :: Promise<Array<NodeGit.Line>>
+  // Returns a {Promise} which resolves to an {Array} of {NodeGit.Line}.
   _getDiffLines (diff) {
     return this._getDiffHunks(diff)
       .then(hunks => Promise.all(hunks.map(h => h.lines())))
@@ -698,11 +697,11 @@ export default class GitRepositoryAsync {
 
   // Diff the given blob and buffer with the provided options.
   //
-  // blob    :: NodeGit.Blob
-  // buffer  :: String
-  // options :: NodeGit.DiffOptions
+  // * `blob` The {NodeGit.Blob}
+  // * `buffer` The {String} buffer.
+  // * `options` The {NodeGit.DiffOptions}
   //
-  // Returns :: Promise<Array<NodeGit.Hunk>>
+  // Returns a {Promise} which resolves to an {Array} of {NodeGit.Hunk}.
   _diffBlobToBuffer (blob, buffer, options) {
     const hunks = []
     const hunkCallback = (delta, hunk, payload) => {
@@ -714,8 +713,7 @@ export default class GitRepositoryAsync {
 
   // Get the current branch and update this.branch.
   //
-  // Returns :: Promise<String>
-  //            The branch name.
+  // Returns a {Promise} which resolves to the {String} branch name.
   _refreshBranch () {
     return this.repoPromise
       .then(repo => repo.getCurrentBranch())
@@ -725,11 +723,10 @@ export default class GitRepositoryAsync {
 
   // Refresh the cached ahead/behind count with the given branch.
   //
-  // branchName :: String
-  //               The name of the branch whose ahead/behind should be used for
-  //               the refresh.
+  // * `branchName` The {String} name of the branch whose ahead/behind should be
+  //                used for the refresh.
   //
-  // Returns    :: Promise<null>
+  // Returns a {Promise} which will resolve to {null}.
   _refreshAheadBehindCount (branchName) {
     return this.getAheadBehindCount(branchName)
       .then(counts => this.upstreamByPath['.'] = counts)
@@ -737,7 +734,7 @@ export default class GitRepositoryAsync {
 
   // Refresh the cached status.
   //
-  // Returns :: Promise<null>
+  // Returns a {Promise} which will resolve to {null}.
   _refreshStatus () {
     this._refreshingCount++
 
@@ -761,8 +758,7 @@ export default class GitRepositoryAsync {
 
   // Refreshes the git status.
   //
-  // Returns :: Promise<null>
-  //            Resolves when refresh has completed.
+  // Returns a {Promise} which will resolve to {null} when refresh is complete.
   refreshStatus () {
     // TODO add submodule tracking
 
@@ -775,11 +771,11 @@ export default class GitRepositoryAsync {
 
   // Get the NodeGit repository for the given path.
   //
-  // path    :: Optional<String>
-  //            The path within the repository. This is only needed if you want
-  //            to get the repository for that path if it is a submodule.
+  // * `path` The optional {String} path within the repository. This is only
+  //          needed if you want to get the repository for that path if it is a
+  //          submodule.
   //
-  // Returns :: Promise<NodeGit.Repository>
+  // Returns a {Promise} which resolves to the {NodeGit.Repository}.
   getRepo (_path) {
     if (this._destroyed()) {
       const error = new Error('Repository has been destroyed')
@@ -804,14 +800,14 @@ export default class GitRepositoryAsync {
 
   // Is the repository currently refreshing its status?
   //
-  // Returns :: Bool
+  // Returns a {Boolean}.
   _isRefreshing () {
     return this._refreshingCount === 0
   }
 
   // Has the repository been destroyed?
   //
-  // Returns :: Bool
+  // Returns a {Boolean}.
   _destroyed () {
     return this.repoPromise == null
   }
@@ -843,11 +839,10 @@ export default class GitRepositoryAsync {
 
   // Get the status for the given path.
   //
-  // path    :: String
-  //            The path whose status is wanted.
+  // * `path` The {String} path whose status is wanted.
   //
-  // Returns :: Promise<NodeGit.StatusFile>
-  //            The status for the path.
+  // Returns a {Promise} which resolves to the {NodeGit.StatusFile} status for
+  // the path.
   _filterStatusesByPath (_path) {
     // TODO: Is there a more efficient way to do this?
     let basePath = null
@@ -863,11 +858,10 @@ export default class GitRepositoryAsync {
 
   // Get the status for everything in the given directory.
   //
-  // directoryPath :: String
-  //                  The directory whose status is wanted.
+  // * `directoryPath` The {String} directory whose status is wanted.
   //
-  // Returns       :: Promise<Array<NodeGit.StatusFile>>
-  //                  The status for every file in the directory.
+  // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
+  // statuses for every file in the directory.
   _filterStatusesByDirectory (directoryPath) {
     return this.repoPromise
       .then(repo => repo.getStatus())
