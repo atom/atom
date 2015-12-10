@@ -61,6 +61,8 @@ export default class GitRepositoryAsync {
       this.subscriptions.dispose()
       this.subscriptions = null
     }
+
+    this.repoPromise = null
   }
 
   // Event subscription
@@ -213,14 +215,13 @@ export default class GitRepositoryAsync {
     return this._getRepo(_path)
       .then(repo => Promise.all([repo, repo.getBranch(reference)]))
       .then(([repo, local]) => {
-        const upstream = Git.Branch.upstream(local).catch(_ => null)
+        const upstream = Git.Branch.upstream(local)
         return Promise.all([repo, local, upstream])
       })
       .then(([repo, local, upstream]) => {
-        if (!upstream) return {ahead: 0, behind: 0}
-
         return Git.Graph.aheadBehind(repo, local.target(), upstream.target())
       })
+      .catch(_ => ({ahead: 0, behind: 0}))
   }
 
   // Public: Get the cached ahead/behind commit counts for the current branch's
@@ -664,7 +665,15 @@ export default class GitRepositoryAsync {
     return this._refreshingCount === 0
   }
 
+  _destroyed() {
+    return this.repoPromise == null
+  }
+
   _getRepo (_path) {
+    if (this._destroyed()) {
+      return Promise.reject(new Error('Repository has been destroyed'))
+    }
+
     if (!_path) return this.repoPromise
 
     return this.isSubmodule(_path)
