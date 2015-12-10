@@ -41,7 +41,7 @@ describe('GitRepositoryAsync', () => {
         threw = true
       }
 
-      expect(threw).toBeTruthy()
+      expect(threw).toBe(true)
       expect(repo.repo).toBe(null)
     })
   })
@@ -61,12 +61,12 @@ describe('GitRepositoryAsync', () => {
 
     it('resolves true for an ignored path', async () => {
       const ignored = await repo.isPathIgnored('a.txt')
-      expect(ignored).toBeTruthy()
+      expect(ignored).toBe(true)
     })
 
     it('resolves false for a non-ignored path', async () => {
       const ignored = await repo.isPathIgnored('b.txt')
-      expect(ignored).toBeFalsy()
+      expect(ignored).toBe(false)
     })
   })
 
@@ -85,23 +85,23 @@ describe('GitRepositoryAsync', () => {
     describe('when the path is unstaged', () => {
       it('resolves false if the path has not been modified', async () => {
         const modified = await repo.isPathModified(filePath)
-        expect(modified).toBeFalsy()
+        expect(modified).toBe(false)
       })
 
       it('resolves true if the path is modified', async () => {
         fs.writeFileSync(filePath, 'change')
         const modified = await repo.isPathModified(filePath)
-        expect(modified).toBeTruthy()
+        expect(modified).toBe(true)
       })
 
       it('resolves false if the path is new', async () => {
         const modified = await repo.isPathModified(newPath)
-        expect(modified).toBeFalsy()
+        expect(modified).toBe(false)
       })
 
       it('resolves false if the path is invalid', async () => {
         const modified = await repo.isPathModified(emptyPath)
-        expect(modified).toBeFalsy()
+        expect(modified).toBe(false)
       })
     })
   })
@@ -119,12 +119,12 @@ describe('GitRepositoryAsync', () => {
     describe('when the path is unstaged', () => {
       it('returns true if the path is new', async () => {
         const isNew = await repo.isPathNew(newPath)
-        expect(isNew).toBeTruthy()
+        expect(isNew).toBe(true)
       })
 
       it("returns false if the path isn't new", async () => {
         const modified = await repo.isPathModified(newPath)
-        expect(modified).toBeFalsy()
+        expect(modified).toBe(false)
       })
     })
   })
@@ -140,17 +140,17 @@ describe('GitRepositoryAsync', () => {
 
     it('no longer reports a path as modified after checkout', async () => {
       let modified = await repo.isPathModified(filePath)
-      expect(modified).toBeFalsy()
+      expect(modified).toBe(false)
 
       fs.writeFileSync(filePath, 'ch ch changes')
 
       modified = await repo.isPathModified(filePath)
-      expect(modified).toBeTruthy()
+      expect(modified).toBe(true)
 
       await repo.checkoutHead(filePath)
 
       modified = await repo.isPathModified(filePath)
-      expect(modified).toBeFalsy()
+      expect(modified).toBe(false)
     })
 
     it('restores the contents of the path to the original text', async () => {
@@ -223,7 +223,7 @@ describe('GitRepositoryAsync', () => {
       } catch (e) {
         threw = true
       }
-      expect(threw).toBeTruthy()
+      expect(threw).toBe(true)
     })
   })
 
@@ -295,8 +295,8 @@ describe('GitRepositoryAsync', () => {
       await repo.refreshStatus()
 
       expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
-      expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBeTruthy()
-      expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
+      expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
+      expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
     })
   })
 
@@ -510,12 +510,12 @@ describe('GitRepositoryAsync', () => {
 
     it('resolves true when the branch exists', async () => {
       const hasBranch = await repo.hasBranch('master')
-      expect(hasBranch).toBeTruthy()
+      expect(hasBranch).toBe(true)
     })
 
     it("resolves false when the branch doesn't exist", async () => {
       const hasBranch = await repo.hasBranch('trolleybus')
-      expect(hasBranch).toBeFalsy()
+      expect(hasBranch).toBe(false)
     })
   })
 
@@ -575,8 +575,8 @@ describe('GitRepositoryAsync', () => {
         .then(_ => success = true)
         .catch(_ => threw = true))
       runs(() => {
-        expect(success).toBeTruthy()
-        expect(threw).toBeFalsy()
+        expect(success).toBe(true)
+        expect(threw).toBe(false)
       })
     })
   })
