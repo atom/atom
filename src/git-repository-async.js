@@ -51,6 +51,10 @@ export default class GitRepositoryAsync {
     }
   }
 
+  // Public: Destroy this {GitRepositoryAsync} object.
+  //
+  // This destroys any tasks and subscriptions and releases the underlying
+  // libgit2 repository handle. This method is idempotent.
   destroy () {
     if (this.emitter) {
       this.emitter.emit('did-destroy')
@@ -68,14 +72,39 @@ export default class GitRepositoryAsync {
   // Event subscription
   // ==================
 
+  // Public: Invoke the given callback when this GitRepositoryAsync's destroy()
+  // method is invoked.
+  //
+  // * `callback` {Function}
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy (callback) {
     return this.emitter.on('did-destroy', callback)
   }
 
+  // Public: Invoke the given callback when a specific file's status has
+  // changed. When a file is updated, reloaded, etc, and the status changes, this
+  // will be fired.
+  //
+  // * `callback` {Function}
+  //   * `event` {Object}
+  //     * `path` {String} the old parameters the decoration used to have
+  //     * `pathStatus` {Number} representing the status. This value can be passed to
+  //       {::isStatusModified} or {::isStatusNew} to get more information.
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatus (callback) {
     return this.emitter.on('did-change-status', callback)
   }
 
+  // Public: Invoke the given callback when a multiple files' statuses have
+  // changed. For example, on window focus, the status of all the paths in the
+  // repo is checked. If any of them have changed, this will be fired. Call
+  // {::getPathStatus(path)} to get the status for your path of choice.
+  //
+  // * `callback` {Function}
+  //
+  // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses (callback) {
     return this.emitter.on('did-change-statuses', callback)
   }
@@ -178,7 +207,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to a {String}.
   getShortHead (_path) {
-    return this._getRepo(_path)
+    return this.getRepo(_path)
       .then(repo => repo.getCurrentBranch())
       .then(branch => branch.shorthand())
   }
@@ -212,7 +241,7 @@ export default class GitRepositoryAsync {
   //   * `ahead`  The {Number} of commits ahead.
   //   * `behind` The {Number} of commits behind.
   getAheadBehindCount (reference, _path) {
-    return this._getRepo(_path)
+    return this.getRepo(_path)
       .then(repo => Promise.all([repo, repo.getBranch(reference)]))
       .then(([repo, local]) => {
         const upstream = Git.Branch.upstream(local)
@@ -245,7 +274,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the {String} git configuration value
   // specified by the key.
   getConfigValue (key, _path) {
-    return this._getRepo(_path)
+    return this.getRepo(_path)
       .then(repo => repo.configSnapshot())
       .then(config => config.getStringBuf(key))
       .catch(_ => null)
@@ -271,7 +300,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {String} branch name such as
   // `refs/remotes/origin/master`.
   getUpstreamBranch (_path) {
-    return this._getRepo(_path)
+    return this.getRepo(_path)
       .then(repo => repo.getCurrentBranch())
       .then(branch => Git.Branch.upstream(branch))
   }
@@ -286,7 +315,7 @@ export default class GitRepositoryAsync {
   //  * `remotes` An {Array} of remote reference names.
   //  * `tags`    An {Array} of tag reference names.
   getReferences (_path) {
-    return this._getRepo(_path)
+    return this.getRepo(_path)
       .then(repo => repo.getReferences(Git.Reference.TYPE.LISTALL))
       .then(refs => {
         const heads = []
@@ -314,7 +343,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the current {String} SHA for the
   // given reference.
   getReferenceTarget (reference, _path) {
-    return this._getRepo(_path)
+    return this.getRepo(_path)
       .then(repo => Git.Reference.nameToId(repo, reference))
       .then(oid => oid.tostrS())
   }
@@ -322,18 +351,36 @@ export default class GitRepositoryAsync {
   // Reading Status
   // ==============
 
+  // Public: Resolves true if the given path is modified.
+  //
+  // * `path` The {String} path to check.
+  //
+  // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
+  // is modified.
   isPathModified (_path) {
     return this._filterStatusesByPath(_path).then(statuses => {
       return statuses.filter(status => status.isModified()).length > 0
     })
   }
 
+  // Public: Resolves true if the given path is new.
+  //
+  // * `path` The {String} path to check.
+  //
+  // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
+  // is new.
   isPathNew (_path) {
     return this._filterStatusesByPath(_path).then(statuses => {
       return statuses.filter(status => status.isNew()).length > 0
     })
   }
 
+  // Public: Is the given path ignored?
+  //
+  // * `path` The {String} path to check.
+  //
+  // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
+  // is ignored.
   isPathIgnored (_path) {
     return this.repoPromise.then(repo => Git.Ignore.pathIsIgnored(repo, _path))
   }
@@ -344,7 +391,6 @@ export default class GitRepositoryAsync {
   //
   // Returns a promise resolving to a {Number} representing the status. This value can be passed to
   // {::isStatusModified} or {::isStatusNew} to get more information.
-
   getDirectoryStatus (directoryPath) {
     let relativePath
     // XXX _filterSBD already gets repoPromise
@@ -419,36 +465,52 @@ export default class GitRepositoryAsync {
       .then(relativePath => this.pathStatusCache[relativePath])
   }
 
-  isStatusNew (statusBit) {
-    return (statusBit & newStatusFlags) > 0
-  }
-
+  // Public: Returns true if the given status indicates modification.
+  //
+  // * `statusBit` A {Number} representing the status.
+  //
+  // Returns a {Boolean} that's true if the `statusBit` indicates modification.
   isStatusModified (statusBit) {
     return (statusBit & modifiedStatusFlags) > 0
   }
 
+  // Public: Returns true if the given status indicates a new path.
+  //
+  // * `statusBit` A {Number} representing the status.
+  //
+  // Returns a {Boolean} that's true if the `statusBit` indicates a new path.
+  isStatusNew (statusBit) {
+    return (statusBit & newStatusFlags) > 0
+  }
+
+  // Public: Returns true if the given status indicates the path is staged.
+  //
+  // * `statusBit` A {Number} representing the status.
+  //
+  // Returns a {Boolean} that's true if the `statusBit` indicates the path is
+  // staged.
   isStatusStaged (statusBit) {
     return (statusBit & indexStatusFlags) > 0
   }
 
+  // Public: Returns true if the given status indicates the path is ignored.
+  //
+  // * `statusBit` A {Number} representing the status.
+  //
+  // Returns a {Boolean} that's true if the `statusBit` indicates the path is
+  // ignored.
   isStatusIgnored (statusBit) {
     return (statusBit & (1 << 14)) > 0
   }
 
+  // Public: Returns true if the given status indicates the path is deleted.
+  //
+  // * `statusBit` A {Number} representing the status.
+  //
+  // Returns a {Boolean} that's true if the `statusBit` indicates the path is
+  // deleted.
   isStatusDeleted (statusBit) {
     return (statusBit & deletedStatusFlags) > 0
-  }
-
-  _getDiffHunks (diff) {
-    return diff.patches()
-      .then(patches => Promise.all(patches.map(p => p.hunks()))) // patches :: Array<Patch>
-      .then(hunks => _.flatten(hunks)) // hunks :: Array<Array<Hunk>>
-  }
-
-  _getDiffLines (diff) {
-    return this._getDiffHunks(diff)
-      .then(hunks => Promise.all(hunks.map(h => h.lines())))
-      .then(lines => _.flatten(lines)) // lines :: Array<Array<Line>>
   }
 
   // Retrieving Diffs
@@ -485,14 +547,6 @@ export default class GitRepositoryAsync {
         }
         return stats
       })
-  }
-
-  _diffBlobToBuffer (blob, buffer, options) {
-    const hunks = []
-    const hunkCallback = (delta, hunk, payload) => {
-      hunks.push(hunk)
-    }
-    return Git.Diff.blobToBuffer(blob, null, buffer, null, null, options, null, null, hunkCallback, null, null).then(_ => hunks)
   }
 
   // Public: Retrieves the line diffs comparing the `HEAD` version of the given
@@ -563,12 +617,6 @@ export default class GitRepositoryAsync {
       .then(() => this.refreshStatusForPath(_path))
   }
 
-  _createBranch (name) {
-    return this.repoPromise
-      .then(repo => Promise.all([repo, repo.getHeadCommit()]))
-      .then(([repo, commit]) => repo.createBranch(name, commit))
-  }
-
   // Public: Checks out a branch in your repository.
   //
   // * `reference` The {String} reference to checkout.
@@ -607,6 +655,57 @@ export default class GitRepositoryAsync {
     }).then(filePath => this.checkoutHead(filePath))
   }
 
+  // Create a new branch with the given name.
+  //
+  // name    :: String
+  //            The name of the new branch.
+  //
+  // Returns :: Promise<NodeGit.Ref>
+  //            A reference to the created branch.
+  _createBranch (name) {
+    return this.repoPromise
+      .then(repo => Promise.all([repo, repo.getHeadCommit()]))
+      .then(([repo, commit]) => repo.createBranch(name, commit))
+  }
+
+  // Get all the hunks in the diff.
+  //
+  // diff    :: NodeGit.Diff
+  //
+  // Returns :: Promise<Array<NodeGit.Hunk>>
+  _getDiffHunks (diff) {
+    return diff.patches()
+      .then(patches => Promise.all(patches.map(p => p.hunks()))) // patches :: Array<Patch>
+      .then(hunks => _.flatten(hunks)) // hunks :: Array<Array<Hunk>>
+  }
+
+  // Get all the lines contained in the diff.
+  //
+  // diff    :: NodeGit.Diff
+  //
+  // Returns :: Promise<Array<NodeGit.Line>>
+  _getDiffLines (diff) {
+    return this._getDiffHunks(diff)
+      .then(hunks => Promise.all(hunks.map(h => h.lines())))
+      .then(lines => _.flatten(lines)) // lines :: Array<Array<Line>>
+  }
+
+  // Diff the given blob and buffer with the provided options.
+  //
+  // blob    :: NodeGit.Blob
+  // buffer  :: String
+  // options :: NodeGit.DiffOptions
+  //
+  // Returns :: Promise<Array<NodeGit.Hunk>>
+  _diffBlobToBuffer (blob, buffer, options) {
+    const hunks = []
+    const hunkCallback = (delta, hunk, payload) => {
+      hunks.push(hunk)
+    }
+    return Git.Diff.blobToBuffer(blob, null, buffer, null, null, options, null, null, hunkCallback, null, null)
+      .then(_ => hunks)
+  }
+
   // Get the current branch and update this.branch.
   //
   // Returns :: Promise<String>
@@ -618,11 +717,21 @@ export default class GitRepositoryAsync {
       .then(branchName => this.branch = branchName)
   }
 
+  // Refresh the cached ahead/behind count with the given branch.
+  //
+  // branchName :: String
+  //               The name of the branch whose ahead/behind should be used for
+  //               the refresh.
+  //
+  // Returns    :: Promise<null>
   _refreshAheadBehindCount (branchName) {
     return this.getAheadBehindCount(branchName)
       .then(counts => this.upstreamByPath['.'] = counts)
   }
 
+  // Refresh the cached status.
+  //
+  // Returns :: Promise<null>
   _refreshStatus () {
     this._refreshingCount++
 
@@ -658,18 +767,14 @@ export default class GitRepositoryAsync {
     return Promise.all([status, branch, aheadBehind]).then(_ => null)
   }
 
-  // Section: Private
-  // ================
-
-  _isRefreshing () {
-    return this._refreshingCount === 0
-  }
-
-  _destroyed() {
-    return this.repoPromise == null
-  }
-
-  _getRepo (_path) {
+  // Get the NodeGit repository for the given path.
+  //
+  // path    :: Optional<String>
+  //            The path within the repository. This is only needed if you want
+  //            to get the repository for that path if it is a submodule.
+  //
+  // Returns :: Promise<NodeGit.Repository>
+  getRepo (_path) {
     if (this._destroyed()) {
       return Promise.reject(new Error('Repository has been destroyed'))
     }
@@ -686,6 +791,24 @@ export default class GitRepositoryAsync {
       })
   }
 
+  // Section: Private
+  // ================
+
+  // Is the repository currently refreshing its status?
+  //
+  // Returns :: Bool
+  _isRefreshing () {
+    return this._refreshingCount === 0
+  }
+
+  // Has the repository been destroyed?
+  //
+  // Returns :: Bool
+  _destroyed() {
+    return this.repoPromise == null
+  }
+
+  // Subscribe to events on the given buffer.
   subscribeToBuffer (buffer) {
     const bufferSubscriptions = new CompositeDisposable()
 
@@ -710,8 +833,15 @@ export default class GitRepositoryAsync {
     return
   }
 
+  // Get the status for the given path.
+  //
+  // path    :: String
+  //            The path whose status is wanted.
+  //
+  // Returns :: Promise<NodeGit.StatusFile>
+  //            The status for the path.
   _filterStatusesByPath (_path) {
-    // Surely I'm missing a built-in way to do this
+    // TODO: Is there a more efficient way to do this?
     let basePath = null
     return this.repoPromise
       .then(repo => {
@@ -723,6 +853,13 @@ export default class GitRepositoryAsync {
       })
   }
 
+  // Get the status for everything in the given directory.
+  //
+  // directoryPath :: String
+  //                  The directory whose status is wanted.
+  //
+  // Returns       :: Promise<Array<NodeGit.StatusFile>>
+  //                  The status for every file in the directory.
   _filterStatusesByDirectory (directoryPath) {
     return this.repoPromise
       .then(repo => repo.getStatus())
