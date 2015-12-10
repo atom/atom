@@ -161,8 +161,7 @@ require('source-map-support').install({
 Error.stackTraceLimit = 30
 
 var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
-
-let prepareStackTrace = prepareStackTraceWithSourceMapping
+var prepareStackTrace = prepareStackTraceWithSourceMapping
 
 function prepareStackTraceWithRawStackAssignment (error, frames) {
   if (error.rawStack) { // avoid infinite recursion
