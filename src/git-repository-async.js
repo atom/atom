@@ -399,11 +399,10 @@ export default class GitRepositoryAsync {
   // value can be passed to {::isStatusModified} or {::isStatusNew} to get more
   // information.
   getDirectoryStatus (directoryPath) {
-    let relativePath
     // XXX _filterSBD already gets repoPromise
     return this.repoPromise
       .then(repo => {
-        relativePath = this.relativize(directoryPath, repo.workdir())
+        const relativePath = this.relativize(directoryPath, repo.workdir())
         return this._filterStatusesByDirectory(relativePath)
       })
       .then(statuses => {
