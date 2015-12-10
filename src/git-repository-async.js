@@ -9,7 +9,8 @@ const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.IN
 const newStatusFlags = Git.Status.STATUS.WT_NEW | Git.Status.STATUS.INDEX_NEW
 const deletedStatusFlags = Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED
 const indexStatusFlags = Git.Status.STATUS.INDEX_NEW | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.INDEX_RENAMED | Git.Status.STATUS.INDEX_TYPECHANGE
-const submoduleMode = 57344 // TODO compose this from libgit2 constants
+const ignoredStatusFlags = 1 << 14 // TODO: compose this from libgit2 constants
+const submoduleMode = 57344 // TODO: compose this from libgit2 constants
 
 // Just using this for _.isEqual and _.object, we should impl our own here
 import _ from 'underscore-plus'
@@ -505,7 +506,7 @@ export default class GitRepositoryAsync {
   // Returns a {Boolean} that's true if the `statusBit` indicates the path is
   // ignored.
   isStatusIgnored (statusBit) {
-    return (statusBit & (1 << 14)) > 0
+    return (statusBit & ignoredStatusFlags) > 0
   }
 
   // Public: Returns true if the given status indicates the path is deleted.
