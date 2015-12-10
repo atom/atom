@@ -177,32 +177,6 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
-  describe('.getPathStatus(path)', () => {
-    let filePath
-
-    beforeEach(() => {
-      const workingDirectory = copyRepository()
-      repo = GitRepositoryAsync.open(workingDirectory)
-      filePath = path.join(workingDirectory, 'file.txt')
-    })
-
-    it('trigger a status-changed event when the new status differs from the last cached one', async () => {
-      const statusHandler = jasmine.createSpy('statusHandler')
-      repo.onDidChangeStatus(statusHandler)
-      fs.writeFileSync(filePath, '')
-
-      await repo.getPathStatus(filePath)
-
-      expect(statusHandler.callCount).toBe(1)
-      const status = Git.Status.STATUS.WT_MODIFIED
-      expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: status})
-      fs.writeFileSync(filePath, 'abc')
-
-      await repo.getPathStatus(filePath)
-      expect(statusHandler.callCount).toBe(1)
-    })
-  })
-
   describe('.checkoutHeadForEditor(editor)', () => {
     let filePath
     let editor
@@ -250,6 +224,32 @@ describe('GitRepositoryAsync', () => {
         threw = true
       }
       expect(threw).toBeTruthy()
+    })
+  })
+
+  describe('.getPathStatus(path)', () => {
+    let filePath
+
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+      filePath = path.join(workingDirectory, 'file.txt')
+    })
+
+    it('trigger a status-changed event when the new status differs from the last cached one', async () => {
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatus(statusHandler)
+      fs.writeFileSync(filePath, '')
+
+      await repo.getPathStatus(filePath)
+
+      expect(statusHandler.callCount).toBe(1)
+      const status = Git.Status.STATUS.WT_MODIFIED
+      expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: status})
+      fs.writeFileSync(filePath, 'abc')
+
+      await repo.getPathStatus(filePath)
+      expect(statusHandler.callCount).toBe(1)
     })
   })
 
