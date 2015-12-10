@@ -433,21 +433,26 @@ class Pane extends Model
   # setting is `true`.
   #
   # * `item` Item to destroy
-  destroyItem: (item) ->
+  destroyItem: (item, promptToSave=true) ->
     index = @items.indexOf(item)
     if index isnt -1
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
-      if @promptToSaveItem(item)
+      if promptToSave
+        if @promptToSaveItem(item)
+          @removeItem(item, false)
+          item.destroy?()
+          true
+        else
+          false
+      else
         @removeItem(item, false)
         item.destroy?()
         true
-      else
-        false
 
   # Public: Destroy all items.
   destroyItems: ->
-    @destroyItem(item) for item in @getItems()
+    @destroyItem(item, false) for item in @getItems()
     return
 
   # Public: Destroy all items except for the active item.
@@ -455,7 +460,7 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
     return
 
-  promptToSaveItem: (item, options={}) ->
+  promptToSaveItem: (item, options={}, multiple=false) ->
     return true unless item.shouldPromptToSave?(options)
 
     if typeof item.getURI is 'function'
@@ -468,12 +473,14 @@ class Pane extends Model
     chosen = @applicationDelegate.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
-      buttons: ["Save", "Cancel", "Don't Save"]
+      buttons: if multiple then ["Save", "Cancel", "Don't Save", "No For All", "Yes For All"] else ["Save", "Cancel", "Don't Save"]
 
     switch chosen
       when 0 then @saveItem(item, -> true)
       when 1 then false
       when 2 then true
+      when 3 then return 1
+      when 4 then return 2
 
   # Public: Save the active item.
   saveActiveItem: (nextAction) ->
@@ -711,8 +718,19 @@ class Pane extends Model
     @destroy() if @confirmClose()
 
   confirmClose: ->
-    for item in @getItems()
-      return false unless @promptToSaveItem(item)
+    items = @getItems()
+    promptToSave = true
+    for item in items
+      if promptToSave is true
+        promptToSave = @promptToSaveItem(item, {} ,(items.length > 1))
+        if promptToSave is 2
+          @saveItem(item)
+      else if promptToSave is false
+        return false
+      else if promptToSave is 1  #return for no for all
+        break
+      else if promptToSave is 2 #return for yes for all
+        @saveItem(item) if item.shouldPromptToSave?()
     true
 
   handleSaveError: (error, item) ->

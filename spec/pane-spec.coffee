@@ -704,6 +704,42 @@ describe "Pane", ->
       expect(item1.save).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe false
 
+    it "stops prompting to save if no for all is selected", ->
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
+      [item1, item2] = pane.getItems()
+      item1.shouldPromptToSave = -> true
+      item2.shouldPromptToSave = -> true
+      item1.getURI = -> "test/path"
+      item2.getURI = -> "test/path2"
+      item1.save = jasmine.createSpy("save")
+      item2.save = jasmine.createSpy("save")
+
+      confirm.andReturn(3)
+      pane.close()
+
+      expect(confirm).toHaveBeenCalled()
+      expect(item1.save).not.toHaveBeenCalled()
+      expect(item2.save).not.toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe true
+
+    it "prompts to save for all unsaved files when yes for all is selected", ->
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
+      [item1, item2] = pane.getItems()
+      item1.shouldPromptToSave = -> true
+      item2.shouldPromptToSave = -> true
+      item1.getURI = -> "test/path"
+      item2.getURI = -> "test/path2"
+      item1.save = jasmine.createSpy("save")
+      item2.save = jasmine.createSpy("save")
+
+      confirm.andReturn(4)
+      pane.close()
+
+      expect(confirm).toHaveBeenCalled()
+      expect(item1.save).toHaveBeenCalled()
+      expect(item2.save).toHaveBeenCalled()
+      expect(pane.isDestroyed()).toBe true
+
   describe "::destroy()", ->
     [container, pane1, pane2] = []
 
