@@ -217,13 +217,13 @@ describe('GitRepositoryAsync', () => {
       repo = new GitRepositoryAsync(require.resolve('./fixtures/git/master.git/HEAD'))
       repo.destroy()
 
-      let threw = false
+      let error = null
       try {
         await repo.getShortHead()
       } catch (e) {
-        threw = true
+        error = e
       }
-      expect(threw).toBe(true)
+      expect(error.name).toBe(GitRepositoryAsync.DestroyedErrorName)
     })
   })
 

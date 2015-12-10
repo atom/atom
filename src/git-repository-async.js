@@ -23,6 +23,10 @@ export default class GitRepositoryAsync {
     return Git
   }
 
+  static get DestroyedErrorName () {
+    return 'GitRepositoryAsync.destroyed'
+  }
+
   constructor (_path, options) {
     this.repo = null
     this.emitter = new Emitter()
@@ -778,7 +782,9 @@ export default class GitRepositoryAsync {
   // Returns :: Promise<NodeGit.Repository>
   getRepo (_path) {
     if (this._destroyed()) {
-      return Promise.reject(new Error('Repository has been destroyed'))
+      const error = new Error('Repository has been destroyed')
+      error.name = GitRepositoryAsync.DestroyedErrorName
+      return Promise.reject(error)
     }
 
     if (!_path) return this.repoPromise
