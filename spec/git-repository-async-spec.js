@@ -590,7 +590,7 @@ describe('GitRepositoryAsync', () => {
       repo = GitRepositoryAsync.open(workingDirectory)
     })
 
-    it('can get the line diff', async () => {
+    it('returns the old and new lines of the diff', async () => {
       const {oldStart, newStart, oldLines, newLines} = await repo.getLineDiffs('a.txt', 'hi there')
       expect(oldStart).toBe(0)
       expect(oldLines).toBe(0)
