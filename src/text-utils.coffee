@@ -89,6 +89,11 @@ isKoreanCharacter = (character) ->
   0xA960 <= charCode <= 0xA97F or
   0xD7B0 <= charCode <= 0xD7FF
 
+isCjkCharacter = (character) ->
+  isDoubleWidthCharacter(character) or
+  isHalfWidthCharacter(character) or
+  isKoreanCharacter(character)
+
 # Does the given string contain at least surrogate pair, variation sequence,
 # or combined character?
 #
@@ -102,4 +107,4 @@ hasPairedCharacter = (string) ->
     index++
   false
 
-module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter}
+module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isCjkCharacter}
