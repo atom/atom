@@ -804,7 +804,7 @@ export default class GitRepositoryAsync {
   // Has the repository been destroyed?
   //
   // Returns :: Bool
-  _destroyed() {
+  _destroyed () {
     return this.repoPromise == null
   }
 
