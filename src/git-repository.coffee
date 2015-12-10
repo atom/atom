@@ -76,9 +76,7 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
-    asyncOptions = {}
-    for key, val of options
-      asyncOptions[key] = val
+    asyncOptions = _.clone(options)
     # GitRepository itself will handle these cases by manually calling through
     # to the async repo.
     asyncOptions.refreshOnWindowFocus = false
