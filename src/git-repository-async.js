@@ -34,7 +34,9 @@ export default class GitRepositoryAsync {
 
     this._refreshingCount = 0
 
-    let {refreshOnWindowFocus} = options || true
+    options = options || {}
+
+    let {refreshOnWindowFocus = true} = options
     if (refreshOnWindowFocus) {
       const onWindowFocus = () => this.refreshStatus()
       window.addEventListener('focus', onWindowFocus)
