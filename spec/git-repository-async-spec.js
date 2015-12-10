@@ -319,12 +319,15 @@ describe('GitRepositoryAsync', () => {
 
       editor.insertNewline()
 
-      let called
-      repository.onDidChangeStatus(c => called = c)
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repository.onDidChangeStatus(statusHandler)
       editor.save()
 
-      waitsFor(() => Boolean(called))
-      runs(() => expect(called).toEqual({path: editor.getPath(), pathStatus: 256}))
+      waitsFor(() => statusHandler.callCount > 0)
+      runs(() => {
+        expect(statusHandler.callCount).toBeGreaterThan(0)
+        expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
+      })
     })
 
     it('emits a status-changed event when a buffer is reloaded', async () => {
