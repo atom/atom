@@ -203,6 +203,41 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
+  describe('.checkoutHeadForEditor(editor)', () => {
+    let filePath
+    let editor
+
+    beforeEach(() => {
+      spyOn(atom, "confirm")
+
+      const workingDirPath = copyRepository()
+      repo = new GitRepositoryAsync(workingDirPath, {project: atom.project, config: atom.config, confirm: atom.confirm})
+      filePath = path.join(workingDirPath, 'a.txt')
+      fs.writeFileSync(filePath, 'ch ch changes')
+
+      waitsForPromise(() => atom.workspace.open(filePath))
+      runs(() => editor = atom.workspace.getActiveTextEditor())
+    })
+
+    it('displays a confirmation dialog by default', async () => {
+      atom.confirm.andCallFake(({buttons}) => buttons.OK())
+      atom.config.set('editor.confirmCheckoutHeadRevision', true)
+
+      await repo.checkoutHeadForEditor(editor)
+
+      expect(fs.readFileSync(filePath, 'utf8')).toBe('')
+    })
+
+    it('does not display a dialog when confirmation is disabled', async () => {
+      atom.config.set('editor.confirmCheckoutHeadRevision', false)
+
+      await repo.checkoutHeadForEditor(editor)
+
+      expect(fs.readFileSync(filePath, 'utf8')).toBe('')
+      expect(atom.confirm).not.toHaveBeenCalled()
+    })
+  })
+
   describe('.getDirectoryStatus(path)', () => {
     let directoryPath, filePath
 
