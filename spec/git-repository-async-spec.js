@@ -55,8 +55,6 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.isPathIgnored(path)', () => {
-    let repo
-
     beforeEach(() => {
       repo = openFixture('ignore.git')
     })
