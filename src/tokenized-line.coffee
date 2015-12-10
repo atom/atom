@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{isPairedCharacter} = require './text-utils'
+{isPairedCharacter, isCjkCharacter} = require './text-utils'
 Token = require './token'
 {SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
 
@@ -321,8 +321,11 @@ class TokenizedLine
     return unless maxColumn?
     return unless @text.length > maxColumn
 
-    if /\s/.test(@text[maxColumn])
-       # search forward for the start of a word past the boundary
+    if isCjkCharacter(@text[maxColumn])
+      # always wrap when a CJK character is at the wrap boundary
+      return maxColumn
+    else if /\s/.test(@text[maxColumn])
+      # search forward for the start of a word past the boundary
       for column in [maxColumn..@text.length]
         return column if /\S/.test(@text[column])
 
