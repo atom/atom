@@ -3,7 +3,7 @@ TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @presenter, @lineNodesProvider, grammarRegistry) ->
+  constructor: (@model, @lineNodesProvider, grammarRegistry) ->
     @tokenIterator = new TokenIterator({grammarRegistry})
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
@@ -11,14 +11,12 @@ class LinesYardstick
   invalidateCache: ->
     @pixelPositionsByLineIdAndColumn = {}
 
-  prepareScreenRowsForMeasurement: (screenRows) ->
-    @presenter.setScreenRowsToMeasure(screenRows)
-    @lineNodesProvider.updateSync(@presenter.getPreMeasurementState())
+  measuredRowForPixelPosition: (pixelPosition) ->
+    targetTop = pixelPosition.top
+    row = Math.floor(targetTop / @model.getLineHeightInPixels())
+    row if 0 <= row <= @model.getLastScreenRow()
 
-  clearScreenRowsForMeasurement: ->
-    @presenter.clearScreenRowsToMeasure()
-
-  screenPositionForPixelPosition: (pixelPosition, measureVisibleLinesOnly) ->
+  screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
@@ -28,12 +26,10 @@ class LinesYardstick
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
 
-    @prepareScreenRowsForMeasurement([row]) unless measureVisibleLinesOnly
-
     line = @model.tokenizedLineForScreenRow(row)
     lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
 
-    return new Point(row, 0) unless lineNode? and line?
+    return Point(row, 0) unless lineNode? and line?
 
     textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
     column = 0
@@ -70,32 +66,26 @@ class LinesYardstick
         left = @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinTextNode)
         charWidth = left - previousLeft
 
-        return new Point(row, previousColumn) if targetLeft <= previousLeft + (charWidth / 2)
+        return Point(row, previousColumn) if targetLeft <= previousLeft + (charWidth / 2)
 
         previousLeft = left
         previousColumn = column
         column += charLength
 
-    @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
-
     if targetLeft <= previousLeft + (charWidth / 2)
-      new Point(row, previousColumn)
+      Point(row, previousColumn)
     else
-      new Point(row, column)
+      Point(row, column)
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true, measureVisibleLinesOnly) ->
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
-    @prepareScreenRowsForMeasurement([targetRow]) unless measureVisibleLinesOnly
-
     top = targetRow * @model.getLineHeightInPixels()
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
-
-    @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
 
     {top, left}
 
@@ -173,18 +163,3 @@ class LinesYardstick
     offset = lineNode.getBoundingClientRect().left
 
     left + width - offset
-
-  pixelRectForScreenRange: (screenRange, measureVisibleLinesOnly) ->
-    lineHeight = @model.getLineHeightInPixels()
-
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start, true, measureVisibleLinesOnly).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
-      width = @presenter.getScrollWidth()
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false, measureVisibleLinesOnly)
-      height = lineHeight
-      width = @pixelPositionForScreenPosition(screenRange.end, false, measureVisibleLinesOnly).left - left
-
-    {top, left, width, height}
