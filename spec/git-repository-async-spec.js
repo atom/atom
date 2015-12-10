@@ -238,6 +238,21 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
+  describe('.destroy()', () => {
+    it('throws an exception when any method is called after it is called', async () => {
+      repo = new GitRepositoryAsync(require.resolve('./fixtures/git/master.git/HEAD'))
+      repo.destroy()
+
+      let threw = false
+      try {
+        await repo.getShortHead()
+      } catch (e) {
+        threw = true
+      }
+      expect(threw).toBeTruthy()
+    })
+  })
+
   describe('.getDirectoryStatus(path)', () => {
     let directoryPath, filePath
 
