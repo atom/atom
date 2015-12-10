@@ -301,7 +301,7 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('buffer events', () => {
-    let repository
+    let repo
 
     beforeEach(() => {
       const workingDirectory = copyRepository()
