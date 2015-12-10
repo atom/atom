@@ -1,5 +1,10 @@
 'use strict'
 
+// For now, we're not using babel or ES6 features like `let` and `const` in
+// this file, because `apm` requires this file directly in order to pre-warm
+// Atom's compile-cache when installing or updating packages, using an older
+// version of node.js
+
 var path = require('path')
 var fs = require('fs-plus')
 var CSON = null
