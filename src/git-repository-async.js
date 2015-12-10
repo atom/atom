@@ -834,7 +834,6 @@ export default class GitRepositoryAsync {
     )
 
     this.subscriptions.add(bufferSubscriptions)
-    return
   }
 
   // Get the status for the given path.
