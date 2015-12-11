@@ -50,13 +50,13 @@ class AutoUpdateManager
       @setState(UpdateAvailableState)
       @emitUpdateAvailableEvent(@getWindows()...)
 
-    @config.onDidChange 'core.enableAutoupdate', ({newValue}) =>
+    @config.onDidChange 'core.enableAutoUpdate', ({newValue}) =>
       if newValue
         @scheduleUpdateCheck()
       else
         @cancelScheduledUpdateCheck()
 
-    @scheduleUpdateCheck() if @config.get 'core.enableAutoupdate'
+    @scheduleUpdateCheck() if @config.get 'core.enableAutoUpdate'
 
     switch process.platform
       when 'win32'
@@ -79,7 +79,9 @@ class AutoUpdateManager
     @state
 
   scheduleUpdateCheck: ->
-    unless @checkForUpdatesIntervalID
+    # Only schedule update check periodically if running in release version and
+    # and there is no existing scheduled update check.
+    unless /\w{7}/.test(@version) or @checkForUpdatesIntervalID
       checkForUpdates = => @check(hidePopups: true)
       fourHours = 1000 * 60 * 60 * 4
       @checkForUpdatesIntervalID = setInterval(checkForUpdates, fourHours)
