@@ -66,19 +66,51 @@ class ApplicationDelegate
     ipc.send("call-window-method", "setFullScreen", fullScreen)
 
   openWindowDevTools: ->
-    remote.getCurrentWindow().openDevTools()
+    new Promise (resolve) ->
+      # Defer DevTools interaction to the next tick, because using them during
+      # event handling causes some wrong input events to be triggered on
+      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+      process.nextTick ->
+        if remote.getCurrentWindow().isDevToolsOpened()
+          resolve()
+        else
+          remote.getCurrentWindow().once("devtools-opened", -> resolve())
+          ipc.send("call-window-method", "openDevTools")
+
+  closeWindowDevTools: ->
+    new Promise (resolve) ->
+      # Defer DevTools interaction to the next tick, because using them during
+      # event handling causes some wrong input events to be triggered on
+      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+      process.nextTick ->
+        unless remote.getCurrentWindow().isDevToolsOpened()
+          resolve()
+        else
+          remote.getCurrentWindow().once("devtools-closed", -> resolve())
+          ipc.send("call-window-method", "closeDevTools")
 
   toggleWindowDevTools: ->
-    remote.getCurrentWindow().toggleDevTools()
+    new Promise (resolve) =>
+      # Defer DevTools interaction to the next tick, because using them during
+      # event handling causes some wrong input events to be triggered on
+      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+      process.nextTick =>
+        if remote.getCurrentWindow().isDevToolsOpened()
+          @closeWindowDevTools().then(resolve)
+        else
+          @openWindowDevTools().then(resolve)
 
   executeJavaScriptInWindowDevTools: (code) ->
-    remote.getCurrentWindow().executeJavaScriptInDevTools(code)
+    ipc.send("call-window-method", "executeJavaScriptInDevTools", code)
 
   setWindowDocumentEdited: (edited) ->
     ipc.send("call-window-method", "setDocumentEdited", edited)
 
   setRepresentedFilename: (filename) ->
     ipc.send("call-window-method", "setRepresentedFilename", filename)
+
+  addRecentDocument: (filename) ->
+    ipc.send("add-recent-document", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
     loadSettings = getWindowLoadSettings()

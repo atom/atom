@@ -82,6 +82,7 @@ class AtomApplication
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
+    @setupDockMenu()
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
@@ -279,6 +280,16 @@ class AtomApplication
 
     ipc.on 'write-to-stderr', (event, output) ->
       process.stderr.write(output)
+
+    ipc.on 'add-recent-document', (event, filename) ->
+      app.addRecentDocument(filename)
+
+  setupDockMenu: ->
+    if process.platform is 'darwin'
+      dockMenu = Menu.buildFromTemplate [
+        {label: 'New Window',  click: => @emit('application:new-window')}
+      ]
+      app.dock.setMenu dockMenu
 
   # Public: Executes the given command.
   #

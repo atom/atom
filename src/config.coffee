@@ -381,8 +381,8 @@ class Config
   # ```
   #
   # * `keyPath` {String} name of the key to observe
-  # * `options` {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -412,8 +412,8 @@ class Config
   #
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
-  # * `optional` (optional) {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -827,6 +827,7 @@ class Config
 
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
     catch error
@@ -1189,6 +1190,13 @@ Config.addSchemaEnforcers
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
+
+sortObject = (value) ->
+  return value unless isPlainObject(value)
+  result = {}
+  for key in Object.keys(value).sort()
+    result[key] = sortObject(value[key])
+  result
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined

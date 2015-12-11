@@ -158,25 +158,39 @@ require('source-map-support').install({
   }
 })
 
-var sourceMapPrepareStackTrace = Error.prepareStackTrace
-var prepareStackTrace = sourceMapPrepareStackTrace
+var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
 
-// Prevent coffee-script from reassigning Error.prepareStackTrace
-Object.defineProperty(Error, 'prepareStackTrace', {
-  get: function () { return prepareStackTrace },
-  set: function (newValue) {}
-})
+let prepareStackTrace = prepareStackTraceWithSourceMapping
 
-// Enable Grim to access the raw stack without reassigning Error.prepareStackTrace
-Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
-  prepareStackTrace = getRawStack
-  var result = this.stack
-  prepareStackTrace = sourceMapPrepareStackTrace
-  return result
+function prepareStackTraceWithRawStackAssignment (error, frames) {
+  if (error.rawStack) { // avoid infinite recursion
+    return prepareStackTraceWithSourceMapping(error, frames)
+  } else {
+    error.rawStack = frames
+    return prepareStackTrace(error, frames)
+  }
 }
 
-function getRawStack (_, stack) {
-  return stack
+Error.stackTraceLimit = 30
+
+Object.defineProperty(Error, 'prepareStackTrace', {
+  get: function () {
+    return prepareStackTraceWithRawStackAssignment
+  },
+
+  set: function (newValue) {
+    prepareStackTrace = newValue
+    process.nextTick(function () {
+      prepareStackTrace = prepareStackTraceWithSourceMapping
+    })
+  }
+})
+
+Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+  // Access this.stack to ensure prepareStackTrace has been run on this error
+  // because it assigns this.rawStack as a side-effect
+  this.stack
+  return this.rawStack
 }
 
 Object.keys(COMPILERS).forEach(function (extension) {

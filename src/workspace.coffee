@@ -155,21 +155,28 @@ class Workspace extends Model
     projectPaths = @project.getPaths() ? []
     if item = @getActivePaneItem()
       itemPath = item.getPath?()
-      itemTitle = item.getTitle?()
+      itemTitle = item.getLongTitle?() ? item.getTitle?()
       projectPath = _.find projectPaths, (projectPath) ->
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
     projectPath ?= projectPaths[0]
 
+    titleParts = []
     if item? and projectPath?
-      document.title = "#{itemTitle} - #{projectPath} - #{appName}"
-      @applicationDelegate.setRepresentedFilename(itemPath ? projectPath)
+      titleParts.push itemTitle, projectPath
+      representedPath = itemPath ? projectPath
     else if projectPath?
-      document.title = "#{projectPath} - #{appName}"
-      @applicationDelegate.setRepresentedFilename(projectPath)
+      titleParts.push projectPath
+      representedPath = projectPath
     else
-      document.title = "#{itemTitle} - #{appName}"
-      @applicationDelegate.setRepresentedFilename("")
+      titleParts.push itemTitle
+      representedPath = ""
+
+    unless process.platform is 'darwin'
+      titleParts.push appName
+
+    document.title = titleParts.join(" \u2014 ")
+    @applicationDelegate.setRepresentedFilename(representedPath)
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.
@@ -681,9 +688,15 @@ class Workspace extends Model
   destroyActivePane: ->
     @getActivePane()?.destroy()
 
-  # Destroy the active pane item or the active pane if it is empty.
-  destroyActivePaneItemOrEmptyPane: ->
-    if @getActivePaneItem()? then @destroyActivePaneItem() else @destroyActivePane()
+  # Close the active pane item, or the active pane if it is empty,
+  # or the current window if there is only the empty root pane.
+  closeActivePaneItemOrEmptyPaneOrWindow: ->
+    if @getActivePaneItem()?
+      @destroyActivePaneItem()
+    else if @getPanes().length > 1
+      @destroyActivePane()
+    else if @config.get('core.closeEmptyWindows')
+      atom.close()
 
   # Increase the editor font size by 1px.
   increaseFontSize: ->

@@ -45,9 +45,11 @@ describe "AtomEnvironment", ->
       expect(atom.config.get('editor.showInvisibles')).toBe false
 
   describe "window onerror handler", ->
+    devToolsPromise = null
     beforeEach ->
-      spyOn atom, 'openDevTools'
-      spyOn atom, 'executeJavaScriptInDevTools'
+      devToolsPromise = Promise.resolve()
+      spyOn(atom, 'openDevTools').andReturn(devToolsPromise)
+      spyOn(atom, 'executeJavaScriptInDevTools')
 
     it "will open the dev tools when an error is triggered", ->
       try
@@ -55,8 +57,10 @@ describe "AtomEnvironment", ->
       catch e
         window.onerror.call(window, e.toString(), 'abc', 2, 3, e)
 
-      expect(atom.openDevTools).toHaveBeenCalled()
-      expect(atom.executeJavaScriptInDevTools).toHaveBeenCalled()
+      waitsForPromise -> devToolsPromise
+      runs ->
+        expect(atom.openDevTools).toHaveBeenCalled()
+        expect(atom.executeJavaScriptInDevTools).toHaveBeenCalled()
 
     describe "::onWillThrowError", ->
       willThrowSpy = null
