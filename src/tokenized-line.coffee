@@ -321,19 +321,19 @@ class TokenizedLine
     return unless maxColumn?
     return unless @text.length > maxColumn
 
-    if isCjkCharacter(@text[maxColumn])
-      # always wrap when a CJK character is at the wrap boundary
-      return maxColumn
-    else if /\s/.test(@text[maxColumn])
+    if /\s/.test(@text[maxColumn])
       # search forward for the start of a word past the boundary
       for column in [maxColumn..@text.length]
         return column if /\S/.test(@text[column])
 
       return @text.length
+    else if isCjkCharacter(@text[maxColumn])
+      maxColumn
     else
       # search backward for the start of the word on the boundary
       for column in [maxColumn..@firstNonWhitespaceIndex]
-        return column + 1 if /\s/.test(@text[column])
+        if /\s/.test(@text[column]) or isCjkCharacter(@text[column])
+          return column + 1
 
       return maxColumn
 

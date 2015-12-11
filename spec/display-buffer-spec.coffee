@@ -130,14 +130,25 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    return '
             expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe '    sort(left).concat(pivot).concat(sort(right));'
 
-          it "wraps the line at the boundary if it includes a CJK character", ->
-            buffer.setTextInRange([[0, 0], [1, 0]], 'abcd efg유私ﾌ业余爱\n')
+          it "wraps the line at the first CJK character before the boundary", ->
             displayBuffer.setEditorWidthInChars(10)
+
+            buffer.setTextInRange([[0, 0], [1, 0]], 'abcd efg유私ﾌ业余爱\n')
             expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcd efg유私'
             expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'ﾌ业余爱'
 
+            buffer.setTextInRange([[0, 0], [1, 0]], 'abcd ef유gef业余爱\n')
+            expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcd ef유'
+            expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'gef业余爱'
+
         describe "when there is no whitespace before the boundary", ->
-          it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
+          it "wraps the line at the first CJK character before the boundary", ->
+            buffer.setTextInRange([[0, 0], [1, 0]], '私たちのabcdefghij\n')
+            displayBuffer.setEditorWidthInChars(10)
+            expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '私たちの'
+            expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'abcdefghij'
+
+          it "wraps the line exactly at the boundary when no CJK character is found, since there's no more graceful place to wrap it", ->
             buffer.setTextInRange([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
             displayBuffer.setEditorWidthInChars(10)
             expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcdefghij'
