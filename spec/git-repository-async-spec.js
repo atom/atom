@@ -182,7 +182,7 @@ describe('GitRepositoryAsync', () => {
     let editor
 
     beforeEach(() => {
-      spyOn(atom, "confirm")
+      spyOn(atom, 'confirm')
 
       const workingDirPath = copyRepository()
       repo = new GitRepositoryAsync(workingDirPath, {project: atom.project, config: atom.config, confirm: atom.confirm})
