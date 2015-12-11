@@ -5,7 +5,7 @@ const path = require('path')
 const cachedVm = require('cached-run-in-this-context')
 const crypto = require('crypto')
 
-function computeHash(contents) {
+function computeHash (contents) {
   return crypto.createHash('sha1').update(contents, 'utf8').digest('hex')
 }
 
