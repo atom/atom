@@ -153,6 +153,21 @@ export default class GitRepositoryAsync {
   }
 
   // Public: Makes a path relative to the repository's working directory.
+  //
+  // * `path` The {String} path to relativize.
+  //
+  // Returns a {Promise} which resolves to the relative {String} path.
+  relativizeToWorkingDirectory (_path) {
+    return this.repoPromise
+      .then(repo => this.relativize(_path, repo.workdir()))
+  }
+
+  // Public: Makes a path relative to the repository's working directory.
+  //
+  // * `path` The {String} path to relativize.
+  // * `workingDirectory` The {String} working directory path.
+  //
+  // Returns the relative {String} path.
   relativize (_path, workingDirectory) {
     // Cargo-culted from git-utils. The original implementation also handles
     // this.openedWorkingDirectory, which is set by git-utils when the
@@ -229,10 +244,11 @@ export default class GitRepositoryAsync {
   isSubmodule (_path) {
     return this.repoPromise
       .then(repo => repo.openIndex())
-      .then(index => {
+      .then(index => Promise.all([index, this.relativizeToWorkingDirectory(_path)]))
+      .then(([index, relativePath]) => {
         // TODO: This'll probably be wrong if the submodule doesn't exist in the
         // index yet? Is that a thing?
-        const entry = index.getByPath(_path)
+        const entry = index.getByPath(relativePath)
         if (!entry) return false
 
         return entry.mode === submoduleMode
@@ -390,7 +406,10 @@ export default class GitRepositoryAsync {
   // is ignored.
   isPathIgnored (_path) {
     return this.repoPromise
-      .then(repo => Git.Ignore.pathIsIgnored(repo, _path))
+      .then(repo => {
+        const relativePath = this.relativize(_path, repo.workdir())
+        return Git.Ignore.pathIsIgnored(repo, relativePath)
+      })
       .then(ignored => Boolean(ignored))
   }
 
@@ -464,8 +483,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a status {Number} or null if the
   // path is not in the cache.
   getCachedPathStatus (_path) {
-    return this.repoPromise
-      .then(repo => this.relativize(_path, repo.workdir()))
+    return this.relativizeToWorkingDirectory(_path)
       .then(relativePath => this.pathStatusCache[relativePath])
   }
 
@@ -535,7 +553,7 @@ export default class GitRepositoryAsync {
       .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
       .then(([repo, tree]) => {
         const options = new Git.DiffOptions()
-        options.pathspec = _path
+        options.pathspec = this.relativize(_path, repo.workdir())
         return Git.Diff.treeToWorkdir(repo, tree, options)
       })
       .then(diff => this._getDiffLines(diff))
@@ -565,9 +583,13 @@ export default class GitRepositoryAsync {
   //   * `oldLines` The {Number} of lines in the old hunk.
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
+    let relativePath = null
     return this.repoPromise
-      .then(repo => repo.getHeadCommit())
-      .then(commit => commit.getEntry(_path))
+      .then(repo => {
+        relativePath = this.relativize(_path, repo.workdir())
+        return repo.getHeadCommit()
+      })
+      .then(commit => commit.getEntry(relativePath))
       .then(entry => entry.getBlob())
       .then(blob => {
         const options = new Git.DiffOptions()
