@@ -34,6 +34,7 @@ class TextEditorPresenter
     @observeModel()
     @observeConfig()
     @buildState()
+    @invalidateState()
     @startBlinkingCursors() if @focused
     @startReflowing() if @continuousReflow
     @updating = false
@@ -81,8 +82,9 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateReflowState()
 
-    @fetchDecorations()
-    @updateLineDecorations()
+    if @shouldUpdateDecorations
+      @fetchDecorations()
+      @updateLineDecorations()
 
     @updateTilesState()
 
@@ -105,7 +107,7 @@ class TextEditorPresenter
     @updateScrollbarsState()
     @updateHiddenInputState()
     @updateContentState()
-    @updateHighlightDecorations()
+    @updateHighlightDecorations() if @shouldUpdateDecorations
     @updateTilesState()
     @updateCursorsState()
     @updateOverlaysState()
@@ -114,15 +116,34 @@ class TextEditorPresenter
     @updateCustomGutterDecorationState()
     @updating = false
 
+    @resetTrackedUpdates()
     @state
 
+  resetTrackedUpdates: ->
+    @shouldUpdateDecorations = false
+
+  invalidateState: ->
+    @shouldUpdateDecorations = true
+
   observeModel: ->
-    @disposables.add @model.onDidChange => @emitDidUpdateState()
-    @disposables.add @model.onDidUpdateDecorations => @emitDidUpdateState()
+    @disposables.add @model.onDidChange =>
+      @shouldUpdateDecorations = true
+      @emitDidUpdateState()
+
+    @disposables.add @model.onDidUpdateDecorations =>
+      @shouldUpdateDecorations = true
+      @emitDidUpdateState()
+
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
-    @disposables.add @model.onDidChangePlaceholderText => @emitDidUpdateState()
-    @disposables.add @model.onDidChangeMini => @emitDidUpdateState()
-    @disposables.add @model.onDidChangeLineNumberGutterVisible => @emitDidUpdateState()
+    @disposables.add @model.onDidChangePlaceholderText =>
+      @emitDidUpdateState()
+
+    @disposables.add @model.onDidChangeMini =>
+      @shouldUpdateDecorations = true
+      @emitDidUpdateState()
+
+    @disposables.add @model.onDidChangeLineNumberGutterVisible =>
+      @emitDidUpdateState()
 
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
@@ -291,7 +312,9 @@ class TextEditorPresenter
 
   setScreenRowsToMeasure: (screenRows) ->
     return if not screenRows? or screenRows.length is 0
+
     @screenRowsToMeasure = screenRows
+    @shouldUpdateDecorations = true
 
   clearScreenRowsToMeasure: ->
     @screenRowsToMeasure = []
@@ -457,8 +480,7 @@ class TextEditorPresenter
 
   didAddGutter: (gutter) ->
     gutterDisposables = new CompositeDisposable
-    gutterDisposables.add gutter.onDidChangeVisible =>
-      @emitDidUpdateState()
+    gutterDisposables.add gutter.onDidChangeVisible => @emitDidUpdateState()
     gutterDisposables.add gutter.onDidDestroy =>
       @disposables.remove(gutterDisposables)
       gutterDisposables.dispose()
@@ -767,6 +789,7 @@ class TextEditorPresenter
     @pendingScrollLogicalPosition = null if overrideScroll
     @pendingScrollTop = scrollTop
 
+    @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
   getScrollTop: ->
@@ -860,6 +883,7 @@ class TextEditorPresenter
     unless @explicitHeight is explicitHeight
       @explicitHeight = explicitHeight
       @updateHeight()
+      @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
   updateHeight: ->
@@ -878,6 +902,7 @@ class TextEditorPresenter
       @editorWidthInChars = null
       @updateScrollbarDimensions()
       @updateClientWidth()
+      @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
   setBoundingClientRect: (boundingClientRect) ->
@@ -896,6 +921,7 @@ class TextEditorPresenter
     if @windowWidth isnt width or @windowHeight isnt height
       @windowWidth = width
       @windowHeight = height
+
       @emitDidUpdateState()
 
   setBackgroundColor: (backgroundColor) ->
@@ -921,6 +947,7 @@ class TextEditorPresenter
       @lineHeight = lineHeight
       @restoreScrollTopIfNeeded()
       @model.setLineHeightInPixels(lineHeight)
+      @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
   setMouseWheelScreenRow: (screenRow) ->
@@ -939,6 +966,7 @@ class TextEditorPresenter
       @characterWidthsChanged()
 
   characterWidthsChanged: ->
+    @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
   hasPixelPositionRequirements: ->
@@ -1179,6 +1207,7 @@ class TextEditorPresenter
       overlayState.itemWidth = itemWidth
       overlayState.itemHeight = itemHeight
       overlayState.contentMargin = contentMargin
+
       @emitDidUpdateState()
 
   observeCursor: (cursor) ->
@@ -1188,12 +1217,14 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
     didChangeVisibilityDisposable = cursor.onDidChangeVisibility =>
+
       @emitDidUpdateState()
 
     didDestroyDisposable = cursor.onDidDestroy =>
       @disposables.remove(didChangePositionDisposable)
       @disposables.remove(didChangeVisibilityDisposable)
       @disposables.remove(didDestroyDisposable)
+
       @emitDidUpdateState()
 
     @disposables.add(didChangePositionDisposable)
@@ -1235,7 +1266,7 @@ class TextEditorPresenter
     @pendingScrollLogicalPosition = position
     @pendingScrollTop = null
     @pendingScrollLeft = null
-
+    @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
   didChangeFirstVisibleScreenRow: (screenRow) ->
