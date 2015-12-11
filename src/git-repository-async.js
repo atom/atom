@@ -365,9 +365,8 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is modified.
   isPathModified (_path) {
-    return this._filterStatusesByPath(_path).then(statuses => {
-      return statuses.filter(status => status.isModified()).length > 0
-    })
+    return this._filterStatusesByPath(_path)
+      .then(statuses => statuses.some(status => status.isModified()))
   }
 
   // Public: Resolves true if the given path is new.
@@ -377,9 +376,8 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is new.
   isPathNew (_path) {
-    return this._filterStatusesByPath(_path).then(statuses => {
-      return statuses.filter(status => status.isNew()).length > 0
-    })
+    return this._filterStatusesByPath(_path)
+      .then(statuses => statuses.some(status => status.isNew()))
   }
 
   // Public: Is the given path ignored?
