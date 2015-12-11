@@ -233,6 +233,8 @@ export default class GitRepositoryAsync {
         // TODO: This'll probably be wrong if the submodule doesn't exist in the
         // index yet? Is that a thing?
         const entry = index.getByPath(_path)
+        if (!entry) return false
+
         return entry.mode === submoduleMode
       })
   }
