@@ -3,6 +3,7 @@ var cp = require('./utils/child-process-wrapper.js');
 var fs = require('fs');
 var path = require('path');
 var os = require('os');
+var shellEscape = require('./utils/shell-escape.js');
 
 var removeCommand = process.platform === 'win32' ? 'rmdir /S /Q ' : 'rm -rf ';
 var productName = require('../package.json').productName;
@@ -39,7 +40,7 @@ var run = function() {
   if (Array.isArray(next)) {
     var pathToRemove = path.resolve.apply(path.resolve, next);
     if (fs.existsSync(pathToRemove))
-      next = removeCommand + pathToRemove;
+      next = removeCommand + shellEscape(pathToRemove);
     else
       return run();
   }
