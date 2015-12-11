@@ -273,14 +273,14 @@ class AtomApplication
     ipcMain.on 'write-to-stdout', (event, output) ->
       process.stdout.write(output)
 
-  ipcMain.on 'write-to-stderr', (event, output) ->
-    process.stderr.write(output)
+    ipcMain.on 'write-to-stderr', (event, output) ->
+      process.stderr.write(output)
 
-  ipcMain.on 'add-recent-document', (event, filename) ->
-    app.addRecentDocument(filename)
+    ipcMain.on 'add-recent-document', (event, filename) ->
+      app.addRecentDocument(filename)
 
-  ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
-    event.sender.devToolsWebContents?.executeJavaScript(code)
+    ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
+      event.sender.devToolsWebContents?.executeJavaScript(code)
 
   setupDockMenu: ->
     if process.platform is 'darwin'
