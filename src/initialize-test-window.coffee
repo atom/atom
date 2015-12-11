@@ -9,7 +9,7 @@ module.exports = ({blobStore}) ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
   exitWithStatusCode = (status) ->
-    remote.require('app').emit('will-quit')
+    remote.app.emit('will-quit')
     remote.process.exit(status)
 
   try

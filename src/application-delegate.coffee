@@ -121,8 +121,7 @@ class ApplicationDelegate
     remote.getCurrentWindow().setMenuBarVisibility(visible)
 
   getPrimaryDisplayWorkAreaSize: ->
-    screen = remote.require 'screen'
-    screen.getPrimaryDisplay().workAreaSize
+    remote.screen.getPrimaryDisplay().workAreaSize
 
   confirm: ({message, detailedMessage, buttons}) ->
     buttons ?= {}
@@ -131,8 +130,7 @@ class ApplicationDelegate
     else
       buttonLabels = Object.keys(buttons)
 
-    dialog = remote.require('dialog')
-    chosen = dialog.showMessageBox(remote.getCurrentWindow(), {
+    chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'info'
       message: message
       detail: detailedMessage
@@ -154,8 +152,7 @@ class ApplicationDelegate
       params = _.clone(params)
     params.title ?= 'Save File'
     params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
-    dialog = remote.require('dialog')
-    dialog.showSaveDialog remote.getCurrentWindow(), params
+    remote.dialog.showSaveDialog remote.getCurrentWindow(), params
 
   playBeepSound: ->
     shell.beep()
