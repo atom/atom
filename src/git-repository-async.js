@@ -408,13 +408,9 @@ export default class GitRepositoryAsync {
       })
       .then(statuses => {
         return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
-          let directoryStatus = 0
-          const filteredBits = bits.filter(b => b > 0)
-          if (filteredBits.length > 0) {
-            filteredBits.forEach(bit => directoryStatus |= bit)
-          }
-
-          return directoryStatus
+          return bits
+            .filter(b => b > 0)
+            .reduce((status, bit) => status | bit, 0)
         })
       })
   }
