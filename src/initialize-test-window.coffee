@@ -4,9 +4,9 @@ cloneObject = (object) ->
   clone
 
 module.exports = ({blobStore}) ->
+  {crashReporter, remote} = require 'electron'
   # Start the crash reporter before anything else.
-  require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
-  remote = require 'remote'
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
 
   exitWithStatusCode = (status) ->
     remote.require('app').emit('will-quit')
@@ -14,7 +14,7 @@ module.exports = ({blobStore}) ->
 
   try
     path = require 'path'
-    ipc = require 'ipc-renderer'
+    {ipcRenderer} = require 'electron'
     {getWindowLoadSettings} = require './window-load-settings-helpers'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'
@@ -29,15 +29,15 @@ module.exports = ({blobStore}) ->
     handleKeydown = (event) ->
       # Reload: cmd-r / ctrl-r
       if (event.metaKey or event.ctrlKey) and event.keyCode is 82
-        ipc.send('call-window-method', 'restart')
+        ipcRenderer.send('call-window-method', 'restart')
 
       # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
       if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
-        ipc.send('call-window-method', 'toggleDevTools')
+        ipcRenderer.send('call-window-method', 'toggleDevTools')
 
       # Reload: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
-        ipc.send('call-window-method', 'close')
+        ipcRenderer.send('call-window-method', 'close')
 
     window.addEventListener('keydown', handleKeydown, true)
 

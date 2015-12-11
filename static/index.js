@@ -1,4 +1,6 @@
 (function () {
+  process.throwDeprecation = true;
+
   var path = require('path')
   var FileSystemBlobStore = require('../src/file-system-blob-store')
   var NativeCompileCache = require('../src/native-compile-cache')

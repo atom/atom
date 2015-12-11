@@ -1,4 +1,4 @@
-ipc = require 'ipc-renderer'
+{ipcRenderer} = require 'electron'
 path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
@@ -104,6 +104,6 @@ class WorkspaceElement extends HTMLElement
       [projectPath] = @project.relativizePath(activePath)
     else
       [projectPath] = @project.getPaths()
-    ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
+    ipcRenderer.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

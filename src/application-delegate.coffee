@@ -1,28 +1,25 @@
 _ = require 'underscore-plus'
-ipc = require 'ipc-renderer'
-remote = require 'remote'
-shell = require 'shell'
-webFrame = require 'web-frame'
+{ipcRenderer, remote, shell, webFrame} = require 'electron'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
 module.exports =
 class ApplicationDelegate
   open: (params) ->
-    ipc.send('open', params)
+    ipcRenderer.send('open', params)
 
   pickFolder: (callback) ->
     responseChannel = "atom-pick-folder-response"
-    ipc.on responseChannel, (path) ->
-      ipc.removeAllListeners(responseChannel)
+    ipcRenderer.on responseChannel, (event, path) ->
+      ipcRenderer.removeAllListeners(responseChannel)
       callback(path)
-    ipc.send("pick-folder", responseChannel)
+    ipcRenderer.send("pick-folder", responseChannel)
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
   closeWindow: ->
-    ipc.send("call-window-method", "close")
+    ipcRenderer.send("call-window-method", "close")
 
   getWindowSize: ->
     [width, height] = remote.getCurrentWindow().getSize()
@@ -36,34 +33,34 @@ class ApplicationDelegate
     {x, y}
 
   setWindowPosition: (x, y) ->
-    ipc.send("call-window-method", "setPosition", x, y)
+    ipcRenderer.send("call-window-method", "setPosition", x, y)
 
   centerWindow: ->
-    ipc.send("call-window-method", "center")
+    ipcRenderer.send("call-window-method", "center")
 
   focusWindow: ->
-    ipc.send("call-window-method", "focus")
+    ipcRenderer.send("call-window-method", "focus")
 
   showWindow: ->
-    ipc.send("call-window-method", "show")
+    ipcRenderer.send("call-window-method", "show")
 
   hideWindow: ->
-    ipc.send("call-window-method", "hide")
+    ipcRenderer.send("call-window-method", "hide")
 
   restartWindow: ->
-    ipc.send("call-window-method", "restart")
+    ipcRenderer.send("call-window-method", "restart")
 
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()
 
   maximizeWindow: ->
-    ipc.send("call-window-method", "maximize")
+    ipcRenderer.send("call-window-method", "maximize")
 
   isWindowFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
 
   setWindowFullScreen: (fullScreen=false) ->
-    ipc.send("call-window-method", "setFullScreen", fullScreen)
+    ipcRenderer.send("call-window-method", "setFullScreen", fullScreen)
 
   openWindowDevTools: ->
     new Promise (resolve) ->
@@ -75,7 +72,7 @@ class ApplicationDelegate
           resolve()
         else
           remote.getCurrentWindow().once("devtools-opened", -> resolve())
-          ipc.send("call-window-method", "openDevTools")
+          ipcRenderer.send("call-window-method", "openDevTools")
 
   closeWindowDevTools: ->
     new Promise (resolve) ->
@@ -87,7 +84,7 @@ class ApplicationDelegate
           resolve()
         else
           remote.getCurrentWindow().once("devtools-closed", -> resolve())
-          ipc.send("call-window-method", "closeDevTools")
+          ipcRenderer.send("call-window-method", "closeDevTools")
 
   toggleWindowDevTools: ->
     new Promise (resolve) =>
@@ -101,13 +98,13 @@ class ApplicationDelegate
           @openWindowDevTools().then(resolve)
 
   executeJavaScriptInWindowDevTools: (code) ->
-    ipc.send("call-window-method", "executeJavaScriptInDevTools", code)
+    ipcRenderer.send("call-window-method", "executeJavaScriptInDevTools", code)
 
   setWindowDocumentEdited: (edited) ->
-    ipc.send("call-window-method", "setDocumentEdited", edited)
+    ipcRenderer.send("call-window-method", "setDocumentEdited", edited)
 
   setRepresentedFilename: (filename) ->
-    ipc.send("call-window-method", "setRepresentedFilename", filename)
+    ipcRenderer.send("call-window-method", "setRepresentedFilename", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
     loadSettings = getWindowLoadSettings()
@@ -115,7 +112,7 @@ class ApplicationDelegate
     setWindowLoadSettings(loadSettings)
 
   setAutoHideWindowMenuBar: (autoHide) ->
-    ipc.send("call-window-method", "setAutoHideMenuBar", autoHide)
+    ipcRenderer.send("call-window-method", "setAutoHideMenuBar", autoHide)
 
   setWindowMenuBarVisibility: (visible) ->
     remote.getCurrentWindow().setMenuBarVisibility(visible)
@@ -161,35 +158,41 @@ class ApplicationDelegate
     shell.beep()
 
   onDidOpenLocations: (callback) ->
-    outerCallback = (message, detail) ->
+    outerCallback = (event, message, detail) ->
       if message is 'open-locations'
         callback(detail)
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
 
   onUpdateAvailable: (callback) ->
-    outerCallback = (message, detail) ->
+    outerCallback = (event, message, detail) ->
       if message is 'update-available'
         callback(detail)
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
 
   onApplicationMenuCommand: (callback) ->
-    ipc.on('command', callback)
+    outerCallback = (event, args...) ->
+      callback(args...)
+
+    ipcRenderer.on('command', outerCallback)
     new Disposable ->
-      ipc.removeListener('command', callback)
+      ipcRenderer.removeListener('command', outerCallback)
 
   onContextMenuCommand: (callback) ->
-    ipc.on('context-command', callback)
+    outerCallback = (event, args...) ->
+      callback(args...)
+
+    ipcRenderer.on('context-command', outerCallback)
     new Disposable ->
-      ipc.removeListener('context-command', callback)
+      ipcRenderer.removeListener('context-command', outerCallback)
 
   didCancelWindowUnload: ->
-    ipc.send('did-cancel-window-unload')
+    ipcRenderer.send('did-cancel-window-unload')
 
   openExternal: (url) ->
     shell.openExternal(url)

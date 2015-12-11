@@ -4,8 +4,7 @@ process.on 'uncaughtException', (error={}) ->
   console.log(error.message) if error.message?
   console.log(error.stack) if error.stack?
 
-crashReporter = require 'crash-reporter'
-app = require 'app'
+{crashReporter, app} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
 yargs = require 'yargs'
