@@ -121,14 +121,6 @@ class TextEditorPresenter
     @updating = false
 
     @resetTrackedUpdates()
-
-  # Public: Gets this presenter's state, updating it just in time before returning from this function.
-  # Returns a state {Object}, useful for rendering to screen.
-  getState: ->
-    @linesYardstick.prepareScreenRowsForMeasurement()
-
-    @getPostMeasurementState()
-
     @state
 
   resetTrackedUpdates: ->
@@ -1155,16 +1147,29 @@ class TextEditorPresenter
   hasOverlayPositionRequirements: ->
     @hasPixelRectRequirements() and @boundingClientRect? and @windowWidth and @windowHeight
 
+  absolutePixelRectForScreenRange: (screenRange) ->
+    lineHeight = @model.getLineHeightInPixels()
+
+    if screenRange.end.row > screenRange.start.row
+      top = @linesYardstick.pixelPositionForScreenPosition(screenRange.start, true).top
+      left = 0
+      height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
+      width = @getScrollWidth()
+    else
+      {top, left} = @linesYardstick.pixelPositionForScreenPosition(screenRange.start, false)
+      height = lineHeight
+      width = @linesYardstick.pixelPositionForScreenPosition(screenRange.end, false).left - left
+
+    {top, left, width, height}
+
   pixelRectForScreenRange: (screenRange) ->
-    rect = @linesYardstick.pixelRectForScreenRange(screenRange, true)
+    rect = @absolutePixelRectForScreenRange(screenRange)
     rect.top -= @getScrollTop()
     rect.left -= @getScrollLeft()
-
     rect.top = Math.round(rect.top)
     rect.left = Math.round(rect.left)
     rect.width = Math.round(rect.width)
     rect.height = Math.round(rect.height)
-
     rect
 
   fetchDecorations: ->
@@ -1550,3 +1555,6 @@ class TextEditorPresenter
 
   getVisibleRowRange: ->
     [@startRow, @endRow]
+
+  isRowVisible: (row) ->
+    @startRow <= row < @endRow

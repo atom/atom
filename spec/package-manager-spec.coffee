@@ -1,6 +1,10 @@
 path = require 'path'
 Package = require '../src/package'
+temp = require 'temp'
+fs = require 'fs-plus'
 {Disposable} = require 'atom'
+{buildKeydownEvent} = require '../src/keymap-extensions'
+{mockLocalStorage} = require './spec-helper'
 
 describe "PackageManager", ->
   workspaceElement = null
@@ -78,6 +82,121 @@ describe "PackageManager", ->
       atom.packages.loadPackage("package-with-main")
 
       expect(loadedPackage.name).toBe "package-with-main"
+
+    it "registers any deserializers specified in the package's package.json", ->
+      pack = atom.packages.loadPackage("package-with-deserializers")
+
+      state1 = {deserializer: 'Deserializer1', a: 'b'}
+      expect(atom.deserializers.deserialize(state1)).toEqual {
+        wasDeserializedBy: 'Deserializer1'
+        state: state1
+      }
+
+      state2 = {deserializer: 'Deserializer2', c: 'd'}
+      expect(atom.deserializers.deserialize(state2)).toEqual {
+        wasDeserializedBy: 'Deserializer2'
+        state: state2
+      }
+
+      expect(pack.mainModule).toBeNull()
+
+    describe "when there are view providers specified in the package's package.json", ->
+      model1 = {worksWithViewProvider1: true}
+      model2 = {worksWithViewProvider2: true}
+
+      afterEach ->
+        atom.packages.deactivatePackage('package-with-view-providers')
+        atom.packages.unloadPackage('package-with-view-providers')
+
+      it "does not load the view providers immediately", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+        expect(pack.mainModule).toBeNull()
+
+        expect(-> atom.views.getView(model1)).toThrow()
+        expect(-> atom.views.getView(model2)).toThrow()
+
+      it "registers the view providers when the package is activated", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-view-providers").then ->
+            element1 = atom.views.getView(model1)
+            expect(element1 instanceof HTMLDivElement).toBe true
+            expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+            element2 = atom.views.getView(model2)
+            expect(element2 instanceof HTMLDivElement).toBe true
+            expect(element2.dataset.createdBy).toBe 'view-provider-2'
+
+      it "registers the view providers when any of the package's deserializers are used", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+
+        spyOn(atom.views, 'addViewProvider').andCallThrough()
+        atom.deserializers.deserialize({
+          deserializer: 'DeserializerFromPackageWithViewProviders',
+          a: 'b'
+        })
+        expect(atom.views.addViewProvider.callCount).toBe 2
+
+        atom.deserializers.deserialize({
+          deserializer: 'DeserializerFromPackageWithViewProviders',
+          a: 'b'
+        })
+        expect(atom.views.addViewProvider.callCount).toBe 2
+
+        element1 = atom.views.getView(model1)
+        expect(element1 instanceof HTMLDivElement).toBe true
+        expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+        element2 = atom.views.getView(model2)
+        expect(element2 instanceof HTMLDivElement).toBe true
+        expect(element2.dataset.createdBy).toBe 'view-provider-2'
+
+    it "registers the config schema in the package's metadata, if present", ->
+      pack = atom.packages.loadPackage("package-with-json-config-schema")
+      expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
+        type: 'object'
+        properties: {
+          a: {type: 'number', default: 5}
+          b: {type: 'string', default: 'five'}
+        }
+      }
+
+      expect(pack.mainModule).toBeNull()
+
+      atom.packages.unloadPackage('package-with-json-config-schema')
+      atom.config.clear()
+
+      pack = atom.packages.loadPackage("package-with-json-config-schema")
+      expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
+        type: 'object'
+        properties: {
+          a: {type: 'number', default: 5}
+          b: {type: 'string', default: 'five'}
+        }
+      }
+
+    describe "when a package does not have deserializers, view providers or a config schema in its package.json", ->
+      beforeEach ->
+        mockLocalStorage()
+
+      it "defers loading the package's main module if the package previously used no Atom APIs when its main module was required", ->
+        pack1 = atom.packages.loadPackage('package-with-main')
+        expect(pack1.mainModule).toBeDefined()
+
+        atom.packages.unloadPackage('package-with-main')
+
+        pack2 = atom.packages.loadPackage('package-with-main')
+        expect(pack2.mainModule).toBeNull()
+
+      it "does not defer loading the package's main module if the package previously used Atom APIs when its main module was required", ->
+        pack1 = atom.packages.loadPackage('package-with-eval-time-api-calls')
+        expect(pack1.mainModule).toBeDefined()
+
+        atom.packages.unloadPackage('package-with-eval-time-api-calls')
+
+        pack2 = atom.packages.loadPackage('package-with-eval-time-api-calls')
+        expect(pack2.mainModule).not.toBeNull()
 
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
@@ -455,6 +574,54 @@ describe "PackageManager", ->
 
             atom.config.set("core.packagesWithKeymapsDisabled", [])
             expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe 'keymap-1'
+
+      describe "when the package is de-activated and re-activated", ->
+        [element, events, userKeymapPath] = []
+
+        beforeEach ->
+          userKeymapPath = path.join(temp.path(), "user-keymaps.cson")
+          spyOn(atom.keymaps, "getUserKeymapPath").andReturn(userKeymapPath)
+
+          element = createTestElement('test-1')
+          jasmine.attachToDOM(element)
+
+          events = []
+          element.addEventListener 'user-command', (e) -> events.push(e)
+          element.addEventListener 'test-1', (e) -> events.push(e)
+
+        afterEach ->
+          element.remove()
+
+          # Avoid leaking user keymap subscription
+          atom.keymaps.watchSubscriptions[userKeymapPath].dispose()
+          delete atom.keymaps.watchSubscriptions[userKeymapPath]
+
+        it "doesn't override user-defined keymaps", ->
+          fs.writeFileSync userKeymapPath, """
+          ".test-1":
+            "ctrl-z": "user-command"
+          """
+          atom.keymaps.loadUserKeymap()
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            atom.keymaps.handleKeyboardEvent(buildKeydownEvent("z", ctrl: true, target: element))
+
+            expect(events.length).toBe(1)
+            expect(events[0].type).toBe("user-command")
+
+            atom.packages.deactivatePackage("package-with-keymaps")
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            atom.keymaps.handleKeyboardEvent(buildKeydownEvent("z", ctrl: true, target: element))
+
+            expect(events.length).toBe(2)
+            expect(events[1].type).toBe("user-command")
 
     describe "menu loading", ->
       beforeEach ->

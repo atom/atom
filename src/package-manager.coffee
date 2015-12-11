@@ -31,7 +31,8 @@ class PackageManager
   constructor: (params) ->
     {
       configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
-      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry
+      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry,
+      @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
@@ -46,6 +47,7 @@ class PackageManager
     @packagesCache = require('../package.json')?._atomPackages ? {}
     @loadedPackages = {}
     @activePackages = {}
+    @activatingPackages = {}
     @packageStates = {}
     @serviceHub = new ServiceHub
 
@@ -61,6 +63,7 @@ class PackageManager
   reset: ->
     @serviceHub.clear()
     @deactivatePackages()
+    @loadedPackages = {}
     @packageStates = {}
 
   ###
@@ -375,7 +378,8 @@ class PackageManager
       options = {
         path: packagePath, metadata, packageManager: this, @config, @styleManager,
         @commandRegistry, @keymapManager, @devMode, @notificationManager,
-        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
+        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager,
+        @deserializerManager, @viewRegistry
       }
       if metadata.theme
         pack = new ThemePackage(options)
@@ -434,9 +438,12 @@ class PackageManager
     if pack = @getActivePackage(name)
       Promise.resolve(pack)
     else if pack = @loadPackage(name)
+      @activatingPackages[pack.name] = pack
       pack.activate().then =>
-        @activePackages[pack.name] = pack
-        @emitter.emit 'did-activate-package', pack
+        if @activatingPackages[pack.name]?
+          delete @activatingPackages[pack.name]
+          @activePackages[pack.name] = pack
+          @emitter.emit 'did-activate-package', pack
         pack
     else
       Promise.reject(new Error("Failed to load package '#{name}'"))
@@ -472,6 +479,7 @@ class PackageManager
       @setPackageState(pack.name, state) if state = pack.serialize?()
     pack.deactivate()
     delete @activePackages[pack.name]
+    delete @activatingPackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
 
   handleMetadataError: (error, packagePath) ->

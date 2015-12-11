@@ -22,17 +22,6 @@ describe "TextEditor", ->
       atom.packages.activatePackage('language-javascript')
 
   describe "when the editor is deserialized", ->
-    it "returns undefined when the path cannot be read", ->
-      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
-      editor1 = null
-
-      waitsForPromise ->
-        atom.workspace.open(pathToOpen).then (o) -> editor1 = o
-
-      runs ->
-        fs.mkdirSync(pathToOpen)
-        expect(TextEditor.deserialize(editor1.serialize(), atom)).toBeUndefined()
-
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 5]], reversed: true)
@@ -762,10 +751,23 @@ describe "TextEditor", ->
         editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
+      it "treats lines with only whitespace as a word (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
+        editor.setCursorBufferPosition([11, 0])
+        editor.moveToBeginningOfWord()
+        expect(editor.getCursorBufferPosition()).toEqual [10, 0]
+
       it "works when the current line is blank", ->
         editor.setCursorBufferPosition([10, 0])
         editor.moveToBeginningOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [9, 2]
+
+      it "works when the current line is blank (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
+        editor.setCursorBufferPosition([10, 0])
+        editor.moveToBeginningOfWord()
+        expect(editor.getCursorBufferPosition()).toEqual [9, 2]
+        editor.buffer.setText(buffer.getText().replace(/\r\n/g, "\n"))
 
     describe ".moveToPreviousWordBoundary()", ->
       it "moves the cursor to the previous word boundary", ->
@@ -821,7 +823,19 @@ describe "TextEditor", ->
         editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [10, 0]
 
+      it "treats lines with only whitespace as a word (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
+        editor.setCursorBufferPosition([9, 4])
+        editor.moveToEndOfWord()
+        expect(editor.getCursorBufferPosition()).toEqual [10, 0]
+
       it "works when the current line is blank", ->
+        editor.setCursorBufferPosition([10, 0])
+        editor.moveToEndOfWord()
+        expect(editor.getCursorBufferPosition()).toEqual [11, 8]
+
+      it "works when the current line is blank (CRLF line ending)", ->
+        editor.buffer.setText(buffer.getText().replace(/\n/g, "\r\n"))
         editor.setCursorBufferPosition([10, 0])
         editor.moveToEndOfWord()
         expect(editor.getCursorBufferPosition()).toEqual [11, 8]
@@ -1055,8 +1069,36 @@ describe "TextEditor", ->
         editor.moveToBeginningOfNextParagraph()
         expect(editor.getCursorBufferPosition()).toEqual [0, 0]
 
+      it "moves the cursor before the first line of the next paragraph (CRLF line endings)", ->
+        editor.setText(editor.getText().replace(/\n/g, '\r\n'))
+
+        editor.setCursorBufferPosition [0, 6]
+        editor.foldBufferRow(4)
+
+        editor.moveToBeginningOfNextParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual  [10, 0]
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0, 0]
+        editor.moveToBeginningOfNextParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
     describe ".moveToBeginningOfPreviousParagraph()", ->
-      it "moves the cursor before the first line of the pevious paragraph", ->
+      it "moves the cursor before the first line of the previous paragraph", ->
+        editor.setCursorBufferPosition [10, 0]
+        editor.foldBufferRow(4)
+
+        editor.moveToBeginningOfPreviousParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+        editor.setText("")
+        editor.setCursorBufferPosition [0, 0]
+        editor.moveToBeginningOfPreviousParagraph()
+        expect(editor.getCursorBufferPosition()).toEqual [0, 0]
+
+      it "moves the cursor before the first line of the previous paragraph (CRLF line endings)", ->
+        editor.setText(editor.getText().replace(/\n/g, '\r\n'))
+
         editor.setCursorBufferPosition [10, 0]
         editor.foldBufferRow(4)
 
@@ -5337,7 +5379,7 @@ describe "TextEditor", ->
 
         tokens = atom.grammars.decodeTokens(line, tags)
         expect(tokens[0].value).toBe "var"
-        expect(tokens[0].scopes).toEqual ["source.js", "storage.modifier.js"]
+        expect(tokens[0].scopes).toEqual ["source.js", "storage.type.var.js"]
 
         expect(tokens[6].value).toBe "http://github.com"
         expect(tokens[6].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]

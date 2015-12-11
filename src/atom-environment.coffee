@@ -151,7 +151,7 @@ class AtomEnvironment extends Model
     @packages = new PackageManager({
       devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
     })
 
     @themes = new ThemeManager({
@@ -884,6 +884,8 @@ class AtomEnvironment extends Model
           @project.addPath(path.dirname(pathToOpen))
         else
           @project.addPath(pathToOpen)
+
+      @applicationDelegate.addRecentDocument(pathToOpen)
 
       unless fs.isDirectorySync(pathToOpen)
         @workspace?.open(pathToOpen, {initialLine, initialColumn})

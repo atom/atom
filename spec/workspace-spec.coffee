@@ -44,6 +44,9 @@ describe "Workspace", ->
         pane4 = null
 
         waitsForPromise ->
+          atom.workspace.open(null).then (editor) -> editor.setText("An untitled editor.")
+
+        waitsForPromise ->
           atom.workspace.open('b').then (editor) ->
             pane2.activateItem(editor.copy())
 
@@ -65,18 +68,19 @@ describe "Workspace", ->
 
           simulateReload()
 
-          expect(atom.workspace.getTextEditors().length).toBe 4
-          [editor1, editor2, editor3, editor4] = atom.workspace.getTextEditors()
-
+          expect(atom.workspace.getTextEditors().length).toBe 5
+          [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           expect(editor1.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
           expect(editor2.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
           expect(editor2.getCursorScreenPosition()).toEqual [0, 2]
           expect(editor3.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
           expect(editor4.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
           expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
+          expect(untitledEditor.getPath()).toBeUndefined()
+          expect(untitledEditor.getText()).toBe("An untitled editor.")
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
-          expect(document.title).toBe "#{path.basename(editor3.getLongTitle())} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{path.basename(editor3.getLongTitle())}\ \u2014\ #{atom.project.getPaths()[0]}///
 
     describe "where there are no open panes or editors", ->
       it "constructs the view with no open editors", ->
@@ -661,7 +665,7 @@ describe "Workspace", ->
   describe "::isTextEditor(obj)", ->
     it "returns true when the passed object is an instance of `TextEditor`", ->
       expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
-      expect(workspace.isTextEditor({getText: ->})).toBe(false)
+      expect(workspace.isTextEditor({getText: -> null})).toBe(false)
       expect(workspace.isTextEditor(null)).toBe(false)
       expect(workspace.isTextEditor(undefined)).toBe(false)
 
@@ -732,7 +736,7 @@ describe "Workspace", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
         atom.project.setPaths([])
-        expect(document.title).toBe 'untitled - Atom'
+        expect(document.title).toMatch ///^untitled///
 
     describe "when the project has a path", ->
       beforeEach ->
@@ -742,25 +746,25 @@ describe "Workspace", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{editor.getTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspace.getActivePane().activateNextItem()
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          expect(document.title).toBe "#{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{atom.project.getPaths()[0]}///
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
@@ -784,7 +788,7 @@ describe "Workspace", ->
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = workspace2.getActivePaneItem()
-        expect(document.title).toBe "#{item.getLongTitle()} - #{atom.project.getPaths()[0]} - Atom"
+        expect(document.title).toMatch ///^#{item.getLongTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
         workspace2.destroy()
 
   describe "document edited status", ->

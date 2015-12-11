@@ -161,15 +161,22 @@ class Workspace extends Model
     itemTitle ?= "untitled"
     projectPath ?= projectPaths[0]
 
+    titleParts = []
     if item? and projectPath?
-      document.title = "#{itemTitle} - #{projectPath} - #{appName}"
-      @applicationDelegate.setRepresentedFilename(itemPath ? projectPath)
+      titleParts.push itemTitle, projectPath
+      representedPath = itemPath ? projectPath
     else if projectPath?
-      document.title = "#{projectPath} - #{appName}"
-      @applicationDelegate.setRepresentedFilename(projectPath)
+      titleParts.push projectPath
+      representedPath = projectPath
     else
-      document.title = "#{itemTitle} - #{appName}"
-      @applicationDelegate.setRepresentedFilename("")
+      titleParts.push itemTitle
+      representedPath = ""
+
+    unless process.platform is 'darwin'
+      titleParts.push appName
+
+    document.title = titleParts.join(" \u2014 ")
+    @applicationDelegate.setRepresentedFilename(representedPath)
 
   # On OS X, fades the application window's proxy icon when the current file
   # has been modified.

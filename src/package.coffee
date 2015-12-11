@@ -33,7 +33,7 @@ class Package
     {
       @path, @metadata, @packageManager, @config, @styleManager, @commandRegistry,
       @keymapManager, @devMode, @notificationManager, @grammarRegistry, @themeManager,
-      @menuManager, @contextMenuManager
+      @menuManager, @contextMenuManager, @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
@@ -84,11 +84,23 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
+        @loadDeserializers()
+        @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
-        @requireMainModule() unless @mainModule? or @activationShouldBeDeferred()
+        if @shouldRequireMainModuleOnLoad() and not @mainModule?
+          @requireMainModule()
       catch error
         @handleError("Failed to load the #{@name} package", error)
     this
+
+  shouldRequireMainModuleOnLoad: ->
+    not (
+      @metadata.deserializers? or
+      @metadata.viewProviders? or
+      @metadata.configSchema? or
+      @activationShouldBeDeferred() or
+      localStorage.getItem(@getCanDeferMainModuleRequireStorageKey()) is 'true'
+    )
 
   reset: ->
     @stylesheets = []
@@ -117,9 +129,12 @@ class Package
 
   activateNow: ->
     try
-      @activateConfig()
+      @requireMainModule() unless @mainModule?
+      @configSchemaRegisteredOnActivate = @registerConfigSchemaFromMainModule()
+      @registerViewProviders()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
+        @mainModule.activateConfig?()
         @mainModule.activate?(@packageManager.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
@@ -128,15 +143,22 @@ class Package
 
     @resolveActivationPromise?()
 
-  activateConfig: ->
-    return if @configActivated
+  registerConfigSchemaFromMetadata: ->
+    if configSchema = @metadata.configSchema
+      @config.setSchema @name, {type: 'object', properties: configSchema}
+      true
+    else
+      false
 
-    @requireMainModule() unless @mainModule?
-    if @mainModule?
+  registerConfigSchemaFromMainModule: ->
+    if @mainModule? and not @configSchemaRegisteredOnLoad
       if @mainModule.config? and typeof @mainModule.config is 'object'
         @config.setSchema @name, {type: 'object', properties: @mainModule.config}
-      @mainModule.activateConfig?()
-    @configActivated = true
+        return true
+    false
+
+  # TODO: Remove. Settings view calls this method currently.
+  activateConfig: -> @registerConfigSchemaFromMainModule()
 
   activateStylesheets: ->
     return if @stylesheetsActivated
@@ -253,6 +275,26 @@ class Package
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
       [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
 
+  loadDeserializers: ->
+    if @metadata.deserializers?
+      for name, implementationPath of @metadata.deserializers
+        do =>
+          deserializePath = path.join(@path, implementationPath)
+          deserializeFunction = null
+          atom.deserializers.add
+            name: name,
+            deserialize: =>
+              @registerViewProviders()
+              deserializeFunction ?= require(deserializePath)
+              deserializeFunction.apply(this, arguments)
+      return
+
+  registerViewProviders: ->
+    if @metadata.viewProviders? and not @registeredViewProviders
+      for implementationPath in @metadata.viewProviders
+        @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
+      @registeredViewProviders = true
+
   getStylesheetsPath: ->
     path.join(@path, 'styles')
 
@@ -343,20 +385,17 @@ class Package
     @activationPromise = null
     @resolveActivationPromise = null
     @activationCommandSubscriptions?.dispose()
+    @configSchemaRegisteredOnActivate = false
     @deactivateResources()
-    @deactivateConfig()
     @deactivateKeymaps()
     if @mainActivated
       try
         @mainModule?.deactivate?()
+        @mainModule?.deactivateConfig?()
         @mainActivated = false
       catch e
         console.error "Error deactivating package '#{@name}'", e.stack
     @emitter.emit 'did-deactivate'
-
-  deactivateConfig: ->
-    @mainModule?.deactivateConfig?()
-    @configActivated = false
 
   deactivateResources: ->
     grammar.deactivate() for grammar in @grammars
@@ -392,7 +431,13 @@ class Package
     mainModulePath = @getMainModulePath()
     if fs.isFileSync(mainModulePath)
       @mainModuleRequired = true
+
+      previousViewProviderCount = @viewRegistry.getViewProviderCount()
+      previousDeserializerCount = @deserializerManager.getDeserializerCount()
       @mainModule = require(mainModulePath)
+      if (@viewRegistry.getViewProviderCount() is previousViewProviderCount and
+          @deserializerManager.getDeserializerCount() is previousDeserializerCount)
+        localStorage.setItem(@getCanDeferMainModuleRequireStorageKey(), 'true')
 
   getMainModulePath: ->
     return @mainModulePath if @resolvedMainModulePath
@@ -585,6 +630,9 @@ class Package
   getIncompatibleNativeModulesStorageKey: ->
     electronVersion = process.versions['electron'] ? process.versions['atom-shell']
     "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
+
+  getCanDeferMainModuleRequireStorageKey: ->
+    "installed-packages:#{@name}:#{@metadata.version}:can-defer-main-module-require"
 
   # Get the incompatible native modules that this package depends on.
   # This recurses through all dependencies and requires all modules that

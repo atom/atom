@@ -81,6 +81,27 @@ describe 'CompileCache', ->
       waits(1)
       runs ->
         error = new Error("Oops again")
-        console.log error.stack
         expect(error.stack).toContain('compile-cache-spec.coffee')
         expect(Array.isArray(error.getRawStack())).toBe true
+
+    it 'does not infinitely loop when the original prepareStackTrace value is reassigned', ->
+      originalPrepareStackTrace = Error.prepareStackTrace
+
+      Error.prepareStackTrace = -> 'a-stack-trace'
+      Error.prepareStackTrace = originalPrepareStackTrace
+
+      error = new Error('Oops')
+      expect(error.stack).toContain('compile-cache-spec.coffee')
+      expect(Array.isArray(error.getRawStack())).toBe true
+
+    it 'does not infinitely loop when the assigned prepareStackTrace calls the original prepareStackTrace', ->
+      originalPrepareStackTrace = Error.prepareStackTrace
+
+      Error.prepareStackTrace = (error, stack) ->
+        error.foo = 'bar'
+        originalPrepareStackTrace(error, stack)
+
+      error = new Error('Oops')
+      expect(error.stack).toContain('compile-cache-spec.coffee')
+      expect(error.foo).toBe('bar')
+      expect(Array.isArray(error.getRawStack())).toBe true

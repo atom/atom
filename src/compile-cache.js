@@ -163,9 +163,15 @@ var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
 let prepareStackTrace = prepareStackTraceWithSourceMapping
 
 function prepareStackTraceWithRawStackAssignment (error, frames) {
-  error.rawStack = frames
-  return prepareStackTrace(error, frames)
+  if (error.rawStack) { // avoid infinite recursion
+    return prepareStackTraceWithSourceMapping(error, frames)
+  } else {
+    error.rawStack = frames
+    return prepareStackTrace(error, frames)
+  }
 }
+
+Error.stackTraceLimit = 30
 
 Object.defineProperty(Error, 'prepareStackTrace', {
   get: function () {

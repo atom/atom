@@ -3,6 +3,8 @@ Grim = require 'grim'
 {Disposable} = require 'event-kit'
 _ = require 'underscore-plus'
 
+AnyConstructor = Symbol('any-constructor')
+
 # Essential: `ViewRegistry` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
 # model, this class can provide a view via {::getView}, as long as the
@@ -76,22 +78,36 @@ class ViewRegistry
   #   textEditorElement
   # ```
   #
-  # * `modelConstructor` Constructor {Function} for your model.
+  # * `modelConstructor` (optional) Constructor {Function} for your model. If
+  #   a constructor is given, the `createView` function will only be used
+  #   for model objects inheriting from that constructor. Otherwise, it will
+  #   will be called for any object.
   # * `createView` Factory {Function} that is passed an instance of your model
-  #   and must return a subclass of `HTMLElement` or `undefined`.
+  #   and must return a subclass of `HTMLElement` or `undefined`. If it returns
+  #   `undefined`, then the registry will continue to search for other view
+  #   providers.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added provider.
   addViewProvider: (modelConstructor, createView) ->
     if arguments.length is 1
-      Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.")
-      provider = modelConstructor
+      switch typeof modelConstructor
+        when 'function'
+          provider = {createView: modelConstructor, modelConstructor: AnyConstructor}
+        when 'object'
+          Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.")
+          provider = modelConstructor
+        else
+          throw new TypeError("Arguments to addViewProvider must be functions")
     else
       provider = {modelConstructor, createView}
 
     @providers.push(provider)
     new Disposable =>
       @providers = @providers.filter (p) -> p isnt provider
+
+  getViewProviderCount: ->
+    @providers.length
 
   # Essential: Get the view associated with an object in the workspace.
   #
@@ -153,25 +169,34 @@ class ViewRegistry
 
   createView: (object) ->
     if object instanceof HTMLElement
-      object
-    else if object?.element instanceof HTMLElement
-      object.element
-    else if object?.jquery
-      object[0]
-    else if provider = @findProvider(object)
-      element = provider.createView?(object, @atomEnvironment)
-      unless element?
-        element = new provider.viewConstructor
-        element.initialize?(object) ? element.setModel?(object)
-      element
-    else if viewConstructor = object?.getViewClass?()
-      view = new viewConstructor(object)
-      view[0]
-    else
-      throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
+      return object
 
-  findProvider: (object) ->
-    find @providers, ({modelConstructor}) -> object instanceof modelConstructor
+    if object?.element instanceof HTMLElement
+      return object.element
+
+    if object?.jquery
+      return object[0]
+
+    for provider in @providers
+      if provider.modelConstructor is AnyConstructor
+        if element = provider.createView(object, @atomEnvironment)
+          return element
+        continue
+
+      if object instanceof provider.modelConstructor
+        if element = provider.createView?(object, @atomEnvironment)
+          return element
+
+        if viewConstructor = provider.viewConstructor
+          element = new viewConstructor
+          element.initialize?(object) ? element.setModel?(object)
+          return element
+
+    if viewConstructor = object?.getViewClass?()
+      view = new viewConstructor(object)
+      return view[0]
+
+    throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
 
   updateDocument: (fn) ->
     @documentWriters.push(fn)
