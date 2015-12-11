@@ -135,15 +135,12 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
-    @disposables.add @model.onDidChangePlaceholderText =>
-      @emitDidUpdateState()
-
+    @disposables.add @model.onDidChangePlaceholderText(@emitDidUpdateState.bind(this))
     @disposables.add @model.onDidChangeMini =>
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
-    @disposables.add @model.onDidChangeLineNumberGutterVisible =>
-      @emitDidUpdateState()
+    @disposables.add @model.onDidChangeLineNumberGutterVisible(@emitDidUpdateState.bind(this))
 
     @disposables.add @model.onDidAddCursor(@didAddCursor.bind(this))
     @disposables.add @model.onDidRequestAutoscroll(@requestAutoscroll.bind(this))
