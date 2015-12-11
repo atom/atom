@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{isPairedCharacter, isCjkCharacter} = require './text-utils'
+{isPairedCharacter, isCJKCharacter} = require './text-utils'
 Token = require './token'
 {SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
 
@@ -327,12 +327,12 @@ class TokenizedLine
         return column if /\S/.test(@text[column])
 
       return @text.length
-    else if isCjkCharacter(@text[maxColumn])
+    else if isCJKCharacter(@text[maxColumn])
       maxColumn
     else
       # search backward for the start of the word on the boundary
       for column in [maxColumn..@firstNonWhitespaceIndex]
-        if /\s/.test(@text[column]) or isCjkCharacter(@text[column])
+        if /\s/.test(@text[column]) or isCJKCharacter(@text[column])
           return column + 1
 
       return maxColumn

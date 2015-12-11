@@ -60,7 +60,7 @@ isPairedCharacter = (string, index=0) ->
 isJapaneseCharacter = (charCode) ->
   0x3000 <= charCode <= 0x30FF
 
-isCjkUnifiedIdeograph = (charCode) ->
+isCJKUnifiedIdeograph = (charCode) ->
   0x4E00 <= charCode <= 0x9FAF
 
 isFullWidthForm = (charCode) ->
@@ -71,7 +71,7 @@ isDoubleWidthCharacter = (character) ->
   charCode = character.charCodeAt(0)
 
   isJapaneseCharacter(charCode) or
-  isCjkUnifiedIdeograph(charCode) or
+  isCJKUnifiedIdeograph(charCode) or
   isFullWidthForm(charCode)
 
 isHalfWidthCharacter = (character) ->
@@ -89,7 +89,7 @@ isKoreanCharacter = (character) ->
   0xA960 <= charCode <= 0xA97F or
   0xD7B0 <= charCode <= 0xD7FF
 
-isCjkCharacter = (character) ->
+isCJKCharacter = (character) ->
   isDoubleWidthCharacter(character) or
   isHalfWidthCharacter(character) or
   isKoreanCharacter(character)
@@ -107,4 +107,4 @@ hasPairedCharacter = (string) ->
     index++
   false
 
-module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isCjkCharacter}
+module.exports = {isPairedCharacter, hasPairedCharacter, isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isCJKCharacter}
