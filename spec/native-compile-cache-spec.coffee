@@ -73,6 +73,5 @@ describe "NativeCompileCache", ->
 
     fn3 = require('./fixtures/native-cache/file-3')
 
-    expect(fakeCacheStore.delete.calls.length).toBe(1)
-    expect(fakeCacheStore.delete.calls[0].args[0]).toBe(require.resolve('./fixtures/native-cache/file-3'))
+    expect(fakeCacheStore.delete).toHaveBeenCalledWith(require.resolve('./fixtures/native-cache/file-3'))
     expect(fn3()).toBe(3)
