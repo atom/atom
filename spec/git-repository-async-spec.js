@@ -17,7 +17,7 @@ function openFixture (fixture) {
 }
 
 function copyRepository () {
-  let workingDirPath = temp.mkdirSync('atom-working-dir')
+  const workingDirPath = temp.mkdirSync('atom-working-dir')
   fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   return fs.realpathSync(workingDirPath)
