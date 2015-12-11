@@ -277,7 +277,7 @@ class AtomApplication
     process.stderr.write(output)
 
   ipcMain.on 'add-recent-document', (event, filename) ->
-      app.addRecentDocument(filename)
+    app.addRecentDocument(filename)
 
   setupDockMenu: ->
     if process.platform is 'darwin'
