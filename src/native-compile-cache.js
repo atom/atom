@@ -3,6 +3,7 @@
 const Module = require('module')
 const path = require('path')
 const cachedVm = require('cached-run-in-this-context')
+const crypto = require('crypto')
 
 class NativeCompileCache {
   constructor () {
@@ -54,18 +55,20 @@ class NativeCompileCache {
       // create wrapper function
       let wrapper = Module.wrap(content)
 
+      let cacheKey = filename
+      let invalidationKey = crypto.createHash('sha1').update(wrapper, 'utf8').digest('hex')
       let compiledWrapper = null
-      if (cacheStore.has(filename)) {
-        let buffer = cacheStore.get(filename)
+      if (cacheStore.has(cacheKey, invalidationKey)) {
+        let buffer = cacheStore.get(cacheKey, invalidationKey)
         let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
-          cacheStore.delete(filename)
+          cacheStore.delete(cacheKey)
         }
       } else {
         let compilationResult = cachedVm.runInThisContext(wrapper, filename)
         if (compilationResult.cacheBuffer) {
-          cacheStore.set(filename, compilationResult.cacheBuffer)
+          cacheStore.set(cacheKey, invalidationKey, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
       }
