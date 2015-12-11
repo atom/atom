@@ -625,23 +625,6 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).hiddenInput.width).toBe 2
 
     describe ".content", ->
-      describe ".scrollingVertically", ->
-        it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
-          presenter = buildPresenter(scrollTop: 10, stoppedScrollingDelay: 200, explicitHeight: 100)
-          expect(getState(presenter).content.scrollingVertically).toBe true
-          advanceClock(300)
-          expect(getState(presenter).content.scrollingVertically).toBe false
-          expectStateUpdate presenter, -> presenter.setScrollTop(0)
-          expect(getState(presenter).content.scrollingVertically).toBe true
-          advanceClock(100)
-          expect(getState(presenter).content.scrollingVertically).toBe true
-          presenter.setScrollTop(10)
-          getState(presenter) # commits scroll position
-          advanceClock(100)
-          expect(getState(presenter).content.scrollingVertically).toBe true
-          expectStateUpdate presenter, -> advanceClock(100)
-          expect(getState(presenter).content.scrollingVertically).toBe false
-
       describe ".maxHeight", ->
         it "changes based on boundingClientRect", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
