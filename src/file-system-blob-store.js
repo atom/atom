@@ -13,8 +13,10 @@ class FileSystemBlobStore {
 
   constructor (directory) {
     this.inMemoryBlobs = new Map()
+    this.invalidationKeys = {}
     this.blobFilename = path.join(directory, 'BLOB')
     this.blobMapFilename = path.join(directory, 'MAP')
+    this.invalidationKeysFilename = path.join(directory, 'INVKEYS')
     this.lockFilename = path.join(directory, 'LOCK')
     this.storedBlob = new Buffer(0)
     this.storedBlobMap = {}
@@ -27,14 +29,19 @@ class FileSystemBlobStore {
     if (!fs.existsSync(this.blobFilename)) {
       return
     }
+    if (!fs.existsSync(this.invalidationKeysFilename)) {
+      return
+    }
     this.storedBlob = fs.readFileSync(this.blobFilename)
     this.storedBlobMap = JSON.parse(fs.readFileSync(this.blobMapFilename))
+    this.invalidationKeys = JSON.parse(fs.readFileSync(this.invalidationKeysFilename))
   }
 
   save () {
     let dump = this.getDump()
     let blobToStore = Buffer.concat(dump[0])
     let mapToStore = JSON.stringify(dump[1])
+    let invalidationKeysToStore = JSON.stringify(this.invalidationKeys)
 
     let acquiredLock = false
     try {
@@ -43,6 +50,7 @@ class FileSystemBlobStore {
 
       fs.writeFileSync(this.blobFilename, blobToStore)
       fs.writeFileSync(this.blobMapFilename, mapToStore)
+      fs.writeFileSync(this.invalidationKeysFilename, invalidationKeysToStore)
     } catch (error) {
       // Swallow the exception silently only if we fail to acquire the lock.
       if (error.code !== 'EEXIST') {
@@ -55,15 +63,20 @@ class FileSystemBlobStore {
     }
   }
 
-  has (key) {
-    return this.inMemoryBlobs.hasOwnProperty(key) || this.storedBlobMap.hasOwnProperty(key)
+  has (key, invalidationKey) {
+    let containsKey = this.inMemoryBlobs.has(key) || this.storedBlobMap.hasOwnProperty(key)
+    let isValid = this.invalidationKeys[key] === invalidationKey
+    return containsKey && isValid
   }
 
-  get (key) {
-    return this.getFromMemory(key) || this.getFromStorage(key)
+  get (key, invalidationKey) {
+    if (this.has(key, invalidationKey)) {
+      return this.getFromMemory(key) || this.getFromStorage(key)
+    }
   }
 
-  set (key, buffer) {
+  set (key, invalidationKey, buffer) {
+    this.invalidationKeys[key] = invalidationKey
     return this.inMemoryBlobs.set(key, buffer)
   }
 
