@@ -279,6 +279,9 @@ class AtomApplication
   ipcMain.on 'add-recent-document', (event, filename) ->
     app.addRecentDocument(filename)
 
+  ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
+    event.sender.devToolsWebContents?.executeJavaScript(code)
+
   setupDockMenu: ->
     if process.platform is 'darwin'
       dockMenu = Menu.buildFromTemplate [

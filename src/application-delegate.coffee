@@ -98,7 +98,7 @@ class ApplicationDelegate
           @openWindowDevTools().then(resolve)
 
   executeJavaScriptInWindowDevTools: (code) ->
-    ipcRenderer.send("call-window-method", "executeJavaScriptInDevTools", code)
+    ipcRenderer.send("execute-javascript-in-dev-tools", code)
 
   setWindowDocumentEdited: (edited) ->
     ipcRenderer.send("call-window-method", "setDocumentEdited", edited)
