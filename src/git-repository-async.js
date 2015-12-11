@@ -143,13 +143,13 @@ export default class GitRepositoryAsync {
   isProjectAtRoot () {
     if (!this.project) return Promise.resolve(false)
 
-    if (this.projectAtRoot) {
-      return this.projectAtRoot
-    } else {
-      this.projectAtRoot = Promise.resolve(() => {
-        return this.repoPromise.then(repo => this.project.relativize(repo.workdir()))
-      })
+    if (!this.projectAtRoot) {
+      this.projectAtRoot = this.repoPromise
+        .then(repo => this.project.relativize(repo.workdir()))
+        .then(relativePath => relativePath === '')
     }
+
+    return this.projectAtRoot
   }
 
   // Public: Makes a path relative to the repository's working directory.

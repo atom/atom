@@ -300,6 +300,25 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
+  describe('.isProjectAtRoot()', () => {
+    it('returns true when the repository is at the root', async () => {
+      const workingDirectory = copyRepository()
+      atom.project.setPaths([workingDirectory])
+      const repo = atom.project.getRepositories()[0].async
+
+      const atRoot = await repo.isProjectAtRoot()
+      expect(atRoot).toBe(true)
+    })
+
+    it("returns false when the repository wasn't created with a project", async () => {
+      const workingDirectory = copyRepository()
+      const repo = GitRepositoryAsync.open(workingDirectory)
+
+      const atRoot = await repo.isProjectAtRoot()
+      expect(atRoot).toBe(false)
+    })
+  })
+
   describe('buffer events', () => {
     let repo
 
@@ -310,8 +329,8 @@ describe('GitRepositoryAsync', () => {
       // When the path is added to the project, the repository is refreshed. We
       // need to wait for that to complete before the tests continue so that
       // we're in a known state.
-      repository = atom.project.getRepositories()[0].async
-      waitsFor(() => !repository._isRefreshing())
+      repo = atom.project.getRepositories()[0].async
+      waitsFor(() => !repo._isRefreshing())
     })
 
     it('emits a status-changed event when a buffer is saved', async () => {
@@ -320,7 +339,7 @@ describe('GitRepositoryAsync', () => {
       editor.insertNewline()
 
       const statusHandler = jasmine.createSpy('statusHandler')
-      repository.onDidChangeStatus(statusHandler)
+      repo.onDidChangeStatus(statusHandler)
       editor.save()
 
       waitsFor(() => statusHandler.callCount > 0)
@@ -336,7 +355,7 @@ describe('GitRepositoryAsync', () => {
       fs.writeFileSync(editor.getPath(), 'changed')
 
       const statusHandler = jasmine.createSpy('statusHandler')
-      repository.onDidChangeStatus(statusHandler)
+      repo.onDidChangeStatus(statusHandler)
       editor.getBuffer().reload()
 
       waitsFor(() => statusHandler.callCount > 0)
@@ -352,7 +371,7 @@ describe('GitRepositoryAsync', () => {
       fs.writeFileSync(editor.getPath(), 'changed')
 
       const statusHandler = jasmine.createSpy('statusHandler')
-      repository.onDidChangeStatus(statusHandler)
+      repo.onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
 
       waitsFor(() => statusHandler.callCount > 0)
