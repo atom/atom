@@ -273,10 +273,10 @@ class AtomApplication
     ipcMain.on 'write-to-stdout', (event, output) ->
       process.stdout.write(output)
 
-    ipcMain.on 'write-to-stderr', (event, output) ->
-      process.stderr.write(output)
+  ipcMain.on 'write-to-stderr', (event, output) ->
+    process.stderr.write(output)
 
-    ipc.on 'add-recent-document', (event, filename) ->
+  ipcMain.on 'add-recent-document', (event, filename) ->
       app.addRecentDocument(filename)
 
   setupDockMenu: ->

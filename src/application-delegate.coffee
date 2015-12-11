@@ -107,7 +107,7 @@ class ApplicationDelegate
     ipcRenderer.send("call-window-method", "setRepresentedFilename", filename)
 
   addRecentDocument: (filename) ->
-    ipc.send("add-recent-document", filename)
+    ipcRenderer.send("add-recent-document", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
     loadSettings = getWindowLoadSettings()
