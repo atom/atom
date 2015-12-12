@@ -1,6 +1,4 @@
-BrowserWindow = require 'browser-window'
-app = require 'app'
-dialog = require 'dialog'
+{BrowserWindow, app, dialog} = require 'electron'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
