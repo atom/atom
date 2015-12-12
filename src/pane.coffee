@@ -722,7 +722,7 @@ class Pane extends Model
     promptToSave = true
     for item in items
       if promptToSave is true
-        promptToSave = @promptToSaveItem(item, {} ,(items.length > 1))
+        promptToSave = @promptToSaveItem(item, {}, (items.length > 1))
         if promptToSave is 2
           @saveItem(item)
       else if promptToSave is false
