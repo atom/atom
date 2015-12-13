@@ -1,15 +1,17 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-Atom is a hackable text editor for the 21st century, built on [atom-shell](http://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
+Atom is a hackable text editor for the 21st century, built on [atom-shell](https://github.com/atom/atom-shell), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
-Visit [atom.io](https://atom.io) to learn more.
+Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
 
 Visit [issue #3684](https://github.com/atom/atom/issues/3684) to learn more
 about the Atom 1.0 roadmap.
 
 ## Installing
 
-### Mac OS X
+[![Join the chat at https://gitter.im/Jdesk/atom](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Jdesk/atom?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+### OS X
 
 Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
 
@@ -17,16 +19,15 @@ Atom will automatically update when a new release is available.
 
 ### Windows
 
-Install the [Atom chocolatey package](https://chocolatey.org/packages/Atom).
+Download the latest [AtomSetup.exe installer](https://github.com/atom/atom/releases/latest).
 
-1. Install [chocolatey](https://chocolatey.org).
-2. Close and reopen your command prompt or PowerShell window.
-3. Run `cinst Atom`
-4. In the future run `cup Atom` to upgrade to the latest release.
+Atom will automatically update when a new release is available.
 
-You can also download a `.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
-The Windows version does not currently automatically update so you will need to
-manually upgrade to future releases by re-downloading the `.zip` file.
+You can also download an `atom-windows.zip` file from the [releases page](https://github.com/atom/atom/releases/latest).
+The `.zip` version will not automatically update.
+
+Using [chocolatey](https://chocolatey.org/)? Run `cinst Atom` to install
+the latest version of Atom.
 
 ### Debian Linux (Ubuntu)
 
