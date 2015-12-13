@@ -142,7 +142,7 @@ class AtomWindow
         detail: 'Please report this issue to https://github.com/atom/atom'
       switch chosen
         when 0 then @browserWindow.destroy()
-        when 1 then @browserWindow.restart()
+        when 1 then @browserWindow.reload()
 
     @browserWindow.webContents.on 'will-navigate', (event, url) =>
       unless url is @browserWindow.webContents.getURL()
@@ -216,6 +216,6 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.restart()
+  reload: -> @browserWindow.reload()
 
   toggleDevTools: -> @browserWindow.toggleDevTools()

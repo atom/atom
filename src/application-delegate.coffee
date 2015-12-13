@@ -47,8 +47,8 @@ class ApplicationDelegate
   hideWindow: ->
     ipcRenderer.send("call-window-method", "hide")
 
-  restartWindow: ->
-    ipcRenderer.send("call-window-method", "restart")
+  reloadWindow: ->
+    ipcRenderer.send("call-window-method", "reload")
 
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()

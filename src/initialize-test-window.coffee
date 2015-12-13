@@ -29,7 +29,7 @@ module.exports = ({blobStore}) ->
     handleKeydown = (event) ->
       # Reload: cmd-r / ctrl-r
       if (event.metaKey or event.ctrlKey) and event.keyCode is 82
-        ipcRenderer.send('call-window-method', 'restart')
+        ipcRenderer.send('call-window-method', 'reload')
 
       # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
       if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
