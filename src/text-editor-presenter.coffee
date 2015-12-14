@@ -866,10 +866,10 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setScrollTop: (scrollTop, overrideScroll=true) ->
+  setScrollTop: (scrollTop) ->
     return unless scrollTop?
 
-    @pendingScrollLogicalPosition = null if overrideScroll
+    @pendingScrollLogicalPosition = null
     @pendingScrollTop = scrollTop
 
     @shouldUpdateVerticalScrollState = true
@@ -894,11 +894,8 @@ class TextEditorPresenter
       clearTimeout(@stoppedScrollingTimeoutId)
       @stoppedScrollingTimeoutId = null
     @stoppedScrollingTimeoutId = setTimeout(@didStopScrolling.bind(this), @stoppedScrollingDelay)
-    @state.content.scrollingVertically = true
-    @emitDidUpdateState()
 
   didStopScrolling: ->
-    @state.content.scrollingVertically = false
     if @mouseWheelScreenRow?
       @mouseWheelScreenRow = null
       @shouldUpdateLinesState = true
@@ -907,10 +904,10 @@ class TextEditorPresenter
 
     @emitDidUpdateState()
 
-  setScrollLeft: (scrollLeft, overrideScroll=true) ->
+  setScrollLeft: (scrollLeft) ->
     return unless scrollLeft?
 
-    @pendingScrollLogicalPosition = null if overrideScroll
+    @pendingScrollLogicalPosition = null
     @pendingScrollLeft = scrollLeft
 
     @shouldUpdateHorizontalScrollState = true
@@ -941,13 +938,13 @@ class TextEditorPresenter
       @contentFrameWidth - @verticalScrollbarWidth
 
   getScrollBottom: -> @getScrollTop() + @getClientHeight()
-  setScrollBottom: (scrollBottom, overrideScroll) ->
-    @setScrollTop(scrollBottom - @getClientHeight(), overrideScroll)
+  setScrollBottom: (scrollBottom) ->
+    @setScrollTop(scrollBottom - @getClientHeight())
     @getScrollBottom()
 
   getScrollRight: -> @getScrollLeft() + @getClientWidth()
-  setScrollRight: (scrollRight, overrideScroll) ->
-    @setScrollLeft(scrollRight - @getClientWidth(), overrideScroll)
+  setScrollRight: (scrollRight) ->
+    @setScrollLeft(scrollRight - @getClientWidth())
     @getScrollRight()
 
   getScrollHeight: ->
@@ -1482,14 +1479,14 @@ class TextEditorPresenter
 
     if options?.reversed ? true
       if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom, false)
+        @updateScrollTop(desiredScrollBottom - @getClientHeight())
       if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop, false)
+        @updateScrollTop(desiredScrollTop)
     else
       if desiredScrollTop < @getScrollTop()
-        @setScrollTop(desiredScrollTop, false)
+        @updateScrollTop(desiredScrollTop)
       if desiredScrollBottom > @getScrollBottom()
-        @setScrollBottom(desiredScrollBottom, false)
+        @updateScrollTop(desiredScrollBottom - @getClientHeight())
 
   commitPendingLogicalScrollLeftPosition: ->
     return unless @pendingScrollLogicalPosition?
@@ -1509,14 +1506,14 @@ class TextEditorPresenter
 
     if options?.reversed ? true
       if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight, false)
+        @updateScrollLeft(desiredScrollRight - @getClientWidth())
       if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft, false)
+        @updateScrollLeft(desiredScrollLeft)
     else
       if desiredScrollLeft < @getScrollLeft()
-        @setScrollLeft(desiredScrollLeft, false)
+        @updateScrollLeft(desiredScrollLeft)
       if desiredScrollRight > @getScrollRight()
-        @setScrollRight(desiredScrollRight, false)
+        @updateScrollLeft(desiredScrollRight - @getClientWidth())
 
   commitPendingScrollLeftPosition: ->
     if @pendingScrollLeft?
