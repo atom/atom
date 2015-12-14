@@ -21,6 +21,8 @@ fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
 backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 environmentKeyPath = 'HKCU\\Environment'
+openWithKeyPath = 'HKCU\\Software\\Classes\\Atom'
+txtKeyPath = 'HKCU\\Software\\Classes\\.txt\\OpenWithProgIds'
 
 # Spawn a command and invoke the callback when it completes with an error
 # and the output from standard out.
@@ -72,9 +74,18 @@ installContextMenu = (callback) ->
         args = ["#{keyPath}\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
         addToRegistry(args, callback)
 
+  installToOpenWith = (keyPath, arg, callback) ->
+    args = ["#{keyPath}\\DefaultIcon", '/ve', '/d', "\"#{process.execPath}\""]
+    addToRegistry args, ->
+      args = ["#{keyPath}\\shell\\open\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
+      addToRegistry args, ->
+        args = [txtKeyPath, '/v', 'Atom']
+        addToRegistry(args, callback)
+
   installMenu fileKeyPath, '%1', ->
     installMenu directoryKeyPath, '%1', ->
-      installMenu(backgroundKeyPath, '%V', callback)
+      installMenu backgroundKeyPath, '%V', ->
+        installToOpenWith(openWithKeyPath, '%1', callback)
 
 isAscii = (text) ->
   index = 0
@@ -124,7 +135,9 @@ uninstallContextMenu = (callback) ->
 
   deleteFromRegistry fileKeyPath, ->
     deleteFromRegistry directoryKeyPath, ->
-      deleteFromRegistry(backgroundKeyPath, callback)
+      deleteFromRegistry backgroundKeyPath, ->
+        deleteFromRegistry openWithKeyPath, ->
+          deleteFromRegistry(txtKeyPath, callback)
 
 # Add atom and apm to the PATH
 #
