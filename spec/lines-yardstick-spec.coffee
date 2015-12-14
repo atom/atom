@@ -57,9 +57,10 @@ describe "LinesYardstick", ->
           textNodes
 
       editor.setLineHeightInPixels(14)
-      lineTopIndex = new LineTopIndex()
-      lineTopIndex.setDefaultLineHeight(editor.getLineHeightInPixels())
-      lineTopIndex.setMaxRow(editor.getScreenLineCount())
+      lineTopIndex = new LineTopIndex({
+        maxRow: editor.getScreenLineCount(),
+        defaultLineHeight: editor.getLineHeightInPixels()
+      })
       linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider, lineTopIndex, atom.grammars)
 
   afterEach ->

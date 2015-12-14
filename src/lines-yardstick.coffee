@@ -22,7 +22,7 @@ class LinesYardstick
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
-    row = @lineTopIndex.rowForTopPixelPosition(targetTop, 'floor')
+    row = @lineTopIndex.rowForPixelPosition(targetTop, 'floor')
     targetLeft = 0 if targetTop < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
@@ -91,7 +91,7 @@ class LinesYardstick
 
     @prepareScreenRowsForMeasurement([targetRow]) unless measureVisibleLinesOnly
 
-    top = @lineTopIndex.bottomPixelPositionForRow(targetRow)
+    top = @lineTopIndex.pixelPositionForRow(targetRow)
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
     @clearScreenRowsForMeasurement() unless measureVisibleLinesOnly
@@ -174,14 +174,14 @@ class LinesYardstick
     left + width - offset
 
   pixelRectForScreenRange: (screenRange, measureVisibleLinesOnly) ->
+    top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
     if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start, true, measureVisibleLinesOnly).top
       left = 0
-      height = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1) - top
+      height = @lineTopIndex.pixelPositionForRow(screenRange.end.row) - top + @model.getLineHeightInPixels()
       width = @presenter.getScrollWidth()
     else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false, measureVisibleLinesOnly)
-      height = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1) - top
+      {left} = @pixelPositionForScreenPosition(screenRange.start, false, measureVisibleLinesOnly)
+      height = @lineTopIndex.pixelPositionForRow(screenRange.end.row) - top + @model.getLineHeightInPixels()
       width = @pixelPositionForScreenPosition(screenRange.end, false, measureVisibleLinesOnly).left - left
 
     {top, left, width, height}

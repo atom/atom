@@ -27,7 +27,10 @@ describe "TextEditorPresenter", ->
       buffer.destroy()
 
     buildPresenterWithoutMeasurements = (params={}) ->
-      lineTopIndex = new LineTopIndex
+      lineTopIndex = new LineTopIndex({
+        maxRow: editor.getScreenLineCount(),
+        defaultLineHeight: editor.getLineHeightInPixels()
+      })
       _.defaults params,
         model: editor
         config: atom.config
@@ -526,8 +529,6 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          # Setting `null` as the DOM element, as it doesn't really matter here.
-          # Maybe a signal that we should separate models from views?
           blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
           blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
           blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
@@ -719,8 +720,6 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          # Setting `null` as the DOM element, as it doesn't really matter here.
-          # Maybe a signal that we should separate models from views?
           blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
           blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
           blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
@@ -3041,8 +3040,8 @@ describe "TextEditorPresenter", ->
             presenter.setBlockDecorationDimensions(blockDecoration3, 0, 7)
 
             decorationState = getContentForGutterWithName(presenter, 'test-gutter')
-            expect(decorationState[decoration1.id].top).toBe lineHeight * marker1.getScreenRange().start.row
-            expect(decorationState[decoration1.id].height).toBe lineHeight * marker1.getScreenRange().getRowCount() + 3
+            expect(decorationState[decoration1.id].top).toBe lineHeight * marker1.getScreenRange().start.row + 3
+            expect(decorationState[decoration1.id].height).toBe lineHeight * marker1.getScreenRange().getRowCount()
             expect(decorationState[decoration1.id].item).toBe decorationItem
             expect(decorationState[decoration1.id].class).toBe 'test-class'
             expect(decorationState[decoration2.id].top).toBe lineHeight * marker2.getScreenRange().start.row + 3 + 5
@@ -3286,8 +3285,6 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
             expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-            # Setting `null` as the DOM element, as it doesn't really matter here.
-            # Maybe a signal that we should separate models from views?
             blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
             blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
             blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)

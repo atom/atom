@@ -31,9 +31,6 @@ class BlockDecorationsPresenter {
   }
 
   observeModel () {
-    this.lineTopIndex.setMaxRow(this.model.getScreenLineCount())
-    this.lineTopIndex.setDefaultLineHeight(this.model.getLineHeightInPixels())
-
     this.disposables.add(this.model.onDidAddDecoration(this.observeDecoration.bind(this)))
     this.disposables.add(this.model.onDidChange((changeEvent) => {
       let oldExtent = changeEvent.end - changeEvent.start
@@ -54,11 +51,10 @@ class BlockDecorationsPresenter {
   setDimensionsForDecoration (decoration, width, height) {
     let block = this.blocksByDecoration.get(decoration)
     if (block) {
-      this.lineTopIndex.resizeBlock(block, height)
+      this.lineTopIndex.resizeBlock(decoration.getMarker().id, height)
     } else {
       this.observeDecoration(decoration)
-      block = this.blocksByDecoration.get(decoration)
-      this.lineTopIndex.resizeBlock(block, height)
+      this.lineTopIndex.resizeBlock(decoration.getMarker().id, height)
     }
 
     this.measuredDecorations.add(decoration)
@@ -124,9 +120,9 @@ class BlockDecorationsPresenter {
 
   didAddDecoration (decoration) {
     let screenRow = decoration.getMarker().getHeadScreenPosition().row
-    let block = this.lineTopIndex.insertBlock(screenRow, 0)
-    this.decorationsByBlock.set(block, decoration)
-    this.blocksByDecoration.set(decoration, block)
+    this.lineTopIndex.insertBlock(decoration.getMarker().id, screenRow, 0)
+    this.decorationsByBlock.set(decoration.getMarker().id, decoration)
+    this.blocksByDecoration.set(decoration, decoration.getMarker().id)
     this.emitter.emit('did-update-state')
   }
 
@@ -136,16 +132,15 @@ class BlockDecorationsPresenter {
       return
     }
 
-    let block = this.blocksByDecoration.get(decoration)
     let newScreenRow = decoration.getMarker().getHeadScreenPosition().row
-    this.lineTopIndex.moveBlock(block, newScreenRow)
+    this.lineTopIndex.moveBlock(decoration.getMarker().id, newScreenRow)
     this.emitter.emit('did-update-state')
   }
 
   didDestroyDecoration (decoration) {
     let block = this.blocksByDecoration.get(decoration)
     if (block) {
-      this.lineTopIndex.removeBlock(block)
+      this.lineTopIndex.removeBlock(decoration.getMarker().id)
       this.blocksByDecoration.delete(decoration)
       this.decorationsByBlock.delete(block)
     }

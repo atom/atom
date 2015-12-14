@@ -1,27 +1,23 @@
-'use strict'
+"use babel"
 
-module.exports =
-class LineTopIndex {
-  constructor () {
-    this.idCounter = 1
+export default class LineTopIndex {
+  constructor (params = {}) {
     this.blocks = []
-    this.maxRow = 0
-    this.defaultLineHeight = 0
+    this.maxRow = params.maxRow || 0
+    this.setDefaultLineHeight(params.defaultLineHeight || 0)
   }
 
   setDefaultLineHeight (lineHeight) {
     this.defaultLineHeight = lineHeight
   }
 
-  setMaxRow (maxRow) {
-    this.maxRow = maxRow
+  getMaxRow () {
+    return this.maxRow
   }
 
-  insertBlock (row, height) {
-    let id = this.idCounter++
+  insertBlock (id, row, height) {
     this.blocks.push({id, row, height})
     this.blocks.sort((a, b) => a.row - b.row)
-    return id
   }
 
   resizeBlock (id, height) {
@@ -62,26 +58,21 @@ class LineTopIndex {
           block.row += newExtent - oldExtent
         } else {
           block.row = startRow + newExtent
-          // invalidate marker?
         }
       }
     })
 
-    this.setMaxRow(this.maxRow + newExtent - oldExtent)
+    this.maxRow = this.maxRow + newExtent - oldExtent
   }
 
-  topPixelPositionForRow (row) {
+  pixelPositionForRow (row) {
     row = Math.min(row, this.maxRow)
     let linesHeight = row * this.defaultLineHeight
-    let blocksHeight = this.blocks.filter((block) => block.row < row).reduce((a, b) => a + b.height, 0)
+    let blocksHeight = this.blocks.filter((block) => block.row <= row).reduce((a, b) => a + b.height, 0)
     return linesHeight + blocksHeight
   }
 
-  bottomPixelPositionForRow (row) {
-    return this.topPixelPositionForRow(row + 1) - this.defaultLineHeight
-  }
-
-  rowForTopPixelPosition (top, strategy) {
+  rowForPixelPosition (top, strategy) {
     const roundingStrategy = strategy || 'floor'
     let blocksHeight = 0
     let lastRow = 0

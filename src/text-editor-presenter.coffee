@@ -442,8 +442,8 @@ class TextEditorPresenter
 
       continue if rowsWithinTile.length is 0
 
-      top = Math.round(@lineTopIndex.topPixelPositionForRow(tileStartRow))
-      bottom = Math.round(@lineTopIndex.topPixelPositionForRow(tileEndRow))
+      top = Math.round(@lineTopIndex.pixelPositionForRow(tileStartRow - 1) + @lineHeight)
+      bottom = Math.round(@lineTopIndex.pixelPositionForRow(tileEndRow - 1) + @lineHeight)
       height = bottom - top
 
       tile = @state.content.tiles[tileStartRow] ?= {}
@@ -659,8 +659,8 @@ class TextEditorPresenter
 
       continue unless @gutterIsVisible(gutter)
       for decorationId, {properties, screenRange} of @customGutterDecorationsByGutterName[gutterName]
-        top = @lineTopIndex.topPixelPositionForRow(screenRange.start.row)
-        bottom = @lineTopIndex.topPixelPositionForRow(screenRange.end.row + 1)
+        top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
+        bottom = @lineTopIndex.pixelPositionForRow(screenRange.end.row) + @lineHeight
         @customGutterDecorations[gutterName][decorationId] =
           top: top
           height: bottom - top
@@ -724,12 +724,12 @@ class TextEditorPresenter
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
 
-    @startRow = Math.max(0, @lineTopIndex.rowForTopPixelPosition(@scrollTop, "floor"))
+    @startRow = Math.max(0, @lineTopIndex.rowForPixelPosition(@scrollTop, "floor"))
 
   updateEndRow: ->
     return unless @scrollTop? and @lineHeight? and @height?
 
-    @endRow = @lineTopIndex.rowForTopPixelPosition(@scrollTop + @height + @lineHeight, 'ceil')
+    @endRow = @lineTopIndex.rowForPixelPosition(@scrollTop + @height + @lineHeight, 'ceil')
 
   updateRowsPerPage: ->
     rowsPerPage = Math.floor(@getClientHeight() / @lineHeight)
@@ -761,7 +761,7 @@ class TextEditorPresenter
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      @contentHeight = Math.round(@lineTopIndex.topPixelPositionForRow(Infinity))
+      @contentHeight = Math.round(@lineTopIndex.pixelPositionForRow(Infinity))
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
@@ -1340,7 +1340,7 @@ class TextEditorPresenter
       screenRange.end.column = 0
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - @lineTopIndex.topPixelPositionForRow(tileStartRow)
+    region.top  += @scrollTop - (@lineTopIndex.pixelPositionForRow(tileStartRow - 1) + @lineHeight)
     region.left += @scrollLeft
 
   buildHighlightRegions: (screenRange) ->
@@ -1495,7 +1495,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   didChangeFirstVisibleScreenRow: (screenRow) ->
-    @updateScrollTop(@lineTopIndex.topPixelPositionForRow(screenRow))
+    @updateScrollTop(@lineTopIndex.pixelPositionForRow(screenRow))
 
   getVerticalScrollMarginInPixels: ->
     Math.round(@model.getVerticalScrollMargin() * @lineHeight)
@@ -1516,8 +1516,8 @@ class TextEditorPresenter
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
 
-    top = @lineTopIndex.bottomPixelPositionForRow(screenRange.start.row)
-    bottom = @lineTopIndex.bottomPixelPositionForRow(screenRange.end.row + 1)
+    top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
+    bottom = @lineTopIndex.pixelPositionForRow(screenRange.end.row) + @lineHeight
 
     if options?.center
       desiredScrollCenter = (top + bottom) / 2
@@ -1589,7 +1589,7 @@ class TextEditorPresenter
 
   restoreScrollTopIfNeeded: ->
     unless @scrollTop?
-      @updateScrollTop(@lineTopIndex.topPixelPositionForRow(@model.getFirstVisibleScreenRow()))
+      @updateScrollTop(@lineTopIndex.pixelPositionForRow(@model.getFirstVisibleScreenRow()))
 
   restoreScrollLeftIfNeeded: ->
     unless @scrollLeft?
