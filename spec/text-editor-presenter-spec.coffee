@@ -136,14 +136,6 @@ describe "TextEditorPresenter", ->
         # clearing additional rows won't trigger a state update
         expectNoStateUpdate presenter, -> presenter.clearScreenRowsToMeasure()
 
-        expect(stateFn(presenter).tiles[0]).toBeDefined()
-        expect(stateFn(presenter).tiles[2]).toBeDefined()
-        expect(stateFn(presenter).tiles[4]).toBeDefined()
-        expect(stateFn(presenter).tiles[6]).toBeDefined()
-        expect(stateFn(presenter).tiles[8]).toBeUndefined()
-        expect(stateFn(presenter).tiles[10]).toBeDefined()
-        expect(stateFn(presenter).tiles[12]).toBeDefined()
-
         # when another change triggers a state update we remove useless lines
         expectStateUpdate presenter, -> presenter.setScrollTop(1)
 
