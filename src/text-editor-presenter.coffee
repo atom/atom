@@ -1,5 +1,6 @@
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
+MarkerIndex = require 'marker-index'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
 
@@ -16,6 +17,7 @@ class TextEditorPresenter
     {@model, @config} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
+    @tokenIterator = @model.displayLayer.buildTokenIterator()
 
     @gutterWidth = 0
     @tileSize ?= 6
@@ -23,6 +25,9 @@ class TextEditorPresenter
     @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
     @emitter = new Emitter
+    @lineIdCounter = 1
+    @linesById = new Map
+    @lineMarkerIndex = new MarkerIndex
     @visibleHighlights = {}
     @characterWidthsByScope = {}
     @lineDecorationsByScreenRow = {}
@@ -82,6 +87,8 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateReflowState()
 
+    @updateLines()
+
     if @shouldUpdateDecorations
       @fetchDecorations()
       @updateLineDecorations()
@@ -126,7 +133,8 @@ class TextEditorPresenter
     @shouldUpdateDecorations = true
 
   observeModel: ->
-    @disposables.add @model.onDidChange =>
+    @disposables.add @model.displayLayer.onDidChangeTextSync (change) =>
+      @invalidateLines(change)
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
@@ -375,7 +383,7 @@ class TextEditorPresenter
     tileState.lines ?= {}
     visibleLineIds = {}
     for screenRow in screenRows
-      line = @model.tokenizedLineForScreenRow(screenRow)
+      line = @lineForScreenRow(screenRow)
       unless line?
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
@@ -387,18 +395,7 @@ class TextEditorPresenter
       else
         tileState.lines[line.id] =
           screenRow: screenRow
-          text: line.text
-          openScopes: line.openScopes
-          tags: line.tags
-          specialTokens: line.specialTokens
-          firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
-          firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
-          invisibles: line.invisibles
-          endOfLineInvisibles: line.endOfLineInvisibles
-          isOnlyWhitespace: line.isOnlyWhitespace()
-          indentLevel: line.indentLevel
-          tabLength: line.tabLength
-          fold: line.fold
+          words: line.words
           decorationClasses: @lineDecorationClassesForRow(screenRow)
 
     for id, line of tileState.lines
@@ -1010,6 +1007,46 @@ class TextEditorPresenter
     rect.height = Math.round(rect.height)
     rect
 
+  updateLines: ->
+    visibleLineIds = new Set
+
+    for screenRow in @getScreenRows()
+      screenRowStart = Point(screenRow, 0)
+      lineIds = @lineMarkerIndex.findStartingAt(screenRowStart)
+      if lineIds.size is 0
+        line = @buildLine(screenRow)
+        @lineMarkerIndex.insert(line.id, screenRowStart, Point(screenRow, Infinity))
+        @linesById.set(line.id, line)
+        visibleLineIds.add(line.id)
+      else
+        lineIds.forEach (id) ->
+          visibleLineIds.add(id)
+
+    @linesById.forEach (line, lineId) =>
+      unless visibleLineIds.has(lineId)
+        @lineMarkerIndex.delete(lineId)
+        @linesById.delete(lineId)
+
+  buildLine: (screenRow) ->
+    line = {id: @lineIdCounter++, words: []}
+    @tokenIterator.seekToScreenRow(screenRow)
+    loop
+      line.words.push(@tokenIterator.getText())
+      break unless @tokenIterator.moveToSuccessor()
+      break unless @tokenIterator.getStartScreenPosition().row is screenRow
+    line
+
+  invalidateLines: ({start, replacedExtent, replacementExtent}) ->
+    {touch} = @lineMarkerIndex.splice(start, replacedExtent, replacementExtent)
+    touch.forEach (lineId) =>
+      @lineMarkerIndex.delete(lineId)
+      @linesById.delete(lineId)
+
+  lineForScreenRow: (screenRow) ->
+    lineIds = @lineMarkerIndex.findStartingAt(Point(screenRow, 0))
+    lineId = lineIds.values().next().value
+    @linesById.get(lineId)
+
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
     @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
@@ -1236,7 +1273,7 @@ class TextEditorPresenter
   startBlinkingCursors: ->
     unless @isCursorBlinking()
       @state.content.cursorsVisible = true
-      @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
+      # @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
 
   isCursorBlinking: ->
     @toggleCursorBlinkHandle?
