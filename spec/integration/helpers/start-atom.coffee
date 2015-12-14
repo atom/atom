@@ -124,7 +124,7 @@ buildAtomClient = (args, env) ->
 
     .addCommand "simulateQuit", (done) ->
       @execute -> atom.unloadEditorWindow()
-      .execute -> require("remote").require("app").emit("before-quit")
+      .execute -> require("electron").remote.app.emit("before-quit")
       .call(done)
 
 module.exports = (args, env, fn) ->
