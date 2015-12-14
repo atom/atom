@@ -74,8 +74,6 @@ class TextEditorPresenter
   getPreMeasurementState: ->
     @updating = true
 
-    @blockDecorationsPresenter.update()
-
     @updateVerticalDimensions()
     @updateScrollbarDimensions()
 
@@ -87,11 +85,10 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateReflowState()
 
-    @updateBlockDecorationsState()
-
     if @shouldUpdateDecorations
       @fetchDecorations()
       @updateLineDecorations()
+      @updateBlockDecorations()
 
     if @shouldUpdateLinesState or @shouldUpdateLineNumbersState
       @updateTilesState()
@@ -489,7 +486,7 @@ class TextEditorPresenter
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
-      blockDecorations = this.blockDecorationsPresenter.decorationsForScreenRow(screenRow)
+      blockDecorations = @blockDecorationsByScreenRow[screenRow] ? []
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
@@ -943,6 +940,7 @@ class TextEditorPresenter
       @shouldUpdateLinesState = true
       @shouldUpdateLineNumbersState = true
       @shouldUpdateCustomGutterDecorationState = true
+      @shouldUpdateDecorations = true
 
     @emitDidUpdateState()
 
@@ -1208,15 +1206,21 @@ class TextEditorPresenter
     return unless 0 <= @startRow <= @endRow <= Infinity
     @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
 
-  updateBlockDecorationsState: ->
+  updateBlockDecorations: ->
     @state.content.blockDecorations = {}
+    @blockDecorationsByScreenRow = {}
 
-    startRow = @getStartTileRow()
-    endRow = @getEndTileRow() + @tileSize
-    decorations = @blockDecorationsPresenter.decorationsForScreenRowRange(startRow, endRow, @mouseWheelScreenRow)
-    decorations.forEach (decorations, screenRow) =>
-      for {decoration, isVisible} in decorations
-        @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
+    for decoration in @model.getDecorations({type: "block"})
+      screenRow = decoration.getMarker().getHeadScreenPosition().row
+      @updateBlockDecorationState(decoration, screenRow)
+      @blockDecorationsByScreenRow[screenRow] ?= []
+      @blockDecorationsByScreenRow[screenRow].push(decoration)
+
+  updateBlockDecorationState: (decoration, screenRow) ->
+    hasntMeasuredDecoration = !@blockDecorationsPresenter.measuredDecorations.has(decoration)
+    isVisible = @startRow <= screenRow < @endRow || screenRow is @mouseWheelScreenRow
+    if isVisible or hasntMeasuredDecoration
+      @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}
