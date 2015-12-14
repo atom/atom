@@ -57,11 +57,11 @@ isPairedCharacter = (string, index=0) ->
   isVariationSequence(charCodeA, charCodeB) or
   isCombinedCharacter(charCodeA, charCodeB)
 
-isJapaneseCharacter = (charCode) ->
+IsJapaneseKanaCharacter = (charCode) ->
   0x3000 <= charCode <= 0x30FF
 
 isCJKUnifiedIdeograph = (charCode) ->
-  0x4E00 <= charCode <= 0x9FAF
+  0x4E00 <= charCode <= 0x9FFF
 
 isFullWidthForm = (charCode) ->
   0xFF01 <= charCode <= 0xFF5E or
@@ -70,7 +70,7 @@ isFullWidthForm = (charCode) ->
 isDoubleWidthCharacter = (character) ->
   charCode = character.charCodeAt(0)
 
-  isJapaneseCharacter(charCode) or
+  IsJapaneseKanaCharacter(charCode) or
   isCJKUnifiedIdeograph(charCode) or
   isFullWidthForm(charCode)
 
