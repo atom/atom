@@ -119,6 +119,9 @@ class AtomWindow
         false
 
   handleEvents: ->
+    @browserWindow.on 'close', ->
+      global.atomApplication.saveState(false)
+
     @browserWindow.on 'closed', =>
       global.atomApplication.removeWindow(this)
 

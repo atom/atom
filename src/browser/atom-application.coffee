@@ -208,7 +208,6 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     app.on 'before-quit', =>
-      @saveState(false)
       @quitting = true
 
     app.on 'will-quit', =>
