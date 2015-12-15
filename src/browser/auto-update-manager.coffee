@@ -50,13 +50,13 @@ class AutoUpdateManager
       @setState(UpdateAvailableState)
       @emitUpdateAvailableEvent(@getWindows()...)
 
-    @config.onDidChange 'core.enableAutoUpdate', ({newValue}) =>
+    @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
       if newValue
         @scheduleUpdateCheck()
       else
         @cancelScheduledUpdateCheck()
 
-    @scheduleUpdateCheck() if @config.get 'core.enableAutoUpdate'
+    @scheduleUpdateCheck() if @config.get 'core.automaticallyUpdate'
 
     switch process.platform
       when 'win32'

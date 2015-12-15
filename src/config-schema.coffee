@@ -104,7 +104,7 @@ module.exports =
         description: 'Automatically open an empty editor on startup.'
         type: 'boolean'
         default: true
-      enableAutoUpdate:
+      automaticallyUpdate:
         description: 'Automatically update Atom when a new release is available.'
         type: 'boolean'
         default: true
