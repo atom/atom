@@ -18,7 +18,6 @@ environment:
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
-  - SET ATOM_SPECS_TASK=core
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
 
 build_script:
