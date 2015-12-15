@@ -22,7 +22,8 @@ directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
 backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 environmentKeyPath = 'HKCU\\Environment'
 openWithKeyPath = 'HKCU\\Software\\Classes\\Atom'
-txtKeyPath = 'HKCU\\Software\\Classes\\.txt\\OpenWithProgIds'
+filetypeKeyPath = (fileExtension) -> "HKCU\\Software\\Classes\\.#{fileExtension}\\OpenWithProgIds"
+openWithFileExtensions = ['scpt','applescript','as','asp','asa','aspx','ascx','asmx','ashx','bib','c','cc','cp','cpp','cxx','c++','cs','coffee','COMMIT_EDITMSG','cfdg','clj','cljs','csv','tsv','cgi','fcgi','cfg','conf','config','htaccess','css','diff','dtd','dylan','erl','hrl','fscript','f','for','fpp','f77','f90','f95','h','pch','hh','hpp','hxx','h++','go','gtd','gtdlog','hs','lhs','htm','html','phtml','shtml','inc','ics','ini','io','java','bsh','properties','js','htc','jsp','json','ldif','less','lisp','cl','l','lsp','mud','el','log','logo','lua','markdown','mdown','markdn','md','mk','wiki','wikipedia','mediawiki','s','mips','spim','asm','m3','cm3','moinmoin','m','mm','ml','mli','mll','mly','mustache','hbs','pas','p','patch','pl','pod','perl','pm','php','php3','php4','php5','ps','eps','dict','plist','scriptSuite','scriptTerminology','py','rpy','cpy','python','r','s','rl','ragel','rem','remind','rst','rest','rhtml','erb','erbsql','rb','rbx','rjs','rxml','sass','scss','scm','sch','ext','sh','ss','bashrc','bash_profile','bash_login','profile','bash_logout','slate','sql','sml','strings','svg','i','swg','tcl','tex','sty','cls','text','txt','utf8','text/plain','TEXT','sEXT','ttro','textile','toml','xhtml','xml','xsd','xib','rss','tld','pt','cpt','dtml','xsl','xslt','vcf','vcard','vb','yaml','yml','nfo','g','vss','d','e','gri','inf','mel','build','re','textmate','fxscript','lgt','cfm','cfml','dbm','dbml','dist','dot','ics','ifb','dwt','g','in','l','m4','mp','mtml','orig','pde','rej','servlet','s5','tmp','tpl','tt','xql','yy']
 
 # Spawn a command and invoke the callback when it completes with an error
 # and the output from standard out.
@@ -74,13 +75,23 @@ installContextMenu = (callback) ->
         args = ["#{keyPath}\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
         addToRegistry(args, callback)
 
+  recursivelyRegisterFileTypesForOpenWith = (index, callback) ->
+    if(index >= openWithFileExtensions.length)
+      callback()
+    else
+      args = [filetypeKeyPath(openWithFileExtensions[index]), '/v', 'Atom']
+      addToRegistry(args, callback)
+      recursivelyRegisterFileTypesForOpenWith(++index, callback)
+
+  registerFileTypesForOpenWith = (callback) ->
+    recursivelyRegisterFileTypesForOpenWith(0, callback)
+
   installToOpenWith = (keyPath, arg, callback) ->
     args = ["#{keyPath}\\DefaultIcon", '/ve', '/d', "\"#{process.execPath}\""]
     addToRegistry args, ->
       args = ["#{keyPath}\\shell\\open\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
       addToRegistry args, ->
-        args = [txtKeyPath, '/v', 'Atom']
-        addToRegistry(args, callback)
+        registerFileTypesForOpenWith(callback)
 
   installMenu fileKeyPath, '%1', ->
     installMenu directoryKeyPath, '%1', ->
@@ -130,14 +141,27 @@ getPath = (callback) ->
 
 # Uninstall the Open with Atom explorer context menu items via the registry.
 uninstallContextMenu = (callback) ->
-  deleteFromRegistry = (keyPath, callback) ->
+  deleteKeyFromRegistry = (keyPath, callback) ->
     spawnReg(['delete', keyPath, '/f'], callback)
 
-  deleteFromRegistry fileKeyPath, ->
-    deleteFromRegistry directoryKeyPath, ->
-      deleteFromRegistry backgroundKeyPath, ->
-        deleteFromRegistry openWithKeyPath, ->
-          deleteFromRegistry(txtKeyPath, callback)
+  deleteValueFromRegistry = (keyPath, valueName, callback) ->
+    spawnReg(['delete', keyPath, '/v', valueName, '/f'], callback)
+
+  recursivelyRemoveFileTypesForOpenWith = (index, callback) ->
+    if(index >= openWithFileExtensions.length)
+      callback()
+    else
+      deleteValueFromRegistry(filetypeKeyPath(openWithFileExtensions[index]), 'Atom', callback)
+      recursivelyRemoveFileTypesForOpenWith(++index, callback)
+
+  removeFileTypesForOpenWith = (callback) ->
+    recursivelyRemoveFileTypesForOpenWith(0, callback)
+
+  deleteKeyFromRegistry fileKeyPath, ->
+    deleteKeyFromRegistry directoryKeyPath, ->
+      deleteKeyFromRegistry backgroundKeyPath, ->
+        deleteKeyFromRegistry openWithKeyPath, ->
+          removeFileTypesForOpenWith(callback)
 
 # Add atom and apm to the PATH
 #
