@@ -593,6 +593,7 @@ export default class GitRepositoryAsync {
       .then(entry => entry.getBlob())
       .then(blob => {
         const options = new Git.DiffOptions()
+        options.contextLines = 0
         if (process.platform === 'win32') {
           // Ignore eol of line differences on windows so that files checked in
           // as LF don't report every line modified when the text contains CRLF
