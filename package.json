@@ -52,7 +52,7 @@
     "service-hub": "^0.7.0",
     "source-map-support": "^0.3.2",
     "temp": "0.8.1",
-    "text-buffer": "8.1.1",
+    "text-buffer": "8.1.2",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.6",
     "yargs": "^3.23.0"
@@ -82,7 +82,7 @@
     "background-tips": "0.26.0",
     "bookmarks": "0.38.0",
     "bracket-matcher": "0.79.0",
-    "command-palette": "0.37.0",
+    "command-palette": "0.38.0",
     "deprecation-cop": "0.54.0",
     "dev-live-reload": "0.47.0",
     "encoding-selector": "0.21.0",
