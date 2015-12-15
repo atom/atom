@@ -38,6 +38,21 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
 
+      it "does not serialize / deserialize the current grammar", ->
+        buffer = atom.project.bufferForPathSync('sample.js')
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        autoSelectedGrammar = tokenizedBufferA.grammar
+
+        tokenizedBufferA.setGrammar(atom.grammars.grammarForScopeName('source.coffee'))
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.grammar).toBe(autoSelectedGrammar)
+
     describe "when the underlying buffer has no path", ->
       it "deserializes it searching among the buffers in the current project", ->
         buffer = atom.project.bufferForPathSync(null)
