@@ -727,7 +727,7 @@ export default class GitRepositoryAsync {
     const hunkCallback = (delta, hunk, payload) => {
       hunks.push(hunk)
     }
-    return Git.Diff.blobToBuffer(blob, null, buffer, null, null, options, null, null, hunkCallback, null, null)
+    return Git.Diff.blobToBuffer(blob, null, buffer, null, options, null, null, hunkCallback, null)
       .then(_ => hunks)
   }
 
