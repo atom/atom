@@ -601,18 +601,6 @@ export default class GitRepositoryAsync {
         }
         return this._diffBlobToBuffer(blob, text, options)
       })
-      .then(hunks => {
-        // TODO: The old implementation just takes into account the last hunk.
-        // That's probably safe for most cases but maybe wrong in some edge
-        // cases?
-        const hunk = hunks[hunks.length - 1]
-        return {
-          oldStart: hunk.oldStart(),
-          newStart: hunk.newStart(),
-          oldLines: hunk.oldLines(),
-          newLines: hunk.newLines()
-        }
-      })
   }
 
   // Checking Out
@@ -721,12 +709,23 @@ export default class GitRepositoryAsync {
   // * `buffer` The {String} buffer.
   // * `options` The {NodeGit.DiffOptions}
   //
-  // Returns a {Promise} which resolves to an {Array} of {NodeGit.Hunk}.
+  // Returns a {Promise} which resolves to an {Array} of {Object}s which have
+  // the following keys:
+  //   * `oldStart` The {Number} of the old starting line.
+  //   * `newStart` The {Number} of the new starting line.
+  //   * `oldLines` The {Number} of old lines.
+  //   * `newLines` The {Number} of new lines.
   _diffBlobToBuffer (blob, buffer, options) {
     const hunks = []
     const hunkCallback = (delta, hunk, payload) => {
-      hunks.push(hunk)
+      hunks.push({
+        oldStart: hunk.oldStart(),
+        newStart: hunk.newStart(),
+        oldLines: hunk.oldLines(),
+        newLines: hunk.newLines()
+      })
     }
+
     return Git.Diff.blobToBuffer(blob, null, buffer, null, options, null, null, hunkCallback, null)
       .then(_ => hunks)
   }
