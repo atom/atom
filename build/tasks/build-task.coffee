@@ -19,6 +19,18 @@ module.exports = (grunt) ->
       fs.renameSync path.join(shellAppDir, 'Contents', 'MacOS', 'Electron'), path.join(shellAppDir, 'Contents', 'MacOS', 'Atom')
       fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Electron Helper.app'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app')
       fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Electron Helper'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
+
+      # Create locale directories that were skipped because they were empty.
+      # Otherwise, `navigator.language` always returns `English`.
+      resourcesDir = 'electron/Electron.app/Contents/Resources'
+      filenames = fs.readdirSync(resourcesDir)
+      for filename in filenames
+        continue unless fs.statSync(path.join(resourcesDir, filename)).isDirectory()
+        continue unless path.extname(filename) is '.lproj'
+        destination = path.join(shellAppDir, 'Contents', 'Resources', filename)
+        continue if fs.existsSync(destination)
+        grunt.file.mkdir(destination)
+
     else
       cp 'electron', shellAppDir, filter: /default_app/
 
