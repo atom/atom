@@ -782,6 +782,11 @@ describe "TextEditorPresenter", ->
           getState(presenter) # commits scroll position
           expect(editor.getFirstVisibleScreenRow()).toBe 6
 
+        it "updates when the model's scroll position is changed directly", ->
+          presenter = buildPresenter(scrollTop: 0, explicitHeight: 20, horizontalScrollbarHeight: 10, lineHeight: 10)
+          expectStateUpdate presenter, -> editor.setFirstVisibleScreenRow(1)
+          expect(getState(presenter).content.scrollTop).toBe 10
+
         it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
           presenter = buildPresenter(scrollTop: 80, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 0)
           expect(getState(presenter).content.scrollTop).toBe(80)

@@ -1264,7 +1264,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   didChangeFirstVisibleScreenRow: (screenRow) ->
-    @updateScrollTop(screenRow * @lineHeight)
+    @setScrollTop(screenRow * @lineHeight)
 
   getVerticalScrollMarginInPixels: ->
     Math.round(@model.getVerticalScrollMargin() * @lineHeight)
