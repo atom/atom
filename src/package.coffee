@@ -91,7 +91,7 @@ class Package
           @requireMainModule()
       catch error
         if @specMode
-          raise error
+          throw error
         else
           @handleError("Failed to load the #{@name} package", error)
     this
