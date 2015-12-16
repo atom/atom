@@ -26,8 +26,13 @@ describe "TokenizedBuffer", ->
 
   describe "serialization", ->
     describe "when the underlying buffer has a path", ->
-      it "deserializes it searching among the buffers in the current project", ->
+      beforeEach ->
         buffer = atom.project.bufferForPathSync('sample.js')
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+      it "deserializes it searching among the buffers in the current project", ->
         tokenizedBufferA = new TokenizedBuffer({
           buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
         })
@@ -39,7 +44,6 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
 
       it "does not serialize / deserialize the current grammar", ->
-        buffer = atom.project.bufferForPathSync('sample.js')
         tokenizedBufferA = new TokenizedBuffer({
           buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
         })
@@ -51,12 +55,13 @@ describe "TokenizedBuffer", ->
           atom
         )
 
-        expect(tokenizedBufferB.grammar).toBe(autoSelectedGrammar)
+        expect(tokenizedBufferB.grammar).toBe(atom.grammars.grammarForScopeName('source.js'))
 
     describe "when the underlying buffer has no path", ->
-      it "deserializes it searching among the buffers in the current project", ->
+      beforeEach ->
         buffer = atom.project.bufferForPathSync(null)
 
+      it "deserializes it searching among the buffers in the current project", ->
         tokenizedBufferA = new TokenizedBuffer({
           buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
         })
@@ -66,6 +71,38 @@ describe "TokenizedBuffer", ->
         )
 
         expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
+
+      it "deserializes the previously selected grammar as soon as it's added when not available in the grammar registry", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+
+        tokenizedBufferA.setGrammar(atom.grammars.grammarForScopeName("source.js"))
+        atom.grammars.removeGrammarForScopeName(tokenizedBufferA.grammar.scopeName)
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.grammar).not.toBeFalsy()
+        expect(tokenizedBufferB.grammar).not.toBe(tokenizedBufferA.grammar)
+
+        atom.grammars.addGrammar(tokenizedBufferA.grammar)
+
+        expect(tokenizedBufferB.grammar).toBe(tokenizedBufferA.grammar)
+
+      it "deserializes the previously selected grammar on construction when available in the grammar registry", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+
+        tokenizedBufferA.setGrammar(atom.grammars.grammarForScopeName("source.js"))
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.grammar).toBe(tokenizedBufferA.grammar)
 
   describe "when the buffer is destroyed", ->
     beforeEach ->
