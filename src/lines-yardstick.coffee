@@ -9,7 +9,7 @@ class LinesYardstick
     @invalidateCache()
 
   invalidateCache: ->
-    @pixelPositionsByLineIdAndColumn = {}
+    @leftPixelPositionCache = {}
 
   measuredRowForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
@@ -87,61 +87,32 @@ class LinesYardstick
     {top, left}
 
   leftPixelPositionForScreenPosition: (row, column) ->
-    line = @model.tokenizedLineForScreenRow(row)
-    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
+    lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
+    lineId = @lineNodesProvider.lineIdForScreenRow(row)
 
-    return 0 unless line? and lineNode?
+    return 0 unless lineNode?
 
-    if cachedPosition = @pixelPositionsByLineIdAndColumn[line.id]?[column]
+    if cachedPosition = @leftPixelPositionCache[lineId]?[column]
       return cachedPosition
 
-    textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
-    indexWithinTextNode = null
-    charIndex = 0
+    textNodes = @lineNodesProvider.textNodesForScreenRow(row)
+    textNodeStartIndex = 0
 
-    @tokenIterator.reset(line, false)
-    while @tokenIterator.next()
-      break if foundIndexWithinTextNode?
-
-      text = @tokenIterator.getText()
-
-      textIndex = 0
-      while textIndex < text.length
-        if @tokenIterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          textIndex += 2
-        else
-          char = text[textIndex]
-          charLength = 1
-          textIndex++
-
-        unless textNode?
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = 0
-          nextTextNodeIndex = textNodeLength
-
-        while nextTextNodeIndex <= charIndex
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = nextTextNodeIndex
-          nextTextNodeIndex = textNodeIndex + textNodeLength
-
-        if charIndex is column
-          foundIndexWithinTextNode = charIndex - textNodeIndex
-          break
-
-        charIndex += charLength
+    for textNode in textNodes
+      textNodeEndIndex = textNodeStartIndex + textNode.textContent.length
+      if textNodeEndIndex > column
+        indexInTextNode = column - textNodeStartIndex
+        break
+      else
+        textNodeStartIndex = textNodeEndIndex
 
     if textNode?
-      foundIndexWithinTextNode ?= textNode.textContent.length
-      position = @leftPixelPositionForCharInTextNode(
-        lineNode, textNode, foundIndexWithinTextNode
-      )
-      @pixelPositionsByLineIdAndColumn[line.id] ?= {}
-      @pixelPositionsByLineIdAndColumn[line.id][column] = position
-      position
+      indexInTextNode ?= textNode.textContent.length
+      leftPixelPosition = @leftPixelPositionForCharInTextNode(lineNode, textNode, indexInTextNode)
+
+      @leftPixelPositionCache[lineId] ?= {}
+      @leftPixelPositionCache[lineId][column] = leftPixelPosition
+      leftPixelPosition
     else
       0
 

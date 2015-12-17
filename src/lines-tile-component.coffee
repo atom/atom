@@ -361,3 +361,12 @@ class LinesTileComponent
 
   textNodesForLineId: (lineId) ->
     @textNodesByLineId[lineId].slice()
+
+  lineIdForScreenRow: (screenRow) ->
+    @lineIdsByScreenRow[screenRow]
+
+  lineNodeForScreenRow: (screenRow) ->
+    @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
+
+  textNodesForScreenRow: (screenRow) ->
+    @textNodesByLineId[@lineIdsByScreenRow[screenRow]]?.slice()
