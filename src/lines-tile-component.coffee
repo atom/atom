@@ -4,6 +4,7 @@ HighlightsComponent = require './highlights-component'
 TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 TokenTextEscapeRegex = /[&"'<>]/g
+NBSPCharacter = '\u00a0'
 MaxTokenLength = 20000
 
 cloneObject = (object) ->
@@ -184,14 +185,14 @@ class LinesTileComponent
   setLineInnerNodes: (id, lineNode) ->
     {words} = @newTileState.lines[id]
     lineLength = 0
-    for word in words
+    for word in words when word.length > 0
       lineLength += word.length
-      textNode = @domElementPool.buildText(word)
+      textNode = @domElementPool.buildText(word.replace(/\s/g, NBSPCharacter))
       lineNode.appendChild(textNode)
       @currentLineTextNodes.push(textNode)
 
     if lineLength is 0
-      textNode = @domElementPool.buildText('\u00a0')
+      textNode = @domElementPool.buildText(NBSPCharacter)
       lineNode.appendChild(textNode)
       @currentLineTextNodes.push(textNode)
 
