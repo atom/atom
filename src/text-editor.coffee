@@ -1321,7 +1321,7 @@ class TextEditor extends Model
   # * `options` (optional) An options hash for {::clipScreenPosition}.
   #
   # Returns a {Point}.
-  screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
+  screenPositionForBufferPosition: (bufferPosition, options) -> @displayLayer.translateBufferPosition(bufferPosition, options)
 
   # Essential: Convert a position in screen-coordinates to buffer-coordinates.
   #
@@ -1331,21 +1331,29 @@ class TextEditor extends Model
   # * `options` (optional) An options hash for {::clipScreenPosition}.
   #
   # Returns a {Point}.
-  bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
+  bufferPositionForScreenPosition: (screenPosition, options) -> @displayLayer.translateScreenPosition(screenPosition, options)
 
   # Essential: Convert a range in buffer-coordinates to screen-coordinates.
   #
   # * `bufferRange` {Range} in buffer coordinates to translate into screen coordinates.
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) -> @displayBuffer.screenRangeForBufferRange(bufferRange)
+  screenRangeForBufferRange: (bufferRange) ->
+    bufferRange = Range.fromObject(bufferRange)
+    start = @displayLayer.translateBufferPosition(bufferRange.start)
+    end = @displayLayer.translateBufferPosition(bufferRange.end)
+    Range(start, end)
 
   # Essential: Convert a range in screen-coordinates to buffer-coordinates.
   #
   # * `screenRange` {Range} in screen coordinates to translate into buffer coordinates.
   #
   # Returns a {Range}.
-  bufferRangeForScreenRange: (screenRange) -> @displayBuffer.bufferRangeForScreenRange(screenRange)
+  bufferRangeForScreenRange: (screenRange) ->
+    screenRange = Range.fromObject(screenRange)
+    start = @displayLayer.translateScreenPosition(screenRange.start)
+    end = @displayLayer.translateScreenPosition(screenRange.end)
+    Range(start, end)
 
   # Extended: Clip the given {Point} to a valid position in the buffer.
   #
@@ -1394,20 +1402,26 @@ class TextEditor extends Model
   #
   # * `screenPosition` The {Point} representing the position to clip.
   # * `options` (optional) {Object}
-  #   * `wrapBeyondNewlines` {Boolean} if `true`, continues wrapping past newlines
-  #   * `wrapAtSoftNewlines` {Boolean} if `true`, continues wrapping past soft newlines
-  #   * `screenLine` {Boolean} if `true`, indicates that you're using a line number, not a row number
+  #   * `clipDirection` {String} If `'backward'`, returns the first valid
+  #     position preceding an invalid position. If `'forward'`, returns the
+  #     first valid position following a valid position. Defaults to
+  #     `'backward'`.
   #
   # Returns a {Point}.
-  clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
+  clipScreenPosition: (screenPosition, options) -> @displayLayer.clipScreenPosition(screenPosition, options)
 
   # Extended: Clip the start and end of the given range to valid positions on screen.
   # See {::clipScreenPosition} for more information.
   #
   # * `range` The {Range} to clip.
   # * `options` (optional) See {::clipScreenPosition} `options`.
+  #
   # Returns a {Range}.
-  clipScreenRange: (range, options) -> @displayBuffer.clipScreenRange(range, options)
+  clipScreenRange: (screenRange, options) ->
+    screenRange = Range.fromObject(screenRange)
+    start = @displayLayer.clipScreenPosition(screenRange.start, options)
+    end = @displayLayer.clipScreenPosition(screenRange.end, options)
+    Range(start, end)
 
   ###
   Section: Decorations
