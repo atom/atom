@@ -117,7 +117,7 @@ class TextEditor extends Model
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
-    @displayLayer = buffer.addDisplayLayer({tabLength})
+    @displayLayer = buffer.addDisplayLayer({tabLength: @displayBuffer.getTabLength()})
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
 
     for marker in @selectionsMarkerLayer.getMarkers()
