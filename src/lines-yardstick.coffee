@@ -1,5 +1,6 @@
 TokenIterator = require './token-iterator'
 {Point} = require 'text-buffer'
+{isPairedCharacter} = require './text-utils'
 
 module.exports =
 class LinesYardstick
@@ -19,63 +20,45 @@ class LinesYardstick
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
-    defaultCharWidth = @model.getDefaultCharWidth()
     row = Math.floor(targetTop / @model.getLineHeightInPixels())
     targetLeft = 0 if row < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
 
-    line = @model.tokenizedLineForScreenRow(row)
-    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
+    lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
+    return Point(row, 0) unless lineNode
 
-    return Point(row, 0) unless lineNode? and line?
+    textNodes = @lineNodesProvider.textNodesForScreenRow(row)
+    lineOffset = lineNode.getBoundingClientRect().left
+    targetLeft += lineOffset
 
-    textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
-    column = 0
-    previousColumn = 0
-    previousLeft = 0
+    textNodeStartColumn = 0
+    for textNode in textNodes
+      {length: textNodeLength, textContent: textNodeContent} = textNode
+      textNodeRight = @clientRectForRange(textNode, 0, textNodeLength).right
 
-    @tokenIterator.reset(line, false)
-    while @tokenIterator.next()
-      text = @tokenIterator.getText()
-      textIndex = 0
-      while textIndex < text.length
-        if @tokenIterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          textIndex += 2
-        else
-          char = text[textIndex]
-          charLength = 1
-          textIndex++
+      if textNodeRight > targetLeft
+        characterIndex = 0
+        while characterIndex < textNodeLength
+          if isPairedCharacter(textNodeContent, characterIndex)
+            nextCharacterIndex = characterIndex + 2
+          else
+            nextCharacterIndex = characterIndex + 1
 
-        unless textNode?
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = 0
-          nextTextNodeIndex = textNodeLength
+          rangeRect = @clientRectForRange(textNode, characterIndex, nextCharacterIndex)
 
-        while nextTextNodeIndex <= column
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = nextTextNodeIndex
-          nextTextNodeIndex = textNodeIndex + textNodeLength
+          if rangeRect.right > targetLeft
+            if targetLeft <= ((rangeRect.left + rangeRect.right) / 2)
+              return Point(row, textNodeStartColumn + characterIndex)
+            else
+              return Point(row, textNodeStartColumn + nextCharacterIndex)
+          else
+            characterIndex = nextCharacterIndex
 
-        indexWithinTextNode = column - textNodeIndex
-        left = @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinTextNode)
-        charWidth = left - previousLeft
+      textNodeStartColumn += textNodeLength
 
-        return Point(row, previousColumn) if targetLeft <= previousLeft + (charWidth / 2)
-
-        previousLeft = left
-        previousColumn = column
-        column += charLength
-
-    if targetLeft <= previousLeft + (charWidth / 2)
-      Point(row, previousColumn)
-    else
-      Point(row, column)
+    Point(row, textNodeStartColumn)
 
   pixelPositionForScreenPosition: (screenPosition) ->
     targetRow = screenPosition.row
@@ -96,19 +79,24 @@ class LinesYardstick
       return cachedPosition
 
     textNodes = @lineNodesProvider.textNodesForScreenRow(row)
-    textNodeStartIndex = 0
+    textNodeStartColumn = 0
 
     for textNode in textNodes
-      textNodeEndIndex = textNodeStartIndex + textNode.textContent.length
-      if textNodeEndIndex > column
-        indexInTextNode = column - textNodeStartIndex
+      textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
+      if textNodeEndColumn > column
+        indexInTextNode = column - textNodeStartColumn
         break
       else
-        textNodeStartIndex = textNodeEndIndex
+        textNodeStartColumn = textNodeEndColumn
 
     if textNode?
       indexInTextNode ?= textNode.textContent.length
-      leftPixelPosition = @leftPixelPositionForCharInTextNode(lineNode, textNode, indexInTextNode)
+      lineOffset = lineNode.getBoundingClientRect().left
+      if indexInTextNode is 0
+        leftPixelPosition = @clientRectForRange(textNode, 0, 1).left
+      else
+        leftPixelPosition = @clientRectForRange(textNode, 0, indexInTextNode).right
+      leftPixelPosition -= lineOffset
 
       @leftPixelPositionCache[lineId] ?= {}
       @leftPixelPositionCache[lineId][column] = leftPixelPosition
@@ -116,18 +104,7 @@ class LinesYardstick
     else
       0
 
-  leftPixelPositionForCharInTextNode: (lineNode, textNode, charIndex) ->
-    if charIndex is 0
-      width = 0
-    else
-      @rangeForMeasurement.setStart(textNode, 0)
-      @rangeForMeasurement.setEnd(textNode, charIndex)
-      width = @rangeForMeasurement.getBoundingClientRect().width
-
-    @rangeForMeasurement.setStart(textNode, 0)
-    @rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
-    left = @rangeForMeasurement.getBoundingClientRect().left
-
-    offset = lineNode.getBoundingClientRect().left
-
-    left + width - offset
+  clientRectForRange: (textNode, startIndex, endIndex) ->
+    @rangeForMeasurement.setStart(textNode, startIndex)
+    @rangeForMeasurement.setEnd(textNode, endIndex)
+    @rangeForMeasurement.getBoundingClientRect()
