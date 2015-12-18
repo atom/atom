@@ -5,7 +5,7 @@ TextBuffer = require 'text-buffer'
 TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 FakeLinesYardstick = require './fake-lines-yardstick'
-LineTopIndex = require '../src/linear-line-top-index'
+LineTopIndex = require 'line-top-index'
 
 describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.

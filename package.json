@@ -35,6 +35,7 @@
     "jquery": "^2.1.1",
     "key-path-helpers": "^0.4.0",
     "less-cache": "0.22",
+    "line-top-index": "0.1.0",
     "marked": "^0.3.4",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",

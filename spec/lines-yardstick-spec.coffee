@@ -1,5 +1,5 @@
 LinesYardstick = require '../src/lines-yardstick'
-LineTopIndex = require '../src/linear-line-top-index'
+LineTopIndex = require 'line-top-index'
 {toArray} = require 'underscore-plus'
 
 describe "LinesYardstick", ->

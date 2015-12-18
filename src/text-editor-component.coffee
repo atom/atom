@@ -14,7 +14,7 @@ OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
 BlockDecorationsComponent = require './block-decorations-component'
-LineTopIndex = require './linear-line-top-index'
+LineTopIndex = require 'line-top-index'
 
 module.exports =
 class TextEditorComponent

@@ -617,7 +617,8 @@ class TextEditorPresenter
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
-        blockDecorationsHeight = @lineTopIndex.blocksHeightForRow(screenRow)
+        previousRowBottomPixelPosition = @lineTopIndex.pixelPositionForRow(screenRow - 1) + @lineHeight
+        blockDecorationsHeight = @lineTopIndex.pixelPositionForRow(screenRow) - previousRowBottomPixelPosition
 
         tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
         visibleLineNumberIds[line.id] = true
@@ -630,12 +631,15 @@ class TextEditorPresenter
   updateStartRow: ->
     return unless @scrollTop? and @lineHeight?
 
-    @startRow = Math.max(0, @lineTopIndex.rowForPixelPosition(@scrollTop, "floor"))
+    @startRow = Math.max(0, @lineTopIndex.rowForPixelPosition(@scrollTop))
 
   updateEndRow: ->
     return unless @scrollTop? and @lineHeight? and @height?
 
-    @endRow = @lineTopIndex.rowForPixelPosition(@scrollTop + @height + @lineHeight, 'ceil')
+    @endRow = Math.min(
+      @model.getScreenLineCount(),
+      @lineTopIndex.rowForPixelPosition(@scrollTop + @height + @lineHeight)
+    )
 
   updateRowsPerPage: ->
     rowsPerPage = Math.floor(@getClientHeight() / @lineHeight)
@@ -667,7 +671,7 @@ class TextEditorPresenter
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      @contentHeight = Math.round(@lineTopIndex.pixelPositionForRow(Infinity))
+      @contentHeight = Math.round(@lineTopIndex.pixelPositionForRow(@model.getScreenLineCount()))
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()

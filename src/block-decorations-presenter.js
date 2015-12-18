@@ -29,10 +29,10 @@ class BlockDecorationsPresenter {
 
   observeModel () {
     this.disposables.add(this.model.onDidAddDecoration(this.didAddDecoration.bind(this)))
-    this.disposables.add(this.model.onDidChange((changeEvent) => {
-      let oldExtent = changeEvent.end - changeEvent.start
-      let newExtent = Math.max(0, changeEvent.end - changeEvent.start + changeEvent.screenDelta)
-      this.lineTopIndex.splice(changeEvent.start, oldExtent, newExtent)
+    this.disposables.add(this.model.buffer.onDidChange((changeEvent) => {
+      let oldExtent = changeEvent.oldRange.getExtent()
+      let newExtent = changeEvent.newRange.getExtent()
+      this.lineTopIndex.splice(changeEvent.oldRange.start, oldExtent, newExtent)
     }))
 
     for (let decoration of this.model.getDecorations({type: 'block'})) {
@@ -79,8 +79,7 @@ class BlockDecorationsPresenter {
       this.didDestroyDecoration(decoration)
     })
 
-    let screenRow = decoration.getMarker().getHeadScreenPosition().row
-    this.lineTopIndex.insertBlock(decoration.getId(), screenRow, 0)
+    this.lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadBufferPosition(), true, 0)
 
     this.observedDecorations.add(decoration)
     this.disposables.add(didMoveDisposable)
@@ -94,8 +93,7 @@ class BlockDecorationsPresenter {
       return
     }
 
-    let newScreenRow = decoration.getMarker().getHeadScreenPosition().row
-    this.lineTopIndex.moveBlock(decoration.getId(), newScreenRow)
+    this.lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadBufferPosition())
     this.emitter.emit('did-update-state')
   }
 
