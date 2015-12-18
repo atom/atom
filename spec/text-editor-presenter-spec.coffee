@@ -32,7 +32,6 @@ describe "TextEditorPresenter", ->
 
     buildPresenterWithoutMeasurements = (params={}) ->
       lineTopIndex = new LineTopIndex({
-        maxRow: editor.getScreenLineCount(),
         defaultLineHeight: editor.getLineHeightInPixels()
       })
       _.defaults params,

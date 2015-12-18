@@ -51,7 +51,6 @@ class TextEditorComponent
     @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
     lineTopIndex = new LineTopIndex({
-      maxRow: @editor.getScreenLineCount(),
       defaultLineHeight: @editor.getLineHeightInPixels()
     })
     @presenter = new TextEditorPresenter
