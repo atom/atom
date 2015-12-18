@@ -2,7 +2,6 @@
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
-BlockDecorationsPresenter = require './block-decorations-presenter'
 
 module.exports =
 class TextEditorPresenter
@@ -29,7 +28,8 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
-    @blockDecorationsPresenter = new BlockDecorationsPresenter(@model, @lineTopIndex)
+    @observedBlockDecorations = new Set()
+    @measuredBlockDecorations = new Set()
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -46,7 +46,6 @@ class TextEditorPresenter
   getLinesYardstick: -> @linesYardstick
 
   destroy: ->
-    @blockDecorationsPresenter.destroy()
     @disposables.dispose()
     clearTimeout(@stoppedScrollingTimeoutId) if @stoppedScrollingTimeoutId?
     clearInterval(@reflowingInterval) if @reflowingInterval?
@@ -138,20 +137,14 @@ class TextEditorPresenter
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
-    @disposables.add @blockDecorationsPresenter.onDidUpdateState =>
-      @shouldUpdateHeightState = true
-      @shouldUpdateVerticalScrollState = true
-      @shouldUpdateHorizontalScrollState = true
-      @shouldUpdateScrollbarsState = true
-      @shouldUpdateContentState = true
-      @shouldUpdateDecorations = true
-      @shouldUpdateCursorsState = true
-      @shouldUpdateLinesState = true
-      @shouldUpdateLineNumberGutterState = true
-      @shouldUpdateLineNumbersState = true
-      @shouldUpdateGutterOrderState = true
-      @shouldUpdateCustomGutterDecorationState = true
-      @emitDidUpdateState()
+    @disposables.add @model.onDidAddDecoration(@didAddBlockDecoration.bind(this))
+    @disposables.add @model.buffer.onDidChange ({oldRange, newRange}) =>
+      oldExtent = oldRange.getExtent()
+      newExtent = newRange.getExtent()
+      @lineTopIndex.splice(oldRange.start, oldExtent, newExtent)
+
+    for decoration in @model.getDecorations({type: 'block'})
+      this.didAddBlockDecoration(decoration)
 
     @disposables.add @model.onDidChangeGrammar(@didChangeGrammar.bind(this))
     @disposables.add @model.onDidChangePlaceholderText(@emitDidUpdateState.bind(this))
@@ -995,7 +988,7 @@ class TextEditorPresenter
       @measurementsChanged()
 
   measurementsChanged: ->
-    @blockDecorationsPresenter.measurementsChanged()
+    @measuredBlockDecorations.clear()
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
@@ -1061,7 +1054,7 @@ class TextEditorPresenter
   updateBlockDecorationState: (decoration, screenRow) ->
     startRow = @getStartTileRow()
     endRow = @getEndTileRow() + @tileSize
-    hasntMeasuredDecoration = !@blockDecorationsPresenter.measuredDecorations.has(decoration)
+    hasntMeasuredDecoration = !@measuredBlockDecorations.has(decoration)
     isVisible = startRow <= screenRow < endRow || screenRow is @mouseWheelScreenRow
     if isVisible or hasntMeasuredDecoration
       @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
@@ -1258,11 +1251,60 @@ class TextEditorPresenter
 
       @emitDidUpdateState()
 
-  setBlockDecorationDimensions: ->
-    @blockDecorationsPresenter.setDimensionsForDecoration(arguments...)
+  setBlockDecorationDimensions: (decoration, width, height) ->
+    @lineTopIndex.resizeBlock(decoration.getId(), height)
 
-  invalidateBlockDecorationDimensions: ->
-    @blockDecorationsPresenter.invalidateDimensionsForDecoration(arguments...)
+    @measuredBlockDecorations.add(decoration)
+    @shouldUpdateDecorations = true
+    @emitDidUpdateState()
+
+  invalidateBlockDecorationDimensions: (decoration) ->
+    @measuredBlockDecorations.delete(decoration)
+    @shouldUpdateDecorations = true
+    @emitDidUpdateState()
+
+  didAddBlockDecoration: (decoration) ->
+    return if not decoration.isType('block') or @observedBlockDecorations.has(decoration)
+
+    didMoveDisposable = decoration.getMarker().bufferMarker.onDidChange (markerEvent) =>
+      @didMoveBlockDecoration(decoration, markerEvent)
+
+    didDestroyDisposable = decoration.onDidDestroy =>
+      @disposables.remove(didMoveDisposable)
+      @disposables.remove(didDestroyDisposable)
+      didMoveDisposable.dispose()
+      didDestroyDisposable.dispose()
+      @didDestroyBlockDecoration(decoration)
+
+    @lineTopIndex.insertBlock(
+      decoration.getId(),
+      decoration.getMarker().getHeadBufferPosition(),
+      true,
+      0
+    )
+
+    @observedBlockDecorations.add(decoration)
+    @disposables.add(didMoveDisposable)
+    @disposables.add(didDestroyDisposable)
+    @shouldUpdateDecorations = true
+    @emitDidUpdateState()
+
+  didMoveBlockDecoration: (decoration, markerEvent) ->
+    # Don't move blocks after a text change, because we already splice on buffer
+    # change.
+    return if markerEvent.textChanged
+
+    @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadBufferPosition())
+    @shouldUpdateDecorations = true
+    @emitDidUpdateState()
+
+  didDestroyBlockDecoration: (decoration) ->
+    return unless @observedBlockDecorations.has(decoration)
+
+    @lineTopIndex.removeBlock(decoration.getId())
+    @observedBlockDecorations.delete(decoration)
+    @shouldUpdateDecorations = true
+    @emitDidUpdateState()
 
   observeCursor: (cursor) ->
     didChangePositionDisposable = cursor.onDidChangePosition =>
