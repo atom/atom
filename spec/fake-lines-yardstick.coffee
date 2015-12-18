@@ -2,12 +2,8 @@
 
 module.exports =
 class FakeLinesYardstick
-  constructor: (@model, @presenter, @lineTopIndex) ->
+  constructor: (@model, @lineTopIndex) ->
     @characterWidthsByScope = {}
-
-  prepareScreenRowsForMeasurement: ->
-    @presenter.getPreMeasurementState()
-    @screenRows = new Set(@presenter.getScreenRows())
 
   getScopedCharacterWidth: (scopeNames, char) ->
     @getScopedCharacterWidths(scopeNames)[char]
@@ -35,8 +31,6 @@ class FakeLinesYardstick
     left = 0
     column = 0
 
-    return {top, left: 0} unless @screenRows.has(screenPosition.row)
-
     iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
     while iterator.next()
       characterWidths = @getScopedCharacterWidths(iterator.getScopes())
@@ -59,16 +53,3 @@ class FakeLinesYardstick
         column += charLength
 
     {top, left}
-
-  pixelRectForScreenRange: (screenRange) ->
-    top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
-    if screenRange.end.row > screenRange.start.row
-      left = 0
-      height = @lineTopIndex.pixelPositionForRow(screenRange.end.row) - top + @model.getLineHeightInPixels()
-      width = @presenter.getScrollWidth()
-    else
-      {left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @lineTopIndex.pixelPositionForRow(screenRange.end.row) - top + @model.getLineHeightInPixels()
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}

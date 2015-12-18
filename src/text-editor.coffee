@@ -677,7 +677,7 @@ class TextEditor extends Model
   # this editor.
   shouldPromptToSave: ({windowCloseRequested}={}) ->
     if windowCloseRequested
-      @isModified()
+      false
     else
       @isModified() and not @buffer.hasMultipleEditors()
 

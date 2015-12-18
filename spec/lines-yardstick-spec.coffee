@@ -3,7 +3,7 @@ LineTopIndex = require '../src/linear-line-top-index'
 {toArray} = require 'underscore-plus'
 
 describe "LinesYardstick", ->
-  [editor, mockPresenter, mockLineNodesProvider, createdLineNodes, linesYardstick, buildLineNode] = []
+  [editor, mockLineNodesProvider, createdLineNodes, linesYardstick, buildLineNode] = []
 
   beforeEach ->
     waitsForPromise ->
@@ -32,22 +32,10 @@ describe "LinesYardstick", ->
         createdLineNodes.push(lineNode)
         lineNode
 
-      mockPresenter =
-        setScreenRowsToMeasure: (screenRows) -> screenRowsToMeasure = screenRows
-        clearScreenRowsToMeasure: -> setScreenRowsToMeasure = []
-        getPreMeasurementState: ->
-          state = {}
-          for screenRow in screenRowsToMeasure
-            tokenizedLine = editor.tokenizedLineForScreenRow(screenRow)
-            state[tokenizedLine.id] = screenRow
-          state
-
       mockLineNodesProvider =
-        updateSync: (state) -> availableScreenRows = state
         lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
-          return if availableScreenRows[lineId] isnt screenRow
-
           buildLineNode(screenRow)
+
         textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
           lineNode = @lineNodeForLineIdAndScreenRow(lineId, screenRow)
           iterator = document.createNodeIterator(lineNode, NodeFilter.SHOW_TEXT)
@@ -61,7 +49,7 @@ describe "LinesYardstick", ->
         maxRow: editor.getScreenLineCount(),
         defaultLineHeight: editor.getLineHeightInPixels()
       })
-      linesYardstick = new LinesYardstick(editor, mockPresenter, mockLineNodesProvider, lineTopIndex, atom.grammars)
+      linesYardstick = new LinesYardstick(editor, mockLineNodesProvider, lineTopIndex, atom.grammars)
 
   afterEach ->
     lineNode.remove() for lineNode in createdLineNodes
@@ -158,18 +146,6 @@ describe "LinesYardstick", ->
       expect(linesYardstick.pixelPositionForScreenPosition([0, 36]).left).toBe 237.5
       expect(linesYardstick.pixelPositionForScreenPosition([0, 37]).left).toBe 244.09375
 
-    it "doesn't measure invisible lines if it is explicitly told so", ->
-      atom.styles.addStyleSheet """
-      * {
-        font-size: 12px;
-        font-family: monospace;
-      }
-      """
-
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 0], true, true)).toEqual({left: 0, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 1], true, true)).toEqual({left: 0, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 5], true, true)).toEqual({left: 0, top: 0})
-
     describe "::screenPositionForPixelPosition(pixelPosition)", ->
       it "converts pixel positions to screen positions", ->
         atom.styles.addStyleSheet """
@@ -202,15 +178,3 @@ describe "LinesYardstick", ->
         expect(linesYardstick.screenPositionForPixelPosition(top: Infinity, left: Infinity)).toEqual [12, 2]
         expect(linesYardstick.screenPositionForPixelPosition(top: (editor.getLastScreenRow() + 1) * 14, left: 0)).toEqual [12, 2]
         expect(linesYardstick.screenPositionForPixelPosition(top: editor.getLastScreenRow() * 14, left: 0)).toEqual [12, 0]
-
-      it "doesn't measure invisible lines if it is explicitly told so", ->
-        atom.styles.addStyleSheet """
-        * {
-          font-size: 12px;
-          font-family: monospace;
-        }
-        """
-
-        expect(linesYardstick.screenPositionForPixelPosition({top: 0, left: 13}, true)).toEqual([0, 0])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 14, left: 20}, true)).toEqual([1, 0])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 28, left: 100}, true)).toEqual([2, 0])

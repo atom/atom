@@ -22,17 +22,6 @@ describe "TextEditor", ->
       atom.packages.activatePackage('language-javascript')
 
   describe "when the editor is deserialized", ->
-    it "returns undefined when the path cannot be read", ->
-      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
-      editor1 = null
-
-      waitsForPromise ->
-        atom.workspace.open(pathToOpen).then (o) -> editor1 = o
-
-      runs ->
-        fs.mkdirSync(pathToOpen)
-        expect(TextEditor.deserialize(editor1.serialize(), atom)).toBeUndefined()
-
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 5]], reversed: true)

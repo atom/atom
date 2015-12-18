@@ -22,7 +22,11 @@ class TokenizedBuffer extends Model
   changeCount: 0
 
   @deserialize: (state, atomEnvironment) ->
-    state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
+    if state.bufferId
+      state.buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
+    else
+      # TODO: remove this fallback after everyone transitions to the latest version.
+      state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
     state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
     state.packageManager = atomEnvironment.packages
@@ -53,6 +57,7 @@ class TokenizedBuffer extends Model
   serialize: ->
     deserializer: 'TokenizedBuffer'
     bufferPath: @buffer.getPath()
+    bufferId: @buffer.getId()
     tabLength: @tabLength
     ignoreInvisibles: @ignoreInvisibles
     largeFileMode: @largeFileMode
