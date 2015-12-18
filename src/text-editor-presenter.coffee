@@ -29,7 +29,8 @@ class TextEditorPresenter
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
     @observedBlockDecorations = new Set()
-    @measuredBlockDecorations = new Set()
+    @invalidatedBlockDecorations = new Set()
+    @invalidateAllBlockDecorations = false
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -204,6 +205,7 @@ class TextEditorPresenter
         highlights: {}
         overlays: {}
         cursors: {}
+        blockDecorations: {}
       gutters: []
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
@@ -988,7 +990,7 @@ class TextEditorPresenter
       @measurementsChanged()
 
   measurementsChanged: ->
-    @measuredBlockDecorations.clear()
+    @invalidateAllBlockDecorations = true
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
@@ -1042,22 +1044,36 @@ class TextEditorPresenter
     @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
 
   updateBlockDecorations: ->
-    @state.content.blockDecorations = {}
+    @blockDecorationsToRenderById = {}
     @blockDecorationsByScreenRow = {}
+    visibleDecorationsByMarkerId = @model.decorationsForScreenRowRange(@getStartTileRow(), @getEndTileRow() + @tileSize - 1)
 
-    for decoration in @model.getDecorations({type: "block"})
-      screenRow = decoration.getMarker().getHeadScreenPosition().row
-      @updateBlockDecorationState(decoration, screenRow)
-      @blockDecorationsByScreenRow[screenRow] ?= []
-      @blockDecorationsByScreenRow[screenRow].push(decoration)
+    if @invalidateAllBlockDecorations
+      for decoration in @model.getDecorations(type: 'block')
+        @invalidatedBlockDecorations.add(decoration)
+      @invalidateAllBlockDecorations = false
 
-  updateBlockDecorationState: (decoration, screenRow) ->
-    startRow = @getStartTileRow()
-    endRow = @getEndTileRow() + @tileSize
-    hasntMeasuredDecoration = !@measuredBlockDecorations.has(decoration)
-    isVisible = startRow <= screenRow < endRow || screenRow is @mouseWheelScreenRow
-    if isVisible or hasntMeasuredDecoration
-      @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
+    for markerId, decorations of visibleDecorationsByMarkerId
+      for decoration in decorations when decoration.isType('block')
+        @updateBlockDecorationState(decoration, true)
+
+    @invalidatedBlockDecorations.forEach (decoration) =>
+      @updateBlockDecorationState(decoration, false)
+
+    for decorationId, decorationState of @state.content.blockDecorations
+      continue if @blockDecorationsToRenderById[decorationId]
+      continue if decorationState.screenRow is @mouseWheelScreenRow
+
+      delete @state.content.blockDecorations[decorationId]
+
+  updateBlockDecorationState: (decoration, isVisible) ->
+    return if @blockDecorationsToRenderById[decoration.getId()]
+
+    screenRow = decoration.getMarker().getHeadScreenPosition().row
+    @blockDecorationsByScreenRow[screenRow] ?= []
+    @blockDecorationsByScreenRow[screenRow].push(decoration)
+    @state.content.blockDecorations[decoration.getId()] = {decoration, screenRow, isVisible}
+    @blockDecorationsToRenderById[decoration.getId()] = true
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}
@@ -1254,12 +1270,12 @@ class TextEditorPresenter
   setBlockDecorationDimensions: (decoration, width, height) ->
     @lineTopIndex.resizeBlock(decoration.getId(), height)
 
-    @measuredBlockDecorations.add(decoration)
+    @invalidatedBlockDecorations.delete(decoration)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
   invalidateBlockDecorationDimensions: (decoration) ->
-    @measuredBlockDecorations.delete(decoration)
+    @invalidatedBlockDecorations.add(decoration)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
@@ -1284,6 +1300,7 @@ class TextEditorPresenter
     )
 
     @observedBlockDecorations.add(decoration)
+    @invalidateBlockDecorationDimensions(decoration)
     @disposables.add(didMoveDisposable)
     @disposables.add(didDestroyDisposable)
     @shouldUpdateDecorations = true
@@ -1303,6 +1320,7 @@ class TextEditorPresenter
 
     @lineTopIndex.removeBlock(decoration.getId())
     @observedBlockDecorations.delete(decoration)
+    @invalidatedBlockDecorations.delete(decoration)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
