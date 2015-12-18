@@ -893,7 +893,7 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).content.scrollTop).toBe 13
 
         it "scrolls down automatically when the model is changed", ->
-          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 10)
+          presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
 
           editor.setText("")
           editor.insertNewline()

@@ -20,10 +20,11 @@ class LinesYardstick
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
-    row = @lineTopIndex.rowForPixelPosition(targetTop, 'floor')
+    row = @lineTopIndex.rowForPixelPosition(targetTop)
     targetLeft = 0 if targetTop < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
+    row = Math.max(0, row)
 
     line = @model.tokenizedLineForScreenRow(row)
     lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
