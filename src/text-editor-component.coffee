@@ -77,7 +77,6 @@ class TextEditorComponent
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode, @views)
-      @blockDecorationsComponent = new BlockDecorationsComponent(@domNode, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -89,7 +88,8 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @scrollViewNode.appendChild(@blockDecorationsComponent.getDomNode())
+    if @blockDecorationsComponent?
+      @scrollViewNode.appendChild(@blockDecorationsComponent.getDomNode())
 
     @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
@@ -167,7 +167,7 @@ class TextEditorComponent
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
-    @blockDecorationsComponent.updateSync(@newState)
+    @blockDecorationsComponent?.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -187,7 +187,7 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
-    @blockDecorationsComponent.measureBlockDecorations()
+    @blockDecorationsComponent?.measureBlockDecorations()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
