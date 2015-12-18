@@ -1,0 +1,8 @@
+{
+  "name": "test-module-three",
+  "version": "1.0.0",
+  "main": "./index.js",
+  "engines": {
+    "atom": "*"
+  }
+}
