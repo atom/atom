@@ -2150,12 +2150,12 @@ describe "TextEditorPresenter", ->
           expectValues stateForBlockDecoration(presenter, blockDecoration2), {
             decoration: blockDecoration2
             screenRow: 4
-            isVisible: false
+            isVisible: true
           }
           expectValues stateForBlockDecoration(presenter, blockDecoration3), {
             decoration: blockDecoration3
             screenRow: 4
-            isVisible: false
+            isVisible: true
           }
           expectValues stateForBlockDecoration(presenter, blockDecoration4), {
             decoration: blockDecoration4
@@ -2196,22 +2196,15 @@ describe "TextEditorPresenter", ->
             screenRow: 4
             isVisible: false
           }
-          expect(stateForBlockDecoration(presenter, blockDecoration4)).toBeUndefined()
+          expectValues stateForBlockDecoration(presenter, blockDecoration4), {
+            decoration: blockDecoration4
+            screenRow: 10
+            isVisible: true
+          }
 
           presenter.invalidateBlockDecorationDimensions(blockDecoration1)
           presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
           presenter.setBlockDecorationDimensions(blockDecoration3, 0, 10)
-
-          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
-            decoration: blockDecoration1
-            screenRow: 0
-            isVisible: false
-          }
-          expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
-          expect(stateForBlockDecoration(presenter, blockDecoration3)).toBeUndefined()
-          expect(stateForBlockDecoration(presenter, blockDecoration4)).toBeUndefined()
-
-          presenter.setScrollTop(140)
 
           expectValues stateForBlockDecoration(presenter, blockDecoration1), {
             decoration: blockDecoration1
@@ -2225,7 +2218,6 @@ describe "TextEditorPresenter", ->
             screenRow: 10
             isVisible: true
           }
-
 
       describe ".overlays", ->
         [item] = []
@@ -3091,6 +3083,7 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> presenter.setLineHeight(Math.ceil(1.0 * explicitHeight / marker3.getBufferRange().end.row))
 
             decorationState = getContentForGutterWithName(presenter, 'test-gutter')
+
             expect(decorationState[decoration1.id].top).toBeDefined()
             expect(decorationState[decoration2.id].top).toBeDefined()
             expect(decorationState[decoration3.id].top).toBeDefined()

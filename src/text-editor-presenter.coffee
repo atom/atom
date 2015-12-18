@@ -638,7 +638,7 @@ class TextEditorPresenter
 
     @endRow = Math.min(
       @model.getScreenLineCount(),
-      @lineTopIndex.rowForPixelPosition(@scrollTop + @height + @lineHeight)
+      @lineTopIndex.rowForPixelPosition(@scrollTop + @height + (2 * @lineHeight - 1))
     )
 
   updateRowsPerPage: ->
@@ -1059,8 +1059,10 @@ class TextEditorPresenter
       @blockDecorationsByScreenRow[screenRow].push(decoration)
 
   updateBlockDecorationState: (decoration, screenRow) ->
+    startRow = @getStartTileRow()
+    endRow = @getEndTileRow() + @tileSize
     hasntMeasuredDecoration = !@blockDecorationsPresenter.measuredDecorations.has(decoration)
-    isVisible = @startRow <= screenRow < @endRow || screenRow is @mouseWheelScreenRow
+    isVisible = startRow <= screenRow < endRow || screenRow is @mouseWheelScreenRow
     if isVisible or hasntMeasuredDecoration
       @state.content.blockDecorations[decoration.id] = {decoration, screenRow, isVisible}
 
