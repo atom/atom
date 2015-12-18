@@ -1664,7 +1664,7 @@ describe('TextEditorComponent', function () {
     })
 
     it("renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed", async function () {
-      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
+      wrapperNode.style.height = 13 * lineHeightInPixels + 'px'
       component.measureDimensions()
       await nextViewUpdatePromise()
 
@@ -1706,7 +1706,7 @@ describe('TextEditorComponent', function () {
 
       await nextAnimationFramePromise()
 
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
 
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
@@ -1731,7 +1731,7 @@ describe('TextEditorComponent', function () {
       await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
       await nextAnimationFramePromise() // applies the changes
 
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
 
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
@@ -1753,7 +1753,7 @@ describe('TextEditorComponent', function () {
       await nextAnimationFramePromise()
       await nextAnimationFramePromise()
 
-      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
 
       expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
