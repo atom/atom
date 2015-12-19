@@ -1398,18 +1398,6 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
-  # Experimental: Mark and add a block decoration to the specified screen row.
-  #
-  # * `screenRow` A {Number} representing the screen row where to add the block decoration.
-  # * `item` A {ViewRegistry::getView}-compatible object to render.
-  #
-  # Returns a {Decoration} object.
-  addBlockDecorationForScreenRow: (screenRow, item) ->
-    @decorateMarker(
-      @markScreenPosition([screenRow, 0], invalidate: "never"),
-      type: "block", item: item
-    )
-
   # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
   # marker moves, is invalidated, or is destroyed, the decoration will be
   # updated to reflect the marker's state.
@@ -1435,6 +1423,8 @@ class TextEditor extends Model
   # * __gutter__: A decoration that tracks a {TextEditorMarker} in a {Gutter}. Gutter
   #     decorations are created by calling {Gutter::decorateMarker} on the
   #     desired `Gutter` instance.
+  # * __block__: A decoration that lies between the {TextEditorMarker} row and
+  #     the previous one.
   #
   # ## Arguments
   #
@@ -1457,8 +1447,8 @@ class TextEditor extends Model
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
-  #     corresponding view registered. Only applicable to the `gutter` and
-  #     `overlay` types.
+  #     corresponding view registered. Only applicable to the `gutter`,
+  #     `overlay` and `block` types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
   #     the head of the `TextEditorMarker`. Only applicable to the `line` and
   #     `line-number` types.

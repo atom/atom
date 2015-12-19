@@ -30,6 +30,12 @@ describe "TextEditorPresenter", ->
       presenter.getPreMeasurementState()
       presenter.getPostMeasurementState()
 
+    addBlockDecorationForScreenRow = (screenRow, item) ->
+      editor.decorateMarker(
+        editor.markScreenPosition([screenRow, 0], invalidate: "never"),
+        type: "block", item: item
+      )
+
     buildPresenterWithoutMeasurements = (params={}) ->
       lineTopIndex = new LineTopIndex({
         defaultLineHeight: editor.getLineHeightInPixels()
@@ -173,9 +179,9 @@ describe "TextEditorPresenter", ->
         it "computes each tile's height and scrollTop based on block decorations' height", ->
           presenter = buildPresenter(explicitHeight: 120, scrollTop: 0, lineHeight: 10, tileSize: 2)
 
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
-          blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
-          blockDecoration3 = editor.addBlockDecorationForScreenRow(5)
+          blockDecoration1 = addBlockDecorationForScreenRow(0)
+          blockDecoration2 = addBlockDecorationForScreenRow(3)
+          blockDecoration3 = addBlockDecorationForScreenRow(5)
           presenter.setBlockDecorationDimensions(blockDecoration1, 0, 1)
           presenter.setBlockDecorationDimensions(blockDecoration2, 0, 30)
           presenter.setBlockDecorationDimensions(blockDecoration3, 0, 40)
@@ -217,9 +223,9 @@ describe "TextEditorPresenter", ->
           expect(stateFn(presenter).tiles[10]).toBeUndefined()
 
         it "works correctly when soft wrapping is enabled", ->
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
-          blockDecoration2 = editor.addBlockDecorationForScreenRow(4, null)
-          blockDecoration3 = editor.addBlockDecorationForScreenRow(8, null)
+          blockDecoration1 = addBlockDecorationForScreenRow(0)
+          blockDecoration2 = addBlockDecorationForScreenRow(4)
+          blockDecoration3 = addBlockDecorationForScreenRow(8)
 
           presenter = buildPresenter(explicitHeight: 330, lineHeight: 10, tileSize: 2, baseCharacterWidth: 5)
 
@@ -586,9 +592,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(getState(presenter).verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
-          blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
-          blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
+          blockDecoration1 = addBlockDecorationForScreenRow(0)
+          blockDecoration2 = addBlockDecorationForScreenRow(3)
+          blockDecoration3 = addBlockDecorationForScreenRow(7)
 
           presenter.setBlockDecorationDimensions(blockDecoration1, 0, 35.8)
           presenter.setBlockDecorationDimensions(blockDecoration2, 0, 50.3)
@@ -760,9 +766,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expect(getState(presenter).verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
-          blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
-          blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
+          blockDecoration1 = addBlockDecorationForScreenRow(0)
+          blockDecoration2 = addBlockDecorationForScreenRow(3)
+          blockDecoration3 = addBlockDecorationForScreenRow(7)
 
           presenter.setBlockDecorationDimensions(blockDecoration1, 0, 35.8)
           presenter.setBlockDecorationDimensions(blockDecoration2, 0, 50.3)
@@ -1322,10 +1328,10 @@ describe "TextEditorPresenter", ->
 
           describe ".blockDecorations", ->
             it "contains all block decorations that are present before a line, both initially and when decorations change", ->
-              blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+              blockDecoration1 = addBlockDecorationForScreenRow(0)
               presenter = buildPresenter()
-              blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
-              blockDecoration3 = editor.addBlockDecorationForScreenRow(7)
+              blockDecoration2 = addBlockDecorationForScreenRow(3)
+              blockDecoration3 = addBlockDecorationForScreenRow(7)
 
               waitsForStateToUpdate presenter
               runs ->
@@ -1612,8 +1618,8 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 3)).toEqual {top: 5 * 10, left: 12 * 10, width: 10, height: 10}
           expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10, left: 4 * 10, width: 10, height: 10}
 
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
-          blockDecoration2 = editor.addBlockDecorationForScreenRow(1)
+          blockDecoration1 = addBlockDecorationForScreenRow(0)
+          blockDecoration2 = addBlockDecorationForScreenRow(1)
 
           waitsForStateToUpdate presenter, ->
             presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
@@ -2177,7 +2183,7 @@ describe "TextEditorPresenter", ->
           getState(presenter).content.blockDecorations[decoration.id]
 
         it "contains state for measured block decorations that are not visible when they are on ::mouseWheelScreenRow", ->
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
+          blockDecoration1 = addBlockDecorationForScreenRow(0)
           presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0, stoppedScrollingDelay: 200)
           getState(presenter) # flush pending state
           presenter.setBlockDecorationDimensions(blockDecoration1, 0, 0)
@@ -2196,7 +2202,7 @@ describe "TextEditorPresenter", ->
           expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
 
         it "invalidates all block decorations when content frame width, window size or bounding client rect change", ->
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(11, null)
+          blockDecoration1 = addBlockDecorationForScreenRow(11)
           presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0)
 
           expectValues stateForBlockDecoration(presenter, blockDecoration1), {
@@ -2240,10 +2246,10 @@ describe "TextEditorPresenter", ->
 
         it "contains state for block decorations, indicating the screen row they belong to both initially and when their markers move", ->
           item = {}
-          blockDecoration1 = editor.addBlockDecorationForScreenRow(0, item)
-          blockDecoration2 = editor.addBlockDecorationForScreenRow(4, item)
-          blockDecoration3 = editor.addBlockDecorationForScreenRow(4, item)
-          blockDecoration4 = editor.addBlockDecorationForScreenRow(10, item)
+          blockDecoration1 = addBlockDecorationForScreenRow(0, item)
+          blockDecoration2 = addBlockDecorationForScreenRow(4, item)
+          blockDecoration3 = addBlockDecorationForScreenRow(4, item)
+          blockDecoration4 = addBlockDecorationForScreenRow(10, item)
           presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0)
 
           expectValues stateForBlockDecoration(presenter, blockDecoration1), {
@@ -2825,11 +2831,11 @@ describe "TextEditorPresenter", ->
 
           describe ".blockDecorationsHeight", ->
             it "adds the sum of all block decorations' heights to the relevant line number state objects, both initially and when decorations change", ->
-              blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+              blockDecoration1 = addBlockDecorationForScreenRow(0)
               presenter = buildPresenter()
-              blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
-              blockDecoration3 = editor.addBlockDecorationForScreenRow(3)
-              blockDecoration4 = editor.addBlockDecorationForScreenRow(7)
+              blockDecoration2 = addBlockDecorationForScreenRow(3)
+              blockDecoration3 = addBlockDecorationForScreenRow(3)
+              blockDecoration4 = addBlockDecorationForScreenRow(7)
 
               presenter.setBlockDecorationDimensions(blockDecoration1, 0, 10)
               presenter.setBlockDecorationDimensions(blockDecoration2, 0, 20)
@@ -3119,13 +3125,13 @@ describe "TextEditorPresenter", ->
 
           it "updates when block decorations are added, changed or removed", ->
             # block decoration before decoration1
-            blockDecoration1 = editor.addBlockDecorationForScreenRow(0)
+            blockDecoration1 = addBlockDecorationForScreenRow(0)
             presenter.setBlockDecorationDimensions(blockDecoration1, 0, 3)
             # block decoration between decoration1 and decoration2
-            blockDecoration2 = editor.addBlockDecorationForScreenRow(3)
+            blockDecoration2 = addBlockDecorationForScreenRow(3)
             presenter.setBlockDecorationDimensions(blockDecoration2, 0, 5)
             # block decoration between decoration2 and decoration3
-            blockDecoration3 = editor.addBlockDecorationForScreenRow(10)
+            blockDecoration3 = addBlockDecorationForScreenRow(10)
             presenter.setBlockDecorationDimensions(blockDecoration3, 0, 7)
 
             decorationState = getContentForGutterWithName(presenter, 'test-gutter')
@@ -3375,9 +3381,9 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
-            blockDecoration1 = editor.addBlockDecorationForScreenRow(0, null)
-            blockDecoration2 = editor.addBlockDecorationForScreenRow(3, null)
-            blockDecoration3 = editor.addBlockDecorationForScreenRow(7, null)
+            blockDecoration1 = addBlockDecorationForScreenRow(0)
+            blockDecoration2 = addBlockDecorationForScreenRow(3)
+            blockDecoration3 = addBlockDecorationForScreenRow(7)
 
             presenter.setBlockDecorationDimensions(blockDecoration1, 0, 35.8)
             presenter.setBlockDecorationDimensions(blockDecoration2, 0, 50.3)

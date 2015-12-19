@@ -1655,7 +1655,10 @@ describe('TextEditorComponent', function () {
     function createBlockDecorationForScreenRowWith(screenRow, {className}) {
       let item = document.createElement("div")
       item.className = className || ""
-      let blockDecoration = editor.addBlockDecorationForScreenRow(screenRow, item)
+      let blockDecoration = editor.decorateMarker(
+        editor.markScreenPosition([screenRow, 0], invalidate: "never"),
+        type: "block", item: item
+      )
       return [item, blockDecoration]
     }
 
@@ -3616,7 +3619,10 @@ describe('TextEditorComponent', function () {
         item.style.width = "30px"
         item.style.height = "30px"
         item.className = "decoration-1"
-        editor.addBlockDecorationForScreenRow(0, item)
+        editor.decorateMarker(
+          editor.markScreenPosition([0, 0], invalidate: "never"),
+          type: "block", item: item
+        )
 
         await nextViewUpdatePromise()
 
