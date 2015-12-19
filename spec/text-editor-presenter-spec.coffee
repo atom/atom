@@ -180,27 +180,40 @@ describe "TextEditorPresenter", ->
           presenter.setBlockDecorationDimensions(blockDecoration2, 0, 30)
           presenter.setBlockDecorationDimensions(blockDecoration3, 0, 40)
 
-          expect(stateFn(presenter).tiles[0].height).toBe(20 + 1)
-          expect(stateFn(presenter).tiles[0].top).toBe(0)
-          expect(stateFn(presenter).tiles[2].height).toBe(20 + 30)
-          expect(stateFn(presenter).tiles[2].top).toBe(20 + 1)
-          expect(stateFn(presenter).tiles[4].height).toBe(20 + 40)
-          expect(stateFn(presenter).tiles[4].top).toBe(20 + 30 + 20 + 1)
-          expect(stateFn(presenter).tiles[6].height).toBe(20)
-          expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30) + 20 + 1)
+          expect(stateFn(presenter).tiles[0].height).toBe(2 * 10 + 1)
+          expect(stateFn(presenter).tiles[0].top).toBe(0 * 10)
+          expect(stateFn(presenter).tiles[2].height).toBe(2 * 10 + 30)
+          expect(stateFn(presenter).tiles[2].top).toBe(2 * 10 + 1)
+          expect(stateFn(presenter).tiles[4].height).toBe(2 * 10 + 40)
+          expect(stateFn(presenter).tiles[4].top).toBe(4 * 10 + 1 + 30)
+          expect(stateFn(presenter).tiles[6].height).toBe(2 * 10)
+          expect(stateFn(presenter).tiles[6].top).toBe(6 * 10 + 1 + 30 + 40)
           expect(stateFn(presenter).tiles[8]).toBeUndefined()
 
           presenter.setScrollTop(21)
 
           expect(stateFn(presenter).tiles[0]).toBeUndefined()
-          expect(stateFn(presenter).tiles[2].height).toBe(20 + 30)
-          expect(stateFn(presenter).tiles[2].top).toBe(0)
-          expect(stateFn(presenter).tiles[4].height).toBe(20 + 40)
-          expect(stateFn(presenter).tiles[4].top).toBe(30 + 20)
-          expect(stateFn(presenter).tiles[6].height).toBe(20)
-          expect(stateFn(presenter).tiles[6].top).toBe((20 + 40) + (20 + 30))
-          expect(stateFn(presenter).tiles[8].height).toBe(20)
-          expect(stateFn(presenter).tiles[8].top).toBe((20 + 40) + (20 + 30) + 20)
+          expect(stateFn(presenter).tiles[2].height).toBe(2 * 10 + 30)
+          expect(stateFn(presenter).tiles[2].top).toBe(2 * 10 + 1 - 21)
+          expect(stateFn(presenter).tiles[4].height).toBe(2 * 10 + 40)
+          expect(stateFn(presenter).tiles[4].top).toBe(4 * 10 + 1 + 30 - 21)
+          expect(stateFn(presenter).tiles[6].height).toBe(2 * 10)
+          expect(stateFn(presenter).tiles[6].top).toBe(6 * 10 + 1 + 30 + 40 - 21)
+          expect(stateFn(presenter).tiles[8].height).toBe(2 * 10)
+          expect(stateFn(presenter).tiles[8].top).toBe(8 * 10 + 1 + 30 + 40 - 21)
+          expect(stateFn(presenter).tiles[10]).toBeUndefined()
+
+          blockDecoration3.getMarker().setHeadScreenPosition([6, 0])
+
+          expect(stateFn(presenter).tiles[0]).toBeUndefined()
+          expect(stateFn(presenter).tiles[2].height).toBe(2 * 10 + 30)
+          expect(stateFn(presenter).tiles[2].top).toBe(2 * 10 + 1 - 21)
+          expect(stateFn(presenter).tiles[4].height).toBe(2 * 10)
+          expect(stateFn(presenter).tiles[4].top).toBe(4 * 10 + 1 + 30 - 21)
+          expect(stateFn(presenter).tiles[6].height).toBe(2 * 10 + 40)
+          expect(stateFn(presenter).tiles[6].top).toBe(6 * 10 + 1 + 30 - 21)
+          expect(stateFn(presenter).tiles[8].height).toBe(2 * 10)
+          expect(stateFn(presenter).tiles[8].top).toBe(8 * 10 + 1 + 30 + 40 - 21)
           expect(stateFn(presenter).tiles[10]).toBeUndefined()
 
         it "works correctly when soft wrapping is enabled", ->
@@ -2231,6 +2244,7 @@ describe "TextEditorPresenter", ->
           }
           expect(stateForBlockDecoration(presenter, blockDecoration4)).toBeUndefined()
 
+          blockDecoration3.getMarker().setHeadScreenPosition([5, 0])
           presenter.setScrollTop(90)
 
           expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
@@ -2241,7 +2255,7 @@ describe "TextEditorPresenter", ->
           }
           expectValues stateForBlockDecoration(presenter, blockDecoration3), {
             decoration: blockDecoration3
-            screenRow: 4
+            screenRow: 5
             isVisible: false
           }
           expectValues stateForBlockDecoration(presenter, blockDecoration4), {
