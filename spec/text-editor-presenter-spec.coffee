@@ -2201,6 +2201,51 @@ describe "TextEditorPresenter", ->
 
           expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
 
+        it "invalidates block decorations that intersect a change in the buffer", ->
+          blockDecoration1 = addBlockDecorationForScreenRow(9)
+          blockDecoration2 = addBlockDecorationForScreenRow(10)
+          blockDecoration3 = addBlockDecorationForScreenRow(11)
+          presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0)
+
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 9
+            isVisible: false
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration2), {
+            decoration: blockDecoration2
+            screenRow: 10
+            isVisible: false
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+            decoration: blockDecoration3
+            screenRow: 11
+            isVisible: false
+          }
+
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 10)
+          presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
+          presenter.setBlockDecorationDimensions(blockDecoration3, 0, 10)
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+          expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
+          expect(stateForBlockDecoration(presenter, blockDecoration3)).toBeUndefined()
+
+          editor.setSelectedScreenRange([[10, 0], [12, 0]])
+          editor.delete()
+          presenter.setScrollTop(0) # deleting the buffer causes the editor to autoscroll
+
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+          expectValues stateForBlockDecoration(presenter, blockDecoration2), {
+            decoration: blockDecoration2
+            screenRow: 10
+            isVisible: false
+          }
+          expectValues stateForBlockDecoration(presenter, blockDecoration3), {
+            decoration: blockDecoration3
+            screenRow: 10
+            isVisible: false
+          }
+
         it "invalidates all block decorations when content frame width, window size or bounding client rect change", ->
           blockDecoration1 = addBlockDecorationForScreenRow(11)
           presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0)
