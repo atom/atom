@@ -19,6 +19,7 @@
         path.join(process.env.ATOM_HOME, 'blob-store/')
       )
       NativeCompileCache.setCacheStore(blobStore)
+      NativeCompileCache.setV8Version(process.versions.v8)
       NativeCompileCache.install()
 
       // Normalize to make sure drive letter case is consistent on Windows
