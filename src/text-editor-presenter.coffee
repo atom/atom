@@ -29,8 +29,8 @@ class TextEditorPresenter
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
     @observedBlockDecorations = new Set()
-    @invalidatedBlockDecorations = new Set()
-    @invalidateAllBlockDecorations = false
+    @invalidatedDimensionsByBlockDecoration = new Set()
+    @invalidateAllBlockDecorationsDimensions = false
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -130,7 +130,8 @@ class TextEditorPresenter
     @shouldUpdateDecorations = true
 
   observeModel: ->
-    @disposables.add @model.onDidChange =>
+    @disposables.add @model.onDidChange ({start, end, screenDelta}) =>
+      @spliceBlockDecorationsInRange(start, end, screenDelta)
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
@@ -139,10 +140,6 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
     @disposables.add @model.onDidAddDecoration(@didAddBlockDecoration.bind(this))
-    @disposables.add @model.buffer.onDidChange ({oldRange, newRange}) =>
-      oldExtent = oldRange.getExtent()
-      newExtent = newRange.getExtent()
-      @lineTopIndex.splice(oldRange.start, oldExtent, newExtent)
 
     for decoration in @model.getDecorations({type: 'block'})
       this.didAddBlockDecoration(decoration)
@@ -990,7 +987,7 @@ class TextEditorPresenter
       @measurementsChanged()
 
   measurementsChanged: ->
-    @invalidateAllBlockDecorations = true
+    @invalidateAllBlockDecorationsDimensions = true
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
@@ -1048,16 +1045,16 @@ class TextEditorPresenter
     @blockDecorationsByScreenRow = {}
     visibleDecorationsByMarkerId = @model.decorationsForScreenRowRange(@getStartTileRow(), @getEndTileRow() + @tileSize - 1)
 
-    if @invalidateAllBlockDecorations
+    if @invalidateAllBlockDecorationsDimensions
       for decoration in @model.getDecorations(type: 'block')
-        @invalidatedBlockDecorations.add(decoration)
-      @invalidateAllBlockDecorations = false
+        @invalidatedDimensionsByBlockDecoration.add(decoration)
+      @invalidateAllBlockDecorationsDimensions = false
 
     for markerId, decorations of visibleDecorationsByMarkerId
       for decoration in decorations when decoration.isType('block')
         @updateBlockDecorationState(decoration, true)
 
-    @invalidatedBlockDecorations.forEach (decoration) =>
+    @invalidatedDimensionsByBlockDecoration.forEach (decoration) =>
       @updateBlockDecorationState(decoration, false)
 
     for decorationId, decorationState of @state.content.blockDecorations
@@ -1270,14 +1267,24 @@ class TextEditorPresenter
   setBlockDecorationDimensions: (decoration, width, height) ->
     @lineTopIndex.resizeBlock(decoration.getId(), height)
 
-    @invalidatedBlockDecorations.delete(decoration)
+    @invalidatedDimensionsByBlockDecoration.delete(decoration)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
   invalidateBlockDecorationDimensions: (decoration) ->
-    @invalidatedBlockDecorations.add(decoration)
+    @invalidatedDimensionsByBlockDecoration.add(decoration)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
+
+  spliceBlockDecorationsInRange: (start, end, screenDelta) ->
+    return if screenDelta is 0
+
+    oldExtent = Point(end - start, Infinity)
+    newExtent = Point(end - start + screenDelta, 0)
+    invalidatedBlockDecorationIds = @lineTopIndex.splice(Point(start, 0), oldExtent, newExtent, true)
+    invalidatedBlockDecorationIds?.forEach (blockDecorationId) =>
+      decoration = @model.decorationForId(blockDecorationId)
+      @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition())
 
   didAddBlockDecoration: (decoration) ->
     return if not decoration.isType('block') or @observedBlockDecorations.has(decoration)
@@ -1292,12 +1299,7 @@ class TextEditorPresenter
       didDestroyDisposable.dispose()
       @didDestroyBlockDecoration(decoration)
 
-    @lineTopIndex.insertBlock(
-      decoration.getId(),
-      decoration.getMarker().getHeadBufferPosition(),
-      true,
-      0
-    )
+    @lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition(), true, 0)
 
     @observedBlockDecorations.add(decoration)
     @invalidateBlockDecorationDimensions(decoration)
@@ -1311,7 +1313,7 @@ class TextEditorPresenter
     # change.
     return if markerEvent.textChanged
 
-    @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadBufferPosition())
+    @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition())
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
@@ -1320,7 +1322,7 @@ class TextEditorPresenter
 
     @lineTopIndex.removeBlock(decoration.getId())
     @observedBlockDecorations.delete(decoration)
-    @invalidatedBlockDecorations.delete(decoration)
+    @invalidatedDimensionsByBlockDecoration.delete(decoration)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
