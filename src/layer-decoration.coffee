@@ -48,7 +48,7 @@ class LayerDecoration
 
   # Essential: Override the decoration properties for a specific marker.
   #
-  # * `marker` The {TextEditorMarker} or {Marker} for which to override
+  # * `marker` The {DisplayMarker} or {Marker} for which to override
   #   properties.
   # * `properties` An {Object} containing properties to apply to this marker.
   #   Pass `null` to clear the override.

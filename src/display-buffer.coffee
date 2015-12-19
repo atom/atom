@@ -8,7 +8,6 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 LayerDecoration = require './layer-decoration'
-TextEditorMarkerLayer = require './text-editor-marker-layer'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -54,9 +53,9 @@ class DisplayBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
+    @displayLayer = @buffer.addDisplayLayer({tabLength: @getTabLength()})
     @charWidthsByScope = {}
-    @defaultMarkerLayer = new TextEditorMarkerLayer(this, @buffer.getDefaultMarkerLayer(), true)
-    @customMarkerLayersById = {}
+    @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
@@ -835,17 +834,17 @@ class DisplayBuffer extends Model
   decorationsForMarkerId: (markerId) ->
     @decorationsByMarkerId[markerId]
 
-  # Retrieves a {TextEditorMarker} based on its id.
+  # Retrieves a {DisplayMarker} based on its id.
   #
   # id - A {Number} representing a marker id
   #
-  # Returns the {TextEditorMarker} (if it exists).
+  # Returns the {DisplayMarker} (if it exists).
   getMarker: (id) ->
     @defaultMarkerLayer.getMarker(id)
 
   # Retrieves the active markers in the buffer.
   #
-  # Returns an {Array} of existing {TextEditorMarker}s.
+  # Returns an {Array} of existing {DisplayMarker}s.
   getMarkers: ->
     @defaultMarkerLayer.getMarkers()
 
@@ -855,7 +854,7 @@ class DisplayBuffer extends Model
   # Public: Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {TextEditorMarker} constructor
+  # options - Options to pass to the {DisplayMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenRange: (screenRange, options) ->
@@ -864,7 +863,7 @@ class DisplayBuffer extends Model
   # Public: Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {TextEditorMarker} constructor
+  # options - Options to pass to the {DisplayMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferRange: (bufferRange, options) ->
@@ -873,7 +872,7 @@ class DisplayBuffer extends Model
   # Public: Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {TextEditorMarker} constructor
+  # options - Options to pass to the {DisplayMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
@@ -882,7 +881,7 @@ class DisplayBuffer extends Model
   # Public: Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {TextEditorMarker} constructor
+  # options - Options to pass to the {DisplayMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
@@ -892,7 +891,7 @@ class DisplayBuffer extends Model
   #
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
-  # Returns a {TextEditorMarker} or null
+  # Returns a {DisplayMarker} or null
   findMarker: (params) ->
     @defaultMarkerLayer.findMarkers(params)[0]
 
@@ -913,19 +912,15 @@ class DisplayBuffer extends Model
   #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
   #     returns markers contained within this range.
   #
-  # Returns an {Array} of {TextEditorMarker}s
+  # Returns an {Array} of {DisplayMarker}s
   findMarkers: (params) ->
     @defaultMarkerLayer.findMarkers(params)
 
   addMarkerLayer: (options) ->
-    bufferLayer = @buffer.addMarkerLayer(options)
-    @getMarkerLayer(bufferLayer.id)
+    @displayLayer.addMarkerLayer(options)
 
   getMarkerLayer: (id) ->
-    if layer = @customMarkerLayersById[id]
-      layer
-    else if bufferLayer = @buffer.getMarkerLayer(id)
-      @customMarkerLayersById[id] = new TextEditorMarkerLayer(this, bufferLayer)
+    @displayLayer.getMarkerLayer(id)
 
   getDefaultMarkerLayer: -> @defaultMarkerLayer
 

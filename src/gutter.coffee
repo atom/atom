@@ -71,13 +71,13 @@ class Gutter
   isVisible: ->
     @visible
 
-  # Essential: Add a decoration that tracks a {TextEditorMarker}. When the marker moves,
+  # Essential: Add a decoration that tracks a {DisplayMarker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
   # ## Arguments
   #
-  # * `marker` A {TextEditorMarker} you want this decoration to follow.
+  # * `marker` A {DisplayMarker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration. It is passed
   #   to {TextEditor::decorateMarker} as its `decorationParams` and so supports
   #   all options documented there.

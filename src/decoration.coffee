@@ -11,7 +11,7 @@ translateDecorationParamsOldToNew = (decorationParams) ->
     decorationParams.gutterName = 'line-number'
   decorationParams
 
-# Essential: Represents a decoration that follows a {TextEditorMarker}. A decoration is
+# Essential: Represents a decoration that follows a {DisplayMarker}. A decoration is
 # basically a visual representation of a marker. It allows you to add CSS
 # classes to line numbers in the gutter, lines, and add selection-line regions
 # around marked ranges of text.
@@ -25,7 +25,7 @@ translateDecorationParamsOldToNew = (decorationParams) ->
 # decoration = editor.decorateMarker(marker, {type: 'line', class: 'my-line-class'})
 # ```
 #
-# Best practice for destroying the decoration is by destroying the {TextEditorMarker}.
+# Best practice for destroying the decoration is by destroying the {DisplayMarker}.
 #
 # ```coffee
 # marker.destroy()
@@ -72,7 +72,7 @@ class Decoration
 
   # Essential: Destroy this marker.
   #
-  # If you own the marker, you should use {TextEditorMarker::destroy} which will destroy
+  # If you own the marker, you should use {DisplayMarker::destroy} which will destroy
   # this decoration.
   destroy: ->
     return if @destroyed

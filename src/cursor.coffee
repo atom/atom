@@ -9,7 +9,7 @@ EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
 # where text can be inserted.
 #
 # Cursors belong to {TextEditor}s and have some metadata attached in the form
-# of a {TextEditorMarker}.
+# of a {DisplayMarker}.
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -129,7 +129,7 @@ class Cursor extends Model
   Section: Cursor Position Details
   ###
 
-  # Public: Returns the underlying {TextEditorMarker} for the cursor.
+  # Public: Returns the underlying {DisplayMarker} for the cursor.
   # Useful with overlay {Decoration}s.
   getMarker: -> @marker
 
@@ -265,7 +265,7 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column}, clip: 'backward')
+      @setScreenPosition({row, column}, clipDirection: 'backward')
 
   # Public: Moves the cursor right one screen column.
   #
@@ -292,7 +292,7 @@ class Cursor extends Model
         columnsRemainingInLine = rowLength
 
       column = column + columnCount
-      @setScreenPosition({row, column}, clip: 'forward', wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      @setScreenPosition({row, column}, clipDirection: 'forward')
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
