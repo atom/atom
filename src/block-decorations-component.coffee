@@ -39,11 +39,14 @@ class BlockDecorationsComponent
 
   measureBlockDecorations: ->
     for decorationId, blockDecorationNode of @blockDecorationNodesById
+      style = getComputedStyle(blockDecorationNode)
       decoration = @newState.blockDecorations[decorationId].decoration
+      marginBottom = parseInt(style.marginBottom) ? 0
+      marginTop = parseInt(style.marginTop) ? 0
       @presenter.setBlockDecorationDimensions(
         decoration,
         blockDecorationNode.offsetWidth,
-        blockDecorationNode.offsetHeight
+        blockDecorationNode.offsetHeight + marginTop + marginBottom
       )
 
   createAndAppendBlockDecorationNode: (id) ->

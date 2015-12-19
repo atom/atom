@@ -1656,8 +1656,8 @@ describe('TextEditorComponent', function () {
       let item = document.createElement("div")
       item.className = className || ""
       let blockDecoration = editor.decorateMarker(
-        editor.markScreenPosition([screenRow, 0], invalidate: "never"),
-        type: "block", item: item
+        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        {type: "block", item: item}
       )
       return [item, blockDecoration]
     }
@@ -1823,6 +1823,28 @@ describe('TextEditorComponent', function () {
       expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
       expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
       expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+    })
+
+    it('does not render highlights for off-screen lines until they come on-screen', async function () {
+      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      await nextViewUpdatePromise()
+
+      let [item, blockDecoration] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
+      atom.styles.addStyleSheet(
+        'atom-text-editor .decoration-1 { width: 30px; height: 30px; margin-top: 10px; margin-bottom: 5px; }',
+         {context: 'atom-text-editor'}
+      )
+
+      await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
+      await nextAnimationFramePromise() // applies the changes
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 30 + 10 + 5 + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
     })
   })
 
@@ -3620,8 +3642,8 @@ describe('TextEditorComponent', function () {
         item.style.height = "30px"
         item.className = "decoration-1"
         editor.decorateMarker(
-          editor.markScreenPosition([0, 0], invalidate: "never"),
-          type: "block", item: item
+          editor.markScreenPosition([0, 0], {invalidate: "never"}),
+          {type: "block", item: item}
         )
 
         await nextViewUpdatePromise()
