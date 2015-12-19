@@ -1286,10 +1286,10 @@ class TextEditorPresenter
 
     oldExtent = Point(end - start, Infinity)
     newExtent = Point(end - start + screenDelta, 0)
-    invalidatedBlockDecorationIds = @lineTopIndex.splice(Point(start, 0), oldExtent, newExtent, true)
-    invalidatedBlockDecorationIds?.forEach (blockDecorationId) =>
-      decoration = @model.decorationForId(blockDecorationId)
-      @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition())
+    invalidatedBlockDecorationIds = @lineTopIndex.splice(Point(start, 0), oldExtent, newExtent)
+    invalidatedBlockDecorationIds.forEach (id) =>
+      newScreenPosition = @model.decorationForId(id).getMarker().getHeadScreenPosition()
+      @lineTopIndex.moveBlock(id, newScreenPosition)
 
   didAddBlockDecoration: (decoration) ->
     return if not decoration.isType('block') or @observedBlockDecorations.has(decoration)
