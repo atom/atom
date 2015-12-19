@@ -2195,6 +2195,49 @@ describe "TextEditorPresenter", ->
 
           expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
 
+        it "invalidates all block decorations when content frame width, window size or bounding client rect change", ->
+          blockDecoration1 = editor.addBlockDecorationForScreenRow(11, null)
+          presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0)
+
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 11
+            isVisible: false
+          }
+
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 10)
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+
+          presenter.setBoundingClientRect({top: 0, left: 0, width: 50, height: 30})
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 11
+            isVisible: false
+          }
+
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 20)
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+
+          presenter.setContentFrameWidth(100)
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 11
+            isVisible: false
+          }
+
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 20)
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+
+          presenter.setWindowSize(100, 200)
+          expectValues stateForBlockDecoration(presenter, blockDecoration1), {
+            decoration: blockDecoration1
+            screenRow: 11
+            isVisible: false
+          }
+
+          presenter.setBlockDecorationDimensions(blockDecoration1, 0, 20)
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
+
         it "contains state for block decorations, indicating the screen row they belong to both initially and when their markers move", ->
           item = {}
           blockDecoration1 = editor.addBlockDecorationForScreenRow(0, item)

@@ -921,12 +921,15 @@ class TextEditorPresenter
       @editorWidthInChars = null
       @updateScrollbarDimensions()
       @updateClientWidth()
+      @invalidateAllBlockDecorationsDimensions = true
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
   setBoundingClientRect: (boundingClientRect) ->
     unless @clientRectsEqual(@boundingClientRect, boundingClientRect)
       @boundingClientRect = boundingClientRect
+      @invalidateAllBlockDecorationsDimensions = true
+      @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
   clientRectsEqual: (clientRectA, clientRectB) ->
@@ -940,6 +943,8 @@ class TextEditorPresenter
     if @windowWidth isnt width or @windowHeight isnt height
       @windowWidth = width
       @windowHeight = height
+      @invalidateAllBlockDecorationsDimensions = true
+      @shouldUpdateDecorations = true
 
       @emitDidUpdateState()
 

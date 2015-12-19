@@ -12,14 +12,17 @@ class BlockDecorationsComponent
     @domNode = @domElementPool.buildElement("content")
     @domNode.setAttribute("select", ".atom--invisible-block-decoration")
     @domNode.style.visibility = "hidden"
-    @domNode.style.position = "absolute"
 
   getDomNode: ->
     @domNode
 
   updateSync: (state) ->
     @newState = state.content
-    @oldState ?= {blockDecorations: {}}
+    @oldState ?= {blockDecorations: {}, width: 0}
+
+    if @newState.width isnt @oldState.width
+      @domNode.style.width = @newState.width + "px"
+      @oldState.width = @newState.width
 
     for id, blockDecorationState of @oldState.blockDecorations
       unless @newState.blockDecorations.hasOwnProperty(id)

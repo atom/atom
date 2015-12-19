@@ -89,7 +89,7 @@ class TextEditorComponent
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     if @blockDecorationsComponent?
-      @scrollViewNode.appendChild(@blockDecorationsComponent.getDomNode())
+      @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
 
     @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
