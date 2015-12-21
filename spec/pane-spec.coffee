@@ -131,10 +131,10 @@ describe "Pane", ->
       expect(-> pane.addItem(1)).toThrow()
 
   describe "::activateItem(item, options)", ->
-    pane = null
+    [pane, itemB] = []
 
     beforeEach ->
-      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
+      pane = new Pane(paneParams(items: [new Item("A"), itemB = new Item("B")]))
 
     it "changes the active item to the current item", ->
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
@@ -161,7 +161,7 @@ describe "Pane", ->
         expect(pane.getActiveItem()).toBe item
         expect(pane.isActiveItemPending()).toBe true
 
-      it "replaces an existing pending item", ->
+      it "replaces the item when new items are activated", ->
         itemC = new Item("C")
         itemD = new Item("D")
         pane.activateItem(itemC, pending: true)
@@ -177,6 +177,13 @@ describe "Pane", ->
         expect(pane.getActiveItem()).toBe itemD
         expect(pane.getActiveItemIndex()).toBe 1
         expect(pane.isActiveItemPending()).toBe true
+
+        pane.activateItem(itemB)
+
+        expect(itemD in pane.getItems()).toBe false
+        expect(pane.getActiveItem()).toBe itemB
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe false
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
