@@ -130,7 +130,7 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
-  describe "::activateItem(item)", ->
+  describe "::activateItem(item, options)", ->
     pane = null
 
     beforeEach ->
@@ -152,6 +152,31 @@ describe "Pane", ->
       pane.onDidChangeActiveItem (item) -> observed.push(item)
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
+
+    describe "when the `pending` option is true", ->
+      it "reports the new active item as pending", ->
+        item = new Item("C")
+        pane.activateItem(item, pending: true)
+        expect(item in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe item
+        expect(pane.isActiveItemPending()).toBe true
+
+      it "replaces an existing pending item", ->
+        itemC = new Item("C")
+        itemD = new Item("D")
+        pane.activateItem(itemC, pending: true)
+
+        expect(itemC in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemC
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe true
+
+        pane.activateItem(itemD, pending: true)
+
+        expect(itemC in pane.getItems()).toBe false
+        expect(pane.getActiveItem()).toBe itemD
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe true
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->

@@ -39,6 +39,7 @@ class Pane extends Model
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
     @items = []
+    @activeItemPending = false
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
@@ -341,10 +342,21 @@ class Pane extends Model
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
-  activateItem: (item) ->
+  activateItem: (item, options) ->
     if item?
-      @addItem(item, @getActiveItemIndex() + 1, false)
+      if @activeItemPending
+        index = @getActiveItemIndex()
+        @activeItemPending = false
+        @destroyActiveItem()
+      else
+        index = @getActiveItemIndex() + 1
+      @addItem(item, index, false)
       @setActiveItem(item)
+      @activeItemPending = true if options?.pending
+
+  isActiveItemPending: -> @activeItemPending
+
+  onDidConfirmPendingItem: ->
 
   # Public: Add the given item to the pane.
   #
