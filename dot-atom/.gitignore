@@ -1,6 +1,6 @@
-storage
+blob-store
 compile-cache
 dev
-blob-store
-.npm
+storage
 .node-gyp
+.npm
