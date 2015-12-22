@@ -446,7 +446,7 @@ class Workspace extends Model
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
     activateItem = options.activateItem ? true
-    pending = options.pending ? null
+    pending = options.pending ? false
 
     uri = @project.resolvePath(uri)
     item = @getActivePane().itemForURI(uri)
@@ -462,7 +462,7 @@ class Workspace extends Model
   openURIInPane: (uri, pane, options={}) ->
     activatePane = options.activatePane ? true
     activateItem = options.activateItem ? true
-    pending = options.pending ? null
+    pending = options.pending ? false
 
     if uri?
       item = pane.itemForURI(uri)
