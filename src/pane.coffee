@@ -347,8 +347,10 @@ class Pane extends Model
       if @activeItemPending
         index = @getActiveItemIndex()
         @activeItemPending = false
-        @confirmPendingItem(item, index) if @getActiveItem() is item
-        @destroyActiveItem()
+        if @getActiveItem() is item
+          @confirmPendingItem(item, index)
+        else
+          @destroyActiveItem()
       else
         index = @getActiveItemIndex() + 1
       @addItem(item, index, false)
@@ -373,7 +375,7 @@ class Pane extends Model
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
-    # throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
+    throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
