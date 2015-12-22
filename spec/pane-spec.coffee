@@ -199,8 +199,11 @@ describe "Pane", ->
         pane.onDidConfirmPendingItem (event) -> events.push(event)
         pane.activateItem(itemC, pending: true)
         pane.activateItem(itemC)
+        expect(itemC in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemC
+        expect(pane.getActiveItemIndex()).toBe 1
         expect(events).toEqual [{item: itemC, index: 1}]
-
+        expect(pane.isActiveItemPending()).toBe false
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
