@@ -6,7 +6,7 @@ cloneObject = (object) ->
 module.exports = ({blobStore}) ->
   {crashReporter, remote} = require 'electron'
   # Start the crash reporter before anything else.
-  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
   exitWithStatusCode = (status) ->
     remote.app.emit('will-quit')

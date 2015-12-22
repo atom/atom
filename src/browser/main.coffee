@@ -53,7 +53,7 @@ handleStartupEventWithSquirrel = ->
   SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
 setupCrashReporter = ->
-  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
 setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
