@@ -3,6 +3,7 @@
 var fs = require('fs');
 var verifyRequirements = require('./utils/verify-requirements');
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
+var shellEscape = require('./utils/shell-escape.js');
 var path = require('path');
 
 // Executes an array of commands one by one.
@@ -34,8 +35,8 @@ function bootstrap() {
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
-  var initialNpmCommand = fs.existsSync(npmPath) ? npmPath : 'npm';
-  var npmFlags = ' --userconfig=' + path.resolve(__dirname, '..', 'build', '.npmrc') + ' ';
+  var initialNpmCommand = fs.existsSync(npmPath) ? shellEscape(npmPath) : 'npm';
+  var npmFlags = ' --userconfig=' + shellEscape(path.resolve(__dirname, '..', 'build', '.npmrc')) + ' ';
 
   var packagesToDedupe = [
     'abbrev',
@@ -66,10 +67,10 @@ function bootstrap() {
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
-  var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
+  var apmInstallCommand = shellEscape(npmPath) + npmFlags + '--target=0.10.35 ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
-  var moduleInstallCommand = apmPath + ' install' + apmFlags;
-  var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
+  var moduleInstallCommand = shellEscape(apmPath) + ' install' + apmFlags;
+  var dedupeApmCommand = shellEscape(apmPath) + ' dedupe' + apmFlags;
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
@@ -96,7 +97,7 @@ function bootstrap() {
       message: 'Installing apm...',
       options: apmInstallOptions
     },
-    apmPath + ' clean' + apmFlags,
+    shellEscape(apmPath) + ' clean' + apmFlags,
     moduleInstallCommand,
     dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
   ];
