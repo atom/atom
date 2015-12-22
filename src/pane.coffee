@@ -347,6 +347,7 @@ class Pane extends Model
       if @activeItemPending
         index = @getActiveItemIndex()
         @activeItemPending = false
+        @confirmPendingItem(item, index) if @getActiveItem() is item
         @destroyActiveItem()
       else
         index = @getActiveItemIndex() + 1
@@ -356,7 +357,11 @@ class Pane extends Model
 
   isActiveItemPending: -> @activeItemPending
 
-  onDidConfirmPendingItem: ->
+  onDidConfirmPendingItem: (callback) ->
+    @emitter.on 'did-confirm-pending-item', callback
+
+  confirmPendingItem: (item, index) ->
+    @emitter.emit 'did-confirm-pending-item', {item, index}
 
   # Public: Add the given item to the pane.
   #
@@ -368,7 +373,7 @@ class Pane extends Model
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
-    throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
+    # throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
