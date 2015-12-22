@@ -180,7 +180,6 @@ describe "Pane", ->
 
         pane.activateItem(itemD, pending: true)
 
-        expect(itemC in pane.getItems()).toBe false
         expect(pane.getActiveItem()).toBe itemD
         expect(pane.getActiveItemIndex()).toBe 1
         expect(pane.isActiveItemPending()).toBe true
