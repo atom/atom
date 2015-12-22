@@ -46,7 +46,7 @@ class AtomApplication
     client = net.connect {path: options.socketPath}, ->
       client.write JSON.stringify(options), ->
         client.end()
-        app.terminate()
+        app.quit()
 
     client.on 'error', createAtomApplication
 
