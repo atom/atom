@@ -446,6 +446,7 @@ class Workspace extends Model
     {initialLine, initialColumn} = options
     activatePane = options.activatePane ? true
     activateItem = options.activateItem ? true
+    pending = options.pending ? null
 
     uri = @project.resolvePath(uri)
     item = @getActivePane().itemForURI(uri)
@@ -453,7 +454,7 @@ class Workspace extends Model
       item ?= opener(uri, options) for opener in @getOpeners() when not item
     item ?= @project.openSync(uri, {initialLine, initialColumn})
 
-    @getActivePane().activateItem(item) if activateItem
+    @getActivePane().activateItem(item, {pending}) if activateItem
     @itemOpened(item)
     @getActivePane().activate() if activatePane
     item
@@ -461,6 +462,7 @@ class Workspace extends Model
   openURIInPane: (uri, pane, options={}) ->
     activatePane = options.activatePane ? true
     activateItem = options.activateItem ? true
+    pending = options.pending ? null
 
     if uri?
       item = pane.itemForURI(uri)
@@ -484,7 +486,7 @@ class Workspace extends Model
     Promise.resolve(item)
       .then (item) =>
         @itemOpened(item)
-        pane.activateItem(item) if activateItem
+        pane.activateItem(item, {pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
