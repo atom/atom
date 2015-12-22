@@ -381,6 +381,32 @@ describe "Workspace", ->
               expect(workspace.paneContainer.root.children[0]).toBe pane1
               expect(workspace.paneContainer.root.children[1]).toBe pane2
 
+    describe "when the 'pending' option is true", ->
+      it "opens the new item in the existing pane with pending status", ->
+        editor = null
+        pane = workspace.getActivePane()
+
+        waitsForPromise ->
+          workspace.open('a', pending: true).then (o) -> editor = o
+
+        runs ->
+          expect(workspace.getActivePane()).toBe pane
+          expect(pane.items).toEqual [editor]
+          expect(pane.isActiveItemPending()).toBe true
+
+    describe "when the 'pending' option is NOT true", ->
+      it "opens the new item in the existing pane WITHOUT pending status", ->
+        editor = null
+        pane = workspace.getActivePane()
+
+        waitsForPromise ->
+          workspace.open('a').then (o) -> editor = o
+
+        runs ->
+          expect(workspace.getActivePane()).toBe pane
+          expect(pane.items).toEqual [editor]
+          expect(pane.isActiveItemPending()).toBe false
+
     describe "when an initialLine and initialColumn are specified", ->
       it "moves the cursor to the indicated location", ->
         waitsForPromise ->
