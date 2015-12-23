@@ -191,8 +191,8 @@ describe "Pane", ->
         expect(pane.getActiveItemIndex()).toBe 1
         expect(pane.isActiveItemPending()).toBe false
 
-    describe "when pending item is re-activated without `pending: true`", ->
-      it "invokes ::onDidConfirmPendingItem() observers", ->
+    describe "when pending item is re-activated", ->
+      it "invokes ::onDidConfirmPendingItem() observers if `pending` is not true", ->
         itemC = new Item("C")
         events = []
         pane.onDidConfirmPendingItem (event) -> events.push(event)
@@ -203,6 +203,18 @@ describe "Pane", ->
         expect(pane.getActiveItemIndex()).toBe 1
         expect(events).toEqual [{item: itemC, index: 1}]
         expect(pane.isActiveItemPending()).toBe false
+
+      it "does not invoke ::onDidConfirmPendingItem() observers if `pending` is true", ->
+        itemD = new Item("D")
+        events = []
+        pane.onDidConfirmPendingItem (event) -> events.push(event)
+        pane.activateItem(itemD, pending: true)
+        pane.activateItem(itemD, pending: true)
+        expect(itemD in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemD
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(events).toEqual []
+        expect(pane.isActiveItemPending()).toBe true
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->

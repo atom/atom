@@ -348,7 +348,7 @@ class Pane extends Model
         index = @getActiveItemIndex()
         @activeItemPending = false
         if @getActiveItem() is item
-          @confirmPendingItem(item, index)
+          @confirmPendingItem(item, index) unless options?.pending
         else
           @destroyActiveItem()
       else
