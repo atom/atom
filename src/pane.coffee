@@ -355,7 +355,7 @@ class Pane extends Model
       @addItem(item, index, false)
       @setActiveItem(item)
       if options?.pending
-        @activeItemPending = true
+        @activatePendingItem(item, index)
         @watchPendingItem()
 
   watchPendingItem: () ->
@@ -372,6 +372,13 @@ class Pane extends Model
   confirmPendingItem: (item, index) ->
     @activeItemPending = false
     @emitter.emit 'did-confirm-pending-item', {item, index}
+
+  onDidActivatePendingItem: (callback) ->
+    @emitter.on 'did-activate-pending-item', callback
+
+  activatePendingItem: (item, index) ->
+    @activeItemPending = true
+    @emitter.emit 'did-activate-pending-item',{item, index}
 
   # Public: Add the given item to the pane.
   #
