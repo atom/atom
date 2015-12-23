@@ -356,9 +356,13 @@ class Pane extends Model
       @setActiveItem(item)
       if options?.pending
         @activeItemPending = true
-        if typeof item.onDidChangeModified is 'function'
-          @itemSubscriptions.set item, item.onDidChangeModified =>
-            @confirmPendingItem(item, index) if item.isModified()
+        @watchPendingItem()
+
+  watchPendingItem: () ->
+    if @activeItemPending and editor = @getActiveEditor()
+      if typeof editor.onDidChangeModified is 'function'
+        @itemSubscriptions.set editor, editor.onDidChangeModified =>
+          @confirmPendingItem(editor, @getActiveItemIndex()) if editor.isModified()
 
   isActiveItemPending: -> @activeItemPending
 
