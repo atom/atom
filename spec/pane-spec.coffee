@@ -3,6 +3,7 @@
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
+TextEditor = require '../src/text-editor'
 
 describe "Pane", ->
   [confirm, showSaveDialog, deserializerDisposable] = []
@@ -153,7 +154,7 @@ describe "Pane", ->
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
 
-    describe "when the `pending` option is true", ->
+    fdescribe "when the `pending` option is true", ->
       it "reports the new active item as pending", ->
         item = new Item("C")
         pane.activateItem(item, pending: true)
@@ -191,7 +192,7 @@ describe "Pane", ->
         expect(pane.getActiveItemIndex()).toBe 1
         expect(pane.isActiveItemPending()).toBe false
 
-    describe "when pending item is re-activated", ->
+    fdescribe "when pending item is re-activated", ->
       it "invokes ::onDidConfirmPendingItem() observers if `pending` is not true", ->
         itemC = new Item("C")
         events = []
@@ -215,6 +216,26 @@ describe "Pane", ->
         expect(pane.getActiveItemIndex()).toBe 1
         expect(events).toEqual []
         expect(pane.isActiveItemPending()).toBe true
+
+    fdescribe "when pending item's buffer content is changed", ->
+      it "invokes ::onDidConfirmPendingItem() observers", ->
+        itemC = new Item("C")
+        events = []
+        pane.onDidConfirmPendingItem (event) -> events.push(event)
+        pane.activateItem(itemC, pending: true)
+        console.log 'active item', pane.getActiveItem()
+        console.log '####', pane.getActiveItem() instanceof TextEditor
+        expect(itemC in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemC
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(events).toEqual [{item: itemC, index: 1}]
+        expect(pane.isActiveItemPending()).toBe false
+
+
+    fdescribe "when pending item is saved or destroyed", ->
+      it "invokes ::onDidConfirmPendingItem() observers", ->
+        # handle saved
+        # handle destroyed
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
