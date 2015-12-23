@@ -346,7 +346,6 @@ class Pane extends Model
     if item?
       if @activeItemPending
         index = @getActiveItemIndex()
-        @activeItemPending = false
         if @getActiveItem() is item
           @confirmPendingItem(item, index) unless options?.pending
         else
@@ -363,6 +362,7 @@ class Pane extends Model
     @emitter.on 'did-confirm-pending-item', callback
 
   confirmPendingItem: (item, index) ->
+    @activeItemPending = false
     @emitter.emit 'did-confirm-pending-item', {item, index}
 
   # Public: Add the given item to the pane.
@@ -442,6 +442,7 @@ class Pane extends Model
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
+    @activeItemPending = false if @activeItemPending
     @destroyItem(@activeItem)
     false
 
