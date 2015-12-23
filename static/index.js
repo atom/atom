@@ -54,7 +54,7 @@
   }
 
   function handleSetupError (error) {
-    var currentWindow = require('remote').getCurrentWindow()
+    var currentWindow = require('electron').remote.getCurrentWindow()
     currentWindow.setSize(800, 600)
     currentWindow.center()
     currentWindow.show()
@@ -71,9 +71,10 @@
     ModuleCache.add(loadSettings.resourcePath)
 
     // Start the crash reporter before anything else.
-    require('crash-reporter').start({
+    require('electron').crashReporter.start({
       productName: 'Atom',
       companyName: 'GitHub',
+      submitURL: 'http://54.249.141.255:1127/post',
       // By explicitly passing the app version here, we could save the call
       // of "require('remote').require('app').getVersion()".
       extra: {_version: loadSettings.appVersion}
@@ -124,7 +125,7 @@
       }
     }
 
-    var currentWindow = require('remote').getCurrentWindow()
+    var currentWindow = require('electron').remote.getCurrentWindow()
     if (currentWindow.devToolsWebContents) {
       profile()
     } else {
