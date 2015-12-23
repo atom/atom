@@ -3,7 +3,6 @@
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
-TextEditor = require '../src/text-editor'
 
 describe "Pane", ->
   [confirm, showSaveDialog, deserializerDisposable] = []
