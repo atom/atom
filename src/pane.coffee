@@ -354,7 +354,11 @@ class Pane extends Model
         index = @getActiveItemIndex() + 1
       @addItem(item, index, false)
       @setActiveItem(item)
-      @activeItemPending = true if options?.pending
+      if options?.pending
+        @activeItemPending = true
+        if typeof item.onDidChangeModified is 'function'
+          @itemSubscriptions.set item, item.onDidChangeModified =>
+            @confirmPendingItem(item, index) if item.isModified()
 
   isActiveItemPending: -> @activeItemPending
 
