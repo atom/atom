@@ -337,7 +337,8 @@ class Pane extends Model
   #
   # * `index` {Number}
   activateItemAtIndex: (index) ->
-    @activateItem(@itemAtIndex(index))
+    item = @itemAtIndex(index) or @getActiveItem()
+    @setActiveItem(item)
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
@@ -370,7 +371,7 @@ class Pane extends Model
 
     @items.splice(index, 0, item)
     @emitter.emit 'did-add-item', {item, index, moved}
-    @setActiveItem(item) unless @getActiveItem()
+    @setActiveItem(item) unless @getActiveItem()?
     item
 
   # Public: Add the given items to the pane.
