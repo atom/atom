@@ -343,7 +343,7 @@ class Pane extends Model
   # the pane's view.
   activateItem: (item) ->
     if item?
-      if @activeItem?.isPending()
+      if @activeItem?.isPending?()
         index = @getActiveItemIndex()
         @destroyActiveItem()
       else
