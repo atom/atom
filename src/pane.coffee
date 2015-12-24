@@ -345,7 +345,7 @@ class Pane extends Model
     if item?
       if @activeItem?.isPending?()
         index = @getActiveItemIndex()
-        @destroyActiveItem()
+        @destroyActiveItem() unless item is @activeItem
       else
         index = @getActiveItemIndex() + 1
       @addItem(item, index, false)
@@ -580,7 +580,6 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
     throw new Error("Pane has been destroyed") if @isDestroyed()
-
     @container?.setActivePane(this)
     @emitter.emit 'did-activate'
 
