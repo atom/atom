@@ -337,7 +337,7 @@ class Pane extends Model
   #
   # * `index` {Number}
   activateItemAtIndex: (index) ->
-    @setActiveItem(@itemAtIndex(index))
+    @activateItem(@itemAtIndex(index))
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
@@ -349,6 +349,7 @@ class Pane extends Model
       else
         index = @getActiveItemIndex() + 1
       @addItem(item, index, false)
+      @setActiveItem(item)
 
   # Public: Add the given item to the pane.
   #
@@ -362,16 +363,14 @@ class Pane extends Model
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
-    if item in @items
-      @setActiveItem(item)
-      return
+    return if item in @items
 
     if typeof item.onDidDestroy is 'function'
       @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
 
     @items.splice(index, 0, item)
     @emitter.emit 'did-add-item', {item, index, moved}
-    @setActiveItem(item)
+    @setActiveItem(item) unless @getActiveItem()
     item
 
   # Public: Add the given items to the pane.
