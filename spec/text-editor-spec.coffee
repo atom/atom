@@ -5821,3 +5821,11 @@ describe "TextEditor", ->
       editor1.terminatePendingState()
       expect(editor1.isPending()).toBe false
       expect(events).toEqual [editor1]
+
+    it "should terminate pending state when buffer is changed", ->
+      events = []
+      editor1.onDidTerminatePendingState (event) -> events.push(event)
+      expect(editor1.isPending()).toBe true
+      editor1.insertText('I\'ll be back!')
+      expect(editor1.isPending()).toBe false
+      expect(events).toEqual [editor1]
