@@ -164,7 +164,7 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidDestroy => @destroy()
     if @pending
       @disposables.add @buffer.onDidChangeModified =>
-        @confirmPendingState() if @buffer.isModified()
+        @terminatePendingState() if @buffer.isModified()
 
     @preserveCursorPositionOnBufferReload()
 
@@ -573,10 +573,10 @@ class TextEditor extends Model
   getEditorWidthInChars: ->
     @displayBuffer.getEditorWidthInChars()
 
-  onDidConfirmPendingState: (callback) ->
+  onDidTerminatePendingState: (callback) ->
     @emitter.on 'did-confirm-pending-state', callback
 
-  confirmPendingState: ->
+  terminatePendingState: ->
     @pending = false
     @emitter.emit 'did-confirm-pending-state', this
 
