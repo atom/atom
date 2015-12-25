@@ -5804,3 +5804,20 @@ describe "TextEditor", ->
           screenRange: marker1.getRange(),
           rangeIsReversed: false
         }
+
+  describe "pending state", ->
+    editor1 = null
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open('sample.txt', pending: true).then (o) -> editor1 = o
+
+    it "should open file in pending state if 'pending' option is true", ->
+      expect(editor1.isPending()).toBe true
+      expect(editor.isPending()).toBe false # By default pending status is false
+
+    it "invokes ::onDidTerminatePendingState observers if pending status is removed", ->
+      events = []
+      editor1.onDidTerminatePendingState (event) -> events.push(event)
+      editor1.terminatePendingState()
+      expect(editor1.isPending()).toBe false
+      expect(events).toEqual [editor1]
