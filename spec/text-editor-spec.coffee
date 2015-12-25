@@ -5827,5 +5827,6 @@ describe "TextEditor", ->
       editor1.onDidTerminatePendingState (event) -> events.push(event)
       expect(editor1.isPending()).toBe true
       editor1.insertText('I\'ll be back!')
+      advanceClock(500)
       expect(editor1.isPending()).toBe false
       expect(events).toEqual [editor1]
