@@ -574,11 +574,11 @@ class TextEditor extends Model
     @displayBuffer.getEditorWidthInChars()
 
   onDidTerminatePendingState: (callback) ->
-    @emitter.on 'did-confirm-pending-state', callback
+    @emitter.on 'did-terminate-pending-state', callback
 
   terminatePendingState: ->
     @pending = false
-    @emitter.emit 'did-confirm-pending-state', this
+    @emitter.emit 'did-terminate-pending-state', this
 
   ###
   Section: File Details
