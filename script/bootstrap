@@ -96,9 +96,18 @@ function bootstrap() {
       message: 'Installing apm...',
       options: apmInstallOptions
     },
-    apmPath + ' clean' + apmFlags,
-    moduleInstallCommand,
-    dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+    {
+      command: apmPath + ' clean' + apmFlags,
+      message: 'Deleting old packages...'
+    },
+    {
+      command: moduleInstallCommand,
+      message: 'Installing modules...',
+    },
+    {
+      command: dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+      message: 'Deduping modules...'
+    }
   ];
 
   process.chdir(path.dirname(__dirname));
