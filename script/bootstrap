@@ -68,10 +68,8 @@ function bootstrap() {
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
   var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
+  var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
-
-  var electronVersion = require('../package.json').electronVersion;
-  var moduleInstallCommand = apmPath + ' install ' + '--target=' + electronVersion + ' --runtime=electron --disturl=https://atom.io/download/atom-shell ' + apmFlags;
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
@@ -98,14 +96,9 @@ function bootstrap() {
       message: 'Installing apm...',
       options: apmInstallOptions
     },
-    {
-      command: apmPath + ' clean' + apmFlags,
-      message: 'Deleting old packages...'
-    },
-    {
-      command: moduleInstallCommand,
-    },
-    dedupeApmCommand + ' ' + packagesToDedupe.join(' ')
+    apmPath + ' clean' + apmFlags,
+    moduleInstallCommand,
+    dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
   ];
 
   process.chdir(path.dirname(__dirname));
