@@ -115,7 +115,7 @@ function bootstrap() {
       command: moduleInstallCommand,
       options: {env: moduleInstallEnv}
     },
-    command: dedupeApmCommand + ' ' + packagesToDedupe.join(' ')
+    dedupeApmCommand + ' ' + packagesToDedupe.join(' ')
   ];
 
   process.chdir(path.dirname(__dirname));
