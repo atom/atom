@@ -73,7 +73,7 @@ function bootstrap() {
 
   var moduleInstallEnv = {};
   for (var e in process.env) {
-    moduleInstallEnv[e] = process.env[e];
+    // moduleInstallEnv[e] = process.env[e];
   }
 
   var electronVersion = require('../package.json').electronVersion;
@@ -81,6 +81,9 @@ function bootstrap() {
   moduleInstallEnv.npm_config_runtime = 'electron';
   moduleInstallEnv.npm_config_disturl = 'https://atom.io/download/atom-shell';
   var moduleInstallOptions = {env: moduleInstallEnv};
+
+  console.log('env:')
+  console.log(moduleInstallEnv)
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
