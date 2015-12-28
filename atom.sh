@@ -50,6 +50,10 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
+if [ $EXPECT_OUTPUT ]; then
+  export ELECTRON_ENABLE_LOGGING=1
+fi
+
 if [ $OS == 'Mac' ]; then
   if [ -n "$BETA_VERSION" ]; then
     ATOM_APP_NAME="Atom Beta.app"

@@ -16,6 +16,7 @@ FOR %%a IN (%*) DO (
 )
 
 IF "%EXPECT_OUTPUT%"=="YES" (
+  SET ELECTRON_ENABLE_LOGGING=YES
   "%~dp0\..\..\atom.exe" %*
 ) ELSE (
   "%~dp0\..\app\apm\bin\node.exe" "%~dp0\atom.js" %*

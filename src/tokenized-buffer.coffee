@@ -22,7 +22,11 @@ class TokenizedBuffer extends Model
   changeCount: 0
 
   @deserialize: (state, atomEnvironment) ->
-    state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
+    if state.bufferId
+      state.buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
+    else
+      # TODO: remove this fallback after everyone transitions to the latest version.
+      state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
     state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
     state.packageManager = atomEnvironment.packages
@@ -32,7 +36,7 @@ class TokenizedBuffer extends Model
   constructor: (params) ->
     {
       @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
-      @grammarRegistry, @packageManager, @assert
+      @grammarRegistry, @packageManager, @assert, grammarScopeName
     } = params
 
     @emitter = new Emitter
@@ -45,17 +49,26 @@ class TokenizedBuffer extends Model
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
-    @reloadGrammar()
+    if grammar = @grammarRegistry.grammarForScopeName(grammarScopeName)
+      @setGrammar(grammar)
+    else
+      @reloadGrammar()
+      @grammarToRestoreScopeName = grammarScopeName
 
   destroyed: ->
     @disposables.dispose()
 
   serialize: ->
-    deserializer: 'TokenizedBuffer'
-    bufferPath: @buffer.getPath()
-    tabLength: @tabLength
-    ignoreInvisibles: @ignoreInvisibles
-    largeFileMode: @largeFileMode
+    state = {
+      deserializer: 'TokenizedBuffer'
+      bufferPath: @buffer.getPath()
+      bufferId: @buffer.getId()
+      tabLength: @tabLength
+      ignoreInvisibles: @ignoreInvisibles
+      largeFileMode: @largeFileMode
+    }
+    state.grammarScopeName = @grammar?.scopeName unless @buffer.getPath()
+    state
 
   observeGrammar: (callback) ->
     callback(@grammar)
@@ -71,7 +84,9 @@ class TokenizedBuffer extends Model
     @emitter.on 'did-tokenize', callback
 
   grammarAddedOrUpdated: (grammar) =>
-    if grammar.injectionSelector?
+    if @grammarToRestoreScopeName is grammar.scopeName
+      @setGrammar(grammar)
+    else if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
       newScore = @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
@@ -83,6 +98,8 @@ class TokenizedBuffer extends Model
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
     @currentGrammarScore = score ? @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
+
+    @grammarToRestoreScopeName = null
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
