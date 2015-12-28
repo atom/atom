@@ -76,6 +76,8 @@ function bootstrap() {
     moduleInstallEnv[e] = process.env[e];
   }
 
+  // Set our target (Electron) version so that node-pre-gyp can download the
+  // proper binaries.
   var electronVersion = require('../package.json').electronVersion;
   moduleInstallEnv.npm_config_target = electronVersion;
   var moduleInstallOptions = {env: moduleInstallEnv};
