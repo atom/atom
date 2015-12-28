@@ -68,19 +68,10 @@ function bootstrap() {
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
   var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
-  var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
 
   var electronVersion = require('../package.json').electronVersion;
-  var moduleInstallEnv = {};
-  for (var e in process.env) {
-    moduleInstallEnv[e] = process.env[e];
-  }
-  // `node-pre-gyp` will look for these when determining which binary to
-  // download or how to rebuild.
-  moduleInstallEnv.npm_config_target = electronVersion;
-  moduleInstallEnv.npm_config_runtime = 'electron';
-  moduleInstallEnv.npm_config_disturl = 'https://atom.io/download/atom-shell';
+  var moduleInstallCommand = apmPath + ' install ' + '--target=' + electronVersion + ' --runtime=electron --disturl=https://atom.io/download/atom-shell ' + apmFlags;
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
@@ -113,7 +104,6 @@ function bootstrap() {
     },
     {
       command: moduleInstallCommand,
-      options: {env: moduleInstallEnv}
     },
     dedupeApmCommand + ' ' + packagesToDedupe.join(' ')
   ];
