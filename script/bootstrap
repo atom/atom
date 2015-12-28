@@ -114,7 +114,7 @@ function bootstrap() {
     {
       command: moduleInstallCommand,
       message: 'Installing modules...',
-      options: moduleInstallOptions
+      options: {env: moduleInstallEnv}
     },
     {
       command: dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
