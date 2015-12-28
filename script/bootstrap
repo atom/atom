@@ -4,6 +4,7 @@ var fs = require('fs');
 var verifyRequirements = require('./utils/verify-requirements');
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var path = require('path');
+var _ = require('underscore-plus');
 
 // Executes an array of commands one by one.
 function executeCommands(commands, done, index) {
@@ -71,6 +72,15 @@ function bootstrap() {
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
 
+  var electronVersion = require('../package.json').electronVersion;
+  var moduleInstallOptions = {env: _.extend({}, process.env,
+    // `node-pre-gyp` will look for these when determining which binary to
+    // download or how to rebuild.
+    npm_config_target: electronVersion,
+    npm_config_runtime: 'electron',
+    npm_config_disturl: 'https://atom.io/download/atom-shell'
+  )}
+
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
     apmInstallCommand    += ' --loglevel error';
@@ -103,6 +113,7 @@ function bootstrap() {
     {
       command: moduleInstallCommand,
       message: 'Installing modules...',
+      options: moduleInstallOptions
     },
     {
       command: dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
