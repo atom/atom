@@ -71,8 +71,14 @@ function bootstrap() {
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
 
+  var moduleInstallEnv = {};
+  for (var e in process.env) {
+    moduleInstallEnv[e] = process.env[e];
+  }
+
   var electronVersion = require('../package.json').electronVersion;
-  apmFlags += ' --target=' + electronVersion + ' --runtime=electron --dist-url=https://atom.io/download/atom-shell';
+  moduleInstallEnv.npm_config_target = electronVersion;
+  var moduleInstallOptions = {env: moduleInstallEnv};
 
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
@@ -102,12 +108,15 @@ function bootstrap() {
     {
       command: apmPath + ' clean' + apmFlags,
       message: 'Deleting old modules...',
+      options: moduleInstallOptions
     },
     {
       command: moduleInstallCommand,
+      options: moduleInstallOptions
     },
     {
       command: dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+      options: moduleInstallOptions
     }
   ];
 
