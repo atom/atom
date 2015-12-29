@@ -34,6 +34,9 @@ exports.safeSpawn = function(command, args, options, callback) {
   var child = childProcess.spawn(command, args, options);
   child.stderr.pipe(process.stderr);
   child.stdout.pipe(process.stdout);
+  child.on('error', function(error) {
+    console.error('Command \'' + command + '\' failed: ' + error.message);
+  });
   child.on('exit', function(code) {
     if (code != 0)
       process.exit(code);

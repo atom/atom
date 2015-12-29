@@ -25,10 +25,10 @@
     white-space: nowrap;
   }
 
-  // The background highlight uses :before rather than the item background so
+  // The background highlight uses ::before rather than the item background so
   // it can span the entire width of the parent container rather than the size
   // of the list item.
-  .selected:before {
+  .selected::before {
     content: '';
     background-color: @background-color-selected;
     position: absolute;
@@ -42,7 +42,7 @@
     position: relative;
   }
 
-  .icon:before {
+  .icon::before {
     margin-right: @component-icon-padding;
     position: relative;
     top: 1px;
@@ -73,7 +73,7 @@
     // Nested items always get disclosure arrows
     .list-nested-item > .list-item {
       .octicon(chevron-down, @disclosure-arrow-size);
-      &:before{
+      &::before{
         position: relative;
         top: -1px;
         margin-right: @component-icon-padding;
@@ -81,7 +81,7 @@
     }
     .list-nested-item.collapsed > .list-item {
       .octicon(chevron-right, @disclosure-arrow-size);
-      &:before{
+      &::before{
         left: 1px;
       }
     }

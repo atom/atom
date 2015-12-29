@@ -11,6 +11,7 @@ module.exports = (grunt) ->
     modulesPath = path.resolve(__dirname, '..', '..', 'node_modules')
     classes = {}
     fs.traverseTreeSync modulesPath, (modulePath) ->
+      return false if modulePath.match(/node_modules/g).length > 1 # dont need the dependencies of the dependencies
       return true unless path.basename(modulePath) is 'package.json'
       return true unless fs.isFileSync(modulePath)
 

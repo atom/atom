@@ -1,43 +1,82 @@
 path = require 'path'
-_ = require 'underscore-plus'
-async = require 'async'
 fs = require 'fs-plus'
-mkdirp = require 'mkdirp'
-runas = require 'runas'
+runas = null # defer until used
 
 symlinkCommand = (sourcePath, destinationPath, callback) ->
   fs.unlink destinationPath, (error) ->
-    if error? and error?.code != 'ENOENT'
+    if error? and error?.code isnt 'ENOENT'
       callback(error)
     else
-      mkdirp path.dirname(destinationPath), (error) ->
+      fs.makeTree path.dirname(destinationPath), (error) ->
         if error?
           callback(error)
         else
           fs.symlink sourcePath, destinationPath, callback
 
 symlinkCommandWithPrivilegeSync = (sourcePath, destinationPath) ->
-  if runas('/bin/rm', ['-f', destinationPath], admin: true) != 0
+  runas ?= require 'runas'
+  if runas('/bin/rm', ['-f', destinationPath], admin: true) isnt 0
     throw new Error("Failed to remove '#{destinationPath}'")
 
-  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) != 0
+  if runas('/bin/mkdir', ['-p', path.dirname(destinationPath)], admin: true) isnt 0
     throw new Error("Failed to create directory '#{destinationPath}'")
 
-  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) != 0
+  if runas('/bin/ln', ['-s', sourcePath, destinationPath], admin: true) isnt 0
     throw new Error("Failed to symlink '#{sourcePath}' to '#{destinationPath}'")
 
 module.exports =
+class CommandInstaller
+  constructor: (@appVersion, @applicationDelegate) ->
+
   getInstallDirectory: ->
     "/usr/local/bin"
 
-  install: (commandPath, askForPrivilege, callback) ->
+  getResourcesDirectory: ->
+    process.resourcesPath
+
+  installShellCommandsInteractively: ->
+    showErrorDialog = (error) =>
+      @applicationDelegate.confirm
+        message: "Failed to install shell commands"
+        detailedMessage: error.message
+
+    @installAtomCommand true, (error) =>
+      if error?
+        showErrorDialog(error)
+      else
+        @installApmCommand true, (error) =>
+          if error?
+            showErrorDialog(error)
+          else
+            @applicationDelegate.confirm
+              message: "Commands installed."
+              detailedMessage: "The shell commands `atom` and `apm` are installed."
+
+  installAtomCommand: (askForPrivilege, callback) ->
+    programName = if @appVersion.includes("beta")
+      "atom-beta"
+    else
+      "atom"
+
+    commandPath = path.join(@getResourcesDirectory(), 'app', 'atom.sh')
+    @createSymlink commandPath, programName, askForPrivilege, callback
+
+  installApmCommand: (askForPrivilege, callback) ->
+    programName = if @appVersion.includes("beta")
+      "apm-beta"
+    else
+      "apm"
+
+    commandPath = path.join(@getResourcesDirectory(), 'app', 'apm', 'node_modules', '.bin', 'apm')
+    @createSymlink commandPath, programName, askForPrivilege, callback
+
+  createSymlink: (commandPath, commandName, askForPrivilege, callback) ->
     return unless process.platform is 'darwin'
 
-    commandName = path.basename(commandPath, path.extname(commandPath))
     destinationPath = path.join(@getInstallDirectory(), commandName)
 
     fs.readlink destinationPath, (error, realpath) ->
-      if realpath == commandPath
+      if realpath is commandPath
         callback()
         return
 
@@ -46,14 +85,7 @@ module.exports =
           try
             error = null
             symlinkCommandWithPrivilegeSync(commandPath, destinationPath)
-          catch error
+          catch err
+            error = err
 
         callback?(error)
-
-  installAtomCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'atom.sh')
-    @install commandPath, askForPrivilege, callback
-
-  installApmCommand: (resourcePath, askForPrivilege, callback) ->
-    commandPath = path.join(resourcePath, 'apm', 'node_modules', '.bin', 'apm')
-    @install commandPath, askForPrivilege, callback

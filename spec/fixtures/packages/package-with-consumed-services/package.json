@@ -1,0 +1,17 @@
+{
+  "name": "package-with-consumed-services",
+
+  "consumedServices": {
+    "service-1": {
+      "versions": {
+        ">=0.2 <=0.3.6": "consumeFirstServiceV3",
+        "^0.4.1": "consumeFirstServiceV4"
+      }
+    },
+    "service-2": {
+      "versions": {
+        "0.2.1 || 0.2.2": "consumeSecondService"
+      }
+    }
+  }
+}

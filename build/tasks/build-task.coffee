@@ -11,24 +11,34 @@ module.exports = (grunt) ->
     appDir = grunt.config.get('atom.appDir')
 
     rm shellAppDir
+    rm path.join(buildDir, 'installer')
     mkdir path.dirname(buildDir)
 
     if process.platform is 'darwin'
-      cp 'atom-shell/Atom.app', shellAppDir, filter: /default_app/
+      cp 'electron/Electron.app', shellAppDir, filter: /default_app/
+      fs.renameSync path.join(shellAppDir, 'Contents', 'MacOS', 'Electron'), path.join(shellAppDir, 'Contents', 'MacOS', 'Atom')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Electron Helper.app'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Electron Helper'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
     else
-      cp 'atom-shell', shellAppDir, filter: /default_app/
+      cp 'electron', shellAppDir, filter: /default_app/
+
+      if process.platform is 'win32'
+        fs.renameSync path.join(shellAppDir, 'electron.exe'), path.join(shellAppDir, 'atom.exe')
+      else
+        fs.renameSync path.join(shellAppDir, 'electron'), path.join(shellAppDir, 'atom')
 
     mkdir appDir
 
-    cp 'atom.sh', path.join(appDir, 'atom.sh')
+    if process.platform isnt 'win32'
+      cp 'atom.sh', path.resolve(appDir, '..', 'new-app', 'atom.sh')
+
     cp 'package.json', path.join(appDir, 'package.json')
 
+    packageNames = []
     packageDirectories = []
     nonPackageDirectories = [
-      'benchmark'
       'dot-atom'
       'vendor'
-      'resources'
     ]
 
     {devDependencies} = grunt.file.readJSON('package.json')
@@ -36,6 +46,7 @@ module.exports = (grunt) ->
       directory = path.join('node_modules', child)
       if isAtomPackage(directory)
         packageDirectories.push(directory)
+        packageNames.push(child)
       else
         nonPackageDirectories.push(directory)
 
@@ -46,6 +57,8 @@ module.exports = (grunt) ->
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
       path.join('bootstrap', 'docs')
+      path.join('bootstrap', 'dist')
+      path.join('bootstrap', 'fonts')
       path.join('bootstrap', '_config.yml')
       path.join('bootstrap', '_includes')
       path.join('bootstrap', '_layouts')
@@ -56,10 +69,13 @@ module.exports = (grunt) ->
       path.join('npm', 'node_modules', '.bin', 'clear')
       path.join('npm', 'node_modules', '.bin', 'starwars')
       path.join('pegjs', 'examples')
+      path.join('get-parameter-names', 'node_modules', 'testla')
+      path.join('get-parameter-names', 'node_modules', '.bin', 'testla')
       path.join('jasmine-reporters', 'ext')
       path.join('jasmine-node', 'node_modules', 'gaze')
       path.join('jasmine-node', 'spec')
       path.join('node_modules', 'nan')
+      path.join('node_modules', 'native-mate')
       path.join('build', 'binding.Makefile')
       path.join('build', 'config.gypi')
       path.join('build', 'gyp-mac-tool')
@@ -68,13 +84,8 @@ module.exports = (grunt) ->
       path.join('build', 'Release', 'obj')
       path.join('build', 'Release', '.deps')
       path.join('vendor', 'apm')
-      path.join('resources', 'mac')
-      path.join('resources', 'win')
 
       # These are only require in dev mode when the grammar isn't precompiled
-      path.join('atom-keymap', 'node_modules', 'loophole')
-      path.join('atom-keymap', 'node_modules', 'pegjs')
-      path.join('atom-keymap', 'node_modules', '.bin', 'pegjs')
       path.join('snippets', 'node_modules', 'loophole')
       path.join('snippets', 'node_modules', 'pegjs')
       path.join('snippets', 'node_modules', '.bin', 'pegjs')
@@ -84,7 +95,21 @@ module.exports = (grunt) ->
       '.npmignore'
       '.pairs'
       '.travis.yml'
+      'appveyor.yml'
+      '.idea'
+      '.editorconfig'
+      '.lint'
+      '.lintignore'
+      '.eslintrc'
+      '.jshintignore'
+      'coffeelint.json'
+      '.coffeelintignore'
+      '.gitattributes'
+      '.gitkeep'
     ]
+
+    packageNames.forEach (packageName) -> ignoredPaths.push(path.join(packageName, 'spec'))
+
     ignoredPaths = ignoredPaths.map (ignoredPath) -> _.escapeRegExp(ignoredPath)
 
     # Add .* to avoid matching hunspell_dictionaries.
@@ -101,6 +126,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('runas', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('scrollbar-style', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('keyboard-layout', 'src') + path.sep)}.*\\.(cc|h|mm)*"
 
     # Ignore build files
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}binding\\.gyp$"
@@ -113,21 +139,16 @@ module.exports = (grunt) ->
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
 
-    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}te?sts?#{_.escapeRegExp(path.sep)}")
+    testFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}_*te?sts?_*#{_.escapeRegExp(path.sep)}")
     exampleFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}examples?#{_.escapeRegExp(path.sep)}")
-    benchmarkFolderPattern = new RegExp("#{_.escapeRegExp(path.sep)}benchmarks?#{_.escapeRegExp(path.sep)}")
 
     nodeModulesFilter = new RegExp(ignoredPaths.join('|'))
     filterNodeModule = (pathToCopy) ->
-      return true if benchmarkFolderPattern.test(pathToCopy)
-
       pathToCopy = path.resolve(pathToCopy)
       nodeModulesFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
     packageFilter = new RegExp("(#{ignoredPaths.join('|')})|(.+\\.(cson|coffee)$)")
     filterPackage = (pathToCopy) ->
-      return true if benchmarkFolderPattern.test(pathToCopy)
-
       pathToCopy = path.resolve(pathToCopy)
       packageFilter.test(pathToCopy) or testFolderPattern.test(pathToCopy) or exampleFolderPattern.test(pathToCopy)
 
@@ -137,23 +158,33 @@ module.exports = (grunt) ->
     for directory in packageDirectories
       cp directory, path.join(appDir, directory), filter: filterPackage
 
-    cp 'spec', path.join(appDir, 'spec')
     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
     cp 'static', path.join(appDir, 'static')
-    cp 'apm', path.join(appDir, 'apm'), filter: filterNodeModule
+
+    cp path.join('apm', 'node_modules', 'atom-package-manager'), path.resolve(appDir, '..', 'new-app', 'apm'), filter: filterNodeModule
+    if process.platform isnt 'win32'
+      fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.resolve(appDir, '..', 'new-app', 'apm', 'node_modules', '.bin', 'apm'))
+
+    channel = grunt.config.get('atom.channel')
+
+    cp path.join('resources', 'app-icons', channel, 'png', '1024.png'), path.join(appDir, 'resources', 'atom.png')
 
     if process.platform is 'darwin'
-      grunt.file.recurse path.join('resources', 'mac'), (sourcePath, rootDirectory, subDirectory='', filename) ->
-        unless /.+\.plist/.test(sourcePath)
-          grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
+      cp path.join('resources', 'app-icons', channel, 'atom.icns'), path.resolve(appDir, '..', 'atom.icns')
+      cp path.join('resources', 'mac', 'file.icns'), path.resolve(appDir, '..', 'file.icns')
+      cp path.join('resources', 'mac', 'speakeasy.pem'), path.resolve(appDir, '..', 'speakeasy.pem')
 
     if process.platform is 'win32'
-      # Set up chocolatey ignore and gui files
-      fs.writeFileSync path.join(appDir, 'apm', 'node_modules', 'atom-package-manager', 'bin', 'node.exe.ignore'), ''
-      fs.writeFileSync path.join(appDir, 'node_modules', 'symbols-view', 'vendor', 'ctags-win32.exe.ignore'), ''
-      fs.writeFileSync path.join(shellAppDir, 'atom.exe.gui'), ''
+      cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'resources', 'cli', 'atom.cmd')
+      cp path.join('resources', 'win', 'atom.sh'), path.join(shellAppDir, 'resources', 'cli', 'atom.sh')
+      cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
+      cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
 
-    dependencies = ['compile', "generate-license:save"]
+    if process.platform is 'linux'
+      cp path.join('resources', 'app-icons', channel, 'png'), path.join(buildDir, 'icons')
+
+    dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
+    dependencies.push('disable-autoupdate') if grunt.config.get('atom.disableAutoUpdate')
     grunt.task.run(dependencies...)

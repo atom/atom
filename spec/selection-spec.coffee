@@ -1,12 +1,12 @@
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 
 describe "Selection", ->
   [buffer, editor, selection] = []
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
-    editor = new Editor(buffer: buffer, tabLength: 2)
-    selection = editor.getSelection()
+    editor = atom.workspace.buildTextEditor(buffer: buffer, tabLength: 2)
+    selection = editor.getLastSelection()
 
   afterEach ->
     buffer.destroy()
@@ -14,18 +14,18 @@ describe "Selection", ->
   describe ".deleteSelectedText()", ->
     describe "when nothing is selected", ->
       it "deletes nothing", ->
-        selection.setBufferRange [[0,3], [0,3]]
+        selection.setBufferRange [[0, 3], [0, 3]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
     describe "when one line is selected", ->
       it "deletes selected text and clears the selection", ->
-        selection.setBufferRange [[0,4], [0,14]]
+        selection.setBufferRange [[0, 4], [0, 14]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "var = function () {"
 
         endOfLine = buffer.lineForRow(0).length
-        selection.setBufferRange [[0,0], [0, endOfLine]]
+        selection.setBufferRange [[0, 0], [0, endOfLine]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe ""
 
@@ -33,15 +33,15 @@ describe "Selection", ->
 
     describe "when multiple lines are selected", ->
       it "deletes selected text and clears the selection", ->
-        selection.setBufferRange [[0,1], [2,39]]
+        selection.setBufferRange [[0, 1], [2, 39]]
         selection.deleteSelectedText()
         expect(buffer.lineForRow(0)).toBe "v;"
         expect(selection.isEmpty()).toBeTruthy()
 
     describe "when the cursor precedes the tail", ->
       it "deletes selected text and clears the selection", ->
-        selection.cursor.setScreenPosition [0,13]
-        selection.selectToScreenPosition [0,4]
+        selection.cursor.setScreenPosition [0, 13]
+        selection.selectToScreenPosition [0, 4]
 
         selection.delete()
         expect(buffer.lineForRow(0)).toBe "var  = function () {"
@@ -56,11 +56,24 @@ describe "Selection", ->
       selection.selectToScreenPosition([0, 25])
       expect(selection.isReversed()).toBeFalsy()
 
+  describe ".selectLine(row)", ->
+    describe "when passed a row", ->
+      it "selects the specified row", ->
+        selection.setBufferRange([[2, 4], [3, 4]])
+        selection.selectLine(5)
+        expect(selection.getBufferRange()).toEqual [[5, 0], [6, 0]]
+
+    describe "when not passed a row", ->
+      it "selects all rows spanned by the selection", ->
+        selection.setBufferRange([[2, 4], [3, 4]])
+        selection.selectLine()
+        expect(selection.getBufferRange()).toEqual [[2, 0], [4, 0]]
+
   describe "when only the selection's tail is moved (regression)", ->
-    it "emits the 'screen-range-changed' event", ->
+    it "notifies ::onDidChangeRange observers", ->
       selection.setBufferRange([[2, 0], [2, 10]], reversed: true)
       changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
-      selection.on 'screen-range-changed', changeScreenRangeHandler
+      selection.onDidChangeRange changeScreenRangeHandler
 
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()

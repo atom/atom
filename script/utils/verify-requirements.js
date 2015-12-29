@@ -31,7 +31,7 @@ function verifyNode(cb) {
   var nodeMajorVersion = +versionArray[0];
   var nodeMinorVersion = +versionArray[1];
   if (nodeMajorVersion === 0 && nodeMinorVersion < 10) {
-    error = "node v0.10 is required to build Atom.";
+    error = "node v0.10 is required to build Atom, node " + nodeVersion + " is installed.";
     cb(error);
   }
   else {
@@ -57,7 +57,7 @@ function verifyNpm(cb) {
     var npmMajorVersion = +versionArray[0] || 0;
     var npmMinorVersion = +versionArray[1] || 0;
     if (npmMajorVersion === 1 && npmMinorVersion < 4)
-      cb("npm v1.4+ is required to build Atom.");
+      cb("npm v1.4+ is required to build Atom. Version " + npmVersion + " was detected.");
     else
       cb(null, "npm: v" + npmVersion);
   });

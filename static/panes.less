@@ -3,28 +3,51 @@
 // Pane-items are things that go inside a pane. Like the UI-Demo, the
 // settings-view, the archive-view, the image-view. Etc. Basically a non-
 // editor resource with a tab.
-.panes {
+atom-pane-container {
+  position: relative;
   display: -webkit-flex;
   -webkit-flex: 1;
 
-  .pane-column {
+  atom-pane-axis {
     display: -webkit-flex;
     -webkit-flex: 1;
+
+    & > atom-pane-resize-handle {
+      position: absolute;
+      z-index: 3;
+    }
+  }
+
+  atom-pane-axis.vertical {
     -webkit-flex-direction: column;
+
+    & > atom-pane-resize-handle {
+      width: 100%;
+      height: 8px;
+      margin-top: -4px;
+      cursor: row-resize;
+      border-bottom: none;
+    }
   }
 
-  .pane-row {
-    display: -webkit-flex;
-    -webkit-flex: 1;
+  atom-pane-axis.horizontal {
     -webkit-flex-direction: row;
+
+    & > atom-pane-resize-handle {
+      width: 8px;
+      height: 100%;
+      margin-left: -4px;
+      cursor: col-resize;
+      border-right: none;
+    }
   }
 
-  .pane {
+  atom-pane {
     position: relative;
     display: -webkit-flex;
     -webkit-flex: 1;
     -webkit-flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 
     .item-views {
       -webkit-flex: 1;
@@ -38,12 +61,29 @@
         background-color: @pane-item-background-color;
       }
 
-      > *, > .editor.react > * {
+      > *, > atom-text-editor.react > * {
         position: absolute;
         top: 0;
         right: 0;
         bottom: 0;
         left: 0;
+      }
+    }
+  }
+}
+
+// Windows doesn't have row- and col-resize cursors
+.platform-win32 {
+  atom-pane-container {
+    atom-pane-axis.vertical {
+      & > atom-pane-resize-handle {
+        cursor: ns-resize;
+      }
+    }
+
+    atom-pane-axis.horizontal {
+      & > atom-pane-resize-handle {
+        cursor: ew-resize;
       }
     }
   }

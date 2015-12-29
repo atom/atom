@@ -1,6 +1,7 @@
 @import "ui-variables";
 
 // Override bootstrap styles here.
+
 .panel {
   border-radius: 0;
   border: none;
@@ -14,6 +15,8 @@
   }
 }
 
+// interstitial panels
+
 .inset-panel {
   .panel-heading {
     border-radius: @component-border-radius @component-border-radius 0 0;
@@ -22,6 +25,7 @@
 
 .panel-heading {
   margin: 0;
+  padding: @component-padding;
 
   border-radius: 0;
 
@@ -36,4 +40,98 @@
     position: relative;
     top: -5px;
   }
+}
+
+// Tool panels
+
+atom-panel-container.left,
+atom-panel-container.right {
+  display: -webkit-flex;
+  -webkit-flex-direction: row;
+  -webkit-align-items: stretch;
+  height: 100%;
+  atom-panel {
+    height: 100%;
+  }
+}
+
+atom-panel {
+  display: block;
+}
+
+atom-panel.top,
+atom-panel.bottom,
+atom-panel.left,
+atom-panel.right {
+  background-color: @tool-panel-background-color;
+}
+
+// deprecated
+.tool-panel {
+  position: relative;
+  background-color: @tool-panel-background-color;
+}
+
+// Modal panels
+
+.overlay, // deprecated .overlay
+atom-panel.modal {
+  position: absolute;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
+  z-index: 9999;
+  box-sizing: border-box;
+
+  color: @text-color;
+  background-color: @overlay-background-color;
+
+  padding: 10px;
+
+  h1 {
+    margin-top: 0;
+    color: @text-color-highlight;
+    font-size: 1.6em;
+    font-weight: bold;
+  }
+
+  h2 {
+    font-size: 1.3em;
+  }
+
+  atom-text-editor[mini] {
+    margin-bottom: 10px;
+  }
+
+  .message {
+    padding-top: 5px;
+    font-size: 11px;
+  }
+
+  &.mini {
+    width: 200px;
+    margin-left: -100px;
+    font-size: 12px;
+  }
+}
+
+// deprecated: from-top, from-bottom
+.overlay.from-top,
+atom-panel.modal {
+  top: 0;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+// TODO: Remove these!
+.overlay.from-bottom {
+  bottom: 0;
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.overlay.floating {
+  left: auto;
 }

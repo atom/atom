@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
+var runGrunt = require('./utils/run-grunt.js');
 var path = require('path');
 
 process.chdir(path.dirname(__dirname));
 
 safeExec('node script/bootstrap', function() {
-  var gruntPath = path.join('node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
-  safeExec(gruntPath + ' ci --stack --no-color', process.exit);
+  runGrunt(["ci", "--stack", "--no-color"], process.exit);
 });

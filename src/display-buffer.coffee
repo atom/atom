@@ -1,15 +1,14 @@
 _ = require 'underscore-plus'
-{Emitter} = require 'emissary'
-guid = require 'guid'
-Serializable = require 'serializable'
-{Model} = require 'theorist'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
 Fold = require './fold'
+Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
-DisplayBufferMarker = require './display-buffer-marker'
+LayerDecoration = require './layer-decoration'
+TextEditorMarkerLayer = require './text-editor-marker-layer'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -18,77 +17,113 @@ class BufferToScreenConversionError extends Error
 
 module.exports =
 class DisplayBuffer extends Model
-  Serializable.includeInto(this)
-
-  @properties
-    manageScrollPosition: false
-    softWrap: null
-    editorWidthInChars: null
-    lineHeightInPixels: null
-    defaultCharWidth: null
-    height: null
-    width: null
-    scrollTop: 0
-    scrollLeft: 0
-    scrollWidth: 0
-    verticalScrollbarWidth: 15
-    horizontalScrollbarHeight: 15
-
   verticalScrollMargin: 2
   horizontalScrollMargin: 6
-  scopedCharacterWidthsChangeCount: 0
+  changeCount: 0
+  softWrapped: null
+  editorWidthInChars: null
+  lineHeightInPixels: null
+  defaultCharWidth: null
+  height: null
+  width: null
+  didUpdateDecorationsEventScheduled: false
+  updatedSynchronously: false
 
-  constructor: ({tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @invisibles}={}) ->
+  @deserialize: (state, atomEnvironment) ->
+    state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+    state.foldsMarkerLayer = state.tokenizedBuffer.buffer.getMarkerLayer(state.foldsMarkerLayerId)
+    state.config = atomEnvironment.config
+    state.assert = atomEnvironment.assert
+    state.grammarRegistry = atomEnvironment.grammars
+    state.packageManager = atomEnvironment.packages
+    new this(state)
+
+  constructor: (params={}) ->
     super
-    @softWrap ?= atom.config.get('editor.softWrap') ? false
-    @tokenizedBuffer ?= new TokenizedBuffer({tabLength, buffer, @invisibles})
+
+    {
+      tabLength, @editorWidthInChars, @tokenizedBuffer, @foldsMarkerLayer, buffer,
+      ignoreInvisibles, @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+    } = params
+
+    @emitter = new Emitter
+    @disposables = new CompositeDisposable
+
+    @tokenizedBuffer ?= new TokenizedBuffer({
+      tabLength, buffer, ignoreInvisibles, @largeFileMode, @config,
+      @grammarRegistry, @packageManager, @assert
+    })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
-    @markers = {}
+    @defaultMarkerLayer = new TextEditorMarkerLayer(this, @buffer.getDefaultMarkerLayer(), true)
+    @customMarkerLayersById = {}
     @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
-    @decorationMarkerChangedSubscriptions = {}
-    @decorationMarkerDestroyedSubscriptions = {}
-    @updateAllScreenLines()
-    @createFoldForMarker(marker) for marker in @buffer.findMarkers(@getFoldMarkerAttributes())
-    @subscribe @tokenizedBuffer, 'grammar-changed', (grammar) => @emit 'grammar-changed', grammar
-    @subscribe @tokenizedBuffer, 'tokenized', => @emit 'tokenized'
-    @subscribe @tokenizedBuffer, 'changed', @handleTokenizedBufferChange
-    @subscribe @buffer, 'markers-updated', @handleBufferMarkersUpdated
-    @subscribe @buffer, 'marker-created', @handleBufferMarkerCreated
+    @overlayDecorationsById = {}
+    @layerDecorationsByMarkerLayerId = {}
+    @decorationCountsByLayerId = {}
+    @layerUpdateDisposablesByLayerId = {}
 
-    @subscribe @$softWrap, (softWrap) =>
-      @emit 'soft-wrap-changed', softWrap
+    @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
+    @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
+    @disposables.add @buffer.onDidCreateMarker @didCreateDefaultLayerMarker
+
+    @foldsMarkerLayer ?= @buffer.addMarkerLayer()
+    folds = (new Fold(this, marker) for marker in @foldsMarkerLayer.getMarkers())
+    @updateAllScreenLines()
+    @decorateFold(fold) for fold in folds
+
+  subscribeToScopedConfigSettings: =>
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getRootScopeDescriptor()
+
+    oldConfigSettings = @configSettings
+    @configSettings =
+      scrollPastEnd: @config.get('editor.scrollPastEnd', scope: scopeDescriptor)
+      softWrap: @config.get('editor.softWrap', scope: scopeDescriptor)
+      softWrapAtPreferredLineLength: @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+      softWrapHangingIndent: @config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
+      preferredLineLength: @config.get('editor.preferredLineLength', scope: scopeDescriptor)
+
+    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrap = newValue
       @updateWrappedScreenLines()
 
-    @subscribe atom.config.observe 'editor.preferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @softWrap and atom.config.get('editor.softWrapAtPreferredLineLength')
+    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrapHangingIndent = newValue
+      @updateWrappedScreenLines()
 
-    @subscribe atom.config.observe 'editor.softWrapAtPreferredLineLength', callNow: false, =>
-      @updateWrappedScreenLines() if @softWrap
+    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.softWrapAtPreferredLineLength = newValue
+      @updateWrappedScreenLines() if @isSoftWrapped()
 
-  serializeParams: ->
+    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
+      @configSettings.preferredLineLength = newValue
+      @updateWrappedScreenLines() if @isSoftWrapped() and @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+
+    subscriptions.add @config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
+      @configSettings.scrollPastEnd = value
+
+    @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
+
+  serialize: ->
+    deserializer: 'DisplayBuffer'
     id: @id
-    softWrap: @softWrap
+    softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
-    scrollTop: @scrollTop
-    scrollLeft: @scrollLeft
     tokenizedBuffer: @tokenizedBuffer.serialize()
-    invisibles: _.clone(@invisibles)
-
-  deserializeParams: (params) ->
-    params.tokenizedBuffer = TokenizedBuffer.deserialize(params.tokenizedBuffer)
-    params
+    largeFileMode: @largeFileMode
+    foldsMarkerLayerId: @foldsMarkerLayer.id
 
   copy: ->
-    newDisplayBuffer = new DisplayBuffer({@buffer, tabLength: @getTabLength(), @invisibles})
-    newDisplayBuffer.setScrollTop(@getScrollTop())
-    newDisplayBuffer.setScrollLeft(@getScrollLeft())
-
-    for marker in @findMarkers(displayBufferId: @id)
-      marker.copy(displayBufferId: newDisplayBuffer.id)
-    newDisplayBuffer
+    foldsMarkerLayer = @foldsMarkerLayer.copy()
+    new DisplayBuffer({
+      @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
+      @grammarRegistry, @packageManager, foldsMarkerLayer
+    })
 
   updateAllScreenLines: ->
     @maxLineLength = 0
@@ -96,12 +131,48 @@ class DisplayBuffer extends Model
     @rowMap = new RowMap
     @updateScreenLines(0, @buffer.getLineCount(), null, suppressChangeEvent: true)
 
-  emitChanged: (eventProperties, refreshMarkers=true) ->
+  onDidChangeSoftWrapped: (callback) ->
+    @emitter.on 'did-change-soft-wrapped', callback
+
+  onDidChangeGrammar: (callback) ->
+    @tokenizedBuffer.onDidChangeGrammar(callback)
+
+  onDidTokenize: (callback) ->
+    @tokenizedBuffer.onDidTokenize(callback)
+
+  onDidChange: (callback) ->
+    @emitter.on 'did-change', callback
+
+  onDidChangeCharacterWidths: (callback) ->
+    @emitter.on 'did-change-character-widths', callback
+
+  onDidRequestAutoscroll: (callback) ->
+    @emitter.on 'did-request-autoscroll', callback
+
+  observeDecorations: (callback) ->
+    callback(decoration) for decoration in @getDecorations()
+    @onDidAddDecoration(callback)
+
+  onDidAddDecoration: (callback) ->
+    @emitter.on 'did-add-decoration', callback
+
+  onDidRemoveDecoration: (callback) ->
+    @emitter.on 'did-remove-decoration', callback
+
+  onDidCreateMarker: (callback) ->
+    @emitter.on 'did-create-marker', callback
+
+  onDidUpdateMarkers: (callback) ->
+    @emitter.on 'did-update-markers', callback
+
+  onDidUpdateDecorations: (callback) ->
+    @emitter.on 'did-update-decorations', callback
+
+  emitDidChange: (eventProperties, refreshMarkers=true) ->
+    @emitter.emit 'did-change', eventProperties
     if refreshMarkers
-      @pauseMarkerObservers()
       @refreshMarkerScreenPositions()
-    @emit 'changed', eventProperties
-    @resumeMarkerObservers()
+    @emitter.emit 'did-update-markers'
 
   updateWrappedScreenLines: ->
     start = 0
@@ -109,225 +180,73 @@ class DisplayBuffer extends Model
     @updateAllScreenLines()
     screenDelta = @getLastRow() - end
     bufferDelta = 0
-    @emitChanged({ start, end, screenDelta, bufferDelta })
+    @emitDidChange({start, end, screenDelta, bufferDelta})
 
   # Sets the visibility of the tokenized buffer.
   #
   # visible - A {Boolean} indicating of the tokenized buffer is shown
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
-  getVerticalScrollMargin: -> @verticalScrollMargin
+  setUpdatedSynchronously: (@updatedSynchronously) ->
+
+  getVerticalScrollMargin: ->
+    maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
+    Math.min(@verticalScrollMargin, maxScrollMargin)
+
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getHorizontalScrollMargin: -> @horizontalScrollMargin
+  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getHorizontalScrollbarHeight: -> @horizontalScrollbarHeight
-  setHorizontalScrollbarHeight: (@horizontalScrollbarHeight) -> @horizontalScrollbarHeight
-
-  getVerticalScrollbarWidth: -> @verticalScrollbarWidth
-  setVerticalScrollbarWidth: (@verticalScrollbarWidth) -> @verticalScrollbarWidth
-
   getHeight: ->
-    if @height?
-      @height
-    else
-      if @horizontallyScrollable()
-        @getScrollHeight() + @getHorizontalScrollbarHeight()
-      else
-        @getScrollHeight()
+    @height
 
-  setHeight: (@height) -> @height
-
-  getClientHeight: (reentrant) ->
-    if @horizontallyScrollable(reentrant)
-      @getHeight() - @getHorizontalScrollbarHeight()
-    else
-      @getHeight()
-
-  getClientWidth: (reentrant) ->
-    if @verticallyScrollable(reentrant)
-      @getWidth() - @getVerticalScrollbarWidth()
-    else
-      @getWidth()
-
-  horizontallyScrollable: (reentrant) ->
-    return false unless @width?
-    return false if @getSoftWrap()
-    if reentrant
-      @getScrollWidth() > @getWidth()
-    else
-      @getScrollWidth() > @getClientWidth(true)
-
-  verticallyScrollable: (reentrant) ->
-    return false unless @height?
-    if reentrant
-      @getScrollHeight() > @getHeight()
-    else
-      @getScrollHeight() > @getClientHeight(true)
+  setHeight: (@height) ->
+    @height
 
   getWidth: ->
-    if @width?
-      @width
-    else
-      if @verticallyScrollable()
-        @getScrollWidth() + @getVerticalScrollbarWidth()
-      else
-        @getScrollWidth()
+    @width
 
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
-    @updateWrappedScreenLines() if newWidth isnt oldWidth and @softWrap
-    @setScrollTop(@getScrollTop()) # Ensure scrollTop is still valid in case horizontal scrollbar disappeared
+    @updateWrappedScreenLines() if newWidth isnt oldWidth and @isSoftWrapped()
     @width
-
-  getScrollTop: -> @scrollTop
-  setScrollTop: (scrollTop) ->
-    if @manageScrollPosition
-      @scrollTop = Math.round(Math.max(0, Math.min(@getMaxScrollTop(), scrollTop)))
-    else
-      @scrollTop = Math.round(scrollTop)
-
-  getMaxScrollTop: ->
-    @getScrollHeight() - @getClientHeight()
-
-  getScrollBottom: -> @scrollTop + @height
-  setScrollBottom: (scrollBottom) ->
-    @setScrollTop(scrollBottom - @getClientHeight())
-    @getScrollBottom()
-
-  getScrollLeft: -> @scrollLeft
-  setScrollLeft: (scrollLeft) ->
-    if @manageScrollPosition
-      @scrollLeft = Math.round(Math.max(0, Math.min(@getScrollWidth() - @getClientWidth(), scrollLeft)))
-      @scrollLeft
-    else
-      @scrollLeft = Math.round(scrollLeft)
-
-  getMaxScrollLeft: ->
-    @getScrollWidth() - @getClientWidth()
-
-  getScrollRight: -> @scrollLeft + @width
-  setScrollRight: (scrollRight) ->
-    @setScrollLeft(scrollRight - @width)
-    @getScrollRight()
 
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
+  getKoreanCharWidth: -> @koreanCharWidth
+
+  getHalfWidthCharWidth: -> @halfWidthCharWidth
+
+  getDoubleWidthCharWidth: -> @doubleWidthCharWidth
+
   getDefaultCharWidth: -> @defaultCharWidth
-  setDefaultCharWidth: (defaultCharWidth) ->
-    if defaultCharWidth isnt @defaultCharWidth
+
+  setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) ->
+    doubleWidthCharWidth ?= defaultCharWidth
+    halfWidthCharWidth ?= defaultCharWidth
+    koreanCharWidth ?= defaultCharWidth
+    if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth and halfWidthCharWidth isnt @halfWidthCharWidth and koreanCharWidth isnt @koreanCharWidth
       @defaultCharWidth = defaultCharWidth
-      @computeScrollWidth()
+      @doubleWidthCharWidth = doubleWidthCharWidth
+      @halfWidthCharWidth = halfWidthCharWidth
+      @koreanCharWidth = koreanCharWidth
+      @updateWrappedScreenLines() if @isSoftWrapped() and @getEditorWidthInChars()?
     defaultCharWidth
 
   getCursorWidth: -> 1
 
-  getScopedCharWidth: (scopeNames, char) ->
-    @getScopedCharWidths(scopeNames)[char]
-
-  getScopedCharWidths: (scopeNames) ->
-    scope = @charWidthsByScope
-    for scopeName in scopeNames
-      scope[scopeName] ?= {}
-      scope = scope[scopeName]
-    scope.charWidths ?= {}
-    scope.charWidths
-
-  batchCharacterMeasurement: (fn) ->
-    oldChangeCount = @scopedCharacterWidthsChangeCount
-    @batchingCharacterMeasurement = true
-    fn()
-    @batchingCharacterMeasurement = false
-    @characterWidthsChanged() if oldChangeCount isnt @scopedCharacterWidthsChangeCount
-
-  setScopedCharWidth: (scopeNames, char, width) ->
-    @getScopedCharWidths(scopeNames)[char] = width
-    @scopedCharacterWidthsChangeCount++
-    @characterWidthsChanged() unless @batchingCharacterMeasurement
-
-  characterWidthsChanged: ->
-    @computeScrollWidth()
-    @emit 'character-widths-changed', @scopedCharacterWidthsChangeCount
-
-  clearScopedCharWidths: ->
-    @charWidthsByScope = {}
-
-  getScrollHeight: ->
-    return 0 unless @getLineHeightInPixels() > 0
-
-    @getLineCount() * @getLineHeightInPixels()
-
-  getScrollWidth: ->
-    @scrollWidth
-
-  getVisibleRowRange: ->
-    return [0, 0] unless @getLineHeightInPixels() > 0
-
-    heightInLines = Math.ceil(@getHeight() / @getLineHeightInPixels()) + 1
-    startRow = Math.floor(@getScrollTop() / @getLineHeightInPixels())
-    endRow = Math.min(@getLineCount(), startRow + heightInLines)
-
-    [startRow, endRow]
-
-  intersectsVisibleRowRange: (startRow, endRow) ->
-    [visibleStart, visibleEnd] = @getVisibleRowRange()
-    not (endRow <= visibleStart or visibleEnd <= startRow)
-
-  selectionIntersectsVisibleRowRange: (selection) ->
-    {start, end} = selection.getScreenRange()
-    @intersectsVisibleRowRange(start.row, end.row + 1)
-
-  scrollToScreenRange: (screenRange, options) ->
-    verticalScrollMarginInPixels = @getVerticalScrollMargin() * @getLineHeightInPixels()
-    horizontalScrollMarginInPixels = @getHorizontalScrollMargin() * @getDefaultCharWidth()
-
-    {top, left, height, width} = @pixelRectForScreenRange(screenRange)
-    bottom = top + height
-    right = left + width
-
-    if options?.center
-      desiredScrollCenter = top + height / 2
-      unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
-        desiredScrollTop =  desiredScrollCenter - @getHeight() / 2
-        desiredScrollBottom =  desiredScrollCenter + @getHeight() / 2
-    else
-      desiredScrollTop = top - verticalScrollMarginInPixels
-      desiredScrollBottom = bottom + verticalScrollMarginInPixels
-
-    desiredScrollLeft = left - horizontalScrollMarginInPixels
-    desiredScrollRight = right + horizontalScrollMarginInPixels
-
-    if desiredScrollTop < @getScrollTop()
-      @setScrollTop(desiredScrollTop)
-    else if desiredScrollBottom > @getScrollBottom()
-      @setScrollBottom(desiredScrollBottom)
-
-    if desiredScrollLeft < @getScrollLeft()
-      @setScrollLeft(desiredScrollLeft)
-    else if desiredScrollRight > @getScrollRight()
-      @setScrollRight(desiredScrollRight)
+  scrollToScreenRange: (screenRange, options = {}) ->
+    scrollEvent = {screenRange, options}
+    @emitter.emit "did-request-autoscroll", scrollEvent
 
   scrollToScreenPosition: (screenPosition, options) ->
     @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
 
   scrollToBufferPosition: (bufferPosition, options) ->
     @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition), options)
-
-  pixelRectForScreenRange: (screenRange) ->
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * @getLineHeightInPixels()
-      width = @getScrollWidth()
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = @getLineHeightInPixels()
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}
 
   # Retrieves the current tab length.
   #
@@ -341,14 +260,24 @@ class DisplayBuffer extends Model
   setTabLength: (tabLength) ->
     @tokenizedBuffer.setTabLength(tabLength)
 
-  setInvisibles: (@invisibles) ->
-    @tokenizedBuffer.setInvisibles(@invisibles)
+  setIgnoreInvisibles: (ignoreInvisibles) ->
+    @tokenizedBuffer.setIgnoreInvisibles(ignoreInvisibles)
 
-  # Deprecated: Use the softWrap property directly
-  setSoftWrap: (@softWrap) -> @softWrap
+  setSoftWrapped: (softWrapped) ->
+    if softWrapped isnt @softWrapped
+      @softWrapped = softWrapped
+      @updateWrappedScreenLines()
+      softWrapped = @isSoftWrapped()
+      @emitter.emit 'did-change-soft-wrapped', softWrapped
+      softWrapped
+    else
+      @isSoftWrapped()
 
-  # Deprecated: Use the softWrap property directly
-  getSoftWrap: -> @softWrap
+  isSoftWrapped: ->
+    if @largeFileMode
+      false
+    else
+      @softWrapped ? @configSettings.softWrap ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -357,46 +286,92 @@ class DisplayBuffer extends Model
     if editorWidthInChars > 0
       previousWidthInChars = @editorWidthInChars
       @editorWidthInChars = editorWidthInChars
-      if editorWidthInChars isnt previousWidthInChars and @softWrap
+      if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
         @updateWrappedScreenLines()
 
   # Returns the editor width in characters for soft wrap.
   getEditorWidthInChars: ->
-    width = @width ? @getScrollWidth()
-    width -= @getVerticalScrollbarWidth()
+    width = @getWidth()
     if width? and @defaultCharWidth > 0
-      Math.floor(width / @defaultCharWidth)
+      Math.max(0, Math.floor(width / @defaultCharWidth))
     else
       @editorWidthInChars
 
   getSoftWrapColumn: ->
-    if atom.config.get('editor.softWrapAtPreferredLineLength')
-      Math.min(@getEditorWidthInChars(), atom.config.getPositiveInt('editor.preferredLineLength', @getEditorWidthInChars()))
+    if @configSettings.softWrapAtPreferredLineLength
+      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
     else
       @getEditorWidthInChars()
 
+  getSoftWrapColumnForTokenizedLine: (tokenizedLine) ->
+    lineMaxWidth = @getSoftWrapColumn() * @getDefaultCharWidth()
+
+    return if Number.isNaN(lineMaxWidth)
+    return 0 if lineMaxWidth is 0
+
+    iterator = tokenizedLine.getTokenIterator(false)
+    column = 0
+    currentWidth = 0
+    while iterator.next()
+      textIndex = 0
+      text = iterator.getText()
+      while textIndex < text.length
+        if iterator.isPairedCharacter()
+          charLength = 2
+        else
+          charLength = 1
+
+        if iterator.hasDoubleWidthCharacterAt(textIndex)
+          charWidth = @getDoubleWidthCharWidth()
+        else if iterator.hasHalfWidthCharacterAt(textIndex)
+          charWidth = @getHalfWidthCharWidth()
+        else if iterator.hasKoreanCharacterAt(textIndex)
+          charWidth = @getKoreanCharWidth()
+        else
+          charWidth = @getDefaultCharWidth()
+
+        return column if currentWidth + charWidth > lineMaxWidth
+
+        currentWidth += charWidth
+        column += charLength
+        textIndex += charLength
+    column
+
   # Gets the screen line for the given screen row.
   #
-  # screenRow - A {Number} indicating the screen row.
+  # * `screenRow` - A {Number} indicating the screen row.
   #
-  # Returns a {ScreenLine}.
-  lineForRow: (row) ->
-    @screenLines[row]
+  # Returns {TokenizedLine}
+  tokenizedLineForScreenRow: (screenRow) ->
+    if @largeFileMode
+      if line = @tokenizedBuffer.tokenizedLineForRow(screenRow)
+        if line.text.length > @maxLineLength
+          @maxLineLength = line.text.length
+          @longestScreenRow = screenRow
+        line
+    else
+      @screenLines[screenRow]
 
   # Gets the screen lines for the given screen row range.
   #
   # startRow - A {Number} indicating the beginning screen row.
   # endRow - A {Number} indicating the ending screen row.
   #
-  # Returns an {Array} of {ScreenLine}s.
-  linesForRows: (startRow, endRow) ->
-    @screenLines[startRow..endRow]
+  # Returns an {Array} of {TokenizedLine}s.
+  tokenizedLinesForScreenRows: (startRow, endRow) ->
+    if @largeFileMode
+      @tokenizedBuffer.tokenizedLinesForRows(startRow, endRow)
+    else
+      @screenLines[startRow..endRow]
 
   # Gets all the screen lines.
   #
-  # Returns an {Array} of {ScreenLines}s.
-  getLines: ->
-    new Array(@screenLines...)
+  # Returns an {Array} of {TokenizedLine}s.
+  getTokenizedLines: ->
+    if @largeFileMode
+      @tokenizedBuffer.tokenizedLinesForRows(0, @getLastRow())
+    else
+      new Array(@screenLines...)
 
   indentLevelForLine: (line) ->
     @tokenizedBuffer.indentLevelForLine(line)
@@ -409,8 +384,11 @@ class DisplayBuffer extends Model
   #
   # Returns an {Array} of buffer rows as {Numbers}s.
   bufferRowsForScreenRows: (startScreenRow, endScreenRow) ->
-    for screenRow in [startScreenRow..endScreenRow]
-      @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
+    if @largeFileMode
+      [startScreenRow..endScreenRow]
+    else
+      for screenRow in [startScreenRow..endScreenRow]
+        @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
 
   # Creates a new fold between two row numbers.
   #
@@ -419,10 +397,15 @@ class DisplayBuffer extends Model
   #
   # Returns the new {Fold}.
   createFold: (startRow, endRow) ->
-    foldMarker =
-      @findFoldMarker({startRow, endRow}) ?
-        @buffer.markRange([[startRow, 0], [endRow, Infinity]], @getFoldMarkerAttributes())
-    @foldForMarker(foldMarker)
+    unless @largeFileMode
+      if foldMarker = @findFoldMarker({startRow, endRow})
+        @foldForMarker(foldMarker)
+      else
+        foldMarker = @foldsMarkerLayer.markRange([[startRow, 0], [endRow, Infinity]])
+        fold = new Fold(this, foldMarker)
+        fold.updateDisplayBuffer()
+        @decorateFold(fold)
+        fold
 
   isFoldedAtBufferRow: (bufferRow) ->
     @largestFoldContainingBufferRow(bufferRow)?
@@ -439,6 +422,7 @@ class DisplayBuffer extends Model
   # bufferRow - The buffer row {Number} to check against
   unfoldBufferRow: (bufferRow) ->
     fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
+    return
 
   # Given a buffer row, this returns the largest fold that starts there.
   #
@@ -485,9 +469,21 @@ class DisplayBuffer extends Model
   # Returns the folds in the given row range (exclusive of end row) that are
   # not contained by any other folds.
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    @findFoldMarkers(containedInRange: [[startRow, 0], [endRow, 0]])
-      .map (marker) => @foldForMarker(marker)
-      .filter (fold) -> not fold.isInsideLargerFold()
+    folds = []
+    lastFoldEndRow = -1
+
+    for marker in @findFoldMarkers(intersectsRowRange: [startRow, endRow])
+      range = marker.getRange()
+      if range.start.row > lastFoldEndRow
+        lastFoldEndRow = range.end.row
+        if startRow <= range.start.row <= range.end.row < endRow
+          folds.push(@foldForMarker(marker))
+
+    folds
+
+  # Returns all the folds that intersect the given row range.
+  foldsIntersectingBufferRowRange: (startRow, endRow) ->
+    @foldForMarker(marker) for marker in @findFoldMarkers(intersectsRowRange: [startRow, endRow])
 
   # Public: Given a buffer row, this returns folds that include it.
   #
@@ -505,10 +501,16 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number}.
   screenRowForBufferRow: (bufferRow) ->
-    @rowMap.screenRowRangeForBufferRow(bufferRow)[0]
+    if @largeFileMode
+      bufferRow
+    else
+      @rowMap.screenRowRangeForBufferRow(bufferRow)[0]
 
   lastScreenRowForBufferRow: (bufferRow) ->
-    @rowMap.screenRowRangeForBufferRow(bufferRow)[1] - 1
+    if @largeFileMode
+      bufferRow
+    else
+      @rowMap.screenRowRangeForBufferRow(bufferRow)[1] - 1
 
   # Given a screen row, this converts it into a buffer row.
   #
@@ -516,17 +518,20 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number}.
   bufferRowForScreenRow: (screenRow) ->
-    @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
+    if @largeFileMode
+      screenRow
+    else
+      @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
 
   # Given a buffer range, this converts it into a screen position.
   #
   # bufferRange - The {Range} to convert
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) ->
+  screenRangeForBufferRange: (bufferRange, options) ->
     bufferRange = Range.fromObject(bufferRange)
-    start = @screenPositionForBufferPosition(bufferRange.start)
-    end = @screenPositionForBufferPosition(bufferRange.end)
+    start = @screenPositionForBufferPosition(bufferRange.start, options)
+    end = @screenPositionForBufferPosition(bufferRange.end, options)
     new Range(start, end)
 
   # Given a screen range, this converts it into a buffer position.
@@ -540,57 +545,14 @@ class DisplayBuffer extends Model
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
-  pixelRangeForScreenRange: (screenRange, clip=true) ->
-    {start, end} = Range.fromObject(screenRange)
-    {start: @pixelPositionForScreenPosition(start, clip), end: @pixelPositionForScreenPosition(end, clip)}
-
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @clipScreenPosition(screenPosition) if clip
-
-    targetRow = screenPosition.row
-    targetColumn = screenPosition.column
-    defaultCharWidth = @defaultCharWidth
-
-    top = targetRow * @lineHeightInPixels
-    left = 0
-    column = 0
-    for token in @lineForRow(targetRow).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
-        return {top, left} if column is targetColumn
-        left += charWidths[char] ? defaultCharWidth unless char is '\0'
-        column++
-    {top, left}
-
-  screenPositionForPixelPosition: (pixelPosition) ->
-    targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    defaultCharWidth = @defaultCharWidth
-    row = Math.floor(targetTop / @getLineHeightInPixels())
-    row = Math.min(row, @getLastRow())
-    row = Math.max(0, row)
-
-    left = 0
-    column = 0
-    for token in @lineForRow(row).tokens
-      charWidths = @getScopedCharWidths(token.scopes)
-      for char in token.value
-        charWidth = charWidths[char] ? defaultCharWidth
-        break if targetLeft <= left + (charWidth / 2)
-        left += charWidth
-        column++
-
-    new Point(row, column)
-
-  pixelPositionForBufferPosition: (bufferPosition) ->
-    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(bufferPosition))
-
   # Gets the number of screen lines.
   #
   # Returns a {Number}.
   getLineCount: ->
-    @screenLines.length
+    if @largeFileMode
+      @tokenizedBuffer.getLineCount()
+    else
+      @screenLines.length
 
   # Gets the number of the last screen line.
   #
@@ -620,17 +582,24 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
-    { row, column } = @buffer.clipPosition(bufferPosition)
+    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
+
+    {row, column} = @buffer.clipPosition(bufferPosition)
     [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
     for screenRow in [startScreenRow...endScreenRow]
-      screenLine = @screenLines[screenRow]
+      screenLine = @tokenizedLineForScreenRow(screenRow)
 
       unless screenLine?
         throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
-          softWrapEnabled: @getSoftWrap()
+          softWrapEnabled: @isSoftWrapped()
           foldCount: @findFoldMarkers().length
           lastBufferRow: @buffer.getLastRow()
           lastScreenRow: @getLastRow()
+          bufferRow: row
+          screenRow: screenRow
+          displayBufferChangeCount: @changeCount
+          tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+          bufferChangeCount: @buffer.changeCount
 
       maxBufferColumn = screenLine.getMaxBufferColumn()
       if screenLine.isSoftWrapped() and column > maxBufferColumn
@@ -654,17 +623,17 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    { row, column } = @clipScreenPosition(Point.fromObject(screenPosition), options)
+    {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
     [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
-    new Point(bufferRow, @screenLines[row].bufferColumnForScreenColumn(column))
+    new Point(bufferRow, @tokenizedLineForScreenRow(row).bufferColumnForScreenColumn(column))
 
-  # Retrieves the grammar's token scopes for a buffer position.
+  # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
   # bufferPosition - A {Point} in the {TextBuffer}
   #
-  # Returns an {Array} of {String}s.
-  scopesForBufferPosition: (bufferPosition) ->
-    @tokenizedBuffer.scopesForPosition(bufferPosition)
+  # Returns a {ScopeDescriptor}.
+  scopeDescriptorForBufferPosition: (bufferPosition) ->
+    @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 
   bufferRangeForScopeAtPosition: (selector, position) ->
     @tokenizedBuffer.bufferRangeForScopeAtPosition(selector, position)
@@ -703,12 +672,13 @@ class DisplayBuffer extends Model
   # options - A hash with the following values:
   #           wrapBeyondNewlines: if `true`, continues wrapping past newlines
   #           wrapAtSoftNewlines: if `true`, continues wrapping past soft newlines
+  #           skipSoftWrapIndentation: if `true`, skips soft wrap indentation without wrapping to the previous line
   #           screenLine: if `true`, indicates that you're using a line number, not a row number
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
-    { row, column } = Point.fromObject(screenPosition)
+    {wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation} = options
+    {row, column} = Point.fromObject(screenPosition)
 
     if row < 0
       row = 0
@@ -719,15 +689,35 @@ class DisplayBuffer extends Model
     else if column < 0
       column = 0
 
-    screenLine = @screenLines[row]
+    screenLine = @tokenizedLineForScreenRow(row)
+    unless screenLine?
+      error = new Error("Undefined screen line when clipping screen position")
+      Error.captureStackTrace(error)
+      error.metadata = {
+        screenRow: row
+        screenColumn: column
+        maxScreenRow: @getLastRow()
+        screenLinesDefined: @screenLines.map (sl) -> sl?
+        displayBufferChangeCount: @changeCount
+        tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+        bufferChangeCount: @buffer.changeCount
+      }
+      throw error
+
     maxScreenColumn = screenLine.getMaxScreenColumn()
 
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
       if wrapAtSoftNewlines
         row++
-        column = 0
+        column = @tokenizedLineForScreenRow(row).clipScreenColumn(0)
       else
         column = screenLine.clipScreenColumn(maxScreenColumn - 1)
+    else if screenLine.isColumnInsideSoftWrapIndentation(column)
+      if skipSoftWrapIndentation
+        column = screenLine.clipScreenColumn(0)
+      else
+        row--
+        column = @tokenizedLineForScreenRow(row).getMaxScreenColumn() - 1
     else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
       row++
       column = 0
@@ -735,27 +725,17 @@ class DisplayBuffer extends Model
       column = screenLine.clipScreenColumn(column, options)
     new Point(row, column)
 
-  # Given a line, finds the point where it would wrap.
+  # Clip the start and end of the given range to valid positions on screen.
+  # See {::clipScreenPosition} for more information.
   #
-  # line - The {String} to check
-  # softWrapColumn - The {Number} where you want soft wrapping to occur
-  #
-  # Returns a {Number} representing the `line` position where the wrap would take place.
-  # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (line, softWrapColumn=@getSoftWrapColumn()) ->
-    return unless @softWrap
-    return unless line.length > softWrapColumn
+  # * `range` The {Range} to clip.
+  # * `options` (optional) See {::clipScreenPosition} `options`.
+  # Returns a {Range}.
+  clipScreenRange: (range, options) ->
+    start = @clipScreenPosition(range.start, options)
+    end = @clipScreenPosition(range.end, options)
 
-    if /\s/.test(line[softWrapColumn])
-      # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.length]
-        return column if /\S/.test(line[column])
-      return line.length
-    else
-      # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0]
-        return column + 1 if /\s/.test(line[column])
-      return softWrapColumn
+    new Range(start, end)
 
   # Calculates a {Range} representing the start of the {TextBuffer} until the end.
   #
@@ -766,6 +746,38 @@ class DisplayBuffer extends Model
   decorationForId: (id) ->
     @decorationsById[id]
 
+  getDecorations: (propertyFilter) ->
+    allDecorations = []
+    for markerId, decorations of @decorationsByMarkerId
+      allDecorations.push(decorations...) if decorations?
+    if propertyFilter?
+      allDecorations = allDecorations.filter (decoration) ->
+        for key, value of propertyFilter
+          return false unless decoration.properties[key] is value
+        true
+    allDecorations
+
+  getLineDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line')
+
+  getLineNumberDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('line-number')
+
+  getHighlightDecorations: (propertyFilter) ->
+    @getDecorations(propertyFilter).filter (decoration) -> decoration.isType('highlight')
+
+  getOverlayDecorations: (propertyFilter) ->
+    result = []
+    for id, decoration of @overlayDecorationsById
+      result.push(decoration)
+    if propertyFilter?
+      result.filter (decoration) ->
+        for key, value of propertyFilter
+          return false unless decoration.properties[key] is value
+        true
+    else
+      result
+
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     decorationsByMarkerId = {}
     for marker in @findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
@@ -773,73 +785,68 @@ class DisplayBuffer extends Model
         decorationsByMarkerId[marker.id] = decorations
     decorationsByMarkerId
 
+  decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    decorationsState = {}
+
+    for layerId of @decorationCountsByLayerId
+      layer = @getMarkerLayer(layerId)
+
+      for marker in layer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow]) when marker.isValid()
+        screenRange = marker.getScreenRange()
+        rangeIsReversed = marker.isReversed()
+
+        if decorations = @decorationsByMarkerId[marker.id]
+          for decoration in decorations
+            decorationsState[decoration.id] = {
+              properties: decoration.properties
+              screenRange, rangeIsReversed
+            }
+
+        if layerDecorations = @layerDecorationsByMarkerLayerId[layerId]
+          for layerDecoration in layerDecorations
+            decorationsState["#{layerDecoration.id}-#{marker.id}"] = {
+              properties: layerDecoration.overridePropertiesByMarkerId[marker.id] ? layerDecoration.properties
+              screenRange, rangeIsReversed
+            }
+
+    decorationsState
+
   decorateMarker: (marker, decorationParams) ->
-    marker = @getMarker(marker.id)
-
-    @decorationMarkerDestroyedSubscriptions[marker.id] ?= @subscribe marker, 'destroyed', =>
-      @removeAllDecorationsForMarker(marker)
-
-    @decorationMarkerChangedSubscriptions[marker.id] ?= @subscribe marker, 'changed', (event) =>
-      decorations = @decorationsByMarkerId[marker.id]
-
-      # Why check existence? Markers may get destroyed or decorations removed
-      # in the change handler. Bookmarks does this.
-      if decorations?
-        for decoration in decorations
-          @emit 'decoration-changed', marker, decoration, event
-
+    marker = @getMarkerLayer(marker.layer.id).getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []
     @decorationsByMarkerId[marker.id].push(decoration)
+    @overlayDecorationsById[decoration.id] = decoration if decoration.isType('overlay')
     @decorationsById[decoration.id] = decoration
-    @emit 'decoration-added', marker, decoration
+    @observeDecoratedLayer(marker.layer)
+    @scheduleUpdateDecorationsEvent()
+    @emitter.emit 'did-add-decoration', decoration
     decoration
 
-  removeDecoration: (decoration) ->
-    {marker} = decoration
-    return unless decorations = @decorationsByMarkerId[marker.id]
-    index = decorations.indexOf(decoration)
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    decoration = new LayerDecoration(markerLayer, this, decorationParams)
+    @layerDecorationsByMarkerLayerId[markerLayer.id] ?= []
+    @layerDecorationsByMarkerLayerId[markerLayer.id].push(decoration)
+    @observeDecoratedLayer(markerLayer)
+    @scheduleUpdateDecorationsEvent()
+    decoration
 
-    if index > -1
-      decorations.splice(index, 1)
-      delete @decorationsById[decoration.id]
-      @emit 'decoration-removed', marker, decoration
-      @removedAllMarkerDecorations(marker) if decorations.length is 0
+  decorationsForMarkerId: (markerId) ->
+    @decorationsByMarkerId[markerId]
 
-  removeAllDecorationsForMarker: (marker) ->
-    decorations = @decorationsByMarkerId[marker.id].slice()
-    for decoration in decorations
-      @emit 'decoration-removed', marker, decoration
-    @removedAllMarkerDecorations(marker)
-
-  removedAllMarkerDecorations: (marker) ->
-    @decorationMarkerChangedSubscriptions[marker.id].off()
-    @decorationMarkerDestroyedSubscriptions[marker.id].off()
-
-    delete @decorationsByMarkerId[marker.id]
-    delete @decorationMarkerChangedSubscriptions[marker.id]
-    delete @decorationMarkerDestroyedSubscriptions[marker.id]
-
-  decorationUpdated: (decoration) ->
-    @emit 'decoration-updated', decoration
-
-  # Retrieves a {DisplayBufferMarker} based on its id.
+  # Retrieves a {TextEditorMarker} based on its id.
   #
   # id - A {Number} representing a marker id
   #
-  # Returns the {DisplayBufferMarker} (if it exists).
+  # Returns the {TextEditorMarker} (if it exists).
   getMarker: (id) ->
-    unless marker = @markers[id]
-      if bufferMarker = @buffer.getMarker(id)
-        marker = new DisplayBufferMarker({bufferMarker, displayBuffer: this})
-        @markers[id] = marker
-    marker
+    @defaultMarkerLayer.getMarker(id)
 
   # Retrieves the active markers in the buffer.
   #
-  # Returns an {Array} of existing {DisplayBufferMarker}s.
+  # Returns an {Array} of existing {TextEditorMarker}s.
   getMarkers: ->
-    @buffer.getMarkers().map ({id}) => @getMarker(id)
+    @defaultMarkerLayer.getMarkers()
 
   getMarkerCount: ->
     @buffer.getMarkerCount()
@@ -847,54 +854,46 @@ class DisplayBuffer extends Model
   # Public: Constructs a new marker at the given screen range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markScreenRange: (args...) ->
-    bufferRange = @bufferRangeForScreenRange(args.shift())
-    @markBufferRange(bufferRange, args...)
+  markScreenRange: (screenRange, options) ->
+    @defaultMarkerLayer.markScreenRange(screenRange, options)
 
   # Public: Constructs a new marker at the given buffer range.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
-  markBufferRange: (range, options) ->
-    @getMarker(@buffer.markRange(range, options).id)
+  markBufferRange: (bufferRange, options) ->
+    @defaultMarkerLayer.markBufferRange(bufferRange, options)
 
   # Public: Constructs a new marker at the given screen position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markScreenPosition: (screenPosition, options) ->
-    @markBufferPosition(@bufferPositionForScreenPosition(screenPosition), options)
+    @defaultMarkerLayer.markScreenPosition(screenPosition, options)
 
   # Public: Constructs a new marker at the given buffer position.
   #
   # range - The marker {Range} (representing the distance between the head and tail)
-  # options - Options to pass to the {Marker} constructor
+  # options - Options to pass to the {TextEditorMarker} constructor
   #
   # Returns a {Number} representing the new marker's ID.
   markBufferPosition: (bufferPosition, options) ->
-    @getMarker(@buffer.markPosition(bufferPosition, options).id)
-
-  # Public: Removes the marker with the given id.
-  #
-  # id - The {Number} of the ID to remove
-  destroyMarker: (id) ->
-    @buffer.destroyMarker(id)
-    delete @markers[id]
+    @defaultMarkerLayer.markBufferPosition(bufferPosition, options)
 
   # Finds the first marker satisfying the given attributes
   #
   # Refer to {DisplayBuffer::findMarkers} for details.
   #
-  # Returns a {DisplayBufferMarker} or null
+  # Returns a {TextEditorMarker} or null
   findMarker: (params) ->
-    @findMarkers(params)[0]
+    @defaultMarkerLayer.findMarkers(params)[0]
 
   # Public: Find all markers satisfying a set of parameters.
   #
@@ -913,85 +912,58 @@ class DisplayBuffer extends Model
   #   :containedInBufferRange - A {Range} or range-compatible {Array}. Only
   #     returns markers contained within this range.
   #
-  # Returns an {Array} of {DisplayBufferMarker}s
+  # Returns an {Array} of {TextEditorMarker}s
   findMarkers: (params) ->
-    params = @translateToBufferMarkerParams(params)
-    @buffer.findMarkers(params).map (stringMarker) => @getMarker(stringMarker.id)
+    @defaultMarkerLayer.findMarkers(params)
 
-  translateToBufferMarkerParams: (params) ->
-    bufferMarkerParams = {}
-    for key, value of params
-      switch key
-        when 'startBufferRow'
-          key = 'startRow'
-        when 'endBufferRow'
-          key = 'endRow'
-        when 'startScreenRow'
-          key = 'startRow'
-          value = @bufferRowForScreenRow(value)
-        when 'endScreenRow'
-          key = 'endRow'
-          value = @bufferRowForScreenRow(value)
-        when 'intersectsBufferRowRange'
-          key = 'intersectsRowRange'
-        when 'intersectsScreenRowRange'
-          key = 'intersectsRowRange'
-          [startRow, endRow] = value
-          value = [@bufferRowForScreenRow(startRow), @bufferRowForScreenRow(endRow)]
-        when 'containsBufferRange'
-          key = 'containsRange'
-        when 'containsBufferPosition'
-          key = 'containsPosition'
-        when 'containedInBufferRange'
-          key = 'containedInRange'
-        when 'containedInScreenRange'
-          key = 'containedInRange'
-          value = @bufferRangeForScreenRange(value)
-        when 'intersectsBufferRange'
-          key = 'intersectsRange'
-        when 'intersectsScreenRange'
-          key = 'intersectsRange'
-          value = @bufferRangeForScreenRange(value)
-      bufferMarkerParams[key] = value
+  addMarkerLayer: (options) ->
+    bufferLayer = @buffer.addMarkerLayer(options)
+    @getMarkerLayer(bufferLayer.id)
 
-    bufferMarkerParams
+  getMarkerLayer: (id) ->
+    if layer = @customMarkerLayersById[id]
+      layer
+    else if bufferLayer = @buffer.getMarkerLayer(id)
+      @customMarkerLayersById[id] = new TextEditorMarkerLayer(this, bufferLayer)
 
-  findFoldMarker: (attributes) ->
-    @findFoldMarkers(attributes)[0]
+  getDefaultMarkerLayer: -> @defaultMarkerLayer
 
-  findFoldMarkers: (attributes) ->
-    @buffer.findMarkers(@getFoldMarkerAttributes(attributes))
+  findFoldMarker: (params) ->
+    @findFoldMarkers(params)[0]
 
-  getFoldMarkerAttributes: (attributes={}) ->
-    _.extend(attributes, class: 'fold', displayBufferId: @id)
-
-  pauseMarkerObservers: ->
-    marker.pauseEvents() for marker in @getMarkers()
-
-  resumeMarkerObservers: ->
-    marker.resumeEvents() for marker in @getMarkers()
-    @emit 'markers-updated'
+  findFoldMarkers: (params) ->
+    @foldsMarkerLayer.findMarkers(params)
 
   refreshMarkerScreenPositions: ->
-    for marker in @getMarkers()
-      marker.notifyObservers(textChanged: false)
+    @defaultMarkerLayer.refreshMarkerScreenPositions()
+    layer.refreshMarkerScreenPositions() for id, layer of @customMarkerLayersById
+    return
 
   destroyed: ->
-    marker.unsubscribe() for marker in @getMarkers()
+    @defaultMarkerLayer.destroy()
+    @foldsMarkerLayer.destroy()
+    @scopedConfigSubscriptions.dispose()
+    @disposables.dispose()
     @tokenizedBuffer.destroy()
-    @unsubscribe()
 
   logLines: (start=0, end=@getLastRow()) ->
     for row in [start..end]
-      line = @lineForRow(row).text
+      line = @tokenizedLineForScreenRow(row).text
       console.log row, @bufferRowForScreenRow(row), line, line.length
+    return
+
+  getRootScopeDescriptor: ->
+    @tokenizedBuffer.rootScopeDescriptor
 
   handleTokenizedBufferChange: (tokenizedBufferChange) =>
+    @changeCount = @tokenizedBuffer.changeCount
     {start, end, delta, bufferChange} = tokenizedBufferChange
-    @updateScreenLines(start, end + 1, delta, delayChangeEvent: bufferChange?)
-    @setScrollTop(Math.min(@getScrollTop(), @getMaxScrollTop())) if @manageScrollPosition and delta < 0
+    @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
+    return if @largeFileMode
+    return if @isDestroyed()
+
     startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
     endBufferRow = @rowMap.bufferRowRangeForBufferRow(endBufferRow - 1)[1]
     startScreenRow = @rowMap.screenRowRangeForBufferRow(startBufferRow)[0]
@@ -999,7 +971,10 @@ class DisplayBuffer extends Model
     {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
     screenDelta = screenLines.length - (endScreenRow - startScreenRow)
 
-    @screenLines[startScreenRow...endScreenRow] = screenLines
+    _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
+
+    @checkScreenLinesInvariant()
+
     @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
     @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
 
@@ -1011,22 +986,22 @@ class DisplayBuffer extends Model
       screenDelta: screenDelta
       bufferDelta: bufferDelta
 
-    if options.delayChangeEvent
-      @pauseMarkerObservers()
-      @pendingChangeEvent = changeEvent
-    else
-      @emitChanged(changeEvent, options.refreshMarkers)
+    @emitDidChange(changeEvent, options.refreshMarkers)
 
   buildScreenLines: (startBufferRow, endBufferRow) ->
     screenLines = []
     regions = []
     rectangularRegion = null
 
+    foldsByStartRow = {}
+    for fold in @outermostFoldsInBufferRowRange(startBufferRow, endBufferRow)
+      foldsByStartRow[fold.getStartRow()] = fold
+
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
-      tokenizedLine = @tokenizedBuffer.lineForScreenRow(bufferRow)
+      tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
 
-      if fold = @largestFoldStartingAtBufferRow(bufferRow)
+      if fold = foldsByStartRow[bufferRow]
         foldLine = tokenizedLine.copy()
         foldLine.fold = fold
         screenLines.push(foldLine)
@@ -1040,10 +1015,15 @@ class DisplayBuffer extends Model
         bufferRow += foldedRowCount
       else
         softWraps = 0
-        while wrapScreenColumn = @findWrapColumn(tokenizedLine.text)
-          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-          screenLines.push(wrappedLine)
-          softWraps++
+        if @isSoftWrapped()
+          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumnForTokenizedLine(tokenizedLine))
+            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
+              wrapScreenColumn,
+              @configSettings.softWrapHangingIndent
+            )
+            break if wrappedLine.hasOnlySoftWrapIndentation()
+            screenLines.push(wrappedLine)
+            softWraps++
         screenLines.push(tokenizedLine)
 
         if softWraps > 0
@@ -1072,7 +1052,7 @@ class DisplayBuffer extends Model
       maxLengthCandidatesStartRow = 0
       maxLengthCandidates = @screenLines
     else
-      @longestScreenRow += screenDelta if endScreenRow < @longestScreenRow
+      @longestScreenRow += screenDelta if endScreenRow <= @longestScreenRow
       maxLengthCandidatesStartRow = startScreenRow
       maxLengthCandidates = newScreenLines
 
@@ -1083,28 +1063,81 @@ class DisplayBuffer extends Model
         @longestScreenRow = screenRow
         @maxLineLength = length
 
-    @computeScrollWidth() if oldMaxLineLength isnt @maxLineLength
-
-  computeScrollWidth: ->
-    @scrollWidth = @pixelPositionForScreenPosition([@longestScreenRow, @maxLineLength]).left
-    @scrollWidth += 1 unless @getSoftWrap()
-    @setScrollLeft(Math.min(@getScrollLeft(), @getMaxScrollLeft()))
-
-  handleBufferMarkersUpdated: =>
-    if event = @pendingChangeEvent
-      @pendingChangeEvent = null
-      @emitChanged(event, false)
-
-  handleBufferMarkerCreated: (marker) =>
-    @createFoldForMarker(marker) if marker.matchesAttributes(@getFoldMarkerAttributes())
-    if displayBufferMarker = @getMarker(marker.id)
+  didCreateDefaultLayerMarker: (textBufferMarker) =>
+    if marker = @getMarker(textBufferMarker.id)
       # The marker might have been removed in some other handler called before
       # this one. Only emit when the marker still exists.
-      @emit 'marker-created', displayBufferMarker
+      @emitter.emit 'did-create-marker', marker
 
-  createFoldForMarker: (marker) ->
-    @decorateMarker(marker, type: 'gutter', class: 'folded')
-    new Fold(this, marker)
+  scheduleUpdateDecorationsEvent: ->
+    if @updatedSynchronously
+      @emitter.emit 'did-update-decorations'
+      return
+
+    unless @didUpdateDecorationsEventScheduled
+      @didUpdateDecorationsEventScheduled = true
+      process.nextTick =>
+        @didUpdateDecorationsEventScheduled = false
+        @emitter.emit 'did-update-decorations'
+
+  decorateFold: (fold) ->
+    @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
 
   foldForMarker: (marker) ->
     @foldsByMarkerId[marker.id]
+
+  decorationDidChangeType: (decoration) ->
+    if decoration.isType('overlay')
+      @overlayDecorationsById[decoration.id] = decoration
+    else
+      delete @overlayDecorationsById[decoration.id]
+
+  didDestroyDecoration: (decoration) ->
+    {marker} = decoration
+    return unless decorations = @decorationsByMarkerId[marker.id]
+    index = decorations.indexOf(decoration)
+
+    if index > -1
+      decorations.splice(index, 1)
+      delete @decorationsById[decoration.id]
+      @emitter.emit 'did-remove-decoration', decoration
+      delete @decorationsByMarkerId[marker.id] if decorations.length is 0
+      delete @overlayDecorationsById[decoration.id]
+      @unobserveDecoratedLayer(marker.layer)
+    @scheduleUpdateDecorationsEvent()
+
+  didDestroyLayerDecoration: (decoration) ->
+    {markerLayer} = decoration
+    return unless decorations = @layerDecorationsByMarkerLayerId[markerLayer.id]
+    index = decorations.indexOf(decoration)
+
+    if index > -1
+      decorations.splice(index, 1)
+      delete @layerDecorationsByMarkerLayerId[markerLayer.id] if decorations.length is 0
+      @unobserveDecoratedLayer(markerLayer)
+    @scheduleUpdateDecorationsEvent()
+
+  observeDecoratedLayer: (layer) ->
+    @decorationCountsByLayerId[layer.id] ?= 0
+    if ++@decorationCountsByLayerId[layer.id] is 1
+      @layerUpdateDisposablesByLayerId[layer.id] = layer.onDidUpdate(@scheduleUpdateDecorationsEvent.bind(this))
+
+  unobserveDecoratedLayer: (layer) ->
+    if --@decorationCountsByLayerId[layer.id] is 0
+      @layerUpdateDisposablesByLayerId[layer.id].dispose()
+      delete @decorationCountsByLayerId[layer.id]
+      delete @layerUpdateDisposablesByLayerId[layer.id]
+
+  checkScreenLinesInvariant: ->
+    return if @isSoftWrapped()
+    return if _.size(@foldsByMarkerId) > 0
+
+    screenLinesCount = @screenLines.length
+    tokenizedLinesCount = @tokenizedBuffer.getLineCount()
+    bufferLinesCount = @buffer.getLineCount()
+
+    @assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
+      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
+
+    @assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
+      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}

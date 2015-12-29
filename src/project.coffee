@@ -3,114 +3,207 @@ url = require 'url'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-Q = require 'q'
-{deprecate} = require 'grim'
-{Model} = require 'theorist'
-{Emitter, Subscriber} = require 'emissary'
-Serializable = require 'serializable'
+{Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
-{Directory} = require 'pathwatcher'
 
-Editor = require './editor'
+DefaultDirectoryProvider = require './default-directory-provider'
+Model = require './model'
+TextEditor = require './text-editor'
 Task = require './task'
-Git = require './git'
+GitRepositoryProvider = require './git-repository-provider'
 
 # Extended: Represents a project that's opened in Atom.
 #
 # An instance of this class is always available as the `atom.project` global.
-#
-# ## Events
-#
-# ### path-changed
-#
-# Extended: Emit when the project's path has changed. Use {::getPath} to get the new path
-#
-# ### buffer-created
-#
-# Extended: Emit when a buffer is created. For example, when {::open} is called, this is fired.
-#
-# * `buffer` {TextBuffer} the new buffer that was created.
-#
 module.exports =
 class Project extends Model
-  atom.deserializers.add(this)
-  Serializable.includeInto(this)
+  ###
+  Section: Construction and Destruction
+  ###
 
-  # Public: Find the local path for the given repository URL.
-  #
-  # * `repoUrl` {String} url to a git repository
-  @pathForRepositoryUrl: (repoUrl) ->
-    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
-    repoName = repoName.replace(/\.git$/, '')
-    path.join(atom.config.get('core.projectHome'), repoName)
-
-  constructor: ({path, @buffers}={}) ->
-    @buffers ?= []
-
-    for buffer in @buffers
-      do (buffer) =>
-        buffer.once 'destroyed', => @removeBuffer(buffer)
-
-    @setPath(path)
-
-  serializeParams: ->
-    path: @path
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
-
-  deserializeParams: (params) ->
-    params.buffers = params.buffers.map (bufferState) -> atom.deserializers.deserialize(bufferState)
-    params
+  constructor: ({@notificationManager, packageManager, config}) ->
+    @emitter = new Emitter
+    @buffers = []
+    @paths = []
+    @rootDirectories = []
+    @repositories = []
+    @directoryProviders = []
+    @defaultDirectoryProvider = new DefaultDirectoryProvider()
+    @repositoryPromisesByPath = new Map()
+    @repositoryProviders = [new GitRepositoryProvider(this, config)]
+    @consumeServices(packageManager)
 
   destroyed: ->
-    buffer.destroy() for buffer in @getBuffers()
-    @destroyRepo()
+    buffer.destroy() for buffer in @buffers
+    @setPaths([])
 
-  destroyRepo: ->
-    if @repo?
-      @repo.destroy()
-      @repo = null
+  reset: (packageManager) ->
+    @emitter.dispose()
+    @emitter = new Emitter
+
+    buffer?.destroy() for buffer in @buffers
+    @buffers = []
+    @setPaths([])
+    @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
+    return
 
-  # Public: Returns the {Git} repository if available.
-  getRepo: -> @repo
+  ###
+  Section: Serialization
+  ###
 
-  # Public: Returns the project's {String} fullpath.
-  getPath: ->
-    @rootDirectory?.path
+  deserialize: (state, deserializerManager) ->
+    state.paths = [state.path] if state.path? # backward compatibility
 
-  # Public: Sets the project's fullpath.
+    @buffers = _.compact state.buffers.map (bufferState) ->
+      # Check that buffer's file path is accessible
+      return if fs.isDirectorySync(bufferState.filePath)
+      if bufferState.filePath
+        try
+          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
+        catch error
+          return unless error.code is 'ENOENT'
+      deserializerManager.deserialize(bufferState)
+
+    @subscribeToBuffer(buffer) for buffer in @buffers
+    @setPaths(state.paths)
+
+  serialize: ->
+    deserializer: 'Project'
+    paths: @getPaths()
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Public: Invoke the given callback when the project paths change.
   #
-  # * `projectPath` {String} path
-  setPath: (projectPath) ->
-    @path = projectPath
-    @rootDirectory?.off()
+  # * `callback` {Function} to be called after the project paths change.
+  #    * `projectPaths` An {Array} of {String} project paths.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePaths: (callback) ->
+    @emitter.on 'did-change-paths', callback
 
-    @destroyRepo()
-    if projectPath?
-      directory = if fs.isDirectorySync(projectPath) then projectPath else path.dirname(projectPath)
-      @rootDirectory = new Directory(directory)
-      if @repo = Git.open(directory, project: this)
-        @repo.refreshIndex()
-        @repo.refreshStatus()
+  onDidAddBuffer: (callback) ->
+    @emitter.on 'did-add-buffer', callback
+
+  ###
+  Section: Accessing the git repository
+  ###
+
+  # Public: Get an {Array} of {GitRepository}s associated with the project's
+  # directories.
+  #
+  # This method will be removed in 2.0 because it does synchronous I/O.
+  # Prefer the following, which evaluates to a {Promise} that resolves to an
+  # {Array} of {Repository} objects:
+  # ```
+  # Promise.all(atom.project.getDirectories().map(
+  #     atom.project.repositoryForDirectory.bind(atom.project)))
+  # ```
+  getRepositories: -> @repositories
+
+  # Public: Get the repository for a given directory asynchronously.
+  #
+  # * `directory` {Directory} for which to get a {Repository}.
+  #
+  # Returns a {Promise} that resolves with either:
+  # * {Repository} if a repository can be created for the given directory
+  # * `null` if no repository can be created for the given directory.
+  repositoryForDirectory: (directory) ->
+    pathForDirectory = directory.getRealPathSync()
+    promise = @repositoryPromisesByPath.get(pathForDirectory)
+    unless promise
+      promises = @repositoryProviders.map (provider) ->
+        provider.repositoryForDirectory(directory)
+      promise = Promise.all(promises).then (repositories) =>
+        repo = _.find(repositories, (repo) -> repo?) ? null
+
+        # If no repository is found, remove the entry in for the directory in
+        # @repositoryPromisesByPath in case some other RepositoryProvider is
+        # registered in the future that could supply a Repository for the
+        # directory.
+        @repositoryPromisesByPath.delete(pathForDirectory) unless repo?
+        repo
+      @repositoryPromisesByPath.set(pathForDirectory, promise)
+    promise
+
+  ###
+  Section: Managing Paths
+  ###
+
+  # Public: Get an {Array} of {String}s containing the paths of the project's
+  # directories.
+  getPaths: -> rootDirectory.getPath() for rootDirectory in @rootDirectories
+
+  # Public: Set the paths of the project's directories.
+  #
+  # * `projectPaths` {Array} of {String} paths.
+  setPaths: (projectPaths) ->
+    repository?.destroy() for repository in @repositories
+    @rootDirectories = []
+    @repositories = []
+
+    @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
+
+    @emitter.emit 'did-change-paths', projectPaths
+
+  # Public: Add a path to the project's list of root paths
+  #
+  # * `projectPath` {String} The path to the directory to add.
+  addPath: (projectPath, options) ->
+    directory = null
+    for provider in @directoryProviders
+      break if directory = provider.directoryForURISync?(projectPath)
+    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
+
+    directoryExists = directory.existsSync()
+    for rootDirectory in @getDirectories()
+      return if rootDirectory.getPath() is directory.getPath()
+      return if not directoryExists and rootDirectory.contains(directory.getPath())
+
+    @rootDirectories.push(directory)
+
+    repo = null
+    for provider in @repositoryProviders
+      break if repo = provider.repositoryForDirectorySync?(directory)
+    @repositories.push(repo ? null)
+
+    unless options?.emitEvent is false
+      @emitter.emit 'did-change-paths', @getPaths()
+
+  # Public: remove a path from the project's list of root paths.
+  #
+  # * `projectPath` {String} The path to remove.
+  removePath: (projectPath) ->
+    # The projectPath may be a URI, in which case it should not be normalized.
+    unless projectPath in @getPaths()
+      projectPath = path.normalize(projectPath)
+
+    indexToRemove = null
+    for directory, i in @rootDirectories
+      if directory.getPath() is projectPath
+        indexToRemove = i
+        break
+
+    if indexToRemove?
+      [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
+      [removedRepository] = @repositories.splice(indexToRemove, 1)
+      removedRepository?.destroy() unless removedRepository in @repositories
+      @emitter.emit "did-change-paths", @getPaths()
+      true
     else
-      @rootDirectory = null
+      false
 
-    @emit "path-changed"
+  # Public: Get an {Array} of {Directory}s associated with this project.
+  getDirectories: ->
+    @rootDirectories
 
-  # Public: Returns the root {Directory} object for this project.
-  getRootDirectory: ->
-    @rootDirectory
-
-  # Public: Given a uri, this resolves it relative to the project directory. If
-  # the path is already absolute or if it is prefixed with a scheme, it is
-  # returned unchanged.
-  #
-  # * `uri` The {String} name of the path to convert.
-  #
-  # Returns a {String} or undefined if the uri is not missing or empty.
-  resolve: (uri) ->
+  resolvePath: (uri) ->
     return unless uri
 
     if uri?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
@@ -118,41 +211,88 @@ class Project extends Model
     else
       if fs.isAbsolute(uri)
         path.normalize(fs.absolute(uri))
-      else if projectPath = @getPath()
+
+      # TODO: what should we do here when there are multiple directories?
+      else if projectPath = @getPaths()[0]
         path.normalize(fs.absolute(path.join(projectPath, uri)))
       else
         undefined
 
-  # Public: Make the given path relative to the project directory.
-  #
-  # * `fullPath` {String} full path
   relativize: (fullPath) ->
-    return fullPath if fullPath?.match(/[A-Za-z0-9+-.]+:\/\//) # leave path alone if it has a scheme
-    @rootDirectory?.relativize(fullPath) ? fullPath
+    @relativizePath(fullPath)[1]
 
-  # Public: Returns whether the given path is inside this project.
+  # Public: Get the path to the project directory that contains the given path,
+  # and the relative path from that project directory to the given path.
+  #
+  # * `fullPath` {String} An absolute path.
+  #
+  # Returns an {Array} with two elements:
+  # * `projectPath` The {String} path to the project directory that contains the
+  #   given path, or `null` if none is found.
+  # * `relativePath` {String} The relative path from the project directory to
+  #   the given path.
+  relativizePath: (fullPath) ->
+    result = [null, fullPath]
+    if fullPath?
+      for rootDirectory in @rootDirectories
+        relativePath = rootDirectory.relativize(fullPath)
+        if relativePath?.length < result[1].length
+          result = [rootDirectory.getPath(), relativePath]
+    result
+
+  # Public: Determines whether the given path (real or symbolic) is inside the
+  # project's directory.
+  #
+  # This method does not actually check if the path exists, it just checks their
+  # locations relative to each other.
+  #
+  # ## Examples
+  #
+  # Basic operation
+  #
+  # ```coffee
+  # # Project's root directory is /foo/bar
+  # project.contains('/foo/bar/baz')        # => true
+  # project.contains('/usr/lib/baz')        # => false
+  # ```
+  #
+  # Existence of the path is not required
+  #
+  # ```coffee
+  # # Project's root directory is /foo/bar
+  # fs.existsSync('/foo/bar/baz')           # => false
+  # project.contains('/foo/bar/baz')        # => true
+  # ```
   #
   # * `pathToCheck` {String} path
+  #
+  # Returns whether the path is inside the project's root directory.
   contains: (pathToCheck) ->
-    @rootDirectory?.contains(pathToCheck) ? false
+    @rootDirectories.some (dir) -> dir.contains(pathToCheck)
 
-  # Given a path to a file, this constructs and associates a new
-  # {Editor}, showing the file.
-  #
-  # * `filePath` The {String} path of the file to associate with.
-  # * `options` Options that you can pass to the {Editor} constructor.
-  #
-  # Returns a promise that resolves to an {Editor}.
-  open: (filePath, options={}) ->
-    filePath = @resolve(filePath)
-    @bufferForPath(filePath).then (buffer) =>
-      @buildEditorForBuffer(buffer, options)
+  ###
+  Section: Private
+  ###
 
-  # Deprecated
-  openSync: (filePath, options={}) ->
-    deprecate("Use Project::open instead")
-    filePath = @resolve(filePath)
-    @buildEditorForBuffer(@bufferForPathSync(filePath), options)
+  consumeServices: ({serviceHub}) ->
+    serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      (provider) =>
+        @directoryProviders.unshift(provider)
+        new Disposable =>
+          @directoryProviders.splice(@directoryProviders.indexOf(provider), 1)
+    )
+
+    serviceHub.consume(
+      'atom.repository-provider',
+      '^0.1.0',
+      (provider) =>
+        @repositoryProviders.push(provider)
+        @setPaths(@getPaths()) if null in @repositories
+        new Disposable =>
+          @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
+    )
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -163,16 +303,24 @@ class Project extends Model
 
   # Is the buffer for the given path modified?
   isPathModified: (filePath) ->
-    @findBufferForPath(@resolve(filePath))?.isModified()
+    @findBufferForPath(@resolvePath(filePath))?.isModified()
 
   findBufferForPath: (filePath) ->
-    _.find @buffers, (buffer) -> buffer.getPath() == filePath
+    _.find @buffers, (buffer) -> buffer.getPath() is filePath
+
+  findBufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.getId() is id
 
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
-    absoluteFilePath = @resolve(filePath)
+    absoluteFilePath = @resolvePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
+
+  # Only to be used when deserializing
+  bufferForIdSync: (id) ->
+    existingBuffer = @findBufferForId(id) if id
+    existingBuffer ? @buildBufferSync()
 
   # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -182,13 +330,12 @@ class Project extends Model
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
   # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPath: (filePath) ->
-    absoluteFilePath = @resolve(filePath)
-    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
-    Q(existingBuffer ? @buildBuffer(absoluteFilePath))
-
-  bufferForId: (id) ->
-    _.find @buffers, (buffer) -> buffer.id is id
+  bufferForPath: (absoluteFilePath) ->
+    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
+    if existingBuffer
+      Promise.resolve(existingBuffer)
+    else
+      @buildBuffer(absoluteFilePath)
 
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
@@ -204,9 +351,6 @@ class Project extends Model
   #
   # Returns a promise that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    if fs.getSizeSync(absoluteFilePath) >= 2 * 1048576 # 2MB
-      throw new Error("Atom can only handle files < 2MB for now.")
-
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
     buffer.load()
@@ -215,12 +359,12 @@ class Project extends Model
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
-    buffer.once 'destroyed', => @removeBuffer(buffer)
+    @subscribeToBuffer(buffer)
 
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
-    buffer.once 'destroyed', => @removeBuffer(buffer)
-    @emit 'buffer-created', buffer
+    @subscribeToBuffer(buffer)
+    @emitter.emit 'did-add-buffer', buffer
     buffer
 
   # Removes a {TextBuffer} association from the project.
@@ -234,95 +378,6 @@ class Project extends Model
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
 
-  # Public: Performs a search across all the files in the project.
-  #
-  # * `regex` {RegExp} to search with.
-  # * `options` (optional) {Object} (default: {})
-  #   * `paths` An {Array} of glob patterns to search within
-  # * `iterator` {Function} callback on each file found
-  scan: (regex, options={}, iterator) ->
-    if _.isFunction(options)
-      iterator = options
-      options = {}
-
-    deferred = Q.defer()
-
-    searchOptions =
-      ignoreCase: regex.ignoreCase
-      inclusions: options.paths
-      includeHidden: true
-      excludeVcsIgnores: atom.config.get('core.excludeVcsIgnoredPaths')
-      exclusions: atom.config.get('core.ignoredNames')
-
-    task = Task.once require.resolve('./scan-handler'), @getPath(), regex.source, searchOptions, ->
-      deferred.resolve()
-
-    task.on 'scan:result-found', (result) =>
-      iterator(result) unless @isPathModified(result.filePath)
-
-    task.on 'scan:file-error', (error) ->
-      iterator(null, error)
-
-    if _.isFunction(options.onPathsSearched)
-      task.on 'scan:paths-searched', (numberOfPathsSearched) ->
-        options.onPathsSearched(numberOfPathsSearched)
-
-    for buffer in @getBuffers() when buffer.isModified()
-      filePath = buffer.getPath()
-      continue unless @contains(filePath)
-      matches = []
-      buffer.scan regex, (match) -> matches.push match
-      iterator {filePath, matches} if matches.length > 0
-
-    promise = deferred.promise
-    promise.cancel = ->
-      task.terminate()
-      deferred.resolve('cancelled')
-    promise
-
-  # Public: Performs a replace across all the specified files in the project.
-  #
-  # * `regex` A {RegExp} to search with.
-  # * `replacementText` Text to replace all matches of regex with
-  # * `filePaths` List of file path strings to run the replace on.
-  # * `iterator` A {Function} callback on each file with replacements:
-  #   * `options` {Object} with keys `filePath` and `replacements`
-  replace: (regex, replacementText, filePaths, iterator) ->
-    deferred = Q.defer()
-
-    openPaths = (buffer.getPath() for buffer in @getBuffers())
-    outOfProcessPaths = _.difference(filePaths, openPaths)
-
-    inProcessFinished = !openPaths.length
-    outOfProcessFinished = !outOfProcessPaths.length
-    checkFinished = ->
-      deferred.resolve() if outOfProcessFinished and inProcessFinished
-
-    unless outOfProcessFinished.length
-      flags = 'g'
-      flags += 'i' if regex.ignoreCase
-
-      task = Task.once require.resolve('./replace-handler'), outOfProcessPaths, regex.source, flags, replacementText, ->
-        outOfProcessFinished = true
-        checkFinished()
-
-      task.on 'replace:path-replaced', iterator
-      task.on 'replace:file-error', (error) -> iterator(null, error)
-
-    for buffer in @getBuffers()
-      continue unless buffer.getPath() in filePaths
-      replacements = buffer.replace(regex, replacementText, iterator)
-      iterator({filePath: buffer.getPath(), replacements}) if replacements
-
-    inProcessFinished = true
-    checkFinished()
-
-    deferred.promise
-
-  buildEditorForBuffer: (buffer, editorOptions) ->
-    editor = new Editor(_.extend({buffer, registerEditor: true}, editorOptions))
-    editor
-
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -333,22 +388,13 @@ class Project extends Model
     else
       @on 'buffer-created', (buffer) -> callback(buffer)
 
-  # Deprecated: delegate
-  registerOpener: (opener) ->
-    deprecate("Use Workspace::registerOpener instead")
-    atom.workspace.registerOpener(opener)
-
-  # Deprecated: delegate
-  unregisterOpener: (opener) ->
-    deprecate("Use Workspace::unregisterOpener instead")
-    atom.workspace.unregisterOpener(opener)
-
-  # Deprecated: delegate
-  eachEditor: (callback) ->
-    deprecate("Use Workspace::eachEditor instead")
-    atom.workspace.eachEditor(callback)
-
-  # Deprecated: delegate
-  getEditors: ->
-    deprecate("Use Workspace::getEditors instead")
-    atom.workspace.getEditors()
+  subscribeToBuffer: (buffer) ->
+    buffer.onDidDestroy => @removeBuffer(buffer)
+    buffer.onWillThrowWatchError ({error, handle}) =>
+      handle()
+      @notificationManager.addWarning """
+        Unable to read file after file `#{error.eventType}` event.
+        Make sure you have permission to access `#{buffer.getPath()}`.
+        """,
+        detail: error.message
+        dismissable: true

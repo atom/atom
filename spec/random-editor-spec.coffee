@@ -1,10 +1,10 @@
 {times, random} = require 'underscore-plus'
 randomWords = require 'random-words'
 TextBuffer = require 'text-buffer'
-Editor = require '../src/editor'
+TextEditor = require '../src/text-editor'
 
-describe "Editor", ->
-  [editor, tokenizedBuffer, buffer, steps, previousSteps] = []
+describe "TextEditor", ->
+  [editor, tokenizedBuffer, buffer, steps] = []
 
   softWrapColumn = 80
 
@@ -13,11 +13,9 @@ describe "Editor", ->
     atom.config.set('editor.preferredLineLength', softWrapColumn)
 
   it "properly renders soft-wrapped lines when randomly mutated", ->
-    previousSteps = JSON.parse(localStorage.steps ? '[]')
-
     times 10, (i) ->
       buffer = new TextBuffer
-      editor = new Editor({buffer})
+      editor = atom.workspace.buildTextEditor({buffer})
       editor.setEditorWidthInChars(80)
       tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
       steps = []
@@ -35,7 +33,7 @@ describe "Editor", ->
         logLines()
         throw new Error("Invalid buffer row #{actualBufferRow} for screen row #{screenRow}", )
 
-      actualScreenLine = editor.lineForScreenRow(screenRow)
+      actualScreenLine = editor.tokenizedLineForScreenRow(screenRow)
       unless actualScreenLine.text is referenceScreenLine.text
         logLines()
         throw new Error("Invalid line text at screen row #{screenRow}")
@@ -47,12 +45,15 @@ describe "Editor", ->
     {bufferRows, screenLines} = getReferenceScreenLines()
     for bufferRow, screenRow in bufferRows
       console.log screenRow, bufferRow, screenLines[screenRow].text
+    console.log "==== steps to reproduce this failure: ==="
+    for step in steps
+      console.log 'editor.' + step[0] + '('+ step[1..].map((a) -> JSON.stringify(a)).join(', ') + ')'
 
   randomlyMutateEditor = ->
     if Math.random() < .2
-      softWrap = not editor.getSoftWrap()
-      steps.push(['setSoftWrap', softWrap])
-      editor.setSoftWrap(softWrap)
+      softWrapped = not editor.isSoftWrapped()
+      steps.push(['setSoftWrapped', softWrapped])
+      editor.setSoftWrapped(softWrapped)
     else
       range = getRandomRange()
       text = getRandomText()
@@ -79,34 +80,11 @@ describe "Editor", ->
     text
 
   getReferenceScreenLines = ->
-    if editor.getSoftWrap()
-      screenLines = []
-      bufferRows = []
-      for bufferRow in [0..tokenizedBuffer.getLastRow()]
-        for screenLine in softWrapLine(tokenizedBuffer.lineForScreenRow(bufferRow))
-          screenLines.push(screenLine)
-          bufferRows.push(bufferRow)
-    else
-      screenLines = tokenizedBuffer.tokenizedLines.slice()
-      bufferRows = [0..tokenizedBuffer.getLastRow()]
+    referenceEditor = atom.workspace.buildTextEditor()
+    referenceEditor.setEditorWidthInChars(80)
+    referenceEditor.setText(editor.getText())
+    referenceEditor.setSoftWrapped(editor.isSoftWrapped())
+    screenLines = referenceEditor.tokenizedLinesForScreenRows(0, referenceEditor.getLastScreenRow())
+    bufferRows = referenceEditor.bufferRowsForScreenRows(0, referenceEditor.getLastScreenRow())
+
     {screenLines, bufferRows}
-
-  softWrapLine = (tokenizedLine) ->
-    wrappedLines = []
-    while tokenizedLine.text.length > softWrapColumn and wrapScreenColumn = findWrapColumn(tokenizedLine.text)
-      [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(wrapScreenColumn)
-      wrappedLines.push(wrappedLine)
-    wrappedLines.push(tokenizedLine)
-    wrappedLines
-
-  findWrapColumn = (line) ->
-    if /\s/.test(line[softWrapColumn])
-      # search forward for the start of a word past the boundary
-      for column in [softWrapColumn..line.length]
-        return column if /\S/.test(line[column])
-      return line.length
-    else
-      # search backward for the start of the word on the boundary
-      for column in [softWrapColumn..0]
-        return column + 1 if /\s/.test(line[column])
-      return softWrapColumn

@@ -1,0 +1,12 @@
+{
+  "name": "package-with-missing-provided-services",
+
+  "providedServices": {
+    "service-1": {
+      "description": "The first service",
+      "versions": {
+        "0.2.9": "provideMissingService"
+      }
+    }
+  }
+}

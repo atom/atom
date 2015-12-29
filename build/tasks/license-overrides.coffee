@@ -35,6 +35,10 @@ module.exports =
 
       MIT/X11
     """
+  'cheerio@0.15.0':
+    repository: "https://github.com/cheeriojs/cheerio"
+    license: 'MIT'
+    source: 'https://github.com/cheeriojs/cheerio/blob/master/package.json'
   'specificity@0.1.3':
     repository: 'https://github.com/keeganstreet/specificity'
     license: 'MIT'
@@ -60,3 +64,21 @@ module.exports =
         ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
         IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       """
+
+  'jschardet@1.1.1':
+    license: 'LGPL'
+    source: 'README.md in the repository'
+    sourceText: """
+      JsChardet
+      =========
+
+      Port of python's chardet (http://chardet.feedparser.org/).
+
+      License
+      -------
+
+      LGPL
+    """
+  'core-js@0.4.10':
+    license: 'MIT'
+    source: 'http://rock.mit-license.org linked in source files and bower.json says MIT'

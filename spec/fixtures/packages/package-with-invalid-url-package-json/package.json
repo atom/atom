@@ -1,0 +1,4 @@
+{
+  "name": "package-with-invalid-url-package-json",
+  "repository": "foo"
+}

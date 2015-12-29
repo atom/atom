@@ -1,0 +1,20 @@
+{
+  "name": "package-with-provided-services",
+
+  "providedServices": {
+    "service-1": {
+      "description": "The first service",
+      "versions": {
+        "0.2.9": "provideFirstServiceV2",
+        "0.3.1": "provideFirstServiceV3",
+        "0.4.1": "provideFirstServiceV4"
+      }
+    },
+    "service-2": {
+      "description": "The second service",
+      "versions": {
+        "0.2.1": "provideSecondService"
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+'name': 'Test Ruby'
+'scopeName': 'test.rb'
+'fileTypes': [
+  'rb'
+]
+'patterns': [
+  {
+    'match': 'ruby'
+    'name': 'meta.class.ruby'
+  }
+]

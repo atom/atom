@@ -17,7 +17,7 @@ module.exports = (grunt) ->
 
       licenseText = getLicenseText(dependencyLicenses)
       if mode is 'save'
-        targetPath = path.join(grunt.config.get('atom.appDir'), 'LICENSE.md')
+        targetPath = path.resolve(grunt.config.get('atom.appDir'), '..', 'LICENSE.md')
         fs.writeFileSync(targetPath, licenseText)
       else
         console.log licenseText

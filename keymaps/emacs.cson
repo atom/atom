@@ -1,7 +1,13 @@
-'.editor':
+'atom-text-editor':
   'alt-f': 'editor:move-to-end-of-word'
+  'alt-ctrl-f': 'editor:move-to-next-subword-boundary'
   'alt-F': 'editor:select-to-end-of-word'
+  'alt-ctrl-F': 'editor:select-to-next-subword-boundary'
   'alt-b': 'editor:move-to-beginning-of-word'
+  'alt-ctrl-b': 'editor:move-to-previous-subword-boundary'
   'alt-B': 'editor:select-to-beginning-of-word'
+  'alt-ctrl-B': 'editor:select-to-previous-subword-boundary'
   'alt-h': 'editor:delete-to-beginning-of-word'
+  'alt-ctrl-h': 'editor:delete-to-beginning-of-subword'
   'alt-d': 'editor:delete-to-end-of-word'
+  'alt-ctrl-d': 'editor:delete-to-end-of-subword'

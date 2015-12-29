@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+docker build -t atom-rpm .
+docker run \
+ --rm \
+ --env JANKY_SHA1="$JANKY_SHA1" \
+ --env JANKY_BRANCH="$JANKY_BRANCH" \
+ --env ATOM_ACCESS_TOKEN="$BUILD_ATOM_RPM_ACCESS_TOKEN" \
+ --env BUILD_ATOM_RELEASES_S3_KEY="$BUILD_ATOM_RPM_RELEASES_S3_KEY" \
+ --env BUILD_ATOM_RELEASES_S3_SECRET="$BUILD_ATOM_RPM_RELEASES_S3_SECRET" \
+ --env BUILD_ATOM_RELEASES_S3_BUCKET="$BUILD_ATOM_RPM_RELEASES_S3_BUCKET" \
+ atom-rpm /atom/script/rpmbuild
+docker rmi atom-rpm

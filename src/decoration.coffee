@@ -1,16 +1,23 @@
 _ = require 'underscore-plus'
-{Subscriber, Emitter} = require 'emissary'
+{Emitter} = require 'event-kit'
 
 idCounter = 0
 nextId = -> idCounter++
 
-# Essential: Represents a decoration that follows a {Marker}. A decoration is
+# Applies changes to a decorationsParam {Object} to make it possible to
+# differentiate decorations on custom gutters versus the line-number gutter.
+translateDecorationParamsOldToNew = (decorationParams) ->
+  if decorationParams.type is 'line-number'
+    decorationParams.gutterName = 'line-number'
+  decorationParams
+
+# Essential: Represents a decoration that follows a {TextEditorMarker}. A decoration is
 # basically a visual representation of a marker. It allows you to add CSS
 # classes to line numbers in the gutter, lines, and add selection-line regions
 # around marked ranges of text.
 #
 # {Decoration} objects are not meant to be created directly, but created with
-# {Editor::decorateMarker}. eg.
+# {TextEditor::decorateMarker}. eg.
 #
 # ```coffee
 # range = editor.getSelectedBufferRange() # any range you like
@@ -18,7 +25,7 @@ nextId = -> idCounter++
 # decoration = editor.decorateMarker(marker, {type: 'line', class: 'my-line-class'})
 # ```
 #
-# Best practice for destorying the decoration is by destroying the {Marker}.
+# Best practice for destroying the decoration is by destroying the {TextEditorMarker}.
 #
 # ```coffee
 # marker.destroy()
@@ -26,44 +33,84 @@ nextId = -> idCounter++
 #
 # You should only use {Decoration::destroy} when you still need or do not own
 # the marker.
-#
-# ## Events
-#
-# ### updated
-#
-# Extended: When the {Decoration} is updated via {Decoration::update}.
-#
-# * `event` {Object}
-#   * `oldParams` {Object} the old parameters the decoration used to have
-#   * `newParams` {Object} the new parameters the decoration now has
-#
-# ### destroyed
-#
-# Extended: When the {Decoration} is destroyed
-#
 module.exports =
 class Decoration
-  Emitter.includeInto(this)
 
-  # Extended: Check if the `decorationParams.type` matches `type`
+  # Private: Check if the `decorationProperties.type` matches `type`
   #
-  # * `decorationParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
-  # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
+  # * `decorationProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
+  # * `type` {String} type like `'line-number'`, `'line'`, etc. `type` can also
   #   be an {Array} of {String}s, where it will return true if the decoration's
   #   type matches any in the array.
   #
   # Returns {Boolean}
-  @isType: (decorationParams, type) ->
-    if _.isArray(decorationParams.type)
-      type in decorationParams.type
+  # Note: 'line-number' is a special subtype of the 'gutter' type. I.e., a
+  # 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
+  @isType: (decorationProperties, type) ->
+    # 'line-number' is a special case of 'gutter'.
+    if _.isArray(decorationProperties.type)
+      return true if type in decorationProperties.type
+      if type is 'gutter'
+        return true if 'line-number' in decorationProperties.type
+      return false
     else
-      type is decorationParams.type
+      if type is 'gutter'
+        return true if decorationProperties.type in ['gutter', 'line-number']
+      else
+        type is decorationProperties.type
 
-  constructor: (@marker, @displayBuffer, @params) ->
+  ###
+  Section: Construction and Destruction
+  ###
+
+  constructor: (@marker, @displayBuffer, properties) ->
+    @emitter = new Emitter
     @id = nextId()
-    @params.id = @id
-    @flashQueue = null
-    @isDestroyed = false
+    @setProperties properties
+    @destroyed = false
+    @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
+
+  # Essential: Destroy this marker.
+  #
+  # If you own the marker, you should use {TextEditorMarker::destroy} which will destroy
+  # this decoration.
+  destroy: ->
+    return if @destroyed
+    @markerDestroyDisposable.dispose()
+    @markerDestroyDisposable = null
+    @destroyed = true
+    @displayBuffer.didDestroyDecoration(this)
+    @emitter.emit 'did-destroy'
+    @emitter.dispose()
+
+  isDestroyed: -> @destroyed
+
+  ###
+  Section: Event Subscription
+  ###
+
+  # Essential: When the {Decoration} is updated via {Decoration::update}.
+  #
+  # * `callback` {Function}
+  #   * `event` {Object}
+  #     * `oldProperties` {Object} the old parameters the decoration used to have
+  #     * `newProperties` {Object} the new parameters the decoration now has
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangeProperties: (callback) ->
+    @emitter.on 'did-change-properties', callback
+
+  # Essential: Invoke the given callback when the {Decoration} is destroyed
+  #
+  # * `callback` {Function}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidDestroy: (callback) ->
+    @emitter.on 'did-destroy', callback
+
+  ###
+  Section: Decoration Details
+  ###
 
   # Essential: An id unique across all {Decoration} objects
   getId: -> @id
@@ -71,58 +118,56 @@ class Decoration
   # Essential: Returns the marker associated with this {Decoration}
   getMarker: -> @marker
 
-  # Essential: Returns the {Decoration}'s params.
-  getParams: -> @params
-
   # Public: Check if this decoration is of type `type`
   #
-  # * `type` {String} type like `'gutter'`, `'line'`, etc. `type` can also
+  # * `type` {String} type like `'line-number'`, `'line'`, etc. `type` can also
   #   be an {Array} of {String}s, where it will return true if the decoration's
   #   type matches any in the array.
   #
   # Returns {Boolean}
   isType: (type) ->
-    Decoration.isType(@params, type)
+    Decoration.isType(@properties, type)
 
-  # Essential: Update the marker with new params. Allows you to change the decoration's class.
+  ###
+  Section: Properties
+  ###
+
+  # Essential: Returns the {Decoration}'s properties.
+  getProperties: ->
+    @properties
+
+  # Essential: Update the marker with new Properties. Allows you to change the decoration's class.
   #
   # ## Examples
   #
   # ```coffee
-  # decoration.update({type: 'gutter', class: 'my-new-class'})
+  # decoration.update({type: 'line-number', class: 'my-new-class'})
   # ```
   #
-  # * `newParams` {Object} eg. `{type: 'gutter', class: 'my-new-class'}`
-  update: (newParams) ->
-    return if @isDestroyed
-    oldParams = @params
-    @params = newParams
-    @params.id = @id
-    @displayBuffer.decorationUpdated(this)
-    @emit 'updated', {oldParams, newParams}
+  # * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
+  setProperties: (newProperties) ->
+    return if @destroyed
+    oldProperties = @properties
+    @properties = translateDecorationParamsOldToNew(newProperties)
+    if newProperties.type?
+      @displayBuffer.decorationDidChangeType(this)
+    @displayBuffer.scheduleUpdateDecorationsEvent()
+    @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
-  # Essential: Destroy this marker.
-  #
-  # If you own the marker, you should use {Marker::destroy} which will destroy
-  # this decoration.
-  destroy: ->
-    return if @isDestroyed
-    @isDestroyed = true
-    @displayBuffer.removeDecoration(this)
-    @emit 'destroyed'
+  ###
+  Section: Private methods
+  ###
 
   matchesPattern: (decorationPattern) ->
     return false unless decorationPattern?
     for key, value of decorationPattern
-      return false if @params[key] != value
+      return false if @properties[key] isnt value
     true
 
   flash: (klass, duration=500) ->
-    flashObject = {class: klass, duration}
-    @flashQueue ?= []
-    @flashQueue.push(flashObject)
-    @emit 'flash'
-
-  consumeNextFlash: ->
-    return @flashQueue.shift() if @flashQueue?.length > 0
-    null
+    @properties.flashCount ?= 0
+    @properties.flashCount++
+    @properties.flashClass = klass
+    @properties.flashDuration = duration
+    @displayBuffer.scheduleUpdateDecorationsEvent()
+    @emitter.emit 'did-flash'

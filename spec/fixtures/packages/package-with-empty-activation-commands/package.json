@@ -1,0 +1,5 @@
+{
+  "name": "package-with-empty-activation-commands",
+  "version": "0.1.0",
+  "activationCommands": {"atom-workspace": []}
+}

@@ -1,5 +1,4 @@
 BrowserWindow = require 'browser-window'
-ContextMenu = require './context-menu'
 app = require 'app'
 dialog = require 'dialog'
 path = require 'path'
@@ -20,12 +19,25 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, initialLine, initialColumn, @isSpec, @exitWhenDone, @safeMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    locationsToOpen ?= [{pathToOpen}] if pathToOpen
+    locationsToOpen ?= []
 
-    # Normalize to make sure drive letter case is consistent on Windows
-    @resourcePath = path.normalize(@resourcePath) if @resourcePath
+    options =
+      show: false
+      title: 'Atom'
+      'web-preferences':
+        'direct-write': true
 
-    @browserWindow = new BrowserWindow show: false, title: 'Atom', icon: @constructor.iconPath
+    if @isSpec
+      options['web-preferences']['page-visibility'] = true
+
+    # Don't set icon on Windows so the exe's ico will be used as window and
+    # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
+    if process.platform is 'linux'
+      options.icon = @constructor.iconPath
+
+    @browserWindow = new BrowserWindow options
     global.atomApplication.addWindow(this)
 
     @handleEvents()
@@ -34,59 +46,79 @@ class AtomWindow
     loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
+    loadSettings.devMode ?= false
+    loadSettings.safeMode ?= false
+    loadSettings.atomHome = process.env.ATOM_HOME
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
       @constructor.includeShellLoadTime = false
       loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
-    loadSettings.initialPath = pathToOpen
-    if fs.statSyncNoException(pathToOpen).isFile?()
-      loadSettings.initialPath = path.dirname(pathToOpen)
+    loadSettings.initialPaths =
+      for {pathToOpen} in locationsToOpen when pathToOpen
+        if fs.statSyncNoException(pathToOpen).isFile?()
+          path.dirname(pathToOpen)
+        else
+          pathToOpen
+
+    loadSettings.initialPaths.sort()
 
     @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
 
-    @browserWindow.on 'project-path-changed', (@projectPath) =>
-
-    @browserWindow.loadUrl @getUrl(loadSettings)
+    @setLoadSettings(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
 
-    @openPath(pathToOpen, initialLine, initialColumn)
+    hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
+    @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  getUrl: (loadSettingsObj) ->
+  setLoadSettings: (loadSettingsObj) ->
     # Ignore the windowState when passing loadSettings via URL, since it could
     # be quite large.
     loadSettings = _.clone(loadSettingsObj)
     delete loadSettings['windowState']
 
-    url.format
+    @browserWindow.loadUrl url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
-      query: {loadSettings: JSON.stringify(loadSettings)}
+      hash: encodeURIComponent(JSON.stringify(loadSettings))
 
-  hasProjectPath: -> @projectPath?.length > 0
+  getLoadSettings: ->
+    if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
+      hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
+      JSON.parse(decodeURIComponent(hash))
 
-  getInitialPath: ->
-    @browserWindow.loadSettings.initialPath
+  hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
+
+  setupContextMenu: ->
+    ContextMenu = require './context-menu'
+
+    @browserWindow.on 'context-menu', (menuTemplate) =>
+      new ContextMenu(menuTemplate, this)
+
+  containsPaths: (paths) ->
+    for pathToCheck in paths
+      return false unless @containsPath(pathToCheck)
+    true
 
   containsPath: (pathToCheck) ->
-    initialPath = @getInitialPath()
-    if not initialPath
-      false
-    else if not pathToCheck
-      false
-    else if pathToCheck is initialPath
-      true
-    else if fs.statSyncNoException(pathToCheck).isDirectory?()
-      false
-    else if pathToCheck.indexOf(path.join(initialPath, path.sep)) is 0
-      true
-    else
-      false
+    @getLoadSettings()?.initialPaths?.some (projectPath) ->
+      if not projectPath
+        false
+      else if not pathToCheck
+        false
+      else if pathToCheck is projectPath
+        true
+      else if fs.statSyncNoException(pathToCheck).isDirectory?()
+        false
+      else if pathToCheck.indexOf(path.join(projectPath, path.sep)) is 0
+        true
+      else
+        false
 
   handleEvents: ->
     @browserWindow.on 'closed', =>
@@ -103,7 +135,7 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      global.atomApplication.exit(100) if @exitWhenDone
+      global.atomApplication.exit(100) if @headless
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
@@ -114,8 +146,11 @@ class AtomWindow
         when 0 then @browserWindow.destroy()
         when 1 then @browserWindow.restart()
 
-    @browserWindow.on 'context-menu', (menuTemplate) =>
-      new ContextMenu(menuTemplate, this)
+    @browserWindow.webContents.on 'will-navigate', (event, url) =>
+      unless url is @browserWindow.webContents.getUrl()
+        event.preventDefault()
+
+    @setupContextMenu()
 
     if @isSpec
       # Workaround for https://github.com/atom/atom-shell/issues/380
@@ -129,11 +164,16 @@ class AtomWindow
         @browserWindow.focusOnWebView() unless @isWindowClosing
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
+    @openLocations([{pathToOpen, initialLine, initialColumn}])
+
+  openLocations: (locationsToOpen) ->
     if @loaded
-      @focus()
-      @sendCommand('window:open-path', {pathToOpen, initialLine, initialColumn})
+      @sendMessage 'open-locations', locationsToOpen
     else
-      @browserWindow.once 'window:loaded', => @openPath(pathToOpen, initialLine, initialColumn)
+      @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+
+  sendMessage: (message, detail) ->
+    @browserWindow.webContents.send 'message', message, detail
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()
@@ -142,7 +182,6 @@ class AtomWindow
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
           when 'window:close' then @close()
-          when 'window:update-available' then @sendCommandToBrowserWindow(command, args...) # For spec testing
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else

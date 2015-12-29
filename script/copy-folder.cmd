@@ -15,4 +15,4 @@ if [%2] == [] (
 if exist %2 rmdir %2 /s /q
 
 :: cp -rf %1 %2
-xcopy %1 %2 /e /h /c /i /y /r
+(robocopy %1 %2 /e) ^& IF %ERRORLEVEL% LEQ 1 exit 0

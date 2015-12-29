@@ -24,10 +24,92 @@ describe "TokenizedBuffer", ->
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
 
+  describe "serialization", ->
+    describe "when the underlying buffer has a path", ->
+      beforeEach ->
+        buffer = atom.project.bufferForPathSync('sample.js')
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+      it "deserializes it searching among the buffers in the current project", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
+
+      it "does not serialize / deserialize the current grammar", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        autoSelectedGrammar = tokenizedBufferA.grammar
+
+        tokenizedBufferA.setGrammar(atom.grammars.grammarForScopeName('source.coffee'))
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.grammar).toBe(atom.grammars.grammarForScopeName('source.js'))
+
+    describe "when the underlying buffer has no path", ->
+      beforeEach ->
+        buffer = atom.project.bufferForPathSync(null)
+
+      it "deserializes it searching among the buffers in the current project", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
+
+      it "deserializes the previously selected grammar as soon as it's added when not available in the grammar registry", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+
+        tokenizedBufferA.setGrammar(atom.grammars.grammarForScopeName("source.js"))
+        atom.grammars.removeGrammarForScopeName(tokenizedBufferA.grammar.scopeName)
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.grammar).not.toBeFalsy()
+        expect(tokenizedBufferB.grammar).not.toBe(tokenizedBufferA.grammar)
+
+        atom.grammars.addGrammar(tokenizedBufferA.grammar)
+
+        expect(tokenizedBufferB.grammar).toBe(tokenizedBufferA.grammar)
+
+      it "deserializes the previously selected grammar on construction when available in the grammar registry", ->
+        tokenizedBufferA = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+
+        tokenizedBufferA.setGrammar(atom.grammars.grammarForScopeName("source.js"))
+        tokenizedBufferB = TokenizedBuffer.deserialize(
+          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
+          atom
+        )
+
+        expect(tokenizedBufferB.grammar).toBe(tokenizedBufferA.grammar)
+
   describe "when the buffer is destroyed", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       startTokenizing(tokenizedBuffer)
 
     it "stops tokenization", ->
@@ -39,9 +121,11 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       startTokenizing(tokenizedBuffer)
-      tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+      tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
     afterEach ->
       tokenizedBuffer.destroy()
@@ -49,38 +133,38 @@ describe "TokenizedBuffer", ->
 
     describe "on construction", ->
       it "initially creates un-tokenized screen lines, then tokenizes lines chunk at a time in the background", ->
-        line0 = tokenizedBuffer.lineForScreenRow(0)
+        line0 = tokenizedBuffer.tokenizedLineForRow(0)
         expect(line0.tokens.length).toBe 1
         expect(line0.tokens[0]).toEqual(value: line0.text, scopes: ['source.js'])
 
-        line11 = tokenizedBuffer.lineForScreenRow(11)
+        line11 = tokenizedBuffer.tokenizedLineForRow(11)
         expect(line11.tokens.length).toBe 2
         expect(line11.tokens[0]).toEqual(value: "  ", scopes: ['source.js'], isAtomic: true)
         expect(line11.tokens[1]).toEqual(value: "return sort(Array.apply(this, arguments));", scopes: ['source.js'])
 
         # background tokenization has not begun
-        expect(tokenizedBuffer.lineForScreenRow(0).ruleStack).toBeUndefined()
+        expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack).toBeUndefined()
 
         # tokenize chunk 1
         advanceClock()
-        expect(tokenizedBuffer.lineForScreenRow(0).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(4).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeFalsy()
+        expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 4, delta: 0)
         changeHandler.reset()
 
         # tokenize chunk 2
         advanceClock()
-        expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(9).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(10).ruleStack?).toBeFalsy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(9).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeFalsy()
         expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 9, delta: 0)
         changeHandler.reset()
 
         # tokenize last chunk
         advanceClock()
-        expect(tokenizedBuffer.lineForScreenRow(10).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(12).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(12).ruleStack?).toBeTruthy()
         expect(changeHandler).toHaveBeenCalledWith(start: 10, end: 12, delta: 0)
 
     describe "when the buffer is partially tokenized", ->
@@ -118,7 +202,8 @@ describe "TokenizedBuffer", ->
             expect(tokenizedBuffer.firstInvalidRow()).toBe 3
 
             advanceClock()
-            expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
+             # we discover that row 2 starts a foldable region when line 3 gets tokenized
+            expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 7, delta: 0)
             expect(tokenizedBuffer.firstInvalidRow()).toBe 8
 
       describe "when there is a buffer change surrounding an invalid row", ->
@@ -134,8 +219,8 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
           buffer.setTextInRange([[6, 0], [7, 0]], "\n\n\n")
 
-          expect(tokenizedBuffer.lineForScreenRow(6).ruleStack?).toBeFalsy()
-          expect(tokenizedBuffer.lineForScreenRow(7).ruleStack?).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLineForRow(7).ruleStack?).toBeFalsy()
 
           changeHandler.reset()
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
@@ -149,10 +234,10 @@ describe "TokenizedBuffer", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[0, 0], [2, 0]], "foo()\n7\n")
 
-            expect(tokenizedBuffer.lineForScreenRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.brace.round.js'])
-            expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.function-call.js', 'punctuation.definition.arguments.begin.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
             # line 2 is unchanged
-            expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[2]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
@@ -164,49 +249,50 @@ describe "TokenizedBuffer", ->
               buffer.insert([5, 30], '/* */')
               changeHandler.reset()
               buffer.insert([2, 0], '/*')
-              expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js']
+              expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js']
               expect(changeHandler).toHaveBeenCalled()
               [event] = changeHandler.argsForCall[0]
               delete event.bufferChange
-              expect(event).toEqual(start: 2, end: 2, delta: 0)
+              expect(event).toEqual(start: 1, end: 2, delta: 0)
               changeHandler.reset()
 
               advanceClock()
-              expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-              expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-              expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
               expect(changeHandler).toHaveBeenCalled()
               [event] = changeHandler.argsForCall[0]
               delete event.bufferChange
-              expect(event).toEqual(start: 3, end: 5, delta: 0)
+               # we discover that row 2 starts a foldable region when line 3 gets tokenized
+              expect(event).toEqual(start: 2, end: 5, delta: 0)
 
           it "resumes highlighting with the state of the previous line", ->
             buffer.insert([0, 0], '/*')
             buffer.insert([5, 0], '*/')
 
             buffer.insert([1, 0], 'var ')
-            expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
         describe "when lines are both updated and removed", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[1, 0], [3, 0]], "foo()")
 
             # previous line 0 remains
-            expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.var.js'])
 
             # previous line 3 should be combined with input to form line 1
-            expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
-            expect(tokenizedBuffer.lineForScreenRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
             # lines below deleted regions should be shifted upward
-            expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[2]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[4]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.comparison.js'])
 
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 1, end: 3, delta: -2)
+            expect(event).toEqual(start: 0, end: 3, delta: -2) # starts at 0 because foldable on row 0 becomes false
 
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
@@ -214,45 +300,46 @@ describe "TokenizedBuffer", ->
             changeHandler.reset()
 
             buffer.setTextInRange([[2, 0], [3, 0]], '/*')
-            expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js']
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 3, delta: -1)
+            expect(event).toEqual(start: 1, end: 3, delta: -1)
             changeHandler.reset()
 
             advanceClock()
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 3, end: 4, delta: 0)
+            # we discover that row 2 starts a foldable region when line 3 gets tokenized
+            expect(event).toEqual(start: 2, end: 4, delta: 0)
 
         describe "when lines are both updated and inserted", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[1, 0], [2, 0]], "foo()\nbar()\nbaz()\nquux()")
 
             # previous line 0 remains
-            expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.var.js'])
 
             # 3 new lines inserted
-            expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
-            expect(tokenizedBuffer.lineForScreenRow(2).tokens[0]).toEqual(value: 'bar', scopes: ['source.js'])
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0]).toEqual(value: 'baz', scopes: ['source.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0]).toEqual(value: 'bar', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0]).toEqual(value: 'baz', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
 
             # previous line 2 is joined with quux() on line 4
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[0]).toEqual(value: 'quux', scopes: ['source.js'])
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0]).toEqual(value: 'quux', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
             # previous line 3 is pushed down to become line 5
-            expect(tokenizedBuffer.lineForScreenRow(5).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 1, end: 2, delta: 2)
+            expect(event).toEqual(start: 0, end: 2, delta: 2) # starts at 0 because .foldable becomes false on row 0
 
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
@@ -263,18 +350,18 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 2, delta: 2)
-            expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js']
+            expect(event).toEqual(start: 1, end: 2, delta: 2)
+            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js']
             changeHandler.reset()
 
             advanceClock() # tokenize invalidated lines in background
-            expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(8).tokens[0].scopes).not.toBe ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLineForRow(8).tokens[0].scopes).not.toBe ['source.js', 'comment.block.js']
 
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
@@ -284,36 +371,56 @@ describe "TokenizedBuffer", ->
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
           commentBlock = _.multiplyString("// a comment\n", tokenizedBuffer.chunkSize + 2)
-          buffer.insert([0,0], commentBlock)
-          expect(tokenizedBuffer.lineForScreenRow(0).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.lineForScreenRow(4).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeFalsy()
+          buffer.insert([0, 0], commentBlock)
+          expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
 
           advanceClock()
-          expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.lineForScreenRow(6).ruleStack?).toBeTruthy()
-
-      describe ".findOpeningBracket(closingBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
-
-      describe ".findClosingBracket(startBufferPosition)", ->
-        it "returns the position of the matching bracket, skipping any nested brackets", ->
-          expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
+          expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeTruthy()
 
       it "tokenizes leading whitespace based on the new tab length", ->
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "  "
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  "
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].value).toBe "  "
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].value).toBe "  "
 
         tokenizedBuffer.setTabLength(4)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "    "
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeFalsy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  current "
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].value).toBe "    "
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].isAtomic).toBeFalsy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[1].value).toBe "  current "
+
+      it "does not tokenize whitespaces followed by combining characters as leading whitespace", ->
+        buffer.setText("    \u030b")
+        fullyTokenize(tokenizedBuffer)
+
+        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
+        expect(tokens[0].value).toBe "  "
+        expect(tokens[0].hasLeadingWhitespace()).toBe true
+        expect(tokens[1].value).toBe " "
+        expect(tokens[1].hasLeadingWhitespace()).toBe true
+        expect(tokens[2].value).toBe " \u030b"
+        expect(tokens[2].hasLeadingWhitespace()).toBe false
+
+      it "does not break out soft tabs across a scope boundary", ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-gfm')
+
+        runs ->
+          tokenizedBuffer.setTabLength(4)
+          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('.md'))
+          buffer.setText('    <![]()\n    ')
+          fullyTokenize(tokenizedBuffer)
+
+          length = 0
+          for tag in tokenizedBuffer.tokenizedLines[1].tags
+            length += tag if tag > 0
+
+          expect(length).toBe 4
 
   describe "when the buffer contains hard-tabs", ->
     beforeEach ->
@@ -322,7 +429,9 @@ describe "TokenizedBuffer", ->
 
       runs ->
         buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-        tokenizedBuffer = new TokenizedBuffer({buffer})
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
         startTokenizing(tokenizedBuffer)
 
     afterEach ->
@@ -335,9 +444,9 @@ describe "TokenizedBuffer", ->
 
       it "renders each tab as its own atomic token with a value of size tabLength", ->
         tabAsSpaces = _.multiplyString(' ', tokenizedBuffer.getTabLength())
-        screenLine0 = tokenizedBuffer.lineForScreenRow(0)
+        screenLine0 = tokenizedBuffer.tokenizedLineForRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
-        { tokens } = screenLine0
+        {tokens} = screenLine0
 
         expect(tokens.length).toBe 4
         expect(tokens[0].value).toBe "#"
@@ -347,7 +456,7 @@ describe "TokenizedBuffer", ->
         expect(tokens[2].isAtomic).toBeTruthy()
         expect(tokens[3].value).toBe ""
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
+        expect(tokenizedBuffer.tokenizedLineForRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
       it "aligns the hard tabs to the correct tab stop column", ->
         buffer.setText """
@@ -359,62 +468,62 @@ describe "TokenizedBuffer", ->
         tokenizedBuffer.setTabLength(4)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1   2   3   4"
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 3
+        expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "1   2   3   4"
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].screenDelta).toBe 3
 
-        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4   5"
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(1).text).toBe "12  3   4   5"
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].screenDelta).toBe 2
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4       5   6"
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).text).toBe "123 4       5   6"
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].screenDelta).toBe 1
 
         tokenizedBuffer.setTabLength(3)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1  2  3  4"
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "1  2  3  4"
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].screenDelta).toBe 2
 
-        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12 3     4  5"
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(1).text).toBe "12 3     4  5"
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].screenDelta).toBe 1
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123   4     5  6"
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 3
+        expect(tokenizedBuffer.tokenizedLineForRow(2).text).toBe "123   4     5  6"
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].screenDelta).toBe 3
 
         tokenizedBuffer.setTabLength(2)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2   3 4"
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "1 2   3 4"
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].screenDelta).toBe 1
 
-        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12  3   4 5"
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(1).text).toBe "12  3   4 5"
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].screenDelta).toBe 2
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4     5 6"
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).text).toBe "123 4     5 6"
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].screenDelta).toBe 1
 
         tokenizedBuffer.setTabLength(1)
         fullyTokenize(tokenizedBuffer)
 
-        expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "1 2  3 4"
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(0).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "1 2  3 4"
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1].screenDelta).toBe 1
 
-        expect(tokenizedBuffer.lineForScreenRow(1).text).toBe "12 3   4 5"
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(1).text).toBe "12 3   4 5"
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].screenDelta).toBe 1
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "123 4    5 6"
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].bufferDelta).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].screenDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).text).toBe "123 4    5 6"
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].bufferDelta).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].screenDelta).toBe 1
 
   describe "when the buffer contains UTF-8 surrogate pairs", ->
     beforeEach ->
@@ -427,7 +536,9 @@ describe "TokenizedBuffer", ->
           'abc\uD835\uDF97def'
           //\uD835\uDF97xyz
         """
-        tokenizedBuffer = new TokenizedBuffer({buffer})
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
         fullyTokenize(tokenizedBuffer)
 
     afterEach ->
@@ -435,9 +546,9 @@ describe "TokenizedBuffer", ->
       buffer.release()
 
     it "renders each UTF-8 surrogate pair as its own atomic token", ->
-      screenLine0 = tokenizedBuffer.lineForScreenRow(0)
+      screenLine0 = tokenizedBuffer.tokenizedLineForRow(0)
       expect(screenLine0.text).toBe "'abc\uD835\uDF97def'"
-      { tokens } = screenLine0
+      {tokens} = screenLine0
 
       expect(tokens.length).toBe 5
       expect(tokens[0].value).toBe "'"
@@ -447,9 +558,9 @@ describe "TokenizedBuffer", ->
       expect(tokens[3].value).toBe "def"
       expect(tokens[4].value).toBe "'"
 
-      screenLine1 = tokenizedBuffer.lineForScreenRow(1)
+      screenLine1 = tokenizedBuffer.tokenizedLineForRow(1)
       expect(screenLine1.text).toBe "//\uD835\uDF97xyz"
-      { tokens } = screenLine1
+      {tokens} = screenLine1
 
       expect(tokens.length).toBe 4
       expect(tokens[0].value).toBe '//'
@@ -464,11 +575,11 @@ describe "TokenizedBuffer", ->
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor = o
+        atom.workspace.open('sample.js').then (o) -> editor = o
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
-        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        tokenizedBuffer.onDidTokenize tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler.callCount).toBe(1)
 
@@ -477,13 +588,13 @@ describe "TokenizedBuffer", ->
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('sample.js').then (o) -> editor = o
+        atom.workspace.open('sample.js').then (o) -> editor = o
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
         fullyTokenize(tokenizedBuffer)
 
-        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        tokenizedBuffer.onDidTokenize tokenizedHandler
         editor.getBuffer().insert([0, 0], "'")
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler).not.toHaveBeenCalled()
@@ -495,11 +606,11 @@ describe "TokenizedBuffer", ->
       tokenizedHandler = jasmine.createSpy("tokenized handler")
 
       waitsForPromise ->
-        atom.project.open('coffee.coffee').then (o) -> editor = o
+        atom.workspace.open('coffee.coffee').then (o) -> editor = o
 
       runs ->
         tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
-        tokenizedBuffer.on 'tokenized', tokenizedHandler
+        tokenizedBuffer.onDidTokenize tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         tokenizedHandler.reset()
 
@@ -521,11 +632,13 @@ describe "TokenizedBuffer", ->
       runs ->
         buffer = atom.project.bufferForPathSync()
         buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
-        tokenizedBuffer = new TokenizedBuffer({buffer})
-        tokenizedBuffer.setGrammar(atom.syntax.selectGrammar('test.erb'))
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('test.erb'))
         fullyTokenize(tokenizedBuffer)
 
-        {tokens} = tokenizedBuffer.lineForScreenRow(0)
+        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
         expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
 
       waitsForPromise ->
@@ -533,8 +646,8 @@ describe "TokenizedBuffer", ->
 
       runs ->
         fullyTokenize(tokenizedBuffer)
-        {tokens} = tokenizedBuffer.lineForScreenRow(0)
-        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
+        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
+        expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
 
   describe ".tokenForPosition(position)", ->
     afterEach ->
@@ -543,16 +656,21 @@ describe "TokenizedBuffer", ->
 
     it "returns the correct token (regression)", ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([1,0]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1,1]).scopes).toEqual ["source.js"]
-      expect(tokenizedBuffer.tokenForPosition([1,2]).scopes).toEqual ["source.js", "storage.modifier.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
+      expect(tokenizedBuffer.tokenForPosition([1, 2]).scopes).toEqual ["source.js", "storage.type.var.js"]
 
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars,
+        packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
 
     describe "when the selector does not match the token at the position", ->
@@ -561,7 +679,8 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector matches a single token at the position", ->
       it "returns the range covered by the token", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.modifier.js', [0, 1])).toEqual [[0, 0], [0, 3]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.type.var.js', [0, 1])).toEqual [[0, 0], [0, 3]]
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.storage.type.var.js', [0, 3])).toEqual [[0, 0], [0, 3]]
 
     describe "when the selector matches a run of multiple tokens at the position", ->
       it "returns the range covered by all contigous tokens (within a single line)", ->
@@ -571,100 +690,110 @@ describe "TokenizedBuffer", ->
     it "updates the tab length of the tokenized lines", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 6)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '      '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '      '
 
     it "does not allow the tab length to be less than 1", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.setText('\ttest')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe '  '
       atom.config.set('editor.tabLength', 1)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe ' '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe ' '
       atom.config.set('editor.tabLength', 0)
-      expect(tokenizedBuffer.tokenForPosition([0,0]).value).toBe '  '
+      expect(tokenizedBuffer.tokenForPosition([0, 0]).value).toBe ' '
 
   describe "when the invisibles value changes", ->
     beforeEach ->
 
     it "updates the tokens with the appropriate invisible characters", ->
       buffer = new TextBuffer(text: "  \t a line with tabs\tand \tspaces \t ")
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
 
-      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
-      expect(tokenizedBuffer.lineForScreenRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
+      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe "SST Sa line with tabsTand T spacesSTS"
       # Also needs to work for copies
-      expect(tokenizedBuffer.lineForScreenRow(0).copy().text).toBe "SST Sa line with tabsTand T spacesSTS"
+      expect(tokenizedBuffer.tokenizedLineForRow(0).copy().text).toBe "SST Sa line with tabsTand T spacesSTS"
 
     it "assigns endOfLineInvisibles to tokenized lines", ->
       buffer = new TextBuffer(text: "a line that ends in a carriage-return-line-feed \r\na line that ends in just a line-feed\na line with no ending")
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
 
       atom.config.set('editor.showInvisibles', true)
-      tokenizedBuffer.setInvisibles(cr: 'R', eol: 'N')
+      atom.config.set("editor.invisibles", cr: 'R', eol: 'N')
       fullyTokenize(tokenizedBuffer)
 
-      expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R', 'N']
-      expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual ['N']
+      expect(tokenizedBuffer.tokenizedLineForRow(0).endOfLineInvisibles).toEqual ['R', 'N']
+      expect(tokenizedBuffer.tokenizedLineForRow(1).endOfLineInvisibles).toEqual ['N']
 
       # Lines ending in soft wraps get no invisibles
-      [left, right] = tokenizedBuffer.lineForScreenRow(0).softWrapAt(20)
+      [left, right] = tokenizedBuffer.tokenizedLineForRow(0).softWrapAt(20)
       expect(left.endOfLineInvisibles).toBe null
       expect(right.endOfLineInvisibles).toEqual ['R', 'N']
 
-      tokenizedBuffer.setInvisibles(cr: 'R', eol: false)
-      expect(tokenizedBuffer.lineForScreenRow(0).endOfLineInvisibles).toEqual ['R']
-      expect(tokenizedBuffer.lineForScreenRow(1).endOfLineInvisibles).toEqual []
+      atom.config.set("editor.invisibles", cr: 'R', eol: false)
+      expect(tokenizedBuffer.tokenizedLineForRow(0).endOfLineInvisibles).toEqual ['R']
+      expect(tokenizedBuffer.tokenizedLineForRow(1).endOfLineInvisibles).toEqual []
 
   describe "leading and trailing whitespace", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
 
     it "assigns ::firstNonWhitespaceIndex on tokens that have leading whitespace", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0].firstNonWhitespaceIndex).toBe null
-      expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].firstNonWhitespaceIndex).toBe 2
-      expect(tokenizedBuffer.lineForScreenRow(1).tokens[1].firstNonWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0].firstNonWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].firstNonWhitespaceIndex).toBe 2
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[1].firstNonWhitespaceIndex).toBe null
 
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].firstNonWhitespaceIndex).toBe 2
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[1].firstNonWhitespaceIndex).toBe 2
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[2].firstNonWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].firstNonWhitespaceIndex).toBe 2
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1].firstNonWhitespaceIndex).toBe 2
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[2].firstNonWhitespaceIndex).toBe null
 
       # The 4th token *has* leading whitespace, but isn't entirely whitespace
       buffer.insert([5, 0], ' ')
-      expect(tokenizedBuffer.lineForScreenRow(5).tokens[3].firstNonWhitespaceIndex).toBe 1
-      expect(tokenizedBuffer.lineForScreenRow(5).tokens[4].firstNonWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[3].firstNonWhitespaceIndex).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[4].firstNonWhitespaceIndex).toBe null
 
       # Lines that are *only* whitespace are not considered to have leading whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].firstNonWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(10).tokens[0].firstNonWhitespaceIndex).toBe null
 
     it "assigns ::firstTrailingWhitespaceIndex on tokens that have trailing whitespace", ->
       buffer.insert([0, Infinity], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[11].firstTrailingWhitespaceIndex).toBe null
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[12].firstTrailingWhitespaceIndex).toBe 0
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[11].firstTrailingWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[12].firstTrailingWhitespaceIndex).toBe 0
 
       # The last token *has* trailing whitespace, but isn't entirely whitespace
       buffer.setTextInRange([[2, 39], [2, 40]], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[14].firstTrailingWhitespaceIndex).toBe null
-      console.log tokenizedBuffer.lineForScreenRow(2).tokens[15]
-      expect(tokenizedBuffer.lineForScreenRow(2).tokens[15].firstTrailingWhitespaceIndex).toBe 6
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[14].firstTrailingWhitespaceIndex).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[15].firstTrailingWhitespaceIndex).toBe 6
 
       # Lines that are *only* whitespace are considered to have trailing whitespace
       buffer.insert([10, 0], '  ')
-      expect(tokenizedBuffer.lineForScreenRow(10).tokens[0].firstTrailingWhitespaceIndex).toBe 0
+      expect(tokenizedBuffer.tokenizedLineForRow(10).tokens[0].firstTrailingWhitespaceIndex).toBe 0
 
     it "only marks trailing whitespace on the last segment of a soft-wrapped line", ->
       buffer.insert([0, Infinity], '  ')
-      tokenizedLine = tokenizedBuffer.lineForScreenRow(0)
+      tokenizedLine = tokenizedBuffer.tokenizedLineForRow(0)
       [segment1, segment2] = tokenizedLine.softWrapAt(16)
       expect(segment1.tokens[5].value).toBe ' '
       expect(segment1.tokens[5].firstTrailingWhitespaceIndex).toBe null
@@ -674,114 +803,261 @@ describe "TokenizedBuffer", ->
     it "sets leading and trailing whitespace correctly on a line with invisible characters that is copied", ->
       buffer.setText("  \t a line with tabs\tand \tspaces \t ")
 
-      tokenizedBuffer.setInvisibles(space: 'S', tab: 'T')
+      atom.config.set("editor.showInvisibles", true)
+      atom.config.set("editor.invisibles", space: 'S', tab: 'T')
       fullyTokenize(tokenizedBuffer)
 
-      line = tokenizedBuffer.lineForScreenRow(0).copy()
+      line = tokenizedBuffer.tokenizedLineForRow(0).copy()
       expect(line.tokens[0].firstNonWhitespaceIndex).toBe 2
       expect(line.tokens[line.tokens.length - 1].firstTrailingWhitespaceIndex).toBe 0
 
-    it "sets the ::firstNonWhitespaceIndex and ::firstTrailingWhitespaceIndex correctly when tokens are split for soft-wrapping", ->
-      tokenizedBuffer.setInvisibles(space: 'S')
-      buffer.setText(" token ")
-      fullyTokenize(tokenizedBuffer)
-      token = tokenizedBuffer.tokenizedLines[0].tokens[0]
-
-      [leftToken, rightToken] = token.splitAt(1)
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(leftToken.firstNonWhitespaceIndex).toBe 1
-      expect(leftToken.firstTrailingWhitespaceIndex).toBe null
-
-      expect(leftToken.hasInvisibleCharacters).toBe true
-      expect(rightToken.firstNonWhitespaceIndex).toBe null
-      expect(rightToken.firstTrailingWhitespaceIndex).toBe 5
-
-  describe "indent level", ->
+  describe ".indentLevel on tokenized lines", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({buffer})
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
       fullyTokenize(tokenizedBuffer)
 
     describe "when the line is non-empty", ->
       it "has an indent level based on the leading whitespace on the line", ->
-        expect(tokenizedBuffer.lineForScreenRow(0).indentLevel).toBe 0
-        expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 1
-        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(0).indentLevel).toBe 0
+        expect(tokenizedBuffer.tokenizedLineForRow(1).indentLevel).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(2).indentLevel).toBe 2
         buffer.insert([2, 0], ' ')
-        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2.5
+        expect(tokenizedBuffer.tokenizedLineForRow(2).indentLevel).toBe 2.5
 
     describe "when the line is empty", ->
       it "assumes the indentation level of the first non-empty line below or above if one exists", ->
         buffer.insert([12, 0], '    ')
         buffer.insert([12, Infinity], '\n\n')
-        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(14).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(14).indentLevel).toBe 2
 
         buffer.insert([1, Infinity], '\n\n')
-        expect(tokenizedBuffer.lineForScreenRow(2).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(3).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(2).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(3).indentLevel).toBe 2
 
         buffer.setText('\n\n\n')
-        expect(tokenizedBuffer.lineForScreenRow(1).indentLevel).toBe 0
+        expect(tokenizedBuffer.tokenizedLineForRow(1).indentLevel).toBe 0
 
     describe "when the changed lines are surrounded by whitespace-only lines", ->
       it "updates the indentLevel of empty lines that precede the change", ->
-        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 0
+        expect(tokenizedBuffer.tokenizedLineForRow(12).indentLevel).toBe 0
 
         buffer.insert([12, 0], '\n')
         buffer.insert([13, 0], '  ')
-        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(12).indentLevel).toBe 1
 
       it "updates empty line indent guides when the empty line is the last line", ->
         buffer.insert([12, 2], '\n')
 
-        # The newline and he tab need to be in two different operations to surface the bug
+        # The newline and the tab need to be in two different operations to surface the bug
         buffer.insert([12, 0], '  ')
-        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 1
+        expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 1
 
         buffer.insert([12, 0], '  ')
-        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(14)).not.toBeDefined()
+        expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(14)).not.toBeDefined()
 
       it "updates the indentLevel of empty lines surrounding a change that inserts lines", ->
         # create some new lines
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
 
-        expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 3
-        expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 3
-        expect(tokenizedBuffer.lineForScreenRow(9).indentLevel).toBe 3
-        expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 3
-        expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(5).indentLevel).toBe 3
+        expect(tokenizedBuffer.tokenizedLineForRow(6).indentLevel).toBe 3
+        expect(tokenizedBuffer.tokenizedLineForRow(9).indentLevel).toBe 3
+        expect(tokenizedBuffer.tokenizedLineForRow(10).indentLevel).toBe 3
+        expect(tokenizedBuffer.tokenizedLineForRow(11).indentLevel).toBe 2
 
-        tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+        tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
         buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
 
         delete changeHandler.argsForCall[0][0].bufferChange
         expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 10, delta: 2)
 
-        expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 4
-        expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 4
-        expect(tokenizedBuffer.lineForScreenRow(11).indentLevel).toBe 4
-        expect(tokenizedBuffer.lineForScreenRow(12).indentLevel).toBe 4
-        expect(tokenizedBuffer.lineForScreenRow(13).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(5).indentLevel).toBe 4
+        expect(tokenizedBuffer.tokenizedLineForRow(6).indentLevel).toBe 4
+        expect(tokenizedBuffer.tokenizedLineForRow(11).indentLevel).toBe 4
+        expect(tokenizedBuffer.tokenizedLineForRow(12).indentLevel).toBe 4
+        expect(tokenizedBuffer.tokenizedLineForRow(13).indentLevel).toBe 2
 
       it "updates the indentLevel of empty lines surrounding a change that removes lines", ->
         # create some new lines
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
 
-        tokenizedBuffer.on "changed", changeHandler = jasmine.createSpy('changeHandler')
+        tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
 
         delete changeHandler.argsForCall[0][0].bufferChange
-        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 10, delta: -1)
+        expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 10, delta: -1) # starts at row 4 because it became foldable
 
-        expect(tokenizedBuffer.lineForScreenRow(5).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(6).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(7).indentLevel).toBe 2 # new text
-        expect(tokenizedBuffer.lineForScreenRow(8).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(9).indentLevel).toBe 2
-        expect(tokenizedBuffer.lineForScreenRow(10).indentLevel).toBe 2 # }
+        expect(tokenizedBuffer.tokenizedLineForRow(5).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(6).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(7).indentLevel).toBe 2 # new text
+        expect(tokenizedBuffer.tokenizedLineForRow(8).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(9).indentLevel).toBe 2
+        expect(tokenizedBuffer.tokenizedLineForRow(10).indentLevel).toBe 2 # }
+
+  describe ".foldable on tokenized lines", ->
+    changes = null
+
+    beforeEach ->
+      changes = []
+      buffer = atom.project.bufferForPathSync('sample.js')
+      buffer.insert [10, 0], "  // multi-line\n  // comment\n  // block\n"
+      buffer.insert [0, 0], "// multi-line\n// comment\n// block\n"
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
+      fullyTokenize(tokenizedBuffer)
+      tokenizedBuffer.onDidChange (change) ->
+        delete change.bufferChange
+        changes.push(change)
+
+    it "sets .foldable to true on the first line of multi-line comments", ->
+      expect(tokenizedBuffer.tokenizedLineForRow(0).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(1).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(2).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(3).foldable).toBe true # because of indent
+      expect(tokenizedBuffer.tokenizedLineForRow(13).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(14).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(15).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(16).foldable).toBe false
+
+      buffer.insert([0, Infinity], '\n')
+      expect(changes).toEqual [{start: 0, end: 1, delta: 1}]
+
+      expect(tokenizedBuffer.tokenizedLineForRow(0).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(1).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(2).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(3).foldable).toBe false
+
+      changes = []
+      buffer.undo()
+      expect(changes).toEqual [{start: 0, end: 2, delta: -1}]
+      expect(tokenizedBuffer.tokenizedLineForRow(0).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(1).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(2).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(3).foldable).toBe true # because of indent
+
+    it "sets .foldable to true on non-comment lines that precede an increase in indentation", ->
+      buffer.insert([2, 0], '  ') # commented lines preceding an indent aren't foldable
+      expect(tokenizedBuffer.tokenizedLineForRow(1).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(2).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(3).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(4).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(5).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+      changes = []
+      buffer.insert([7, 0], '  ')
+      expect(changes).toEqual [{start: 6, end: 7, delta: 0}]
+      expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+      changes = []
+      buffer.undo()
+      expect(changes).toEqual [{start: 6, end: 7, delta: 0}]
+      expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+      changes = []
+      buffer.insert([7, 0], "    \n      x\n")
+      expect(changes).toEqual [{start: 6, end: 7, delta: 2}]
+      expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+      changes = []
+      buffer.insert([9, 0], "  ")
+      expect(changes).toEqual [{start: 9, end: 9, delta: 0}]
+      expect(tokenizedBuffer.tokenizedLineForRow(6).foldable).toBe true
+      expect(tokenizedBuffer.tokenizedLineForRow(7).foldable).toBe false
+      expect(tokenizedBuffer.tokenizedLineForRow(8).foldable).toBe false
+
+  describe "when the buffer is configured with the null grammar", ->
+    it "uses the placeholder tokens and does not actually tokenize using the grammar", ->
+      spyOn(atom.grammars.nullGrammar, 'tokenizeLine').andCallThrough()
+      buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
+      buffer.setText('a\nb\nc')
+
+      tokenizedBuffer = new TokenizedBuffer({
+        buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+      })
+      tokenizeCallback = jasmine.createSpy('onDidTokenize')
+      tokenizedBuffer.onDidTokenize(tokenizeCallback)
+
+      fullyTokenize(tokenizedBuffer)
+
+      expect(tokenizeCallback.callCount).toBe 1
+      expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
+
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0].value).toBe 'a'
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].value).toBe 'b'
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
+      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'
+
+  describe 'when a file is opened', ->
+    [registration, editor, called] = []
+    beforeEach ->
+      runs ->
+        called = false
+        registration = atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', -> called = true)
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) ->
+          editor = o
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+    afterEach: ->
+      registration?.dispose?()
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
+    it 'triggers the grammar-used hook', ->
+      waitsFor ->
+        called is true
+
+      runs ->
+        expect(called).toBe true
+
+    describe 'when changing the grammar of an open file', ->
+      [coffeeRegistration, coffeeCalled] = []
+
+      beforeEach ->
+        coffeeCalled = false
+        coffeeRegistration = atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', -> coffeeCalled = true)
+
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+      afterEach ->
+        coffeeRegistration?.dispose()
+
+      it 'triggers the grammar-used hook', ->
+        waitsFor ->
+          called is true
+
+        runs ->
+          expect(called).toBe true
+          expect(coffeeCalled).toBe false
+          editor.setGrammar(atom.grammars.selectGrammar('.coffee'))
+
+        waitsFor ->
+          coffeeCalled is true
+
+        runs ->
+          expect(coffeeCalled).toBe true

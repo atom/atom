@@ -4,12 +4,17 @@ Project = require '../src/project'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
-platform = require './spec-helper-platform'
 BufferedProcess = require '../src/buffered-process'
+{Directory} = require 'pathwatcher'
+GitRepository = require '../src/git-repository'
+temp = require "temp"
 
 describe "Project", ->
   beforeEach ->
-    atom.project.setPath(atom.project.resolve('dir'))
+    atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
+
+    # Wait for project's service consumers to be asynchronously added
+    waits(1)
 
   describe "serialization", ->
     deserializedProject = null
@@ -23,34 +28,188 @@ describe "Project", ->
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = atom.project.testSerialization()
+
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
       waitsForPromise ->
-        atom.project.open('a')
+        atom.workspace.open('a')
 
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
-        deserializedProject = atom.project.testSerialization()
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
 
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
         expect(deserializedProject.getBuffers().length).toBe 0
 
+
+    it "does not deserialize buffers when their path is a directory that exists", ->
+      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+
+      waitsForPromise ->
+        atom.workspace.open(pathToOpen)
+
+      runs ->
+        expect(atom.project.getBuffers().length).toBe 1
+        fs.mkdirSync(pathToOpen)
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
+        expect(deserializedProject.getBuffers().length).toBe 0
+
+    it "does not deserialize buffers when their path is inaccessible", ->
+      pathToOpen = path.join(temp.mkdirSync(), 'file.txt')
+      fs.writeFileSync(pathToOpen, '')
+
+      waitsForPromise ->
+        atom.workspace.open(pathToOpen)
+
+      runs ->
+        expect(atom.project.getBuffers().length).toBe 1
+        fs.chmodSync(pathToOpen, '000')
+        deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
+        expect(deserializedProject.getBuffers().length).toBe 0
+
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
       tempFile = temp.openSync().path
-      atom.project.setPath(undefined)
-      expect(atom.project.getPath()).toBeUndefined()
+      atom.project.setPaths([])
+      expect(atom.project.getPaths()[0]).toBeUndefined()
       editor = null
 
       waitsForPromise ->
-        atom.project.open().then (o) -> editor = o
+        atom.workspace.open().then (o) -> editor = o
 
       runs ->
         editor.saveAs(tempFile)
-        expect(atom.project.getPath()).toBe path.dirname(tempFile)
+        expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
+
+  describe "when a watch error is thrown from the TextBuffer", ->
+    editor = null
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open(require.resolve('./fixtures/dir/a')).then (o) -> editor = o
+
+    it "creates a warning notification", ->
+      atom.notifications.onDidAddNotification noteSpy = jasmine.createSpy()
+
+      error = new Error('SomeError')
+      error.eventType = 'resurrect'
+      editor.buffer.emitter.emit 'will-throw-watch-error',
+        handle: jasmine.createSpy()
+        error: error
+
+      expect(noteSpy).toHaveBeenCalled()
+
+      notification = noteSpy.mostRecentCall.args[0]
+      expect(notification.getType()).toBe 'warning'
+      expect(notification.getDetail()).toBe 'SomeError'
+      expect(notification.getMessage()).toContain '`resurrect`'
+      expect(notification.getMessage()).toContain 'fixtures/dir/a'
+
+  describe "when a custom repository-provider service is provided", ->
+    [fakeRepositoryProvider, fakeRepository] = []
+
+    beforeEach ->
+      fakeRepository = {destroy: -> null}
+      fakeRepositoryProvider = {
+        repositoryForDirectory: (directory) -> Promise.resolve(fakeRepository)
+        repositoryForDirectorySync: (directory) -> fakeRepository
+      }
+
+    it "uses it to create repositories for any directories that need one", ->
+      projectPath = temp.mkdirSync('atom-project')
+      atom.project.setPaths([projectPath])
+      expect(atom.project.getRepositories()).toEqual [null]
+
+      atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", fakeRepositoryProvider)
+      waitsFor -> atom.project.repositoryProviders.length > 1
+      runs -> atom.project.getRepositories()[0] is fakeRepository
+
+    it "does not create any new repositories if every directory has a repository", ->
+      repositories = atom.project.getRepositories()
+      expect(repositories.length).toEqual 1
+      expect(repositories[0]).toBeTruthy()
+
+      atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", fakeRepositoryProvider)
+      waitsFor -> atom.project.repositoryProviders.length > 1
+      runs -> expect(atom.project.getRepositories()).toBe repositories
+
+    it "stops using it to create repositories when the service is removed", ->
+      atom.project.setPaths([])
+
+      disposable = atom.packages.serviceHub.provide("atom.repository-provider", "0.1.0", fakeRepositoryProvider)
+      waitsFor -> atom.project.repositoryProviders.length > 1
+      runs ->
+        disposable.dispose()
+        atom.project.addPath(temp.mkdirSync('atom-project'))
+        expect(atom.project.getRepositories()).toEqual [null]
+
+  describe "when a custom directory-provider service is provided", ->
+    class DummyDirectory
+      constructor: (@path) ->
+      getPath: -> @path
+      getFile: -> {existsSync: -> false}
+      getSubdirectory: -> {existsSync: -> false}
+      isRoot: -> true
+      existsSync: -> @path.endsWith('does-exist')
+      contains: (filePath) -> filePath.startsWith(@path)
+
+    serviceDisposable = null
+
+    beforeEach ->
+      serviceDisposable = atom.packages.serviceHub.provide("atom.directory-provider", "0.1.0", {
+        directoryForURISync: (uri) ->
+          if uri.startsWith("ssh://")
+            new DummyDirectory(uri)
+          else
+            null
+      })
+
+      waitsFor ->
+        atom.project.directoryProviders.length > 0
+
+    it "uses the provider's custom directories for any paths that it handles", ->
+      localPath = temp.mkdirSync('local-path')
+      remotePath = "ssh://foreign-directory:8080/does-exist"
+
+      atom.project.setPaths([localPath, remotePath])
+
+      directories = atom.project.getDirectories()
+      expect(directories[0].getPath()).toBe localPath
+      expect(directories[0] instanceof Directory).toBe true
+      expect(directories[1].getPath()).toBe remotePath
+      expect(directories[1] instanceof DummyDirectory).toBe true
+
+      # It does not add new remote paths if their directories do not exist
+      # and they are contained by existing remote paths.
+      childRemotePath = remotePath + "/subdirectory/that/does-not-exist"
+      atom.project.addPath(childRemotePath)
+      expect(atom.project.getDirectories().length).toBe 2
+
+      # It does add new remote paths if their directories exist.
+      childRemotePath = remotePath + "/subdirectory/that/does-exist"
+      atom.project.addPath(childRemotePath)
+      directories = atom.project.getDirectories()
+      expect(directories[2].getPath()).toBe childRemotePath
+      expect(directories[2] instanceof DummyDirectory).toBe true
+
+      # It does add new remote paths to be added if they are not contained by
+      # previous remote paths.
+      otherRemotePath = "ssh://other-foreign-directory:8080/"
+      atom.project.addPath(otherRemotePath)
+      directories = atom.project.getDirectories()
+      expect(directories[3].getPath()).toBe otherRemotePath
+      expect(directories[3] instanceof DummyDirectory).toBe true
+
+    it "stops using the provider when the service is removed", ->
+      serviceDisposable.dispose()
+      atom.project.setPaths(["ssh://foreign-directory:8080/does-exist"])
+      expect(atom.project.getDirectories()[0] instanceof Directory).toBe true
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []
@@ -58,13 +217,13 @@ describe "Project", ->
     beforeEach ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newBufferHandler = jasmine.createSpy('newBufferHandler')
-      atom.project.on 'buffer-created', newBufferHandler
+      atom.project.onDidAddBuffer(newBufferHandler)
 
     describe "when given an absolute path that isn't currently open", ->
       it "returns a new edit session for the given path and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
-          atom.project.open(absolutePath).then (o) -> editor = o
+          atom.workspace.open(absolutePath).then (o) -> editor = o
 
         runs ->
           expect(editor.buffer.getPath()).toBe absolutePath
@@ -74,7 +233,7 @@ describe "Project", ->
       it "returns a new edit session for the given path (relative to the project root) and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
-          atom.project.open(absolutePath).then (o) -> editor = o
+          atom.workspace.open(absolutePath).then (o) -> editor = o
 
         runs ->
           expect(editor.buffer.getPath()).toBe absolutePath
@@ -85,17 +244,17 @@ describe "Project", ->
         editor = null
 
         waitsForPromise ->
-          atom.project.open(absolutePath).then (o) -> editor = o
+          atom.workspace.open(absolutePath).then (o) -> editor = o
 
         runs ->
           newBufferHandler.reset()
 
         waitsForPromise ->
-          atom.project.open(absolutePath).then ({buffer}) ->
+          atom.workspace.open(absolutePath).then ({buffer}) ->
             expect(buffer).toBe editor.buffer
 
         waitsForPromise ->
-          atom.project.open('a').then ({buffer}) ->
+          atom.workspace.open('a').then ({buffer}) ->
             expect(buffer).toBe editor.buffer
             expect(newBufferHandler).not.toHaveBeenCalled()
 
@@ -103,23 +262,11 @@ describe "Project", ->
       it "returns a new edit session and emits 'buffer-created'", ->
         editor = null
         waitsForPromise ->
-          atom.project.open().then (o) -> editor = o
+          atom.workspace.open().then (o) -> editor = o
 
         runs ->
           expect(editor.buffer.getPath()).toBeUndefined()
           expect(newBufferHandler).toHaveBeenCalledWith(editor.buffer)
-
-    it "returns number of read bytes as progress indicator", ->
-      filePath = atom.project.resolve 'a'
-      totalBytes = 0
-      promise = atom.project.open(filePath)
-      promise.progress (bytesRead) -> totalBytes = bytesRead
-
-      waitsForPromise ->
-        promise
-
-      runs ->
-        expect(totalBytes).toBe fs.statSync(filePath).size
 
   describe ".bufferForPath(path)", ->
     [buffer] = []
@@ -149,356 +296,220 @@ describe "Project", ->
           atom.project.bufferForPath("b").then (anotherBuffer) ->
             expect(anotherBuffer).not.toBe buffer
 
-  describe ".resolve(uri)", ->
-    describe "when passed an absolute or relative path", ->
-      it "returns an absolute path based on the atom.project's root", ->
-        absolutePath = require.resolve('./fixtures/dir/a')
-        expect(atom.project.resolve('a')).toBe absolutePath
-        expect(atom.project.resolve(absolutePath + '/../a')).toBe absolutePath
-        expect(atom.project.resolve('a/../a')).toBe absolutePath
-        expect(atom.project.resolve()).toBeUndefined()
+  describe ".repositoryForDirectory(directory)", ->
+    it "resolves to null when the directory does not have a repository", ->
+      waitsForPromise ->
+        directory = new Directory("/tmp")
+        atom.project.repositoryForDirectory(directory).then (result) ->
+          expect(result).toBeNull()
+          expect(atom.project.repositoryProviders.length).toBeGreaterThan 0
+          expect(atom.project.repositoryPromisesByPath.size).toBe 0
 
-    describe "when passed a uri with a scheme", ->
-      it "does not modify uris that begin with a scheme", ->
-        expect(atom.project.resolve('http://zombo.com')).toBe 'http://zombo.com'
+    it "resolves to a GitRepository and is cached when the given directory is a Git repo", ->
+      waitsForPromise ->
+        directory = new Directory(path.join(__dirname, '..'))
+        promise = atom.project.repositoryForDirectory(directory)
+        promise.then (result) ->
+          expect(result).toBeInstanceOf GitRepository
+          dirPath = directory.getRealPathSync()
+          expect(result.getPath()).toBe path.join(dirPath, '.git')
 
-    describe "when the project has no path", ->
-      it "returns undefined for relative URIs", ->
-        atom.project.setPath()
-        expect(atom.project.resolve('test.txt')).toBeUndefined()
-        expect(atom.project.resolve('http://github.com')).toBe 'http://github.com'
-        absolutePath = fs.absolute(__dirname)
-        expect(atom.project.resolve(absolutePath)).toBe absolutePath
+          # Verify that the result is cached.
+          expect(atom.project.repositoryForDirectory(directory)).toBe(promise)
 
-  describe ".setPath(path)", ->
+  describe ".setPaths(paths)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
-        atom.project.setPath(require.resolve('./fixtures/dir/a'))
-        expect(atom.project.getPath()).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
-        expect(atom.project.getRootDirectory().path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+        filePath = require.resolve('./fixtures/dir/a')
+        atom.project.setPaths([filePath])
+        expect(atom.project.getPaths()[0]).toEqual path.dirname(filePath)
+        expect(atom.project.getDirectories()[0].path).toEqual path.dirname(filePath)
 
     describe "when path is a directory", ->
-      it "sets its path to the directory and updates the root directory", ->
-        directory = fs.absolute(path.join(__dirname, 'fixtures', 'dir', 'a-dir'))
-        atom.project.setPath(directory)
-        expect(atom.project.getPath()).toEqual directory
-        expect(atom.project.getRootDirectory().path).toEqual directory
+      it "assigns the directories and repositories", ->
+        directory1 = temp.mkdirSync("non-git-repo")
+        directory2 = temp.mkdirSync("git-repo1")
+        directory3 = temp.mkdirSync("git-repo2")
 
-    describe "when path is null", ->
-      it "sets its path and root directory to null", ->
-        atom.project.setPath(null)
-        expect(atom.project.getPath()?).toBeFalsy()
-        expect(atom.project.getRootDirectory()?).toBeFalsy()
+        gitDirPath = fs.absolute(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+        fs.copySync(gitDirPath, path.join(directory2, ".git"))
+        fs.copySync(gitDirPath, path.join(directory3, ".git"))
 
-  describe ".replace()", ->
-    [filePath, commentFilePath, sampleContent, sampleCommentContent] = []
+        atom.project.setPaths([directory1, directory2, directory3])
+
+        [repo1, repo2, repo3] = atom.project.getRepositories()
+        expect(repo1).toBeNull()
+        expect(repo2.getShortHead()).toBe "master"
+        expect(repo2.getPath()).toBe fs.realpathSync(path.join(directory2, ".git"))
+        expect(repo3.getShortHead()).toBe "master"
+        expect(repo3.getPath()).toBe fs.realpathSync(path.join(directory3, ".git"))
+
+      it "calls callbacks registered with ::onDidChangePaths", ->
+        onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+        atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+        paths = [ temp.mkdirSync("dir1"), temp.mkdirSync("dir2") ]
+        atom.project.setPaths(paths)
+
+        expect(onDidChangePathsSpy.callCount).toBe 1
+        expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual(paths)
+
+    describe "when no paths are given", ->
+      it "clears its path", ->
+        atom.project.setPaths([])
+        expect(atom.project.getPaths()).toEqual []
+        expect(atom.project.getDirectories()).toEqual []
+
+    it "normalizes the path to remove consecutive slashes, ., and .. segments", ->
+      atom.project.setPaths(["#{require.resolve('./fixtures/dir/a')}#{path.sep}b#{path.sep}#{path.sep}.."])
+      expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+      expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
+
+    it "only normalizes the directory path if it isn't on the local filesystem", ->
+      nonLocalFsDirectory = "custom_proto://abc/def"
+      atom.project.setPaths([nonLocalFsDirectory])
+      directories = atom.project.getDirectories()
+      expect(directories.length).toBe 1
+      expect(directories[0].getPath()).toBe path.normalize(nonLocalFsDirectory)
+
+  describe ".addPath(path)", ->
+    it "calls callbacks registered with ::onDidChangePaths", ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+
+      [oldPath] = atom.project.getPaths()
+
+      newPath = temp.mkdirSync("dir")
+      atom.project.addPath(newPath)
+
+      expect(onDidChangePathsSpy.callCount).toBe 1
+      expect(onDidChangePathsSpy.mostRecentCall.args[0]).toEqual([oldPath, newPath])
+
+    it "doesn't add redundant paths", ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+      [oldPath] = atom.project.getPaths()
+
+      # Doesn't re-add an existing root directory
+      atom.project.addPath(oldPath)
+      expect(atom.project.getPaths()).toEqual([oldPath])
+      expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
+      # Doesn't add an entry for a file-path within an existing root directory
+      atom.project.addPath(path.join(oldPath, 'some-file.txt'))
+      expect(atom.project.getPaths()).toEqual([oldPath])
+      expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
+      # Does add an entry for a directory within an existing directory
+      newPath = path.join(oldPath, "a-dir")
+      atom.project.addPath(newPath)
+      expect(atom.project.getPaths()).toEqual([oldPath, newPath])
+      expect(onDidChangePathsSpy).toHaveBeenCalled()
+
+  describe ".removePath(path)", ->
+    onDidChangePathsSpy = null
 
     beforeEach ->
-      atom.project.setPath(atom.project.resolve('../'))
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths listener')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
 
-      filePath = atom.project.resolve('sample.js')
-      commentFilePath = atom.project.resolve('sample-with-comments.js')
-      sampleContent = fs.readFileSync(filePath).toString()
-      sampleCommentContent = fs.readFileSync(commentFilePath).toString()
+    it "removes the directory and repository for the path", ->
+      result = atom.project.removePath(atom.project.getPaths()[0])
+      expect(atom.project.getDirectories()).toEqual([])
+      expect(atom.project.getRepositories()).toEqual([])
+      expect(atom.project.getPaths()).toEqual([])
+      expect(result).toBe true
+      expect(onDidChangePathsSpy).toHaveBeenCalled()
 
-    afterEach ->
-      fs.writeFileSync(filePath, sampleContent)
-      fs.writeFileSync(commentFilePath, sampleCommentContent)
+    it "does nothing if the path is not one of the project's root paths", ->
+      originalPaths = atom.project.getPaths()
+      result = atom.project.removePath(originalPaths[0] + "xyz")
+      expect(result).toBe false
+      expect(atom.project.getPaths()).toEqual(originalPaths)
+      expect(onDidChangePathsSpy).not.toHaveBeenCalled()
 
-    describe "when a file doesn't exist", ->
-      it "calls back with an error", ->
-        errors = []
-        missingPath = path.resolve('/not-a-file.js')
-        expect(fs.existsSync(missingPath)).toBeFalsy()
+    it "doesn't destroy the repository if it is shared by another root directory", ->
+      atom.project.setPaths([__dirname, path.join(__dirname, "..", "src")])
+      atom.project.removePath(__dirname)
+      expect(atom.project.getPaths()).toEqual([path.join(__dirname, "..", "src")])
+      expect(atom.project.getRepositories()[0].isSubmodule("src")).toBe false
 
-        waitsForPromise ->
-          atom.project.replace /items/gi, 'items', [missingPath], (result, error) ->
-            errors.push(error)
+    it "removes a path that is represented as a URI", ->
+      atom.packages.serviceHub.provide("atom.directory-provider", "0.1.0", {
+        directoryForURISync: (uri) ->
+          {
+            getPath: -> uri
+            getSubdirectory: -> {}
+            isRoot: -> true
+            existsSync: -> true
+            off: ->
+          }
+      })
 
-        runs ->
-          expect(errors).toHaveLength 1
-          expect(errors[0].path).toBe missingPath
+      ftpURI = "ftp://example.com/some/folder"
 
-    describe "when called with unopened files", ->
-      it "replaces properly", ->
-        results = []
-        waitsForPromise ->
-          atom.project.replace /items/gi, 'items', [filePath], (result) ->
-            results.push(result)
+      atom.project.setPaths([ftpURI])
+      expect(atom.project.getPaths()).toEqual [ftpURI]
 
-        runs ->
-          expect(results).toHaveLength 1
-          expect(results[0].filePath).toBe filePath
-          expect(results[0].replacements).toBe 6
+      atom.project.removePath(ftpURI)
+      expect(atom.project.getPaths()).toEqual []
 
-    describe "when a buffer is already open", ->
-      it "replaces properly and saves when not modified", ->
-        editor = null
-        results = []
+  describe ".relativize(path)", ->
+    it "returns the path, relative to whichever root directory it is inside of", ->
+      atom.project.addPath(temp.mkdirSync("another-path"))
 
-        waitsForPromise ->
-          atom.project.open('sample.js').then (o) -> editor = o
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
 
-        runs ->
-          expect(editor.isModified()).toBeFalsy()
+      rootPath = atom.project.getPaths()[1]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativize(childPath)).toBe path.join("some", "child", "directory")
 
-        waitsForPromise ->
-          atom.project.replace /items/gi, 'items', [filePath], (result) ->
-            results.push(result)
+    it "returns the given path if it is not in any of the root directories", ->
+      randomPath = path.join("some", "random", "path")
+      expect(atom.project.relativize(randomPath)).toBe randomPath
 
-        runs ->
-          expect(results).toHaveLength 1
-          expect(results[0].filePath).toBe filePath
-          expect(results[0].replacements).toBe 6
+  describe ".relativizePath(path)", ->
+    it "returns the root path that contains the given path, and the path relativized to that root path", ->
+      atom.project.addPath(temp.mkdirSync("another-path"))
 
-          expect(editor.isModified()).toBeFalsy()
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativizePath(childPath)).toEqual [rootPath, path.join("some", "child", "directory")]
 
-      it "does not replace when the path is not specified", ->
-        editor = null
-        results = []
+      rootPath = atom.project.getPaths()[1]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.relativizePath(childPath)).toEqual [rootPath, path.join("some", "child", "directory")]
 
-        waitsForPromise ->
-          atom.project.open('sample-with-comments.js').then (o) -> editor = o
+    describe "when the given path isn't inside of any of the project's path", ->
+      it "returns null for the root path, and the given path unchanged", ->
+        randomPath = path.join("some", "random", "path")
+        expect(atom.project.relativizePath(randomPath)).toEqual [null, randomPath]
 
-        waitsForPromise ->
-          atom.project.replace /items/gi, 'items', [commentFilePath], (result) ->
-            results.push(result)
+    describe "when the given path is a URL", ->
+      it "returns null for the root path, and the given path unchanged", ->
+        url = "http://the-path"
+        expect(atom.project.relativizePath(url)).toEqual [null, url]
 
-        runs ->
-          expect(results).toHaveLength 1
-          expect(results[0].filePath).toBe commentFilePath
+    describe "when the given path is inside more than one root folder", ->
+      it "uses the root folder that is closest to the given path", ->
+        atom.project.addPath(path.join(atom.project.getPaths()[0], 'a-dir'))
 
-      it "does NOT save when modified", ->
-        editor = null
-        results = []
+        inputPath = path.join(atom.project.getPaths()[1], 'somewhere/something.txt')
 
-        waitsForPromise ->
-          atom.project.open('sample.js').then (o) -> editor = o
+        expect(atom.project.getDirectories()[0].contains(inputPath)).toBe true
+        expect(atom.project.getDirectories()[1].contains(inputPath)).toBe true
+        expect(atom.project.relativizePath(inputPath)).toEqual [
+          atom.project.getPaths()[1],
+          'somewhere/something.txt'
+        ]
 
-        runs ->
-          editor.buffer.setTextInRange([[0,0],[0,0]], 'omg')
-          expect(editor.isModified()).toBeTruthy()
+  describe ".contains(path)", ->
+    it "returns whether or not the given path is in one of the root directories", ->
+      rootPath = atom.project.getPaths()[0]
+      childPath = path.join(rootPath, "some", "child", "directory")
+      expect(atom.project.contains(childPath)).toBe true
 
-        waitsForPromise ->
-          atom.project.replace /items/gi, 'okthen', [filePath], (result) ->
-            results.push(result)
-
-        runs ->
-          expect(results).toHaveLength 1
-          expect(results[0].filePath).toBe filePath
-          expect(results[0].replacements).toBe 6
-
-          expect(editor.isModified()).toBeTruthy()
-
-  describe ".scan(options, callback)", ->
-    describe "when called with a regex", ->
-      it "calls the callback with all regex results in all files in the project", ->
-        results = []
-        waitsForPromise ->
-          atom.project.scan /(a)+/, (result) ->
-            results.push(result)
-
-        runs ->
-          expect(results).toHaveLength(3)
-          expect(results[0].filePath).toBe atom.project.resolve('a')
-          expect(results[0].matches).toHaveLength(3)
-          expect(results[0].matches[0]).toEqual
-            matchText: 'aaa'
-            lineText: 'aaa bbb'
-            lineTextOffset: 0
-            range: [[0, 0], [0, 3]]
-
-      it "works with with escaped literals (like $ and ^)", ->
-        results = []
-        waitsForPromise ->
-          atom.project.scan /\$\w+/, (result) -> results.push(result)
-
-        runs ->
-          expect(results.length).toBe 1
-
-          {filePath, matches} = results[0]
-          expect(filePath).toBe atom.project.resolve('a')
-          expect(matches).toHaveLength 1
-          expect(matches[0]).toEqual
-            matchText: '$bill'
-            lineText: 'dollar$bill'
-            lineTextOffset: 0
-            range: [[2, 6], [2, 11]]
-
-      it "works on evil filenames", ->
-        platform.generateEvilFiles()
-        atom.project.setPath(path.join(__dirname, 'fixtures', 'evil-files'))
-        paths = []
-        matches = []
-        waitsForPromise ->
-          atom.project.scan /evil/, (result) ->
-            paths.push(result.filePath)
-            matches = matches.concat(result.matches)
-
-        runs ->
-          _.each(matches, (m) -> expect(m.matchText).toEqual 'evil')
-
-          if platform.isWindows()
-            expect(paths.length).toBe 3
-            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
-            expect(paths[1]).toMatch /file with spaces.txt$/
-            expect(path.basename(paths[2])).toBe "utfa\u0306.md"
-          else
-            expect(paths.length).toBe 5
-            expect(paths[0]).toMatch /a_file_with_utf8.txt$/
-            expect(paths[1]).toMatch /file with spaces.txt$/
-            expect(paths[2]).toMatch /goddam\nnewlines$/m
-            expect(paths[3]).toMatch /quote".txt$/m
-            expect(path.basename(paths[4])).toBe "utfa\u0306.md"
-
-      it "ignores case if the regex includes the `i` flag", ->
-        results = []
-        waitsForPromise ->
-          atom.project.scan /DOLLAR/i, (result) -> results.push(result)
-
-        runs ->
-          expect(results).toHaveLength 1
-
-      describe "when the core.excludeVcsIgnoredPaths config is truthy", ->
-        [projectPath, ignoredPath] = []
-
-        beforeEach ->
-          sourceProjectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
-          projectPath = path.join(temp.mkdirSync("atom"))
-
-          writerStream = fstream.Writer(projectPath)
-          fstream.Reader(sourceProjectPath).pipe(writerStream)
-
-          waitsFor (done) ->
-            writerStream.on 'close', done
-            writerStream.on 'error', done
-
-          runs ->
-            fs.rename(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
-            ignoredPath = path.join(projectPath, 'ignored.txt')
-            fs.writeFileSync(ignoredPath, 'this match should not be included')
-
-        afterEach ->
-          fs.removeSync(projectPath) if fs.existsSync(projectPath)
-
-        it "excludes ignored files", ->
-          atom.project.setPath(projectPath)
-          atom.config.set('core.excludeVcsIgnoredPaths', true)
-          resultHandler = jasmine.createSpy("result found")
-          waitsForPromise ->
-            atom.project.scan /match/, (results) ->
-              resultHandler()
-
-          runs ->
-            expect(resultHandler).not.toHaveBeenCalled()
-
-      it "includes only files when a directory filter is specified", ->
-        projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
-        atom.project.setPath(projectPath)
-
-        filePath = path.join(projectPath, 'a-dir', 'oh-git')
-
-        paths = []
-        matches = []
-        waitsForPromise ->
-          atom.project.scan /aaa/, paths: ["a-dir#{path.sep}"], (result) ->
-            paths.push(result.filePath)
-            matches = matches.concat(result.matches)
-
-        runs ->
-          expect(paths.length).toBe 1
-          expect(paths[0]).toBe filePath
-          expect(matches.length).toBe 1
-
-      it "includes files and folders that begin with a '.'", ->
-        projectPath = temp.mkdirSync()
-        filePath = path.join(projectPath, '.text')
-        fs.writeFileSync(filePath, 'match this')
-        atom.project.setPath(projectPath)
-        paths = []
-        matches = []
-        waitsForPromise ->
-          atom.project.scan /match this/, (result) ->
-            paths.push(result.filePath)
-            matches = matches.concat(result.matches)
-
-        runs ->
-          expect(paths.length).toBe 1
-          expect(paths[0]).toBe filePath
-          expect(matches.length).toBe 1
-
-      it "excludes values in core.ignoredNames", ->
-        projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
-        ignoredNames = atom.config.get("core.ignoredNames")
-        ignoredNames.push("a")
-        atom.config.set("core.ignoredNames", ignoredNames)
-
-        resultHandler = jasmine.createSpy("result found")
-        waitsForPromise ->
-          atom.project.scan /dollar/, (results) ->
-            resultHandler()
-
-        runs ->
-          expect(resultHandler).not.toHaveBeenCalled()
-
-      it "scans buffer contents if the buffer is modified", ->
-        editor = null
-        results = []
-
-        waitsForPromise ->
-          atom.project.open('a').then (o) ->
-            editor = o
-            editor.setText("Elephant")
-
-        waitsForPromise ->
-          atom.project.scan /a|Elephant/, (result) -> results.push result
-
-        runs ->
-          expect(results).toHaveLength 3
-          resultForA = _.find results, ({filePath}) -> path.basename(filePath) == 'a'
-          expect(resultForA.matches).toHaveLength 1
-          expect(resultForA.matches[0].matchText).toBe 'Elephant'
-
-      it "ignores buffers outside the project", ->
-        editor = null
-        results = []
-
-        waitsForPromise ->
-          atom.project.open(temp.openSync().path).then (o) ->
-            editor = o
-            editor.setText("Elephant")
-
-        waitsForPromise ->
-          atom.project.scan /Elephant/, (result) -> results.push result
-
-        runs ->
-          expect(results).toHaveLength 0
-
-  describe ".eachBuffer(callback)", ->
-    beforeEach ->
-      atom.project.bufferForPathSync('a')
-
-    it "invokes the callback for existing buffer", ->
-      count = 0
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-      atom.project.eachBuffer(callback)
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.project.getBuffers()[0]
-
-    it "invokes the callback for new buffers", ->
-      count = 0
-      callbackBuffer = null
-      callback = (buffer) ->
-        callbackBuffer = buffer
-        count++
-
-      atom.project.eachBuffer(callback)
-      count = 0
-      callbackBuffer = null
-      atom.project.bufferForPathSync(require.resolve('./fixtures/sample.txt'))
-      expect(count).toBe 1
-      expect(callbackBuffer).toBe atom.project.getBuffers()[1]
+      randomPath = path.join("some", "random", "path")
+      expect(atom.project.contains(randomPath)).toBe false

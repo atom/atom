@@ -1,0 +1,35 @@
+Name:           <%= appFileName %>
+Version:        <%= version %>
+Release:        0.1%{?dist}
+Summary:        <%= description %>
+License:        MIT
+URL:            https://atom.io/
+AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
+Prefix:         <%= installDir %>
+
+Requires: lsb-core-noarch
+
+%description
+<%= description %>
+
+%install
+mkdir -p "%{buildroot}/<%= installDir %>/share/<%= appFileName %>/"
+cp -r "<%= appName %>"/* "%{buildroot}/<%= installDir %>/share/<%= appFileName %>/"
+mkdir -p "%{buildroot}/<%= installDir %>/bin/"
+ln -sf "../share/<%= appFileName %>/resources/app/apm/node_modules/.bin/apm" "%{buildroot}/<%= installDir %>/bin/<%= apmFileName %>"
+cp atom.sh "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
+chmod 755 "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
+mkdir -p "%{buildroot}/<%= installDir %>/share/applications/"
+cp "<%= appFileName %>.desktop" "%{buildroot}/<%= installDir %>/share/applications/"
+
+for i in 1024 512 256 128 64 48 32 24 16; do
+  mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/${i}x${i}/apps"
+  cp "icons/${i}.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/${i}x${i}/apps/<%= appFileName %>.png"
+done
+
+%files
+<%= installDir %>/bin/<%= appFileName %>
+<%= installDir %>/bin/<%= apmFileName %>
+<%= installDir %>/share/<%= appFileName %>/
+<%= installDir %>/share/applications/<%= appFileName %>.desktop
+<%= installDir %>/share/icons/hicolor/

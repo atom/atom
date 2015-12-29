@@ -11,6 +11,12 @@ else
   exit 1
 fi
 
+if [ "$(basename $0)" == 'atom-beta' ]; then
+  BETA_VERSION=true
+else
+  BETA_VERSION=
+fi
+
 while getopts ":wtfvh-:" opt; do
   case "$opt" in
     -)
@@ -44,36 +50,53 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
-if [ $OS == 'Mac' ]; then
-  ATOM_PATH=${ATOM_PATH:-/Applications} # Set ATOM_PATH unless it is already set
-  ATOM_APP_NAME=Atom.app
+if [ $EXPECT_OUTPUT ]; then
+  export ELECTRON_ENABLE_LOGGING=1
+fi
 
-  # If ATOM_PATH isn't a executable file, use spotlight to search for Atom
-  if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-    ATOM_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | head -1 | xargs dirname)
+if [ $OS == 'Mac' ]; then
+  if [ -n "$BETA_VERSION" ]; then
+    ATOM_APP_NAME="Atom Beta.app"
+  else
+    ATOM_APP_NAME="Atom.app"
   fi
 
-  # Exit if Atom can't be found
-  if [ -z "$ATOM_PATH" ]; then
-    echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
-    exit 1
+  if [ -z "${ATOM_PATH}" ]; then
+    # If ATOM_PATH isnt set, check /Applications and then ~/Applications for Atom.app
+    if [ -x "/Applications/$ATOM_APP_NAME" ]; then
+      ATOM_PATH="/Applications"
+    elif [ -x "$HOME/Applications/$ATOM_APP_NAME" ]; then
+      ATOM_PATH="$HOME/Applications"
+    else
+      # We havent found an Atom.app, use spotlight to search for Atom
+      ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
+
+      # Exit if Atom can't be found
+      if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
+        echo "Cannot locate Atom.app, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing Atom.app."
+        exit 1
+      fi
+    fi
   fi
 
   if [ $EXPECT_OUTPUT ]; then
     "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
-    open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ "$@"
+    open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
   fi
 elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
-  ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
-  DOT_ATOM_DIR="$HOME/.atom"
 
-  if [ ! -d "$DOT_ATOM_DIR" ]; then
-    mkdir -p "$DOT_ATOM_DIR"
+  if [ -n "$BETA_VERSION" ]; then
+    ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"
+  else
+    ATOM_PATH="$USR_DIRECTORY/share/atom/atom"
   fi
+
+  ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
+  mkdir -p "$ATOM_HOME"
 
   : ${TMPDIR:=/tmp}
 
@@ -84,9 +107,9 @@ elif [ $OS == 'Linux' ]; then
     exit $?
   else
     (
-    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$DOT_ATOM_DIR/nohup.out" 2>&1
+    nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$ATOM_HOME/nohup.out" 2>&1
     if [ $? -ne 0 ]; then
-      cat "$DOT_ATOM_DIR/nohup.out"
+      cat "$ATOM_HOME/nohup.out"
       exit $?
     fi
     ) &

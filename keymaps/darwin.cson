@@ -18,23 +18,26 @@
   'ctrl-d': 'core:delete'
 
   # Atom Specific
-  'cmd-O': 'application:open-dev'
-  'cmd-alt-ctrl-s': 'application:run-all-specs'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
+  'ctrl-up': 'core:move-up'
+  'ctrl-down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
   'ctrl-alt-cmd-l': 'window:reload'
   'alt-cmd-i': 'window:toggle-dev-tools'
   'cmd-alt-ctrl-p': 'window:run-package-specs'
+  'ctrl-shift-left': 'pane:move-item-left'
+  'ctrl-shift-right': 'pane:move-item-right'
 
   # Sublime Parity
   'cmd-,': 'application:show-settings'
   'cmd-N': 'application:new-window'
   'cmd-W': 'window:close'
   'cmd-o': 'application:open'
+  'cmd-O': 'application:add-project-folder'
   'cmd-T': 'pane:reopen-closed-item'
   'cmd-n': 'application:new-file'
   'cmd-s': 'core:save'
@@ -100,7 +103,7 @@
   'cmd-8': 'pane:show-item-8'
   'cmd-9': 'pane:show-item-9'
 
-'.editor':
+'atom-text-editor':
   # Platform Bindings
   'alt-left': 'editor:move-to-beginning-of-word'
   'alt-right': 'editor:move-to-end-of-word'
@@ -110,7 +113,7 @@
   # Apple Specific
   'cmd-backspace': 'editor:delete-to-beginning-of-line'
   'cmd-shift-backspace': 'editor:delete-to-beginning-of-line'
-  'cmd-delete': 'editor:delete-to-beginning-of-line'
+  'cmd-delete': 'editor:delete-to-end-of-line'
   'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-E': 'editor:select-to-end-of-line'
   'cmd-left': 'editor:move-to-first-character-of-line'
@@ -119,7 +122,7 @@
   'cmd-shift-right': 'editor:select-to-end-of-line'
   'alt-backspace': 'editor:delete-to-beginning-of-word'
   'alt-delete': 'editor:delete-to-end-of-word'
-  'ctrl-a': 'editor:move-to-beginning-of-line'
+  'ctrl-a': 'editor:move-to-first-character-of-line'
   'ctrl-e': 'editor:move-to-end-of-line'
   'ctrl-k': 'editor:cut-to-end-of-line'
 
@@ -133,8 +136,14 @@
   'cmd-k cmd-l': 'editor:lower-case'
   'cmd-l': 'editor:select-line'
   'ctrl-t': 'editor:transpose'
+  'ctrl-alt-left': 'editor:move-to-previous-subword-boundary'
+  'ctrl-alt-right': 'editor:move-to-next-subword-boundary'
+  'ctrl-alt-shift-left': 'editor:select-to-previous-subword-boundary'
+  'ctrl-alt-shift-right': 'editor:select-to-next-subword-boundary'
+  'ctrl-alt-backspace': 'editor:delete-to-beginning-of-subword'
+  'ctrl-alt-delete': 'editor:delete-to-end-of-subword'
 
-'.workspace .editor:not(.mini)':
+'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
   'alt-cmd-z': 'editor:checkout-head-revision'
   'cmd-<': 'editor:scroll-to-cursor'
@@ -143,6 +152,8 @@
   # Sublime Parity
   'cmd-enter': 'editor:newline-below'
   'cmd-shift-enter': 'editor:newline-above'
+  'alt-enter': 'editor:newline'
+  'shift-enter': 'editor:newline'
   'cmd-]': 'editor:indent-selected-rows'
   'cmd-[': 'editor:outdent-selected-rows'
   'ctrl-cmd-up': 'editor:move-line-up'
@@ -168,6 +179,10 @@
   'cmd-k cmd-7': 'editor:fold-at-indent-level-7'
   'cmd-k cmd-8': 'editor:fold-at-indent-level-8'
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
+
+'atom-workspace atom-pane':
+  'cmd-alt-=': 'pane:increase-size'
+  'cmd-alt--': 'pane:decrease-size'
 
 # allow standard input fields to work correctly
 'body .native-key-bindings':
