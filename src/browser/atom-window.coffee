@@ -26,6 +26,7 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
+      'title-bar-style': 'hidden-inset'
       'web-preferences':
         'direct-write': true
 
