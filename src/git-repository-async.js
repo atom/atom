@@ -458,7 +458,12 @@ export default class GitRepositoryAsync {
         const cachedStatus = this.pathStatusCache[relativePath] || 0
         const status = statuses[0] ? statuses[0].statusBit() : Git.Status.STATUS.CURRENT
         if (status !== cachedStatus) {
-          this.pathStatusCache[relativePath] = status
+          if (status === Git.Status.STATUS.CURRENT) {
+            delete this.pathStatusCache[relativePath]
+          } else {
+            this.pathStatusCache[relativePath] = status
+          }
+
           this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
         }
 
