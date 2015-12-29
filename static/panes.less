@@ -88,3 +88,25 @@ atom-pane-container {
     }
   }
 }
+
+.platform-darwin {
+  body {
+    -webkit-app-region: drag;
+    
+    .tool-panel {
+      -webkit-app-region: no-drag;
+    }
+    
+    .tab {
+      -webkit-app-region: no-drag;
+    }
+    
+    editor {
+      -webkit-app-region: no-drag;
+    }  
+  }
+  
+  atom-panel.left {
+    padding-top: 36px;
+  }
+}
