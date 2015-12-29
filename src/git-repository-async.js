@@ -492,6 +492,14 @@ export default class GitRepositoryAsync {
       .then(relativePath => this.pathStatusCache[relativePath])
   }
 
+  // Public: Get the cached statuses for the repository.
+  //
+  // Returns an {Object} of {Number} statuses, keyed by {String} working
+  // directory-relative file names.
+  getCachedPathStatuses () {
+    return this.pathStatusCache
+  }
+
   // Public: Returns true if the given status indicates modification.
   //
   // * `statusBit` A {Number} representing the status.
