@@ -182,6 +182,11 @@ export default class GitRepositoryAsync {
       return _path
     }
 
+    // Depending on where the paths come from, they may have a '/private/'
+    // prefix. Standardize by stripping that out.
+    _path = _path.replace(/^\/private\//, '/')
+    workingDirectory = workingDirectory.replace(/^\/private\//, '/')
+
     if (process.platform === 'win32') {
       _path = _path.replace(/\\/g, '/')
     } else {
