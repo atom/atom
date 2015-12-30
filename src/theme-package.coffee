@@ -1,29 +1,32 @@
+Q = require 'q'
 Package = require './package'
 
 module.exports =
 class ThemePackage extends Package
   getType: -> 'theme'
 
-  getStyleSheetPriority: -> 1
+  getStylesheetType: -> 'theme'
 
   enable: ->
-    @config.unshiftAtKeyPath('core.themes', @name)
+    atom.config.unshiftAtKeyPath('core.themes', @name)
 
   disable: ->
-    @config.removeAtKeyPath('core.themes', @name)
+    atom.config.removeAtKeyPath('core.themes', @name)
 
   load: ->
-    @loadTime = 0
-    @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
+    @measure 'loadTime', =>
+      try
+        @metadata ?= Package.loadMetadata(@path)
+      catch error
+        console.warn "Failed to load theme named '#{@name}'", error.stack ? error
     this
 
   activate: ->
-    @activationPromise ?= new Promise (resolve, reject) =>
-      @resolveActivationPromise = resolve
-      @rejectActivationPromise = reject
-      @measure 'activateTime', =>
-        try
-          @loadStylesheets()
-          @activateNow()
-        catch error
-          @handleError("Failed to activate the #{@name} theme", error)
+    return @activationDeferred.promise if @activationDeferred?
+
+    @activationDeferred = Q.defer()
+    @measure 'activateTime', =>
+      @loadStylesheets()
+      @activateNow()
+
+    @activationDeferred.promise

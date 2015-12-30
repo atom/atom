@@ -8,17 +8,17 @@ class ContextMenu
     menu.popup(@atomWindow.browserWindow)
 
   # It's necessary to build the event handlers in this process, otherwise
-  # closures are dragged across processes and failed to be garbage collected
+  # closures are drug across processes and failed to be garbage collected
   # appropriately.
   createClickHandlers: (template) ->
     for item in template
       if item.command
-        item.commandDetail ?= {}
-        item.commandDetail.contextCommand = true
-        item.commandDetail.atomWindow = @atomWindow
+        item.commandOptions ?= {}
+        item.commandOptions.contextCommand = true
+        item.commandOptions.atomWindow = @atomWindow
         do (item) =>
           item.click = =>
-            global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandDetail)
+            global.atomApplication.sendCommandToWindow(item.command, @atomWindow, item.commandOptions)
       else if item.submenu
         @createClickHandlers(item.submenu)
       item

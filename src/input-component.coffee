@@ -1,32 +1,44 @@
+{last, isEqual} = require 'underscore-plus'
+React = require 'react-atom-fork'
+{input} = require 'reactionary-atom-fork'
+
 module.exports =
-class InputComponent
-  constructor: ->
-    @domNode = document.createElement('input')
-    @domNode.classList.add('hidden-input')
-    @domNode.setAttribute('tabindex', -1)
-    @domNode.setAttribute('data-react-skip-selection-restoration', true)
-    @domNode.style['-webkit-transform'] = 'translateZ(0)'
-    @domNode.addEventListener 'paste', (event) -> event.preventDefault()
+InputComponent = React.createClass
+  displayName: 'InputComponent'
 
-  getDomNode: ->
-    @domNode
+  render: ->
+    {className, style, onFocus, onBlur} = @props
 
-  updateSync: (state) ->
-    @oldState ?= {}
-    newState = state.hiddenInput
+    input {className, style, onFocus, onBlur, 'data-react-skip-selection-restoration': true}
 
-    if newState.top isnt @oldState.top
-      @domNode.style.top = newState.top + 'px'
-      @oldState.top = newState.top
+  getInitialState: ->
+    {lastChar: ''}
 
-    if newState.left isnt @oldState.left
-      @domNode.style.left = newState.left + 'px'
-      @oldState.left = newState.left
+  componentDidMount: ->
+    @getDOMNode().addEventListener 'paste', @onPaste
+    @getDOMNode().addEventListener 'compositionupdate', @onCompositionUpdate
 
-    if newState.width isnt @oldState.width
-      @domNode.style.width = newState.width + 'px'
-      @oldState.width = newState.width
+  # Don't let text accumulate in the input forever, but avoid excessive reflows
+  componentDidUpdate: ->
+    if @lastValueLength > 500 and not @isPressAndHoldCharacter(@state.lastChar)
+      @getDOMNode().value = ''
+      @lastValueLength = 0
 
-    if newState.height isnt @oldState.height
-      @domNode.style.height = newState.height + 'px'
-      @oldState.height = newState.height
+  # This should actually consult the property lists in /System/Library/Input Methods/PressAndHold.app
+  isPressAndHoldCharacter: (char) ->
+    @state.lastChar.match /[aeiouAEIOU]/
+
+  shouldComponentUpdate: (newProps) ->
+    not isEqual(newProps.style, @props.style)
+
+  onPaste: (e) ->
+    e.preventDefault()
+
+  onFocus: ->
+    @props.onFocus?()
+
+  onBlur: ->
+    @props.onBlur?()
+
+  focus: ->
+    @getDOMNode().focus()

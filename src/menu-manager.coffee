@@ -4,67 +4,18 @@ _ = require 'underscore-plus'
 ipc = require 'ipc'
 CSON = require 'season'
 fs = require 'fs-plus'
-{Disposable} = require 'event-kit'
 
-MenuHelpers = require './menu-helpers'
-
-platformMenu = require('../package.json')?._atomMenu?.menu
-
-# Extended: Provides a registry for menu items that you'd like to appear in the
+# Public: Provides a registry for menu items that you'd like to appear in the
 # application menu.
 #
 # An instance of this class is always available as the `atom.menu` global.
-#
-# ## Menu CSON Format
-#
-# Here is an example from the [tree-view](https://github.com/atom/tree-view/blob/master/menus/tree-view.cson):
-#
-# ```coffee
-# [
-#   {
-#     'label': 'View'
-#     'submenu': [
-#       { 'label': 'Toggle Tree View', 'command': 'tree-view:toggle' }
-#     ]
-#   }
-#   {
-#     'label': 'Packages'
-#     'submenu': [
-#       'label': 'Tree View'
-#       'submenu': [
-#         { 'label': 'Focus', 'command': 'tree-view:toggle-focus' }
-#         { 'label': 'Toggle', 'command': 'tree-view:toggle' }
-#         { 'label': 'Reveal Active File', 'command': 'tree-view:reveal-active-file' }
-#         { 'label': 'Toggle Tree Side', 'command': 'tree-view:toggle-side' }
-#       ]
-#     ]
-#   }
-# ]
-# ```
-#
-# Use in your package's menu `.cson` file requires that you place your menu
-# structure under a `menu` key.
-#
-# ```coffee
-# 'menu': [
-#   {
-#     'label': 'View'
-#     'submenu': [
-#       { 'label': 'Toggle Tree View', 'command': 'tree-view:toggle' }
-#     ]
-#   }
-# ]
-# ```
-#
-# See {::add} for more info about adding menu's directly.
 module.exports =
 class MenuManager
-  constructor: ({@resourcePath, @keymapManager, @packageManager}) ->
+  constructor: ({@resourcePath}) ->
     @pendingUpdateOperation = null
     @template = []
-    @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
-    @keymapManager.onDidReloadKeymap => @update()
-    @packageManager.onDidActivateInitialPackages => @sortPackagesMenu()
+    atom.keymaps.on 'bundled-keymaps-loaded', => @loadPlatformItems()
+    atom.packages.on 'activated', => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.
   #
@@ -83,22 +34,10 @@ class MenuManager
   #   * `submenu` An optional {Array} of sub menu items.
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to remove the
-  # added menu items.
   add: (items) ->
-    items = _.deepClone(items)
     @merge(@template, item) for item in items
     @update()
-    new Disposable => @remove(items)
-
-  remove: (items) ->
-    @unmerge(@template, item) for item in items
-    @update()
-
-  clear: ->
-    @template = []
-    @update()
+    undefined
 
   # Should the binding for the given selector be included in the menu
   # commands.
@@ -113,23 +52,20 @@ class MenuManager
       # Selector isn't valid
       return false
 
-    # Simulate an atom-text-editor element attached to a atom-workspace element attached
-    # to a body element that has the same classes as the current body element.
+    # Simulate an .editor element attached to a .workspace element attached to
+    # a body element that has the same classes as the current body element.
     unless @testEditor?
-      # Use new document so that custom elements don't actually get created
-      testDocument = document.implementation.createDocument(document.namespaceURI, 'html')
-
-      testBody = testDocument.createElement('body')
+      testBody = document.createElement('body')
       testBody.classList.add(@classesForElement(document.body)...)
 
-      testWorkspace = testDocument.createElement('atom-workspace')
-      workspaceClasses = @classesForElement(document.body.querySelector('atom-workspace'))
+      testWorkspace = document.createElement('div')
+      workspaceClasses = @classesForElement(document.body.querySelector('.workspace'))
       workspaceClasses = ['workspace'] if workspaceClasses.length is 0
       testWorkspace.classList.add(workspaceClasses...)
 
       testBody.appendChild(testWorkspace)
 
-      @testEditor = testDocument.createElement('atom-text-editor')
+      @testEditor = document.createElement('div')
       @testEditor.classList.add('editor')
       testWorkspace.appendChild(@testEditor)
 
@@ -144,37 +80,27 @@ class MenuManager
   update: ->
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
     @pendingUpdateOperation = setImmediate =>
-      includedBindings = []
-      unsetKeystrokes = new Set
-
-      for binding in @keymapManager.getKeyBindings() when @includeSelector(binding.selector)
-        includedBindings.push(binding)
-        if binding.command is 'unset!'
-          unsetKeystrokes.add(binding.keystrokes)
-
       keystrokesByCommand = {}
-      for binding in includedBindings when not unsetKeystrokes.has(binding.keystrokes)
+      for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
-
       @sendToBrowserProcess(@template, keystrokesByCommand)
 
   loadPlatformItems: ->
-    if platformMenu?
-      @add(platformMenu)
-    else
-      menusDirPath = path.join(@resourcePath, 'menus')
-      platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
-      {menu} = CSON.readFileSync(platformMenuPath)
-      @add(menu)
+    menusDirPath = path.join(@resourcePath, 'menus')
+    platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
+    {menu} = CSON.readFileSync(platformMenuPath)
+    @add(menu)
 
   # Merges an item in a submenu aware way such that new items are always
   # appended to the bottom of existing menus where possible.
   merge: (menu, item) ->
-    MenuHelpers.merge(menu, item)
+    item = _.deepClone(item)
 
-  unmerge: (menu, item) ->
-    MenuHelpers.unmerge(menu, item)
+    if item.submenu? and match = _.find(menu, ({label, submenu}) => submenu? and label and @normalizeLabel(label) is @normalizeLabel(item.label))
+      @merge(match.submenu, i) for i in item.submenu
+    else
+      menu.push(item) unless _.find(menu, ({label}) => label and @normalizeLabel(label) is @normalizeLabel(item.label))
 
   # OSX can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
@@ -183,7 +109,7 @@ class MenuManager
     filtered = {}
     for key, bindings of keystrokesByCommand
       for binding in bindings
-        continue if binding.indexOf(' ') isnt -1
+        continue if binding.indexOf(' ') != -1
 
         filtered[key] ?= []
         filtered[key].push(binding)
@@ -193,20 +119,25 @@ class MenuManager
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipc.send 'update-application-menu', template, keystrokesByCommand
 
+  normalizeLabel: (label) ->
+    return undefined unless label?
+
+    if process.platform is 'darwin'
+      label
+    else
+      label.replace(/\&/g, '')
+
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
-    if classList = element?.classList
-      Array::slice.apply(classList)
-    else
-      []
+    element?.classList.toString().split(' ') ? []
 
   sortPackagesMenu: ->
-    packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = @template.find ({label}) => @normalizeLabel(label) is 'Packages'
     return unless packagesMenu?.submenu?
 
-    packagesMenu.submenu.sort (item1, item2) ->
+    packagesMenu.submenu.sort (item1, item2) =>
       if item1.label and item2.label
-        MenuHelpers.normalizeLabel(item1.label).localeCompare(MenuHelpers.normalizeLabel(item2.label))
+        @normalizeLabel(item1.label).localeCompare(@normalizeLabel(item2.label))
       else
         0
     @update()

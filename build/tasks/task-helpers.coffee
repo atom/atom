@@ -1,6 +1,5 @@
 fs = require 'fs-plus'
 path = require 'path'
-_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
   cp: (source, destination, {filter}={}) ->
@@ -54,11 +53,10 @@ module.exports = (grunt) ->
     proc = childProcess.spawn(options.cmd, options.args, options.opts)
     proc.stdout.on 'data', (data) -> stdout.push(data.toString())
     proc.stderr.on 'data', (data) -> stderr.push(data.toString())
-    proc.on 'error', (processError) -> error ?= processError
     proc.on 'close', (exitCode, signal) ->
-      error ?= new Error(signal) if exitCode isnt 0
+      error = new Error(signal) if exitCode != 0
       results = {stderr: stderr.join(''), stdout: stdout.join(''), code: exitCode}
-      grunt.log.error results.stderr if exitCode isnt 0
+      grunt.log.error results.stderr if exitCode != 0
       callback(error, results, exitCode)
 
   isAtomPackage: (packagePath) ->
@@ -67,7 +65,3 @@ module.exports = (grunt) ->
       engines?.atom?
     catch error
       false
-
-  fillTemplate: (templatePath, outputPath, data) ->
-    content = _.template(String(fs.readFileSync(templatePath)))(data)
-    grunt.file.write(outputPath, content)

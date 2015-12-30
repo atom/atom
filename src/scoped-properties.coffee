@@ -1,23 +1,19 @@
 CSON = require 'season'
-{CompositeDisposable} = require 'event-kit'
 
 module.exports =
 class ScopedProperties
-  @load: (scopedPropertiesPath, config, callback) ->
+  @load: (scopedPropertiesPath, callback) ->
     CSON.readFile scopedPropertiesPath, (error, scopedProperties={}) ->
       if error?
         callback(error)
       else
-        callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties, config))
+        callback(null, new ScopedProperties(scopedPropertiesPath, scopedProperties))
 
-  constructor: (@path, @scopedProperties, @config) ->
+  constructor: (@path, @scopedProperties) ->
 
   activate: ->
     for selector, properties of @scopedProperties
-      @config.set(null, properties, scopeSelector: selector, source: @path)
-    return
+      atom.syntax.addProperties(@path, selector, properties)
 
   deactivate: ->
-    for selector of @scopedProperties
-      @config.unset(null, scopeSelector: selector, source: @path)
-    return
+    atom.syntax.removeProperties(@path)

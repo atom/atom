@@ -1,93 +1,82 @@
 path = require 'path'
+
 _ = require 'underscore-plus'
-{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
-{File} = require 'pathwatcher'
+{Emitter} = require 'emissary'
 fs = require 'fs-plus'
+Q = require 'q'
+
+{$} = require './space-pen-extensions'
+Package = require './package'
+{File} = require 'pathwatcher'
 
 # Extended: Handles loading and activating available themes.
 #
 # An instance of this class is always available as the `atom.themes` global.
+#
+# ## Events
+#
+# ### reloaded
+#
+# Extended: Emit when all styles have been reloaded.
+#
+# ### stylesheet-added
+#
+# Extended: Emit when a stylesheet has been added.
+#
+# * `stylesheet` {StyleSheet} object that was removed
+#
+# ### stylesheet-removed
+#
+# Extended: Emit when a stylesheet has been removed.
+#
+# * `stylesheet` {StyleSheet} object that was removed
+#
+# ### stylesheets-changed
+#
+# Extended: Emit anytime any style sheet is added or removed from the editor
+#
 module.exports =
 class ThemeManager
-  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode, @config, @styleManager, @notificationManager, @viewRegistry}) ->
-    @emitter = new Emitter
-    @styleSheetDisposablesBySourcePath = {}
+  Emitter.includeInto(this)
+
+  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
     @lessCache = null
-    @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
-    @packageManager.onDidActivateInitialPackages =>
-      @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
-
-  ###
-  Section: Event Subscription
-  ###
-
-  # Essential: Invoke `callback` when style sheet changes associated with
-  # updating the list of active themes have completed.
-  #
-  # * `callback` {Function}
-  onDidChangeActiveThemes: (callback) ->
-    @emitter.on 'did-change-active-themes', callback
-
-  ###
-  Section: Accessing Available Themes
-  ###
 
   getAvailableNames: ->
     # TODO: Maybe should change to list all the available themes out there?
     @getLoadedNames()
 
-  ###
-  Section: Accessing Loaded Themes
-  ###
-
-  # Public: Returns an {Array} of {String}s of all the loaded theme names.
-  getLoadedThemeNames: ->
+  # Public: Get an array of all the loaded theme names.
+  getLoadedNames: ->
     theme.name for theme in @getLoadedThemes()
 
-  # Public: Returns an {Array} of all the loaded themes.
-  getLoadedThemes: ->
-    pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
-
-  ###
-  Section: Accessing Active Themes
-  ###
-
-  # Public: Returns an {Array} of {String}s all the active theme names.
-  getActiveThemeNames: ->
+  # Public: Get an array of all the active theme names.
+  getActiveNames: ->
     theme.name for theme in @getActiveThemes()
 
-  # Public: Returns an {Array} of all the active themes.
+  # Public: Get an array of all the active themes.
   getActiveThemes: ->
     pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 
-  activatePackages: -> @activateThemes()
+  # Public: Get an array of all the loaded themes.
+  getLoadedThemes: ->
+    pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
-  ###
-  Section: Managing Enabled Themes
-  ###
+  activatePackages: (themePackages) -> @activateThemes()
 
-  warnForNonExistentThemes: ->
-    themeNames = @config.get('core.themes') ? []
-    themeNames = [themeNames] unless _.isArray(themeNames)
-    for themeName in themeNames
-      unless themeName and typeof themeName is 'string' and @packageManager.resolvePackagePath(themeName)
-        console.warn("Enabled theme '#{themeName}' is not installed.")
-
-  # Public: Get the enabled theme names from the config.
+  # Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
-    themeNames = @config.get('core.themes') ? []
+    themeNames = atom.config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
-    themeNames = themeNames.filter (themeName) =>
-      if themeName and typeof themeName is 'string'
-        return true if @packageManager.resolvePackagePath(themeName)
-      false
+    themeNames = themeNames.filter (themeName) ->
+      themeName and typeof themeName is 'string'
 
-    # Use a built-in syntax and UI theme any time the configured themes are not
-    # available.
-    if themeNames.length < 2
+    # Use a built-in syntax and UI theme when in safe mode since themes
+    # installed to ~/.atom/packages will not be loaded.
+    if @safeMode
       builtInThemeNames = [
         'atom-dark-syntax'
         'atom-dark-ui'
@@ -111,66 +100,96 @@ class ThemeManager
     # the first/top theme to override later themes in the stack.
     themeNames.reverse()
 
-  ###
-  Section: Private
-  ###
+  activateThemes: ->
+    deferred = Q.defer()
 
-  # Resolve and apply the stylesheet specified by the path.
+    # atom.config.observe runs the callback once, then on subsequent changes.
+    atom.config.observe 'core.themes', =>
+      @deactivateThemes()
+
+      @refreshLessCache() # Update cache for packages in core.themes config
+
+      promises = []
+      for themeName in @getEnabledThemeNames()
+        if @packageManager.resolvePackagePath(themeName)
+          promises.push(@packageManager.activatePackage(themeName))
+        else
+          console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
+
+      Q.all(promises).then =>
+        @addActiveThemeClasses()
+        @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+        @loadUserStylesheet()
+        @reloadBaseStylesheets()
+        @emit 'reloaded'
+        deferred.resolve()
+
+    deferred.promise
+
+  deactivateThemes: ->
+    @removeActiveThemeClasses()
+    @unwatchUserStylesheet()
+    @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
+    null
+
+  addActiveThemeClasses: ->
+    for pack in @getActiveThemes()
+      atom.workspaceView?[0]?.classList.add("theme-#{pack.name}")
+    return
+
+  removeActiveThemeClasses: ->
+    for pack in @getActiveThemes()
+      atom.workspaceView?[0]?.classList.remove("theme-#{pack.name}")
+    return
+
+  refreshLessCache: ->
+    @lessCache?.setImportPaths(@getImportPaths())
+
+  # Public: Set the list of enabled themes.
   #
-  # This supports both CSS and Less stylsheets.
-  #
-  # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
-  #   path or a relative path that will be resolved against the load path.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to remove the
-  # required stylesheet.
-  requireStylesheet: (stylesheetPath) ->
-    if fullPath = @resolveStylesheet(stylesheetPath)
-      content = @loadStylesheet(fullPath)
-      @applyStylesheet(fullPath, content)
+  # * `enabledThemeNames` An {Array} of {String} theme names.
+  setEnabledThemes: (enabledThemeNames) ->
+    atom.config.set('core.themes', enabledThemeNames)
+
+  getImportPaths: ->
+    activeThemes = @getActiveThemes()
+    if activeThemes.length > 0
+      themePaths = (theme.getStylesheetsPath() for theme in activeThemes when theme)
     else
-      throw new Error("Could not find a file at path '#{stylesheetPath}'")
+      themePaths = []
+      for themeName in @getEnabledThemeNames()
+        if themePath = @packageManager.resolvePackagePath(themeName)
+          themePaths.push(path.join(themePath, Package.stylesheetsDir))
+
+    themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
+
+  # Public: Returns the {String} path to the user's stylesheet under ~/.atom
+  getUserStylesheetPath: ->
+    stylesheetPath = fs.resolve(path.join(@configDirPath, 'styles'), ['css', 'less'])
+    if fs.isFileSync(stylesheetPath)
+      stylesheetPath
+    else
+      path.join(@configDirPath, 'styles.less')
 
   unwatchUserStylesheet: ->
-    @userStylsheetSubscriptions?.dispose()
-    @userStylsheetSubscriptions = null
+    @userStylesheetFile?.off()
     @userStylesheetFile = null
-    @userStyleSheetDisposable?.dispose()
-    @userStyleSheetDisposable = null
+    @removeStylesheet(@userStylesheetPath) if @userStylesheetPath?
 
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
-
-    userStylesheetPath = @styleManager.getUserStyleSheetPath()
+    userStylesheetPath = @getUserStylesheetPath()
     return unless fs.isFileSync(userStylesheetPath)
 
-    try
-      @userStylesheetFile = new File(userStylesheetPath)
-      @userStylsheetSubscriptions = new CompositeDisposable()
-      reloadStylesheet = => @loadUserStylesheet()
-      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidChange(reloadStylesheet))
-      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidRename(reloadStylesheet))
-      @userStylsheetSubscriptions.add(@userStylesheetFile.onDidDelete(reloadStylesheet))
-    catch error
-      message = """
-        Unable to watch path: `#{path.basename(userStylesheetPath)}`. Make sure
-        you have permissions to `#{userStylesheetPath}`.
-
-        On linux there are currently problems with watch sizes. See
-        [this document][watches] for more info.
-        [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
-      """
-      @notificationManager.addError(message, dismissable: true)
-
-    try
-      userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
-    catch
-      return
-
-    @userStyleSheetDisposable = @styleManager.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
+    @userStylesheetPath = userStylesheetPath
+    @userStylesheetFile = new File(userStylesheetPath)
+    @userStylesheetFile.on 'contents-changed moved removed', =>
+      @loadUserStylesheet()
+    userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
+    @applyStylesheet(userStylesheetPath, userStylesheetContents, 'userTheme')
 
   loadBaseStylesheets: ->
-    @requireStylesheet('../static/bootstrap')
+    @requireStylesheet('bootstrap/less/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
@@ -178,14 +197,31 @@ class ThemeManager
     if nativeStylesheetPath = fs.resolveOnLoadPath(process.platform, ['css', 'less'])
       @requireStylesheet(nativeStylesheetPath)
 
-  stylesheetElementForId: (id) ->
-    document.head.querySelector("atom-styles style[source-path=\"#{id}\"]")
+  stylesheetElementForId: (id, htmlElement=$('html')) ->
+    htmlElement.find("""head style[id="#{id}"]""")
 
   resolveStylesheet: (stylesheetPath) ->
     if path.extname(stylesheetPath).length > 0
       fs.resolveOnLoadPath(stylesheetPath)
     else
       fs.resolveOnLoadPath(stylesheetPath, ['css', 'less'])
+
+  # Public: Resolve and apply the stylesheet specified by the path.
+  #
+  # This supports both CSS and LESS stylsheets.
+  #
+  # * `stylesheetPath` A {String} path to the stylesheet that can be an absolute
+  #   path or a relative path that will be resolved against the load path.
+  #
+  # Returns the absolute path to the required stylesheet.
+  requireStylesheet: (stylesheetPath, type = 'bundled', htmlElement) ->
+    if fullPath = @resolveStylesheet(stylesheetPath)
+      content = @loadStylesheet(fullPath)
+      @applyStylesheet(fullPath, content, type = 'bundled', htmlElement)
+    else
+      throw new Error("Could not find a file at path '#{stylesheetPath}'")
+
+    fullPath
 
   loadStylesheet: (stylesheetPath, importFallbackVariables) ->
     if path.extname(stylesheetPath) is '.less'
@@ -208,94 +244,36 @@ class ThemeManager
         @lessCache.cssForFile(lessStylesheetPath, [baseVarImports, less].join('\n'))
       else
         @lessCache.read(lessStylesheetPath)
-    catch error
-      error.less = true
-      if error.line?
-        # Adjust line numbers for import fallbacks
-        error.line -= 2 if importFallbackVariables
-
-        message = "Error compiling Less stylesheet: `#{lessStylesheetPath}`"
-        detail = """
-          Line number: #{error.line}
-          #{error.message}
-        """
-      else
-        message = "Error loading Less stylesheet: `#{lessStylesheetPath}`"
-        detail = error.message
-
-      @notificationManager.addError(message, {detail, dismissable: true})
-      throw error
-
-  removeStylesheet: (stylesheetPath) ->
-    @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
-
-  applyStylesheet: (path, text) ->
-    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(text, sourcePath: path)
+    catch e
+      console.error """
+        Error compiling less stylesheet: #{lessStylesheetPath}
+        Line number: #{e.line}
+        #{e.message}
+      """
 
   stringToId: (string) ->
     string.replace(/\\/g, '/')
 
-  activateThemes: ->
-    new Promise (resolve) =>
-      # @config.observe runs the callback once, then on subsequent changes.
-      @config.observe 'core.themes', =>
-        @deactivateThemes()
+  removeStylesheet: (stylesheetPath) ->
+    fullPath = @resolveStylesheet(stylesheetPath) ? stylesheetPath
+    element = @stylesheetElementForId(@stringToId(fullPath))
+    if element.length > 0
+      stylesheet = element[0].sheet
+      element.remove()
+      @emit 'stylesheet-removed', stylesheet
+      @emit 'stylesheets-changed'
 
-        @warnForNonExistentThemes()
-
-        @refreshLessCache() # Update cache for packages in core.themes config
-
-        promises = []
-        for themeName in @getEnabledThemeNames()
-          if @packageManager.resolvePackagePath(themeName)
-            promises.push(@packageManager.activatePackage(themeName))
-          else
-            console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
-
-        Promise.all(promises).then =>
-          @addActiveThemeClasses()
-          @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-          @loadUserStylesheet()
-          @reloadBaseStylesheets()
-          @initialLoadComplete = true
-          @emitter.emit 'did-change-active-themes'
-          resolve()
-
-  deactivateThemes: ->
-    @removeActiveThemeClasses()
-    @unwatchUserStylesheet()
-    @packageManager.deactivatePackage(pack.name) for pack in @getActiveThemes()
-    null
-
-  isInitialLoadComplete: -> @initialLoadComplete
-
-  addActiveThemeClasses: ->
-    if workspaceElement = @viewRegistry.getView(@workspace)
-      for pack in @getActiveThemes()
-        workspaceElement.classList.add("theme-#{pack.name}")
-      return
-
-  removeActiveThemeClasses: ->
-    workspaceElement = @viewRegistry.getView(@workspace)
-    for pack in @getActiveThemes()
-      workspaceElement.classList.remove("theme-#{pack.name}")
-    return
-
-  refreshLessCache: ->
-    @lessCache?.setImportPaths(@getImportPaths())
-
-  getImportPaths: ->
-    activeThemes = @getActiveThemes()
-    if activeThemes.length > 0
-      themePaths = (theme.getStylesheetsPath() for theme in activeThemes when theme)
+  applyStylesheet: (path, text, type = 'bundled', htmlElement=$('html')) ->
+    styleElement = @stylesheetElementForId(@stringToId(path), htmlElement)
+    if styleElement.length
+      @emit 'stylesheet-removed', styleElement[0].sheet
+      styleElement.text(text)
     else
-      themePaths = []
-      for themeName in @getEnabledThemeNames()
-        if themePath = @packageManager.resolvePackagePath(themeName)
-          deprecatedPath = path.join(themePath, 'stylesheets')
-          if fs.isDirectorySync(deprecatedPath)
-            themePaths.push(deprecatedPath)
-          else
-            themePaths.push(path.join(themePath, 'styles'))
+      styleElement = $("<style class='#{type}' id='#{@stringToId(path)}'>#{text}</style>")
+      if htmlElement.find("head style.#{type}").length
+        htmlElement.find("head style.#{type}:last").after(styleElement)
+      else
+        htmlElement.find("head").append(styleElement)
 
-    themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
+    @emit 'stylesheet-added', styleElement[0].sheet
+    @emit 'stylesheets-changed'

@@ -1,7 +1,7 @@
 BufferedProcess = require './buffered-process'
 path = require 'path'
 
-# Extended: Like {BufferedProcess}, but accepts a Node script as the command
+# Public: Like {BufferedProcess}, but accepts a Node script as the command
 # to run.
 #
 # This is necessary on Windows since it doesn't support shebang `#!` lines.
@@ -48,8 +48,5 @@ class BufferedNodeProcess extends BufferedProcess
     options.env ?= Object.create(process.env)
     options.env['ATOM_SHELL_INTERNAL_RUN_AS_NODE'] = 1
 
-    args = args?.slice() ? []
     args.unshift(command)
-    args.unshift('--no-deprecation')
-
     super({command: node, args, options, stdout, stderr, exit})

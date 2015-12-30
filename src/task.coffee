@@ -1,43 +1,39 @@
 _ = require 'underscore-plus'
-ChildProcess = require 'child_process'
-{Emitter} = require 'event-kit'
-Grim = require 'grim'
+child_process = require 'child_process'
+{Emitter} = require 'emissary'
 
-# Extended: Run a node script in a separate process.
+# Public: Run a node script in a separate process.
 #
-# Used by the fuzzy-finder and [find in project](https://github.com/atom/atom/blob/master/src/scan-handler.coffee).
-#
-# For a real-world example, see the [scan-handler](https://github.com/atom/atom/blob/master/src/scan-handler.coffee)
-# and the [instantiation of the task](https://github.com/atom/atom/blob/4a20f13162f65afc816b512ad7201e528c3443d7/src/project.coffee#L245).
+# Used by the fuzzy-finder.
 #
 # ## Examples
 #
-# In your package code:
-#
 # ```coffee
 # {Task} = require 'atom'
-#
-# task = Task.once '/path/to/task-file.coffee', parameter1, parameter2, ->
-#   console.log 'task has finished'
-#
-# task.on 'some-event-from-the-task', (data) =>
-#   console.log data.someString # prints 'yep this is it'
 # ```
 #
-# In `'/path/to/task-file.coffee'`:
+# ## Events
 #
-# ```coffee
-# module.exports = (parameter1, parameter2) ->
-#   # Indicates that this task will be async.
-#   # Call the `callback` to finish the task
-#   callback = @async()
+# ### task:log
 #
-#   emit('some-event-from-the-task', {someString: 'yep this is it'})
+# Emitted when console.log is called within the task.
 #
-#   callback()
-# ```
+# ### task:warn
+#
+# Emitted when console.warn is called within the task.
+#
+# ### task:error
+#
+# Emitted when console.error is called within the task.
+#
+# ### task:completed
+#
+# Emitted when the task has succeeded or failed.
+#
 module.exports =
 class Task
+  Emitter.includeInto(this)
+
   # Public: A helper method to easily launch and run a task once.
   #
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file which
@@ -59,18 +55,17 @@ class Task
   # receives a completion callback, this is overridden.
   callback: null
 
-  # Public: Creates a task. You should probably use {.once}
+  # Public: Creates a task.
   #
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
   #   exports a single {Function} to execute.
   constructor: (taskPath) ->
-    @emitter = new Emitter
-
-    compileCacheRequire = "require('#{require.resolve('./compile-cache')}')"
-    compileCachePath = require('./compile-cache').getCacheDirectory()
+    coffeeCacheRequire = "require('#{require.resolve('./coffee-cache')}').register();"
+    coffeeScriptRequire = "require('#{require.resolve('coffee-script')}').register();"
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      #{compileCacheRequire}.setCacheDirectory('#{compileCachePath}');
+      #{coffeeScriptRequire}
+      #{coffeeCacheRequire}
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")
@@ -79,14 +74,12 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = ChildProcess.fork '--eval', [bootstrap], {env, silent: true}
+    args = [bootstrap, '--harmony_collections']
+    @childProcess = child_process.fork '--eval', args, {env, cwd: __dirname}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
     @on "task:error", -> console.error(arguments...)
-    @on "task:deprecations", (deprecations) ->
-      Grim.addSerializedDeprecation(deprecation) for deprecation in deprecations
-      return
     @on "task:completed", (args...) => @callback?(args...)
 
     @handleEvents()
@@ -95,16 +88,7 @@ class Task
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
-      @emitter.emit(event, args) if @childProcess?
-
-    # Catch the errors that happened before task-bootstrap.
-    if @childProcess.stdout?
-      @childProcess.stdout.removeAllListeners()
-      @childProcess.stdout.on 'data', (data) -> console.log data.toString()
-
-    if @childProcess.stderr?
-      @childProcess.stderr.removeAllListeners()
-      @childProcess.stderr.on 'data', (data) -> console.error data.toString()
+      @emit(event, args...)
 
   # Public: Starts the task.
   #
@@ -137,35 +121,15 @@ class Task
       throw new Error('Cannot send message to terminated process')
     undefined
 
-  # Public: Call a function when an event is emitted by the child process
-  #
-  # * `eventName` The {String} name of the event to handle.
-  # * `callback` The {Function} to call when the event is emitted.
-  #
-  # Returns a {Disposable} that can be used to stop listening for the event.
-  on: (eventName, callback) -> @emitter.on eventName, (args) -> callback(args...)
-
-  once: (eventName, callback) ->
-    disposable = @on eventName, (args...) ->
-      disposable.dispose()
-      callback(args...)
-
   # Public: Forcefully stop the running task.
   #
   # No more events are emitted once this method is called.
   terminate: ->
-    return false unless @childProcess?
+    return unless @childProcess?
 
     @childProcess.removeAllListeners()
-    @childProcess.stdout?.removeAllListeners()
-    @childProcess.stderr?.removeAllListeners()
     @childProcess.kill()
     @childProcess = null
 
-    true
-
-  cancel: ->
-    didForcefullyTerminate = @terminate()
-    if didForcefullyTerminate
-      @emitter.emit('task:cancelled')
-    didForcefullyTerminate
+    @off()
+    undefined

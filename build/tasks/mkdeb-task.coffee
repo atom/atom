@@ -1,19 +1,28 @@
+fs = require 'fs'
 path = require 'path'
+_ = require 'underscore-plus'
 
 module.exports = (grunt) ->
-  {spawn, fillTemplate} = require('./task-helpers')(grunt)
+  {spawn} = require('./task-helpers')(grunt)
+
+  fillTemplate = (filePath, data) ->
+    template = _.template(String(fs.readFileSync("#{filePath}.in")))
+    filled = template(data)
+
+    outputPath = path.join(grunt.config.get('atom.buildDir'), path.basename(filePath))
+    grunt.file.write(outputPath, filled)
+    outputPath
+
+  getInstalledSize = (buildDir, callback) ->
+    cmd = 'du'
+    args = ['-sk', path.join(buildDir, 'Atom')]
+    spawn {cmd, args}, (error, {stdout}) ->
+      installedSize = stdout.split(/\s+/)?[0] or '200000' # default to 200MB
+      callback(null, installedSize)
 
   grunt.registerTask 'mkdeb', 'Create debian package', ->
     done = @async()
-
-    appName = grunt.config.get('atom.appName')
-    appFileName = grunt.config.get('atom.appFileName')
-    apmFileName = grunt.config.get('atom.apmFileName')
     buildDir = grunt.config.get('atom.buildDir')
-    installDir = '/usr'
-    shellAppDir = grunt.config.get('atom.shellAppDir')
-    {version, description} = grunt.config.get('atom.metadata')
-    channel = grunt.config.get('atom.channel')
 
     if process.arch is 'ia32'
       arch = 'i386'
@@ -22,38 +31,22 @@ module.exports = (grunt) ->
     else
       return done("Unsupported arch #{process.arch}")
 
-    desktopFilePath = path.join(buildDir, appFileName + '.desktop')
-    fillTemplate(
-      path.join('resources', 'linux', 'atom.desktop.in'),
-      desktopFilePath,
-      {appName, appFileName, description, installDir, iconPath: appFileName}
-    )
-
-    getInstalledSize shellAppDir, (error, installedSize) ->
-      if error?
-        return done(error)
-
-      controlFilePath = path.join(buildDir, 'control')
-      fillTemplate(
-        path.join('resources', 'linux', 'debian', 'control.in'),
-        controlFilePath,
-        {appFileName, version, arch, installedSize, description}
-      )
-
-      iconPath = path.join(shellAppDir, 'resources', 'app.asar.unpacked', 'resources', 'atom.png')
+    {name, version, description} = grunt.file.readJSON('package.json')
+    section = 'devel'
+    maintainer = 'GitHub <atom@github.com>'
+    installDir = '/usr'
+    iconName = 'atom'
+    getInstalledSize buildDir, (error, installedSize) ->
+      data = {name, version, description, section, arch, maintainer, installDir, iconName, installedSize}
+      controlFilePath = fillTemplate(path.join('resources', 'linux', 'debian', 'control'), data)
+      desktopFilePath = fillTemplate(path.join('resources', 'linux', 'Atom.desktop'), data)
+      icon = path.join('resources', 'atom.png')
 
       cmd = path.join('script', 'mkdeb')
-      args = [appFileName, version, channel, arch, controlFilePath, desktopFilePath, iconPath, buildDir]
+      args = [version, arch, controlFilePath, desktopFilePath, icon, buildDir]
       spawn {cmd, args}, (error) ->
         if error?
           done(error)
         else
-          grunt.log.ok "Created #{buildDir}/#{appFileName}-#{version}-#{arch}.deb"
+          grunt.log.ok "Created #{buildDir}/atom-#{version}-#{arch}.deb"
           done()
-
-  getInstalledSize = (directory, callback) ->
-    cmd = 'du'
-    args = ['-sk', directory]
-    spawn {cmd, args}, (error, {stdout}) ->
-      installedSize = stdout.split(/\s+/)?[0] or '200000' # default to 200MB
-      callback(null, installedSize)

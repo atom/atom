@@ -9,47 +9,24 @@ _ = require 'underscore-plus'
 # and maintain the state of all menu items.
 module.exports =
 class ApplicationMenu
-  constructor: (@version, @autoUpdateManager) ->
-    @windowTemplates = new WeakMap()
-    @setActiveTemplate(@getDefaultTemplate())
-    @autoUpdateManager.on 'state-changed', (state) => @showUpdateMenuItem(state)
+  constructor: (@version) ->
+    @menu = Menu.buildFromTemplate @getDefaultTemplate()
+    Menu.setApplicationMenu @menu
+    global.atomApplication.autoUpdateManager.on 'state-changed', (state) =>
+      @showUpdateMenuItem(state)
 
   # Public: Updates the entire menu with the given keybindings.
   #
-  # window - The BrowserWindow this menu template is associated with.
   # template - The Object which describes the menu to display.
   # keystrokesByCommand - An Object where the keys are commands and the values
   #                       are Arrays containing the keystroke.
-  update: (window, template, keystrokesByCommand) ->
+  update: (template, keystrokesByCommand) ->
     @translateTemplate(template, keystrokesByCommand)
     @substituteVersion(template)
-    @windowTemplates.set(window, template)
-    @setActiveTemplate(template) if window is @lastFocusedWindow
+    @menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(@menu)
 
-  setActiveTemplate: (template) ->
-    unless _.isEqual(template, @activeTemplate)
-      @activeTemplate = template
-      @menu = Menu.buildFromTemplate(_.deepClone(template))
-      Menu.setApplicationMenu(@menu)
-
-    @showUpdateMenuItem(@autoUpdateManager.getState())
-
-  # Register a BrowserWindow with this application menu.
-  addWindow: (window) ->
-    @lastFocusedWindow ?= window
-
-    focusHandler = =>
-      @lastFocusedWindow = window
-      if template = @windowTemplates.get(window)
-        @setActiveTemplate(template)
-
-    window.on 'focus', focusHandler
-    window.once 'closed', =>
-      @lastFocusedWindow = null if window is @lastFocusedWindow
-      @windowTemplates.delete(window)
-      window.removeListener 'focus', focusHandler
-
-    @enableWindowSpecificItems(true)
+    @showUpdateMenuItem(global.atomApplication.autoUpdateManager.getState())
 
   # Flattens the given menu and submenu items into an single Array.
   #
@@ -81,36 +58,29 @@ class ApplicationMenu
   #          window specific items.
   enableWindowSpecificItems: (enable) ->
     for item in @flattenMenuItems(@menu)
-      item.enabled = enable if item.metadata?.windowSpecific
-    return
+      item.enabled = enable if item.metadata?['windowSpecific']
 
   # Replaces VERSION with the current version.
   substituteVersion: (template) ->
-    if (item = _.find(@flattenMenuTemplate(template), ({label}) -> label is 'VERSION'))
+    if (item = _.find(@flattenMenuTemplate(template), ({label}) -> label == 'VERSION'))
       item.label = "Version #{@version}"
 
   # Sets the proper visible state the update menu items
   showUpdateMenuItem: (state) ->
-    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Check for Update')
-    checkingForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Checking for Update')
-    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Downloading Update')
-    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label is 'Restart and Install Update')
+    checkForUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Check for Update')
+    downloadingUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Downloading Update')
+    installUpdateItem = _.find(@flattenMenuItems(@menu), ({label}) -> label == 'Restart and Install Update')
 
-    return unless checkForUpdateItem? and checkingForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
+    return unless checkForUpdateItem? and downloadingUpdateItem? and installUpdateItem?
 
     checkForUpdateItem.visible = false
-    checkingForUpdateItem.visible = false
     downloadingUpdateItem.visible = false
     installUpdateItem.visible = false
-
-    return if @autoUpdateManager.isDisabled()
 
     switch state
       when 'idle', 'error', 'no-update-available'
         checkForUpdateItem.visible = true
-      when 'checking'
-        checkingForUpdateItem.visible = true
-      when 'downloading'
+      when 'checking', 'downloading'
         downloadingUpdateItem.visible = true
       when 'update-available'
         installUpdateItem.visible = true
@@ -119,19 +89,16 @@ class ApplicationMenu
   #
   # Returns an Array of menu item Objects.
   getDefaultTemplate: ->
-    template = [
+    [
       label: "Atom"
       submenu: [
-          {label: 'Reload', accelerator: 'Command+R', click: => @focusedWindow()?.reload()}
-          {label: 'Close Window', accelerator: 'Command+Shift+W', click: => @focusedWindow()?.close()}
-          {label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: => @focusedWindow()?.toggleDevTools()}
-          {label: 'Quit', accelerator: 'Command+Q', click: -> app.quit()}
+          { label: "Check for Update", metadata: {autoUpdate: true}}
+          { label: 'Reload', accelerator: 'Command+R', click: => @focusedWindow()?.reload() }
+          { label: 'Close Window', accelerator: 'Command+Shift+W', click: => @focusedWindow()?.close() }
+          { label: 'Toggle Dev Tools', accelerator: 'Command+Alt+I', click: => @focusedWindow()?.toggleDevTools() }
+          { label: 'Quit', accelerator: 'Command+Q', click: -> app.quit() }
       ]
     ]
-
-    # Add `Check for Update` button if autoUpdateManager is enabled.
-    template[0].submenu.unshift({label: "Check for Update", metadata: {autoUpdate: true}}) unless @autoUpdateManager.isDisabled()
-    template
 
   focusedWindow: ->
     _.find global.atomApplication.windows, (atomWindow) -> atomWindow.isFocused()
@@ -150,7 +117,7 @@ class ApplicationMenu
       if item.command
         item.accelerator = @acceleratorForCommand(item.command, keystrokesByCommand)
         item.click = -> global.atomApplication.sendCommand(item.command)
-        item.metadata.windowSpecific = true unless /^application:/.test(item.command)
+        item.metadata['windowSpecific'] = true unless /^application:/.test(item.command)
       @translateTemplate(item.submenu, keystrokesByCommand) if item.submenu
     template
 
@@ -166,8 +133,8 @@ class ApplicationMenu
     firstKeystroke = keystrokesByCommand[command]?[0]
     return null unless firstKeystroke
 
-    modifiers = firstKeystroke.split(/-(?=.)/)
-    key = modifiers.pop().toUpperCase().replace('+', 'Plus')
+    modifiers = firstKeystroke.split('-')
+    key = modifiers.pop()
 
     modifiers = modifiers.map (modifier) ->
       modifier.replace(/shift/ig, "Shift")
@@ -175,5 +142,5 @@ class ApplicationMenu
               .replace(/ctrl/ig, "Ctrl")
               .replace(/alt/ig, "Alt")
 
-    keys = modifiers.concat([key])
+    keys = modifiers.concat([key.toUpperCase()])
     keys.join("+")

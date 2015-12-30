@@ -9,27 +9,22 @@ in the proper package's repository.
 
 ### Cloning
 
-The first step is creating your own clone.
+The first step is creating your own clone. You can of course do this manually
+with git, or you can use the `apm develop` command to create a clone based on
+the package's `repository` field in the `package.json`.
 
-For example, if you want to make changes to the `tree-view` package, fork the repo on your github account, then clone it:
-
-```
-> git clone git@github.com:your-username/tree-view.git
-```
-
-Next install all the dependencies:
+For example, if you want to make changes to the `tree-view` package, run the
+following command:
 
 ```
-> cd tree-view
-> apm install
+> apm develop tree-view
+Cloning https://github.com/atom/tree-view ✓
 Installing modules ✓
+~/.atom/dev/packages/tree-view -> ~/github/tree-view
 ```
 
-Now you can link it to development mode so when you run an Atom window with `atom --dev`, you will use your fork instead of the built in package:
-
-```
-> apm link -d
-```
+This clones the `tree-view` repository to `~/github`. If you prefer a different
+path, specify it via the `ATOM_REPOS_HOME` environment variable.
 
 ### Running in Development Mode
 
@@ -40,8 +35,9 @@ For this reason, you'll only want to load packages in **development mode** while
 you are working on them. You'll perform your editing in **stable mode**, only
 switching to development mode to test your changes.
 
-To open a development mode window, use the "Application: Open Dev" command.
-You can also run dev mode from the command line with `atom --dev`.
+To open a development mode window, use the "Application: Open Dev" command,
+which is normally bound to `cmd-shift-o`. You can also run dev mode from the
+command line with `atom --dev`.
 
 To load your package in development mode, create a symlink to it in
 `~/.atom/dev/packages`. This occurs automatically when you clone the package
@@ -50,4 +46,7 @@ from the package directory to create and remove dev-mode symlinks.
 
 ### Installing Dependencies
 
-You'll want to keep dependencies up to date by running `apm update` after pulling any upstream changes.
+Finally, you need to install the cloned package's dependencies by running
+`apm install` within the package directory. This step is also performed
+automatically the first time you run `apm develop`, but you'll want to keep
+dependencies up to date by running `apm update` after pulling upstream changes.

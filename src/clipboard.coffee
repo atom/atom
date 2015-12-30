@@ -1,7 +1,7 @@
+clipboard = require 'clipboard'
 crypto = require 'crypto'
-clipboard = require './safe-clipboard'
 
-# Extended: Represents the clipboard used for copying and pasting in Atom.
+# Public: Represents the clipboard used for copying and pasting in Atom.
 #
 # An instance of this class is always available as the `atom.clipboard` global.
 #
@@ -14,12 +14,8 @@ clipboard = require './safe-clipboard'
 # ```
 module.exports =
 class Clipboard
-  constructor: ->
-    @reset()
-
-  reset: ->
-    @metadata = null
-    @signatureForMetadata = null
+  metadata: null
+  signatureForMetadata: null
 
   # Creates an `md5` hash of some text.
   #
@@ -35,7 +31,7 @@ class Clipboard
   # {::readWithMetadata}.
   #
   # * `text` The {String} to store.
-  # * `metadata` (optional) The additional info to associate with the text.
+  # * `metadata` The additional info to associate with the text.
   write: (text, metadata) ->
     @signatureForMetadata = @md5(text)
     @metadata = metadata
@@ -51,8 +47,8 @@ class Clipboard
   # associated metadata.
   #
   # Returns an {Object} with the following keys:
-  # * `text` The {String} clipboard text.
-  # * `metadata` The metadata stored by an earlier call to {::write}.
+  #   * `text` The {String} clipboard text.
+  #   * `metadata` The metadata stored by an earlier call to {::write}.
   readWithMetadata: ->
     text = @read()
     if @signatureForMetadata is @md5(text)
