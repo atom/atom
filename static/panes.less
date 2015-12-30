@@ -90,20 +90,8 @@ atom-pane-container {
 }
 
 .platform-darwin {
-  body {
-    -webkit-app-region: drag;
-    
-    .tool-panel {
-      -webkit-app-region: no-drag;
-    }
-    
-    .tab {
-      -webkit-app-region: no-drag;
-    }
-    
-    editor {
-      -webkit-app-region: no-drag;
-    }  
+  atom-panel-container.left:empty + atom-workspace-axis.vertical .tab-bar {
+    padding-left: 100px;
   }
   
   atom-panel.left {
