@@ -167,7 +167,7 @@ class AtomApplication
       safeMode: @focusedWindow()?.safeMode
 
     @on 'application:quit', -> app.quit()
-    @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
+    @on 'application:new-window', -> @openPath(getLoadSettings())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open', -> @promptForPathToOpen('all', getLoadSettings())
     @on 'application:open-file', -> @promptForPathToOpen('file', getLoadSettings())
@@ -360,6 +360,15 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
+  # Get the dimensions for opening a new window by cascading as appropriate.
+  getDimensionsForNewWindow: ->
+    dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
+    # On OS X, new windows cascade down and to the right.
+    if dimensions? and process.platform is 'darwin'
+      dimensions.x += 20
+      dimensions.y += 20
+    dimensions
+
   # Public: Opens a single path, in an existing window if possible.
   #
   # options -
@@ -417,6 +426,7 @@ class AtomApplication
 
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
+      windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
 
     if pidToKillWhenClosed?
