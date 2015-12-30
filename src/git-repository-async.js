@@ -194,17 +194,16 @@ export default class GitRepositoryAsync {
       workingDirectory = `${workingDirectory}/`
     }
 
+    const originalPath = _path
     if (this.isCaseInsensitive) {
-      const lowerCasePath = _path.toLowerCase()
-
+      _path = _path.toLowerCase()
       workingDirectory = workingDirectory.toLowerCase()
-      if (lowerCasePath.indexOf(workingDirectory) === 0) {
-        return _path.substring(workingDirectory.length)
-      } else {
-        if (lowerCasePath === workingDirectory) {
-          return ''
-        }
-      }
+    }
+
+    if (_path.indexOf(workingDirectory) === 0) {
+      return originalPath.substring(workingDirectory.length)
+    } else if (_path === workingDirectory) {
+      return ''
     }
 
     return _path
