@@ -26,7 +26,7 @@ describe "DisplayBuffer", ->
       marker1 = displayBuffer.markBufferRange([[1, 2], [3, 4]], id: 1)
       marker2 = displayBuffer.markBufferRange([[2, 3], [4, 5]], reversed: true, id: 2)
       marker3 = displayBuffer.markBufferPosition([5, 6], id: 3)
-      displayBuffer.createFold(3, 5)
+      displayBuffer.foldBufferRowRange(3, 5)
 
       displayBuffer2 = displayBuffer.copy()
       expect(displayBuffer2.id).not.toBe displayBuffer.id
@@ -361,7 +361,7 @@ describe "DisplayBuffer", ->
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
         it "replaces the lines spanned by the fold with a placeholder that references the fold object", ->
-          fold = displayBuffer.createFold(4, 7)
+          fold = displayBuffer.foldBufferRowRange(4, 7)
           expect(fold).toBeDefined()
 
           [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
@@ -382,7 +382,7 @@ describe "DisplayBuffer", ->
 
       describe "when a fold spans a single line", ->
         it "renders a fold placeholder for the folded line but does not skip any lines", ->
-          fold = displayBuffer.createFold(4, 4)
+          fold = displayBuffer.foldBufferRowRange(4, 4)
 
           [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe fold
@@ -406,8 +406,8 @@ describe "DisplayBuffer", ->
 
       describe "when a fold is nested within another fold", ->
         it "does not render the placeholder for the inner fold until the outer fold is destroyed", ->
-          innerFold = displayBuffer.createFold(6, 7)
-          outerFold = displayBuffer.createFold(4, 8)
+          innerFold = displayBuffer.foldBufferRowRange(6, 7)
+          outerFold = displayBuffer.foldBufferRowRange(4, 8)
 
           [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe outerFold
@@ -424,8 +424,8 @@ describe "DisplayBuffer", ->
           expect(line7.text).toBe '8'
 
         it "allows the outer fold to start at the same location as the inner fold", ->
-          innerFold = displayBuffer.createFold(4, 6)
-          outerFold = displayBuffer.createFold(4, 8)
+          innerFold = displayBuffer.foldBufferRowRange(4, 6)
+          outerFold = displayBuffer.foldBufferRowRange(4, 8)
 
           [line4, line5] = displayBuffer.tokenizedLinesForScreenRows(4, 5)
           expect(line4.fold).toBe outerFold
@@ -434,19 +434,19 @@ describe "DisplayBuffer", ->
 
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
-          fold = displayBuffer.createFold(0, 10)
+          fold = displayBuffer.foldBufferRowRange(0, 10)
           expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
-          newFold = displayBuffer.createFold(0, 10)
+          newFold = displayBuffer.foldBufferRowRange(0, 10)
           expect(newFold).toBe fold
           expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
       describe "when a fold is created inside an existing folded region", ->
         it "creates/destroys the fold, but does not trigger change event", ->
-          outerFold = displayBuffer.createFold(0, 10)
+          outerFold = displayBuffer.foldBufferRowRange(0, 10)
           changeHandler.reset()
 
-          innerFold = displayBuffer.createFold(2, 5)
+          innerFold = displayBuffer.foldBufferRowRange(2, 5)
           expect(changeHandler).not.toHaveBeenCalled()
           [line0, line1] = displayBuffer.tokenizedLinesForScreenRows(0, 1)
           expect(line0.fold).toBe outerFold
@@ -461,8 +461,8 @@ describe "DisplayBuffer", ->
 
       describe "when a fold ends where another fold begins", ->
         it "continues to hide the lines inside the second fold", ->
-          fold2 = displayBuffer.createFold(4, 9)
-          fold1 = displayBuffer.createFold(0, 4)
+          fold2 = displayBuffer.foldBufferRowRange(4, 9)
+          fold1 = displayBuffer.foldBufferRowRange(0, 4)
 
           expect(displayBuffer.tokenizedLineForScreenRow(0).text).toMatch /^0/
           expect(displayBuffer.tokenizedLineForScreenRow(1).text).toMatch /^10/
@@ -473,9 +473,9 @@ describe "DisplayBuffer", ->
             buffer, tabLength, config: atom.config, grammarRegistry: atom.grammars,
             packageManager: atom.packages, assert: ->
           })
-          otherDisplayBuffer.createFold(1, 5)
+          otherDisplayBuffer.foldBufferRowRange(1, 5)
 
-          displayBuffer.createFold(2, 4)
+          displayBuffer.foldBufferRowRange(2, 4)
           expect(otherDisplayBuffer.foldsStartingAtBufferRow(2).length).toBe 0
 
           expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '2'
@@ -484,8 +484,8 @@ describe "DisplayBuffer", ->
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
-        fold1 = displayBuffer.createFold(2, 4)
-        fold2 = displayBuffer.createFold(6, 8)
+        fold1 = displayBuffer.foldBufferRowRange(2, 4)
+        fold2 = displayBuffer.foldBufferRowRange(6, 8)
         changeHandler.reset()
 
       describe "when the old range surrounds a fold", ->
@@ -509,7 +509,7 @@ describe "DisplayBuffer", ->
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the selection with the new text", ->
-          displayBuffer.createFold(2, 9)
+          displayBuffer.foldBufferRowRange(2, 9)
           changeHandler.reset()
 
           buffer.setTextInRange([[1, 0], [10, 0]], 'goodbye')
@@ -634,7 +634,7 @@ describe "DisplayBuffer", ->
 
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
-        fold = displayBuffer.createFold(4, 7)
+        fold = displayBuffer.foldBufferRowRange(4, 7)
 
         # preceding fold: identity
         expect(displayBuffer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
@@ -669,11 +669,11 @@ describe "DisplayBuffer", ->
 
     describe ".unfoldBufferRow(row)", ->
       it "destroys all folds containing the given row", ->
-        displayBuffer.createFold(2, 4)
-        displayBuffer.createFold(2, 6)
-        displayBuffer.createFold(7, 8)
-        displayBuffer.createFold(1, 9)
-        displayBuffer.createFold(11, 12)
+        displayBuffer.foldBufferRowRange(2, 4)
+        displayBuffer.foldBufferRowRange(2, 6)
+        displayBuffer.foldBufferRowRange(7, 8)
+        displayBuffer.foldBufferRowRange(1, 9)
+        displayBuffer.foldBufferRowRange(11, 12)
 
         expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe '1'
         expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe '10'
@@ -687,11 +687,11 @@ describe "DisplayBuffer", ->
 
     describe ".outermostFoldsInBufferRowRange(startRow, endRow)", ->
       it "returns the outermost folds entirely contained in the given row range, exclusive of end row", ->
-        fold1 = displayBuffer.createFold(4, 7)
-        fold2 = displayBuffer.createFold(5, 6)
-        fold3 = displayBuffer.createFold(11, 15)
-        fold4 = displayBuffer.createFold(12, 13)
-        fold5 = displayBuffer.createFold(16, 17)
+        fold1 = displayBuffer.foldBufferRowRange(4, 7)
+        fold2 = displayBuffer.foldBufferRowRange(5, 6)
+        fold3 = displayBuffer.foldBufferRowRange(11, 15)
+        fold4 = displayBuffer.foldBufferRowRange(12, 13)
+        fold5 = displayBuffer.foldBufferRowRange(16, 17)
 
         expect(displayBuffer.outermostFoldsInBufferRowRange(3, 18)).toEqual [fold1, fold3, fold5]
         expect(displayBuffer.outermostFoldsInBufferRowRange(5, 16)).toEqual [fold3]
@@ -731,7 +731,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, 1000], wrapBeyondNewlines: true)).toEqual [1, 0]
 
       it "wraps positions in the middle of fold lines to the next screen line", ->
-        displayBuffer.createFold(3, 5)
+        displayBuffer.foldBufferRowRange(3, 5)
         expect(displayBuffer.clipScreenPosition([3, 5], wrapBeyondNewlines: true)).toEqual [4, 0]
 
     describe "when skipSoftWrapIndentation is false (the default)", ->
@@ -850,7 +850,7 @@ describe "DisplayBuffer", ->
 
   describe "markers", ->
     beforeEach ->
-      displayBuffer.createFold(4, 7)
+      displayBuffer.foldBufferRowRange(4, 7)
 
     describe "marker creation and manipulation", ->
       it "allows markers to be created in terms of both screen and buffer coordinates", ->
@@ -947,7 +947,7 @@ describe "DisplayBuffer", ->
         }
         markerChangedHandler.reset()
 
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(markerChangedHandler).toHaveBeenCalled()
         expect(markerChangedHandler.argsForCall[0][0]).toEqual {
           oldHeadScreenPosition: [11, 23]
@@ -1028,7 +1028,7 @@ describe "DisplayBuffer", ->
         }
 
       it "does not call the callback for screen changes that don't change the position of the marker", ->
-        displayBuffer.createFold(10, 11)
+        displayBuffer.foldBufferRowRange(10, 11)
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
@@ -1151,37 +1151,37 @@ describe "DisplayBuffer", ->
       it "allows the startScreenRow and endScreenRow to be specified", ->
         marker1 = displayBuffer.markBufferRange([[6, 0], [7, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[9, 0], [10, 0]], class: 'a')
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', startScreenRow: 6, endScreenRow: 7)).toEqual [marker2]
 
       it "allows intersectsBufferRowRange to be specified", ->
         marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', intersectsBufferRowRange: [5, 6])).toEqual [marker1]
 
       it "allows intersectsScreenRowRange to be specified", ->
         marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', intersectsScreenRowRange: [5, 10])).toEqual [marker2]
 
       it "allows containedInScreenRange to be specified", ->
         marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', containedInScreenRange: [[5, 0], [7, 0]])).toEqual [marker2]
 
       it "allows intersectsBufferRange to be specified", ->
         marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', intersectsBufferRange: [[5, 0], [6, 0]])).toEqual [marker1]
 
       it "allows intersectsScreenRange to be specified", ->
         marker1 = displayBuffer.markBufferRange([[5, 0], [5, 0]], class: 'a')
         marker2 = displayBuffer.markBufferRange([[8, 0], [8, 0]], class: 'a')
-        displayBuffer.createFold(4, 7)
+        displayBuffer.foldBufferRowRange(4, 7)
         expect(displayBuffer.findMarkers(class: 'a', intersectsScreenRange: [[5, 0], [10, 0]])).toEqual [marker2]
 
     describe "marker destruction", ->

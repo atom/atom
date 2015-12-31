@@ -299,7 +299,7 @@ describe "TextEditor", ->
           editor.setSoftWrapped(true)
           editor.setDefaultCharWidth(1)
           editor.setEditorWidthInChars(50)
-          editor.createFold(2, 3)
+          editor.foldBufferRowRange(2, 3)
 
         it "positions the cursor at the buffer position that corresponds to the given screen position", ->
           editor.setCursorScreenPosition([9, 0])
@@ -1787,10 +1787,10 @@ describe "TextEditor", ->
       describe "when the 'preserveFolds' option is false (the default)", ->
         it "removes folds that contain the selections", ->
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
-          editor.createFold(1, 4)
-          editor.createFold(2, 3)
-          editor.createFold(6, 8)
-          editor.createFold(10, 11)
+          editor.foldBufferRowRange(1, 4)
+          editor.foldBufferRowRange(2, 3)
+          editor.foldBufferRowRange(6, 8)
+          editor.foldBufferRowRange(10, 11)
 
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
           expect(editor.tokenizedLineForScreenRow(1).fold).toBeUndefined()
@@ -1801,8 +1801,8 @@ describe "TextEditor", ->
       describe "when the 'preserveFolds' option is true", ->
         it "does not remove folds that contain the selections", ->
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
-          editor.createFold(1, 4)
-          editor.createFold(6, 8)
+          editor.foldBufferRowRange(1, 4)
+          editor.foldBufferRowRange(6, 8)
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], preserveFolds: true)
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
@@ -2203,7 +2203,7 @@ describe "TextEditor", ->
             it "moves the line to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
               editor.setSelectedBufferRange([[4, 2], [4, 9]], preserveFolds: true)
               expect(editor.getSelectedBufferRange()).toEqual [[4, 2], [4, 9]]
 
@@ -2231,7 +2231,7 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
               expect(editor.lineTextForBufferRow(9)).toBe "  };"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -2269,7 +2269,7 @@ describe "TextEditor", ->
             it "moves the lines to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
               editor.setSelectedBufferRange([[3, 2], [4, 9]], preserveFolds: true)
 
               expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
@@ -2297,7 +2297,7 @@ describe "TextEditor", ->
             it "moves the lines to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
               editor.setSelectedBufferRange([[4, 2], [8, 9]], preserveFolds: true)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2341,7 +2341,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
             expect(editor.lineTextForBufferRow(9)).toBe "  };"
 
-            editor.createFold(4, 7)
+            editor.foldBufferRowRange(4, 7)
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
@@ -2381,7 +2381,7 @@ describe "TextEditor", ->
             it "moves the lines to the previous row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
               editor.setSelectedBufferRanges([
                 [[2, 2], [2, 9]],
                 [[4, 2], [4, 9]]
@@ -2419,7 +2419,7 @@ describe "TextEditor", ->
 
           describe "when there is a fold", ->
             it "moves all lines that spanned by a selection to preceding row, preserving all folds", ->
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -2446,8 +2446,8 @@ describe "TextEditor", ->
 
           describe 'and many selections intersects folded rows', ->
             it 'moves and preserves all the folds', ->
-              editor.createFold(2, 4)
-              editor.createFold(7, 9)
+              editor.foldBufferRowRange(2, 4)
+              editor.foldBufferRowRange(7, 9)
 
               editor.setSelectedBufferRanges([
                 [[1, 0], [5, 4]],
@@ -2531,7 +2531,7 @@ describe "TextEditor", ->
             it "moves the line to the following row without breaking the fold", ->
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
               editor.setSelectedBufferRange([[4, 2], [4, 9]], preserveFolds: true)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2557,7 +2557,7 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
               expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -2611,7 +2611,7 @@ describe "TextEditor", ->
           it "moves the lines to the following row without breaking the fold", ->
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-            editor.createFold(4, 7)
+            editor.foldBufferRowRange(4, 7)
             editor.setSelectedBufferRange([[3, 2], [4, 9]], preserveFolds: true)
 
             expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
@@ -2639,7 +2639,7 @@ describe "TextEditor", ->
           it "moves the lines to the following row without breaking the fold", ->
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-            editor.createFold(4, 7)
+            editor.foldBufferRowRange(4, 7)
             editor.setSelectedBufferRange([[4, 2], [8, 9]], preserveFolds: true)
 
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2669,7 +2669,7 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(2)).toBe "    if (items.length <= 1) return items;"
             expect(editor.lineTextForBufferRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
 
-            editor.createFold(4, 7)
+            editor.foldBufferRowRange(4, 7)
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
@@ -2711,8 +2711,8 @@ describe "TextEditor", ->
 
             describe 'and many selections intersects folded rows', ->
               it 'moves and preserves all the folds', ->
-                editor.createFold(2, 4)
-                editor.createFold(7, 9)
+                editor.foldBufferRowRange(2, 4)
+                editor.foldBufferRowRange(7, 9)
 
                 editor.setSelectedBufferRanges([
                   [[2, 0], [2, 4]],
@@ -2741,7 +2741,7 @@ describe "TextEditor", ->
 
           describe "when there is a fold below one of the selected row", ->
             it "moves all lines spanned by a selection to the following row, preserving the fold", ->
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -2764,7 +2764,7 @@ describe "TextEditor", ->
 
           describe "when there is a fold below a group of multiple selections without any lines with no selection in-between", ->
             it "moves all the lines below the fold, preserving the fold", ->
-              editor.createFold(4, 7)
+              editor.foldBufferRowRange(4, 7)
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -2789,7 +2789,7 @@ describe "TextEditor", ->
           it "moves the lines to the previous row without breaking the fold", ->
             expect(editor.lineTextForBufferRow(4)).toBe "    while(items.length > 0) {"
 
-            editor.createFold(4, 7)
+            editor.foldBufferRowRange(4, 7)
             editor.setSelectedBufferRanges([
               [[2, 2], [2, 9]],
               [[4, 2], [4, 9]]
@@ -2927,7 +2927,7 @@ describe "TextEditor", ->
 
       describe "when there is a selection that ends on a folded line", ->
         it "destroys the selection", ->
-          editor.createFold(2, 4)
+          editor.foldBufferRowRange(2, 4)
           editor.setSelectedBufferRange([[1, 0], [2, 0]])
           editor.insertText('holy cow')
           expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
@@ -3519,8 +3519,8 @@ describe "TextEditor", ->
         describe "when the cursor is on a folded line", ->
           it "removes the lines contained by the fold", ->
             editor.setSelectedBufferRange([[2, 0], [2, 0]])
-            editor.createFold(2, 4)
-            editor.createFold(2, 6)
+            editor.foldBufferRowRange(2, 4)
+            editor.foldBufferRowRange(2, 6)
             oldLine7 = buffer.lineForRow(7)
             oldLine8 = buffer.lineForRow(8)
 

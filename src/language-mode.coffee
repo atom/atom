@@ -92,14 +92,12 @@ class LanguageMode
     for currentRow in [0..@buffer.getLastRow()] by 1
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
-      @editor.createFold(startRow, endRow)
+      @editor.foldBufferRowRange(startRow, endRow)
     return
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
-    for fold in @editor.displayBuffer.foldsIntersectingBufferRowRange(0, @buffer.getLastRow()) by -1
-      fold.destroy()
-    return
+    @editor.displayLayer.destroyAllFolds()
 
   # Fold all comment and code blocks at a given indentLevel
   #
@@ -112,7 +110,7 @@ class LanguageMode
 
       # assumption: startRow will always be the min indent level for the entire range
       if @editor.indentationForBufferRow(startRow) is indentLevel
-        @editor.createFold(startRow, endRow)
+        @editor.foldBufferRowRange(startRow, endRow)
     return
 
   # Given a buffer row, creates a fold at it.
@@ -124,8 +122,8 @@ class LanguageMode
     for currentRow in [bufferRow..0] by -1
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
-      fold = @editor.displayBuffer.largestFoldStartingAtBufferRow(startRow)
-      return @editor.createFold(startRow, endRow) unless fold
+      unless @editor.displayBuffer.isFoldedAtBufferRow(startRow)
+        return @editor.foldBufferRowRange(startRow, endRow)
 
   # Find the row range for a fold at a given bufferRow. Will handle comments
   # and code.

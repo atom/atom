@@ -87,7 +87,7 @@ class Selection extends Model
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     options.reversed ?= @isReversed()
-    @editor.destroyFoldsContainingBufferRange(bufferRange) unless options.preserveFolds
+    @editor.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @modifySelection =>
       needsFlash = options.flash
       delete options.flash if options.flash?
@@ -410,7 +410,7 @@ class Selection extends Model
   # Public: Removes the first character before the selection if the selection
   # is empty otherwise it deletes the selection.
   backspace: ->
-    @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
+    @selectLeft() if @isEmpty()
     @deleteSelectedText()
 
   # Public: Removes the selection or, if nothing is selected, then all
@@ -445,11 +445,7 @@ class Selection extends Model
   # Public: Removes the selection or the next character after the start of the
   # selection if the selection is empty.
   delete: ->
-    if @isEmpty()
-      if @cursor.isAtEndOfLine() and fold = @editor.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
-        @selectToBufferPosition(fold.getBufferRange().end)
-      else
-        @selectRight()
+    @selectRight() if @isEmpty()
     @deleteSelectedText()
 
   # Public: If the selection is empty, removes all text from the cursor to the
@@ -482,8 +478,6 @@ class Selection extends Model
   # Public: Removes only the selected text.
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
-    if bufferRange.isEmpty() and fold = @editor.largestFoldContainingBufferRow(bufferRange.start.row)
-      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
     @editor.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 
@@ -634,7 +628,7 @@ class Selection extends Model
   # Public: Creates a fold containing the current selection.
   fold: ->
     range = @getBufferRange()
-    @editor.createFold(range.start.row, range.end.row)
+    @editor.foldBufferRowRange(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
   # Private: Increase the indentation level of the given text by given number

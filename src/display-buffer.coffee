@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 {Point, Range} = require 'text-buffer'
 TokenizedBuffer = require './tokenized-buffer'
 RowMap = require './row-map'
-Fold = require './fold'
 Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
@@ -30,7 +29,6 @@ class DisplayBuffer extends Model
 
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
-    state.foldsMarkerLayer = state.tokenizedBuffer.buffer.getMarkerLayer(state.foldsMarkerLayerId)
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
     state.grammarRegistry = atomEnvironment.grammars
@@ -41,8 +39,8 @@ class DisplayBuffer extends Model
     super
 
     {
-      tabLength, @editorWidthInChars, @tokenizedBuffer, @foldsMarkerLayer, buffer,
-      ignoreInvisibles, @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles,
+      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
     } = params
 
     @emitter = new Emitter
@@ -56,7 +54,6 @@ class DisplayBuffer extends Model
     @displayLayer = @buffer.addDisplayLayer({tabLength: @getTabLength()})
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
-    @foldsByMarkerId = {}
     @decorationsById = {}
     @decorationsByMarkerId = {}
     @overlayDecorationsById = {}
@@ -68,10 +65,7 @@ class DisplayBuffer extends Model
     @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @didCreateDefaultLayerMarker
 
-    @foldsMarkerLayer ?= @buffer.addMarkerLayer()
-    folds = (new Fold(this, marker) for marker in @foldsMarkerLayer.getMarkers())
     @updateAllScreenLines()
-    @decorateFold(fold) for fold in folds
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()
@@ -115,13 +109,11 @@ class DisplayBuffer extends Model
     editorWidthInChars: @editorWidthInChars
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
-    foldsMarkerLayerId: @foldsMarkerLayer.id
 
   copy: ->
-    foldsMarkerLayer = @foldsMarkerLayer.copy()
     new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
-      @grammarRegistry, @packageManager, foldsMarkerLayer
+      @grammarRegistry, @packageManager
     })
 
   updateAllScreenLines: ->
@@ -395,75 +387,20 @@ class DisplayBuffer extends Model
   # endRow - The row {Number} to end the fold
   #
   # Returns the new {Fold}.
-  createFold: (startRow, endRow) ->
-    unless @largeFileMode
-      if foldMarker = @findFoldMarker({startRow, endRow})
-        @foldForMarker(foldMarker)
-      else
-        foldMarker = @foldsMarkerLayer.markRange([[startRow, 0], [endRow, Infinity]])
-        fold = new Fold(this, foldMarker)
-        fold.updateDisplayBuffer()
-        @decorateFold(fold)
-        fold
+  foldBufferRowRange: (startRow, endRow) ->
+    @displayLayer.foldBufferRange(Range(Point(startRow, Infinity), Point(endRow, Infinity)))
 
   isFoldedAtBufferRow: (bufferRow) ->
-    @largestFoldContainingBufferRow(bufferRow)?
+    @displayLayer.foldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity))).length > 0
 
   isFoldedAtScreenRow: (screenRow) ->
-    @largestFoldContainingBufferRow(@bufferRowForScreenRow(screenRow))?
-
-  # Destroys the fold with the given id
-  destroyFoldWithId: (id) ->
-    @foldsByMarkerId[id]?.destroy()
+    @isFoldedAtBufferRow(@bufferRowForScreenRow(screenRow))?
 
   # Removes any folds found that contain the given buffer row.
   #
   # bufferRow - The buffer row {Number} to check against
   unfoldBufferRow: (bufferRow) ->
-    fold.destroy() for fold in @foldsContainingBufferRow(bufferRow)
-    return
-
-  # Given a buffer row, this returns the largest fold that starts there.
-  #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns a {Fold} or null if none exists.
-  largestFoldStartingAtBufferRow: (bufferRow) ->
-    @foldsStartingAtBufferRow(bufferRow)[0]
-
-  # Public: Given a buffer row, this returns all folds that start there.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns an {Array} of {Fold}s.
-  foldsStartingAtBufferRow: (bufferRow) ->
-    for marker in @findFoldMarkers(startRow: bufferRow)
-      @foldForMarker(marker)
-
-  # Given a screen row, this returns the largest fold that starts there.
-  #
-  # Largest is defined as the fold whose difference between its start and end points
-  # are the greatest.
-  #
-  # screenRow - A {Number} indicating the screen row
-  #
-  # Returns a {Fold}.
-  largestFoldStartingAtScreenRow: (screenRow) ->
-    @largestFoldStartingAtBufferRow(@bufferRowForScreenRow(screenRow))
-
-  # Given a buffer row, this returns the largest fold that includes it.
-  #
-  # Largest is defined as the fold whose difference between its start and end rows
-  # is the greatest.
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns a {Fold}.
-  largestFoldContainingBufferRow: (bufferRow) ->
-    @foldsContainingBufferRow(bufferRow)[0]
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity)))
 
   # Returns the folds in the given row range (exclusive of end row) that are
   # not contained by any other folds.
@@ -479,20 +416,6 @@ class DisplayBuffer extends Model
           folds.push(@foldForMarker(marker))
 
     folds
-
-  # Returns all the folds that intersect the given row range.
-  foldsIntersectingBufferRowRange: (startRow, endRow) ->
-    @foldForMarker(marker) for marker in @findFoldMarkers(intersectsRowRange: [startRow, endRow])
-
-  # Public: Given a buffer row, this returns folds that include it.
-  #
-  #
-  # bufferRow - A {Number} indicating the buffer row
-  #
-  # Returns an {Array} of {Fold}s.
-  foldsContainingBufferRow: (bufferRow) ->
-    for marker in @findFoldMarkers(intersectsRow: bufferRow)
-      @foldForMarker(marker)
 
   # Given a buffer row, this converts it into a screen row.
   #
@@ -548,10 +471,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number}.
   getLineCount: ->
-    if @largeFileMode
-      @tokenizedBuffer.getLineCount()
-    else
-      @screenLines.length
+    @displayLayer.getScreenLineCount()
 
   # Gets the number of the last screen line.
   #
@@ -591,7 +511,6 @@ class DisplayBuffer extends Model
       unless screenLine?
         throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
           softWrapEnabled: @isSoftWrapped()
-          foldCount: @findFoldMarkers().length
           lastBufferRow: @buffer.getLastRow()
           lastScreenRow: @getLastRow()
           bufferRow: row
@@ -924,12 +843,6 @@ class DisplayBuffer extends Model
 
   getDefaultMarkerLayer: -> @defaultMarkerLayer
 
-  findFoldMarker: (params) ->
-    @findFoldMarkers(params)[0]
-
-  findFoldMarkers: (params) ->
-    @foldsMarkerLayer.findMarkers(params)
-
   refreshMarkerScreenPositions: ->
     @defaultMarkerLayer.refreshMarkerScreenPositions()
     layer.refreshMarkerScreenPositions() for id, layer of @customMarkerLayersById
@@ -937,7 +850,6 @@ class DisplayBuffer extends Model
 
   destroyed: ->
     @defaultMarkerLayer.destroy()
-    @foldsMarkerLayer.destroy()
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
     @tokenizedBuffer.destroy()
@@ -990,49 +902,49 @@ class DisplayBuffer extends Model
     rectangularRegion = null
 
     foldsByStartRow = {}
-    for fold in @outermostFoldsInBufferRowRange(startBufferRow, endBufferRow)
-      foldsByStartRow[fold.getStartRow()] = fold
+    # for fold in @outermostFoldsInBufferRowRange(startBufferRow, endBufferRow)
+    #   foldsByStartRow[fold.getStartRow()] = fold
 
     bufferRow = startBufferRow
     while bufferRow < endBufferRow
       tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
 
-      if fold = foldsByStartRow[bufferRow]
-        foldLine = tokenizedLine.copy()
-        foldLine.fold = fold
-        screenLines.push(foldLine)
+      # if fold = foldsByStartRow[bufferRow]
+      #   foldLine = tokenizedLine.copy()
+      #   foldLine.fold = fold
+      #   screenLines.push(foldLine)
+      #
+      #   if rectangularRegion?
+      #     regions.push(rectangularRegion)
+      #     rectangularRegion = null
+      #
+      #   foldedRowCount = fold.getBufferRowCount()
+      #   regions.push(bufferRows: foldedRowCount, screenRows: 1)
+      #   bufferRow += foldedRowCount
+      # else
+      softWraps = 0
+      if @isSoftWrapped()
+        while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumnForTokenizedLine(tokenizedLine))
+          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
+            wrapScreenColumn,
+            @configSettings.softWrapHangingIndent
+          )
+          break if wrappedLine.hasOnlySoftWrapIndentation()
+          screenLines.push(wrappedLine)
+          softWraps++
+      screenLines.push(tokenizedLine)
 
+      if softWraps > 0
         if rectangularRegion?
           regions.push(rectangularRegion)
           rectangularRegion = null
-
-        foldedRowCount = fold.getBufferRowCount()
-        regions.push(bufferRows: foldedRowCount, screenRows: 1)
-        bufferRow += foldedRowCount
+        regions.push(bufferRows: 1, screenRows: softWraps + 1)
       else
-        softWraps = 0
-        if @isSoftWrapped()
-          while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumnForTokenizedLine(tokenizedLine))
-            [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
-              wrapScreenColumn,
-              @configSettings.softWrapHangingIndent
-            )
-            break if wrappedLine.hasOnlySoftWrapIndentation()
-            screenLines.push(wrappedLine)
-            softWraps++
-        screenLines.push(tokenizedLine)
+        rectangularRegion ?= {bufferRows: 0, screenRows: 0}
+        rectangularRegion.bufferRows++
+        rectangularRegion.screenRows++
 
-        if softWraps > 0
-          if rectangularRegion?
-            regions.push(rectangularRegion)
-            rectangularRegion = null
-          regions.push(bufferRows: 1, screenRows: softWraps + 1)
-        else
-          rectangularRegion ?= {bufferRows: 0, screenRows: 0}
-          rectangularRegion.bufferRows++
-          rectangularRegion.screenRows++
-
-        bufferRow++
+      bufferRow++
 
     if rectangularRegion?
       regions.push(rectangularRegion)
@@ -1075,12 +987,6 @@ class DisplayBuffer extends Model
       process.nextTick =>
         @didUpdateDecorationsEventScheduled = false
         @emitter.emit 'did-update-decorations'
-
-  decorateFold: (fold) ->
-    @decorateMarker(fold.marker, type: 'line-number', class: 'folded')
-
-  foldForMarker: (marker) ->
-    @foldsByMarkerId[marker.id]
 
   decorationDidChangeType: (decoration) ->
     if decoration.isType('overlay')
@@ -1126,7 +1032,6 @@ class DisplayBuffer extends Model
 
   checkScreenLinesInvariant: ->
     return if @isSoftWrapped()
-    return if _.size(@foldsByMarkerId) > 0
 
     screenLinesCount = @screenLines.length
     tokenizedLinesCount = @tokenizedBuffer.getLineCount()
