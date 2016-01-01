@@ -367,7 +367,7 @@ class AtomApplication
       darwin: 22
       win32: 26
 
-    dimensions = @windows[@windows.length - 1]?.getDimensions()
+    dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
     offset = offsetByPlatform[process.platform]
     if dimensions? and offset?
       dimensions.x += offset
