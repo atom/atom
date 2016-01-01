@@ -360,13 +360,18 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
-  # Get the dimensions for opening a new window by cascading as appropriate.
+  # Get the dimensions for opening a new window by cascading as appropriate to
+  # the platform.
   getDimensionsForNewWindow: ->
-    dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
-    # On OS X, new windows cascade down and to the right.
-    if dimensions? and process.platform is 'darwin'
-      dimensions.x += 20
-      dimensions.y += 20
+    offsetByPlatform =
+      darwin: 22
+      win32: 26
+
+    dimensions = @windows[@windows.length - 1]?.getDimensions()
+    offset = offsetByPlatform[process.platform]
+    if dimensions? and offset?
+      dimensions.x += offset
+      dimensions.y += offset
     dimensions
 
   # Public: Opens a single path, in an existing window if possible.
