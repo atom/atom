@@ -3225,14 +3225,25 @@ describe "TextEditor", ->
             editor.backspace()
 
         describe "when the cursor is on the first column of a line below a fold", ->
-          it "deletes the folded lines", ->
+          it "expands the fold and deletes the preceding newline", ->
             editor.setCursorScreenPosition([4, 0])
             editor.foldCurrentRow()
             editor.setCursorScreenPosition([5, 0])
             editor.backspace()
 
-            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
-            expect(buffer.lineForRow(4).fold).toBeUndefined()
+            expect(editor.tokenizedLineForScreenRow(7).text).toBe "    }    return sort(left).concat(pivot).concat(sort(right));"
+            expect(editor.tokenizedLineForScreenRow(4).fold).toBeUndefined()
+
+        describe "when the cursor is on the first column of an empty line below a fold", ->
+          it "doesn't expand the fold and deletes the preceding newline", ->
+            buffer.insert([8, 0], "\n")
+            editor.setCursorScreenPosition([4, 0])
+            editor.foldCurrentRow()
+            editor.setCursorScreenPosition([5, 0])
+            editor.backspace()
+
+            expect(editor.tokenizedLineForScreenRow(5).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(editor.tokenizedLineForScreenRow(4).fold).toBeDefined()
 
         describe "when the cursor is in the middle of a line below a fold", ->
           it "backspaces as normal", ->
@@ -3245,14 +3256,23 @@ describe "TextEditor", ->
             expect(buffer.lineForRow(8)).toBe "    eturn sort(left).concat(pivot).concat(sort(right));"
 
         describe "when the cursor is on a folded screen line", ->
-          it "deletes all of the folded lines along with the fold", ->
+          it "expands the fold and deletes the preceding newline", ->
             editor.setCursorBufferPosition([3, 0])
+            editor.foldCurrentRow()
+            editor.setCursorBufferPosition([1, 0])
+            editor.backspace()
+
+            expect(editor.tokenizedLineForScreenRow(0).text).toBe "var quicksort = function () {  var sort = function(items) {"
+
+        describe "when the cursor is on a folded screen line before an empty line", ->
+          it "doesn't expand the fold and deletes the preceding newline", ->
+            buffer.insert([1, 0], "\n")
+            editor.setCursorBufferPosition([2, 0])
             editor.foldCurrentRow()
             editor.backspace()
 
-            expect(buffer.lineForRow(1)).toBe ""
-            expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"
-            expect(editor.getCursorScreenPosition()).toEqual [1, 0]
+            expect(editor.tokenizedLineForScreenRow(1).fold).toBeDefined()
+            expect(editor.tokenizedLineForScreenRow(1).text).toBe "  var sort = function(items) {"
 
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
@@ -3493,16 +3513,26 @@ describe "TextEditor", ->
             expect(buffer.lineForRow(12)).toBe '};'
 
         describe "when the cursor is on the end of a line above a fold", ->
-          it "only deletes the lines inside the fold", ->
+          it "unfolds the fold and deletes the newline", ->
             editor.foldBufferRow(4)
             editor.setCursorScreenPosition([3, Infinity])
             cursorPositionBefore = editor.getCursorScreenPosition()
 
             editor.delete()
 
-            expect(buffer.lineForRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
-            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(editor.tokenizedLineForScreenRow(3).text).toBe "    var pivot = items.shift(), current, left = [], right = [];    while(items.length > 0) {"
             expect(editor.getCursorScreenPosition()).toEqual cursorPositionBefore
+
+        describe "when the cursor is on an empty line above a fold", ->
+          it "preserves the fold and deletes the newline", ->
+            buffer.insert([4, 0], "\n")
+            editor.foldBufferRow(5)
+            editor.setCursorScreenPosition([4, 0])
+
+            editor.delete()
+
+            expect(editor.tokenizedLineForScreenRow(4).text).toBe "    while(items.length > 0) {"
+            expect(editor.tokenizedLineForScreenRow(4).fold).toBeDefined
 
         describe "when the cursor is in the middle a line above a fold", ->
           it "deletes as normal", ->
@@ -3517,16 +3547,15 @@ describe "TextEditor", ->
             expect(editor.getCursorScreenPosition()).toEqual [3, 4]
 
         describe "when the cursor is on a folded line", ->
-          it "removes the lines contained by the fold", ->
+          it "removes the lines contained by the fold minus the newline", ->
             editor.setSelectedBufferRange([[2, 0], [2, 0]])
             editor.createFold(2, 4)
             editor.createFold(2, 6)
             oldLine7 = buffer.lineForRow(7)
-            oldLine8 = buffer.lineForRow(8)
 
             editor.delete()
-            expect(editor.tokenizedLineForScreenRow(2).text).toBe oldLine7
-            expect(editor.tokenizedLineForScreenRow(3).text).toBe oldLine8
+            expect(editor.tokenizedLineForScreenRow(2).text).toBe ""
+            expect(editor.tokenizedLineForScreenRow(3).text).toBe oldLine7
 
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->

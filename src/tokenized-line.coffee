@@ -252,9 +252,22 @@ class TokenizedLine
     return 0 if @tags.length is 0
 
     {clip} = options
-    column = Math.min(column, @getMaxScreenColumn())
+    maxColumn = @getMaxScreenColumn()
+    column = Math.min(column, maxColumn)
 
-    tokenStartColumn = 0
+    if @fold
+      if column is 0 or column is maxColumn
+        return column
+      else
+        if clip is 'forward'
+          return maxColumn
+        else if clip is 'backward'
+          return 0
+        else
+          if column < maxColumn - column
+            return 0
+          else
+            return maxColumn
 
     iterator = @getTokenIterator()
     while iterator.next()
@@ -303,10 +316,7 @@ class TokenizedLine
     iterator.getBufferEnd()
 
   getMaxScreenColumn: ->
-    if @fold
-      0
-    else
-      @text.length
+    @text.length
 
   getMaxBufferColumn: ->
     @startBufferColumn + @bufferDelta

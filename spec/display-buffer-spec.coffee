@@ -628,9 +628,9 @@ describe "DisplayBuffer", ->
 
       describe "when the change starts at the beginning of a fold but does not extend to the end (regression)", ->
         it "preserves a proper mapping between buffer and screen coordinates", ->
-          expect(displayBuffer.screenPositionForBufferPosition([8, 0])).toEqual [4, 0]
+          expect(displayBuffer.screenPositionForBufferPosition([5, 0])).toEqual [3, 0]
           buffer.setTextInRange([[2, 0], [3, 0]], "\n")
-          expect(displayBuffer.screenPositionForBufferPosition([8, 0])).toEqual [4, 0]
+          expect(displayBuffer.screenPositionForBufferPosition([5, 0])).toEqual [3, 0]
 
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
@@ -643,9 +643,19 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
         expect(displayBuffer.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
 
-        # inside of fold: translate to the start of the fold
+        # before the end of the first line of fold: translate to the start of the fold
         expect(displayBuffer.screenPositionForBufferPosition([4, 35])).toEqual [4, 0]
-        expect(displayBuffer.screenPositionForBufferPosition([5, 5])).toEqual [4, 0]
+
+        # end of the first line of the fold: translate to end of the fold screen line
+        expect(displayBuffer.screenPositionForBufferPosition([4, 101])).toEqual [4, 101]
+
+        # following lines of the fold: translate to end of the fold screen line
+        expect(displayBuffer.screenPositionForBufferPosition([5, 0])).toEqual [4, 101]
+        expect(displayBuffer.screenPositionForBufferPosition([6, 1])).toEqual [4, 101]
+
+        # end of fold in the buffer: translate to end of the fold screen line
+        expect(displayBuffer.screenPositionForBufferPosition([7, 1])).toEqual [4, 101]
+        expect(displayBuffer.bufferPositionForScreenPosition([4, 101])).toEqual [7, 1]
 
         # following fold
         expect(displayBuffer.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
@@ -730,9 +740,9 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, 30], wrapBeyondNewlines: true)).toEqual [1, 0]
         expect(displayBuffer.clipScreenPosition([0, 1000], wrapBeyondNewlines: true)).toEqual [1, 0]
 
-      it "wraps positions in the middle of fold lines to the next screen line", ->
+      it "wraps positions beyond fold lines to the next screen line", ->
         displayBuffer.createFold(3, 5)
-        expect(displayBuffer.clipScreenPosition([3, 5], wrapBeyondNewlines: true)).toEqual [4, 0]
+        expect(displayBuffer.clipScreenPosition([3, 100], wrapBeyondNewlines: true)).toEqual [4, 0]
 
     describe "when skipSoftWrapIndentation is false (the default)", ->
       it "wraps positions at the end of previous soft-wrapped line", ->

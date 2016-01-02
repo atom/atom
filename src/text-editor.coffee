@@ -2952,7 +2952,13 @@ class TextEditor extends Model
 
   # TODO: Rename to foldRowRange?
   createFold: (startRow, endRow) ->
-    @displayBuffer.createFold(startRow, endRow)
+    fold = @displayBuffer.createFold(startRow, endRow)
+    # Update the buffer positions based on the screen positions.
+    # For example, the end of the screen fold line maps to the end of the buffer fold.
+    # @moveCursors (cursor) ->
+    #  if cursor.getBufferRow() >= startRow and cursor.getBufferRow() <= endRow
+    #    cursor.setScreenPosition(cursor.getScreenPosition())
+    fold
 
   # {Delegates to: DisplayBuffer.destroyFoldWithId}
   destroyFoldWithId: (id) ->

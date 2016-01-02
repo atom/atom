@@ -365,7 +365,12 @@ class Selection extends Model
   #   * `undo` if `skip`, skips the undo stack for this operation.
   insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
-    @editor.unfoldBufferRow(oldBufferRange.end.row)
+    fold = @editor.largestFoldContainingBufferRow(oldBufferRange.end.row)
+    foldRange = fold?.getBufferRange()
+    # Only expand the fold if we aren't inserting newlines right before or after the fold.
+    if (not foldRange?.start.isEqual(oldBufferRange.end) or not text.endsWith('\n')) and
+       (not foldRange?.end.isEqual(oldBufferRange.start) or not text.startsWith('\n'))
+      @editor.unfoldBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
 
@@ -410,7 +415,7 @@ class Selection extends Model
   # Public: Removes the first character before the selection if the selection
   # is empty otherwise it deletes the selection.
   backspace: ->
-    @selectLeft() if @isEmpty() and not @editor.isFoldedAtScreenRow(@cursor.getScreenRow())
+    @selectLeft() if @isEmpty()
     @deleteSelectedText()
 
   # Public: Removes the selection or, if nothing is selected, then all
@@ -446,10 +451,7 @@ class Selection extends Model
   # selection if the selection is empty.
   delete: ->
     if @isEmpty()
-      if @cursor.isAtEndOfLine() and fold = @editor.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
-        @selectToBufferPosition(fold.getBufferRange().end)
-      else
-        @selectRight()
+      @selectRight()
     @deleteSelectedText()
 
   # Public: If the selection is empty, removes all text from the cursor to the
@@ -484,6 +486,12 @@ class Selection extends Model
     bufferRange = @getBufferRange()
     if bufferRange.isEmpty() and fold = @editor.largestFoldContainingBufferRow(bufferRange.start.row)
       bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
+    if @editor.isFoldedAtBufferRow(bufferRange.end.row) and
+       bufferRange.start.column isnt 0
+      @editor.unfoldBufferRow(bufferRange.end.row)
+    if @editor.isFoldedAtBufferRow(bufferRange.start.row) and
+       bufferRange.end.column isnt @editor.buffer.lineLengthForRow(bufferRange.end.row)
+      @editor.unfoldBufferRow(bufferRange.start.row)
     @editor.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     @cursor?.setBufferPosition(bufferRange.start)
 

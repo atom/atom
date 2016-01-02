@@ -402,6 +402,7 @@ class DisplayBuffer extends Model
         @foldForMarker(foldMarker)
       else
         foldMarker = @foldsMarkerLayer.markRange([[startRow, 0], [endRow, Infinity]])
+        @foldsMarkerLayer.index.setExclusive(foldMarker.id, true)
         fold = new Fold(this, foldMarker)
         fold.updateDisplayBuffer()
         @decorateFold(fold)
@@ -605,7 +606,9 @@ class DisplayBuffer extends Model
       if screenLine.isSoftWrapped() and column > maxBufferColumn
         continue
       else
-        if column <= maxBufferColumn
+        if screenLine.fold? and screenLine.fold.getStartRow() isnt row
+          screenColumn = Infinity
+        else if column <= maxBufferColumn
           screenColumn = screenLine.screenColumnForBufferColumn(column)
         else
           screenColumn = Infinity
@@ -624,8 +627,12 @@ class DisplayBuffer extends Model
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
     {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
-    [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
-    new Point(bufferRow, @tokenizedLineForScreenRow(row).bufferColumnForScreenColumn(column))
+    [bufferRowStart, bufferRowEnd] = @rowMap.bufferRowRangeForScreenRow(row)
+    screenRow = @tokenizedLineForScreenRow(row)
+    if column is screenRow.getMaxScreenColumn()
+      new Point(bufferRowEnd - 1, @tokenizedBuffer.tokenizedLineForRow(bufferRowEnd - 1).getMaxBufferColumn())
+    else
+      new Point(bufferRowStart, @tokenizedLineForScreenRow(row).bufferColumnForScreenColumn(column))
 
   # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
