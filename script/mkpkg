@@ -1,0 +1,51 @@
+#!/bin/bash
+# mkdeb name version channel arch control-file-path desktop-file-path icon-path pkg-file-path
+
+set -e
+
+SCRIPT=`readlink -f "$0"`
+ROOT=`readlink -f $(dirname $SCRIPT)/..`
+cd $ROOT
+
+NAME="$1"
+VERSION="$2"
+CHANNEL="$3"
+ARCH="$4"
+CONTROL_FILE="$5"
+DESKTOP_FILE="$6"
+ICON_FILE="$7"
+PKG_PATH="$8"
+FILE_MODE=755
+
+TARGET_ROOT="`mktemp -d`"
+chmod $FILE_MODE "$TARGET_ROOT"
+TARGET="$TARGET_ROOT/$NAME-$VERSION-$ARCH"
+PACKAGE="$TARGET/src"
+mkdir -m $FILE_MODE -p "$PACKAGE"
+
+mkdir -m $FILE_MODE -p "$PACKAGE/usr"
+env INSTALL_PREFIX="$PACKAGE/usr" script/grunt install --channel $CHANNEL
+
+cp "$CONTROL_FILE" "$TARGET/PKGBUILD"
+
+mkdir -m $FILE_MODE -p "$PACKAGE/usr/share/applications"
+cp "$DESKTOP_FILE" "$PACKAGE/usr/share/applications"
+
+mkdir -m $FILE_MODE -p "$PACKAGE/usr/share/pixmaps"
+cp "$ICON_FILE" "$PACKAGE/usr/share/pixmaps/$NAME.png"
+
+# Copy generated LICENSE.md to /pkg/usr/share/doc/atom/copyright
+mkdir -m $FILE_MODE -p "$PACKAGE/usr/share/licenses/$NAME"
+cp "$PACKAGE/usr/share/$NAME/resources/LICENSE.md" "$PACKAGE/usr/share/licenses/$NAME/LICENSE.md"
+
+# Remove executable bit from .node files
+find "$TARGET" -type f -name "*.node" -exec chmod a-x {} \;
+
+cd $TARGET
+
+# create checksums
+updpkgsums
+# create package
+makepkg -resc
+mv "$TARGET/$NAME-$VERSION-1-$ARCH.pkg.tar.xz" "$PKG_PATH"
+rm -rf "$TARGET_ROOT"
