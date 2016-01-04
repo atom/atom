@@ -34,7 +34,7 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    this.repoPromise = Git.Repository.openExt(_path)
+    this.repoPromise = Git.Repository.openExt(_path, 0, '')
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstreamByPath = {}
 
