@@ -25,6 +25,8 @@ export default class GitRepositoryAsync {
     return Git
   }
 
+  // The name of the error thrown when an action is attempted on a destroyed
+  // repository.
   static get DestroyedErrorName () {
     return 'GitRepositoryAsync.destroyed'
   }
