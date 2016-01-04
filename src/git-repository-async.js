@@ -385,7 +385,8 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is modified.
   isPathModified (_path) {
-    return this._getStatus([_path])
+    return this.relativizeToWorkingDirectory(_path)
+      .then(relativePath => this._getStatus([relativePath]))
       .then(statuses => statuses.some(status => status.isModified()))
   }
 
@@ -396,7 +397,8 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is new.
   isPathNew (_path) {
-    return this._getStatus([_path])
+    return this.relativizeToWorkingDirectory(_path)
+      .then(relativePath => this._getStatus([relativePath]))
       .then(statuses => statuses.some(status => status.isNew()))
   }
 
