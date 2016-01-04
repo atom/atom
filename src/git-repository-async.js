@@ -774,17 +774,15 @@ export default class GitRepositoryAsync {
   _refreshStatus () {
     this._refreshingCount++
 
-    let projectPathsPromises = Promise.resolve([])
+    let projectPathsPromises = [Promise.resolve('')]
     if (this.project) {
       projectPathsPromises = this.project.getPaths()
         .map(p => this.relativizeToWorkingDirectory(p))
     }
 
-    Promise.all(projectPathsPromises)
+    return Promise.all(projectPathsPromises)
       .then(paths => paths.filter(p => p.length > 0))
       .then(projectPaths => {
-        if (this._isDestroyed()) return []
-
         return this._getStatus(projectPaths.length > 0 ? projectPaths : null)
       })
       .then(statuses => {
