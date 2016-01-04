@@ -11,9 +11,11 @@ exeName = path.basename(process.execPath)
 if process.env.SystemRoot
   system32Path = path.join(process.env.SystemRoot, 'System32')
   regPath = path.join(system32Path, 'reg.exe')
+  powershellPath = path.join(system32Path, 'WindowsPowerShell', 'v1.0', 'powershell.exe')
   setxPath = path.join(system32Path, 'setx.exe')
 else
   regPath = 'reg.exe'
+  powershellPath = 'powershell.exe'
   setxPath = 'setx.exe'
 
 # Registry keys used for context menu
@@ -43,10 +45,22 @@ spawn = (command, args, callback) ->
     error?.code ?= code
     error?.stdout ?= stdout
     callback?(error, stdout)
+  # This is necessary if using Powershell 2 on Windows 7 to get the events to raise
+  # http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
+  spawnedProcess.stdin.end()
+
 
 # Spawn reg.exe and callback when it completes
 spawnReg = (args, callback) ->
   spawn(regPath, args, callback)
+
+# Spawn powershell.exe and callback when it completes
+spawnPowershell = (args, callback) ->
+  args.unshift('-command')
+  args.unshift('RemoteSigned')
+  args.unshift('-ExecutionPolicy')
+  args.unshift('-noprofile')
+  spawn(powershellPath, args, callback)
 
 # Spawn setx.exe and callback when it completes
 spawnSetx = (args, callback) ->
@@ -85,37 +99,17 @@ isAscii = (text) ->
 
 # Get the user's PATH environment variable registry value.
 getPath = (callback) ->
-  spawnReg ['query', environmentKeyPath, '/v', 'Path'], (error, stdout) ->
+  spawnPowershell ['[environment]::GetEnvironmentVariable(\'Path\',\'User\')'], (error, stdout) ->
     if error?
-      if error.code is 1
-        # FIXME Don't overwrite path when reading value is disabled
-        # https://github.com/atom/atom/issues/5092
-        if stdout.indexOf('ERROR: Registry editing has been disabled by your administrator.') isnt -1
-          return callback(error)
+      return callback(error)
 
-        # The query failed so the Path does not exist yet in the registry
-        return callback(null, '')
-      else
-        return callback(error)
-
-    # Registry query output is in the form:
-    #
-    # HKEY_CURRENT_USER\Environment
-    #     Path    REG_SZ    C:\a\folder\on\the\path;C\another\folder
-    #
-
-    lines = stdout.split(/[\r\n]+/).filter (line) -> line
-    segments = lines[lines.length - 1]?.split('    ')
-    if segments[1] is 'Path' and segments.length >= 3
-      pathEnv = segments?[3..].join('    ')
-      if isAscii(pathEnv)
-        callback(null, pathEnv)
-      else
-        # FIXME Don't corrupt non-ASCII PATH values
-        # https://github.com/atom/atom/issues/5063
-        callback(new Error('PATH contains non-ASCII values'))
+    pathOutput = stdout.replace(/^\s+|\s+$/g, '')
+    if isAscii(pathOutput)
+      callback(null, pathOutput)
     else
-      callback(new Error('Registry query for PATH failed'))
+      # FIXME Don't corrupt non-ASCII PATH values
+      # https://github.com/atom/atom/issues/5063
+      callback(new Error('PATH contains non-ASCII values'))
 
 # Uninstall the Open with Atom explorer context menu items via the registry.
 uninstallContextMenu = (callback) ->
