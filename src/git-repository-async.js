@@ -29,7 +29,7 @@ export default class GitRepositoryAsync {
     return 'GitRepositoryAsync.destroyed'
   }
 
-  constructor (_path, options) {
+  constructor (_path, options = {}) {
     this.repo = null
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
@@ -39,8 +39,6 @@ export default class GitRepositoryAsync {
     this.upstreamByPath = {}
 
     this._refreshingCount = 0
-
-    options = options || {}
 
     let {refreshOnWindowFocus = true} = options
     if (refreshOnWindowFocus) {
