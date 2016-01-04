@@ -45,6 +45,19 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
+  describe('.openNodeGitRepository()', () => {
+    it('returns a new repository instance', async () => {
+      repo = openFixture('master.git')
+
+      const originalRepo = await repo.getRepo()
+      expect(originalRepo).not.toBeNull()
+
+      const nodeGitRepo = repo.openNodeGitRepository()
+      expect(nodeGitRepo).not.toBeNull()
+      expect(originalRepo).not.toBe(nodeGitRepo)
+    })
+  })
+
   describe('.getPath()', () => {
     it('returns the repository path for a repository path', async () => {
       repo = openFixture('master.git')
