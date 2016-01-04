@@ -810,7 +810,18 @@ export default class GitRepositoryAsync {
     const branch = this._refreshBranch()
     const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
 
-    return Promise.all([status, branch, aheadBehind]).then(_ => null)
+    return Promise.all([status, branch, aheadBehind])
+      .then(_ => null)
+      // Because all these refresh steps happen asynchronously, it's entirely
+      // possible the repository was destroyed while we were working. In which
+      // case we should just swallow the error.
+      .catch(e => {
+        if (this._isDestroyed()) {
+          return null
+        } else {
+          return Promise.reject(e)
+        }
+      })
   }
 
   // Get the NodeGit repository for the given path.
