@@ -774,8 +774,14 @@ export default class GitRepositoryAsync {
   _refreshStatus () {
     this._refreshingCount++
 
-    return this.repoPromise
-      .then(repo => repo.getStatus())
+    const projectPathsPromises = this.project.getPaths()
+      .map(p => this.relativizeToWorkingDirectory(p))
+
+    Promise.all(projectPathsPromises)
+      .then(paths => paths.filter(p => p.length > 0))
+      .then(projectPaths => {
+        return this._getStatus(projectPaths.length > 0 ? projectPaths : null)
+      })
       .then(statuses => {
         const statusPairs = statuses.map(status => [status.path(), status.statusBit()])
         return Promise.all(statusPairs)
