@@ -440,6 +440,8 @@ class TextEditorComponent
 
     unless @presenter.isRowVisible(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
+
+    unless @linesComponent.lineNodeForLineIdAndScreenRow(@presenter.lineIdForScreenRow(screenPosition.row), screenPosition.row)?
       @updateSyncPreMeasurement()
 
     pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)

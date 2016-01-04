@@ -1377,3 +1377,6 @@ class TextEditorPresenter
 
   isRowVisible: (row) ->
     @startRow <= row < @endRow
+
+  lineIdForScreenRow: (screenRow) ->
+    @model.tokenizedLineForScreenRow(screenRow)?.id
