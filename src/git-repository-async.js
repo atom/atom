@@ -127,13 +127,13 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to the {String} path of the
   // repository.
   getPath () {
-    return this.repoPromise.then(repo => repo.path().replace(/\/$/, ''))
+    return this.getRepo().then(repo => repo.path().replace(/\/$/, ''))
   }
 
   // Public: Returns a {Promise} which resolves to the {String} working
   // directory path of the repository.
   getWorkingDirectory () {
-    return this.repoPromise.then(repo => repo.workdir())
+    return this.getRepo().then(repo => repo.workdir())
   }
 
   // Public: Returns a {Promise} that resolves to true if at the root, false if
@@ -142,7 +142,7 @@ export default class GitRepositoryAsync {
     if (!this.project) return Promise.resolve(false)
 
     if (!this.projectAtRoot) {
-      this.projectAtRoot = this.repoPromise
+      this.projectAtRoot = this.getRepo()
         .then(repo => this.project.relativize(repo.workdir()))
         .then(relativePath => relativePath === '')
     }
@@ -156,7 +156,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to the relative {String} path.
   relativizeToWorkingDirectory (_path) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => this.relativize(_path, repo.workdir()))
   }
 
@@ -215,7 +215,7 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to whether the given branch
   // exists.
   hasBranch (branch) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => repo.getBranch(branch))
       .then(branch => branch != null)
       .catch(_ => false)
@@ -244,7 +244,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that resolves true if the given path is a submodule in
   // the repository.
   isSubmodule (_path) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => repo.openIndex())
       .then(index => Promise.all([index, this.relativizeToWorkingDirectory(_path)]))
       .then(([index, relativePath]) => {
@@ -409,7 +409,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is ignored.
   isPathIgnored (_path) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => {
         const relativePath = this.relativize(_path, repo.workdir())
         return Git.Ignore.pathIsIgnored(repo, relativePath)
@@ -425,7 +425,7 @@ export default class GitRepositoryAsync {
   // value can be passed to {::isStatusModified} or {::isStatusNew} to get more
   // information.
   getDirectoryStatus (directoryPath) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => {
         const relativePath = this.relativize(directoryPath, repo.workdir())
         return this._getStatus([relativePath])
@@ -452,7 +452,7 @@ export default class GitRepositoryAsync {
     this._refreshingCount++
 
     let relativePath
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => {
         relativePath = this.relativize(_path, repo.workdir())
         return this._getStatus([relativePath])
@@ -564,7 +564,7 @@ export default class GitRepositoryAsync {
   //   * `added` The {Number} of added lines.
   //   * `deleted` The {Number} of deleted lines.
   getDiffStats (_path) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
       .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
       .then(([repo, tree]) => {
@@ -600,7 +600,7 @@ export default class GitRepositoryAsync {
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
     let relativePath = null
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => {
         relativePath = this.relativize(_path, repo.workdir())
         return repo.getHeadCommit()
@@ -638,7 +638,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that resolves or rejects depending on whether the
   // method was successful.
   checkoutHead (_path) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => {
         const checkoutOptions = new Git.CheckoutOptions()
         checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
@@ -656,7 +656,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} that resolves if the method was successful.
   checkoutReference (reference, create) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => repo.checkoutBranch(reference))
       .catch(error => {
         if (create) {
@@ -693,7 +693,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {NodeGit.Ref} reference to the
   // created branch.
   _createBranch (name) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
       .then(([repo, commit]) => repo.createBranch(name, commit))
   }
@@ -751,7 +751,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to the {String} branch name.
   _refreshBranch () {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => repo.getCurrentBranch())
       .then(ref => ref.name())
       .then(branchName => this.branch = branchName)
@@ -888,7 +888,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
   // statuses for the paths.
   _getStatus (paths) {
-    return this.repoPromise
+    return this.getRepo()
       .then(repo => {
         const opts = {
           flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS | Git.Status.OPT.DISABLE_PATHSPEC_MATCH
