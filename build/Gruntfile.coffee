@@ -284,6 +284,7 @@ module.exports = (grunt) ->
   ciTasks.push('download-electron')
   ciTasks.push('download-electron-chromedriver')
   ciTasks.push('build')
+  ciTasks.push('fingerprint')
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'

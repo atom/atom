@@ -39,6 +39,9 @@ class DeserializerManager
       delete @deserializers[deserializer.name] for deserializer in deserializers
       return
 
+  getDeserializerCount: ->
+    Object.keys(@deserializers).length
+
   # Public: Deserialize the state and params.
   #
   # * `state` The state {Object} to deserialize.

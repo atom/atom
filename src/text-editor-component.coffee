@@ -82,7 +82,7 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent, @grammars)
+    @linesYardstick = new LinesYardstick(@editor, @linesComponent, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -127,8 +127,10 @@ class TextEditorComponent
     @domNode
 
   updateSync: ->
+    @updateSyncPreMeasurement()
+
     @oldState ?= {}
-    @newState = @presenter.getState()
+    @newState = @presenter.getPostMeasurementState()
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
@@ -169,6 +171,9 @@ class TextEditorComponent
     if @editor.isAlive()
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
+
+  updateSyncPreMeasurement: ->
+    @linesComponent.updateSync(@presenter.getPreMeasurementState())
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
@@ -429,14 +434,42 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForScreenPosition: ->
-    @linesYardstick.pixelPositionForScreenPosition(arguments...)
+  pixelPositionForScreenPosition: (screenPosition, clip) ->
+    unless @presenter.isRowVisible(screenPosition.row)
+      @presenter.setScreenRowsToMeasure([screenPosition.row])
+      @updateSyncPreMeasurement()
 
-  screenPositionForPixelPosition: ->
-    @linesYardstick.screenPositionForPixelPosition(arguments...)
+    pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
+    @presenter.clearScreenRowsToMeasure()
+    pixelPosition
 
-  pixelRectForScreenRange: ->
-    @linesYardstick.pixelRectForScreenRange(arguments...)
+  screenPositionForPixelPosition: (pixelPosition) ->
+    row = @linesYardstick.measuredRowForPixelPosition(pixelPosition)
+    if row? and not @presenter.isRowVisible(row)
+      @presenter.setScreenRowsToMeasure([row])
+      @updateSyncPreMeasurement()
+
+    position = @linesYardstick.screenPositionForPixelPosition(pixelPosition)
+    @presenter.clearScreenRowsToMeasure()
+    position
+
+  pixelRectForScreenRange: (screenRange) ->
+    rowsToMeasure = []
+    unless @presenter.isRowVisible(screenRange.start.row)
+      rowsToMeasure.push(screenRange.start.row)
+    unless @presenter.isRowVisible(screenRange.end.row)
+      rowsToMeasure.push(screenRange.end.row)
+
+    if rowsToMeasure.length > 0
+      @presenter.setScreenRowsToMeasure(rowsToMeasure)
+      @updateSyncPreMeasurement()
+
+    rect = @presenter.absolutePixelRectForScreenRange(screenRange)
+
+    if rowsToMeasure.length > 0
+      @presenter.clearScreenRowsToMeasure()
+
+    rect
 
   pixelRangeForScreenRange: (screenRange, clip=true) ->
     {start, end} = Range.fromObject(screenRange)

@@ -82,6 +82,7 @@ class AtomApplication
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
+    @setupDockMenu()
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
@@ -227,10 +228,9 @@ class AtomApplication
       event.preventDefault()
       @openUrl({urlToOpen, @devMode, @safeMode})
 
-    app.on 'activate', (event, hasVisibleWindows) =>
-      unless hasVisibleWindows
-        event.preventDefault()
-        @emit('application:new-window')
+    app.on 'activate-with-no-open-windows', (event) =>
+      event.preventDefault()
+      @emit('application:new-window')
 
     # A request from the associated render process to open a new render process.
     ipc.on 'open', (event, options) =>
@@ -280,6 +280,16 @@ class AtomApplication
 
     ipc.on 'write-to-stderr', (event, output) ->
       process.stderr.write(output)
+
+    ipc.on 'add-recent-document', (event, filename) ->
+      app.addRecentDocument(filename)
+
+  setupDockMenu: ->
+    if process.platform is 'darwin'
+      dockMenu = Menu.buildFromTemplate [
+        {label: 'New Window',  click: => @emit('application:new-window')}
+      ]
+      app.dock.setMenu dockMenu
 
   # Public: Executes the given command.
   #
@@ -440,8 +450,9 @@ class AtomApplication
     return if @quitting
     states = []
     for window in @windows
-      if not window.isSpec and window.projectDirectoryPaths?
-        states.push(initialPaths: window.projectDirectoryPaths)
+      unless window.isSpec
+        if loadSettings = window.getLoadSettings()
+          states.push(initialPaths: loadSettings.initialPaths)
     if states.length > 0 or allowEmpty
       @storageFolder.store('application.json', states)
 

@@ -31,12 +31,18 @@
   font-size: @font-size - 2px;
   height: auto;
   line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size - 2px;
+  }
 }
 .btn.btn-sm,
 .btn-group-sm > .btn {
   padding: @component-padding/4 @component-padding/2;
   height: auto;
   line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size + 1px;
+  }
 }
 .btn.btn-lg,
 .btn-group-lg > .btn {
@@ -44,6 +50,9 @@
   padding: @component-padding - 2px  @component-padding + 2px;
   height: auto;
   line-height: 1.3em;
+  &.icon:before {
+    font-size: @font-size + 6px;
+  }
 }
 
 .btn-group > .btn {
@@ -61,6 +70,18 @@
   border-right: none;
   border-top-right-radius: @component-border-radius;
   border-bottom-right-radius: @component-border-radius;
+}
+
+// Icon buttons
+.btn.icon {
+  &:before {
+    width: initial;
+    height: initial;
+    margin-right: .3125em;
+  }
+  &:empty:before {
+    margin-right: 0;
+  }
 }
 
 .btn-toolbar {

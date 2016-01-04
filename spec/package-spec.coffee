@@ -1,6 +1,7 @@
 path = require 'path'
 Package = require '../src/package'
 ThemePackage = require '../src/theme-package'
+{mockLocalStorage} = require './spec-helper'
 
 describe "Package", ->
   build = (constructor, path) ->
@@ -10,6 +11,7 @@ describe "Package", ->
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,
       menuManager: atom.menu, contextMenuManager: atom.contextMenu,
+      deserializerManager: atom.deserializers, viewRegistry: atom.views,
       devMode: false
     )
 
@@ -19,10 +21,7 @@ describe "Package", ->
 
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
-      items = {}
-      spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
-      spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
-      spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
+      mockLocalStorage()
 
     it "does not activate it", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
@@ -54,10 +53,7 @@ describe "Package", ->
 
   describe "::rebuild()", ->
     beforeEach ->
-      items = {}
-      spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
-      spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
-      spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
+      mockLocalStorage()
 
     it "returns a promise resolving to the results of `apm rebuild`", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')

@@ -9,7 +9,7 @@ FakeLinesYardstick = require './fake-lines-yardstick'
 describe "TextEditorPresenter", ->
   # These `describe` and `it` blocks mirror the structure of the ::state object.
   # Please maintain this structure when adding specs for new state fields.
-  describe "::getState()", ->
+  describe "::get(Pre|Post)MeasurementState()", ->
     [buffer, editor] = []
 
     beforeEach ->
@@ -24,6 +24,10 @@ describe "TextEditorPresenter", ->
     afterEach ->
       editor.destroy()
       buffer.destroy()
+
+    getState = (presenter) ->
+      presenter.getPreMeasurementState()
+      presenter.getPostMeasurementState()
 
     buildPresenterWithoutMeasurements = (params={}) ->
       _.defaults params,
@@ -131,14 +135,6 @@ describe "TextEditorPresenter", ->
 
         # clearing additional rows won't trigger a state update
         expectNoStateUpdate presenter, -> presenter.clearScreenRowsToMeasure()
-
-        expect(stateFn(presenter).tiles[0]).toBeDefined()
-        expect(stateFn(presenter).tiles[2]).toBeDefined()
-        expect(stateFn(presenter).tiles[4]).toBeDefined()
-        expect(stateFn(presenter).tiles[6]).toBeDefined()
-        expect(stateFn(presenter).tiles[8]).toBeUndefined()
-        expect(stateFn(presenter).tiles[10]).toBeDefined()
-        expect(stateFn(presenter).tiles[12]).toBeDefined()
 
         # when another change triggers a state update we remove useless lines
         expectStateUpdate presenter, -> presenter.setScrollTop(1)
@@ -279,7 +275,7 @@ describe "TextEditorPresenter", ->
     describe "during state retrieval", ->
       it "does not trigger onDidUpdateState events", ->
         presenter = buildPresenter()
-        expectNoStateUpdate presenter, -> presenter.getState()
+        expectNoStateUpdate presenter, -> getState(presenter)
 
     describe ".horizontalScrollbar", ->
       describe ".visible", ->
@@ -292,19 +288,19 @@ describe "TextEditorPresenter", ->
             horizontalScrollbarHeight: 10
             verticalScrollbarWidth: 10
 
-          expect(presenter.getState().horizontalScrollbar.visible).toBe false
+          expect(getState(presenter).horizontalScrollbar.visible).toBe false
 
           # ::contentFrameWidth itself is smaller than scrollWidth
           presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
-          expect(presenter.getState().horizontalScrollbar.visible).toBe true
+          expect(getState(presenter).horizontalScrollbar.visible).toBe true
 
           # restore...
           presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10 + 1)
-          expect(presenter.getState().horizontalScrollbar.visible).toBe false
+          expect(getState(presenter).horizontalScrollbar.visible).toBe false
 
           # visible vertical scrollbar makes the clientWidth smaller than the scrollWidth
           presenter.setExplicitHeight((editor.getLineCount() * 10) - 1)
-          expect(presenter.getState().horizontalScrollbar.visible).toBe true
+          expect(getState(presenter).horizontalScrollbar.visible).toBe true
 
         it "is false if the editor is mini", ->
           presenter = buildPresenter
@@ -312,18 +308,18 @@ describe "TextEditorPresenter", ->
             contentFrameWidth: editor.getMaxScreenLineLength() * 10 - 10
             baseCharacterWidth: 10
 
-          expect(presenter.getState().horizontalScrollbar.visible).toBe true
+          expect(getState(presenter).horizontalScrollbar.visible).toBe true
           editor.setMini(true)
-          expect(presenter.getState().horizontalScrollbar.visible).toBe false
+          expect(getState(presenter).horizontalScrollbar.visible).toBe false
           editor.setMini(false)
-          expect(presenter.getState().horizontalScrollbar.visible).toBe true
+          expect(getState(presenter).horizontalScrollbar.visible).toBe true
 
       describe ".height", ->
         it "tracks the value of ::horizontalScrollbarHeight", ->
           presenter = buildPresenter(horizontalScrollbarHeight: 10)
-          expect(presenter.getState().horizontalScrollbar.height).toBe 10
+          expect(getState(presenter).horizontalScrollbar.height).toBe 10
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(20)
-          expect(presenter.getState().horizontalScrollbar.height).toBe 20
+          expect(getState(presenter).horizontalScrollbar.height).toBe 20
 
       describe ".right", ->
         it "is ::verticalScrollbarWidth if the vertical scrollbar is visible and 0 otherwise", ->
@@ -335,27 +331,27 @@ describe "TextEditorPresenter", ->
             horizontalScrollbarHeight: 10
             verticalScrollbarWidth: 10
 
-          expect(presenter.getState().horizontalScrollbar.right).toBe 0
+          expect(getState(presenter).horizontalScrollbar.right).toBe 0
           presenter.setExplicitHeight((editor.getLineCount() * 10) - 1)
-          expect(presenter.getState().horizontalScrollbar.right).toBe 10
+          expect(getState(presenter).horizontalScrollbar.right).toBe 10
 
       describe ".scrollWidth", ->
         it "is initialized as the max of the ::contentFrameWidth and the width of the longest line", ->
           maxLineLength = editor.getMaxScreenLineLength()
 
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
 
           presenter = buildPresenter(contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
 
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 20
 
         it "updates when character widths change", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
@@ -364,72 +360,72 @@ describe "TextEditorPresenter", ->
             maxLineLength = editor.getMaxScreenLineLength()
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
-            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
+            expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
             expectStateUpdate presenter, ->
               presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
               presenter.characterWidthsChanged()
-            expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+            expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([editor.getLongestScreenRow(), 0])
           expectStateUpdate presenter, -> editor.insertText('xyz')
 
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollLeft", ->
         it "tracks the value of ::scrollLeft", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe 10
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe 50
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe 50
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, explicitHeight: 100, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
-          scrollLeftBefore = presenter.getState().horizontalScrollbar.scrollLeft
+          scrollLeftBefore = getState(presenter).horizontalScrollbar.scrollLeft
           expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe scrollLeftBefore
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe scrollLeftBefore
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
-          expect(presenter.getState().horizontalScrollbar.scrollLeft).toBe 0
+          expect(getState(presenter).horizontalScrollbar.scrollLeft).toBe 0
 
         it "is always 0 when soft wrapping is enabled", ->
           presenter = buildPresenter(scrollLeft: 0, verticalScrollbarWidth: 0, contentFrameWidth: 85, baseCharacterWidth: 10)
 
           editor.setSoftWrapped(false)
           presenter.setScrollLeft(Infinity)
-          expect(presenter.getState().content.scrollLeft).toBeGreaterThan 0
+          expect(getState(presenter).content.scrollLeft).toBeGreaterThan 0
 
           editor.setSoftWrapped(true)
-          expect(presenter.getState().content.scrollLeft).toBe 0
+          expect(getState(presenter).content.scrollLeft).toBe 0
           presenter.setScrollLeft(10)
-          expect(presenter.getState().content.scrollLeft).toBe 0
+          expect(getState(presenter).content.scrollLeft).toBe 0
 
     describe ".verticalScrollbar", ->
       describe ".visible", ->
@@ -443,26 +439,26 @@ describe "TextEditorPresenter", ->
             horizontalScrollbarHeight: 10
             verticalScrollbarWidth: 10
 
-          expect(presenter.getState().verticalScrollbar.visible).toBe false
+          expect(getState(presenter).verticalScrollbar.visible).toBe false
 
           # ::explicitHeight itself is smaller than scrollWidth
           presenter.setExplicitHeight(editor.getLineCount() * 10 - 1)
-          expect(presenter.getState().verticalScrollbar.visible).toBe true
+          expect(getState(presenter).verticalScrollbar.visible).toBe true
 
           # restore...
           presenter.setExplicitHeight(editor.getLineCount() * 10)
-          expect(presenter.getState().verticalScrollbar.visible).toBe false
+          expect(getState(presenter).verticalScrollbar.visible).toBe false
 
           # visible horizontal scrollbar makes the clientHeight smaller than the scrollHeight
           presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
-          expect(presenter.getState().verticalScrollbar.visible).toBe true
+          expect(getState(presenter).verticalScrollbar.visible).toBe true
 
       describe ".width", ->
         it "is assigned based on ::verticalScrollbarWidth", ->
           presenter = buildPresenter(verticalScrollbarWidth: 10)
-          expect(presenter.getState().verticalScrollbar.width).toBe 10
+          expect(getState(presenter).verticalScrollbar.width).toBe 10
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(20)
-          expect(presenter.getState().verticalScrollbar.width).toBe 20
+          expect(getState(presenter).verticalScrollbar.width).toBe 20
 
       describe ".bottom", ->
         it "is ::horizontalScrollbarHeight if the horizontal scrollbar is visible and 0 otherwise", ->
@@ -474,129 +470,129 @@ describe "TextEditorPresenter", ->
             horizontalScrollbarHeight: 10
             verticalScrollbarWidth: 10
 
-          expect(presenter.getState().verticalScrollbar.bottom).toBe 0
+          expect(getState(presenter).verticalScrollbar.bottom).toBe 0
           presenter.setContentFrameWidth(editor.getMaxScreenLineLength() * 10)
-          expect(presenter.getState().verticalScrollbar.bottom).toBe 10
+          expect(getState(presenter).verticalScrollbar.bottom).toBe 10
 
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 500)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe 500
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe 500
 
         it "updates when the ::lineHeight changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 20
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe editor.getScreenLineCount() * 10
 
         it "updates when ::explicitHeight changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe 500
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe 500
 
         it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 20, horizontalScrollbarHeight: 10)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe 10
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe 50
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe 50
 
         it "never exceeds the computed scrollHeight minus the computed clientHeight", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
-          scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
+          scrollTopBefore = getState(presenter).verticalScrollbar.scrollTop
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe scrollTopBefore
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe scrollTopBefore
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe 0
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe 0
 
         it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
           atom.config.set("editor.scrollPastEnd", true)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+          expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
     describe ".hiddenInput", ->
       describe ".top/.left", ->
         it "is positioned over the last cursor it is in view and the editor is focused", ->
           editor.setCursorBufferPosition([3, 6])
           presenter = buildPresenter(focused: false, explicitHeight: 50, contentFrameWidth: 300, horizontalScrollbarHeight: 0, verticalScrollbarWidth: 0)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
+          expectValues getState(presenter).hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> presenter.setFocused(true)
-          expectValues presenter.getState().hiddenInput, {top: 3 * 10, left: 6 * 10}
+          expectValues getState(presenter).hiddenInput, {top: 3 * 10, left: 6 * 10}
 
           expectStateUpdate presenter, -> presenter.setScrollTop(15)
-          expectValues presenter.getState().hiddenInput, {top: (3 * 10) - 15, left: 6 * 10}
+          expectValues getState(presenter).hiddenInput, {top: (3 * 10) - 15, left: 6 * 10}
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(35)
-          expectValues presenter.getState().hiddenInput, {top: (3 * 10) - 15, left: (6 * 10) - 35}
+          expectValues getState(presenter).hiddenInput, {top: (3 * 10) - 15, left: (6 * 10) - 35}
 
           expectStateUpdate presenter, -> presenter.setScrollTop(40)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: (6 * 10) - 35}
+          expectValues getState(presenter).hiddenInput, {top: 0, left: (6 * 10) - 35}
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(70)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
+          expectValues getState(presenter).hiddenInput, {top: 0, left: 0}
 
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([11, 43])
-          expectValues presenter.getState().hiddenInput, {top: 11 * 10 - presenter.getScrollTop(), left: 43 * 10 - presenter.getScrollLeft()}
+          expectValues getState(presenter).hiddenInput, {top: 11 * 10 - presenter.getScrollTop(), left: 43 * 10 - presenter.getScrollLeft()}
 
           newCursor = null
           expectStateUpdate presenter, -> newCursor = editor.addCursorAtBufferPosition([6, 10])
-          expectValues presenter.getState().hiddenInput, {top: (6 * 10) - presenter.getScrollTop(), left: (10 * 10) - presenter.getScrollLeft()}
+          expectValues getState(presenter).hiddenInput, {top: (6 * 10) - presenter.getScrollTop(), left: (10 * 10) - presenter.getScrollLeft()}
 
           expectStateUpdate presenter, -> newCursor.destroy()
-          expectValues presenter.getState().hiddenInput, {top: 50 - 10, left: 300 - 10}
+          expectValues getState(presenter).hiddenInput, {top: 50 - 10, left: 300 - 10}
 
           expectStateUpdate presenter, -> presenter.setFocused(false)
-          expectValues presenter.getState().hiddenInput, {top: 0, left: 0}
+          expectValues getState(presenter).hiddenInput, {top: 0, left: 0}
 
       describe ".height", ->
         it "is assigned based on the line height", ->
           presenter = buildPresenter()
-          expect(presenter.getState().hiddenInput.height).toBe 10
+          expect(getState(presenter).hiddenInput.height).toBe 10
 
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
-          expect(presenter.getState().hiddenInput.height).toBe 20
+          expect(getState(presenter).hiddenInput.height).toBe 20
 
       describe ".width", ->
         it "is assigned based on the width of the character following the cursor", ->
@@ -605,94 +601,77 @@ describe "TextEditorPresenter", ->
           runs ->
             editor.setCursorBufferPosition([3, 6])
             presenter = buildPresenter()
-            expect(presenter.getState().hiddenInput.width).toBe 10
+            expect(getState(presenter).hiddenInput.width).toBe 10
 
             expectStateUpdate presenter, -> presenter.setBaseCharacterWidth(15)
-            expect(presenter.getState().hiddenInput.width).toBe 15
+            expect(getState(presenter).hiddenInput.width).toBe 15
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'r', 20)
               presenter.characterWidthsChanged()
-            expect(presenter.getState().hiddenInput.width).toBe 20
+            expect(getState(presenter).hiddenInput.width).toBe 20
 
         it "is 2px at the end of lines", ->
           presenter = buildPresenter()
           editor.setCursorBufferPosition([3, Infinity])
-          expect(presenter.getState().hiddenInput.width).toBe 2
+          expect(getState(presenter).hiddenInput.width).toBe 2
 
     describe ".content", ->
-      describe ".scrollingVertically", ->
-        it "is true for ::stoppedScrollingDelay milliseconds following a changes to ::scrollTop", ->
-          presenter = buildPresenter(scrollTop: 10, stoppedScrollingDelay: 200, explicitHeight: 100)
-          expect(presenter.getState().content.scrollingVertically).toBe true
-          advanceClock(300)
-          expect(presenter.getState().content.scrollingVertically).toBe false
-          expectStateUpdate presenter, -> presenter.setScrollTop(0)
-          expect(presenter.getState().content.scrollingVertically).toBe true
-          advanceClock(100)
-          expect(presenter.getState().content.scrollingVertically).toBe true
-          presenter.setScrollTop(10)
-          presenter.getState() # commits scroll position
-          advanceClock(100)
-          expect(presenter.getState().content.scrollingVertically).toBe true
-          expectStateUpdate presenter, -> advanceClock(100)
-          expect(presenter.getState().content.scrollingVertically).toBe false
-
       describe ".maxHeight", ->
         it "changes based on boundingClientRect", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
 
           expectStateUpdate presenter, ->
             presenter.setBoundingClientRect(left: 0, top: 0, height: 20, width: 0)
-          expect(presenter.getState().content.maxHeight).toBe(20)
+          expect(getState(presenter).content.maxHeight).toBe(20)
 
           expectStateUpdate presenter, ->
             presenter.setBoundingClientRect(left: 0, top: 0, height: 50, width: 0)
-          expect(presenter.getState().content.maxHeight).toBe(50)
+          expect(getState(presenter).content.maxHeight).toBe(50)
 
       describe ".scrollHeight", ->
         it "is initialized based on the lineHeight, the number of lines, and the height", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
-          expect(presenter.getState().content.scrollHeight).toBe editor.getScreenLineCount() * 10
+          expect(getState(presenter).content.scrollHeight).toBe editor.getScreenLineCount() * 10
 
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 500)
-          expect(presenter.getState().content.scrollHeight).toBe 500
+          expect(getState(presenter).content.scrollHeight).toBe 500
 
         it "updates when the ::lineHeight changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setLineHeight(20)
-          expect(presenter.getState().content.scrollHeight).toBe editor.getScreenLineCount() * 20
+          expect(getState(presenter).content.scrollHeight).toBe editor.getScreenLineCount() * 20
 
         it "updates when the line count changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-          expect(presenter.getState().content.scrollHeight).toBe editor.getScreenLineCount() * 10
+          expect(getState(presenter).content.scrollHeight).toBe editor.getScreenLineCount() * 10
 
         it "updates when ::explicitHeight changes", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
           expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
-          expect(presenter.getState().content.scrollHeight).toBe 500
+          expect(getState(presenter).content.scrollHeight).toBe 500
 
         it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().content.scrollHeight).toBe presenter.contentHeight
+          expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(presenter.getState().content.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+          expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().content.scrollHeight).toBe presenter.contentHeight
+          expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollWidth", ->
         it "is initialized as the max of the computed clientWidth and the width of the longest line", ->
           maxLineLength = editor.getMaxScreenLineLength()
 
           presenter = buildPresenter(explicitHeight: 100, contentFrameWidth: 50, baseCharacterWidth: 10, verticalScrollbarWidth: 10)
-          expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * maxLineLength + 1
 
           presenter = buildPresenter(explicitHeight: 100, contentFrameWidth: 10 * maxLineLength + 20, baseCharacterWidth: 10, verticalScrollbarWidth: 10)
-          expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 20 - 10 # subtract vertical scrollbar width
+          expect(getState(presenter).content.scrollWidth).toBe 10 * maxLineLength + 20 - 10 # subtract vertical scrollbar width
 
         describe "when the longest screen row is the first one and it's hidden", ->
           it "doesn't compute an invalid value (regression)", ->
@@ -706,15 +685,15 @@ describe "TextEditorPresenter", ->
             """
 
             expectStateUpdate presenter, -> presenter.setScrollTop(40)
-            expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+            expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the ::contentFrameWidth changes", ->
           maxLineLength = editor.getMaxScreenLineLength()
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
-          expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * maxLineLength + 1
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(10 * maxLineLength + 20)
-          expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 20
+          expect(getState(presenter).content.scrollWidth).toBe 10 * maxLineLength + 20
 
         it "updates when character widths change", ->
           waitsForPromise -> atom.packages.activatePackage('language-javascript')
@@ -723,109 +702,114 @@ describe "TextEditorPresenter", ->
             maxLineLength = editor.getMaxScreenLineLength()
             presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
-            expect(presenter.getState().content.scrollWidth).toBe 10 * maxLineLength + 1
+            expect(getState(presenter).content.scrollWidth).toBe 10 * maxLineLength + 1
             expectStateUpdate presenter, ->
               presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
               presenter.characterWidthsChanged()
-            expect(presenter.getState().content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
+            expect(getState(presenter).content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
-          expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
           expectStateUpdate presenter, -> editor.setSoftWrapped(true)
-          expect(presenter.getState().horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
+          expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
           expectStateUpdate presenter, -> editor.setSoftWrapped(false)
-          expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
 
-          expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
           expectStateUpdate presenter, -> editor.setCursorBufferPosition([editor.getLongestScreenRow(), 0])
           expectStateUpdate presenter, -> editor.insertText('xyz')
 
-          expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "isn't clipped to 0 when the longest line is folded (regression)", ->
           presenter = buildPresenter(contentFrameWidth: 50, baseCharacterWidth: 10)
           editor.foldBufferRow(0)
-          expect(presenter.getState().content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
+          expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
       describe ".scrollTop", ->
         it "doesn't get stuck when repeatedly setting the same non-integer position in a scroll event listener", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
-          expect(presenter.getState().content.scrollTop).toBe(0)
+          expect(getState(presenter).content.scrollTop).toBe(0)
 
           presenter.onDidChangeScrollTop ->
             presenter.setScrollTop(1.5)
-            presenter.getState() # trigger scroll update
+            getState(presenter) # trigger scroll update
 
           presenter.setScrollTop(1.5)
-          presenter.getState() # trigger scroll update
+          getState(presenter) # trigger scroll update
 
           expect(presenter.getScrollTop()).toBe(2)
           expect(presenter.getRealScrollTop()).toBe(1.5)
 
         it "changes based on the scroll operation that was performed last", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
-          expect(presenter.getState().content.scrollTop).toBe(0)
+          expect(getState(presenter).content.scrollTop).toBe(0)
 
           presenter.setScrollTop(20)
           editor.setCursorBufferPosition([5, 0])
 
-          expect(presenter.getState().content.scrollTop).toBe(50)
+          expect(getState(presenter).content.scrollTop).toBe(50)
 
           editor.setCursorBufferPosition([8, 0])
           presenter.setScrollTop(10)
 
-          expect(presenter.getState().content.scrollTop).toBe(10)
+          expect(getState(presenter).content.scrollTop).toBe(10)
 
         it "corresponds to the passed logical coordinates when building the presenter", ->
           editor.setFirstVisibleScreenRow(4)
           presenter = buildPresenter(lineHeight: 10, explicitHeight: 20)
-          expect(presenter.getState().content.scrollTop).toBe(40)
+          expect(getState(presenter).content.scrollTop).toBe(40)
 
         it "tracks the value of ::scrollTop", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 20)
-          expect(presenter.getState().content.scrollTop).toBe 10
+          expect(getState(presenter).content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
-          expect(presenter.getState().content.scrollTop).toBe 50
+          expect(getState(presenter).content.scrollTop).toBe 50
 
         it "keeps the model up to date with the corresponding logical coordinates", ->
           presenter = buildPresenter(scrollTop: 0, explicitHeight: 20, horizontalScrollbarHeight: 10, lineHeight: 10)
 
           expectStateUpdate presenter, -> presenter.setScrollTop(50)
-          presenter.getState() # commits scroll position
+          getState(presenter) # commits scroll position
           expect(editor.getFirstVisibleScreenRow()).toBe 5
 
           expectStateUpdate presenter, -> presenter.setScrollTop(57)
-          presenter.getState() # commits scroll position
+          getState(presenter) # commits scroll position
           expect(editor.getFirstVisibleScreenRow()).toBe 6
+
+        it "updates when the model's scroll position is changed directly", ->
+          presenter = buildPresenter(scrollTop: 0, explicitHeight: 20, horizontalScrollbarHeight: 10, lineHeight: 10)
+          expectStateUpdate presenter, -> editor.setFirstVisibleScreenRow(1)
+          expect(getState(presenter).content.scrollTop).toBe 10
 
         it "reassigns the scrollTop if it exceeds the max possible value after lines are removed", ->
           presenter = buildPresenter(scrollTop: 80, lineHeight: 10, explicitHeight: 50, horizontalScrollbarHeight: 0)
-          expect(presenter.getState().content.scrollTop).toBe(80)
+          expect(getState(presenter).content.scrollTop).toBe(80)
           buffer.deleteRows(10, 9, 8)
-          expect(presenter.getState().content.scrollTop).toBe(60)
+          expect(getState(presenter).content.scrollTop).toBe(60)
 
         it "is always rounded to the nearest integer", ->
           presenter = buildPresenter(scrollTop: 10, lineHeight: 10, explicitHeight: 20)
-          expect(presenter.getState().content.scrollTop).toBe 10
+          expect(getState(presenter).content.scrollTop).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollTop(11.4)
-          expect(presenter.getState().content.scrollTop).toBe 11
+          expect(getState(presenter).content.scrollTop).toBe 11
           expectStateUpdate presenter, -> presenter.setScrollTop(12.6)
-          expect(presenter.getState().content.scrollTop).toBe 13
+          expect(getState(presenter).content.scrollTop).toBe 13
 
         it "scrolls down automatically when the model is changed", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10, explicitHeight: 20)
 
           editor.setText("")
           editor.insertNewline()
-          expect(presenter.getState().content.scrollTop).toBe(0)
+          expect(getState(presenter).content.scrollTop).toBe(0)
 
           editor.insertNewline()
-          expect(presenter.getState().content.scrollTop).toBe(10)
+          expect(getState(presenter).content.scrollTop).toBe(10)
 
         it "never exceeds the computed scroll height minus the computed client height", ->
           didChangeScrollTopSpy = jasmine.createSpy()
@@ -833,111 +817,111 @@ describe "TextEditorPresenter", ->
           presenter.onDidChangeScrollTop(didChangeScrollTopSpy)
 
           expectStateUpdate presenter, -> presenter.setScrollTop(100)
-          expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
           expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
           didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> presenter.setExplicitHeight(60)
-          expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
           expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
           didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> presenter.setHorizontalScrollbarHeight(5)
-          expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
           expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
           didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().delete([[8, 0], [12, 0]])
-          expect(presenter.getState().content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
+          expect(getState(presenter).content.scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
           expect(presenter.getRealScrollTop()).toBe presenter.scrollHeight - presenter.clientHeight
           expect(didChangeScrollTopSpy).toHaveBeenCalledWith presenter.scrollHeight - presenter.clientHeight
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
-          scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
+          scrollTopBefore = getState(presenter).verticalScrollbar.scrollTop
           didChangeScrollTopSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
-          expect(presenter.getState().content.scrollTop).toBe scrollTopBefore
+          expect(getState(presenter).content.scrollTop).toBe scrollTopBefore
           expect(presenter.getRealScrollTop()).toBe scrollTopBefore
           expect(didChangeScrollTopSpy).not.toHaveBeenCalled()
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
-          expect(presenter.getState().content.scrollTop).toBe 0
+          expect(getState(presenter).content.scrollTop).toBe 0
 
         it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+          expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
           atom.config.set("editor.scrollPastEnd", true)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
+          expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
           expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(presenter.getState().content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
+          expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
         it "doesn't get stuck when repeatedly setting the same non-integer position in a scroll event listener", ->
           presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 10)
-          expect(presenter.getState().content.scrollLeft).toBe(0)
+          expect(getState(presenter).content.scrollLeft).toBe(0)
 
           presenter.onDidChangeScrollLeft ->
             presenter.setScrollLeft(1.5)
-            presenter.getState() # trigger scroll update
+            getState(presenter) # trigger scroll update
 
           presenter.setScrollLeft(1.5)
-          presenter.getState() # trigger scroll update
+          getState(presenter) # trigger scroll update
 
           expect(presenter.getScrollLeft()).toBe(2)
           expect(presenter.getRealScrollLeft()).toBe(1.5)
 
         it "changes based on the scroll operation that was performed last", ->
           presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 10)
-          expect(presenter.getState().content.scrollLeft).toBe(0)
+          expect(getState(presenter).content.scrollLeft).toBe(0)
 
           presenter.setScrollLeft(20)
           editor.setCursorBufferPosition([0, 9])
 
-          expect(presenter.getState().content.scrollLeft).toBe(90)
+          expect(getState(presenter).content.scrollLeft).toBe(90)
 
           editor.setCursorBufferPosition([0, 18])
           presenter.setScrollLeft(50)
 
-          expect(presenter.getState().content.scrollLeft).toBe(50)
+          expect(getState(presenter).content.scrollLeft).toBe(50)
 
         it "corresponds to the passed logical coordinates when building the presenter", ->
           editor.setFirstVisibleScreenColumn(3)
           presenter = buildPresenter(lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
-          expect(presenter.getState().content.scrollLeft).toBe(30)
+          expect(getState(presenter).content.scrollLeft).toBe(30)
 
         it "tracks the value of ::scrollLeft", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
-          expect(presenter.getState().content.scrollLeft).toBe 10
+          expect(getState(presenter).content.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
-          expect(presenter.getState().content.scrollLeft).toBe 50
+          expect(getState(presenter).content.scrollLeft).toBe 50
 
         it "keeps the model up to date with the corresponding logical coordinates", ->
           presenter = buildPresenter(scrollLeft: 0, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(50)
-          presenter.getState() # commits scroll position
+          getState(presenter) # commits scroll position
           expect(editor.getFirstVisibleScreenColumn()).toBe 5
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(57)
-          presenter.getState() # commits scroll position
+          getState(presenter) # commits scroll position
           expect(editor.getFirstVisibleScreenColumn()).toBe 6
 
         it "is always rounded to the nearest integer", ->
           presenter = buildPresenter(scrollLeft: 10, lineHeight: 10, baseCharacterWidth: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
-          expect(presenter.getState().content.scrollLeft).toBe 10
+          expect(getState(presenter).content.scrollLeft).toBe 10
           expectStateUpdate presenter, -> presenter.setScrollLeft(11.4)
-          expect(presenter.getState().content.scrollLeft).toBe 11
+          expect(getState(presenter).content.scrollLeft).toBe 11
           expectStateUpdate presenter, -> presenter.setScrollLeft(12.6)
-          expect(presenter.getState().content.scrollLeft).toBe 13
+          expect(getState(presenter).content.scrollLeft).toBe 13
 
         it "never exceeds the computed scrollWidth minus the computed clientWidth", ->
           didChangeScrollLeftSpy = jasmine.createSpy()
@@ -945,65 +929,65 @@ describe "TextEditorPresenter", ->
           presenter.onDidChangeScrollLeft(didChangeScrollLeftSpy)
 
           expectStateUpdate presenter, -> presenter.setScrollLeft(300)
-          expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
           expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
           didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> presenter.setContentFrameWidth(600)
-          expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
           expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
           didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> presenter.setVerticalScrollbarWidth(5)
-          expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
           expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
           didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().delete([[6, 0], [6, Infinity]])
-          expect(presenter.getState().content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
+          expect(getState(presenter).content.scrollLeft).toBe presenter.scrollWidth - presenter.clientWidth
           expect(presenter.getRealScrollLeft()).toBe presenter.scrollWidth - presenter.clientWidth
           expect(didChangeScrollLeftSpy).toHaveBeenCalledWith presenter.scrollWidth - presenter.clientWidth
 
           # Scroll top only gets smaller when needed as dimensions change, never bigger
-          scrollLeftBefore = presenter.getState().content.scrollLeft
+          scrollLeftBefore = getState(presenter).content.scrollLeft
           didChangeScrollLeftSpy.reset()
           expectStateUpdate presenter, -> editor.getBuffer().insert([6, 0], new Array(100).join('x'))
-          expect(presenter.getState().content.scrollLeft).toBe scrollLeftBefore
+          expect(getState(presenter).content.scrollLeft).toBe scrollLeftBefore
           expect(presenter.getRealScrollLeft()).toBe scrollLeftBefore
           expect(didChangeScrollLeftSpy).not.toHaveBeenCalled()
 
         it "never goes negative", ->
           presenter = buildPresenter(scrollLeft: 10, verticalScrollbarWidth: 10, contentFrameWidth: 500)
           expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
-          expect(presenter.getState().content.scrollLeft).toBe 0
+          expect(getState(presenter).content.scrollLeft).toBe 0
 
       describe ".indentGuidesVisible", ->
         it "is initialized based on the editor.showIndentGuide config setting", ->
           presenter = buildPresenter()
-          expect(presenter.getState().content.indentGuidesVisible).toBe false
+          expect(getState(presenter).content.indentGuidesVisible).toBe false
 
           atom.config.set('editor.showIndentGuide', true)
           presenter = buildPresenter()
-          expect(presenter.getState().content.indentGuidesVisible).toBe true
+          expect(getState(presenter).content.indentGuidesVisible).toBe true
 
         it "updates when the editor.showIndentGuide config setting changes", ->
           presenter = buildPresenter()
-          expect(presenter.getState().content.indentGuidesVisible).toBe false
+          expect(getState(presenter).content.indentGuidesVisible).toBe false
 
           expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', true)
-          expect(presenter.getState().content.indentGuidesVisible).toBe true
+          expect(getState(presenter).content.indentGuidesVisible).toBe true
 
           expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', false)
-          expect(presenter.getState().content.indentGuidesVisible).toBe false
+          expect(getState(presenter).content.indentGuidesVisible).toBe false
 
         it "updates when the editor's grammar changes", ->
           atom.config.set('editor.showIndentGuide', true, scopeSelector: ".source.js")
 
           presenter = buildPresenter()
-          expect(presenter.getState().content.indentGuidesVisible).toBe false
+          expect(getState(presenter).content.indentGuidesVisible).toBe false
 
           stateUpdated = false
           presenter.onDidUpdateState -> stateUpdated = true
@@ -1012,65 +996,65 @@ describe "TextEditorPresenter", ->
 
           runs ->
             expect(stateUpdated).toBe true
-            expect(presenter.getState().content.indentGuidesVisible).toBe true
+            expect(getState(presenter).content.indentGuidesVisible).toBe true
 
             expectStateUpdate presenter, -> editor.setGrammar(atom.grammars.selectGrammar('.txt'))
-            expect(presenter.getState().content.indentGuidesVisible).toBe false
+            expect(getState(presenter).content.indentGuidesVisible).toBe false
 
         it "is always false when the editor is mini", ->
           atom.config.set('editor.showIndentGuide', true)
           editor.setMini(true)
           presenter = buildPresenter()
-          expect(presenter.getState().content.indentGuidesVisible).toBe false
+          expect(getState(presenter).content.indentGuidesVisible).toBe false
           editor.setMini(false)
-          expect(presenter.getState().content.indentGuidesVisible).toBe true
+          expect(getState(presenter).content.indentGuidesVisible).toBe true
           editor.setMini(true)
-          expect(presenter.getState().content.indentGuidesVisible).toBe false
+          expect(getState(presenter).content.indentGuidesVisible).toBe false
 
       describe ".backgroundColor", ->
         it "is assigned to ::backgroundColor unless the editor is mini", ->
           presenter = buildPresenter()
           presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
-          expect(presenter.getState().content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+          expect(getState(presenter).content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
 
           editor.setMini(true)
           presenter = buildPresenter()
           presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
-          expect(presenter.getState().content.backgroundColor).toBeNull()
+          expect(getState(presenter).content.backgroundColor).toBeNull()
 
         it "updates when ::backgroundColor changes", ->
           presenter = buildPresenter()
           presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
-          expect(presenter.getState().content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+          expect(getState(presenter).content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           expectStateUpdate presenter, -> presenter.setBackgroundColor('rgba(0, 0, 255, 0)')
-          expect(presenter.getState().content.backgroundColor).toBe 'rgba(0, 0, 255, 0)'
+          expect(getState(presenter).content.backgroundColor).toBe 'rgba(0, 0, 255, 0)'
 
         it "updates when ::mini changes", ->
           presenter = buildPresenter()
           presenter.setBackgroundColor('rgba(255, 0, 0, 0)')
-          expect(presenter.getState().content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
+          expect(getState(presenter).content.backgroundColor).toBe 'rgba(255, 0, 0, 0)'
           expectStateUpdate presenter, -> editor.setMini(true)
-          expect(presenter.getState().content.backgroundColor).toBeNull()
+          expect(getState(presenter).content.backgroundColor).toBeNull()
 
       describe ".placeholderText", ->
         it "is present when the editor has no text", ->
           editor.setPlaceholderText("the-placeholder-text")
           presenter = buildPresenter()
-          expect(presenter.getState().content.placeholderText).toBeNull()
+          expect(getState(presenter).content.placeholderText).toBeNull()
 
           expectStateUpdate presenter, -> editor.setText("")
-          expect(presenter.getState().content.placeholderText).toBe "the-placeholder-text"
+          expect(getState(presenter).content.placeholderText).toBe "the-placeholder-text"
 
           expectStateUpdate presenter, -> editor.setPlaceholderText("new-placeholder-text")
-          expect(presenter.getState().content.placeholderText).toBe "new-placeholder-text"
+          expect(getState(presenter).content.placeholderText).toBe "new-placeholder-text"
 
       describe ".tiles", ->
         lineStateForScreenRow = (presenter, row) ->
           lineId  = presenter.model.tokenizedLineForScreenRow(row).id
           tileRow = presenter.tileForRow(row)
-          presenter.getState().content.tiles[tileRow]?.lines[lineId]
+          getState(presenter).content.tiles[tileRow]?.lines[lineId]
 
-        tiledContentContract (presenter) -> presenter.getState().content
+        tiledContentContract (presenter) -> getState(presenter).content
 
         describe "[tileId].lines[lineId]", -> # line state objects
           it "includes the state for visible lines in a tile", ->
@@ -1330,7 +1314,7 @@ describe "TextEditorPresenter", ->
 
       describe ".cursors", ->
         stateForCursor = (presenter, cursorIndex) ->
-          presenter.getState().content.cursors[presenter.model.getCursors()[cursorIndex].id]
+          getState(presenter).content.cursors[presenter.model.getCursors()[cursorIndex].id]
 
         it "contains pixelRects for empty selections that are visible on screen", ->
           editor.setSelectedBufferRanges([
@@ -1350,31 +1334,31 @@ describe "TextEditorPresenter", ->
 
         it "is empty until all of the required measurements are assigned", ->
           presenter = buildPresenterWithoutMeasurements()
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setExplicitHeight(25)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setLineHeight(10)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setScrollTop(0)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setBaseCharacterWidth(8)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setBoundingClientRect(top: 0, left: 0, width: 500, height: 130)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setWindowSize(500, 130)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setVerticalScrollbarWidth(10)
-          expect(presenter.getState().content.cursors).toEqual({})
+          expect(getState(presenter).content.cursors).toEqual({})
 
           presenter.setHorizontalScrollbarHeight(10)
-          expect(presenter.getState().content.cursors).not.toEqual({})
+          expect(getState(presenter).content.cursors).not.toEqual({})
 
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
@@ -1449,12 +1433,12 @@ describe "TextEditorPresenter", ->
             presenter = buildPresenter(explicitHeight: 20)
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'v', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'v', 20)
               presenter.characterWidthsChanged()
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 10, height: 10}
 
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.modifier.js'], 'r', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'storage.type.var.js'], 'r', 20)
               presenter.characterWidthsChanged()
             expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10, left: (3 * 10) + 20, width: 20, height: 10}
 
@@ -1493,7 +1477,7 @@ describe "TextEditorPresenter", ->
           # destroying
           destroyedCursor = editor.getCursors()[2]
           expectStateUpdate presenter, -> destroyedCursor.destroy()
-          expect(presenter.getState().content.cursors[destroyedCursor.id]).toBeUndefined()
+          expect(getState(presenter).content.cursors[destroyedCursor.id]).toBeUndefined()
 
         it "makes cursors as wide as the ::baseCharacterWidth if they're at the end of a line", ->
           editor.setCursorBufferPosition([1, Infinity])
@@ -1507,27 +1491,27 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
           presenter.setFocused(true)
 
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
 
           expectStateUpdate presenter, -> presenter.setFocused(false)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
           advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
           advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
 
           expectStateUpdate presenter, -> presenter.setFocused(true)
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
 
         it "stops alternating for ::cursorBlinkResumeDelay when a cursor moves or a cursor is added", ->
           cursorBlinkPeriod = 100
@@ -1535,46 +1519,46 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter({cursorBlinkPeriod, cursorBlinkResumeDelay})
           presenter.setFocused(true)
 
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
 
           expectStateUpdate presenter, -> editor.moveRight()
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
 
           expectStateUpdate presenter, ->
             advanceClock(cursorBlinkResumeDelay)
             advanceClock(cursorBlinkPeriod / 2)
 
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
           expectStateUpdate presenter, -> advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
 
           expectStateUpdate presenter, -> editor.addCursorAtBufferPosition([1, 0])
-          expect(presenter.getState().content.cursorsVisible).toBe true
+          expect(getState(presenter).content.cursorsVisible).toBe true
 
           expectStateUpdate presenter, ->
             advanceClock(cursorBlinkResumeDelay)
             advanceClock(cursorBlinkPeriod / 2)
-          expect(presenter.getState().content.cursorsVisible).toBe false
+          expect(getState(presenter).content.cursorsVisible).toBe false
 
       describe ".highlights", ->
         expectUndefinedStateForHighlight = (presenter, decoration) ->
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             state = stateForHighlightInTile(presenter, decoration, tileId)
             expect(state).toBeUndefined()
 
         stateForHighlightInTile = (presenter, decoration, tile) ->
-          presenter.getState().content.tiles[tile]?.highlights[decoration.id]
+          getState(presenter).content.tiles[tile]?.highlights[decoration.id]
 
         stateForSelectionInTile = (presenter, selectionIndex, tile) ->
           selection = presenter.model.getSelections()[selectionIndex]
           stateForHighlightInTile(presenter, selection.decoration, tile)
 
         expectUndefinedStateForSelection = (presenter, selectionIndex) ->
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             state = stateForSelectionInTile(presenter, selectionIndex, tileId)
             expect(state).toBeUndefined()
 
@@ -1684,24 +1668,24 @@ describe "TextEditorPresenter", ->
           ])
 
           presenter = buildPresenterWithoutMeasurements(tileSize: 2)
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             expect(tileState.highlights).toEqual({})
 
           presenter.setExplicitHeight(25)
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             expect(tileState.highlights).toEqual({})
 
           presenter.setLineHeight(10)
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             expect(tileState.highlights).toEqual({})
 
           presenter.setScrollTop(0)
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             expect(tileState.highlights).toEqual({})
 
           presenter.setBaseCharacterWidth(8)
           assignedAnyHighlight = false
-          for tileId, tileState of presenter.getState().content.tiles
+          for tileId, tileState of getState(presenter).content.tiles
             assignedAnyHighlight ||= _.isEqual(tileState.highlights, {})
 
           expect(assignedAnyHighlight).toBe(true)
@@ -1916,7 +1900,7 @@ describe "TextEditorPresenter", ->
       describe ".overlays", ->
         [item] = []
         stateForOverlay = (presenter, decoration) ->
-          presenter.getState().content.overlays[decoration.id]
+          getState(presenter).content.overlays[decoration.id]
 
         it "contains state for overlay decorations both initially and when their markers move", ->
           marker = editor.addMarkerLayer(maintainHistory: true).markBufferPosition([2, 13], invalidate: 'touch')
@@ -2023,25 +2007,25 @@ describe "TextEditorPresenter", ->
           decoration = editor.decorateMarker(marker, {type: 'overlay', position: 'tail', item})
 
           presenter = buildPresenterWithoutMeasurements()
-          expect(presenter.getState().content.overlays).toEqual({})
+          expect(getState(presenter).content.overlays).toEqual({})
 
           presenter.setBaseCharacterWidth(10)
-          expect(presenter.getState().content.overlays).toEqual({})
+          expect(getState(presenter).content.overlays).toEqual({})
 
           presenter.setLineHeight(10)
-          expect(presenter.getState().content.overlays).toEqual({})
+          expect(getState(presenter).content.overlays).toEqual({})
 
           presenter.setWindowSize(500, 100)
-          expect(presenter.getState().content.overlays).toEqual({})
+          expect(getState(presenter).content.overlays).toEqual({})
 
           presenter.setVerticalScrollbarWidth(10)
-          expect(presenter.getState().content.overlays).toEqual({})
+          expect(getState(presenter).content.overlays).toEqual({})
 
           presenter.setHorizontalScrollbarHeight(10)
-          expect(presenter.getState().content.overlays).toEqual({})
+          expect(getState(presenter).content.overlays).toEqual({})
 
           presenter.setBoundingClientRect({top: 0, left: 0, height: 100, width: 500})
-          expect(presenter.getState().content.overlays).not.toEqual({})
+          expect(getState(presenter).content.overlays).not.toEqual({})
 
         describe "when the overlay has been measured", ->
           [gutterWidth, windowWidth, windowHeight, itemWidth, itemHeight, contentMargin, boundingClientRect, contentFrameWidth] = []
@@ -2210,52 +2194,52 @@ describe "TextEditorPresenter", ->
       it "updates model's rows per page when it changes", ->
         presenter = buildPresenter(explicitHeight: 50, lineHeightInPixels: 10, horizontalScrollbarHeight: 10)
 
-        presenter.getState() # trigger state update
+        getState(presenter) # trigger state update
         expect(editor.getRowsPerPage()).toBe(4)
 
         presenter.setExplicitHeight(100)
-        presenter.getState() # trigger state update
+        getState(presenter) # trigger state update
         expect(editor.getRowsPerPage()).toBe(9)
 
         presenter.setHorizontalScrollbarHeight(0)
-        presenter.getState() # trigger state update
+        getState(presenter) # trigger state update
         expect(editor.getRowsPerPage()).toBe(10)
 
         presenter.setLineHeight(5)
-        presenter.getState() # trigger state update
+        getState(presenter) # trigger state update
         expect(editor.getRowsPerPage()).toBe(20)
 
       it "tracks the computed content height if ::autoHeight is true so the editor auto-expands vertically", ->
         presenter = buildPresenter(explicitHeight: null)
         presenter.setAutoHeight(true)
-        expect(presenter.getState().height).toBe editor.getScreenLineCount() * 10
+        expect(getState(presenter).height).toBe editor.getScreenLineCount() * 10
 
         expectStateUpdate presenter, -> presenter.setAutoHeight(false)
-        expect(presenter.getState().height).toBe null
+        expect(getState(presenter).height).toBe null
 
         expectStateUpdate presenter, -> presenter.setAutoHeight(true)
-        expect(presenter.getState().height).toBe editor.getScreenLineCount() * 10
+        expect(getState(presenter).height).toBe editor.getScreenLineCount() * 10
 
         expectStateUpdate presenter, -> presenter.setLineHeight(20)
-        expect(presenter.getState().height).toBe editor.getScreenLineCount() * 20
+        expect(getState(presenter).height).toBe editor.getScreenLineCount() * 20
 
         expectStateUpdate presenter, -> editor.getBuffer().append("\n\n\n")
-        expect(presenter.getState().height).toBe editor.getScreenLineCount() * 20
+        expect(getState(presenter).height).toBe editor.getScreenLineCount() * 20
 
     describe ".focused", ->
       it "tracks the value of ::focused", ->
         presenter = buildPresenter()
         presenter.setFocused(false)
 
-        expect(presenter.getState().focused).toBe false
+        expect(getState(presenter).focused).toBe false
         expectStateUpdate presenter, -> presenter.setFocused(true)
-        expect(presenter.getState().focused).toBe true
+        expect(getState(presenter).focused).toBe true
         expectStateUpdate presenter, -> presenter.setFocused(false)
-        expect(presenter.getState().focused).toBe false
+        expect(getState(presenter).focused).toBe false
 
     describe ".gutters", ->
       getStateForGutterWithName = (presenter, gutterName) ->
-        gutterDescriptions = presenter.getState().gutters
+        gutterDescriptions = getState(presenter).gutters
         for description in gutterDescriptions
           gutter = description.gutter
           return description if gutter.name is gutterName
@@ -2267,7 +2251,7 @@ describe "TextEditorPresenter", ->
           gutter2 = editor.addGutter({name: 'test-gutter-2', priority: 100, visible: false})
 
           expectedGutterOrder = [gutter1, editor.gutterWithName('line-number'), gutter2]
-          for gutterDescription, index in presenter.getState().gutters
+          for gutterDescription, index in getState(presenter).gutters
             expect(gutterDescription.gutter).toEqual expectedGutterOrder[index]
 
         it "updates when the visibility of a gutter changes", ->
@@ -2286,7 +2270,7 @@ describe "TextEditorPresenter", ->
 
       describe "for a gutter description that corresponds to the line-number gutter", ->
         getLineNumberGutterState = (presenter) ->
-          gutterDescriptions = presenter.getState().gutters
+          gutterDescriptions = getState(presenter).gutters
           for description in gutterDescriptions
             gutter = description.gutter
             return description if gutter.name is 'line-number'
@@ -2614,7 +2598,7 @@ describe "TextEditorPresenter", ->
             decoration3 = editor.decorateMarker(marker3, decorationParams)
 
             # Clear any batched state updates.
-            presenter.getState()
+            getState(presenter)
 
           it "contains all decorations within the visible buffer range", ->
             decorationState = getContentForGutterWithName(presenter, 'test-gutter')
@@ -2915,7 +2899,7 @@ describe "TextEditorPresenter", ->
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.scrollHeight - presenter.clientHeight
 
             # Scroll top only gets smaller when needed as dimensions change, never bigger
-            scrollTopBefore = presenter.getState().verticalScrollbar.scrollTop
+            scrollTopBefore = getState(presenter).verticalScrollbar.scrollTop
             expectStateUpdate presenter, -> editor.getBuffer().insert([9, Infinity], '\n\n\n')
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe scrollTopBefore
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe scrollTopBefore
@@ -3016,7 +3000,7 @@ describe "TextEditorPresenter", ->
     expectValidState = ->
       presenterParams.scrollTop = presenter.scrollTop
       presenterParams.scrollLeft = presenter.scrollLeft
-      actualState = presenter.getState()
+      actualState = getState(presenter)
       expectedState = new TextEditorPresenter(presenterParams).state
       delete actualState.content.scrollingVertically
       delete expectedState.content.scrollingVertically

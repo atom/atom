@@ -11,7 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
-getWindowLoadSettings = require './get-window-load-settings'
+{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = require './deserializer-manager'
@@ -151,7 +151,7 @@ class AtomEnvironment extends Model
     @packages = new PackageManager({
       devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
-      grammarRegistry: @grammars
+      grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
     })
 
     @themes = new ThemeManager({
@@ -651,7 +651,7 @@ class AtomEnvironment extends Model
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
-    if @getLoadSettings().projectDirectoryPaths?.length is 0 and @workspace.getPaneItems().length is 0
+    if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
       @workspace.open(null)
 
   installUncaughtErrorHandler: ->
@@ -670,8 +670,7 @@ class AtomEnvironment extends Model
       @emitter.emit 'will-throw-error', eventObject
 
       if openDevTools
-        @openDevTools()
-        @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+        @openDevTools().then => @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
 
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 
@@ -721,10 +720,15 @@ class AtomEnvironment extends Model
   ###
 
   # Extended: Open the dev tools for the current window.
+  #
+  # Returns a {Promise} that resolves when the DevTools have been opened.
   openDevTools: ->
     @applicationDelegate.openWindowDevTools()
 
   # Extended: Toggle the visibility of the dev tools for the current window.
+  #
+  # Returns a {Promise} that resolves when the DevTools have been opened or
+  # closed.
   toggleDevTools: ->
     @applicationDelegate.toggleWindowDevTools()
 
@@ -753,7 +757,7 @@ class AtomEnvironment extends Model
   # Notify the browser project of the window's current project path
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
-      @applicationDelegate.setProjectDirectoryPaths(@project.getPaths())
+      @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
   setDocumentEdited: (edited) ->
     @applicationDelegate.setWindowDocumentEdited?(edited)
@@ -789,7 +793,7 @@ class AtomEnvironment extends Model
 
     startTime = Date.now()
 
-    if stateKey = @getStateKey(@getLoadSettings().projectDirectoryPaths)
+    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
       if state = @getStorageFolder().load(stateKey)
         @state = state
 
@@ -880,6 +884,8 @@ class AtomEnvironment extends Model
           @project.addPath(path.dirname(pathToOpen))
         else
           @project.addPath(pathToOpen)
+
+      @applicationDelegate.addRecentDocument(pathToOpen)
 
       unless fs.isDirectorySync(pathToOpen)
         @workspace?.open(pathToOpen, {initialLine, initialColumn})

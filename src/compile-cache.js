@@ -163,8 +163,6 @@ require('source-map-support').install({
   }
 })
 
-Error.stackTraceLimit = 30
-
 var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
 var prepareStackTrace = prepareStackTraceWithSourceMapping
 
@@ -176,6 +174,8 @@ function prepareStackTraceWithRawStackAssignment (error, frames) {
     return prepareStackTrace(error, frames)
   }
 }
+
+Error.stackTraceLimit = 30
 
 Object.defineProperty(Error, 'prepareStackTrace', {
   get: function () {

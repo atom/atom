@@ -15,22 +15,13 @@ module.exports = ({blobStore}) ->
   try
     path = require 'path'
     ipc = require 'ipc'
-    getWindowLoadSettings = require './get-window-load-settings'
+    {getWindowLoadSettings} = require './window-load-settings-helpers'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'
 
     {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
 
-    if headless
-      # Override logging in headless mode so it goes to the console, regardless
-      # of the --enable-logging flag to Electron.
-      console.log = (args...) ->
-        ipc.send 'write-to-stdout', args.join(' ') + '\n'
-      console.warn = (args...) ->
-        ipc.send 'write-to-stderr', args.join(' ') + '\n'
-      console.error = (args...) ->
-        ipc.send 'write-to-stderr', args.join(' ') + '\n'
-    else
+    unless headless
       # Show window synchronously so a focusout doesn't fire on input elements
       # that are focused in the very first spec run.
       remote.getCurrentWindow().show()

@@ -31,12 +31,14 @@ class PackageManager
   constructor: (params) ->
     {
       configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
-      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry
+      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry,
+      @deserializerManager, @viewRegistry
     } = params
 
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
+    @deferredActivationHooks = []
     if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
@@ -45,6 +47,7 @@ class PackageManager
     @packagesCache = require('../package.json')?._atomPackages ? {}
     @loadedPackages = {}
     @activePackages = {}
+    @activatingPackages = {}
     @packageStates = {}
     @serviceHub = new ServiceHub
 
@@ -60,6 +63,7 @@ class PackageManager
   reset: ->
     @serviceHub.clear()
     @deactivatePackages()
+    @loadedPackages = {}
     @packageStates = {}
 
   ###
@@ -374,7 +378,8 @@ class PackageManager
       options = {
         path: packagePath, metadata, packageManager: this, @config, @styleManager,
         @commandRegistry, @keymapManager, @devMode, @notificationManager,
-        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager
+        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager,
+        @deserializerManager, @viewRegistry
       }
       if metadata.theme
         pack = new ThemePackage(options)
@@ -409,6 +414,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     Promise.all(promises).then =>
+      @triggerDeferredActivationHooks()
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
@@ -432,16 +438,27 @@ class PackageManager
     if pack = @getActivePackage(name)
       Promise.resolve(pack)
     else if pack = @loadPackage(name)
+      @activatingPackages[pack.name] = pack
       pack.activate().then =>
-        @activePackages[pack.name] = pack
-        @emitter.emit 'did-activate-package', pack
+        if @activatingPackages[pack.name]?
+          delete @activatingPackages[pack.name]
+          @activePackages[pack.name] = pack
+          @emitter.emit 'did-activate-package', pack
         pack
     else
       Promise.reject(new Error("Failed to load package '#{name}'"))
 
+  triggerDeferredActivationHooks: ->
+    return unless @deferredActivationHooks?
+    @activationHookEmitter.emit(hook) for hook in @deferredActivationHooks
+    @deferredActivationHooks = null
+
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
-    @activationHookEmitter.emit(hook)
+    if @deferredActivationHooks?
+      @deferredActivationHooks.push hook
+    else
+      @activationHookEmitter.emit(hook)
 
   onDidTriggerActivationHook: (hook, callback) ->
     return unless hook? and _.isString(hook) and hook.length > 0
@@ -462,6 +479,7 @@ class PackageManager
       @setPackageState(pack.name, state) if state = pack.serialize?()
     pack.deactivate()
     delete @activePackages[pack.name]
+    delete @activatingPackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
 
   handleMetadataError: (error, packagePath) ->
