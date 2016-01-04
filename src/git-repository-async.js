@@ -780,6 +780,8 @@ export default class GitRepositoryAsync {
     Promise.all(projectPathsPromises)
       .then(paths => paths.filter(p => p.length > 0))
       .then(projectPaths => {
+        if (this._isDestroyed()) return []
+
         return this._getStatus(projectPaths.length > 0 ? projectPaths : null)
       })
       .then(statuses => {
@@ -818,7 +820,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to the {NodeGit.Repository}.
   getRepo (_path) {
-    if (this._destroyed()) {
+    if (this._isDestroyed()) {
       const error = new Error('Repository has been destroyed')
       error.name = GitRepositoryAsync.DestroyedErrorName
       return Promise.reject(error)
@@ -849,7 +851,7 @@ export default class GitRepositoryAsync {
   // Has the repository been destroyed?
   //
   // Returns a {Boolean}.
-  _destroyed () {
+  _isDestroyed () {
     return this.repoPromise == null
   }
 
