@@ -774,8 +774,11 @@ export default class GitRepositoryAsync {
   _refreshStatus () {
     this._refreshingCount++
 
-    const projectPathsPromises = this.project.getPaths()
-      .map(p => this.relativizeToWorkingDirectory(p))
+    let projectPathsPromises = Promise.resolve([])
+    if (this.project) {
+      projectPathsPromises = this.project.getPaths()
+        .map(p => this.relativizeToWorkingDirectory(p))
+    }
 
     Promise.all(projectPathsPromises)
       .then(paths => paths.filter(p => p.length > 0))
