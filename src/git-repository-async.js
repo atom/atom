@@ -387,7 +387,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is modified.
   isPathModified (_path) {
-    return this._filterStatusesByPath(_path)
+    return this._getStatus([_path])
       .then(statuses => statuses.some(status => status.isModified()))
   }
 
@@ -398,7 +398,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is new.
   isPathNew (_path) {
-    return this._filterStatusesByPath(_path)
+    return this._getStatus([_path])
       .then(statuses => statuses.some(status => status.isNew()))
   }
 
@@ -425,11 +425,10 @@ export default class GitRepositoryAsync {
   // value can be passed to {::isStatusModified} or {::isStatusNew} to get more
   // information.
   getDirectoryStatus (directoryPath) {
-    // XXX _filterSBD already gets repoPromise
     return this.repoPromise
       .then(repo => {
         const relativePath = this.relativize(directoryPath, repo.workdir())
-        return this._filterStatusesByDirectory(relativePath)
+        return this._getStatus([relativePath])
       })
       .then(statuses => {
         return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
@@ -456,7 +455,7 @@ export default class GitRepositoryAsync {
     return this.repoPromise
       .then(repo => {
         relativePath = this.relativize(_path, repo.workdir())
-        return this._filterStatusesByPath(_path)
+        return this._getStatus([relativePath])
       })
       .then(statuses => {
         const cachedStatus = this.pathStatusCache[relativePath] || 0
@@ -778,7 +777,6 @@ export default class GitRepositoryAsync {
     return this.repoPromise
       .then(repo => repo.getStatus())
       .then(statuses => {
-        // update the status cache
         const statusPairs = statuses.map(status => [status.path(), status.statusBit()])
         return Promise.all(statusPairs)
           .then(statusesByPath => _.object(statusesByPath))
@@ -873,36 +871,25 @@ export default class GitRepositoryAsync {
     this.subscriptions.add(bufferSubscriptions)
   }
 
-  // Get the status for the given path.
+  // Get the status for the given paths.
   //
-  // * `path` The {String} path whose status is wanted.
-  //
-  // Returns a {Promise} which resolves to the {NodeGit.StatusFile} status for
-  // the path.
-  _filterStatusesByPath (_path) {
-    // TODO: Is there a more efficient way to do this?
-    let basePath = null
-    return this.repoPromise
-      .then(repo => {
-        basePath = repo.workdir()
-        return repo.getStatus()
-      })
-      .then(statuses => {
-        return statuses.filter(status => _path === path.join(basePath, status.path()))
-      })
-  }
-
-  // Get the status for everything in the given directory.
-  //
-  // * `directoryPath` The {String} directory whose status is wanted.
+  // * `paths` The {String} paths whose status is wanted. If undefined, get the
+  //           status for the whole repository.
   //
   // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
-  // statuses for every file in the directory.
-  _filterStatusesByDirectory (directoryPath) {
+  // statuses for the paths.
+  _getStatus (paths) {
     return this.repoPromise
-      .then(repo => repo.getStatus())
-      .then(statuses => {
-        return statuses.filter(status => status.path().indexOf(directoryPath) === 0)
+      .then(repo => {
+        const opts = {
+          flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS | Git.Status.OPT.DISABLE_PATHSPEC_MATCH
+        }
+
+        if (paths) {
+          opts.pathspec = paths
+        }
+
+        return repo.getStatus(opts)
       })
   }
 }
