@@ -31,7 +31,7 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('@open(path)', () => {
-    it('repo is null when no repository is found', async () => {
+    it('should throw when no repository is found', async () => {
       repo = GitRepositoryAsync.open(path.join(temp.dir, 'nogit.txt'))
 
       let threw = false
@@ -42,7 +42,6 @@ describe('GitRepositoryAsync', () => {
       }
 
       expect(threw).toBe(true)
-      expect(repo.repo).toBe(null)
     })
   })
 

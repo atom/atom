@@ -30,7 +30,6 @@ export default class GitRepositoryAsync {
   }
 
   constructor (_path, options = {}) {
-    this.repo = null
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
