@@ -181,6 +181,25 @@ describe "Starting Atom", ->
           , 5000)
           .waitForPaneItemCount(1, 5000)
 
+    it "opens a new window offset from the other window", ->
+      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
+        win0Position = null
+        win1Position = null
+        client
+          .waitForWindowCount(1, 10000)
+          .getWindowPosition()
+          .then ({value}) -> win0Position = value
+          .waitForNewWindow(->
+            @startAnotherAtom([path.join(temp.mkdirSync("a-third-dir"), "a-file")], ATOM_HOME: atomHome)
+          , 5000)
+          .waitForWindowCount(2, 10000)
+          .getWindowPosition()
+          .then ({value}) -> win1Position = value
+          .then ->
+            offset = atom.getWindowOffsetForCurrentPlatform()
+            expect(win0Position.x).toEqual(win1Position.x + offset)
+            expect(win0Position.y).toEqual(win1Position.y + offset)
+
     it "doesn't open a new window if openEmptyEditorOnStart is disabled", ->
       configPath = path.join(atomHome, 'config.cson')
       config = CSON.readFileSync(configPath)
