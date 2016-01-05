@@ -4567,6 +4567,13 @@ describe('TextEditorComponent', function () {
     })
   })
 
+  describe('::pixelPositionForScreenPosition()', () => {
+    it('returns the correct horizontal position, even if it is on a row that has not yet been rendered (regression)', () => {
+      editor.setTextInBufferRange([[5, 0], [6, 0]], 'hello world\n')
+      expect(wrapperNode.pixelPositionForScreenPosition([5, Infinity]).left).toBeGreaterThan(0)
+    })
+  })
+
   describe('middle mouse paste on Linux', function () {
     let originalPlatform
 
