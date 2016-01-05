@@ -872,6 +872,26 @@ describe "Config", ->
           atom.config.loadUserConfig()
           expect(atom.config.get("foo.bar")).toBe "baz"
 
+      describe "when the config file fails to load", ->
+        addErrorHandler = null
+
+        beforeEach ->
+          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+          spyOn(fs, "existsSync").andCallFake ->
+            error = new Error()
+            error.code = 'EPERM'
+            throw error
+
+        it "creates a notification and does not try to save later changes to disk", ->
+          load = -> atom.config.loadUserConfig()
+          expect(load).not.toThrow()
+          expect(addErrorHandler.callCount).toBe 1
+
+          atom.config.set("foo.bar", "baz")
+          advanceClock(100)
+          expect(atom.config.save).not.toHaveBeenCalled()
+          expect(atom.config.get("foo.bar")).toBe "baz"
+
     describe ".observeUserConfig()", ->
       updatedHandler = null
 
