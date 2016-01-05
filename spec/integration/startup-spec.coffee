@@ -140,8 +140,11 @@ describe "Starting Atom", ->
           .execute -> atom.getPosition()
           .then ({value}) -> win1Position = value
           .then ->
-            expect(win0Position.x).toEqual(win1Position.x + 22)
-            expect(win0Position.y).toEqual(win1Position.y + 22)
+            expect(win1Position.x).toBeGreaterThan(win0Position.x)
+            # Ideally we'd test the y coordinate too, but if the window's
+            # already as tall as it can be, then OS X won't move it down outside
+            # the screen.
+            # expect(win1Position.y).toBeGreaterThan(win0Position.y)
 
   describe "reopening a directory that was previously opened", ->
     it "remembers the state of the window", ->
