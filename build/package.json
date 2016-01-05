@@ -37,6 +37,7 @@
     "runas": "^3.1",
     "tello": "1.0.5",
     "temp": "~0.8.1",
+    "time-grunt": "1.2.2",
     "underscore-plus": "1.x",
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0",
