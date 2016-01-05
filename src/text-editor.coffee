@@ -95,7 +95,6 @@ class TextEditor extends Model
       @project, @assert, @applicationDelegate, @pending
     } = params
 
-
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a notificationManager parameter when constructing TextEditors") unless @notificationManager?
     throw new Error("Must pass a packageManager parameter when constructing TextEditors") unless @packageManager?
