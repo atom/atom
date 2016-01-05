@@ -1270,6 +1270,8 @@ class TextEditorPresenter
       @emitDidUpdateState()
 
   setBlockDecorationDimensions: (decoration, width, height) ->
+    return unless @observedBlockDecorations.has(decoration)
+
     @lineTopIndex.resizeBlock(decoration.getId(), height)
 
     @invalidatedDimensionsByBlockDecoration.delete(decoration)
