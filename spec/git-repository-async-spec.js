@@ -45,14 +45,14 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
-  describe('.openNodeGitRepository()', () => {
+  describe('.openRepository()', () => {
     it('returns a new repository instance', async () => {
       repo = openFixture('master.git')
 
       const originalRepo = await repo.getRepo()
       expect(originalRepo).not.toBeNull()
 
-      const nodeGitRepo = repo.openNodeGitRepository()
+      const nodeGitRepo = repo.openRepository()
       expect(nodeGitRepo).not.toBeNull()
       expect(originalRepo).not.toBe(nodeGitRepo)
     })

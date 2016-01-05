@@ -35,10 +35,9 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    // NB: This needs to happen before the following .openNodeGitRepository
-    //  call.
+    // NB: This needs to happen before the following .openRepository call.
     this.openedPath = _path
-    this.repoPromise = this.openNodeGitRepository()
+    this.repoPromise = this.openRepository()
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstreamByPath = {}
 
@@ -860,7 +859,7 @@ export default class GitRepositoryAsync {
   // can safely access the same repository concurrently.
   //
   // Returns the new {NodeGit.Repository}.
-  openNodeGitRepository () {
+  openRepository () {
     return Git.Repository.openExt(this.openedPath, 0, '')
   }
 
