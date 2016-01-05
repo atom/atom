@@ -433,7 +433,7 @@ class TextEditorPresenter
       else
         screenPosition = decoration.getMarker().getHeadScreenPosition()
 
-      pixelPosition = @pixelPositionForScreenPosition(screenPosition, true)
+      pixelPosition = @pixelPositionForScreenPosition(screenPosition)
 
       top = pixelPosition.top + @lineHeight
       left = pixelPosition.left + @gutterWidth
@@ -649,8 +649,10 @@ class TextEditorPresenter
   updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
-      clip = @model.tokenizedLineForScreenRow(@model.getLongestScreenRow())?.isSoftWrapped()
-      @contentWidth = @pixelPositionForScreenPosition([@model.getLongestScreenRow(), @model.getMaxScreenLineLength()], clip).left
+      rightmostPosition = Point(@model.getLongestScreenRow(), @model.getMaxScreenLineLength())
+      if @model.tokenizedLineForScreenRow(rightmostPosition.row)?.isSoftWrapped()
+        rightmostPosition = @model.clipScreenPosition(rightmostPosition)
+      @contentWidth = @pixelPositionForScreenPosition(rightmostPosition).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
 
@@ -966,9 +968,9 @@ class TextEditorPresenter
   hasPixelPositionRequirements: ->
     @lineHeight? and @baseCharacterWidth?
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+  pixelPositionForScreenPosition: (screenPosition) ->
     position =
-      @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip, true)
+      @linesYardstick.pixelPositionForScreenPosition(screenPosition)
     position.top -= @getScrollTop()
     position.left -= @getScrollLeft()
 
@@ -987,14 +989,14 @@ class TextEditorPresenter
     lineHeight = @model.getLineHeightInPixels()
 
     if screenRange.end.row > screenRange.start.row
-      top = @linesYardstick.pixelPositionForScreenPosition(screenRange.start, true).top
+      top = @linesYardstick.pixelPositionForScreenPosition(screenRange.start).top
       left = 0
       height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
       width = @getScrollWidth()
     else
-      {top, left} = @linesYardstick.pixelPositionForScreenPosition(screenRange.start, false)
+      {top, left} = @linesYardstick.pixelPositionForScreenPosition(screenRange.start)
       height = lineHeight
-      width = @linesYardstick.pixelPositionForScreenPosition(screenRange.end, false).left - left
+      width = @linesYardstick.pixelPositionForScreenPosition(screenRange.end).left - left
 
     {top, left, width, height}
 
@@ -1139,8 +1141,8 @@ class TextEditorPresenter
 
   buildHighlightRegions: (screenRange) ->
     lineHeightInPixels = @lineHeight
-    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start, false)
-    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end, false)
+    startPixelPosition = @pixelPositionForScreenPosition(screenRange.start)
+    endPixelPosition = @pixelPositionForScreenPosition(screenRange.end)
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     regions = []
@@ -1375,3 +1377,6 @@ class TextEditorPresenter
 
   isRowVisible: (row) ->
     @startRow <= row < @endRow
+
+  lineIdForScreenRow: (screenRow) ->
+    @model.tokenizedLineForScreenRow(screenRow)?.id
