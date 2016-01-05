@@ -118,7 +118,7 @@ function bootstrap() {
     },
     {
       command: apmPath + ' clean' + apmFlags,
-      message: 'Deleting old packages...'
+      message: 'Deleting old packages...',
       options: moduleInstallOptions
     },
     {
