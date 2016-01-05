@@ -463,8 +463,12 @@ class GitRepository
   refreshStatus: ->
     @handlerPath ?= require.resolve('./repository-status-handler')
 
+    relativeProjectPaths = @project?.getPaths()
+      .map (path) => @relativize(path)
+      .filter (path) -> path.length > 0
+
     @statusTask?.terminate()
-    @statusTask = Task.once @handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
+    @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
       statusesUnchanged = _.isEqual(statuses, @statuses) and
                           _.isEqual(upstream, @upstream) and
                           _.isEqual(branch, @branch) and
