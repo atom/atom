@@ -1,5 +1,6 @@
 LinesYardstick = require "../src/lines-yardstick"
 {toArray} = require 'underscore-plus'
+{Point} = require 'text-buffer'
 
 describe "LinesYardstick", ->
   [editor, mockLineNodesProvider, createdLineNodes, linesYardstick, buildLineNode] = []
@@ -62,12 +63,12 @@ describe "LinesYardstick", ->
       }
       """
 
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 0])).toEqual({left: 0, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 1])).toEqual({left: 7, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 5])).toEqual({left: 37.78125, top: 0})
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 6])).toEqual({left: 43.171875, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 9])).toEqual({left: 72.171875, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, Infinity])).toEqual({left: 287.859375, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 0))).toEqual({left: 0, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 1))).toEqual({left: 7, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 5))).toEqual({left: 37.78125, top: 0})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 6))).toEqual({left: 43.171875, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 9))).toEqual({left: 72.171875, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(2, Infinity))).toEqual({left: 287.859375, top: 28})
 
     it "reuses already computed pixel positions unless it is invalidated", ->
       atom.styles.addStyleSheet """
@@ -77,9 +78,9 @@ describe "LinesYardstick", ->
       }
       """
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 19.203125, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 57.609375, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 95.609375, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 2))).toEqual({left: 19.203125, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(2, 6))).toEqual({left: 57.609375, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(5, 10))).toEqual({left: 95.609375, top: 70})
 
       atom.styles.addStyleSheet """
       * {
@@ -87,15 +88,15 @@ describe "LinesYardstick", ->
       }
       """
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 19.203125, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 57.609375, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 95.609375, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 2))).toEqual({left: 19.203125, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(2, 6))).toEqual({left: 57.609375, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(5, 10))).toEqual({left: 95.609375, top: 70})
 
       linesYardstick.invalidateCache()
 
-      expect(linesYardstick.pixelPositionForScreenPosition([1, 2])).toEqual({left: 24, top: 14})
-      expect(linesYardstick.pixelPositionForScreenPosition([2, 6])).toEqual({left: 72, top: 28})
-      expect(linesYardstick.pixelPositionForScreenPosition([5, 10])).toEqual({left: 120, top: 70})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(1, 2))).toEqual({left: 24, top: 14})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(2, 6))).toEqual({left: 72, top: 28})
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(5, 10))).toEqual({left: 120, top: 70})
 
     it "correctly handles RTL characters", ->
       atom.styles.addStyleSheet """
@@ -106,13 +107,13 @@ describe "LinesYardstick", ->
       """
 
       editor.setText("السلام عليكم")
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 0]).left).toBe 0
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 1]).left).toBe 8
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 2]).left).toBe 16
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 5]).left).toBe 33
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 7]).left).toBe 50
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 9]).left).toBe 67
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 11]).left).toBe 84
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 0)).left).toBe 0
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 1)).left).toBe 8
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 2)).left).toBe 16
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 5)).left).toBe 33
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 7)).left).toBe 50
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 9)).left).toBe 67
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 11)).left).toBe 84
 
     it "doesn't report a width greater than 0 when the character to measure is at the beginning of a text node", ->
       # This spec documents what seems to be a bug in Chromium, because we'd
@@ -137,9 +138,9 @@ describe "LinesYardstick", ->
 
       editor.setText(text)
 
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 35]).left).toBe 230.90625
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 36]).left).toBe 237.5
-      expect(linesYardstick.pixelPositionForScreenPosition([0, 37]).left).toBe 244.09375
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 35)).left).toBe 230.90625
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 36)).left).toBe 237.5
+      expect(linesYardstick.pixelPositionForScreenPosition(Point(0, 37)).left).toBe 244.09375
 
     describe "::screenPositionForPixelPosition(pixelPosition)", ->
       it "converts pixel positions to screen positions", ->
