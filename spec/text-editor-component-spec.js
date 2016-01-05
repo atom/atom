@@ -1662,15 +1662,17 @@ describe('TextEditorComponent', function () {
       return [item, blockDecoration]
     }
 
+    beforeEach(async function () {
+      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      await nextViewUpdatePromise()
+    })
+
     afterEach(function () {
       atom.themes.removeStylesheet('test')
     })
 
     it("renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed", async function () {
-      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
-      component.measureDimensions()
-      await nextViewUpdatePromise()
-
       let [item1, blockDecoration1] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
       let [item2, blockDecoration2] = createBlockDecorationForScreenRowWith(2, {className: "decoration-2"})
       let [item3, blockDecoration3] = createBlockDecorationForScreenRowWith(4, {className: "decoration-3"})
@@ -1776,10 +1778,6 @@ describe('TextEditorComponent', function () {
     })
 
     it("correctly sets screen rows on <content> elements, both initially and when decorations move", async function () {
-      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
-      component.measureDimensions()
-      await nextViewUpdatePromise()
-
       let [item, blockDecoration] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; height: 80px; }',
@@ -1826,10 +1824,6 @@ describe('TextEditorComponent', function () {
     })
 
     it('measures block decorations taking into account both top and bottom margins', async function () {
-      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
-      component.measureDimensions()
-      await nextViewUpdatePromise()
-
       let [item, blockDecoration] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; height: 30px; margin-top: 10px; margin-bottom: 5px; }',
