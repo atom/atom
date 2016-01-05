@@ -39,7 +39,7 @@ export default class GitRepositoryAsync {
     this.repoPromise = this.openRepository()
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstream = {}
-    this.submodulesByName = {}
+    this.submodulesByPath = {}
 
     this._refreshingCount = 0
 
