@@ -1825,7 +1825,7 @@ describe('TextEditorComponent', function () {
       expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
     })
 
-    it('does not render highlights for off-screen lines until they come on-screen', async function () {
+    it('measures block decorations taking into account both top and bottom margins', async function () {
       wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
       component.measureDimensions()
       await nextViewUpdatePromise()
