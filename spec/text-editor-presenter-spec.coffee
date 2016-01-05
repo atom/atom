@@ -2289,7 +2289,7 @@ describe "TextEditorPresenter", ->
           presenter.setBlockDecorationDimensions(blockDecoration1, 0, 20)
           expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
 
-        it "contains state for block decorations, indicating the screen row they belong to both initially and when their markers move", ->
+        it "contains state for on-screen and unmeasured block decorations, both initially and when they are updated or destroyed", ->
           item = {}
           blockDecoration1 = addBlockDecorationForScreenRow(0, item)
           blockDecoration2 = addBlockDecorationForScreenRow(4, item)
@@ -2367,6 +2367,17 @@ describe "TextEditorPresenter", ->
             screenRow: 0
             isVisible: false
           }
+          expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
+          expect(stateForBlockDecoration(presenter, blockDecoration3)).toBeUndefined()
+          expectValues stateForBlockDecoration(presenter, blockDecoration4), {
+            decoration: blockDecoration4
+            screenRow: 10
+            isVisible: true
+          }
+
+          blockDecoration1.destroy()
+
+          expect(stateForBlockDecoration(presenter, blockDecoration1)).toBeUndefined()
           expect(stateForBlockDecoration(presenter, blockDecoration2)).toBeUndefined()
           expect(stateForBlockDecoration(presenter, blockDecoration3)).toBeUndefined()
           expectValues stateForBlockDecoration(presenter, blockDecoration4), {
