@@ -127,6 +127,9 @@ buildAtomClient = (args, env) ->
       .execute -> require("remote").require("app").emit("before-quit")
       .call(done)
 
+    .addCommand "getWindowPosition", (cb) ->
+      @execute((-> atom.getPosition()), cb)
+
 module.exports = (args, env, fn) ->
   [chromedriver, chromedriverLogs, chromedriverExit] = []
 
