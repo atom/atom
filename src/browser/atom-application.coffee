@@ -360,15 +360,18 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
-  # Get the dimensions for opening a new window by cascading as appropriate to
-  # the platform.
-  getDimensionsForNewWindow: ->
+  # Get the platform-specific window offset for new windows.
+  getWindowOffsetForCurrentPlatform: ->
     offsetByPlatform =
       darwin: 22
       win32: 26
+    offsetByPlatform[process.platform] ? 0
 
+  # Get the dimensions for opening a new window by cascading as appropriate to
+  # the platform.
+  getDimensionsForNewWindow: ->
     dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
-    offset = offsetByPlatform[process.platform]
+    offset = @getWindowOffsetForCurrentPlatform()
     if dimensions? and offset?
       dimensions.x += offset
       dimensions.y += offset
