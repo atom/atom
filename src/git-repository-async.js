@@ -38,7 +38,8 @@ export default class GitRepositoryAsync {
     this.openedPath = _path
     this.repoPromise = this.openRepository()
     this.isCaseInsensitive = fs.isCaseInsensitive()
-    this.upstreamByPath = {}
+    this.upstream = {}
+    this.submodulesByName = {}
 
     this._refreshingCount = 0
 
@@ -292,7 +293,8 @@ export default class GitRepositoryAsync {
   //   * `ahead`  The {Number} of commits ahead.
   //   * `behind` The {Number} of commits behind.
   getCachedUpstreamAheadBehindCount (_path) {
-    return this.upstreamByPath[_path || '.']
+    // TODO: take submodules into account
+    return this.upstream
   }
 
   // Public: Returns the git configuration value specified by the key.
@@ -767,7 +769,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which will resolve to {null}.
   _refreshAheadBehindCount (branchName) {
     return this.getAheadBehindCount(branchName)
-      .then(counts => this.upstreamByPath['.'] = counts)
+      .then(counts => this.upstream = counts)
   }
 
   // Refresh the cached status.
