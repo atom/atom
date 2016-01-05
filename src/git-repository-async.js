@@ -2,7 +2,6 @@
 
 import fs from 'fs-plus'
 import Git from 'nodegit'
-import path from 'path'
 import {Emitter, CompositeDisposable, Disposable} from 'event-kit'
 
 const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
