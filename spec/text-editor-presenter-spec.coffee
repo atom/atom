@@ -2377,9 +2377,9 @@ describe "TextEditorPresenter", ->
 
         it "doesn't throw an error when setting the dimensions for a destroyed decoration", ->
           blockDecoration = addBlockDecorationForScreenRow(0)
-          presenter = buildPresenter(explicitHeight: 30, lineHeight: 10, tileSize: 2, scrollTop: 0)
-          blockDecoration.destroy()
+          presenter = buildPresenter()
 
+          blockDecoration.destroy()
           presenter.setBlockDecorationDimensions(blockDecoration, 30, 30)
 
           expect(getState(presenter).content.blockDecorations).toEqual({})
