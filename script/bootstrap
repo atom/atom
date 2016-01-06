@@ -5,8 +5,16 @@ var verifyRequirements = require('./utils/verify-requirements');
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var path = require('path');
 
+var t0, t1
+
 // Executes an array of commands one by one.
 function executeCommands(commands, done, index) {
+  if (index != undefined) {
+    t1 = Date.now()
+    console.log("=> Took " + (t1 - t0) + "ms.");
+    console.log();
+  }
+
   index = (index == undefined ? 0 : index);
   if (index < commands.length) {
     var command = commands[index];
@@ -17,6 +25,7 @@ function executeCommands(commands, done, index) {
       options = command.options;
       command = command.command;
     }
+    t0 = Date.now()
     safeExec(command, options, executeCommands.bind(this, commands, done, index + 1));
   }
   else
@@ -96,7 +105,10 @@ function bootstrap() {
       message: 'Installing apm...',
       options: apmInstallOptions
     },
-    apmPath + ' clean' + apmFlags,
+    {
+      command: apmPath + ' clean' + apmFlags,
+      message: 'Deleting old packages...'
+    },
     moduleInstallCommand,
     dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
   ];
