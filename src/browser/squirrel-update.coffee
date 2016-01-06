@@ -56,6 +56,9 @@ spawnReg = (args, callback) ->
 
 # Spawn powershell.exe and callback when it completes
 spawnPowershell = (args, callback) ->
+  # set encoding and execute the command, capture the output, and return it via .NET's console in order to have consistent UTF-8 encoding
+  # http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
+  args[0] = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8\r\n$output=#{args[0]}\r\n[Console]::WriteLine($output)"
   args.unshift('-command')
   args.unshift('RemoteSigned')
   args.unshift('-ExecutionPolicy')
@@ -90,13 +93,6 @@ installContextMenu = (callback) ->
     installMenu directoryKeyPath, '%1', ->
       installMenu(backgroundKeyPath, '%V', callback)
 
-isAscii = (text) ->
-  index = 0
-  while index < text.length
-    return false if text.charCodeAt(index) > 127
-    index++
-  true
-
 # Get the user's PATH environment variable registry value.
 getPath = (callback) ->
   spawnPowershell ['[environment]::GetEnvironmentVariable(\'Path\',\'User\')'], (error, stdout) ->
@@ -104,12 +100,7 @@ getPath = (callback) ->
       return callback(error)
 
     pathOutput = stdout.replace(/^\s+|\s+$/g, '')
-    if isAscii(pathOutput)
-      callback(null, pathOutput)
-    else
-      # FIXME Don't corrupt non-ASCII PATH values
-      # https://github.com/atom/atom/issues/5063
-      callback(new Error('PATH contains non-ASCII values'))
+    callback(null, pathOutput)
 
 # Uninstall the Open with Atom explorer context menu items via the registry.
 uninstallContextMenu = (callback) ->
