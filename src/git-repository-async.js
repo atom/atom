@@ -40,7 +40,7 @@ export default class GitRepositoryAsync {
     this.repoPromise = this.openRepository()
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstream = {}
-    this.submodulesByPath = {}
+    this.submodules = {}
 
     this._refreshingCount = 0
 
@@ -797,23 +797,61 @@ export default class GitRepositoryAsync {
 
   // Get the status for the given submodule.
   //
-  // * `submodule` The {NodeGit.Repository} for the submodule.
+  // * `submodule` The {GitRepositoryAsync} for the submodule.
   //
   // Returns a {Promise} which resolves to an {Object}, keyed by {String}
   // repo-relative {Number} statuses.
-  _getSubmoduleStatus (submodule) {
-    return this._getStatus(null, submodule)
-      .then(statuses => {
-        return this.getRepo().then(repo => {
-          const statusPairs = statuses.map(status => {
-            const absolutePath = path.join(submodule.workdir(), status.path())
-            // Get the path relative to the containing repository.
-            const relativePath = this.relativize(absolutePath, repo.workdir())
-            return [relativePath, status.statusBit()]
-          })
-          return _.object(statusPairs)
-        })
-      })
+  async _getSubmoduleStatus (submodule) {
+    // At this point, we've called submodule._refreshSubmodules(), which would
+    // have refreshed the status on *its* submodules, etc. So we know that its
+    // cached path statuses are up-to-date.
+    //
+    // Now we just need to hoist those statuses into our repository by changing
+    // their paths to be relative to us.
+
+    const statuses = submodule.getCachedPathStatuses()
+    const repoRelativeStatuses = {}
+    const submoduleRepo = await submodule.getRepo()
+    const submoduleWorkDir = submoduleRepo.workdir()
+    for (const relativePath in statuses) {
+      const statusBit = statuses[relativePath]
+      const absolutePath = path.join(submoduleWorkDir, relativePath)
+      const repoRelativePath = await this.relativizeToWorkingDirectory(absolutePath)
+      repoRelativeStatuses[repoRelativePath] = statusBit
+    }
+
+    return repoRelativeStatuses
+  }
+
+  // Refresh the list of submodules in the repository.
+  //
+  // Returns a {Promise} which resolves to an {Object} keyed by {String}
+  // submodule names with {GitRepositoryAsync} values.
+  async _refreshSubmodules () {
+    const repo = await this.getRepo()
+    const submoduleNames = await repo.getSubmoduleNames()
+    for (const name of submoduleNames) {
+      const alreadyExists = Boolean(this.submodules[name])
+      if (alreadyExists) continue
+
+      const submodule = await Git.Submodule.lookup(repo, name)
+      const absolutePath = path.join(repo.workdir(), submodule.path())
+      const submoduleRepo = GitRepositoryAsync.open(absolutePath)
+      this.submodules[name] = submoduleRepo
+    }
+
+    for (const name in this.submodules) {
+      if (submoduleNames.indexOf(name) < 0) {
+        const repo = this.submodules[name]
+        repo.destroy()
+        delete this.submodules[name]
+      }
+    }
+
+    const submoduleRepos = _.values(this.submodules)
+    await Promise.all(submoduleRepos.map(s => s.refreshStatus()))
+
+    return submoduleRepos
   }
 
   // Get the status for the submodules in the repository.
@@ -821,19 +859,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that will resolve to an object of {String} paths to the
   // {Number} status.
   _getSubmoduleStatuses () {
-    return this.getRepo()
-      .then(repo => Promise.all([repo, repo.getSubmoduleNames()]))
-      .then(([repo, submodules]) => {
-        return Promise.all(submodules.map(s => Git.Submodule.lookup(repo, s)))
-      })
-      .then(submodules => submodules.map(s => s.path()))
-      .then(relativePaths => {
-        return this.getRepo().then(repo => {
-          const workingDirectory = repo.workdir()
-          return relativePaths.map(p => path.join(workingDirectory, p))
-        })
-      })
-      .then(paths => Promise.all(paths.map(p => Git.Repository.open(p))))
+    return this._refreshSubmodules()
       .then(repos => {
         return Promise.all(repos.map(repo => this._getSubmoduleStatus(repo)))
       })
@@ -879,6 +905,21 @@ export default class GitRepositoryAsync {
           return Promise.reject(e)
         }
       })
+  }
+
+  async _submoduleForPath (_path) {
+    let relativePath = await this.relativizeToWorkingDirectory(_path)
+    for (const {submodulePath, submoduleRepo} in this.submodules) {
+      if (relativePath === submodulePath) {
+        return submoduleRepo
+      } else if (relativePath.indexOf(`${submodulePath}/`) === 0) {
+        relativePath = relativePath.substring(submodulePath.length + 1)
+        const innerSubmodule = await submoduleRepo._submoduleForPath(relativePath)
+        return innerSubmodule ? innerSubmodule : submoduleRepo
+      }
+    }
+
+    return null
   }
 
   // Get the NodeGit repository for the given path.
@@ -962,14 +1003,11 @@ export default class GitRepositoryAsync {
   //
   // * `paths` The {String} paths whose status is wanted. If undefined, get the
   //           status for the whole repository.
-  // * `repo`  The {NodeGit.Repository} the repository to get status from. If
-  //           undefined, it will use this repository.
   //
   // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
   // statuses for the paths.
   _getStatus (paths, repo) {
-    const repoPromise = (repo ? Promise.resolve(repo) : this.getRepo())
-    return repoPromise
+    return this.getRepo()
       .then(repo => {
         const opts = {
           flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS | Git.Status.OPT.DISABLE_PATHSPEC_MATCH
