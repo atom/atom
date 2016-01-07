@@ -552,6 +552,20 @@ describe('GitRepositoryAsync', () => {
       const head = await repo.getShortHead()
       expect(head).toBe('master')
     })
+
+    describe('in a submodule', () => {
+      beforeEach(() => {
+        const workingDirectory = copySubmoduleRepository()
+        repo = GitRepositoryAsync.open(workingDirectory)
+      })
+
+      it('returns the human-readable branch name', async () => {
+        await repo.refreshStatus()
+
+        const head = await repo.getShortHead('jstips')
+        expect(head).toBe('test')
+      })
+    })
   })
 
   describe('.getAheadBehindCount(reference, path)', () => {
@@ -575,9 +589,25 @@ describe('GitRepositoryAsync', () => {
 
     it('returns 0, 0 for a branch with no upstream', async () => {
       await repo.refreshStatus()
-      const {ahead, behind} = repo.getCachedUpstreamAheadBehindCount()
+
+      const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount()
       expect(ahead).toBe(0)
       expect(behind).toBe(0)
+    })
+
+    describe('in a submodule', () => {
+      beforeEach(() => {
+        const workingDirectory = copySubmoduleRepository()
+        repo = GitRepositoryAsync.open(workingDirectory)
+      })
+
+      it('returns 0, 0 for a branch with no upstream', async () => {
+        await repo.refreshStatus()
+
+        const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount('You-Dont-Need-jQuery')
+        expect(ahead).toBe(1)
+        expect(behind).toBe(0)
+      })
     })
   })
 

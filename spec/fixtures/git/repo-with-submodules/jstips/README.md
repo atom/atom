@@ -1,5 +1,6 @@
 ![header](https://raw.githubusercontent.com/loverajoel/jstips/master/resources/jstips-header-blog.gif)
 
+
 # Introducing Javascript Tips
 > New year, new project. **A JS tip per day!**
 
@@ -28,7 +29,7 @@ You just have to concat everything into an array first. `Array.concat` will acce
 
 ```javascript
 function printUpperCase(words) {
-  var elements = [].concat(words); 
+  var elements = [].concat(words);
   for (var i = 0; i < elements.length; i++) {
     console.log(elements[i].toUpperCase());
   }
@@ -38,7 +39,7 @@ function printUpperCase(words) {
 `printUpperCase` is now ready to accept a single node or an array of nodes as it's parameter.
 
 ```javascript
-printUpperCase("cactus"); 
+printUpperCase("cactus");
 // => CACTUS
 printUpperCase(["cactus", "bear", "potato"]);
 // => CACTUS
