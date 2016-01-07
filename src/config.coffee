@@ -779,9 +779,14 @@ class Config
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
 
-    unless fs.existsSync(@configFilePath)
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {})
+    try
+      unless fs.existsSync(@configFilePath)
+        fs.makeTreeSync(path.dirname(@configFilePath))
+        CSON.writeFileSync(@configFilePath, {})
+    catch error
+      @configFileHasErrors = true
+      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+      return
 
     try
       unless @savePending
@@ -820,7 +825,7 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    @notificationManager.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
     return if @shouldNotAccessFileSystem()

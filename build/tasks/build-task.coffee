@@ -186,5 +186,4 @@ module.exports = (grunt) ->
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
-    dependencies.push('disable-autoupdate') if grunt.config.get('atom.disableAutoUpdate')
     grunt.task.run(dependencies...)
