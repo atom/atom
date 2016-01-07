@@ -16,9 +16,9 @@ function openFixture (fixture) {
   return GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 }
 
-function copyRepository () {
+function copyRepository (name = 'working-dir') {
   const workingDirPath = temp.mkdirSync('atom-working-dir')
-  fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+  fs.copySync(path.join(__dirname, 'fixtures', 'git', name), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   return fs.realpathSync(workingDirPath)
 }
@@ -299,16 +299,43 @@ describe('GitRepositoryAsync', () => {
       cleanPath = path.join(workingDirectory, 'other.txt')
       fs.writeFileSync(cleanPath, 'Full of text')
       fs.writeFileSync(newPath, '')
+      fs.writeFileSync(modifiedPath, 'making this path modified')
       newPath = fs.absolute(newPath) // specs could be running under symbol path.
     })
 
     it('returns status information for all new and modified files', async () => {
-      fs.writeFileSync(modifiedPath, 'making this path modified')
       await repo.refreshStatus()
 
       expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
       expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
       expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
+    })
+
+    describe('in a repository with submodules', () => {
+      beforeEach(() => {
+        const workingDirectory = copyRepository('repo-with-submodules')
+        repo = GitRepositoryAsync.open(workingDirectory)
+        modifiedPath = path.join(workingDirectory, 'jstips', 'README.md')
+        newPath = path.join(workingDirectory, 'You-Dont-Need-jQuery', 'untracked.txt')
+        cleanPath = path.join(workingDirectory, 'jstips', 'CONTRIBUTING.md')
+        fs.writeFileSync(newPath, '')
+        fs.writeFileSync(modifiedPath, 'making this path modified')
+        newPath = fs.absolute(newPath) // specs could be running under symbol path.
+
+        const reGit = (name) => {
+          fs.renameSync(path.join(workingDirectory, name, 'git.git'), path.join(workingDirectory, name, '.git'))
+        }
+        reGit('jstips')
+        reGit('You-Dont-Need-jQuery')
+      })
+
+      it('returns status information for all new and modified files', async () => {
+        await repo.refreshStatus()
+
+        expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
+        expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
+        expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
+      })
     })
   })
 
