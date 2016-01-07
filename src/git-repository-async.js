@@ -290,12 +290,19 @@ export default class GitRepositoryAsync {
   // * `path` An optional {String} path in the repository to get this information
   //   for, only needed if the repository has submodules.
   //
-  // Returns an {Object} with the following keys:
+  // Returns a {Promise} which resolves to an {Object} with the following keys:
   //   * `ahead`  The {Number} of commits ahead.
   //   * `behind` The {Number} of commits behind.
   getCachedUpstreamAheadBehindCount (_path) {
-    // TODO: take submodules into account
-    return this.upstream
+    return this.relativizeToWorkingDirectory(_path)
+      .then(relativePath => this._submoduleForPath(_path))
+      .then(submodule => {
+        if (submodule) {
+          return submodule.getCachedUpstreamAheadBehindCount(_path)
+        } else {
+          return this.upstream
+        }
+      })
   }
 
   // Public: Returns the git configuration value specified by the key.
