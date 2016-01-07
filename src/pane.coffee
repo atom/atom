@@ -745,3 +745,4 @@ class Pane extends Model
       when 'ENXIO' then 'No such device or address'
       when 'EROFS' then 'Read-only file system'
       when 'ESPIPE' then 'Invalid seek'
+      when 'ETIMEDOUT' then 'Connection timed out'
