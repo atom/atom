@@ -923,7 +923,7 @@ export default class GitRepositoryAsync {
       } else if (relativePath.indexOf(`${submodulePath}/`) === 0) {
         relativePath = relativePath.substring(submodulePath.length + 1)
         const innerSubmodule = await submoduleRepo._submoduleForPath(relativePath)
-        return innerSubmodule ? innerSubmodule : submoduleRepo
+        return innerSubmodule || submoduleRepo
       }
     }
 
