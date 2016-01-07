@@ -1,6 +1,7 @@
 'use babel'
 
 import fs from 'fs-plus'
+import path from 'path'
 import Git from 'nodegit'
 import {Emitter, CompositeDisposable, Disposable} from 'event-kit'
 
@@ -772,12 +773,11 @@ export default class GitRepositoryAsync {
       .then(counts => this.upstream = counts)
   }
 
-  // Refresh the cached status.
+  // Get the status for this repository.
   //
-  // Returns a {Promise} which will resolve to {null}.
-  _refreshStatus () {
-    this._refreshingCount++
-
+  // Returns a {Promise} that will resolve to an object of {String} paths to the
+  // {Number} status.
+  _getRepositoryStatus () {
     let projectPathsPromises = [Promise.resolve('')]
     if (this.project) {
       projectPathsPromises = this.project.getPaths()
@@ -791,15 +791,71 @@ export default class GitRepositoryAsync {
       })
       .then(statuses => {
         const statusPairs = statuses.map(status => [status.path(), status.statusBit()])
-        return Promise.all(statusPairs)
-          .then(statusesByPath => _.object(statusesByPath))
+        return _.object(statusPairs)
       })
-      .then(newPathStatusCache => {
-        if (!_.isEqual(this.pathStatusCache, newPathStatusCache) && this.emitter != null) {
+  }
+
+  // Get the status for the given submodule.
+  //
+  // * `submodule` The {NodeGit.Repository} for the submodule.
+  //
+  // Returns a {Promise} which resolves to an {Object}, keyed by {String}
+  // repo-relative {Number} statuses.
+  _getSubmoduleStatus (submodule) {
+    return this._getStatus(null, submodule)
+      .then(statuses => {
+        return this.getRepo().then(repo => {
+          const statusPairs = statuses.map(status => {
+            const absolutePath = path.join(submodule.workdir(), status.path())
+            // Get the path relative to the containing repository.
+            const relativePath = this.relativize(absolutePath, repo.workdir())
+            return [relativePath, status.statusBit()]
+          })
+          return _.object(statusPairs)
+        })
+      })
+  }
+
+  // Get the status for the submodules in the repository.
+  //
+  // Returns a {Promise} that will resolve to an object of {String} paths to the
+  // {Number} status.
+  _getSubmoduleStatuses () {
+    return this.getRepo()
+      .then(repo => Promise.all([repo, repo.getSubmoduleNames()]))
+      .then(([repo, submodules]) => {
+        return Promise.all(submodules.map(s => Git.Submodule.lookup(repo, s)))
+      })
+      .then(submodules => submodules.map(s => s.path()))
+      .then(relativePaths => {
+        return this.getRepo().then(repo => {
+          const workingDirectory = repo.workdir()
+          return relativePaths.map(p => path.join(workingDirectory, p))
+        })
+      })
+      .then(paths => Promise.all(paths.map(p => Git.Repository.open(p))))
+      .then(repos => {
+        return Promise.all(repos.map(repo => this._getSubmoduleStatus(repo)))
+      })
+      .then(statuses => _.extend({}, ...statuses))
+      .then(statuses => {
+        console.log(statuses)
+      })
+  }
+
+  // Refresh the cached status.
+  //
+  // Returns a {Promise} which will resolve to {null}.
+  _refreshStatus () {
+    this._refreshingCount++
+
+    return Promise.all([this._getRepositoryStatus(), this._getSubmoduleStatuses()])
+      .then(([repositoryStatus, submoduleStatus]) => {
+        const statusesByPath = _.extend({}, repositoryStatus, submoduleStatus)
+        if (!_.isEqual(this.pathStatusCache, statusesByPath) && this.emitter != null) {
           this.emitter.emit('did-change-statuses')
         }
-        this.pathStatusCache = newPathStatusCache
-        return newPathStatusCache
+        this.pathStatusCache = statusesByPath
       })
       .then(_ => this._refreshingCount--)
   }
@@ -909,11 +965,14 @@ export default class GitRepositoryAsync {
   //
   // * `paths` The {String} paths whose status is wanted. If undefined, get the
   //           status for the whole repository.
+  // * `repo`  The {NodeGit.Repository} the repository to get status from. If
+  //           undefined, it will use this repository.
   //
   // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
   // statuses for the paths.
-  _getStatus (paths) {
-    return this.getRepo()
+  _getStatus (paths, repo) {
+    const repoPromise = (repo ? Promise.resolve(repo) : this.getRepo())
+    return repoPromise
       .then(repo => {
         const opts = {
           flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS | Git.Status.OPT.DISABLE_PATHSPEC_MATCH
