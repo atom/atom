@@ -568,6 +568,23 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
+  describe('.isSubmodule(path)', () => {
+    beforeEach(() => {
+      const workingDirectory = copySubmoduleRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it("returns false for a path that isn't a submodule", async () => {
+      const isSubmodule = await repo.isSubmodule('README')
+      expect(isSubmodule).toBe(false)
+    })
+
+    it('returns true for a path that is a submodule', async () => {
+      const isSubmodule = await repo.isSubmodule('jstips')
+      expect(isSubmodule).toBe(true)
+    })
+  })
+
   describe('.getAheadBehindCount(reference, path)', () => {
     beforeEach(() => {
       const workingDirectory = copyRepository()

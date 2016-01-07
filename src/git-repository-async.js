@@ -252,8 +252,6 @@ export default class GitRepositoryAsync {
       .then(repo => repo.openIndex())
       .then(index => Promise.all([index, this.relativizeToWorkingDirectory(_path)]))
       .then(([index, relativePath]) => {
-        // TODO: This'll probably be wrong if the submodule doesn't exist in the
-        // index yet? Is that a thing?
         const entry = index.getByPath(relativePath)
         if (!entry) return false
 
@@ -894,8 +892,6 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which will resolve to {null} when refresh is complete.
   refreshStatus () {
-    // TODO add submodule tracking
-
     const status = this._refreshStatus()
     const branch = this._refreshBranch()
     const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
