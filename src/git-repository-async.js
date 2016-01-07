@@ -838,9 +838,6 @@ export default class GitRepositoryAsync {
         return Promise.all(repos.map(repo => this._getSubmoduleStatus(repo)))
       })
       .then(statuses => _.extend({}, ...statuses))
-      .then(statuses => {
-        console.log(statuses)
-      })
   }
 
   // Refresh the cached status.
