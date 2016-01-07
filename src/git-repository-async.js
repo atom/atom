@@ -907,9 +907,14 @@ export default class GitRepositoryAsync {
       })
   }
 
+  // Get the submodule for the given path.
+  //
+  // Returns a {Promise} which resolves to the {GitRepositoryAsync} submodule or
+  // null if it isn't a submodule path.
   async _submoduleForPath (_path) {
     let relativePath = await this.relativizeToWorkingDirectory(_path)
-    for (const {submodulePath, submoduleRepo} in this.submodules) {
+    for (const submodulePath in this.submodules) {
+      const submoduleRepo = this.submodules[submodulePath]
       if (relativePath === submodulePath) {
         return submoduleRepo
       } else if (relativePath.indexOf(`${submodulePath}/`) === 0) {
@@ -938,14 +943,8 @@ export default class GitRepositoryAsync {
 
     if (!_path) return this.repoPromise
 
-    return this.isSubmodule(_path)
-      .then(isSubmodule => {
-        if (isSubmodule) {
-          return Git.Repository.open(_path)
-        } else {
-          return this.repoPromise
-        }
-      })
+    return this._submoduleForPath(_path)
+      .then(submodule => submodule ? submodule.getRepo() : this.repoPromise)
   }
 
   // Open a new instance of the underlying {NodeGit.Repository}.

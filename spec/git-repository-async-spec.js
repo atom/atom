@@ -23,6 +23,17 @@ function copyRepository (name = 'working-dir') {
   return fs.realpathSync(workingDirPath)
 }
 
+function copySubmoduleRepository () {
+  const workingDirectory = copyRepository('repo-with-submodules')
+  const reGit = (name) => {
+    fs.renameSync(path.join(workingDirectory, name, 'git.git'), path.join(workingDirectory, name, '.git'))
+  }
+  reGit('jstips')
+  reGit('You-Dont-Need-jQuery')
+
+  return workingDirectory
+}
+
 describe('GitRepositoryAsync', () => {
   let repo
 
@@ -42,6 +53,36 @@ describe('GitRepositoryAsync', () => {
       }
 
       expect(threw).toBe(true)
+    })
+  })
+
+  describe('.getRepo()', () => {
+    beforeEach(() => {
+      const workingDirectory = copySubmoduleRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+      waitsForPromise(() => repo.refreshStatus())
+    })
+
+    it('returns the repository when not given a path', async () => {
+      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo2 = await repo.getRepo()
+      expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
+    })
+
+    it('returns the repository when given a non-submodule path', async () => {
+      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo2 = await repo.getRepo('README')
+      expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
+    })
+
+    it('returns the submodule repository when given a submodule path', async () => {
+      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo2 = await repo.getRepo('jstips')
+      expect(nodeGitRepo1.workdir()).not.toBe(nodeGitRepo2.workdir())
+
+      const nodeGitRepo3 = await repo.getRepo('jstips/README.md')
+      expect(nodeGitRepo1.workdir()).not.toBe(nodeGitRepo3.workdir())
+      expect(nodeGitRepo2.workdir()).toBe(nodeGitRepo3.workdir())
     })
   })
 
@@ -313,7 +354,7 @@ describe('GitRepositoryAsync', () => {
 
     describe('in a repository with submodules', () => {
       beforeEach(() => {
-        const workingDirectory = copyRepository('repo-with-submodules')
+        const workingDirectory = copySubmoduleRepository()
         repo = GitRepositoryAsync.open(workingDirectory)
         modifiedPath = path.join(workingDirectory, 'jstips', 'README.md')
         newPath = path.join(workingDirectory, 'You-Dont-Need-jQuery', 'untracked.txt')
@@ -321,12 +362,6 @@ describe('GitRepositoryAsync', () => {
         fs.writeFileSync(newPath, '')
         fs.writeFileSync(modifiedPath, 'making this path modified')
         newPath = fs.absolute(newPath) // specs could be running under symbol path.
-
-        const reGit = (name) => {
-          fs.renameSync(path.join(workingDirectory, name, 'git.git'), path.join(workingDirectory, name, '.git'))
-        }
-        reGit('jstips')
-        reGit('You-Dont-Need-jQuery')
       })
 
       it('returns status information for all new and modified files', async () => {
