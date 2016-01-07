@@ -14,6 +14,8 @@ _ = require 'underscore-plus'
 packageJson = require '../package.json'
 
 module.exports = (grunt) ->
+  require('time-grunt')(grunt)
+
   grunt.loadNpmTasks('grunt-babel')
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')

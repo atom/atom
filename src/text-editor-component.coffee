@@ -434,12 +434,17 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForScreenPosition: (screenPosition, clip) ->
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+
     unless @presenter.isRowVisible(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
+
+    unless @linesComponent.lineNodeForLineIdAndScreenRow(@presenter.lineIdForScreenRow(screenPosition.row), screenPosition.row)?
       @updateSyncPreMeasurement()
 
-    pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
+    pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
     @presenter.clearScreenRowsToMeasure()
     pixelPosition
 
