@@ -16,11 +16,22 @@ function openFixture (fixture) {
   return GitRepositoryAsync.open(path.join(__dirname, 'fixtures', 'git', fixture))
 }
 
-function copyRepository () {
+function copyRepository (name = 'working-dir') {
   const workingDirPath = temp.mkdirSync('atom-working-dir')
-  fs.copySync(path.join(__dirname, 'fixtures', 'git', 'working-dir'), workingDirPath)
+  fs.copySync(path.join(__dirname, 'fixtures', 'git', name), workingDirPath)
   fs.renameSync(path.join(workingDirPath, 'git.git'), path.join(workingDirPath, '.git'))
   return fs.realpathSync(workingDirPath)
+}
+
+function copySubmoduleRepository () {
+  const workingDirectory = copyRepository('repo-with-submodules')
+  const reGit = (name) => {
+    fs.renameSync(path.join(workingDirectory, name, 'git.git'), path.join(workingDirectory, name, '.git'))
+  }
+  reGit('jstips')
+  reGit('You-Dont-Need-jQuery')
+
+  return workingDirectory
 }
 
 describe('GitRepositoryAsync', () => {
@@ -42,6 +53,36 @@ describe('GitRepositoryAsync', () => {
       }
 
       expect(threw).toBe(true)
+    })
+  })
+
+  describe('.getRepo()', () => {
+    beforeEach(() => {
+      const workingDirectory = copySubmoduleRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+      waitsForPromise(() => repo.refreshStatus())
+    })
+
+    it('returns the repository when not given a path', async () => {
+      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo2 = await repo.getRepo()
+      expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
+    })
+
+    it('returns the repository when given a non-submodule path', async () => {
+      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo2 = await repo.getRepo('README')
+      expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
+    })
+
+    it('returns the submodule repository when given a submodule path', async () => {
+      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo2 = await repo.getRepo('jstips')
+      expect(nodeGitRepo1.workdir()).not.toBe(nodeGitRepo2.workdir())
+
+      const nodeGitRepo3 = await repo.getRepo('jstips/README.md')
+      expect(nodeGitRepo1.workdir()).not.toBe(nodeGitRepo3.workdir())
+      expect(nodeGitRepo2.workdir()).toBe(nodeGitRepo3.workdir())
     })
   })
 
@@ -299,16 +340,37 @@ describe('GitRepositoryAsync', () => {
       cleanPath = path.join(workingDirectory, 'other.txt')
       fs.writeFileSync(cleanPath, 'Full of text')
       fs.writeFileSync(newPath, '')
+      fs.writeFileSync(modifiedPath, 'making this path modified')
       newPath = fs.absolute(newPath) // specs could be running under symbol path.
     })
 
     it('returns status information for all new and modified files', async () => {
-      fs.writeFileSync(modifiedPath, 'making this path modified')
       await repo.refreshStatus()
 
       expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
       expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
       expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
+    })
+
+    describe('in a repository with submodules', () => {
+      beforeEach(() => {
+        const workingDirectory = copySubmoduleRepository()
+        repo = GitRepositoryAsync.open(workingDirectory)
+        modifiedPath = path.join(workingDirectory, 'jstips', 'README.md')
+        newPath = path.join(workingDirectory, 'You-Dont-Need-jQuery', 'untracked.txt')
+        cleanPath = path.join(workingDirectory, 'jstips', 'CONTRIBUTING.md')
+        fs.writeFileSync(newPath, '')
+        fs.writeFileSync(modifiedPath, 'making this path modified')
+        newPath = fs.absolute(newPath) // specs could be running under symbol path.
+      })
+
+      it('returns status information for all new and modified files', async () => {
+        await repo.refreshStatus()
+
+        expect(await repo.getCachedPathStatus(cleanPath)).toBeUndefined()
+        expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
+        expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
+      })
     })
   })
 
@@ -490,6 +552,37 @@ describe('GitRepositoryAsync', () => {
       const head = await repo.getShortHead()
       expect(head).toBe('master')
     })
+
+    describe('in a submodule', () => {
+      beforeEach(() => {
+        const workingDirectory = copySubmoduleRepository()
+        repo = GitRepositoryAsync.open(workingDirectory)
+      })
+
+      it('returns the human-readable branch name', async () => {
+        await repo.refreshStatus()
+
+        const head = await repo.getShortHead('jstips')
+        expect(head).toBe('test')
+      })
+    })
+  })
+
+  describe('.isSubmodule(path)', () => {
+    beforeEach(() => {
+      const workingDirectory = copySubmoduleRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it("returns false for a path that isn't a submodule", async () => {
+      const isSubmodule = await repo.isSubmodule('README')
+      expect(isSubmodule).toBe(false)
+    })
+
+    it('returns true for a path that is a submodule', async () => {
+      const isSubmodule = await repo.isSubmodule('jstips')
+      expect(isSubmodule).toBe(true)
+    })
   })
 
   describe('.getAheadBehindCount(reference, path)', () => {
@@ -513,9 +606,25 @@ describe('GitRepositoryAsync', () => {
 
     it('returns 0, 0 for a branch with no upstream', async () => {
       await repo.refreshStatus()
-      const {ahead, behind} = repo.getCachedUpstreamAheadBehindCount()
+
+      const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount()
       expect(ahead).toBe(0)
       expect(behind).toBe(0)
+    })
+
+    describe('in a submodule', () => {
+      beforeEach(() => {
+        const workingDirectory = copySubmoduleRepository()
+        repo = GitRepositoryAsync.open(workingDirectory)
+      })
+
+      it('returns 0, 0 for a branch with no upstream', async () => {
+        await repo.refreshStatus()
+
+        const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount('You-Dont-Need-jQuery')
+        expect(ahead).toBe(1)
+        expect(behind).toBe(0)
+      })
     })
   })
 
