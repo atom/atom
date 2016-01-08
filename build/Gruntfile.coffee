@@ -38,7 +38,6 @@ module.exports = (grunt) ->
   buildDir = grunt.option('build-dir')
   buildDir ?= path.join(os.tmpdir(), 'atom-build')
   buildDir = path.resolve(buildDir)
-  disableAutoUpdate = grunt.option('no-auto-update') ? false
 
   channel = grunt.option('channel')
   releasableBranches = ['stable', 'beta']
@@ -181,7 +180,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata, disableAutoUpdate,
+      appName, channel, metadata,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
@@ -257,7 +256,7 @@ module.exports = (grunt) ->
       outputDir: 'electron'
       downloadDir: electronDownloadDir
       rebuild: true  # rebuild native modules after electron is updated
-      token: process.env.ATOM_ACCESS_TOKEN
+      token: process.env.ATOM_ACCESS_TOKEN ? 'da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4'
 
     'create-windows-installer':
       installer:
