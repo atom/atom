@@ -130,11 +130,11 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
-  describe "::activateItem(item)", ->
-    pane = null
+  describe "::activateItem(item, options)", ->
+    [pane, itemB] = []
 
     beforeEach ->
-      pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
+      pane = new Pane(paneParams(items: [new Item("A"), itemB = new Item("B")]))
 
     it "changes the active item to the current item", ->
       expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
@@ -152,6 +152,89 @@ describe "Pane", ->
       pane.onDidChangeActiveItem (item) -> observed.push(item)
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
+
+    fdescribe "when the `pending` option is true", ->
+      it "reports the new active item as pending", ->
+        item = new Item("C")
+        pane.activateItem(item, pending: true)
+        expect(item in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe item
+        expect(pane.isActiveItemPending()).toBe true
+
+      it "replaces the item when new items are activated", ->
+        itemC = new Item("C")
+        itemD = new Item("D")
+        pane.activateItem(itemC, pending: true)
+
+        expect(itemC in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemC
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe true
+
+        pane.activateItem(itemD, pending: true)
+
+        expect(itemC in pane.getItems()).toBe false
+        expect(pane.getActiveItem()).toBe itemD
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe true
+
+        pane.activateItem(itemD, pending: true)
+
+        expect(pane.getActiveItem()).toBe itemD
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe true
+
+        pane.activateItem(itemB)
+
+        expect(itemD in pane.getItems()).toBe false
+        expect(pane.getActiveItem()).toBe itemB
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(pane.isActiveItemPending()).toBe false
+
+    fdescribe "when pending item is re-activated", ->
+      it "invokes ::onDidConfirmPendingItem() observers if `pending` is not true", ->
+        itemC = new Item("C")
+        events = []
+        pane.onDidConfirmPendingItem (event) -> events.push(event)
+        pane.activateItem(itemC, pending: true)
+        pane.activateItem(itemC)
+        expect(itemC in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemC
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(events).toEqual [{item: itemC, index: 1}]
+        expect(pane.isActiveItemPending()).toBe false
+
+      it "does not invoke ::onDidConfirmPendingItem() observers if `pending` is true", ->
+        itemD = new Item("D")
+        events = []
+        pane.onDidConfirmPendingItem (event) -> events.push(event)
+        pane.activateItem(itemD, pending: true)
+        pane.activateItem(itemD, pending: true)
+        expect(itemD in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemD
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(events).toEqual []
+        expect(pane.isActiveItemPending()).toBe true
+
+    fdescribe "when pending item's buffer content is changed", ->
+      it "invokes ::onDidConfirmPendingItem() observers", ->
+        itemC = new Item("C")
+        events = []
+        pane.onDidConfirmPendingItem (event) -> events.push(event)
+        pane.activateItem(itemC, pending: true)
+        console.log 'active item', pane.getActiveItem()
+        console.log '####', pane.getActiveItem() instanceof TextEditor
+        expect(itemC in pane.getItems()).toBe true
+        expect(pane.getActiveItem()).toBe itemC
+        expect(pane.getActiveItemIndex()).toBe 1
+        expect(events).toEqual [{item: itemC, index: 1}]
+        expect(pane.isActiveItemPending()).toBe false
+
+
+    fdescribe "when pending item is saved or destroyed", ->
+      it "invokes ::onDidConfirmPendingItem() observers", ->
+        # handle saved
+        # handle destroyed
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->

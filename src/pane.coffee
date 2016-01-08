@@ -39,6 +39,7 @@ class Pane extends Model
     @emitter = new Emitter
     @itemSubscriptions = new WeakMap
     @items = []
+    @activeItemPending = false
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
@@ -341,10 +342,37 @@ class Pane extends Model
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
-  activateItem: (item) ->
+  activateItem: (item, options) ->
     if item?
-      @addItem(item, @getActiveItemIndex() + 1, false)
+      if @activeItemPending
+        index = @getActiveItemIndex()
+        if @getActiveItem() is item
+          @confirmPendingItem(item, index) unless options?.pending
+        else
+          @destroyActiveItem()
+      else
+        index = @getActiveItemIndex() + 1
+      @addItem(item, index, false, options?.pending)
       @setActiveItem(item)
+      @watchPendingItem() if options?.pending
+
+  watchPendingItem: () ->
+    if @activeItemPending and editor = @getActiveEditor()
+      if typeof editor.onDidChangeModified is 'function'
+        @itemSubscriptions.set editor, editor.onDidChangeModified =>
+          @confirmPendingItem(editor, @getActiveItemIndex()) if editor.isModified()
+
+  isActiveItemPending: -> @activeItemPending
+
+  onDidConfirmPendingItem: (callback) ->
+    @emitter.on 'did-confirm-pending-item', callback
+
+  confirmPendingItem: (item, index) ->
+    @activeItemPending = false
+    @emitter.emit 'did-confirm-pending-item', {item, index}
+
+  onDidActivatePendingItem: (callback) ->
+    @emitter.on 'did-activate-pending-item', callback
 
   # Public: Add the given item to the pane.
   #
@@ -354,7 +382,7 @@ class Pane extends Model
   #   If omitted, the item is added after the current active item.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
+  addItem: (item, index=@getActiveItemIndex() + 1, moved=false, pending) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
@@ -364,8 +392,9 @@ class Pane extends Model
       @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
 
     @items.splice(index, 0, item)
-    @emitter.emit 'did-add-item', {item, index, moved}
     @setActiveItem(item) unless @getActiveItem()?
+    @activeItemPending = true if pending
+    @emitter.emit 'did-add-item', {item, index, moved}
     item
 
   # Public: Add the given items to the pane.
@@ -423,6 +452,7 @@ class Pane extends Model
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
+    @activeItemPending = false if @activeItemPending
     @destroyItem(@activeItem)
     false
 
