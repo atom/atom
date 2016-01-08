@@ -5815,7 +5815,7 @@ describe "TextEditor", ->
       expect(editor1.isPending()).toBe true
       expect(editor.isPending()).toBe false # By default pending status is false
 
-    it "invokes ::onDidTerminatePendingState observers if pending status is removed", ->
+    it "invokes ::onDidTerminatePendingState observers if pending status is terminated", ->
       events = []
       editor1.onDidTerminatePendingState (event) -> events.push(event)
       editor1.terminatePendingState()
