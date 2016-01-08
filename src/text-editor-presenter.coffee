@@ -1286,13 +1286,13 @@ class TextEditorPresenter
   spliceBlockDecorationsInRange: (start, end, screenDelta) ->
     return if screenDelta is 0
 
-    oldExtent = Point(end - start, Infinity)
-    newExtent = Point(end - start + screenDelta, 0)
-    invalidatedBlockDecorationIds = @lineTopIndex.splice(Point(start, 0), oldExtent, newExtent)
+    oldExtent = end - start
+    newExtent = end - start + screenDelta
+    invalidatedBlockDecorationIds = @lineTopIndex.splice(start, oldExtent, newExtent)
     invalidatedBlockDecorationIds.forEach (id) =>
       decoration = @model.decorationForId(id)
       newScreenPosition = decoration.getMarker().getHeadScreenPosition()
-      @lineTopIndex.moveBlock(id, newScreenPosition)
+      @lineTopIndex.moveBlock(id, newScreenPosition.row)
       @invalidatedDimensionsByBlockDecoration.add(decoration)
 
   didAddBlockDecoration: (decoration) ->
@@ -1308,7 +1308,7 @@ class TextEditorPresenter
       didDestroyDisposable.dispose()
       @didDestroyBlockDecoration(decoration)
 
-    @lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition(), true, 0)
+    @lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition().row, 0)
 
     @observedBlockDecorations.add(decoration)
     @invalidateBlockDecorationDimensions(decoration)
@@ -1322,7 +1322,7 @@ class TextEditorPresenter
     # change.
     return if markerEvent.textChanged
 
-    @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition())
+    @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition().row)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
