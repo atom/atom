@@ -165,7 +165,7 @@ export default class GitRepositoryAsync {
         const workingDirectory = repo.workdir()
         let openedWorkingDirectory = null
         const opened = this.openedPath.replace(/\/\.git$/, '')
-        if (path.relative(opened, workingDirectory) != '') {
+        if (path.relative(opened, workingDirectory) !== '') {
           openedWorkingDirectory = opened
         }
         return this.relativize(_path, workingDirectory, openedWorkingDirectory)
