@@ -443,11 +443,8 @@ export default class GitRepositoryAsync {
   // value can be passed to {::isStatusModified} or {::isStatusNew} to get more
   // information.
   getDirectoryStatus (directoryPath) {
-    return this.getRepo()
-      .then(repo => {
-        const relativePath = this.relativize(directoryPath, repo.workdir())
-        return this._getStatus([relativePath])
-      })
+    return this.relativizeToWorkingDirectory(directoryPath)
+      .then(relativePath => this._getStatus([relativePath]))
       .then(statuses => {
         return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
           return bits
