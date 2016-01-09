@@ -161,7 +161,16 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the relative {String} path.
   relativizeToWorkingDirectory (_path) {
     return this.getRepo()
-      .then(repo => this.relativize(_path, repo.workdir()))
+      .then((repo) => {
+        const workingDirectory = repo.workdir()
+        let openedWorkingDirectory = null
+        const opened = this.openedPath.replace(/\/\.git$/, '')
+        if (path.relative(opened, workingDirectory) != '') {
+          openedWorkingDirectory = opened
+        }
+        return this.relativize(_path, workingDirectory, openedWorkingDirectory)
+      }
+    )
   }
 
   // Public: Makes a path relative to the repository's working directory.
@@ -170,13 +179,7 @@ export default class GitRepositoryAsync {
   // * `workingDirectory` The {String} working directory path.
   //
   // Returns the relative {String} path.
-  relativize (_path, workingDirectory) {
-    // Cargo-culted from git-utils. The original implementation also handles
-    // this.openedWorkingDirectory, which is set by git-utils when the
-    // repository is opened. Those branches of the if tree aren't included here
-    // yet, but if we determine we still need that here it should be simple to
-    // port.
-    //
+  relativize (_path, workingDirectory, openedWorkingDirectory) {
     // The original implementation also handled null workingDirectory as it
     // pulled it from a sync function that could return null. We require it
     // to be passed here.
@@ -188,6 +191,9 @@ export default class GitRepositoryAsync {
     // prefix. Standardize by stripping that out.
     _path = _path.replace(/^\/private\//, '/')
     workingDirectory = workingDirectory.replace(/^\/private\//, '/')
+    if (openedWorkingDirectory) {
+      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//, '/')
+    }
 
     if (process.platform === 'win32') {
       _path = _path.replace(/\\/g, '/')
@@ -197,9 +203,11 @@ export default class GitRepositoryAsync {
       }
     }
 
-    if (!/\/$/.test(workingDirectory)) {
-      workingDirectory = `${workingDirectory}/`
+    if (openedWorkingDirectory) {
+      workingDirectory = openedWorkingDirectory
     }
+
+    workingDirectory = workingDirectory.replace(/\/$/, '')
 
     const originalPath = _path
     if (this.isCaseInsensitive) {
@@ -208,7 +216,7 @@ export default class GitRepositoryAsync {
     }
 
     if (_path.indexOf(workingDirectory) === 0) {
-      return originalPath.substring(workingDirectory.length)
+      return originalPath.substring(workingDirectory.length + 1)
     } else if (_path === workingDirectory) {
       return ''
     }
