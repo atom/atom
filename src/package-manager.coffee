@@ -199,7 +199,10 @@ class PackageManager
   # Returns the {Package} that was disabled or null if it isn't loaded.
   disablePackage: (name) ->
     pack = @loadPackage(name)
-    pack?.disable()
+
+    unless @isPackageDisabled(name)
+      pack?.disable()
+
     pack
 
   # Public: Is the package with the given name disabled?
