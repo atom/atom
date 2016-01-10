@@ -5807,9 +5807,15 @@ describe "TextEditor", ->
 
   describe "pending state", ->
     editor1 = null
+    events = null
+
     beforeEach ->
       waitsForPromise ->
         atom.workspace.open('sample.txt', pending: true).then (o) -> editor1 = o
+
+      runs ->
+        events = []
+        editor1.onDidTerminatePendingState (event) -> events.push(event)
 
     it "does not open file in pending state by default", ->
       expect(editor.isPending()).toBe false
@@ -5817,18 +5823,15 @@ describe "TextEditor", ->
     it "opens file in pending state if 'pending' option is true", ->
       expect(editor1.isPending()).toBe true
 
-    it "invokes ::onDidTerminatePendingState observers if pending status is removed", ->
-      events = []
-      editor1.onDidTerminatePendingState (event) -> events.push(event)
+    it "terminates pending state if ::terminatePendingState is invoked", ->
       editor1.terminatePendingState()
+
       expect(editor1.isPending()).toBe false
       expect(events).toEqual [editor1]
 
     it "terminates pending state when buffer is changed", ->
-      events = []
-      editor1.onDidTerminatePendingState (event) -> events.push(event)
-      expect(editor1.isPending()).toBe true
       editor1.insertText('I\'ll be back!')
       advanceClock(500)
+
       expect(editor1.isPending()).toBe false
       expect(events).toEqual [editor1]
