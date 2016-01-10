@@ -150,6 +150,7 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
+    pending: @isPending()
 
   subscribeToBuffer: ->
     @buffer.retain()
