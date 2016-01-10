@@ -155,25 +155,33 @@ describe "Pane", ->
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
 
-    it "replaces pending items", ->
-      itemC = new Item("C")
-      itemD = new Item("D")
-      itemC.pending = true
-      itemD.pending = true
+    describe "activating pending items", ->
+      itemC = null
+      itemD = null
 
-      expect(itemC.isPending()).toBe true
-      pane.activateItem(itemC)
-      expect(pane.getItems().length).toBe 3
-      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
+      beforeEach ->
+        itemC = new Item("C")
+        itemD = new Item("D")
+        itemC.pending = true
+        itemD.pending = true
+        pane.activateItem(itemC)
 
-      expect(itemD.isPending()).toBe true
-      pane.activateItem(itemD)
-      expect(pane.getItems().length).toBe 3
-      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
+      it "opens pending item", ->
+        expect(pane.getItems().length).toBe 3
+        expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
 
-      pane.activateItem(pane.itemAtIndex(2))
-      expect(pane.getItems().length).toBe 2
-      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
+      it "replaces original pending item when activating another pending item", ->
+        pane.activateItem(itemD)
+
+        expect(pane.getItems().length).toBe 3
+        expect(pane.getActiveItem()).toBe itemD
+        expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
+
+      it "closes pending item when non-pending item is activated", ->
+        pane.activateItem(pane.itemAtIndex(0))
+
+        expect(pane.getItems().length).toBe 2
+        expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
