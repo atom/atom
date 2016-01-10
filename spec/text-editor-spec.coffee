@@ -5835,3 +5835,22 @@ describe "TextEditor", ->
 
       expect(editor1.isPending()).toBe false
       expect(events).toEqual [editor1]
+
+    it "only calls terminate handler once when text is modified twice", ->
+      editor1.insertText('Some text')
+      advanceClock(500)
+
+      editor1.save()
+
+      editor1.insertText('More text')
+      advanceClock(500)
+
+      expect(editor1.isPending()).toBe false
+      expect(events).toEqual [editor1]
+
+    it "only calls terminate handler once when terminatePendingState is called twice", ->
+      editor1.terminatePendingState()
+      editor1.terminatePendingState()
+
+      expect(editor1.isPending()).toBe false
+      expect(events).toEqual [editor1]

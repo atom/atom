@@ -576,6 +576,7 @@ class TextEditor extends Model
     @emitter.on 'did-terminate-pending-state', callback
 
   terminatePendingState: ->
+    return if not @pending
     @pending = false
     @emitter.emit 'did-terminate-pending-state', this
 
