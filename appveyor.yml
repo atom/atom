@@ -1,5 +1,9 @@
 version: "{build}"
 
+branches:
+  only:
+    - master
+
 skip_tags: true
 clone_folder: c:\projects\atom
 clone_depth: 10
