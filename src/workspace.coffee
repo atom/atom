@@ -483,6 +483,8 @@ class Workspace extends Model
 
     Promise.resolve(item)
       .then (item) =>
+        return item if pane.isDestroyed()
+
         @itemOpened(item)
         pane.activateItem(item) if activateItem
         pane.activate() if activatePane
