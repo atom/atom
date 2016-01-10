@@ -12,7 +12,7 @@ describe "TextEditor", ->
 
   beforeEach ->
     waitsForPromise ->
-      atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
+      atom.workspace.open('sample.js', {autoIndent: false, pending: true}).then (o) -> editor = o
 
     runs ->
       buffer = editor.buffer
@@ -54,6 +54,13 @@ describe "TextEditor", ->
       editor2 = TextEditor.deserialize(state, atom)
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
+
+    it "restores pending tabs in pending state", ->
+      expect(editor.isPending()).toBe true
+
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
+
+      expect(editor2.isPending()).toBe true
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
