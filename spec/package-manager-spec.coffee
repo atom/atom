@@ -1026,7 +1026,7 @@ describe "PackageManager", ->
         expect(atom.packages.enablePackage("this-doesnt-exist")).toBeNull()
         expect(console.warn.callCount).toBe 1
 
-      fit "does not disable an already disabled package", ->
+      it "does not disable an already disabled package", ->
         packageName = 'package-with-main'
         atom.config.pushAtKeyPath('core.disabledPackages', packageName)
         atom.packages.observeDisabledPackages()
