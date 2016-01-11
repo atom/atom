@@ -5,7 +5,7 @@ path = require 'path'
 appFolder = path.resolve(process.execPath, '..')
 rootAtomFolder = path.resolve(appFolder, '..')
 binFolder = path.join(rootAtomFolder, 'bin')
-binFolder = path.join(appFolder, 'resources', 'cli') if not fs.existsSync(binFolder)
+binFolder = path.join(appFolder, 'resources', 'cli') unless fs.existsSync(binFolder)
 updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 exeName = path.basename(process.execPath)
 
