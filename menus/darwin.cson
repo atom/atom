@@ -111,32 +111,6 @@
   }
 
   {
-    label: 'Selection'
-    submenu: [
-      { label: 'Add Selection Above', command: 'editor:add-selection-above' }
-      { label: 'Add Selection Below', command: 'editor:add-selection-below' }
-      { label: 'Single Selection', command: 'editor:consolidate-selections'}
-      { label: 'Split into Lines', command: 'editor:split-selections-into-lines'}
-      { type: 'separator' }
-      { label: 'Select to Top', command: 'core:select-to-top' }
-      { label: 'Select to Bottom', command: 'core:select-to-bottom' }
-      { type: 'separator' }
-      { label: 'Select Line', command: 'editor:select-line' }
-      { label: 'Select Word', command: 'editor:select-word' }
-      { label: 'Select to Beginning of Word', command: 'editor:select-to-beginning-of-word' }
-      { label: 'Select to Beginning of Line', command: 'editor:select-to-beginning-of-line' }
-      { label: 'Select to First Character of Line', command: 'editor:select-to-first-character-of-line' }
-      { label: 'Select to End of Word', command: 'editor:select-to-end-of-word' }
-      { label: 'Select to End of Line', command: 'editor:select-to-end-of-line' }
-    ]
-  }
-
-  {
-    label: 'Find'
-    submenu: []
-  }
-
-  {
     label: 'View'
     submenu: [
       { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
@@ -175,6 +149,32 @@
       { type: 'separator' }
       { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
     ]
+  }
+
+  {
+    label: 'Selection'
+    submenu: [
+      { label: 'Add Selection Above', command: 'editor:add-selection-above' }
+      { label: 'Add Selection Below', command: 'editor:add-selection-below' }
+      { label: 'Single Selection', command: 'editor:consolidate-selections'}
+      { label: 'Split into Lines', command: 'editor:split-selections-into-lines'}
+      { type: 'separator' }
+      { label: 'Select to Top', command: 'core:select-to-top' }
+      { label: 'Select to Bottom', command: 'core:select-to-bottom' }
+      { type: 'separator' }
+      { label: 'Select Line', command: 'editor:select-line' }
+      { label: 'Select Word', command: 'editor:select-word' }
+      { label: 'Select to Beginning of Word', command: 'editor:select-to-beginning-of-word' }
+      { label: 'Select to Beginning of Line', command: 'editor:select-to-beginning-of-line' }
+      { label: 'Select to First Character of Line', command: 'editor:select-to-first-character-of-line' }
+      { label: 'Select to End of Word', command: 'editor:select-to-end-of-word' }
+      { label: 'Select to End of Line', command: 'editor:select-to-end-of-line' }
+    ]
+  }
+
+  {
+    label: 'Find'
+    submenu: []
   }
 
   {
