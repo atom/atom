@@ -900,6 +900,11 @@ export default class GitRepositoryAsync {
             return Promise.reject(e)
           }
         })
+        .catch(e => {
+          console.error('Error refreshing repository status:')
+          console.error(e)
+          return Promise.reject(e)
+        })
     })
     return this._refreshingPromise
   }
