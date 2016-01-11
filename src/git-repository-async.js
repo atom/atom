@@ -162,13 +162,12 @@ export default class GitRepositoryAsync {
   relativizeToWorkingDirectory (_path) {
     return this.getRepo()
       .then((repo) => {
-        const workingDirectory = repo.workdir()
-        let openedWorkingDirectory = null
+        let workingDirectory = repo.workdir()
         const opened = this.openedPath.replace(/\/\.git$/, '')
         if (path.relative(opened, workingDirectory) !== '') {
-          openedWorkingDirectory = opened
+          workingDirectory = opened
         }
-        return this.relativize(_path, workingDirectory, openedWorkingDirectory)
+        return this.relativize(_path, workingDirectory)
       }
     )
   }
@@ -179,7 +178,7 @@ export default class GitRepositoryAsync {
   // * `workingDirectory` The {String} working directory path.
   //
   // Returns the relative {String} path.
-  relativize (_path, workingDirectory, openedWorkingDirectory) {
+  relativize (_path, workingDirectory) {
     // The original implementation also handled null workingDirectory as it
     // pulled it from a sync function that could return null. We require it
     // to be passed here.
@@ -191,9 +190,6 @@ export default class GitRepositoryAsync {
     // prefix. Standardize by stripping that out.
     _path = _path.replace(/^\/private\//, '/')
     workingDirectory = workingDirectory.replace(/^\/private\//, '/')
-    if (openedWorkingDirectory) {
-      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//, '/')
-    }
 
     if (process.platform === 'win32') {
       _path = _path.replace(/\\/g, '/')
@@ -201,10 +197,6 @@ export default class GitRepositoryAsync {
       if (_path[0] !== '/') {
         return _path
       }
-    }
-
-    if (openedWorkingDirectory) {
-      workingDirectory = openedWorkingDirectory
     }
 
     workingDirectory = workingDirectory.replace(/\/$/, '')
