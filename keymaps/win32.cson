@@ -19,7 +19,7 @@
   'ctrl-alt-o': 'application:add-project-folder'
   'ctrl-shift-left': 'pane:move-item-left'
   'ctrl-shift-right': 'pane:move-item-right'
-  'F11': 'window:toggle-full-screen'
+  'f11': 'window:toggle-full-screen'
 
   # Sublime Parity
   'ctrl-,': 'application:show-settings'
