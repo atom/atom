@@ -43,6 +43,7 @@ export default class GitRepositoryAsync {
     this.submodules = {}
 
     this._refreshingCount = 0
+    this._refreshingPromise = Promise.resolve()
 
     let {refreshOnWindowFocus = true} = options
     if (refreshOnWindowFocus) {
@@ -896,18 +897,21 @@ export default class GitRepositoryAsync {
     const branch = this._refreshBranch()
     const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
 
-    return Promise.all([status, branch, aheadBehind])
-      .then(_ => null)
-      // Because all these refresh steps happen asynchronously, it's entirely
-      // possible the repository was destroyed while we were working. In which
-      // case we should just swallow the error.
-      .catch(e => {
-        if (this._isDestroyed()) {
-          return null
-        } else {
-          return Promise.reject(e)
-        }
-      })
+    this._refreshingPromise = this._refreshingPromise.then(_ => {
+      return Promise.all([status, branch, aheadBehind])
+        .then(_ => null)
+        // Because all these refresh steps happen asynchronously, it's entirely
+        // possible the repository was destroyed while we were working. In which
+        // case we should just swallow the error.
+        .catch(e => {
+          if (this._isDestroyed()) {
+            return null
+          } else {
+            return Promise.reject(e)
+          }
+        })
+    })
+    return this._refreshingPromise
   }
 
   // Get the submodule for the given path.
