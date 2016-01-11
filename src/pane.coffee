@@ -337,13 +337,19 @@ class Pane extends Model
   #
   # * `index` {Number}
   activateItemAtIndex: (index) ->
-    @activateItem(@itemAtIndex(index))
+    item = @itemAtIndex(index) or @getActiveItem()
+    @setActiveItem(item)
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   activateItem: (item) ->
     if item?
-      @addItem(item, @getActiveItemIndex() + 1, false)
+      if @activeItem?.isPending?()
+        index = @getActiveItemIndex()
+        @destroyActiveItem() unless item is @activeItem
+      else
+        index = @getActiveItemIndex() + 1
+      @addItem(item, index, false)
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -574,7 +580,6 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
     throw new Error("Pane has been destroyed") if @isDestroyed()
-
     @container?.setActivePane(this)
     @emitter.emit 'did-activate'
 
