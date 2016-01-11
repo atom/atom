@@ -58,7 +58,12 @@ spawnReg = (args, callback) ->
 spawnPowershell = (args, callback) ->
   # set encoding and execute the command, capture the output, and return it via .NET's console in order to have consistent UTF-8 encoding
   # http://stackoverflow.com/questions/22349139/utf-8-output-from-powershell
-  args[0] = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8\r\n$output=#{args[0]}\r\n[Console]::WriteLine($output)"
+  # to address https://github.com/atom/atom/issues/5063
+  args[0] = """
+    [Console]::OutputEncoding=[System.Text.Encoding]::UTF8
+    $output=#{args[0]}
+    [Console]::WriteLine($output)
+  """
   args.unshift('-command')
   args.unshift('RemoteSigned')
   args.unshift('-ExecutionPolicy')
