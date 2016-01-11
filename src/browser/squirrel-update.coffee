@@ -77,7 +77,7 @@ installContextMenu = (callback) ->
         addToRegistry(args, callback)
 
   recursivelyRegisterFileTypesForOpenWith = (index, callback) ->
-    if(index >= openWithFileExtensions.length)
+    if index >= openWithFileExtensions.length
       callback()
     else
       args = [filetypeKeyPath(openWithFileExtensions[index]), '/v', 'Atom']
@@ -149,7 +149,7 @@ uninstallContextMenu = (callback) ->
     spawnReg(['delete', keyPath, '/v', valueName, '/f'], callback)
 
   recursivelyRemoveFileTypesForOpenWith = (index, callback) ->
-    if(index >= openWithFileExtensions.length)
+    if index >= openWithFileExtensions.length
       callback()
     else
       deleteValueFromRegistry(filetypeKeyPath(openWithFileExtensions[index]), 'Atom', callback)
