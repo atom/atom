@@ -252,6 +252,9 @@ class LanguageMode
     decreaseThisIndentRegex = @decreaseThisIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
+    if not decreaseThisIndentRegex
+      decreaseThisIndentRegex = decreaseIndentRegex
+
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
