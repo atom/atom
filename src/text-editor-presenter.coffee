@@ -396,13 +396,14 @@ class TextEditorPresenter
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
-      blockDecorations = @blockDecorationsByScreenRow[screenRow] ? []
+      precedingBlockDecorations = @precedingBlockDecorationsByScreenRow[screenRow] ? []
+      followingBlockDecorations = @followingBlockDecorationsByScreenRow[screenRow] ? []
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
-        lineState.blockDecorations = blockDecorations
-        lineState.hasBlockDecorations = blockDecorations.length > 0
+        lineState.precedingBlockDecorations = precedingBlockDecorations
+        lineState.followingBlockDecorations = followingBlockDecorations
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -419,8 +420,8 @@ class TextEditorPresenter
           tabLength: line.tabLength
           fold: line.fold
           decorationClasses: @lineDecorationClassesForRow(screenRow)
-          blockDecorations: blockDecorations
-          hasBlockDecorations: blockDecorations.length > 0
+          precedingBlockDecorations: precedingBlockDecorations
+          followingBlockDecorations: followingBlockDecorations
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -1048,7 +1049,8 @@ class TextEditorPresenter
 
   updateBlockDecorations: ->
     @blockDecorationsToRenderById = {}
-    @blockDecorationsByScreenRow = {}
+    @precedingBlockDecorationsByScreenRow = {}
+    @followingBlockDecorationsByScreenRow = {}
     visibleDecorationsByMarkerId = @model.decorationsForScreenRowRange(@getStartTileRow(), @getEndTileRow() + @tileSize - 1)
 
     if @invalidateAllBlockDecorationsDimensions
@@ -1073,8 +1075,12 @@ class TextEditorPresenter
     return if @blockDecorationsToRenderById[decoration.getId()]
 
     screenRow = decoration.getMarker().getHeadScreenPosition().row
-    @blockDecorationsByScreenRow[screenRow] ?= []
-    @blockDecorationsByScreenRow[screenRow].push(decoration)
+    if decoration.getProperties().position is "before"
+      @precedingBlockDecorationsByScreenRow[screenRow] ?= []
+      @precedingBlockDecorationsByScreenRow[screenRow].push(decoration)
+    else
+      @followingBlockDecorationsByScreenRow[screenRow] ?= []
+      @followingBlockDecorationsByScreenRow[screenRow].push(decoration)
     @state.content.blockDecorations[decoration.getId()] = {decoration, screenRow, isVisible}
     @blockDecorationsToRenderById[decoration.getId()] = true
 
