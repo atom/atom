@@ -677,17 +677,16 @@ export default class GitRepositoryAsync {
   // =======
 
   checkoutHeadForEditor (editor) {
-    return new Promise((resolve, reject) => {
-      const filePath = editor.getPath()
-      if (filePath) {
-        if (editor.buffer.isModified()) {
-          editor.buffer.reload()
-        }
-        resolve(filePath)
-      } else {
-        reject()
-      }
-    }).then(filePath => this.checkoutHead(filePath))
+    const filePath = editor.getPath()
+    if (!filePath) {
+      return Promise.reject()
+    }
+
+    if (editor.buffer.isModified()) {
+      editor.buffer.reload()
+    }
+
+    return this.checkoutHead(filePath)
   }
 
   // Create a new branch with the given name.
