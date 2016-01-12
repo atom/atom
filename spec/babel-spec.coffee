@@ -1,4 +1,21 @@
+path = require('path')
+temp = require('temp').track()
+CompileCache = require('../src/compile-cache')
+
 describe "Babel transpiler support", ->
+  originalCacheDir = null
+
+  beforeEach ->
+    originalCacheDir = CompileCache.getCacheDirectory()
+    CompileCache.setCacheDirectory(temp.mkdirSync('compile-cache'))
+    for cacheKey in Object.keys(require.cache)
+      if cacheKey.startsWith(path.join(__dirname, 'fixtures', 'babel'))
+        console.log('deleting', cacheKey)
+        delete require.cache[cacheKey]
+
+  afterEach ->
+    CompileCache.setCacheDirectory(originalCacheDir)
+
   describe 'when a .js file starts with /** @babel */;', ->
     it "transpiles it using babel", ->
       transpiled = require('./fixtures/babel/babel-comment.js')
