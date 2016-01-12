@@ -246,6 +246,10 @@ describe('GitRepositoryAsync', () => {
       runs(() => editor = atom.workspace.getActiveTextEditor())
     })
 
+    afterEach(() => {
+      editor = null
+    })
+
     it('displays a confirmation dialog by default', async () => {
       atom.confirm.andCallFake(({buttons}) => buttons.OK())
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
@@ -266,8 +270,12 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.destroy()', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
     it('throws an exception when any method is called after it is called', async () => {
-      repo = new GitRepositoryAsync(require.resolve('./fixtures/git/master.git/HEAD'))
       repo.destroy()
 
       let error = null
@@ -276,7 +284,10 @@ describe('GitRepositoryAsync', () => {
       } catch (e) {
         error = e
       }
+
       expect(error.name).toBe(GitRepositoryAsync.DestroyedErrorName)
+
+      repo = null
     })
   })
 
@@ -404,7 +415,7 @@ describe('GitRepositoryAsync', () => {
       // need to wait for that to complete before the tests continue so that
       // we're in a known state.
       repo = atom.project.getRepositories()[0].async
-      waitsFor(() => !repo._isRefreshing())
+      waitsForPromise(() => repo.refreshStatus())
     })
 
     it('emits a status-changed event when a buffer is saved', async () => {
@@ -480,7 +491,7 @@ describe('GitRepositoryAsync', () => {
       // See the comment in the 'buffer events' beforeEach for why we need to do
       // this.
       const repository = atom.project.getRepositories()[0].async
-      waitsFor(() => !repository._isRefreshing())
+      waitsForPromise(() => repository.refreshStatus())
     })
 
     afterEach(() => {
@@ -494,7 +505,7 @@ describe('GitRepositoryAsync', () => {
       project2.deserialize(atom.project.serialize(), atom.deserializers)
 
       const repo = project2.getRepositories()[0].async
-      waitsFor(() => !repo._isRefreshing())
+      waitsForPromise(() => repo.refreshStatus())
       runs(() => {
         const buffer = project2.getBuffers()[0]
 

@@ -42,7 +42,7 @@ export default class GitRepositoryAsync {
     this.upstream = {}
     this.submodules = {}
 
-    this._refreshingCount = 0
+    this._refreshingPromise = Promise.resolve()
 
     let {refreshOnWindowFocus = true} = options
     if (refreshOnWindowFocus) {
@@ -471,8 +471,6 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Number} which is the refreshed
   // status bit for the path.
   refreshStatusForPath (_path) {
-    this._refreshingCount++
-
     let relativePath
     return this.getRepo()
       .then(repo => {
@@ -492,10 +490,6 @@ export default class GitRepositoryAsync {
           this.emitter.emit('did-change-status', {path: _path, pathStatus: status})
         }
 
-        return status
-      })
-      .then(status => {
-        this._refreshingCount--
         return status
       })
   }
@@ -695,17 +689,16 @@ export default class GitRepositoryAsync {
   // =======
 
   checkoutHeadForEditor (editor) {
-    return new Promise((resolve, reject) => {
-      const filePath = editor.getPath()
-      if (filePath) {
-        if (editor.buffer.isModified()) {
-          editor.buffer.reload()
-        }
-        resolve(filePath)
-      } else {
-        reject()
-      }
-    }).then(filePath => this.checkoutHead(filePath))
+    const filePath = editor.getPath()
+    if (!filePath) {
+      return Promise.reject()
+    }
+
+    if (editor.buffer.isModified()) {
+      editor.buffer.reload()
+    }
+
+    return this.checkoutHead(filePath)
   }
 
   // Create a new branch with the given name.
@@ -887,8 +880,6 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which will resolve to {null}.
   _refreshStatus () {
-    this._refreshingCount++
-
     return Promise.all([this._getRepositoryStatus(), this._getSubmoduleStatuses()])
       .then(([repositoryStatus, submoduleStatus]) => {
         const statusesByPath = _.extend({}, repositoryStatus, submoduleStatus)
@@ -897,7 +888,6 @@ export default class GitRepositoryAsync {
         }
         this.pathStatusCache = statusesByPath
       })
-      .then(_ => this._refreshingCount--)
   }
 
   // Refreshes the git status.
@@ -908,18 +898,26 @@ export default class GitRepositoryAsync {
     const branch = this._refreshBranch()
     const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
 
-    return Promise.all([status, branch, aheadBehind])
-      .then(_ => null)
-      // Because all these refresh steps happen asynchronously, it's entirely
-      // possible the repository was destroyed while we were working. In which
-      // case we should just swallow the error.
-      .catch(e => {
-        if (this._isDestroyed()) {
-          return null
-        } else {
+    this._refreshingPromise = this._refreshingPromise.then(_ => {
+      return Promise.all([status, branch, aheadBehind])
+        .then(_ => null)
+        // Because all these refresh steps happen asynchronously, it's entirely
+        // possible the repository was destroyed while we were working. In which
+        // case we should just swallow the error.
+        .catch(e => {
+          if (this._isDestroyed()) {
+            return null
+          } else {
+            return Promise.reject(e)
+          }
+        })
+        .catch(e => {
+          console.error('Error refreshing repository status:')
+          console.error(e)
           return Promise.reject(e)
-        }
-      })
+        })
+    })
+    return this._refreshingPromise
   }
 
   // Get the submodule for the given path.
@@ -974,13 +972,6 @@ export default class GitRepositoryAsync {
 
   // Section: Private
   // ================
-
-  // Is the repository currently refreshing its status?
-  //
-  // Returns a {Boolean}.
-  _isRefreshing () {
-    return this._refreshingCount === 0
-  }
 
   // Has the repository been destroyed?
   //

@@ -94,7 +94,6 @@
   {
     label: '&View'
     submenu: [
-      { label: '&Reload', command: 'window:reload' }
       { label: 'Toggle &Full Screen', command: 'window:toggle-full-screen' }
       { label: 'Toggle Menu Bar', command: 'window:toggle-menu-bar' }
       {
@@ -120,6 +119,7 @@
         label: 'Developer'
         submenu: [
           { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
+          { label: '&Reload Window', command: 'window:reload' }
           { label: 'Run Package &Specs', command: 'window:run-package-specs' }
           { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
         ]
