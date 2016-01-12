@@ -1,3 +1,8 @@
+# Users may have this environment variable set. Currently, it causes babel to
+# log to stderr, which causes errors on Windows.
+# See https://github.com/atom/electron/issues/2033
+process.env.DEBUG='*'
+
 path = require('path')
 temp = require('temp').track()
 CompileCache = require('../src/compile-cache')
@@ -34,3 +39,12 @@ describe "Babel transpiler support", ->
   describe "when a .js file does not start with 'use babel';", ->
     it "does not transpile it using babel", ->
       expect(-> require('./fixtures/babel/invalid.js')).toThrow()
+
+    it "does not try to log to stdout or stderr while parsing the file", ->
+      spyOn(process.stderr, 'write')
+      spyOn(process.stdout, 'write')
+
+      transpiled = require('./fixtures/babel/babel-double-quotes.js')
+
+      expect(process.stdout.write).not.toHaveBeenCalled()
+      expect(process.stderr.write).not.toHaveBeenCalled()
