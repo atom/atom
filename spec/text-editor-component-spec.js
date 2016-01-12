@@ -1652,12 +1652,22 @@ describe('TextEditorComponent', function () {
   })
 
   describe('block decorations rendering', function () {
-    function createBlockDecorationForScreenRowWith(screenRow, {className}) {
+    function createBlockDecorationBeforeScreenRow(screenRow, {className}) {
       let item = document.createElement("div")
       item.className = className || ""
       let blockDecoration = editor.decorateMarker(
         editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
-        {type: "block", item: item}
+        {type: "block", item: item, position: "before"}
+      )
+      return [item, blockDecoration]
+    }
+
+    function createBlockDecorationAfterScreenRow(screenRow, {className}) {
+      let item = document.createElement("div")
+      item.className = className || ""
+      let blockDecoration = editor.decorateMarker(
+        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        {type: "block", item: item, position: "after"}
       )
       return [item, blockDecoration]
     }
@@ -1673,16 +1683,18 @@ describe('TextEditorComponent', function () {
     })
 
     it("renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed", async function () {
-      let [item1, blockDecoration1] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
-      let [item2, blockDecoration2] = createBlockDecorationForScreenRowWith(2, {className: "decoration-2"})
-      let [item3, blockDecoration3] = createBlockDecorationForScreenRowWith(4, {className: "decoration-3"})
-      let [item4, blockDecoration4] = createBlockDecorationForScreenRowWith(7, {className: "decoration-4"})
+      let [item1, blockDecoration1] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
+      let [item2, blockDecoration2] = createBlockDecorationBeforeScreenRow(2, {className: "decoration-2"})
+      let [item3, blockDecoration3] = createBlockDecorationBeforeScreenRow(4, {className: "decoration-3"})
+      let [item4, blockDecoration4] = createBlockDecorationBeforeScreenRow(7, {className: "decoration-4"})
+      let [item5, blockDecoration5] = createBlockDecorationAfterScreenRow(7, {className: "decoration-5"})
 
       atom.styles.addStyleSheet(
         `atom-text-editor .decoration-1 { width: 30px; height: 80px; }
          atom-text-editor .decoration-2 { width: 30px; height: 40px; }
          atom-text-editor .decoration-3 { width: 30px; height: 100px; }
-         atom-text-editor .decoration-4 { width: 30px; height: 120px; }`,
+         atom-text-editor .decoration-4 { width: 30px; height: 120px; }
+         atom-text-editor .decoration-5 { width: 30px; height: 42px; }`,
          {context: 'atom-text-editor'}
       )
       await nextAnimationFramePromise()
@@ -1693,13 +1705,14 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
 
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBe(item1)
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
 
       expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
@@ -1717,13 +1730,14 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
 
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
 
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
@@ -1742,13 +1756,14 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
 
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
 
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
@@ -1764,21 +1779,23 @@ describe('TextEditorComponent', function () {
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
-      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + "px")
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
       expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
 
       expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
       expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
       expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
       expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBe(item5)
 
       expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
       expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
       expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100)
+      expect(item5.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100 + 120 + lineHeightInPixels)
     })
 
     it("correctly sets screen rows on <content> elements, both initially and when decorations move", async function () {
-      let [item, blockDecoration] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; height: 80px; }',
          {context: 'atom-text-editor'}
@@ -1824,7 +1841,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('measures block decorations taking into account both top and bottom margins', async function () {
-      let [item, blockDecoration] = createBlockDecorationForScreenRowWith(0, {className: "decoration-1"})
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
       atom.styles.addStyleSheet(
         'atom-text-editor .decoration-1 { width: 30px; height: 30px; margin-top: 10px; margin-bottom: 5px; }',
          {context: 'atom-text-editor'}

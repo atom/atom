@@ -404,6 +404,8 @@ class TextEditorPresenter
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
         lineState.precedingBlockDecorations = precedingBlockDecorations
         lineState.followingBlockDecorations = followingBlockDecorations
+        lineState.hasPrecedingBlockDecorations = precedingBlockDecorations.length > 0
+        lineState.hasFollowingBlockDecorations = followingBlockDecorations.length > 0
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -422,6 +424,8 @@ class TextEditorPresenter
           decorationClasses: @lineDecorationClassesForRow(screenRow)
           precedingBlockDecorations: precedingBlockDecorations
           followingBlockDecorations: followingBlockDecorations
+          hasPrecedingBlockDecorations: precedingBlockDecorations.length > 0
+          hasFollowingBlockDecorations: followingBlockDecorations.length > 0
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)

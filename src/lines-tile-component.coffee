@@ -20,7 +20,8 @@ class LinesTileComponent
     @screenRowsByLineId = {}
     @lineIdsByScreenRow = {}
     @textNodesByLineId = {}
-    @insertionPointsByLineId = {}
+    @insertionPointsBeforeLineById = {}
+    @insertionPointsAfterLineById = {}
     @domNode = @domElementPool.buildElement("div")
     @domNode.style.position = "absolute"
     @domNode.style.display = "block"
@@ -81,7 +82,8 @@ class LinesTileComponent
 
   removeLineNode: (id) ->
     @domElementPool.freeElementAndDescendants(@lineNodesByLineId[id])
-    @removeBlockDecorationInsertionPoint(id)
+    @removeBlockDecorationInsertionPointBeforeLine(id)
+    @removeBlockDecorationInsertionPointAfterLine(id)
 
     delete @lineNodesByLineId[id]
     delete @textNodesByLineId[id]
@@ -119,37 +121,70 @@ class LinesTileComponent
       else
         @domNode.appendChild(lineNode)
 
-      @insertBlockDecorationInsertionPoint(id)
+      @insertBlockDecorationInsertionPointBeforeLine(id)
+      @insertBlockDecorationInsertionPointAfterLine(id)
 
-  removeBlockDecorationInsertionPoint: (id) ->
-    if insertionPoint = @insertionPointsByLineId[id]
+  removeBlockDecorationInsertionPointBeforeLine: (id) ->
+    if insertionPoint = @insertionPointsBeforeLineById[id]
       @domElementPool.freeElementAndDescendants(insertionPoint)
-      delete @insertionPointsByLineId[id]
+      delete @insertionPointsBeforeLineById[id]
 
-  insertBlockDecorationInsertionPoint: (id) ->
-    {hasBlockDecorations, screenRow} = @newTileState.lines[id]
+  insertBlockDecorationInsertionPointBeforeLine: (id) ->
+    {hasPrecedingBlockDecorations, screenRow} = @newTileState.lines[id]
 
-    if hasBlockDecorations
+    if hasPrecedingBlockDecorations
       lineNode = @lineNodesByLineId[id]
       insertionPoint = @domElementPool.buildElement("content")
       @domNode.insertBefore(insertionPoint, lineNode)
-      @insertionPointsByLineId[id] = insertionPoint
+      @insertionPointsBeforeLineById[id] = insertionPoint
       insertionPoint.dataset.screenRow = screenRow
-      @updateBlockDecorationInsertionPoint(id)
+      @updateBlockDecorationInsertionPointBeforeLine(id)
 
-  updateBlockDecorationInsertionPoint: (id) ->
+  updateBlockDecorationInsertionPointBeforeLine: (id) ->
     oldLineState = @oldTileState.lines[id]
     newLineState = @newTileState.lines[id]
-    insertionPoint = @insertionPointsByLineId[id]
+    insertionPoint = @insertionPointsBeforeLineById[id]
     return unless insertionPoint?
 
     if newLineState.screenRow isnt oldLineState.screenRow
       insertionPoint.dataset.screenRow = newLineState.screenRow
 
-    blockDecorationsSelector = newLineState.blockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
-    if blockDecorationsSelector isnt oldLineState.blockDecorationsSelector
-      insertionPoint.setAttribute("select", blockDecorationsSelector)
-      oldLineState.blockDecorationsSelector = blockDecorationsSelector
+    precedingBlockDecorationsSelector = newLineState.precedingBlockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
+
+    if precedingBlockDecorationsSelector isnt oldLineState.precedingBlockDecorationsSelector
+      insertionPoint.setAttribute("select", precedingBlockDecorationsSelector)
+      oldLineState.precedingBlockDecorationsSelector = precedingBlockDecorationsSelector
+
+  removeBlockDecorationInsertionPointAfterLine: (id) ->
+    if insertionPoint = @insertionPointsAfterLineById[id]
+      @domElementPool.freeElementAndDescendants(insertionPoint)
+      delete @insertionPointsAfterLineById[id]
+
+  insertBlockDecorationInsertionPointAfterLine: (id) ->
+    {hasFollowingBlockDecorations, screenRow} = @newTileState.lines[id]
+
+    if hasFollowingBlockDecorations
+      lineNode = @lineNodesByLineId[id]
+      insertionPoint = @domElementPool.buildElement("content")
+      @domNode.insertBefore(insertionPoint, lineNode.nextSibling)
+      @insertionPointsAfterLineById[id] = insertionPoint
+      insertionPoint.dataset.screenRow = screenRow
+      @updateBlockDecorationInsertionPointAfterLine(id)
+
+  updateBlockDecorationInsertionPointAfterLine: (id) ->
+    oldLineState = @oldTileState.lines[id]
+    newLineState = @newTileState.lines[id]
+    insertionPoint = @insertionPointsAfterLineById[id]
+    return unless insertionPoint?
+
+    if newLineState.screenRow isnt oldLineState.screenRow
+      insertionPoint.dataset.screenRow = newLineState.screenRow
+
+    followingBlockDecorationsSelector = newLineState.followingBlockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
+
+    if followingBlockDecorationsSelector isnt oldLineState.followingBlockDecorationsSelector
+      insertionPoint.setAttribute("select", followingBlockDecorationsSelector)
+      oldLineState.followingBlockDecorationsSelector = followingBlockDecorationsSelector
 
   findNodeNextTo: (node) ->
     for nextNode, index in @domNode.children
@@ -371,20 +406,27 @@ class LinesTileComponent
 
     oldLineState.decorationClasses = newLineState.decorationClasses
 
-    if not oldLineState.hasBlockDecorations and newLineState.hasBlockDecorations
-      @insertBlockDecorationInsertionPoint(id)
-    else if oldLineState.hasBlockDecorations and not newLineState.hasBlockDecorations
-      @removeBlockDecorationInsertionPoint(id)
+    if not oldLineState.hasPrecedingBlockDecorations and newLineState.hasPrecedingBlockDecorations
+      @insertBlockDecorationInsertionPointBeforeLine(id)
+    else if oldLineState.hasPrecedingBlockDecorations and not newLineState.hasPrecedingBlockDecorations
+      @removeBlockDecorationInsertionPointBeforeLine(id)
+
+    if not oldLineState.hasFollowingBlockDecorations and newLineState.hasFollowingBlockDecorations
+      @insertBlockDecorationInsertionPointAfterLine(id)
+    else if oldLineState.hasFollowingBlockDecorations and not newLineState.hasFollowingBlockDecorations
+      @removeBlockDecorationInsertionPointAfterLine(id)
 
     if newLineState.screenRow isnt oldLineState.screenRow
       lineNode.dataset.screenRow = newLineState.screenRow
       @lineIdsByScreenRow[newLineState.screenRow] = id
       @screenRowsByLineId[id] = newLineState.screenRow
 
-    @updateBlockDecorationInsertionPoint(id)
+    @updateBlockDecorationInsertionPointBeforeLine(id)
+    @updateBlockDecorationInsertionPointAfterLine(id)
 
     oldLineState.screenRow = newLineState.screenRow
-    oldLineState.hasBlockDecorations = newLineState.hasBlockDecorations
+    oldLineState.hasPrecedingBlockDecorations = newLineState.hasPrecedingBlockDecorations
+    oldLineState.hasFollowingBlockDecorations = newLineState.hasFollowingBlockDecorations
 
   lineNodeForScreenRow: (screenRow) ->
     @lineNodesByLineId[@lineIdsByScreenRow[screenRow]]
