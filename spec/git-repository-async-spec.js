@@ -270,8 +270,12 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.destroy()', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
     it('throws an exception when any method is called after it is called', async () => {
-      repo = new GitRepositoryAsync(require.resolve('./fixtures/git/master.git/HEAD'))
       repo.destroy()
 
       let error = null
@@ -280,7 +284,10 @@ describe('GitRepositoryAsync', () => {
       } catch (e) {
         error = e
       }
+
       expect(error.name).toBe(GitRepositoryAsync.DestroyedErrorName)
+
+      repo = null
     })
   })
 
