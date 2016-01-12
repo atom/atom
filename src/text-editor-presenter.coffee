@@ -349,8 +349,8 @@ class TextEditorPresenter
 
       continue if rowsWithinTile.length is 0
 
-      top = Math.round(@lineTopIndex.pixelPositionForRow(tileStartRow - 1) + @lineHeight)
-      bottom = Math.round(@lineTopIndex.pixelPositionForRow(tileEndRow - 1) + @lineHeight)
+      top = Math.round(@lineTopIndex.pixelPositionForFirstBlockAtRow(tileStartRow))
+      bottom = Math.round(@lineTopIndex.pixelPositionForFirstBlockAtRow(tileEndRow))
       height = bottom - top
 
       tile = @state.content.tiles[tileStartRow] ?= {}
@@ -558,7 +558,7 @@ class TextEditorPresenter
       continue unless @gutterIsVisible(gutter)
       for decorationId, {properties, screenRange} of @customGutterDecorationsByGutterName[gutterName]
         top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
-        bottom = @lineTopIndex.pixelPositionForRow(screenRange.end.row) + @lineHeight
+        bottom = @lineTopIndex.pixelPositionForFirstBlockAtRow(screenRange.end.row + 1)
         @customGutterDecorations[gutterName][decorationId] =
           top: top
           height: bottom - top
@@ -609,8 +609,9 @@ class TextEditorPresenter
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
-        previousRowBottomPixelPosition = @lineTopIndex.pixelPositionForRow(screenRow - 1) + @lineHeight
-        blockDecorationsHeight = @lineTopIndex.pixelPositionForRow(screenRow) - previousRowBottomPixelPosition
+        blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionForFirstBlockAtRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionForRow(screenRow - 1)
+        blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionForRow(screenRow) - @lineTopIndex.pixelPositionForFirstBlockAtRow(screenRow)
+        blockDecorationsHeight = blockDecorationsAfterPreviousScreenRowHeight + blockDecorationsBeforeCurrentScreenRowHeight
 
         tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
         visibleLineNumberIds[line.id] = true
@@ -1199,7 +1200,7 @@ class TextEditorPresenter
       screenRange.end.column = 0
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - (@lineTopIndex.pixelPositionForRow(tileStartRow - 1) + @lineHeight)
+    region.top  += @scrollTop - @lineTopIndex.pixelPositionForFirstBlockAtRow(tileStartRow)
     region.left += @scrollLeft
 
   buildHighlightRegions: (screenRange) ->
@@ -1308,7 +1309,8 @@ class TextEditorPresenter
       didDestroyDisposable.dispose()
       @didDestroyBlockDecoration(decoration)
 
-    @lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition().row, 0)
+    isAfter = decoration.getProperties().position is "after"
+    @lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition().row, 0, isAfter)
 
     @observedBlockDecorations.add(decoration)
     @invalidateBlockDecorationDimensions(decoration)
