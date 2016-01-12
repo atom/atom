@@ -84,7 +84,7 @@ class LinesYardstick
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
-    top = @lineTopIndex.pixelPositionForRow(targetRow)
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
     {top, left}

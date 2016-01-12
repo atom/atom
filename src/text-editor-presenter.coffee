@@ -349,8 +349,8 @@ class TextEditorPresenter
 
       continue if rowsWithinTile.length is 0
 
-      top = Math.round(@lineTopIndex.pixelPositionForFirstBlockAtRow(tileStartRow))
-      bottom = Math.round(@lineTopIndex.pixelPositionForFirstBlockAtRow(tileEndRow))
+      top = Math.round(@lineTopIndex.pixelPositionBeforeBlocksForRow(tileStartRow))
+      bottom = Math.round(@lineTopIndex.pixelPositionBeforeBlocksForRow(tileEndRow))
       height = bottom - top
 
       tile = @state.content.tiles[tileStartRow] ?= {}
@@ -557,8 +557,8 @@ class TextEditorPresenter
 
       continue unless @gutterIsVisible(gutter)
       for decorationId, {properties, screenRange} of @customGutterDecorationsByGutterName[gutterName]
-        top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
-        bottom = @lineTopIndex.pixelPositionForFirstBlockAtRow(screenRange.end.row + 1)
+        top = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRange.start.row)
+        bottom = @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRange.end.row + 1)
         @customGutterDecorations[gutterName][decorationId] =
           top: top
           height: bottom - top
@@ -609,8 +609,8 @@ class TextEditorPresenter
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
-        blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionForFirstBlockAtRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionForRow(screenRow - 1)
-        blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionForRow(screenRow) - @lineTopIndex.pixelPositionForFirstBlockAtRow(screenRow)
+        blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow - 1)
+        blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
         blockDecorationsHeight = blockDecorationsAfterPreviousScreenRowHeight + blockDecorationsBeforeCurrentScreenRowHeight
 
         tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
@@ -664,7 +664,7 @@ class TextEditorPresenter
   updateVerticalDimensions: ->
     if @lineHeight?
       oldContentHeight = @contentHeight
-      @contentHeight = Math.round(@lineTopIndex.pixelPositionForRow(@model.getScreenLineCount()))
+      @contentHeight = Math.round(@lineTopIndex.pixelPositionAfterBlocksForRow(@model.getScreenLineCount()))
 
     if @contentHeight isnt oldContentHeight
       @updateHeight()
@@ -1200,7 +1200,7 @@ class TextEditorPresenter
       screenRange.end.column = 0
 
   repositionRegionWithinTile: (region, tileStartRow) ->
-    region.top  += @scrollTop - @lineTopIndex.pixelPositionForFirstBlockAtRow(tileStartRow)
+    region.top  += @scrollTop - @lineTopIndex.pixelPositionBeforeBlocksForRow(tileStartRow)
     region.left += @scrollLeft
 
   buildHighlightRegions: (screenRange) ->
@@ -1397,7 +1397,7 @@ class TextEditorPresenter
     @emitDidUpdateState()
 
   didChangeFirstVisibleScreenRow: (screenRow) ->
-    @setScrollTop(@lineTopIndex.pixelPositionForRow(screenRow))
+    @setScrollTop(@lineTopIndex.pixelPositionAfterBlocksForRow(screenRow))
 
   getVerticalScrollMarginInPixels: ->
     Math.round(@model.getVerticalScrollMargin() * @lineHeight)
@@ -1418,8 +1418,8 @@ class TextEditorPresenter
 
     verticalScrollMarginInPixels = @getVerticalScrollMarginInPixels()
 
-    top = @lineTopIndex.pixelPositionForRow(screenRange.start.row)
-    bottom = @lineTopIndex.pixelPositionForRow(screenRange.end.row) + @lineHeight
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRange.start.row)
+    bottom = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRange.end.row) + @lineHeight
 
     if options?.center
       desiredScrollCenter = (top + bottom) / 2
@@ -1491,7 +1491,7 @@ class TextEditorPresenter
 
   restoreScrollTopIfNeeded: ->
     unless @scrollTop?
-      @updateScrollTop(@lineTopIndex.pixelPositionForRow(@model.getFirstVisibleScreenRow()))
+      @updateScrollTop(@lineTopIndex.pixelPositionAfterBlocksForRow(@model.getFirstVisibleScreenRow()))
 
   restoreScrollLeftIfNeeded: ->
     unless @scrollLeft?

@@ -27,7 +27,7 @@ class FakeLinesYardstick
     targetColumn = screenPosition.column
     baseCharacterWidth = @model.getDefaultCharWidth()
 
-    top = @lineTopIndex.pixelPositionForRow(targetRow)
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = 0
     column = 0
 
