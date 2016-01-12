@@ -246,6 +246,10 @@ describe('GitRepositoryAsync', () => {
       runs(() => editor = atom.workspace.getActiveTextEditor())
     })
 
+    afterEach(() => {
+      editor = null
+    })
+
     it('displays a confirmation dialog by default', async () => {
       atom.confirm.andCallFake(({buttons}) => buttons.OK())
       atom.config.set('editor.confirmCheckoutHeadRevision', true)
