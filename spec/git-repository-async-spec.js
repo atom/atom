@@ -427,7 +427,7 @@ describe('GitRepositoryAsync', () => {
       repo.onDidChangeStatus(statusHandler)
       editor.save()
 
-      waitsFor(() => statusHandler.callCount > 0)
+      waitsFor('the onDidChangeStatus handler to be called', () => statusHandler.callCount > 0)
       runs(() => {
         expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -443,7 +443,7 @@ describe('GitRepositoryAsync', () => {
       repo.onDidChangeStatus(statusHandler)
       editor.getBuffer().reload()
 
-      waitsFor(() => statusHandler.callCount > 0)
+      waitsFor('the onDidChangeStatus handler to be called', () => statusHandler.callCount > 0)
       runs(() => {
         expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
