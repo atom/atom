@@ -13,7 +13,7 @@
   'ctrl-alt-o': 'application:add-project-folder'
   'ctrl-shift-pageup': 'pane:move-item-left'
   'ctrl-shift-pagedown': 'pane:move-item-right'
-  'F11': 'window:toggle-full-screen'
+  'f11': 'window:toggle-full-screen'
 
   # Sublime Parity
   'ctrl-,': 'application:show-settings'
