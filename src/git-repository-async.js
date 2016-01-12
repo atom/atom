@@ -161,11 +161,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the relative {String} path.
   relativizeToWorkingDirectory (_path) {
     return this.getRepo()
-      .then((repo) => {
-        let workingDirectory = repo.workdir()
-        return this.relativize(_path, workingDirectory)
-      }
-    )
+      .then(repo => this.relativize(_path, repo.workdir()))
   }
 
   // Public: Makes a path relative to the repository's working directory.
