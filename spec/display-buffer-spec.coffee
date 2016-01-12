@@ -1253,6 +1253,13 @@ describe "DisplayBuffer", ->
       decoration.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
+    it "does not allow destroyed markers to be decorated", ->
+      marker.destroy()
+      expect(->
+        displayBuffer.decorateMarker(marker, {type: 'overlay', item: document.createElement('div')})
+      ).toThrow("Cannot decorate a destroyed marker")
+      expect(displayBuffer.getOverlayDecorations()).toEqual []
+
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
         decoration.onDidChangeProperties updatedSpy = jasmine.createSpy()
