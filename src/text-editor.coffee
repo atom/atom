@@ -1423,8 +1423,8 @@ class TextEditor extends Model
   # * __gutter__: A decoration that tracks a {TextEditorMarker} in a {Gutter}. Gutter
   #     decorations are created by calling {Gutter::decorateMarker} on the
   #     desired `Gutter` instance.
-  # * __block__: A decoration that lies between the {TextEditorMarker} row and
-  #     the previous one.
+  # * __block__: Positions the view associated with the given item before or
+  #     after the row of the given `TextEditorMarker`.
   #
   # ## Arguments
   #
@@ -1444,6 +1444,9 @@ class TextEditor extends Model
   #       property.
   #     * `gutter` Tracks a {TextEditorMarker} in a {Gutter}. Created by calling
   #       {Gutter::decorateMarker} on the desired `Gutter` instance.
+  #     * `block` Positions the view associated with the given item before or
+  #       after the row of the given `TextEditorMarker`, depending on the `position`
+  #       property.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
@@ -1458,9 +1461,10 @@ class TextEditor extends Model
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
   #     if the associated `TextEditorMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
-  #   * `position` (optional) Only applicable to decorations of type `overlay`,
-  #     controls where the overlay view is positioned relative to the `TextEditorMarker`.
-  #     Values can be `'head'` (the default), or `'tail'`.
+  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`,
+  #     controls where the view is positioned relative to the `TextEditorMarker`.
+  #     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
+  #     `'before'` (the default) or `'after'` for block decorations.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
