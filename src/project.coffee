@@ -288,7 +288,7 @@ class Project extends Model
       'atom.repository-provider',
       '^0.1.0',
       (provider) =>
-        @repositoryProviders.push(provider)
+        @repositoryProviders.unshift(provider)
         @setPaths(@getPaths()) if null in @repositories
         new Disposable =>
           @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)

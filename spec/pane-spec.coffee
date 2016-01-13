@@ -18,6 +18,8 @@ describe "Pane", ->
     onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
     destroy: -> @destroyed = true; @emitter.emit('did-destroy')
     isDestroyed: -> @destroyed
+    isPending: -> @pending
+    pending: false
 
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm')
@@ -152,6 +154,26 @@ describe "Pane", ->
       pane.onDidChangeActiveItem (item) -> observed.push(item)
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
+
+    it "replaces pending items", ->
+      itemC = new Item("C")
+      itemD = new Item("D")
+      itemC.pending = true
+      itemD.pending = true
+
+      expect(itemC.isPending()).toBe true
+      pane.activateItem(itemC)
+      expect(pane.getItems().length).toBe 3
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
+
+      expect(itemD.isPending()).toBe true
+      pane.activateItem(itemD)
+      expect(pane.getItems().length).toBe 3
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
+
+      pane.activateItem(pane.itemAtIndex(2))
+      expect(pane.getItems().length).toBe 2
+      expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->

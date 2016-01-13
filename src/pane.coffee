@@ -337,13 +337,19 @@ class Pane extends Model
   #
   # * `index` {Number}
   activateItemAtIndex: (index) ->
-    @activateItem(@itemAtIndex(index))
+    item = @itemAtIndex(index) or @getActiveItem()
+    @setActiveItem(item)
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   activateItem: (item) ->
     if item?
-      @addItem(item, @getActiveItemIndex() + 1, false)
+      if @activeItem?.isPending?()
+        index = @getActiveItemIndex()
+        @destroyActiveItem() unless item is @activeItem
+      else
+        index = @getActiveItemIndex() + 1
+      @addItem(item, index, false)
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -574,7 +580,6 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
     throw new Error("Pane has been destroyed") if @isDestroyed()
-
     @container?.setActivePane(this)
     @emitter.emit 'did-activate'
 
@@ -721,30 +726,28 @@ class Pane extends Model
       message = "#{message} '#{itemPath}'" if itemPath
       @notificationManager.addWarning(message, options)
 
-    if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
+    customMessage = @getMessageForErrorCode(error.code)
+    if customMessage?
+      addWarningWithPath("Unable to save file: #{customMessage}")
+    else if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
       @notificationManager.addWarning("Unable to save file: #{error.message}")
-    else if error.code is 'EACCES'
-      addWarningWithPath('Unable to save file: Permission denied')
     else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST', 'ELOOP', 'EAGAIN']
       addWarningWithPath('Unable to save file', detail: error.message)
-    else if error.code is 'EROFS'
-      addWarningWithPath('Unable to save file: Read-only file system')
-    else if error.code is 'ENOSPC'
-      addWarningWithPath('Unable to save file: No space left on device')
-    else if error.code is 'ENXIO'
-      addWarningWithPath('Unable to save file: No such device or address')
-    else if error.code is 'ENOTSUP'
-      addWarningWithPath('Unable to save file: Operation not supported on socket')
-    else if error.code is 'EIO'
-      addWarningWithPath('Unable to save file: I/O error writing file')
-    else if error.code is 'EINTR'
-      addWarningWithPath('Unable to save file: Interrupted system call')
-    else if error.code is 'ECONNRESET'
-      addWarningWithPath('Unable to save file: Connection reset')
-    else if error.code is 'ESPIPE'
-      addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       @notificationManager.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
     else
       throw error
+
+  getMessageForErrorCode: (errorCode) ->
+    switch errorCode
+      when 'EACCES' then 'Permission denied'
+      when 'ECONNRESET' then 'Connection reset'
+      when 'EINTR' then 'Interrupted system call'
+      when 'EIO' then 'I/O error writing file'
+      when 'ENOSPC' then 'No space left on device'
+      when 'ENOTSUP' then 'Operation not supported on socket'
+      when 'ENXIO' then 'No such device or address'
+      when 'EROFS' then 'Read-only file system'
+      when 'ESPIPE' then 'Invalid seek'
+      when 'ETIMEDOUT' then 'Connection timed out'

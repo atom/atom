@@ -475,7 +475,7 @@ class Workspace extends Model
         when 'EACCES'
           @notificationManager.addWarning("Permission denied '#{error.path}'")
           return Promise.resolve()
-        when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL', 'EMFILE', 'ENOTDIR'
+        when 'EPERM', 'EBUSY', 'ENXIO', 'EIO', 'ENOTCONN', 'UNKNOWN', 'ECONNRESET', 'EINVAL', 'EMFILE', 'ENOTDIR', 'EAGAIN'
           @notificationManager.addWarning("Unable to open '#{error.path ? uri}'", detail: error.message)
           return Promise.resolve()
         else
