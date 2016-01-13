@@ -238,6 +238,11 @@ module.exports =
             default: '\u00b7'
             maximumLength: 1
             description: 'Character used to render leading and trailing space characters when the `Show Invisibles` setting is enabled.'
+          nonBreakingSpace:
+            type: ['boolean', 'string']
+            default: '_'
+            maximumLength: 1
+            description: 'Character used to render non breaking space characters when the `Show Invisibles` setting is enabled.'
           tab:
             type: ['boolean', 'string']
             default: '\u00bb'
