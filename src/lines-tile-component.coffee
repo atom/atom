@@ -5,7 +5,6 @@ TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 TokenTextEscapeRegex = /[&"'<>]/g
 MaxTokenLength = 20000
-NonBreakingSpace = '\u00A0'
 
 cloneObject = (object) ->
   clone = {}
@@ -205,6 +204,7 @@ class LinesTileComponent
       tokenEnd = @tokenIterator.getScreenEnd()
       tokenText = @tokenIterator.getText()
       isHardTab = @tokenIterator.isHardTab()
+      isNonBreakingSpace = @tokenIterator.isNonBreakingSpace()
 
       if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
         tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
@@ -222,13 +222,14 @@ class LinesTileComponent
 
       hasInvisibleCharacters =
         (invisibles?.tab and isHardTab) or
-          (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
+          (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace) or
+          (invisibles?.nonBreakingSpace))
 
-      @appendTokenNodes(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, openScopeNode, invisibles?.nonBreakingSpace)
+      @appendTokenNodes(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, openScopeNode, isNonBreakingSpace)
 
     @appendEndOfLineNodes(id, lineNode)
 
-  appendTokenNodes: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, scopeNode, nonBreakingSpace) ->
+  appendTokenNodes: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, scopeNode, isNonBreakingSpace) ->
     if isHardTab
       textNode = @domElementPool.buildText(tokenText)
       hardTabNode = @domElementPool.buildElement("span", "hard-tab")
@@ -239,6 +240,17 @@ class LinesTileComponent
       hardTabNode.appendChild(textNode)
 
       scopeNode.appendChild(hardTabNode)
+      @currentLineTextNodes.push(textNode)
+    else if isNonBreakingSpace
+      textNode = @domElementPool.buildText(tokenText)
+      nonBreakingSpaceNode = @domElementPool.buildElement("span", "non-breaking-space")
+      nonBreakingSpaceNode.classList.add("leading-whitespace") if firstNonWhitespaceIndex?
+      nonBreakingSpaceNode.classList.add("trailing-whitespace") if firstTrailingWhitespaceIndex?
+      nonBreakingSpaceNode.classList.add("indent-guide") if hasIndentGuide
+      nonBreakingSpaceNode.classList.add("invisible-character") if hasInvisibleCharacters
+      nonBreakingSpaceNode.appendChild(textNode)
+
+      scopeNode.appendChild(nonBreakingSpaceNode)
       @currentLineTextNodes.push(textNode)
     else
       startIndex = 0
@@ -277,62 +289,19 @@ class LinesTileComponent
 
       if tokenText.length > MaxTokenLength
         while startIndex < endIndex
-          if nonBreakingSpace
-            tokenTextParts = @sliceText(tokenText, startIndex, endIndex).split(NonBreakingSpace)
+          textNode = @domElementPool.buildText(
+            @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
+          )
+          textSpan = @domElementPool.buildElement("span")
 
-            for tokenTextPart, index in tokenTextParts
-              if tokenTextPart.length
-                textNode = @domElementPool.buildText(tokenTextPart)
-                textSpan = @domElementPool.buildElement("span")
-
-                textSpan.appendChild(textNode)
-                scopeNode.appendChild(textSpan)
-
-                @currentLineTextNodes.push(textNode)
-              break if index is tokenTextParts.length-1
-
-              nonBreakingSpaceTextNode =
-                @domElementPool.buildText(nonBreakingSpace)
-              nonBreakingSpaceNode = @domElementPool.buildElement("span", "non-breaking-space")
-              nonBreakingSpaceNode.classList.add("invisible-character")
-              nonBreakingSpaceNode.appendChild(nonBreakingSpaceTextNode)
-              scopeNode.appendChild(nonBreakingSpaceNode)
-              @currentLineTextNodes.push(nonBreakingSpaceTextNode)
-
-          else
-            textNode = @domElementPool.buildText(
-              @sliceText(tokenText, startIndex, startIndex + MaxTokenLength)
-            )
-            textSpan = @domElementPool.buildElement("span")
-
-            textSpan.appendChild(textNode)
-            scopeNode.appendChild(textSpan)
-            @currentLineTextNodes.push(textNode)
-
+          textSpan.appendChild(textNode)
+          scopeNode.appendChild(textSpan)
           startIndex += MaxTokenLength
-      else
-        if nonBreakingSpace
-          tokenTextParts = @sliceText(tokenText, startIndex, endIndex).split(NonBreakingSpace)
-
-          for tokenTextPart, index in tokenTextParts
-            if tokenTextPart.length
-              textNode = @domElementPool.buildText(tokenTextPart)
-              scopeNode.appendChild(textNode)
-              @currentLineTextNodes.push(textNode)
-            break if index is tokenTextParts.length-1
-
-            nonBreakingSpaceTextNode =
-              @domElementPool.buildText(nonBreakingSpace)
-            nonBreakingSpaceNode = @domElementPool.buildElement("span", "non-breaking-space")
-            nonBreakingSpaceNode.classList.add("invisible-character")
-            nonBreakingSpaceNode.appendChild(nonBreakingSpaceTextNode)
-            scopeNode.appendChild(nonBreakingSpaceNode)
-            @currentLineTextNodes.push(nonBreakingSpaceTextNode)
-
-        else
-          textNode = @domElementPool.buildText(@sliceText(tokenText, startIndex, endIndex))
-          scopeNode.appendChild(textNode)
           @currentLineTextNodes.push(textNode)
+      else
+        textNode = @domElementPool.buildText(@sliceText(tokenText, startIndex, endIndex))
+        scopeNode.appendChild(textNode)
+        @currentLineTextNodes.push(textNode)
 
       if trailingWhitespaceNode?
         scopeNode.appendChild(trailingWhitespaceNode)

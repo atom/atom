@@ -1,7 +1,7 @@
 _ = require 'underscore-plus'
 {isPairedCharacter, isCJKCharacter} = require './text-utils'
 Token = require './token'
-{SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
+{SoftTab, HardTab, PairedCharacter, SoftWrapIndent, NonBreakingSpace} = require './special-token-symbols'
 
 NonWhitespaceRegex = /\S/
 LeadingWhitespaceRegex = /^\s*/
@@ -10,6 +10,7 @@ RepeatedSpaceRegex = /[ ]/g
 CommentScopeRegex = /(\b|\.)comment/
 TabCharCode = 9
 SpaceCharCode = 32
+NonBreakingSpaceCharCode = 160
 SpaceString = ' '
 TabStringsByLength = {
   1: ' '
@@ -153,6 +154,35 @@ class TokenizedLine
         @specialTokens[tokenIndex] = HardTab
         tokenIndex++
         tokenOffset = 0
+      else if charCode is NonBreakingSpaceCharCode
+        prefix = tokenOffset
+        suffix = @tags[tokenIndex] - tokenOffset - 1
+
+        i = tokenIndex
+        @tags.splice(i, 1)
+        @tags.splice(i++, 0, prefix) if prefix > 0
+        @tags.splice(i++, 0, 1)
+        @tags.splice(i, 0, suffix) if suffix > 0
+
+        tokenIndex++ if prefix > 0
+        @specialTokens[tokenIndex] = NonBreakingSpace
+        tokenIndex++
+        tokenOffset = 0
+
+        # Non breaking is not an indent whitespace
+        firstNonWhitespaceColumn ?= screenColumn
+        lastNonWhitespaceColumn = screenColumn + 1
+
+        if @invisibles?.nonBreakingSpace
+          if substringEnd > substringStart
+            text += @text.substring(substringStart, substringEnd)
+          substringStart = substringEnd
+          text += @invisibles.nonBreakingSpace
+          substringStart += 1
+        substringEnd += 1
+
+        screenColumn++
+        bufferColumn++
 
       # continue past any other character
       else

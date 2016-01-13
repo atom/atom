@@ -1,4 +1,4 @@
-{SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
+{SoftTab, HardTab, PairedCharacter, SoftWrapIndent, NonBreakingSpace} = require './special-token-symbols'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter} = require './text-utils'
 
 module.exports =
@@ -92,6 +92,9 @@ class TokenIterator
 
   isPairedCharacter: ->
     @line.specialTokens[@index] is PairedCharacter
+
+  isNonBreakingSpace: ->
+    @line.specialTokens[@index] is NonBreakingSpace
 
   hasDoubleWidthCharacterAt: (charIndex) ->
     isDoubleWidthCharacter(@getText()[charIndex])
