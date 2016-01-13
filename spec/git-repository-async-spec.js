@@ -459,7 +459,7 @@ describe('GitRepositoryAsync', () => {
       repo.onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
 
-      waitsFor(() => statusHandler.callCount > 0)
+      waitsFor('the onDidChangeStatus handler to be called', () => statusHandler.callCount > 0)
       runs(() => {
         expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -469,7 +469,7 @@ describe('GitRepositoryAsync', () => {
         buffer.onDidChangePath(pathHandler)
         buffer.emitter.emit('did-change-path')
 
-        waitsFor(() => pathHandler.callCount > 0)
+        waitsFor('the onDidChangePath handler to be called', () => pathHandler.callCount > 0)
         runs(() => expect(pathHandler.callCount).toBeGreaterThan(0))
       })
     })
