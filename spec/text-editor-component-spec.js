@@ -444,7 +444,7 @@ describe('TextEditorComponent', function () {
         space: 'S',
         tab: 'T',
         cr: 'C',
-        nbsp: 'N'
+        nonBreakingSpace: 'N'
       }
 
       beforeEach(async function () {
