@@ -2956,17 +2956,20 @@ describe "TextEditorPresenter", ->
           describe ".blockDecorationsHeight", ->
             it "adds the sum of all block decorations' heights to the relevant line number state objects, both initially and when decorations change", ->
               blockDecoration1 = addBlockDecorationBeforeScreenRow(0)
-              presenter = buildPresenter()
+              presenter = buildPresenter(tileSize: 2, explicitHeight: 300)
               blockDecoration2 = addBlockDecorationBeforeScreenRow(3)
               blockDecoration3 = addBlockDecorationBeforeScreenRow(3)
               blockDecoration4 = addBlockDecorationBeforeScreenRow(7)
               blockDecoration5 = addBlockDecorationAfterScreenRow(7)
+              blockDecoration6 = addBlockDecorationAfterScreenRow(10)
 
               presenter.setBlockDecorationDimensions(blockDecoration1, 0, 10)
               presenter.setBlockDecorationDimensions(blockDecoration2, 0, 20)
               presenter.setBlockDecorationDimensions(blockDecoration3, 0, 30)
+              presenter.setBlockDecorationDimensions(blockDecoration4, 0, 35)
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 40)
               presenter.setBlockDecorationDimensions(blockDecoration5, 0, 50)
+              presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
 
               waitsForStateToUpdate presenter
               runs ->
@@ -2978,10 +2981,10 @@ describe "TextEditorPresenter", ->
                 expect(lineNumberStateForScreenRow(presenter, 5).blockDecorationsHeight).toBe(0)
                 expect(lineNumberStateForScreenRow(presenter, 6).blockDecorationsHeight).toBe(0)
                 expect(lineNumberStateForScreenRow(presenter, 7).blockDecorationsHeight).toBe(40)
-                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(50)
+                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(0) # 0 because we're at the start of a tile.
                 expect(lineNumberStateForScreenRow(presenter, 9).blockDecorationsHeight).toBe(0)
                 expect(lineNumberStateForScreenRow(presenter, 10).blockDecorationsHeight).toBe(0)
-                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(60)
 
               waitsForStateToUpdate presenter, ->
                 blockDecoration1.getMarker().setHeadBufferPosition([1, 0])
@@ -2997,10 +3000,10 @@ describe "TextEditorPresenter", ->
                 expect(lineNumberStateForScreenRow(presenter, 5).blockDecorationsHeight).toBe(20)
                 expect(lineNumberStateForScreenRow(presenter, 6).blockDecorationsHeight).toBe(0)
                 expect(lineNumberStateForScreenRow(presenter, 7).blockDecorationsHeight).toBe(40)
-                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(50)
+                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(0) # 0 because we're at the start of a tile.
                 expect(lineNumberStateForScreenRow(presenter, 9).blockDecorationsHeight).toBe(30)
                 expect(lineNumberStateForScreenRow(presenter, 10).blockDecorationsHeight).toBe(0)
-                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(60)
 
               waitsForStateToUpdate presenter, ->
                 blockDecoration1.destroy()
@@ -3015,10 +3018,10 @@ describe "TextEditorPresenter", ->
                 expect(lineNumberStateForScreenRow(presenter, 5).blockDecorationsHeight).toBe(20)
                 expect(lineNumberStateForScreenRow(presenter, 6).blockDecorationsHeight).toBe(0)
                 expect(lineNumberStateForScreenRow(presenter, 7).blockDecorationsHeight).toBe(40)
-                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(50)
+                expect(lineNumberStateForScreenRow(presenter, 8).blockDecorationsHeight).toBe(0) # 0 because we're at the start of a tile.
                 expect(lineNumberStateForScreenRow(presenter, 9).blockDecorationsHeight).toBe(0)
                 expect(lineNumberStateForScreenRow(presenter, 10).blockDecorationsHeight).toBe(0)
-                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(0)
+                expect(lineNumberStateForScreenRow(presenter, 11).blockDecorationsHeight).toBe(60)
 
             describe ".decorationClasses", ->
               it "adds decoration classes to the relevant line number state objects, both initially and when decorations change", ->
