@@ -638,7 +638,7 @@ class TextEditorPresenter
 
     @endRow = Math.min(
       @model.getScreenLineCount(),
-      @lineTopIndex.rowForPixelPosition(@scrollTop + @height + (2 * @lineHeight - 1))
+      @lineTopIndex.rowForPixelPosition(@scrollTop + @height + @lineHeight - 1) + 1
     )
 
   updateRowsPerPage: ->
