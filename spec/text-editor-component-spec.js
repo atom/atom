@@ -1673,7 +1673,7 @@ describe('TextEditorComponent', function () {
     }
 
     beforeEach(async function () {
-      wrapperNode.style.height = 9 * lineHeightInPixels + 'px'
+      wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       component.measureDimensions()
       await nextViewUpdatePromise()
     })
