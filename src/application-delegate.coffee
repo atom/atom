@@ -175,6 +175,8 @@ class ApplicationDelegate
   onUpdateAvailable: (callback) ->
     outerCallback = (message, detail) ->
       if message is 'update-available'
+        {releaseVersion} = detail
+        detail = [releaseVersion]
         callback(detail)
 
     ipc.on('message', outerCallback)
