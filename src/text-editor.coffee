@@ -579,7 +579,7 @@ class TextEditor extends Model
   terminatePendingState: ->
     return if not @pending
     @pending = false
-    @emitter.emit 'did-terminate-pending-state', this
+    @emitter.emit 'did-terminate-pending-state'
 
   ###
   Section: File Details

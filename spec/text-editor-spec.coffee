@@ -12,7 +12,7 @@ describe "TextEditor", ->
 
   beforeEach ->
     waitsForPromise ->
-      atom.workspace.open('sample.js', {autoIndent: false, pending: true}).then (o) -> editor = o
+      atom.workspace.open('sample.js', {autoIndent: false}).then (o) -> editor = o
 
     runs ->
       buffer = editor.buffer
@@ -56,11 +56,14 @@ describe "TextEditor", ->
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
     it "restores pending tabs in pending state", ->
-      expect(editor.isPending()).toBe true
-
+      expect(editor.isPending()).toBe false
       editor2 = TextEditor.deserialize(editor.serialize(), atom)
+      expect(editor2.isPending()).toBe false
 
-      expect(editor2.isPending()).toBe true
+      pendingEditor = atom.workspace.buildTextEditor(pending: true)
+      expect(pendingEditor.isPending()).toBe true
+      editor3 = TextEditor.deserialize(pendingEditor.serialize(), atom)
+      expect(editor3.isPending()).toBe true
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
@@ -5814,15 +5817,15 @@ describe "TextEditor", ->
 
   describe "pending state", ->
     editor1 = null
-    events = null
+    eventCount = null
 
     beforeEach ->
       waitsForPromise ->
         atom.workspace.open('sample.txt', pending: true).then (o) -> editor1 = o
 
       runs ->
-        events = []
-        editor1.onDidTerminatePendingState (event) -> events.push(event)
+        eventCount = 0
+        editor1.onDidTerminatePendingState -> eventCount++
 
     it "does not open file in pending state by default", ->
       expect(editor.isPending()).toBe false
@@ -5834,30 +5837,30 @@ describe "TextEditor", ->
       editor1.terminatePendingState()
 
       expect(editor1.isPending()).toBe false
-      expect(events).toEqual [editor1]
+      expect(eventCount).toBe 1
 
     it "terminates pending state when buffer is changed", ->
       editor1.insertText('I\'ll be back!')
-      advanceClock(500)
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
       expect(editor1.isPending()).toBe false
-      expect(events).toEqual [editor1]
+      expect(eventCount).toBe 1
 
     it "only calls terminate handler once when text is modified twice", ->
       editor1.insertText('Some text')
-      advanceClock(500)
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
       editor1.save()
 
       editor1.insertText('More text')
-      advanceClock(500)
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
       expect(editor1.isPending()).toBe false
-      expect(events).toEqual [editor1]
+      expect(eventCount).toBe 1
 
     it "only calls terminate handler once when terminatePendingState is called twice", ->
       editor1.terminatePendingState()
       editor1.terminatePendingState()
 
       expect(editor1.isPending()).toBe false
-      expect(events).toEqual [editor1]
+      expect(eventCount).toBe 1
