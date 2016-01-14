@@ -133,8 +133,9 @@ class TextEditorPresenter
     @shouldUpdateDecorations = true
 
   observeModel: ->
-    @disposables.add @model.displayLayer.onDidChangeTextSync (change) =>
-      @invalidateLines(change)
+    @disposables.add @model.displayLayer.onDidChangeSync (changes) =>
+      for change in changes
+        @invalidateLines(change)
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
@@ -395,7 +396,7 @@ class TextEditorPresenter
       else
         tileState.lines[line.id] =
           screenRow: screenRow
-          words: line.words
+          tokens: line.tokens
           decorationClasses: @lineDecorationClassesForRow(screenRow)
 
     for id, line of tileState.lines
@@ -1028,10 +1029,14 @@ class TextEditorPresenter
         @linesById.delete(lineId)
 
   buildLine: (screenRow) ->
-    line = {id: @lineIdCounter++, words: []}
+    line = {id: @lineIdCounter++, tokens: []}
     @tokenIterator.seekToScreenRow(screenRow)
     loop
-      line.words.push(@tokenIterator.getText())
+      line.tokens.push({
+        text: @tokenIterator.getText(),
+        closeTags: @tokenIterator.getCloseTags(),
+        openTags: @tokenIterator.getOpenTags()
+      })
       break unless @tokenIterator.moveToSuccessor()
       break unless @tokenIterator.getStartScreenPosition().row is screenRow
     line

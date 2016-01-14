@@ -52,6 +52,7 @@ class DisplayBuffer extends Model
     })
     @buffer = @tokenizedBuffer.buffer
     @displayLayer = @buffer.addDisplayLayer({tabLength: @getTabLength()})
+    @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @decorationsById = {}

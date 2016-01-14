@@ -125,7 +125,7 @@ class LinesTileComponent
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNode: (id) ->
-    {screenRow, words, decorationClasses} = @newTileState.lines[id]
+    {screenRow, decorationClasses} = @newTileState.lines[id]
 
     lineNode = @domElementPool.buildElement("div", "line")
     lineNode.dataset.screenRow = screenRow
@@ -183,12 +183,23 @@ class LinesTileComponent
         @currentLineTextNodes.push(textNode)
 
   setLineInnerNodes: (id, lineNode) ->
-    {words} = @newTileState.lines[id]
+    {tokens} = @newTileState.lines[id]
     lineLength = 0
-    for word in words when word.length > 0
-      lineLength += word.length
-      textNode = @domElementPool.buildText(word.replace(/\s/g, NBSPCharacter))
-      lineNode.appendChild(textNode)
+    openScopeNode = lineNode
+    for token in tokens when token.text.length > 0
+      {closeTags, openTags, text} = token
+
+      for scope in closeTags
+        openScopeNode = openScopeNode.parentElement
+
+      for scope in openTags
+        newScopeNode = @domElementPool.buildElement("span", scope.replace(/\.+/g, ' '))
+        openScopeNode.appendChild(newScopeNode)
+        openScopeNode = newScopeNode
+
+      lineLength += text.length
+      textNode = @domElementPool.buildText(text.replace(/\s/g, NBSPCharacter))
+      openScopeNode.appendChild(textNode)
       @currentLineTextNodes.push(textNode)
 
     if lineLength is 0
