@@ -346,7 +346,6 @@ class Pane extends Model
     if item?
       if @activeItem?.isPending?()
         index = @getActiveItemIndex()
-        @destroyActiveItem() unless item is @activeItem
       else
         index = @getActiveItemIndex() + 1
       @addItem(item, index, false)
