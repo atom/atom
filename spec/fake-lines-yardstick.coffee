@@ -19,9 +19,8 @@ class FakeLinesYardstick
   setScopedCharacterWidth: (scopeNames, character, width) ->
     @getScopedCharacterWidths(scopeNames)[character] = width
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+  pixelPositionForScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column

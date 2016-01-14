@@ -74,8 +74,7 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    disableAutoUpdate = require(path.join(@resourcePath, 'package.json'))._disableAutoUpdate ? false
-    @autoUpdateManager = new AutoUpdateManager(@version, options.test, disableAutoUpdate)
+    @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
@@ -167,7 +166,7 @@ class AtomApplication
       safeMode: @focusedWindow()?.safeMode
 
     @on 'application:quit', -> app.quit()
-    @on 'application:new-window', -> @openPath(_.extend(windowDimensions: @focusedWindow()?.getDimensions(), getLoadSettings()))
+    @on 'application:new-window', -> @openPath(getLoadSettings())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open', -> @promptForPathToOpen('all', getLoadSettings())
     @on 'application:open-file', -> @promptForPathToOpen('file', getLoadSettings())
@@ -229,7 +228,7 @@ class AtomApplication
       @openUrl({urlToOpen, @devMode, @safeMode})
 
     app.on 'activate-with-no-open-windows', (event) =>
-      event.preventDefault()
+      event?.preventDefault()
       @emit('application:new-window')
 
     # A request from the associated render process to open a new render process.
@@ -360,6 +359,23 @@ class AtomApplication
   focusedWindow: ->
     _.find @windows, (atomWindow) -> atomWindow.isFocused()
 
+  # Get the platform-specific window offset for new windows.
+  getWindowOffsetForCurrentPlatform: ->
+    offsetByPlatform =
+      darwin: 22
+      win32: 26
+    offsetByPlatform[process.platform] ? 0
+
+  # Get the dimensions for opening a new window by cascading as appropriate to
+  # the platform.
+  getDimensionsForNewWindow: ->
+    dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
+    offset = @getWindowOffsetForCurrentPlatform()
+    if dimensions? and offset?
+      dimensions.x += offset
+      dimensions.y += offset
+    dimensions
+
   # Public: Opens a single path, in an existing window if possible.
   #
   # options -
@@ -370,7 +386,7 @@ class AtomApplication
   #   :safeMode - Boolean to control the opened window's safe mode.
   #   :profileStartup - Boolean to control creating a profile of the startup time.
   #   :window - {AtomWindow} to open file paths in.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window}) ->
+  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window} = {}) ->
     @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window})
 
   # Public: Opens multiple paths, in existing windows if possible.
@@ -417,6 +433,7 @@ class AtomApplication
 
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
+      windowDimensions ?= @getDimensionsForNewWindow()
       openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup})
 
     if pidToKillWhenClosed?

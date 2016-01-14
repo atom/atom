@@ -1026,6 +1026,16 @@ describe "PackageManager", ->
         expect(atom.packages.enablePackage("this-doesnt-exist")).toBeNull()
         expect(console.warn.callCount).toBe 1
 
+      it "does not disable an already disabled package", ->
+        packageName = 'package-with-main'
+        atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+        atom.packages.observeDisabledPackages()
+        expect(atom.config.get('core.disabledPackages')).toContain packageName
+
+        atom.packages.disablePackage(packageName)
+        packagesDisabled = atom.config.get('core.disabledPackages').filter((pack) -> pack is packageName)
+        expect(packagesDisabled.length).toEqual 1
+
     describe "with themes", ->
       didChangeActiveThemesHandler = null
 

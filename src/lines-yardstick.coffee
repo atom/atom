@@ -77,10 +77,7 @@ class LinesYardstick
     else
       Point(row, column)
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @model.clipScreenPosition(screenPosition) if clip
-
+  pixelPositionForScreenPosition: (screenPosition) ->
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
