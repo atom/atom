@@ -1,5 +1,5 @@
 TokenizedBuffer = require '../src/tokenized-buffer'
-TextBuffer = require 'text-buffer'
+{Point} = TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
 describe "TokenizedBuffer", ->
@@ -1061,3 +1061,55 @@ describe "TokenizedBuffer", ->
 
         runs ->
           expect(coffeeCalled).toBe true
+
+  describe "text decoration layer API", ->
+    describe "iterator", ->
+      it "iterates over the syntactic scope boundaries", ->
+        buffer = new TextBuffer(text: "var foo = 1 /*\nhello*/var bar = 2\n")
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBuffer.setGrammar(atom.grammars.selectGrammar(".js"))
+        fullyTokenize(tokenizedBuffer)
+
+        iterator = tokenizedBuffer.buildIterator()
+        iterator.seek(Point(0, 0))
+
+        boundaries = []
+        loop
+          boundaries.push({
+            position: iterator.getPosition(),
+            closeTags: iterator.getCloseTags(),
+            openTags: iterator.getOpenTags()
+          })
+          break unless iterator.moveToSuccessor()
+
+        expect(boundaries).toEqual([
+          {position: Point(0, 0), closeTags: [], openTags: ["source.js", "storage.type.var.js"]}
+          {position: Point(0, 3), closeTags: ["storage.type.var.js"], openTags: []}
+          {position: Point(0, 8), closeTags: [], openTags: ["keyword.operator.assignment.js"]}
+          {position: Point(0, 9), closeTags: ["keyword.operator.assignment.js"], openTags: []}
+          {position: Point(0, 10), closeTags: [], openTags: ["constant.numeric.js"]}
+          {position: Point(0, 11), closeTags: ["constant.numeric.js"], openTags: []}
+          {position: Point(0, 12), closeTags: [], openTags: ["comment.block.js", "punctuation.definition.comment.js"]}
+          {position: Point(0, 14), closeTags: ["punctuation.definition.comment.js"], openTags: []}
+          {position: Point(1, 5), closeTags: [], openTags: ["punctuation.definition.comment.js"]}
+          {position: Point(1, 7), closeTags: ["punctuation.definition.comment.js", "comment.block.js"], openTags: ["storage.type.var.js"]}
+          {position: Point(1, 10), closeTags: ["storage.type.var.js"], openTags: []}
+          {position: Point(1, 15), closeTags: [], openTags: ["keyword.operator.assignment.js"]}
+          {position: Point(1, 16), closeTags: ["keyword.operator.assignment.js"], openTags: []}
+          {position: Point(1, 17), closeTags: [], openTags: ["constant.numeric.js"]}
+          {position: Point(1, 18), closeTags: ["constant.numeric.js"], openTags: []}
+        ])
+
+        expect(iterator.seek(Point(0, 1))).toEqual(["source.js", "storage.type.var.js"])
+        expect(iterator.getPosition()).toEqual(Point(0, 3))
+        expect(iterator.seek(Point(0, 8))).toEqual(["source.js"])
+        expect(iterator.getPosition()).toEqual(Point(0, 8))
+        expect(iterator.seek(Point(1, 0))).toEqual(["source.js", "comment.block.js"])
+        expect(iterator.getPosition()).toEqual(Point(1, 5))
+        expect(iterator.seek(Point(1, 18))).toEqual(["source.js", "constant.numeric.js"])
+        expect(iterator.getPosition()).toEqual(Point(1, 18))
+
+        expect(iterator.seek(Point(2, 0))).toEqual(["source.js"])
+        iterator.moveToSuccessor() # ensure we don't infinitely loop (regression test)

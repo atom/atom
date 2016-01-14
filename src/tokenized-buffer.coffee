@@ -7,6 +7,7 @@ TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
+TokenizedBufferIterator = require './tokenized-buffer-iterator'
 
 module.exports =
 class TokenizedBuffer extends Model
@@ -57,6 +58,12 @@ class TokenizedBuffer extends Model
 
   destroyed: ->
     @disposables.dispose()
+
+  buildIterator: ->
+    new TokenizedBufferIterator(this, @grammarRegistry)
+
+  getInvalidatedRanges: ->
+    [@invalidatedRange]
 
   serialize: ->
     state = {
@@ -274,6 +281,7 @@ class TokenizedBuffer extends Model
     [start, end] = @updateFoldableStatus(start, end + delta)
     end -= delta
 
+    @invalidatedRange = Range(start, end)
     event = {start, end, delta, bufferChange: e}
     @emitter.emit 'did-change', event
 
