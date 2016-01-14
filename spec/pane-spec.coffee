@@ -177,10 +177,10 @@ describe "Pane", ->
         expect(pane.getActiveItem()).toBe itemD
         expect(pane.getActiveItem()).toBe pane.itemAtIndex(1)
 
-      it "closes pending item when non-pending item is activated", ->
+      it "keeps pending item when non-pending item is activated", ->
         pane.activateItem(pane.itemAtIndex(0))
 
-        expect(pane.getItems().length).toBe 2
+        expect(pane.getItems().length).toBe 3
         expect(pane.getActiveItem()).toBe pane.itemAtIndex(0)
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
