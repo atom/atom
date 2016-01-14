@@ -21,6 +21,9 @@ describe "TextEditor", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
 
+    waitsForPromise ->
+      atom.packages.activatePackage('language-mode-transitional')
+
   describe "when the editor is deserialized", ->
     it "restores selections and folds based on markers in the buffer", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
