@@ -65,6 +65,9 @@ class TokenizedBuffer extends Model
   getInvalidatedRanges: ->
     [@invalidatedRange]
 
+  onDidInvalidateRange: (fn) ->
+    @emitter.on 'did-invalidate-range', fn
+
   serialize: ->
     state = {
       deserializer: 'TokenizedBuffer'
@@ -221,6 +224,7 @@ class TokenizedBuffer extends Model
 
       event = {start: startRow, end: endRow, delta: 0}
       @emitter.emit 'did-change', event
+      @emitter.emit 'did-invalidate-range', Range(Point(startRow, 0), Point(endRow + 1, 0))
 
     if @firstInvalidRow()?
       @tokenizeInBackground()
