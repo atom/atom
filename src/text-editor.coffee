@@ -666,8 +666,9 @@ class TextEditor extends Model
   isPending: -> Boolean(@pending)
 
   # Copies the current file path to the native clipboard.
-  copyPathToClipboard: ->
+  copyPathToClipboard: (relative = false) ->
     if filePath = @getPath()
+      filePath = atom.project.relativize(filePath) if relative
       @clipboard.write(filePath)
 
   ###
