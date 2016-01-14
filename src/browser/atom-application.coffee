@@ -369,7 +369,7 @@ class AtomApplication
   # Get the dimensions for opening a new window by cascading as appropriate to
   # the platform.
   getDimensionsForNewWindow: ->
-    return if (@focusedWindow() ? @lastFocusedWindow)?.isMaximized() and process.platform isnt 'darwin'
+    return if (@focusedWindow() ? @lastFocusedWindow)?.isMaximized()
     dimensions = (@focusedWindow() ? @lastFocusedWindow)?.getDimensions()
     offset = @getWindowOffsetForCurrentPlatform()
     if dimensions? and offset?
