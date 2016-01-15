@@ -234,7 +234,7 @@ describe('GitRepositoryAsync', () => {
     let filePath
     let editor
 
-    beforeEach(() => {
+    beforeEach(async () => {
       spyOn(atom, 'confirm')
 
       const workingDirPath = copyRepository()
@@ -242,12 +242,7 @@ describe('GitRepositoryAsync', () => {
       filePath = path.join(workingDirPath, 'a.txt')
       fs.writeFileSync(filePath, 'ch ch changes')
 
-      waitsForPromise(() => atom.workspace.open(filePath))
-      runs(() => editor = atom.workspace.getActiveTextEditor())
-    })
-
-    afterEach(() => {
-      editor = null
+      editor = await atom.workspace.open(filePath)
     })
 
     it('displays a confirmation dialog by default', async () => {
