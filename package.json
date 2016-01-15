@@ -148,7 +148,7 @@
     "language-toml": "0.18.0",
     "language-xml": "0.34.2",
     "language-yaml": "0.25.0",
-    "language-mode-transitional": "0.0.1"
+    "language-mode-transitional": "0.0.2"
   },
   "private": true,
   "scripts": {

@@ -326,11 +326,11 @@ class LanguageMode
     count = 0
     m = regex.searchSync(string)
     while (m)
-      quoted = false
+      isQuoted = false
       if scopes = tokenized.tokenAtBufferColumn(m[0].start)?.scopes
-        quoted = scope for scope in scopes when scope.match '^string.quoted'
+        isQuoted = scopes.some (scope) -> scope.startsWith('string.quoted')
       # console.log quoted
-      count += 1 unless quoted
+      count += 1 unless isQuoted
       m = regex.searchSync(string, m[0].start + 1)
     count
 
