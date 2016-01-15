@@ -1022,7 +1022,7 @@ export default class GitRepositoryAsync {
           opts.pathspec = paths
         }
 
-        return repo.getStatus(opts)
+        return repo.getStatusExt(opts)
       })
   }
 }
