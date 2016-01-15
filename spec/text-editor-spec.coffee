@@ -12,7 +12,7 @@ describe "TextEditor", ->
 
   beforeEach ->
     waitsForPromise ->
-      atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
+      atom.workspace.open('sample.js', {autoIndent: false}).then (o) -> editor = o
 
     runs ->
       buffer = editor.buffer
@@ -54,6 +54,16 @@ describe "TextEditor", ->
       editor2 = TextEditor.deserialize(state, atom)
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
+
+    it "restores pending tabs in pending state", ->
+      expect(editor.isPending()).toBe false
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
+      expect(editor2.isPending()).toBe false
+
+      pendingEditor = atom.workspace.buildTextEditor(pending: true)
+      expect(pendingEditor.isPending()).toBe true
+      editor3 = TextEditor.deserialize(pendingEditor.serialize(), atom)
+      expect(editor3.isPending()).toBe true
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
@@ -5807,26 +5817,50 @@ describe "TextEditor", ->
 
   describe "pending state", ->
     editor1 = null
+    eventCount = null
+
     beforeEach ->
       waitsForPromise ->
         atom.workspace.open('sample.txt', pending: true).then (o) -> editor1 = o
 
-    it "should open file in pending state if 'pending' option is true", ->
-      expect(editor1.isPending()).toBe true
-      expect(editor.isPending()).toBe false # By default pending status is false
+      runs ->
+        eventCount = 0
+        editor1.onDidTerminatePendingState -> eventCount++
 
-    it "invokes ::onDidTerminatePendingState observers if pending status is terminated", ->
-      events = []
-      editor1.onDidTerminatePendingState (event) -> events.push(event)
+    it "does not open file in pending state by default", ->
+      expect(editor.isPending()).toBe false
+
+    it "opens file in pending state if 'pending' option is true", ->
+      expect(editor1.isPending()).toBe true
+
+    it "terminates pending state if ::terminatePendingState is invoked", ->
       editor1.terminatePendingState()
-      expect(editor1.isPending()).toBe false
-      expect(events).toEqual [editor1]
 
-    it "should terminate pending state when buffer is changed", ->
-      events = []
-      editor1.onDidTerminatePendingState (event) -> events.push(event)
-      expect(editor1.isPending()).toBe true
-      editor1.insertText('I\'ll be back!')
-      advanceClock(500)
       expect(editor1.isPending()).toBe false
-      expect(events).toEqual [editor1]
+      expect(eventCount).toBe 1
+
+    it "terminates pending state when buffer is changed", ->
+      editor1.insertText('I\'ll be back!')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+
+      expect(editor1.isPending()).toBe false
+      expect(eventCount).toBe 1
+
+    it "only calls terminate handler once when text is modified twice", ->
+      editor1.insertText('Some text')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+
+      editor1.save()
+
+      editor1.insertText('More text')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+
+      expect(editor1.isPending()).toBe false
+      expect(eventCount).toBe 1
+
+    it "only calls terminate handler once when terminatePendingState is called twice", ->
+      editor1.terminatePendingState()
+      editor1.terminatePendingState()
+
+      expect(editor1.isPending()).toBe false
+      expect(eventCount).toBe 1

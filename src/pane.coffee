@@ -346,7 +346,6 @@ class Pane extends Model
     if item?
       if @activeItem?.isPending?()
         index = @getActiveItemIndex()
-        @destroyActiveItem() unless item is @activeItem
       else
         index = @getActiveItemIndex() + 1
       @addItem(item, index, false)
@@ -365,6 +364,12 @@ class Pane extends Model
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
+
+    if item.isPending?()
+      for existingItem, i in @items
+        if existingItem.isPending?()
+          @destroyItem(existingItem)
+          break
 
     if typeof item.onDidDestroy is 'function'
       @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)

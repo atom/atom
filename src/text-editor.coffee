@@ -150,6 +150,7 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
+    pending: @isPending()
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -576,8 +577,9 @@ class TextEditor extends Model
     @emitter.on 'did-terminate-pending-state', callback
 
   terminatePendingState: ->
+    return if not @pending
     @pending = false
-    @emitter.emit 'did-terminate-pending-state', this
+    @emitter.emit 'did-terminate-pending-state'
 
   ###
   Section: File Details
