@@ -37,6 +37,7 @@
     "less-cache": "0.22",
     "line-top-index": "0.2.0",
     "marked": "^0.3.4",
+    "nodegit": "0.7.0",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "^5",
@@ -153,5 +154,26 @@
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
     "test": "node script/test"
+  },
+  "standard": {
+    "ignore": [],
+    "parser": "babel-eslint",
+    "globals": [
+      "atom",
+      "afterEach",
+      "beforeEach",
+      "describe",
+      "fdescribe",
+      "xdescribe",
+      "expect",
+      "it",
+      "fit",
+      "xit",
+      "jasmine",
+      "runs",
+      "spyOn",
+      "waitsFor",
+      "waitsForPromise"
+    ]
   }
 }

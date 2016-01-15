@@ -77,7 +77,7 @@ class GitRepositoryProvider
     unless repo
       repo = GitRepository.open(gitDirPath, {@project, @config})
       return null unless repo
-      repo.onDidDestroy(=> delete @pathToRepository[gitDirPath])
+      repo.async.onDidDestroy(=> delete @pathToRepository[gitDirPath])
       @pathToRepository[gitDirPath] = repo
       repo.refreshIndex()
       repo.refreshStatus()
