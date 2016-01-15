@@ -208,11 +208,12 @@ addCustomMatchers = (spec) ->
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
 window.waitsForPromise = (args...) ->
+  label = null
   if args.length > 1
     {shouldReject, timeout, label} = args[0]
   else
-    label = 'promise to be resolved or rejected'
     shouldReject = false
+  label ?= 'promise to be resolved or rejected'
   fn = _.last(args)
 
   window.waitsFor label, timeout, (moveOn) ->
