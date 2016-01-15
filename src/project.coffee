@@ -289,7 +289,7 @@ class Project extends Model
       '^0.1.0',
       (provider) =>
         @repositoryProviders.unshift(provider)
-        @setPaths(@getPaths()) if null in @repositories
+        @setPaths(@getPaths())
         new Disposable =>
           @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
     )
