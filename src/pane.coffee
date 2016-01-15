@@ -365,6 +365,12 @@ class Pane extends Model
 
     return if item in @items
 
+    if item.isPending?()
+      for existingItem, i in @items
+        if existingItem.isPending?()
+          @destroyItem(existingItem)
+          break
+
     if typeof item.onDidDestroy is 'function'
       @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
 
