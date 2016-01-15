@@ -171,23 +171,21 @@ export default class GitRepositoryAsync {
   //
   // Returns the relative {String} path.
   relativize (_path, workingDirectory) {
-    // Cargo-culted from git-utils. The original implementation also handles
-    // this.openedWorkingDirectory, which is set by git-utils when the
-    // repository is opened. Those branches of the if tree aren't included here
-    // yet, but if we determine we still need that here it should be simple to
-    // port.
-    //
     // The original implementation also handled null workingDirectory as it
     // pulled it from a sync function that could return null. We require it
     // to be passed here.
+    let openedWorkingDirectory
     if (!_path || !workingDirectory) {
       return _path
     }
 
-    // Depending on where the paths come from, they may have a '/private/'
-    // prefix. Standardize by stripping that out.
-    _path = _path.replace(/^\/private\//, '/')
-    workingDirectory = workingDirectory.replace(/^\/private\//, '/')
+    // If the opened directory and the workdir differ, this is a symlinked repo
+    // root, so we have to do all the checks below twice--once against the realpath
+    // and one against the opened path
+    const opened = this.openedPath.replace(/\/\.git$/, '')
+    if (path.relative(opened, workingDirectory) !== '') {
+      openedWorkingDirectory = opened
+    }
 
     if (process.platform === 'win32') {
       _path = _path.replace(/\\/g, '/')
@@ -197,20 +195,37 @@ export default class GitRepositoryAsync {
       }
     }
 
-    if (!/\/$/.test(workingDirectory)) {
-      workingDirectory = `${workingDirectory}/`
-    }
+    workingDirectory = workingDirectory.replace(/\/$/, '')
 
-    const originalPath = _path
     if (this.isCaseInsensitive) {
       _path = _path.toLowerCase()
       workingDirectory = workingDirectory.toLowerCase()
     }
 
+    // Depending on where the paths come from, they may have a '/private/'
+    // prefix. Standardize by stripping that out.
+    _path = _path.replace(/^\/private\//, '/')
+    workingDirectory = workingDirectory.replace(/^\/private\//, '/')
+
+    const originalPath = _path
     if (_path.indexOf(workingDirectory) === 0) {
-      return originalPath.substring(workingDirectory.length)
+      return originalPath.substring(workingDirectory.length + 1)
     } else if (_path === workingDirectory) {
       return ''
+    }
+
+    if (openedWorkingDirectory) {
+      if (this.isCaseInsensitive) {
+        openedWorkingDirectory = openedWorkingDirectory.toLowerCase()
+      }
+      openedWorkingDirectory = openedWorkingDirectory.replace(/\/$/, '')
+      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//, '/')
+
+      if (_path.indexOf(openedWorkingDirectory) === 0) {
+        return originalPath.substring(openedWorkingDirectory.length + 1)
+      } else if (_path === openedWorkingDirectory) {
+        return ''
+      }
     }
 
     return _path
@@ -435,11 +450,8 @@ export default class GitRepositoryAsync {
   // value can be passed to {::isStatusModified} or {::isStatusNew} to get more
   // information.
   getDirectoryStatus (directoryPath) {
-    return this.getRepo()
-      .then(repo => {
-        const relativePath = this.relativize(directoryPath, repo.workdir())
-        return this._getStatus([relativePath])
-      })
+    return this.relativizeToWorkingDirectory(directoryPath)
+      .then(relativePath => this._getStatus([relativePath]))
       .then(statuses => {
         return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
           return bits
@@ -1010,7 +1022,7 @@ export default class GitRepositoryAsync {
           opts.pathspec = paths
         }
 
-        return repo.getStatus(opts)
+        return repo.getStatusExt(opts)
       })
   }
 }

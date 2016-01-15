@@ -427,7 +427,7 @@ describe('GitRepositoryAsync', () => {
       repo.onDidChangeStatus(statusHandler)
       editor.save()
 
-      waitsFor(() => statusHandler.callCount > 0)
+      waitsFor('the onDidChangeStatus handler to be called', () => statusHandler.callCount > 0)
       runs(() => {
         expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -443,7 +443,7 @@ describe('GitRepositoryAsync', () => {
       repo.onDidChangeStatus(statusHandler)
       editor.getBuffer().reload()
 
-      waitsFor(() => statusHandler.callCount > 0)
+      waitsFor('the onDidChangeStatus handler to be called', () => statusHandler.callCount > 0)
       runs(() => {
         expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -459,7 +459,7 @@ describe('GitRepositoryAsync', () => {
       repo.onDidChangeStatus(statusHandler)
       editor.getBuffer().emitter.emit('did-change-path')
 
-      waitsFor(() => statusHandler.callCount > 0)
+      waitsFor('the onDidChangeStatus handler to be called', () => statusHandler.callCount > 0)
       runs(() => {
         expect(statusHandler.callCount).toBeGreaterThan(0)
         expect(statusHandler).toHaveBeenCalledWith({path: editor.getPath(), pathStatus: 256})
@@ -469,7 +469,7 @@ describe('GitRepositoryAsync', () => {
         buffer.onDidChangePath(pathHandler)
         buffer.emitter.emit('did-change-path')
 
-        waitsFor(() => pathHandler.callCount > 0)
+        waitsFor('the onDidChangePath handler to be called', () => pathHandler.callCount > 0)
         runs(() => expect(pathHandler.callCount).toBeGreaterThan(0))
       })
     })
@@ -747,6 +747,52 @@ describe('GitRepositoryAsync', () => {
       expect(oldLines).toBe(0)
       expect(newStart).toBe(1)
       expect(newLines).toBe(1)
+    })
+  })
+
+  describe('GitRepositoryAsync::relativizeToWorkingDirectory(_path)', () => {
+    let workingDirectory
+
+    beforeEach(() => {
+      workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('relativizes the given path to the working directory of the repository', async () => {
+      let absolutePath = path.join(workingDirectory, 'a.txt')
+      expect(await repo.relativizeToWorkingDirectory(absolutePath)).toBe('a.txt')
+      absolutePath = path.join(workingDirectory, 'a/b/c.txt')
+      expect(await repo.relativizeToWorkingDirectory(absolutePath)).toBe('a/b/c.txt')
+      expect(await repo.relativizeToWorkingDirectory('a.txt')).toBe('a.txt')
+      expect(await repo.relativizeToWorkingDirectory('/not/in/workdir')).toBe('/not/in/workdir')
+      expect(await repo.relativizeToWorkingDirectory(null)).toBe(null)
+      expect(await repo.relativizeToWorkingDirectory()).toBe(undefined)
+      expect(await repo.relativizeToWorkingDirectory('')).toBe('')
+      expect(await repo.relativizeToWorkingDirectory(workingDirectory)).toBe('')
+    })
+
+    describe('when the opened path is a symlink', () => {
+      it('relativizes against both the linked path and real path', async () => {
+        // Symlinks require admin privs on windows so we just skip this there,
+        // done in git-utils as well
+        if (process.platform === 'win32') {
+          return
+        }
+
+        const linkDirectory = path.join(temp.mkdirSync('atom-working-dir-symlink'), 'link')
+        fs.symlinkSync(workingDirectory, linkDirectory)
+        const linkedRepo = GitRepositoryAsync.open(linkDirectory)
+        expect(await linkedRepo.relativizeToWorkingDirectory(path.join(workingDirectory, 'test1'))).toBe('test1')
+        expect(await linkedRepo.relativizeToWorkingDirectory(path.join(linkDirectory, 'test2'))).toBe('test2')
+        expect(await linkedRepo.relativizeToWorkingDirectory(path.join(linkDirectory, 'test2/test3'))).toBe('test2/test3')
+        expect(await linkedRepo.relativizeToWorkingDirectory('test2/test3')).toBe('test2/test3')
+      })
+
+      it('handles case insensitive filesystems', async () => {
+        repo.isCaseInsensitive = true
+        expect(await repo.relativizeToWorkingDirectory(path.join(workingDirectory.toUpperCase(), 'a.txt'))).toBe('a.txt')
+        expect(await repo.relativizeToWorkingDirectory(path.join(workingDirectory.toUpperCase(), 'a/b/c.txt'))).toBe('a/b/c.txt')
+      })
     })
   })
 })
