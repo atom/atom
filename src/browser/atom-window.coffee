@@ -213,6 +213,8 @@ class AtomWindow
 
   isFocused: -> @browserWindow.isFocused()
 
+  isMaximized: -> @browserWindow.isMaximized()
+
   isMinimized: -> @browserWindow.isMinimized()
 
   isWebViewFocused: -> @browserWindow.isWebViewFocused()

@@ -18,6 +18,8 @@ describe "Pane", ->
     onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
     destroy: -> @destroyed = true; @emitter.emit('did-destroy')
     isDestroyed: -> @destroyed
+    isPending: -> @pending
+    pending: false
 
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm')
@@ -130,6 +132,16 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
+    it "destroys any existing pending item if the new item is pending", ->
+      pane = new Pane(paneParams(items: []))
+      itemA = new Item("A")
+      itemB = new Item("B")
+      itemA.pending = true
+      itemB.pending = true
+      pane.addItem(itemA)
+      pane.addItem(itemB)
+      expect(itemA.isDestroyed()).toBe true
+
   describe "::activateItem(item)", ->
     pane = null
 
@@ -152,6 +164,28 @@ describe "Pane", ->
       pane.onDidChangeActiveItem (item) -> observed.push(item)
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
+
+    describe "when the item being activated is pending", ->
+      itemC = null
+      itemD = null
+
+      beforeEach ->
+        itemC = new Item("C")
+        itemD = new Item("D")
+        itemC.pending = true
+        itemD.pending = true
+
+      it "replaces the active item if it is pending", ->
+        pane.activateItem(itemC)
+        expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'C', 'B']
+        pane.activateItem(itemD)
+        expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'D', 'B']
+
+      it "adds the item after the active item if it is not pending", ->
+        pane.activateItem(itemC)
+        pane.activateItemAtIndex(2)
+        pane.activateItem(itemD)
+        expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->

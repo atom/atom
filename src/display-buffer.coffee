@@ -812,6 +812,7 @@ class DisplayBuffer extends Model
     decorationsState
 
   decorateMarker: (marker, decorationParams) ->
+    throw new Error("Cannot decorate a destroyed marker") if marker.isDestroyed()
     marker = @getMarkerLayer(marker.layer.id).getMarker(marker.id)
     decoration = new Decoration(marker, this, decorationParams)
     @decorationsByMarkerId[marker.id] ?= []

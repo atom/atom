@@ -13,6 +13,8 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
+BlockDecorationsComponent = require './block-decorations-component'
+LineTopIndex = require 'line-top-index'
 
 module.exports =
 class TextEditorComponent
@@ -48,6 +50,9 @@ class TextEditorComponent
     @observeConfig()
     @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
+    lineTopIndex = new LineTopIndex({
+      defaultLineHeight: @editor.getLineHeightInPixels()
+    })
     @presenter = new TextEditorPresenter
       model: @editor
       tileSize: tileSize
@@ -55,11 +60,11 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
       config: @config
+      lineTopIndex: lineTopIndex
 
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
-
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
@@ -68,6 +73,7 @@ class TextEditorComponent
       insertionPoint.setAttribute('select', 'atom-overlay')
       @domNode.appendChild(insertionPoint)
       @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+      @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode, @views)
@@ -82,7 +88,10 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @linesComponent, @grammars)
+    if @blockDecorationsComponent?
+      @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
+
+    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -158,6 +167,7 @@ class TextEditorComponent
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
+    @blockDecorationsComponent?.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -177,6 +187,7 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
+    @blockDecorationsComponent?.measureBlockDecorations() if @isVisible()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
@@ -279,13 +290,13 @@ class TextEditorComponent
   observeConfig: ->
     @disposables.add @config.onDidChange 'editor.fontSize', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
     @disposables.add @config.onDidChange 'editor.fontFamily', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
     @disposables.add @config.onDidChange 'editor.lineHeight', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
@@ -485,6 +496,9 @@ class TextEditorComponent
       @editor.screenPositionForBufferPosition(bufferPosition)
     )
 
+  invalidateBlockDecorationDimensions: ->
+    @presenter.invalidateBlockDecorationDimensions(arguments...)
+
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
       # Only handle mouse down events for left mouse button on all platforms
@@ -602,7 +616,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
@@ -756,7 +770,7 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
@@ -866,7 +880,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -874,16 +888,16 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
-  invalidateCharacterWidths: ->
+  invalidateMeasurements: ->
     @linesYardstick.invalidateCache()
-    @presenter.characterWidthsChanged()
+    @presenter.measurementsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
     @config.set("editor.showIndentGuide", showIndentGuide)

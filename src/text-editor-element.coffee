@@ -347,4 +347,13 @@ class TextEditorElement extends HTMLElement
   getHeight: ->
     @offsetHeight
 
+  # Experimental: Invalidate the passed block {Decoration} dimensions, forcing
+  # them to be recalculated and the surrounding content to be adjusted on the
+  # next animation frame.
+  #
+  # * {blockDecoration} A {Decoration} representing the block decoration you
+  # want to update the dimensions of.
+  invalidateBlockDecorationDimensions: ->
+    @component.invalidateBlockDecorationDimensions(arguments...)
+
 module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype
