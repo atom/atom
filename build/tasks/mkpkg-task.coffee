@@ -3,8 +3,17 @@ path = require 'path'
 module.exports = (grunt) ->
   {spawn, fillTemplate} = require('./task-helpers')(grunt)
 
-  grunt.registerTask 'mkpkg', 'Create archlinux package', ->
+  grunt.registerTask 'mkpkg', 'Creates an archlinux package file', ->
     done = @async()
+
+    ###
+    makepkg arguments default: -rec
+    -r: remove any build-dependencies
+    -e: do not extract source files in $srcdir
+    -c: clean up leftover workfiles after successful build
+    -i: installs package after build
+    ###
+    makepkg_args = '-rec'
 
     appName = grunt.config.get('atom.appName')
     appFileName = grunt.config.get('atom.appFileName')
@@ -44,7 +53,7 @@ module.exports = (grunt) ->
     iconPath = path.join(shellAppDir, 'resources', 'app.asar.unpacked', 'resources', 'atom.png')
 
     cmd = path.join('script', 'mkpkg')
-    args = [appFileName, version, channel, arch, controlFilePath, desktopFilePath, iconPath, buildDir]
+    args = [appFileName, version, channel, arch, controlFilePath, desktopFilePath, iconPath, buildDir, makepkg_args]
     spawn {cmd, args}, (error) ->
       if error?
         done(error)

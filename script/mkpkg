@@ -1,5 +1,5 @@
 #!/bin/bash
-# mkdeb name version channel arch control-file-path desktop-file-path icon-path pkg-file-path
+# mkpkg name version channel arch PKGBUILD-file-path desktop-file-path icon-path pkg-file-path makepkg_args
 
 set -e
 
@@ -11,10 +11,11 @@ NAME="$1"
 VERSION="$2"
 CHANNEL="$3"
 ARCH="$4"
-CONTROL_FILE="$5"
+PKGBUILD_FILE="$5"
 DESKTOP_FILE="$6"
 ICON_FILE="$7"
 PKG_PATH="$8"
+MAKEPKG_ARGS="$9"
 FILE_MODE=755
 
 TARGET_ROOT="`mktemp -d`"
@@ -26,7 +27,7 @@ mkdir -m $FILE_MODE -p "$PACKAGE"
 mkdir -m $FILE_MODE -p "$PACKAGE/usr"
 env INSTALL_PREFIX="$PACKAGE/usr" script/grunt install --channel $CHANNEL
 
-cp "$CONTROL_FILE" "$TARGET/PKGBUILD"
+cp "$PKGBUILD_FILE" "$TARGET/PKGBUILD"
 
 mkdir -m $FILE_MODE -p "$PACKAGE/usr/share/applications"
 cp "$DESKTOP_FILE" "$PACKAGE/usr/share/applications"
@@ -46,6 +47,6 @@ cd $TARGET
 # create checksums
 updpkgsums
 # create package
-makepkg -resc
+makepkg $MAKEPKG_ARGS
 mv "$TARGET/$NAME-$VERSION-1-$ARCH.pkg.tar.xz" "$PKG_PATH"
 rm -rf "$TARGET_ROOT"
