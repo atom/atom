@@ -4,7 +4,7 @@
 process.env.DEBUG='*'
 
 path = require 'path'
-temp = require('temp').track();
+temp = require('temp').track()
 CompileCache = require '../src/compile-cache'
 
 describe "Babel transpiler support", ->

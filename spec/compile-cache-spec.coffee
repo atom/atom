@@ -1,5 +1,5 @@
 path = require 'path'
-temp = require('temp').track();
+temp = require('temp').track()
 Babel = require 'babel-core'
 CoffeeScript = require 'coffee-script'
 {TypeScriptSimple} = require 'typescript-simple'
