@@ -112,7 +112,6 @@ afterEach ->
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  waits(0)
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
