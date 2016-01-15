@@ -209,12 +209,13 @@ addCustomMatchers = (spec) ->
 
 window.waitsForPromise = (args...) ->
   if args.length > 1
-    {shouldReject, timeout} = args[0]
+    {shouldReject, timeout, label} = args[0]
   else
+    label = 'promise to be resolved or rejected'
     shouldReject = false
   fn = _.last(args)
 
-  window.waitsFor timeout, (moveOn) ->
+  window.waitsFor label, timeout, (moveOn) ->
     promise = fn()
     if shouldReject
       promise.catch.call(promise, moveOn)
