@@ -778,7 +778,6 @@ describe('GitRepositoryAsync', () => {
         if (process.platform === 'win32') {
           return
         }
-        console.log('workingDirectory in spec', workingDirectory);
 
         const linkDirectory = path.join(temp.mkdirSync('atom-working-dir-symlink'), 'link')
         fs.symlinkSync(workingDirectory, linkDirectory)
@@ -789,11 +788,10 @@ describe('GitRepositoryAsync', () => {
         expect(await linkedRepo.relativizeToWorkingDirectory('test2/test3')).toBe('test2/test3')
       })
 
-      it ('handles case insensitive filesystems', async () => {
+      it('handles case insensitive filesystems', async () => {
         repo.isCaseInsensitive = true
         expect(await repo.relativizeToWorkingDirectory(path.join(workingDirectory.toUpperCase(), 'a.txt'))).toBe('a.txt')
         expect(await repo.relativizeToWorkingDirectory(path.join(workingDirectory.toUpperCase(), 'a/b/c.txt'))).toBe('a/b/c.txt')
-
       })
     })
   })
