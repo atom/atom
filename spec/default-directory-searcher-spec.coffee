@@ -1,6 +1,6 @@
-DefaultDirectorySearcher = require "../src/default-directory-searcher"
-Task = require "../src/task"
-path = require "path"
+DefaultDirectorySearcher = require '../src/default-directory-searcher'
+Task = require '../src/task'
+path = require 'path'
 
 describe "DefaultDirectorySearcher", ->
   [searcher, dirPath] = []

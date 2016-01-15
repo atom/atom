@@ -1,4 +1,4 @@
-_ = require "underscore-plus"
+_ = require 'underscore-plus'
 path = require 'path'
 temp = require 'temp'
 Package = require '../src/package'
