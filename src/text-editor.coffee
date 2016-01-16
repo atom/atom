@@ -341,6 +341,15 @@ class TextEditor extends Model
   onDidInsertText: (callback) ->
     @emitter.on 'did-insert-text', callback
 
+  # Extended: Calls your `callback` after text has been pasted.
+  #
+  # * `callback` {Function}
+  #   * `event` event {Object}
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidPasteText: (callback) ->
+    @emitter.on 'did-paste-text', callback
+
   # Essential: Invoke the given callback after the buffer is saved to disk.
   #
   # * `callback` {Function} to be called after the buffer is saved.
@@ -2848,6 +2857,7 @@ class TextEditor extends Model
 
       didInsertEvent = {text, range}
       @emitter.emit 'did-insert-text', didInsertEvent
+      @emitter.emit 'did-paste-text'
 
   # Essential: For each selection, if the selection is empty, cut all characters
   # of the containing screen line following the cursor. Otherwise cut the selected
