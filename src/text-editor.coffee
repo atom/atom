@@ -345,6 +345,7 @@ class TextEditor extends Model
   #
   # * `callback` {Function}
   #   * `event` event {Object}
+  #     * `text` {String} text to be inserted
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidPasteText: (callback) ->
@@ -2857,7 +2858,7 @@ class TextEditor extends Model
 
       didInsertEvent = {text, range}
       @emitter.emit 'did-insert-text', didInsertEvent
-      @emitter.emit 'did-paste-text'
+      @emitter.emit 'did-paste-text' didInsertEvent
 
   # Essential: For each selection, if the selection is empty, cut all characters
   # of the containing screen line following the cursor. Otherwise cut the selected
