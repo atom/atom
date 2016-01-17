@@ -2858,7 +2858,7 @@ class TextEditor extends Model
 
       didInsertEvent = {text, range}
       @emitter.emit 'did-insert-text', didInsertEvent
-      @emitter.emit 'did-paste-text' didInsertEvent
+      @emitter.emit 'did-paste-text', didInsertEvent
 
   # Essential: For each selection, if the selection is empty, cut all characters
   # of the containing screen line following the cursor. Otherwise cut the selected
