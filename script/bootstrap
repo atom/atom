@@ -90,7 +90,8 @@ function bootstrap() {
   var electronVersion = require('../package.json').electronVersion;
   moduleInstallEnv.npm_config_target = electronVersion;
 
-  // Atom on Windows is always 32-bit currently.
+  // Force 32-bit modules on Windows.
+  // /cc https://github.com/atom/atom/issues/10450
   if (process.platform === 'win32') {
     moduleInstallEnv.npm_config_target_arch = 'ia32';
   }
