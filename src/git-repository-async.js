@@ -37,8 +37,11 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    // NB: This needs to happen before the following .openRepository call.
+
+    // NB: These needs to happen before the following .openRepository call.
     this.openedPath = _path
+    this._openExactPath = options.openExactPath || false
+
     this.repoPromise = this.openRepository()
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstream = {}
@@ -848,7 +851,7 @@ export default class GitRepositoryAsync {
 
       const submodule = await Git.Submodule.lookup(repo, name)
       const absolutePath = path.join(repo.workdir(), submodule.path())
-      const submoduleRepo = GitRepositoryAsync.open(absolutePath)
+      const submoduleRepo = GitRepositoryAsync.open(absolutePath, {openExactPath: true, refreshOnWindowFocus: false})
       this.submodules[name] = submoduleRepo
     }
 
@@ -977,7 +980,11 @@ export default class GitRepositoryAsync {
   //
   // Returns the new {NodeGit.Repository}.
   openRepository () {
-    return Git.Repository.openExt(this.openedPath, 0, '')
+    if (this._openExactPath) {
+      return Git.Repository.open(this.openedPath)
+    } else {
+      return Git.Repository.openExt(this.openedPath, 0, '')
+    }
   }
 
   // Section: Private
