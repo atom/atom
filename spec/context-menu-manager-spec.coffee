@@ -179,7 +179,6 @@ describe "ContextMenuManager", ->
           submenu: [
             {
               label: 'D',
-              created,
             }
           ]
         ])
