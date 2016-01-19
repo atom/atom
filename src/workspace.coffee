@@ -403,7 +403,7 @@ class Workspace extends Model
   #     If `false`, only the active pane will be searched for
   #     an existing item for the same URI. Defaults to `false`.
   #
-  # Returns a promise that resolves to the {TextEditor} for the file URI.
+  # Returns a {Promise} that resolves to the {TextEditor} for the file URI.
   open: (uri, options={}) ->
     searchAllPanes = options.searchAllPanes
     split = options.split
@@ -546,7 +546,7 @@ class Workspace extends Model
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
   #
-  # Returns a promise that is resolved when the item is opened
+  # Returns a {Promise} that is resolved when the item is opened
   reopenItem: ->
     if uri = @destroyedItemURIs.pop()
       @open(uri)
@@ -883,7 +883,7 @@ class Workspace extends Model
   #     with number of paths searched.
   # * `iterator` {Function} callback on each file found.
   #
-  # Returns a `Promise` with a `cancel()` method that will cancel all
+  # Returns a {Promise} with a `cancel()` method that will cancel all
   # of the underlying searches that were started as part of this scan.
   scan: (regex, options={}, iterator) ->
     if _.isFunction(options)
@@ -986,7 +986,7 @@ class Workspace extends Model
   # * `iterator` A {Function} callback on each file with replacements:
   #   * `options` {Object} with keys `filePath` and `replacements`.
   #
-  # Returns a `Promise`.
+  # Returns a {Promise}.
   replace: (regex, replacementText, filePaths, iterator) ->
     new Promise (resolve, reject) =>
       openPaths = (buffer.getPath() for buffer in @project.getBuffers())

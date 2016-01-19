@@ -32,6 +32,8 @@ export default class GitRepositoryAsync {
   }
 
   constructor (_path, options = {}) {
+    Git.enableThreadSafety()
+
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}

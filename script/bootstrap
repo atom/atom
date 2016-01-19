@@ -89,6 +89,12 @@ function bootstrap() {
   // proper binaries.
   var electronVersion = require('../package.json').electronVersion;
   moduleInstallEnv.npm_config_target = electronVersion;
+
+  // Force 32-bit modules on Windows.
+  // /cc https://github.com/atom/atom/issues/10450
+  if (process.platform === 'win32') {
+    moduleInstallEnv.npm_config_target_arch = 'ia32';
+  }
   var moduleInstallOptions = {env: moduleInstallEnv};
 
   if (process.argv.indexOf('--no-quiet') === -1) {
@@ -102,7 +108,7 @@ function bootstrap() {
 
   // apm ships with 32-bit node so make sure its native modules are compiled
   // for a 32-bit target architecture
-  if (process.platform === 'win32')
+  if (process.env.JANKY_SHA1 && process.platform === 'win32')
     apmInstallCommand += ' --arch=ia32';
 
   var commands = [
