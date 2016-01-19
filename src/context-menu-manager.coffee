@@ -156,8 +156,8 @@ class ContextMenuManager
     item.created?(event)
     if Array.isArray(item.submenu)
       item.submenu = item.submenu
-        .map((item) => @cloneItemForEvent(item, event))
-        .filter((item) -> item isnt null)
+        .map((submenuItem) => @cloneItemForEvent(submenuItem, event))
+        .filter((submenuItem) -> submenuItem isnt null)
     return item
 
   convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
