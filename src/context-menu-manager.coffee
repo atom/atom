@@ -136,9 +136,12 @@ class ContextMenuManager
 
       for itemSet in matchingItemSets
         for item in itemSet.items
-          itemForEvent = @cloneItemForEvent(item, event)
-          if itemForEvent
-            MenuHelpers.merge(currentTargetItems, itemForEvent, itemSet.specificity)
+          continue if item.devMode and not @devMode
+          item = Object.create(item)
+          if typeof item.shouldDisplay is 'function'
+            continue unless item.shouldDisplay(event)
+          item.created?(event)
+          MenuHelpers.merge(currentTargetItems, item, itemSet.specificity)
 
       for item in currentTargetItems
         MenuHelpers.merge(template, item, false)
@@ -146,19 +149,6 @@ class ContextMenuManager
       currentTarget = currentTarget.parentElement
 
     template
-
-  # Returns an object compatible with `::add()` or `null`.
-  cloneItemForEvent: (item, event) ->
-    return null if item.devMode and not @devMode
-    item = Object.create(item)
-    if typeof item.shouldDisplay is 'function'
-      return null unless item.shouldDisplay(event)
-    item.created?(event)
-    if Array.isArray(item.submenu)
-      item.submenu = item.submenu
-        .map((item) => @cloneItemForEvent(item, event))
-        .filter((item) -> item isnt null)
-    return item
 
   convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
     itemsBySelector = {}
