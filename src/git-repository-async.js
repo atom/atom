@@ -853,17 +853,26 @@ export default class GitRepositoryAsync {
     }
 
     for (const name in this.submodules) {
-      if (submoduleNames.indexOf(name) < 0) {
-        const repo = this.submodules[name]
+      const repo = this.submodules[name]
+      const gone = submoduleNames.indexOf(name) < 0
+      if (gone) {
         repo.destroy()
         delete this.submodules[name]
+      } else {
+        try {
+          await repo.refreshStatus()
+        } catch (e) {
+          // If we error trying to refresh, then it probably means the submodule
+          // isn't actually a submodule. Libgit2 will report anything listed in
+          // .gitmodules as a submodule, but that's not necessarily accurate. So
+          // get rid of the submodule entry.
+          repo.destroy()
+          delete this.submodules[name]
+        }
       }
     }
 
-    const submoduleRepos = _.values(this.submodules)
-    await Promise.all(submoduleRepos.map(s => s.refreshStatus()))
-
-    return submoduleRepos
+    return _.values(this.submodules)
   }
 
   // Get the status for the submodules in the repository.
