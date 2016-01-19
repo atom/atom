@@ -171,7 +171,7 @@ class TextEditor extends Model
     @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
     @disposables.add @displayBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
     @disposables.add @displayBuffer.onDidTokenize @handleTokenization.bind(this)
-    @disposables.add @displayBuffer.onDidChange (e) =>
+    @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
 

@@ -118,6 +118,7 @@ class DisplayBuffer extends Model
     })
 
   updateAllScreenLines: ->
+    return # TODO: After DisplayLayer is finished, delete these code paths
     @maxLineLength = 0
     @screenLines = []
     @rowMap = new RowMap
@@ -376,11 +377,8 @@ class DisplayBuffer extends Model
   #
   # Returns an {Array} of buffer rows as {Numbers}s.
   bufferRowsForScreenRows: (startScreenRow, endScreenRow) ->
-    if @largeFileMode
-      [startScreenRow..endScreenRow]
-    else
-      for screenRow in [startScreenRow..endScreenRow]
-        @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
+    for screenRow in [startScreenRow..endScreenRow]
+      @bufferRowForScreenRow(screenRow)
 
   # Creates a new fold between two row numbers.
   #
@@ -441,10 +439,7 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number}.
   bufferRowForScreenRow: (screenRow) ->
-    if @largeFileMode
-      screenRow
-    else
-      @rowMap.bufferRowRangeForScreenRow(screenRow)[0]
+    @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
 
   # Given a buffer range, this converts it into a screen position.
   #
@@ -870,6 +865,8 @@ class DisplayBuffer extends Model
     @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
 
   updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
+    return # TODO: After DisplayLayer is finished, delete these code paths
+
     return if @largeFileMode
     return if @isDestroyed()
 
