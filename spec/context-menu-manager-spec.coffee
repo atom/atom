@@ -156,3 +156,30 @@ describe "ContextMenuManager", ->
       catch error
         addError = error
       expect(addError.message).toContain('<>')
+
+    it "recursively applies templateForEvent on submenu items", ->
+      created = (event) -> @label = 'D'
+      item = {
+        label: 'A',
+        command: 'B',
+        submenu: [
+          {
+            label: 'C',
+            created,
+          }
+        ]
+      }
+      contextMenu.add('.grandchild': [item])
+
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'A',
+          command: 'B',
+          submenu: [
+            {
+              label: 'D',
+              created,
+            }
+          ]
+        ])
