@@ -862,10 +862,9 @@ export default class GitRepositoryAsync {
         try {
           await repo.refreshStatus()
         } catch (e) {
-          // If we error trying to refresh, then it probably means the submodule
-          // isn't actually a submodule. Libgit2 will report anything listed in
-          // .gitmodules as a submodule, but that's not necessarily accurate. So
-          // get rid of the submodule entry.
+          // libgit2 will sometimes report submodules that aren't actually valid
+          // (https://github.com/libgit2/libgit2/issues/3580). So check the
+          // validity of the submodules by removing any that fail.
           repo.destroy()
           delete this.submodules[name]
         }
