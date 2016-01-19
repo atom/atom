@@ -261,7 +261,7 @@ class Cursor extends Model
 
       while columnCount > column and row > 0
         columnCount -= column
-        column = @editor.lineTextForScreenRow(--row).length
+        column = @editor.lineLengthForScreenRow(--row)
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
@@ -280,7 +280,7 @@ class Cursor extends Model
     else
       {row, column} = @getScreenPosition()
       maxLines = @editor.getScreenLineCount()
-      rowLength = @editor.lineTextForScreenRow(row).length
+      rowLength = @editor.lineLengthForScreenRow(row)
       columnsRemainingInLine = rowLength - column
 
       while columnCount > columnsRemainingInLine and row < maxLines - 1
@@ -288,7 +288,7 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
         column = 0
-        rowLength = @editor.lineTextForScreenRow(++row).length
+        rowLength = @editor.lineLengthForScreenRow(++row)
         columnsRemainingInLine = rowLength
 
       column = column + columnCount

@@ -738,7 +738,7 @@ class TextEditor extends Model
 
   # Essential: Returns a {Number} representing the number of screen lines in the
   # editor. This accounts for folds.
-  getScreenLineCount: -> @displayBuffer.getLineCount()
+  getScreenLineCount: -> @displayLayer.getScreenLineCount()
 
   # Essential: Returns a {Number} representing the last zero-indexed buffer row
   # number of the editor.
@@ -746,7 +746,7 @@ class TextEditor extends Model
 
   # Essential: Returns a {Number} representing the last zero-indexed screen row
   # number of the editor.
-  getLastScreenRow: -> @displayBuffer.getLastRow()
+  getLastScreenRow: -> @getScreenLineCount() - 1
 
   # Essential: Returns a {String} representing the contents of the line at the
   # given buffer row.
@@ -770,17 +770,21 @@ class TextEditor extends Model
   # {Delegates to: DisplayBuffer.tokenizedLinesForScreenRows}
   tokenizedLinesForScreenRows: (start, end) -> @displayBuffer.tokenizedLinesForScreenRows(start, end)
 
-  bufferRowForScreenRow: (row) -> @displayBuffer.bufferRowForScreenRow(row)
+  bufferRowForScreenRow: (row) -> @displayLayer.translateScreenPosition(Point(row, 0)).row
 
   # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
 
-  screenRowForBufferRow: (row) -> @displayBuffer.screenRowForBufferRow(row)
+  screenRowForBufferRow: (row) -> @displayLayer.translateBufferPosition(Point(row, 0)).row
+
+  getRightmostScreenPosition: -> @displayLayer.getRightmostScreenPosition()
 
   # {Delegates to: DisplayBuffer.getMaxLineLength}
-  getMaxScreenLineLength: -> @displayBuffer.getMaxLineLength()
+  getMaxScreenLineLength: -> @getRightmostScreenPosition().column
 
-  getLongestScreenRow: -> @displayBuffer.getLongestScreenRow()
+  getLongestScreenRow: -> @getRightmostScreenPosition().row
+
+  lineLengthForScreenRow: (screenRow) -> @displayLayer.lineLengthForScreenRow(screenRow)
 
   # Returns the range for the given buffer row.
   #
@@ -1337,22 +1341,14 @@ class TextEditor extends Model
   # * `bufferRange` {Range} in buffer coordinates to translate into screen coordinates.
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) ->
-    bufferRange = Range.fromObject(bufferRange)
-    start = @displayLayer.translateBufferPosition(bufferRange.start)
-    end = @displayLayer.translateBufferPosition(bufferRange.end)
-    Range(start, end)
+  screenRangeForBufferRange: (bufferRange) -> @displayLayer.translateBufferRange(bufferRange)
 
   # Essential: Convert a range in screen-coordinates to buffer-coordinates.
   #
   # * `screenRange` {Range} in screen coordinates to translate into buffer coordinates.
   #
   # Returns a {Range}.
-  bufferRangeForScreenRange: (screenRange) ->
-    screenRange = Range.fromObject(screenRange)
-    start = @displayLayer.translateScreenPosition(screenRange.start)
-    end = @displayLayer.translateScreenPosition(screenRange.end)
-    Range(start, end)
+  bufferRangeForScreenRange: (screenRange) -> @displayLayer.translateScreenRange(screenRange)
 
   # Extended: Clip the given {Point} to a valid position in the buffer.
   #
@@ -2945,8 +2941,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtScreenRow: (screenRow) ->
-    bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
-    @isFoldableAtBufferRow(bufferRow)
+    @isFoldableAtBufferRow(@bufferRowForScreenRow(screenRow))
 
   # Extended: Fold the given buffer row if it isn't currently folded, and unfold
   # it otherwise.

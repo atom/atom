@@ -366,7 +366,7 @@ class TextEditorPresenter
       visibleTiles[tileStartRow] = true
       zIndex++
 
-    if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
+    if @mouseWheelScreenRow? and 0 <= @mouseWheelScreenRow < @model.getScreenLineCount()
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
 
       unless visibleTiles[mouseWheelTile]?
@@ -581,12 +581,12 @@ class TextEditorPresenter
           softWrapped = false
 
         screenRow = startRow + i
-        line = @model.tokenizedLineForScreenRow(screenRow)
+        lineId = @lineIdForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         foldable = @model.isFoldableAtScreenRow(screenRow)
 
-        tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
-        visibleLineNumberIds[line.id] = true
+        tileState.lineNumbers[lineId] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable}
+        visibleLineNumberIds[lineId] = true
 
     for id of tileState.lineNumbers
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
@@ -647,9 +647,10 @@ class TextEditorPresenter
   updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
-      rightmostPosition = Point(@model.getLongestScreenRow(), @model.getMaxScreenLineLength())
-      if @model.tokenizedLineForScreenRow(rightmostPosition.row)?.isSoftWrapped()
-        rightmostPosition = @model.clipScreenPosition(rightmostPosition)
+      rightmostPosition = @model.getRightmostScreenPosition()
+      # TODO: Add some version of this back once softwrap is reintroduced
+      # if @model.tokenizedLineForScreenRow(rightmostPosition.row)?.isSoftWrapped()
+      #   rightmostPosition = @model.clipScreenPosition(rightmostPosition)
       @contentWidth = @pixelPositionForScreenPosition(rightmostPosition).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
@@ -1421,4 +1422,5 @@ class TextEditorPresenter
     @startRow <= row < @endRow
 
   lineIdForScreenRow: (screenRow) ->
-    @model.tokenizedLineForScreenRow(screenRow)?.id
+    ids = @lineMarkerIndex.findStartingAt(Point(screenRow, 0))
+    ids.values().next().value if ids.size > 0
