@@ -3,9 +3,9 @@
 # See https://github.com/atom/electron/issues/2033
 process.env.DEBUG='*'
 
-path = require('path')
+path = require 'path'
 temp = require('temp').track()
-CompileCache = require('../src/compile-cache')
+CompileCache = require '../src/compile-cache'
 
 describe "Babel transpiler support", ->
   originalCacheDir = null
