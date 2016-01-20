@@ -637,8 +637,17 @@ class AtomApplication
         when 'folder' then 'Open Folder'
         else 'Open'
 
+    # On Linux
     if process.platform is 'linux'
-      if projectPath = @lastFocusedWindow?.projectPath
-        openOptions.defaultPath = projectPath
-
-    dialog.showOpenDialog(parentWindow, openOptions, callback)
+      if webContents = @lastFocusedWindow?.browserWindow?.webContents
+        responseChannel = 'get-open-default-path-response'
+        ipc.once responseChannel, (e, path) ->
+          openOptions.defaultPath = if path? then path else app.getPath("home")
+          dialog.showOpenDialog(parentWindow, openOptions, callback)
+        webContents.send("get-open-default-path", responseChannel)
+      else
+        openOptions.defaultPath = app.getPath("home")
+        dialog.showOpenDialog(parentWindow, openOptions, callback)
+    else
+      # All other platforms just do the default
+      dialog.showOpenDialog(parentWindow, openOptions, callback)
