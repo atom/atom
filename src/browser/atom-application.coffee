@@ -637,7 +637,8 @@ class AtomApplication
         when 'folder' then 'Open Folder'
         else 'Open'
 
-    # On Linux
+    # On Linux get a default directory from the renderer process, based on the
+    # active text editor. Otherwise fall back the the user's home directory.
     if process.platform is 'linux'
       if webContents = @lastFocusedWindow?.browserWindow?.webContents
         responseChannel = 'get-open-default-path-response'
