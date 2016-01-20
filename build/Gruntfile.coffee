@@ -147,6 +147,13 @@ module.exports = (grunt) ->
       dest: appDir
       ext: '.js'
 
+  for jsFile in glob.sync("src/**/*.js")
+    if usesBabel(jsFile)
+      babelConfig.dist.files.push({
+        src: [jsFile]
+        dest: path.join(appDir, jsFile)
+      })
+
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
     metadataPath = path.join(directory, 'package.json')
