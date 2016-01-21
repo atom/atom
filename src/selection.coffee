@@ -375,8 +375,9 @@ class Selection extends Model
     firstInsertedLine = remainingLines.shift()
 
     if options.indentBasis?
-      indentAdjustment = @editor.indentLevelForLine(precedingText) - options.indentBasis
-      @adjustIndent(remainingLines, indentAdjustment)
+      if firstInsertedLine != ''
+        indentAdjustment = @editor.indentLevelForLine(precedingText) - options.indentBasis
+        @adjustIndent(remainingLines, indentAdjustment)
 
     if options.autoIndent and not NonWhitespaceRegExp.test(precedingText) and remainingLines.length > 0
       autoIndentFirstLine = true
