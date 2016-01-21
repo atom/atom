@@ -158,14 +158,13 @@ describe "ContextMenuManager", ->
       expect(addError.message).toContain('<>')
 
     it "recursively applies templateForEvent on submenu items", ->
-      created = (event) -> @label = 'D'
       item = {
         label: 'A',
         command: 'B',
         submenu: [
           {
             label: 'C',
-            created,
+            created: (event) -> @label = 'D',
           }
         ]
       }
