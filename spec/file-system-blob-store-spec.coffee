@@ -1,4 +1,6 @@
 temp = require 'temp'
+path = require 'path'
+fs = require 'fs-plus'
 FileSystemBlobStore = require '../src/file-system-blob-store'
 
 describe "FileSystemBlobStore", ->
@@ -77,3 +79,27 @@ describe "FileSystemBlobStore", ->
     expect(blobStore.get("b", "invalidation-key-2")).toBeUndefined()
     expect(blobStore.get("b", "invalidation-key-3")).toBeUndefined()
     expect(blobStore.get("c", "invalidation-key-4")).toBeUndefined()
+
+  it "ignores errors when loading an invalid blob store", ->
+    blobStore.set("a", "invalidation-key-1", new Buffer("a"))
+    blobStore.set("b", "invalidation-key-2", new Buffer("b"))
+    blobStore.save()
+
+    # Simulate corruption
+    fs.writeFileSync(path.join(storageDirectory, "MAP"), new Buffer([0]))
+    fs.writeFileSync(path.join(storageDirectory, "INVKEYS"), new Buffer([0]))
+    fs.writeFileSync(path.join(storageDirectory, "BLOB"), new Buffer([0]))
+
+    blobStore = FileSystemBlobStore.load(storageDirectory)
+
+    expect(blobStore.get("a", "invalidation-key-1")).toBeUndefined()
+    expect(blobStore.get("b", "invalidation-key-2")).toBeUndefined()
+
+    blobStore.set("a", "invalidation-key-1", new Buffer("x"))
+    blobStore.set("b", "invalidation-key-2", new Buffer("y"))
+    blobStore.save()
+
+    blobStore = FileSystemBlobStore.load(storageDirectory)
+
+    expect(blobStore.get("a", "invalidation-key-1")).toEqual(new Buffer("x"))
+    expect(blobStore.get("b", "invalidation-key-2")).toEqual(new Buffer("y"))
