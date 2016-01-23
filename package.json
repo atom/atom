@@ -37,7 +37,7 @@
     "less-cache": "0.22",
     "line-top-index": "0.2.0",
     "marked": "^0.3.4",
-    "nodegit": "0.8.0",
+    "nodegit": "0.9.0",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "oniguruma": "^5",
