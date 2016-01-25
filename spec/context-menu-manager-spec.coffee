@@ -157,7 +157,7 @@ describe "ContextMenuManager", ->
         addError = error
       expect(addError.message).toContain('<>')
 
-    it "recursively applies templateForEvent on submenu items", ->
+    it "calls `created` hooks for submenu items", ->
       item = {
         label: 'A',
         command: 'B',
