@@ -158,7 +158,9 @@ class Package
     false
 
   # TODO: Remove. Settings view calls this method currently.
-  activateConfig: -> @registerConfigSchemaFromMainModule()
+  activateConfig: ->
+    @requireMainModule()
+    @registerConfigSchemaFromMainModule()
 
   activateStylesheets: ->
     return if @stylesheetsActivated
