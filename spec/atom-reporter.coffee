@@ -2,7 +2,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
-
 listen = require '../src/delegated-listener'
 
 formatStackTrace = (spec, message='', stackTrace) ->

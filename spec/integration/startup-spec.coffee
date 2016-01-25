@@ -6,11 +6,11 @@ return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # run them on Travis.
 return if process.env.CI
 
-fs = require "fs-plus"
-path = require "path"
-temp = require("temp").track()
-runAtom = require "./helpers/start-atom"
-CSON = require "season"
+fs = require 'fs-plus'
+path = require 'path'
+temp = require('temp').track()
+runAtom = require './helpers/start-atom'
+CSON = require 'season'
 
 describe "Starting Atom", ->
   atomHome = temp.mkdirSync('atom-home')

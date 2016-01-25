@@ -37,7 +37,7 @@ class DefaultDirectoryProvider
   # * `uri` {String} The path to the directory to add. This is guaranteed not to
   # be contained by a {Directory} in `atom.project`.
   #
-  # Returns a Promise that resolves to:
+  # Returns a {Promise} that resolves to:
   # * {Directory} if the given URI is compatible with this provider.
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURI: (uri) ->

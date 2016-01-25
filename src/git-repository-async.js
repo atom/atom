@@ -32,11 +32,16 @@ export default class GitRepositoryAsync {
   }
 
   constructor (_path, options = {}) {
+    Git.enableThreadSafety()
+
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    // NB: This needs to happen before the following .openRepository call.
+
+    // NB: These needs to happen before the following .openRepository call.
     this.openedPath = _path
+    this._openExactPath = options.openExactPath || false
+
     this.repoPromise = this.openRepository()
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstream = {}
@@ -846,22 +851,30 @@ export default class GitRepositoryAsync {
 
       const submodule = await Git.Submodule.lookup(repo, name)
       const absolutePath = path.join(repo.workdir(), submodule.path())
-      const submoduleRepo = GitRepositoryAsync.open(absolutePath)
+      const submoduleRepo = GitRepositoryAsync.open(absolutePath, {openExactPath: true, refreshOnWindowFocus: false})
       this.submodules[name] = submoduleRepo
     }
 
     for (const name in this.submodules) {
-      if (submoduleNames.indexOf(name) < 0) {
-        const repo = this.submodules[name]
+      const repo = this.submodules[name]
+      const gone = submoduleNames.indexOf(name) < 0
+      if (gone) {
         repo.destroy()
         delete this.submodules[name]
+      } else {
+        try {
+          await repo.refreshStatus()
+        } catch (e) {
+          // libgit2 will sometimes report submodules that aren't actually valid
+          // (https://github.com/libgit2/libgit2/issues/3580). So check the
+          // validity of the submodules by removing any that fail.
+          repo.destroy()
+          delete this.submodules[name]
+        }
       }
     }
 
-    const submoduleRepos = _.values(this.submodules)
-    await Promise.all(submoduleRepos.map(s => s.refreshStatus()))
-
-    return submoduleRepos
+    return _.values(this.submodules)
   }
 
   // Get the status for the submodules in the repository.
@@ -967,7 +980,11 @@ export default class GitRepositoryAsync {
   //
   // Returns the new {NodeGit.Repository}.
   openRepository () {
-    return Git.Repository.openExt(this.openedPath, 0, '')
+    if (this._openExactPath) {
+      return Git.Repository.open(this.openedPath)
+    } else {
+      return Git.Repository.openExt(this.openedPath, 0, '')
+    }
   }
 
   // Section: Private

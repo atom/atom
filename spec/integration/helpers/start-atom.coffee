@@ -1,11 +1,11 @@
-path = require "path"
-http = require "http"
-temp = require("temp").track()
-remote = require "remote"
-async = require "async"
-{map, extend, once, difference} = require "underscore-plus"
-{spawn, spawnSync} = require "child_process"
-webdriverio = require "../../../build/node_modules/webdriverio"
+path = require 'path'
+http = require 'http'
+temp = require('temp').track()
+remote = require 'remote'
+async = require 'async'
+{map, extend, once, difference} = require 'underscore-plus'
+{spawn, spawnSync} = require 'child_process'
+webdriverio = require '../../../build/node_modules/webdriverio'
 
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
