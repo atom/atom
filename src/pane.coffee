@@ -44,6 +44,7 @@ class Pane extends Model
     @emitter = new Emitter
     @subscriptionsPerItem = new WeakMap
     @items = []
+    @itemStack = []
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
@@ -285,9 +286,16 @@ class Pane extends Model
 
   setActiveItem: (activeItem) ->
     unless activeItem is @activeItem
+      @addItemToStack(activeItem)
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
+
+  # Add item (or move item) to the end of the itemStack
+  addItemToStack: (newItem) ->
+    index = @itemStack.indexOf(newItem)
+    @itemStack.splice(index, 1) unless index is -1
+    @itemStack.push(newItem)
 
   # Return an {TextEditor} if the pane item is an {TextEditor}, or null otherwise.
   getActiveEditor: ->
@@ -300,6 +308,15 @@ class Pane extends Model
   # Returns an item or `null` if no item exists at the given index.
   itemAtIndex: (index) ->
     @items[index]
+
+  # Makes the most recently used item active.
+  activateMostRecentlyUsedItem: ->
+    console.log(@items[0].serialize)
+    if @items.length > 1
+      index = @itemStack.length - 2
+      mostRecentlyUsedItem = @itemStack[index]
+      @itemStack.splice(index, 1)
+      @setActiveItem(mostRecentlyUsedItem)
 
   # Public: Makes the next item active.
   activateNextItem: ->
@@ -425,9 +442,8 @@ class Pane extends Model
   removeItem: (item, moved) ->
     index = @items.indexOf(item)
     return if index is -1
-
     @pendingItem = null if @getPendingItem() is item
-
+    @removeItemFromStack(item)
     @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
 
@@ -442,6 +458,14 @@ class Pane extends Model
     @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
     @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
     @destroy() if @items.length is 0 and @config.get('core.destroyEmptyPanes')
+
+  # Remove the given item from the itemStack.
+  #
+  # * `item` The item to remove.
+  # * `index` {Number} indicating the index to which to remove the item from the itemStack.
+  removeItemFromStack: (item) ->
+    index = @itemStack.indexOf(item)
+    @itemStack.splice(index, 1) unless index is -1
 
   # Public: Move the given item to the given index.
   #

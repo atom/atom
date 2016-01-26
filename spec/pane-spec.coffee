@@ -183,6 +183,27 @@ describe "Pane", ->
         pane.activateItem(itemD, true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
+  fdescribe "::activateMostRecentlyUsedItem()", ->
+    it "sets the active item to the most recently used item", ->
+      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
+      [item1, item2, item3] = pane.getItems()
+      pane.itemStack = []
+
+      pane.activateItem(item3)
+      expect(pane.getActiveItem()).toBe item3
+      pane.activateItem(item1)
+      expect(pane.getActiveItem()).toBe item1
+      pane.activateMostRecentlyUsedItem()
+      expect(pane.getActiveItem()).toBe item3
+      pane.activateItem(item2)
+      expect(pane.getActiveItem()).toBe item2
+      pane.activateMostRecentlyUsedItem()
+      expect(pane.getActiveItem()).toBe item3
+      expect(pane.itemStack[0]).toBe item1
+      pane.destroyItem(item3)
+      pane.activateMostRecentlyUsedItem()
+      expect(pane.getActiveItem()).toBe item1
+
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
