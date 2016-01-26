@@ -2155,6 +2155,11 @@ describe('TextEditorComponent', function () {
           width: windowWidth,
           height: windowHeight
         })
+
+        await conditionPromise(function () {
+          return window.innerWidth === windowWidth
+        })
+
         component.measureDimensions()
         component.measureWindowSize()
         await nextViewUpdatePromise()
