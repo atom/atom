@@ -22,6 +22,9 @@ The [API reference](https://atom.io/docs/api) for developing packages is also do
 
 ## Installing
 
+### Prerequisites
+- [Git](https://git-scm.com/)
+
 ### OS X
 
 Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
