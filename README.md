@@ -44,9 +44,10 @@ the latest version of Atom.
 
 Currently only a 64-bit version is available.
 
-1. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+1. Install git on with apt-get: ```$ sudo apt-get install git-all```.
+2. Download `atom-amd64.deb` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+3. Run `sudo dpkg --install atom-amd64.deb` on the downloaded package.
+4. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
@@ -55,9 +56,10 @@ repeat these steps to upgrade to future releases.
 
 Currently only a 64-bit version is available.
 
-1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+1. Install git on with yum as root: ```~]# yum install git```.
+2. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+3. Run `sudo yum localinstall atom.x86_64.rpm` on the downloaded package.
+4. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
@@ -66,9 +68,10 @@ repeat these steps to upgrade to future releases.
 
 Currently only a 64-bit version is available.
 
-1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dnf install atom.x86_64.rpm` on the downloaded package.
-3. Launch Atom using the installed `atom` command.
+1. Install git on with yum as root: ```~]# yum install git```.
+2. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
+3. Run `sudo dnf install atom.x86_64.rpm` on the downloaded package.
+4. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
 repeat these steps to upgrade to future releases.
