@@ -1042,8 +1042,8 @@ class TextEditorPresenter
       break unless @tokenIterator.getStartScreenPosition().row is screenRow
     line
 
-  invalidateLines: ({start, replacedExtent, replacementExtent}) ->
-    {touch} = @lineMarkerIndex.splice(start, replacedExtent, replacementExtent)
+  invalidateLines: ({start, oldExtent, newExtent}) ->
+    {touch} = @lineMarkerIndex.splice(start, oldExtent, newExtent)
     touch.forEach (lineId) =>
       @lineMarkerIndex.delete(lineId)
       @linesById.delete(lineId)
