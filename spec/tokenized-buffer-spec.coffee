@@ -1113,3 +1113,30 @@ describe "TokenizedBuffer", ->
 
         expect(iterator.seek(Point(2, 0))).toEqual(["source.js"])
         iterator.moveToSuccessor() # ensure we don't infinitely loop (regression test)
+
+      it "does not report columns beyond the length of the line", ->
+        waitsForPromise ->
+          atom.packages.activatePackage('language-coffee-script')
+
+        runs ->
+          buffer = new TextBuffer(text: "# hello\n# world")
+          tokenizedBuffer = new TokenizedBuffer({
+            buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+          })
+          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar(".coffee"))
+          fullyTokenize(tokenizedBuffer)
+
+          iterator = tokenizedBuffer.buildIterator()
+          iterator.seek(Point(0, 0))
+          iterator.moveToSuccessor()
+          iterator.moveToSuccessor()
+          expect(iterator.getPosition().column).toBe(7)
+
+          iterator.moveToSuccessor()
+          expect(iterator.getPosition().column).toBe(0)
+
+          iterator.seek(Point(0, 7))
+          expect(iterator.getPosition().column).toBe(7)
+
+          iterator.seek(Point(0, 8))
+          expect(iterator.getPosition().column).toBe(7)

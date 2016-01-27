@@ -14,6 +14,7 @@ class TokenizedBufferIterator
     currentLine = @tokenizedBuffer.tokenizedLineForRow(position.row)
     containingTags = currentLine.openScopes.map (id) => @grammarRegistry.scopeForId(id)
     @currentTags = currentLine.tags
+    @currentLineLength = currentLine.text.length
     currentColumn = 0
     for tag, index in @currentTags
       if tag >= 0
@@ -32,37 +33,44 @@ class TokenizedBufferIterator
           @openTags.push(scopeName)
 
     @tagIndex ?= @currentTags.length
-    @position = Point(position.row, currentColumn)
+    @position = Point(position.row, Math.min(@currentLineLength, currentColumn))
     containingTags
 
   moveToSuccessor: ->
-    if @tagIndex is @currentTags.length
-      @position = Point(@position.row + 1, 0)
-      @currentTags = @tokenizedBuffer.tokenizedLineForRow(@position.row)?.tags
-      return false unless @currentTags?
-      @tagIndex = 0
-    else
-      @position = Point(@position.row, @position.column + @currentTags[@tagIndex])
-      @tagIndex++
-
     @openTags = []
     @closeTags = []
 
     loop
-      tag = @currentTags[@tagIndex]
-      if tag >= 0 or @tagIndex is @currentTags.length
+      if @tagIndex is @currentTags.length
         if @isAtTagBoundary()
           break
         else
-          return @moveToSuccessor()
+          return false unless @moveToNextLine()
       else
-        scopeName = @grammarRegistry.scopeForId(tag)
-        if tag % 2 is 0
-          @closeTags.push(scopeName)
+        tag = @currentTags[@tagIndex]
+        if tag >= 0
+          if @isAtTagBoundary()
+            break
+          else
+            @position = Point(@position.row, Math.min(@currentLineLength, @position.column + @currentTags[@tagIndex]))
         else
-          @openTags.push(scopeName)
-      @tagIndex++
+          scopeName = @grammarRegistry.scopeForId(tag)
+          if tag % 2 is 0
+            @closeTags.push(scopeName)
+          else
+            @openTags.push(scopeName)
+        @tagIndex++
 
+    true
+
+  # Private
+  moveToNextLine: ->
+    @position = Point(@position.row + 1, 0)
+    tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(@position.row)
+    return false unless tokenizedLine?
+    @currentTags = tokenizedLine.tags
+    @currentLineLength = tokenizedLine.text.length
+    @tagIndex = 0
     true
 
   getPosition: ->
