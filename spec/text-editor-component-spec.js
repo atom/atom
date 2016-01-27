@@ -2151,13 +2151,9 @@ describe('TextEditorComponent', function () {
         item.style.height = itemHeight + 'px'
         wrapperNode.style.width = windowWidth + 'px'
         wrapperNode.style.height = windowHeight + 'px'
-        atom.setWindowDimensions({
+        await atom.setWindowDimensions({
           width: windowWidth,
           height: windowHeight
-        })
-
-        await conditionPromise(function () {
-          return window.innerWidth === windowWidth
         })
 
         component.measureDimensions()

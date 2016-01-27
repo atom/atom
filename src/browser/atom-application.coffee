@@ -3,6 +3,7 @@ ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
 StorageFolder = require '../storage-folder'
+ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
@@ -260,6 +261,24 @@ class AtomApplication
     ipcMain.on 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
+
+    ipcHelpers.respondTo 'set-window-size', (win, width, height) ->
+      win.setSize(width, height)
+
+    ipcHelpers.respondTo 'set-window-position', (win, x, y) ->
+      win.setPosition(x, y)
+
+    ipcHelpers.respondTo 'center-window', (win) ->
+      win.center()
+
+    ipcHelpers.respondTo 'focus-window', (win) ->
+      win.focus()
+
+    ipcHelpers.respondTo 'show-window', (win) ->
+      win.show()
+
+    ipcHelpers.respondTo 'hide-window', (win) ->
+      win.hide()
 
     ipcMain.on 'did-cancel-window-unload', =>
       @quitting = false

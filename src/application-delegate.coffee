@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 {ipcRenderer, remote, shell, webFrame} = require 'electron'
+ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
@@ -26,26 +27,26 @@ class ApplicationDelegate
     {width, height}
 
   setWindowSize: (width, height) ->
-    remote.getCurrentWindow().setSize(width, height)
+    ipcHelpers.call('set-window-size', width, height)
 
   getWindowPosition: ->
     [x, y] = remote.getCurrentWindow().getPosition()
     {x, y}
 
   setWindowPosition: (x, y) ->
-    ipcRenderer.send("call-window-method", "setPosition", x, y)
+    ipcHelpers.call('set-window-position', x, y)
 
   centerWindow: ->
-    ipcRenderer.send("call-window-method", "center")
+    ipcHelpers.call('center-window')
 
   focusWindow: ->
-    ipcRenderer.send("call-window-method", "focus")
+    ipcHelpers.call('focus-window')
 
   showWindow: ->
-    ipcRenderer.send("call-window-method", "show")
+    ipcHelpers.call('show-window')
 
   hideWindow: ->
-    ipcRenderer.send("call-window-method", "hide")
+    ipcHelpers.call('hide-window')
 
   reloadWindow: ->
     ipcRenderer.send("call-window-method", "reload")

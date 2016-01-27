@@ -519,16 +519,17 @@ class AtomEnvironment extends Model
 
   # Restore the window to its previous dimensions and show it.
   #
-  # Also restores the full screen and maximized state on the next tick to
+  # Restores the full screen and maximized state after the window has resized to
   # prevent resize glitches.
   displayWindow: ->
-    dimensions = @restoreWindowDimensions()
-    @show()
-    @focus()
-
-    setImmediate =>
-      @setFullScreen(true) if @workspace?.fullScreen
-      @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
+    @restoreWindowDimensions().then (dimensions) =>
+      steps = [
+        @show(),
+        @focus()
+      ]
+      steps.push(@setFullScreen(true)) if @workspace.fullScreen
+      steps.push(@maximize()) if dimensions?.maximized and process.platform isnt 'darwin'
+      Promise.all(steps)
 
   # Get the dimensions of this window.
   #
@@ -556,12 +557,14 @@ class AtomEnvironment extends Model
   #   * `width` The new width.
   #   * `height` The new height.
   setWindowDimensions: ({x, y, width, height}) ->
+    steps = []
     if width? and height?
-      @setSize(width, height)
+      steps.push(@setSize(width, height))
     if x? and y?
-      @setPosition(x, y)
+      steps.push(@setPosition(x, y))
     else
-      @center()
+      steps.push(@center())
+    Promise.all(steps)
 
   # Returns true if the dimensions are useable, false if they should be ignored.
   # Work around for https://github.com/atom/atom-shell/issues/473
@@ -594,8 +597,7 @@ class AtomEnvironment extends Model
     dimensions = @state.windowDimensions
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
-    @setWindowDimensions(dimensions)
-    dimensions
+    @setWindowDimensions(dimensions).then -> dimensions
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
