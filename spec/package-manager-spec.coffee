@@ -819,9 +819,8 @@ describe "PackageManager", ->
           expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
           expect(addErrorHandler.callCount).toBe 0
 
-  describe "serialization", ->
-
-    it "does not serialize packages that have not been activated called on their main module", ->
+  describe "::serialize", ->
+    it "does not serialize packages that threw an error during activation", ->
       spyOn(console, 'warn')
       badPack = null
       waitsForPromise ->
@@ -830,7 +829,7 @@ describe "PackageManager", ->
       runs ->
         spyOn(badPack.mainModule, 'serialize').andCallThrough()
 
-        atom.packages.serializePackage(badPack)
+        atom.packages.serialize()
         expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
     it "absorbs exceptions that are thrown by the package module's serialize method", ->
