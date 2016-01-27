@@ -636,16 +636,19 @@ class AtomEnvironment extends Model
 
     @openInitialEmptyEditorIfNecessary()
 
+  serialize: ->
+    @state.project = @project.serialize()
+    @state.workspace = @workspace.serialize()
+    @state.packageStates = @packages.serialize()
+    @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
+    @state.fullScreen = @isFullScreen()
+
   unloadEditorWindow: ->
     return if not @project
 
     @storeWindowBackground()
-    @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
-    @state.project = @project.serialize()
-    @state.workspace = @workspace.serialize()
+    @serialize()
     @packages.deactivatePackages()
-    @state.packageStates = @packages.packageStates
-    @state.fullScreen = @isFullScreen()
     @saveStateSync()
     @saveBlobStoreSync()
 
@@ -782,6 +785,7 @@ class AtomEnvironment extends Model
 
   saveStateSync: ->
     return unless @enablePersistence
+    @serialize()
 
     if storageKey = @getStateKey(@project?.getPaths())
       @getStorageFolder().store(storageKey, @state)
