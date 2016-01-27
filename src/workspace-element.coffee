@@ -104,6 +104,14 @@ class WorkspaceElement extends HTMLElement
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
+  moveActiveItemToPaneAbove: (params) -> @paneContainer.moveActiveItemToPaneAbove(params)
+
+  moveActiveItemToPaneBelow: (params) -> @paneContainer.moveActiveItemToPaneBelow(params)
+
+  moveActiveItemToPaneOnLeft: (params) -> @paneContainer.moveActiveItemToPaneOnLeft(params)
+
+  moveActiveItemToPaneOnRight: (params) -> @paneContainer.moveActiveItemToPaneOnRight(params)
+
   runPackageSpecs: ->
     if activePath = @workspace.getActivePaneItem()?.getPath?()
       [projectPath] = @project.relativizePath(activePath)
