@@ -51,7 +51,7 @@ class DisplayBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
-    @displayLayer = @buffer.addDisplayLayer({tabLength: @getTabLength()})
+    @displayLayer = @buffer.addDisplayLayer({tabLength: @getTabLength(), invisibles: @config.get('editor.invisibles')})
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
