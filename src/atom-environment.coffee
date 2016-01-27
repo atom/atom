@@ -524,6 +524,7 @@ class AtomEnvironment extends Model
   displayWindow: ->
     @restoreWindowDimensions().then (dimensions) =>
       steps = [
+        @restoreWindowBackground(),
         @show(),
         @focus()
       ]
@@ -603,6 +604,13 @@ class AtomEnvironment extends Model
     dimensions = @getWindowDimensions()
     @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
 
+  restoreWindowBackground: ->
+    if backgroundColor = window.localStorage.getItem('atom:window-background-color')
+      @backgroundStylesheet = document.createElement('style')
+      @backgroundStylesheet.type = 'text/css'
+      @backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + ' !important; }'
+      document.head.appendChild(@backgroundStylesheet)
+
   storeWindowBackground: ->
     return if @inSpecMode()
 
@@ -627,6 +635,7 @@ class AtomEnvironment extends Model
     @packages.loadPackages()
     @loadStateSync()
     @document.body.appendChild(@views.getView(@workspace))
+    @backgroundStylesheet?.remove()
 
     @watchProjectPath()
 

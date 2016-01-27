@@ -146,31 +146,6 @@
     }
   }
 
-  function setupWindowBackground () {
-    if (loadSettings && loadSettings.isSpec) {
-      return
-    }
-
-    var backgroundColor = window.localStorage.getItem('atom:window-background-color')
-    if (!backgroundColor) {
-      return
-    }
-
-    var backgroundStylesheet = document.createElement('style')
-    backgroundStylesheet.type = 'text/css'
-    backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + ' !important; }'
-    document.head.appendChild(backgroundStylesheet)
-
-    // Remove once the page loads
-    window.addEventListener('load', function loadWindow () {
-      window.removeEventListener('load', loadWindow, false)
-      setTimeout(function () {
-        backgroundStylesheet.remove()
-        backgroundStylesheet = null
-      }, 1000)
-    }, false)
-  }
-
   var setupAtomHome = function () {
     if (process.env.ATOM_HOME) {
       return
@@ -186,5 +161,4 @@
 
   parseLoadSettings()
   setupAtomHome()
-  setupWindowBackground()
 })()
