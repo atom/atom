@@ -444,7 +444,7 @@ describe "PackageManager", ->
         runs ->
           expect(console.warn).not.toHaveBeenCalled()
 
-    fit "passes the activate method the package's previously serialized state if it exists", ->
+    it "passes the activate method the package's previously serialized state if it exists", ->
       pack = atom.packages.loadPackage("package-with-serialization")
       waitsForPromise ->
         pack.activate()  # require main module
@@ -819,14 +819,9 @@ describe "PackageManager", ->
           expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
           expect(addErrorHandler.callCount).toBe 0
 
-  describe "::serialize", ->
-    # TODO
+  describe "serialization", ->
 
-  describe "::serializePackage(pack)", ->
-    # afterEach ->
-    #   atom.packages.unloadPackages()
-
-    fit "does not serialize packages that have not been activated called on their main module", ->
+    it "does not serialize packages that have not been activated called on their main module", ->
       spyOn(console, 'warn')
       badPack = null
       waitsForPromise ->
@@ -838,7 +833,7 @@ describe "PackageManager", ->
         atom.packages.serializePackage(badPack)
         expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
 
-    fit "absorbs exceptions that are thrown by the package module's serialize method", ->
+    it "absorbs exceptions that are thrown by the package module's serialize method", ->
       spyOn(console, 'error')
 
       waitsForPromise ->
@@ -848,7 +843,7 @@ describe "PackageManager", ->
         atom.packages.activatePackage('package-with-serialization')
 
       runs ->
-        atom.packages.deactivatePackages()
+        atom.packages.serialize()
         expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
         expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
         expect(console.error).toHaveBeenCalled()
