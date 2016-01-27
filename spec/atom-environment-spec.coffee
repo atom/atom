@@ -174,6 +174,19 @@ describe "AtomEnvironment", ->
       atom.loadStateSync()
       expect(atom.state.stuff).toBe("cool")
 
+    it "saves state on keypress and mousedown events", ->
+      spyOn(atom, 'saveStateSync')
+
+      keypress = new KeyboardEvent('keypress')
+      atom.document.dispatchEvent(keypress)
+      advanceClock 1100
+      expect(atom.saveStateSync).toHaveBeenCalled()
+
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock 1100
+      expect(atom.saveStateSync).toHaveBeenCalled()
+
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
       beforeEach ->
