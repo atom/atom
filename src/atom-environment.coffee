@@ -119,8 +119,9 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
-    @document.addEventListener('mousedown', _.debounce(@saveStateSync.bind(this), 1000), true)
-    @document.addEventListener('keypress', _.debounce(@saveStateSync.bind(this), 1000), true)
+    debouncedSaveStateSync = _.debounce((=> @saveStateSync()), 1000)
+    @document.addEventListener('mousedown', debouncedSaveStateSync, true)
+    @document.addEventListener('keypress', debouncedSaveStateSync, true)
 
     @state = {version: @constructor.version}
 
