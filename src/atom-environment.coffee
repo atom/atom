@@ -111,6 +111,8 @@ class AtomEnvironment extends Model
   # Public: A {Workspace} instance
   workspace: null
 
+  saveStateDebounceInterval: 1000
+
   ###
   Section: Construction and Destruction
   ###
@@ -119,7 +121,7 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
-    debouncedSaveStateSync = _.debounce((=> @saveStateSync()), 1000)
+    debouncedSaveStateSync = _.debounce((=> @saveStateSync()), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', debouncedSaveStateSync, true)
     @document.addEventListener('keypress', debouncedSaveStateSync, true)
 

@@ -179,12 +179,12 @@ describe "AtomEnvironment", ->
 
       keypress = new KeyboardEvent('keypress')
       atom.document.dispatchEvent(keypress)
-      advanceClock 1100
+      advanceClock atom.saveStateDebounceInterval
       expect(atom.saveStateSync).toHaveBeenCalled()
 
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
-      advanceClock 1100
+      advanceClock atom.saveStateDebounceInterval
       expect(atom.saveStateSync).toHaveBeenCalled()
 
   describe "openInitialEmptyEditorIfNecessary", ->
