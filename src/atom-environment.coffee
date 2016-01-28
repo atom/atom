@@ -308,9 +308,6 @@ class AtomEnvironment extends Model
     @views.clear()
     @registerDefaultViewProviders()
 
-    @state.packageStates = {}
-    delete @state.workspace
-
   destroy: ->
     return if not @project
 
@@ -597,7 +594,7 @@ class AtomEnvironment extends Model
       {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
-    dimensions = @state.windowDimensions
+    dimensions = @windowDimensions
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
     @setWindowDimensions(dimensions)
@@ -605,7 +602,7 @@ class AtomEnvironment extends Model
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
-    @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
+    @windowDimensions = dimensions if @isValidDimensions(dimensions)
 
   storeWindowBackground: ->
     return if @inSpecMode()
@@ -643,11 +640,11 @@ class AtomEnvironment extends Model
     @openInitialEmptyEditorIfNecessary()
 
   serialize: ->
-    @state.project = @project.serialize()
-    @state.workspace = @workspace.serialize()
-    @state.packageStates = @packages.serialize()
-    @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
-    @state.fullScreen = @isFullScreen()
+    project: @project.serialize()
+    workspace: @workspace.serialize()
+    packageStates: @packages.serialize()
+    grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
+    fullScreen: @isFullScreen()
 
   unloadEditorWindow: ->
     return if not @project
@@ -790,15 +787,15 @@ class AtomEnvironment extends Model
 
   saveState: (synchronous) ->
     return unless @enablePersistence
-    @serialize()
+    state = @serialize()
 
     if storageKey = @getStateKey(@project?.getPaths())
       if synchronous
-        @getStorageFolder().storeSync(storageKey, @state)
+        @getStorageFolder().storeSync(storageKey, state)
       else
-        @getStorageFolder().storeAsync(storageKey, @state)
+        @getStorageFolder().storeAsync(storageKey, state)
     else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
+      @getCurrentWindow().loadSettings.windowState = JSON.stringify(state)
 
   loadStateSync: ->
     return unless @enablePersistence
@@ -806,31 +803,29 @@ class AtomEnvironment extends Model
     startTime = Date.now()
 
     if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-      if state = @getStorageFolder().load(stateKey)
-        @state = state
+      state = @getStorageFolder().load(stateKey)
 
-    if not @state? and windowState = @getLoadSettings().windowState
+    if not state? and windowState = @getLoadSettings().windowState
       try
-        if state = JSON.parse(@getLoadSettings().windowState)
-          @state = state
+        state = JSON.parse(@getLoadSettings().windowState)
       catch error
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
     @deserializeTimings.atom = Date.now() -  startTime
 
-    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
+    if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
-    @setFullScreen(@state.fullScreen)
+    @setFullScreen(state.fullScreen)
 
-    @packages.packageStates = @state.packageStates ? {}
+    @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
-    @project.deserialize(@state.project, @deserializers) if @state.project?
+    @project.deserialize(state.project, @deserializers) if state.project?
     @deserializeTimings.project = Date.now() - startTime
 
     startTime = Date.now()
-    @workspace.deserialize(@state.workspace, @deserializers) if @state.workspace?
+    @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
     @deserializeTimings.workspace = Date.now() - startTime
 
   getStateKey: (paths) ->
