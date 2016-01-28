@@ -813,6 +813,9 @@ class AtomEnvironment extends Model
       catch error
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
+    @deserialize(state) if state?
+
+  deserialize: (state) ->
     @deserializeTimings.atom = Date.now() -  startTime
 
     if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
