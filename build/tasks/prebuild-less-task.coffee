@@ -5,6 +5,8 @@ LessCache = require 'less-cache'
 
 module.exports = (grunt) ->
   {rm} = require('./task-helpers')(grunt)
+  cacheMisses = 0
+  cacheHits = 0
 
   compileBootstrap = ->
     appDir = grunt.config.get('atom.appDir')
@@ -19,6 +21,8 @@ module.exports = (grunt) ->
     grunt.file.write(bootstrapCssPath, bootstrapCss)
     rm(bootstrapLessPath)
     rm(path.join(appDir, 'node_modules', 'bootstrap', 'less'))
+    cacheMisses += lessCache.stats.misses
+    cacheHits += lessCache.stats.hits
 
   importFallbackVariables = (lessFilePath) ->
     if lessFilePath.indexOf('static') is 0
@@ -104,3 +108,8 @@ module.exports = (grunt) ->
       for file in themeMains
         grunt.verbose.writeln("File #{file.cyan} created in cache.")
         cssForFile(file)
+
+      cacheMisses += lessCache.stats.misses
+      cacheHits += lessCache.stats.hits
+
+    grunt.log.ok(cacheMisses + ' Less files compiled, ' + cacheHits + ' files reused')
