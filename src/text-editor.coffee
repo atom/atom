@@ -890,10 +890,11 @@ class TextEditor extends Model
   #      {Number} index of that selection.
   mutateSelectedText: (fn, groupingInterval=0) ->
     @emitter.emit 'will-mutate-selected-text'
-    @mergeIntersectingSelections =>
+    result = @mergeIntersectingSelections =>
       @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
     @emitter.emit 'did-mutate-selected-text'
+    result
 
   # Move lines intersecting the most recent selection or multiple selections
   # up by one row in screen coordinates.
