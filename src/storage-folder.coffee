@@ -11,7 +11,7 @@ class StorageFolder
 
     fs.writeFileSync(@pathForKey(name), JSON.stringify(object), 'utf8')
 
-  storeAsync: (name, object) ->
+  store: (name, object) ->
     return unless @path?
 
     fs.writeFile(@pathForKey(name), JSON.stringify(object), 'utf8')

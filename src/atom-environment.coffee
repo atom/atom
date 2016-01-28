@@ -793,7 +793,7 @@ class AtomEnvironment extends Model
       if synchronous
         @getStorageFolder().storeSync(storageKey, state)
       else
-        @getStorageFolder().storeAsync(storageKey, state)
+        @getStorageFolder().store(storageKey, state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(state)
 
