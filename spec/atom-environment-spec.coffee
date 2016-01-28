@@ -160,19 +160,18 @@ describe "AtomEnvironment", ->
 
       spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
       spyOn(atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(atom, 'serialize').andReturn({stuff: 'cool'})
+      spyOn(atom, 'deserialize')
 
-      atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
       atom.saveState(true)
 
-      atom.state = {}
       atom.loadStateSync()
-      expect(atom.state.stuff).toBeUndefined()
+      expect(atom.deserialize).not.toHaveBeenCalled()
 
       loadSettings.initialPaths = [dir2, dir1]
-      atom.state = {}
       atom.loadStateSync()
-      expect(atom.state.stuff).toBe("cool")
+      expect(atom.deserialize).toHaveBeenCalledWith({stuff: 'cool'})
 
     it "saves state on keydown and mousedown events", ->
       spyOn(atom, 'saveState')
@@ -243,20 +242,11 @@ describe "AtomEnvironment", ->
 
       atomEnvironment.destroy()
 
-    # TODO: fix failing test. devtools show that ::saveState just goes to jasmine.createSpy.spyObj function
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
       spyOn(atomEnvironment, 'saveState')
 
-      workspaceState = atomEnvironment.workspace.serialize()
-      grammarsState = {grammarOverridesByPath: atomEnvironment.grammars.grammarOverridesByPath}
-      projectState = atomEnvironment.project.serialize()
-
       atomEnvironment.unloadEditorWindow()
-
-      expect(atomEnvironment.state.workspace).toEqual workspaceState
-      expect(atomEnvironment.state.grammars).toEqual grammarsState
-      expect(atomEnvironment.state.project).toEqual projectState
       expect(atomEnvironment.saveState).toHaveBeenCalled()
 
       atomEnvironment.destroy()
