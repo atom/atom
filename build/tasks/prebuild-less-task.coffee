@@ -15,6 +15,8 @@ module.exports = (grunt) ->
 
     lessCache = new LessCache
       cacheDir: temp.mkdirSync('atom-less-cache')
+      fallbackDir: grunt.config.get('prebuild-less.options.cachePath')
+      syncCaches: true
       resourcePath: path.resolve('.')
 
     bootstrapCss = lessCache.readFileSync(bootstrapLessPath)
@@ -88,6 +90,8 @@ module.exports = (grunt) ->
       grunt.verbose.writeln("Building Less cache for #{configuration.join(', ').yellow}")
       lessCache = new LessCache
         cacheDir: directory
+        fallbackDir: grunt.config.get('prebuild-less.options.cachePath')
+        syncCaches: true
         resourcePath: path.resolve('.')
         importPaths: importPaths
 
@@ -112,4 +116,4 @@ module.exports = (grunt) ->
       cacheMisses += lessCache.stats.misses
       cacheHits += lessCache.stats.hits
 
-    grunt.log.ok(cacheMisses + ' Less files compiled, ' + cacheHits + ' files reused')
+    grunt.log.ok("#{cacheMisses} files compiled, #{cacheHits} files reused")

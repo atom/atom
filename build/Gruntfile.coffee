@@ -121,6 +121,8 @@ module.exports = (grunt) ->
       ext: '.css'
 
   prebuildLessConfig =
+    options:
+      cachePath: path.join(homeDir, '.atom', 'compile-cache', 'prebuild-less')
     src: [
       'static/**/*.less'
     ]
