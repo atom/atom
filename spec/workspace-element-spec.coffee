@@ -93,6 +93,28 @@ describe "WorkspaceElement", ->
       atom.workspace.addFooterPanel({item: footerItem})
       expect(footerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
 
+    it 'shrinks horizontal axis according to header/footer panels height', ->
+      workspaceElement = atom.views.getView(atom.workspace)
+      workspaceElement.style.height = '100px'
+      horizontalAxisElement = workspaceElement.querySelector('atom-workspace-axis.horizontal')
+      jasmine.attachToDOM(workspaceElement)
+
+      originalHorizontalAxisHeight = horizontalAxisElement.offsetHeight
+      expect(workspaceElement.offsetHeight).toBeGreaterThan(0)
+      expect(originalHorizontalAxisHeight).toBeGreaterThan(0)
+
+      headerItem = document.createElement('div')
+      headerItem.style.height = '10px'
+      atom.workspace.addHeaderPanel({item: headerItem})
+      expect(headerItem.offsetHeight).toBeGreaterThan(0)
+
+      footerItem = document.createElement('div')
+      footerItem.style.height = '15px'
+      atom.workspace.addFooterPanel({item: footerItem})
+      expect(footerItem.offsetHeight).toBeGreaterThan(0)
+
+      expect(horizontalAxisElement.offsetHeight).toEqual(originalHorizontalAxisHeight - headerItem.offsetHeight - footerItem.offsetHeight)
+
   describe "the 'window:toggle-invisibles' command", ->
     it "shows/hides invisibles in all open and future editors", ->
       workspaceElement = atom.views.getView(atom.workspace)
