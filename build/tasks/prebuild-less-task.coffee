@@ -35,39 +35,27 @@ module.exports = (grunt) ->
   grunt.registerMultiTask 'prebuild-less', 'Prebuild cached of compiled Less files', ->
     compileBootstrap()
 
-    prebuiltConfigurations = [
-      ['atom-dark-ui', 'atom-dark-syntax']
-      ['atom-dark-ui', 'atom-light-syntax']
-      ['atom-dark-ui', 'one-dark-syntax']
-      ['atom-dark-ui', 'one-light-syntax']
-      ['atom-dark-ui', 'solarized-dark-syntax']
-      ['atom-dark-ui', 'base16-tomorrow-dark-theme']
-      ['atom-dark-ui', 'base16-tomorrow-light-theme']
-
-      ['atom-light-ui', 'atom-light-syntax']
-      ['atom-light-ui', 'atom-dark-syntax']
-      ['atom-light-ui', 'one-dark-syntax']
-      ['atom-light-ui', 'one-light-syntax']
-      ['atom-light-ui', 'solarized-dark-syntax']
-      ['atom-light-ui', 'base16-tomorrow-dark-theme']
-      ['atom-light-ui', 'base16-tomorrow-light-theme']
-
-      ['one-dark-ui', 'one-dark-syntax']
-      ['one-dark-ui', 'one-light-syntax']
-      ['one-dark-ui', 'atom-dark-syntax']
-      ['one-dark-ui', 'atom-light-syntax']
-      ['one-dark-ui', 'solarized-dark-syntax']
-      ['one-dark-ui', 'base16-tomorrow-dark-theme']
-      ['one-dark-ui', 'base16-tomorrow-light-theme']
-
-      ['one-light-ui', 'one-light-syntax']
-      ['one-light-ui', 'one-dark-syntax']
-      ['one-light-ui', 'atom-light-syntax']
-      ['one-light-ui', 'atom-dark-syntax']
-      ['one-light-ui', 'solarized-dark-syntax']
-      ['one-light-ui', 'base16-tomorrow-dark-theme']
-      ['one-light-ui', 'base16-tomorrow-light-theme']
+    uiThemes = [
+      'atom-dark-ui'
+      'atom-light-ui'
+      'one-dark-ui'
+      'one-light-ui'
     ]
+
+    syntaxThemes = [
+      'atom-dark-syntax'
+      'atom-light-syntax'
+      'one-dark-syntax'
+      'one-light-syntax'
+      'solarized-dark-syntax'
+      'base16-tomorrow-dark-theme'
+      'base16-tomorrow-light-theme'
+    ]
+
+    prebuiltConfigurations = []
+    uiThemes.forEach (uiTheme) ->
+      syntaxThemes.forEach (syntaxTheme) ->
+        prebuiltConfigurations.push([uiTheme, syntaxTheme])
 
     directory = path.join(grunt.config.get('atom.appDir'), 'less-compile-cache')
 
