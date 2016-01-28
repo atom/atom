@@ -7,7 +7,7 @@ url="http://atom.io"
 license=('MIT')
 provides=('atom')
 conflicts=('atom-editor' 'atom-editor-bin')
-depends=('gconf' 'nodejs' 'libgnome-keyring' 'python2')
+depends=('nss' 'gtk2' 'libnotify' 'alsa-lib' 'gconf' 'libxtst' 'nodejs' 'libgnome-keyring' 'python' 'desktop-file-utils')
 makedepends=('npm')
 md5sums=()
 
