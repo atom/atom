@@ -640,11 +640,13 @@ class AtomEnvironment extends Model
     @openInitialEmptyEditorIfNecessary()
 
   serialize: ->
+    version: @constructor.version
     project: @project.serialize()
     workspace: @workspace.serialize()
     packageStates: @packages.serialize()
     grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
     fullScreen: @isFullScreen()
+    windowDimensions: @windowDimensions
 
   unloadEditorWindow: ->
     return if not @project
