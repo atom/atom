@@ -123,7 +123,7 @@ class AtomEnvironment extends Model
 
     debouncedSaveStateSync = _.debounce((=> @saveStateSync()), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', debouncedSaveStateSync, true)
-    @document.addEventListener('keypress', debouncedSaveStateSync, true)
+    @document.addEventListener('keydown', debouncedSaveState, true)
 
     @state = {version: @constructor.version}
 
