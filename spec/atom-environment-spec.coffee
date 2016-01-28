@@ -163,7 +163,7 @@ describe "AtomEnvironment", ->
 
       atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
-      atom.saveStateSync()
+      atom.saveState(true)
 
       atom.state = {}
       atom.loadStateSync()
@@ -174,18 +174,18 @@ describe "AtomEnvironment", ->
       atom.loadStateSync()
       expect(atom.state.stuff).toBe("cool")
 
-    it "saves state on keypress and mousedown events", ->
-      spyOn(atom, 'saveStateSync')
+    it "saves state on keydown and mousedown events", ->
+      spyOn(atom, 'saveState')
 
-      keypress = new KeyboardEvent('keypress')
-      atom.document.dispatchEvent(keypress)
+      keydown = new KeyboardEvent('keydown')
+      atom.document.dispatchEvent(keydown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveStateSync).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalled()
 
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveStateSync).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalled()
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -243,9 +243,10 @@ describe "AtomEnvironment", ->
 
       atomEnvironment.destroy()
 
+    # TODO: fix failing test. devtools show that ::saveState just goes to jasmine.createSpy.spyObj function
     it "saves the serialized state of the window so it can be deserialized after reload", ->
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
-      spyOn(atomEnvironment, 'saveStateSync')
+      spyOn(atomEnvironment, 'saveState')
 
       workspaceState = atomEnvironment.workspace.serialize()
       grammarsState = {grammarOverridesByPath: atomEnvironment.grammars.grammarOverridesByPath}
@@ -256,7 +257,7 @@ describe "AtomEnvironment", ->
       expect(atomEnvironment.state.workspace).toEqual workspaceState
       expect(atomEnvironment.state.grammars).toEqual grammarsState
       expect(atomEnvironment.state.project).toEqual projectState
-      expect(atomEnvironment.saveStateSync).toHaveBeenCalled()
+      expect(atomEnvironment.saveState).toHaveBeenCalled()
 
       atomEnvironment.destroy()
 

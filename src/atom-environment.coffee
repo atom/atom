@@ -121,8 +121,8 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
-    debouncedSaveStateSync = _.debounce((=> @saveStateSync()), @saveStateDebounceInterval)
-    @document.addEventListener('mousedown', debouncedSaveStateSync, true)
+    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
+    @document.addEventListener('mousedown', debouncedSaveState, true)
     @document.addEventListener('keydown', debouncedSaveState, true)
 
     @state = {version: @constructor.version}
@@ -653,9 +653,8 @@ class AtomEnvironment extends Model
     return if not @project
 
     @storeWindowBackground()
-    @serialize()
+    @saveState(true)
     @packages.deactivatePackages()
-    @saveStateSync()
     @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
@@ -789,12 +788,15 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveStateSync: ->
+  saveState: (synchronous) ->
     return unless @enablePersistence
     @serialize()
 
     if storageKey = @getStateKey(@project?.getPaths())
-      @getStorageFolder().storeSync(storageKey, @state)
+      if synchronous
+        @getStorageFolder().storeSync(storageKey, @state)
+      else
+        @getStorageFolder().storeAsync(storageKey, @state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
 
