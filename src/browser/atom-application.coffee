@@ -472,7 +472,7 @@ class AtomApplication
         if loadSettings = window.getLoadSettings()
           states.push(initialPaths: loadSettings.initialPaths)
     if states.length > 0 or allowEmpty
-      @storageFolder.store('application.json', states)
+      @storageFolder.storeSync('application.json', states)
 
   loadState: (options) ->
     if (states = @storageFolder.load('application.json'))?.length > 0

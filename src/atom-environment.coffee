@@ -794,7 +794,7 @@ class AtomEnvironment extends Model
     @serialize()
 
     if storageKey = @getStateKey(@project?.getPaths())
-      @getStorageFolder().store(storageKey, @state)
+      @getStorageFolder().storeSync(storageKey, @state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
 
