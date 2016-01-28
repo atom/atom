@@ -80,6 +80,19 @@ describe "WorkspaceElement", ->
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement
 
+    it 'stretches header/footer panels to the workspace width', ->
+      workspaceElement = atom.views.getView(atom.workspace)
+      jasmine.attachToDOM(workspaceElement)
+      expect(workspaceElement.offsetWidth).toBeGreaterThan(0)
+
+      headerItem = document.createElement('div')
+      atom.workspace.addHeaderPanel({item: headerItem})
+      expect(headerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
+
+      footerItem = document.createElement('div')
+      atom.workspace.addFooterPanel({item: footerItem})
+      expect(footerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
+
   describe "the 'window:toggle-invisibles' command", ->
     it "shows/hides invisibles in all open and future editors", ->
       workspaceElement = atom.views.getView(atom.workspace)
