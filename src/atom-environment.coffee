@@ -125,7 +125,6 @@ class AtomEnvironment extends Model
     @document.addEventListener('mousedown', debouncedSaveState, true)
     @document.addEventListener('keydown', debouncedSaveState, true)
 
-    @state = {version: @constructor.version}
 
     @loadTime = null
     {devMode, safeMode, resourcePath} = @getLoadSettings()
