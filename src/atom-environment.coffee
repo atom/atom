@@ -4,7 +4,7 @@ ipc = require 'ipc'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
-{CompositeDisposable, Emitter} = require 'event-kit'
+{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
@@ -121,11 +121,6 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
-    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
-    @document.addEventListener('mousedown', debouncedSaveState, true)
-    @document.addEventListener('keydown', debouncedSaveState, true)
-
-
     @loadTime = null
     {devMode, safeMode, resourcePath} = @getLoadSettings()
 
@@ -205,6 +200,7 @@ class AtomEnvironment extends Model
     @registerDefaultViewProviders()
 
     @installUncaughtErrorHandler()
+    @attachSaveStateListeners()
     @installWindowEventHandler()
 
     @observeAutoHideMenuBar()
@@ -217,6 +213,14 @@ class AtomEnvironment extends Model
       ipc.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
+
+  attachSaveStateListeners: ->
+    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
+    @document.addEventListener('mousedown', debouncedSaveState, true)
+    @document.addEventListener('keydown', debouncedSaveState, true)
+    @disposables.add new Disposable =>
+      @document.removeEventListener('mousedown', debouncedSaveState, true)
+      @document.removeEventListener('keydown', debouncedSaveState, true)
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
