@@ -4058,6 +4058,16 @@ describe "TextEditor", ->
               expect(editor.lineTextForBufferRow(0)).toBe "    while(items.length > 0) {"
               expect(editor.lineTextForBufferRow(1)).toBe "      current = items.shift();"
 
+          describe "when the first copied line is empty", ->
+            it "doesn't change indentation of remaining lines", ->
+              editor.setText("\n    indentation")
+              editor.setSelectedBufferRange([[0, 0], [Infinity, Infinity]])
+              editor.copySelectedText()
+              editor.setCursorBufferPosition([1, 15])
+              # The indentation of the non-standard line is unchanged.
+              editor.pasteText()
+              expect(editor.lineTextForBufferRow(2)).toBe("    indentation")
+
         describe 'when the clipboard has many selections', ->
           beforeEach ->
             atom.config.set("editor.autoIndentOnPaste", false)
