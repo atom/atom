@@ -70,7 +70,6 @@ class Uninstall extends Command
             packageVersion = @getPackageVersion(packageDirectory)
             fs.removeSync(packageDirectory)
             if packageVersion
-              process.stdout.write "packVersion"
               uninstallsToRegister.push({packageName, packageVersion})
           else
             throw new Error("Does not exist")
