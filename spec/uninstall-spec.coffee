@@ -30,7 +30,7 @@ describe 'apm uninstall', ->
         callback.callCount > 0
 
       runs ->
-        expect(console.error.callCount).toBe 0
+        expect(console.error.callCount).toBe 1
 
   describe 'when the package is installed', ->
     it 'deletes the package', ->
