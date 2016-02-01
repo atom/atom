@@ -375,7 +375,6 @@ class Selection extends Model
     firstInsertedLine = remainingLines.shift()
 
     if options.indentBasis?
-      
       if firstInsertedLine isnt ''
         indentAdjustment = @editor.indentLevelForLine(precedingText) - options.indentBasis
         @adjustIndent(remainingLines, indentAdjustment)
