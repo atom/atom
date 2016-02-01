@@ -11,6 +11,7 @@
     "aws-sdk": "^2.2.18",
     "babel-eslint": "^5.0.0-beta6",
     "donna": "^1.0.13",
+    "escope": "~3.3.0",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
     "github-releases": "~0.3.1",
