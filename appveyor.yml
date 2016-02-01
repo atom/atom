@@ -27,6 +27,7 @@ install:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - C:\projects\atom\script\cibuild.cmd --build-dir atom-build
+  - dir atom-build
 
 test: off
 deploy: off
