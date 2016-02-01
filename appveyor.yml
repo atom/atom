@@ -31,7 +31,7 @@ build_script:
 test: off
 deploy: off
 artifacts:
-  - path: atom-build
+  - path: atom-build\**\AtomSetup.exe
 
 cache:
   - '%USERPROFILE%\.atom\.apm'
