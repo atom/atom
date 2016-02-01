@@ -34,7 +34,7 @@
     "jasmine-tagged": "^1.1.4",
     "jquery": "2.1.4",
     "key-path-helpers": "^0.4.0",
-    "less-cache": "0.22",
+    "less-cache": "0.23",
     "line-top-index": "0.2.0",
     "marked": "^0.3.4",
     "nodegit": "0.9.0",
