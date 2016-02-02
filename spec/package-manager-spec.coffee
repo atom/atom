@@ -445,11 +445,12 @@ describe "PackageManager", ->
           expect(console.warn).not.toHaveBeenCalled()
 
     it "passes the activate method the package's previously serialized state if it exists", ->
-      pack = atom.packages.loadPackage("package-with-serialization")
+      pack = null
       waitsForPromise ->
-        pack.activate()  # require main module
+        atom.packages.activatePackage("package-with-serialization").then (p) -> pack = p
       runs ->
-        atom.packages.setPackageState("package-with-serialization", {someNumber: 77})
+        expect(pack.mainModule.someNumber).not.toBe 77
+        pack.mainModule.someNumber = 77
         atom.packages.deactivatePackage("package-with-serialization")
         spyOn(pack.mainModule, 'activate').andCallThrough()
       waitsForPromise ->

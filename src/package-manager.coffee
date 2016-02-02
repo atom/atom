@@ -487,6 +487,7 @@ class PackageManager
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
     pack = @getLoadedPackage(name)
+    @serializePackage(pack)
     pack.deactivate()
     delete @activePackages[pack.name]
     delete @activatingPackages[pack.name]
