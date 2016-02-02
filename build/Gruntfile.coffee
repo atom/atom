@@ -36,7 +36,7 @@ module.exports = (grunt) ->
   # Options
   installDir = grunt.option('install-dir')
   buildDir = grunt.option('build-dir')
-  buildDir ?= path.join(os.tmpdir(), 'atom-build')
+  buildDir ?= 'out'
   buildDir = path.resolve(buildDir)
 
   channel = grunt.option('channel')
