@@ -5,8 +5,8 @@
 
 Discover and install Atom packages powered by [atom.io](https://atom.io)
 
-You can configure apm via a `~/.atom/.apmrc` file similarly to
-[npm config](https://docs.npmjs.com/misc/config).
+You can configure apm by using the `apm config` command line option (recommended) or by manually
+editing the `~/.atom/.apmrc` file as per the [npm config](https://docs.npmjs.com/misc/config).
 
 ## Relation to npm
 
@@ -49,20 +49,22 @@ a package to [atom.io](https://atom.io).
 ## Behind a firewall?
 
 If you are behind a firewall and seeing SSL errors when installing packages
-you can disable strict SSL by putting the following in your `~/.atom/.apmrc`
-file:
+you can disable strict SSL by running:
 
 ```
-strict-ssl = false
+apm config set strict-ssl false
 ```
 
-If you are using a proxy you can configure `apm` to use it by setting the
-`https-proxy` config in your `~/.atom/.apmrc` file like so:
+## Using a proxy?
+
+If you are using a HTTP(S) proxy you can configure `apm` to use it by running:
 
 ```
-https-proxy = https://9.0.2.1:0
+apm config set https-proxy https://9.0.2.1:0
 ```
 
 You can run `apm config get https-proxy` to verify it has been set correctly.
+
+## Viewing configuration
 
 You can also run `apm config list` to see all the custom config settings.
