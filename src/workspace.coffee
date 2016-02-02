@@ -611,6 +611,13 @@ class Workspace extends Model
   getActivePaneItem: ->
     @paneContainer.getActivePaneItem()
 
+  # Essential: Activates the pane containing `item` and activates `item`.
+  #
+  # * `item` Pane item to set as active.
+  setActivePaneItem: (item) ->
+    pane = @paneContainer.paneForItem(item)
+    pane?.activateItem(item)
+
   # Essential: Get all text editors in the workspace.
   #
   # Returns an {Array} of {TextEditor}s.
