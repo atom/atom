@@ -59,7 +59,9 @@ apm config set strict-ssl false
 
 If you are using a HTTP(S) proxy you can configure `apm` to use it by running:
 
-```apm config set https-proxy https://9.0.2.1:0```
+```
+apm config set https-proxy https://9.0.2.1:0
+```
 
 You can run `apm config get https-proxy` to verify it has been set correctly.
 
