@@ -26,13 +26,12 @@ install:
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - C:\projects\atom\script\cibuild.cmd --build-dir atom-build
-  - dir atom-build
+  - C:\projects\atom\script\cibuild.cmd
 
 test: off
 deploy: off
 artifacts:
-  - path: atom-build\**\AtomSetup.exe
+  - path: out\**\AtomSetup.exe
 
 cache:
   - '%USERPROFILE%\.atom\.apm'
