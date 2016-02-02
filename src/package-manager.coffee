@@ -468,13 +468,12 @@ class PackageManager
     @activationHookEmitter.on(hook, callback)
 
   serialize: ->
-    for pack in @getLoadedPackages()
+    for pack in @getActivePackages()
       @serializePackage(pack)
     @packageStates
 
   serializePackage: (pack) ->
-    if @isPackageActive(pack.name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
+    @setPackageState(pack.name, state) if state = pack.serialize?()
 
   # Deactivate all packages
   deactivatePackages: ->
@@ -487,7 +486,7 @@ class PackageManager
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
     pack = @getLoadedPackage(name)
-    @serializePackage(pack)
+    @serializePackage(pack) if @isPackageActive(pack.name)
     pack.deactivate()
     delete @activePackages[pack.name]
     delete @activatingPackages[pack.name]

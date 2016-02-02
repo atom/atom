@@ -655,8 +655,8 @@ class AtomEnvironment extends Model
     return if not @project
 
     @storeWindowBackground()
-    @saveState(true)
     @packages.deactivatePackages()
+    @saveState(true)
     @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
