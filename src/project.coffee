@@ -4,7 +4,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
-TextBuffer = require 'text-buffer'
+BufferPool = require './buffer-pool'
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
@@ -23,8 +23,9 @@ class Project extends Model
 
   constructor: ({@notificationManager, packageManager, config}) ->
     @emitter = new Emitter
-    @buffers = []
-    @paths = []
+    # Pass emitter to BufferPool or create new one?
+    @bufferPool = new BufferPool(@notificationManager)
+    @paths = []  # QUESTION: this is not used anywhere that I can tell
     @rootDirectories = []
     @repositories = []
     @directoryProviders = []
@@ -33,22 +34,21 @@ class Project extends Model
     @repositoryProviders = [new GitRepositoryProvider(this, config)]
     @consumeServices(packageManager)
 
+  # I don't see this called anywhere...
   destroyed: ->
-    buffer.destroy() for buffer in @buffers
+    @bufferPool.destroy()
     @setPaths([])
 
   reset: (packageManager) ->
     @emitter.dispose()
     @emitter = new Emitter
 
-    buffer?.destroy() for buffer in @buffers
-    @buffers = []
+    @bufferPool.reset()
     @setPaths([])
     @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
-    buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
-    return
+    @bufferPool.destroyUnretainedBuffers()
 
   ###
   Section: Serialization
@@ -57,23 +57,13 @@ class Project extends Model
   deserialize: (state, deserializerManager) ->
     state.paths = [state.path] if state.path? # backward compatibility
 
-    @buffers = _.compact state.buffers.map (bufferState) ->
-      # Check that buffer's file path is accessible
-      return if fs.isDirectorySync(bufferState.filePath)
-      if bufferState.filePath
-        try
-          fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
-        catch error
-          return unless error.code is 'ENOENT'
-      deserializerManager.deserialize(bufferState)
-
-    @subscribeToBuffer(buffer) for buffer in @buffers
+    @bufferPool.deserialize(state, deserializerManager)
     @setPaths(state.paths)
 
   serialize: ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+    buffers: @bufferPool.serialize()
 
   ###
   Section: Event Subscription
@@ -89,7 +79,7 @@ class Project extends Model
     @emitter.on 'did-change-paths', callback
 
   onDidAddBuffer: (callback) ->
-    @emitter.on 'did-add-buffer', callback
+    @bufferPool.onDidAddBuffer(callback)
 
   ###
   Section: Accessing the git repository
@@ -294,33 +284,33 @@ class Project extends Model
           @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
     )
 
+  # Question: which of these are safe to remove entirely, if any? Non documented ones?
+
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
   #
   # Returns an {Array} of {TextBuffer}s.
   getBuffers: ->
-    @buffers.slice()
+    @bufferPool.getBuffers()
 
   # Is the buffer for the given path modified?
   isPathModified: (filePath) ->
-    @findBufferForPath(@resolvePath(filePath))?.isModified()
+    @bufferPool.isPathModified(@resolvePath(filePath))
 
   findBufferForPath: (filePath) ->
-    _.find @buffers, (buffer) -> buffer.getPath() is filePath
+    @bufferPool.findBufferForPath(filePath)
 
   findBufferForId: (id) ->
-    _.find @buffers, (buffer) -> buffer.getId() is id
+    @bufferPool.findBufferForId(id)
 
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
-    existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
-    existingBuffer ? @buildBufferSync(absoluteFilePath)
+    @bufferPool.bufferForPathSync(absoluteFilePath)
 
   # Only to be used when deserializing
   bufferForIdSync: (id) ->
-    existingBuffer = @findBufferForId(id) if id
-    existingBuffer ? @buildBufferSync()
+    @bufferPool.bufferForIdSync(id)
 
   # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -331,18 +321,11 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   bufferForPath: (absoluteFilePath) ->
-    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
-    if existingBuffer
-      Promise.resolve(existingBuffer)
-    else
-      @buildBuffer(absoluteFilePath)
+    @bufferPool.bufferForPath(absoluteFilePath)
 
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
-    @addBuffer(buffer)
-    buffer.loadSync()
-    buffer
+    @bufferPool.buildBufferSync(absoluteFilePath)
 
   # Given a file path, this sets its {TextBuffer}.
   #
@@ -351,50 +334,25 @@ class Project extends Model
   #
   # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
-    buffer = new TextBuffer({filePath: absoluteFilePath})
-    @addBuffer(buffer)
-    buffer.load()
-      .then((buffer) -> buffer)
-      .catch(=> @removeBuffer(buffer))
+    @bufferPool.buildBuffer(absoluteFilePath)
 
   addBuffer: (buffer, options={}) ->
-    @addBufferAtIndex(buffer, @buffers.length, options)
-    @subscribeToBuffer(buffer)
+    @bufferPool.addBuffer(buffer, options)
 
   addBufferAtIndex: (buffer, index, options={}) ->
-    @buffers.splice(index, 0, buffer)
-    @subscribeToBuffer(buffer)
-    @emitter.emit 'did-add-buffer', buffer
-    buffer
+    @bufferPool.addBufferAtIndex(buffer, index, options)
 
   # Removes a {TextBuffer} association from the project.
   #
   # Returns the removed {TextBuffer}.
   removeBuffer: (buffer) ->
-    index = @buffers.indexOf(buffer)
-    @removeBufferAtIndex(index) unless index is -1
+    @bufferPool.removeBuffer(buffer)
 
   removeBufferAtIndex: (index, options={}) ->
-    [buffer] = @buffers.splice(index, 1)
-    buffer?.destroy()
+    @bufferPool.removeBufferAtIndex(index, options)
 
   eachBuffer: (args...) ->
-    subscriber = args.shift() if args.length > 1
-    callback = args.shift()
-
-    callback(buffer) for buffer in @getBuffers()
-    if subscriber
-      subscriber.subscribe this, 'buffer-created', (buffer) -> callback(buffer)
-    else
-      @on 'buffer-created', (buffer) -> callback(buffer)
+    @bufferPool.eachBuffer(args)
 
   subscribeToBuffer: (buffer) ->
-    buffer.onDidDestroy => @removeBuffer(buffer)
-    buffer.onWillThrowWatchError ({error, handle}) =>
-      handle()
-      @notificationManager.addWarning """
-        Unable to read file after file `#{error.eventType}` event.
-        Make sure you have permission to access `#{buffer.getPath()}`.
-        """,
-        detail: error.message
-        dismissable: true
+    @bufferPool.subscribeToBuffer(buffer)
