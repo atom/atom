@@ -1,4 +1,5 @@
 _ = require 'underscore-plus'
+url = require 'url'
 path = require 'path'
 {join} = path
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
@@ -412,6 +413,11 @@ class Workspace extends Model
     searchAllPanes = options.searchAllPanes
     split = options.split
     uri = @project.resolvePath(uri)
+
+    # Avoid adding URLs as recent documents to work-around this Spotlight crash:
+    # https://github.com/atom/atom/issues/10071
+    if uri? and not url.parse(uri).protocol?
+      @applicationDelegate.addRecentDocument(uri)
 
     pane = @paneContainer.paneForURI(uri) if searchAllPanes
     pane ?= switch split
