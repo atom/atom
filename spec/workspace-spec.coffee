@@ -471,6 +471,27 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual {bar: "bar://baz"}
 
+    it "adds the file to the application's recent documents list", ->
+      spyOn(atom.applicationDelegate, 'addRecentDocument')
+
+      waitsForPromise ->
+        workspace.open()
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).not.toHaveBeenCalled()
+
+      waitsForPromise ->
+        workspace.open('something://a/url')
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).not.toHaveBeenCalled()
+
+      waitsForPromise ->
+        workspace.open(__filename)
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).toHaveBeenCalledWith(__filename)
+
     it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newEditorHandler = jasmine.createSpy('newEditorHandler')
