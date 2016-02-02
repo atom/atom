@@ -115,6 +115,9 @@ class AtomEnvironment extends Model
   # Public: A {TextEditorRegistry} instance
   textEditors: null
 
+  # Public: An {Update} instance
+  update: null
+
   saveStateDebounceInterval: 1000
 
   ###

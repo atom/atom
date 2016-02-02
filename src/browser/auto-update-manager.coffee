@@ -39,12 +39,19 @@ class AutoUpdateManager
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
+      @emitWindowEvent('checking-for-update')
 
     autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
+      # We use sendMessage to send an event called 'update-available' below
+      # once the update download is complete. This mismatch between the electron
+      # autoUpdater events is unfortunate but in the interest of not changing the
+      # one existing event handled by applicationDelegate
+      @emitWindowEvent('did-begin-downloading-update')
+      @emit('did-begin-download')
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
@@ -66,8 +73,14 @@ class AutoUpdateManager
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion?
+    @emitWindowEvent('update-available', {@releaseVersion})
     for atomWindow in windows
       atomWindow.sendMessage('update-available', {@releaseVersion})
+    return
+
+  emitWindowEvent: (eventName, windows, payload) ->
+    for atomWindow in windows
+      atomWindow.sendMessage(eventName, payload)
     return
 
   setState: (state) ->
@@ -93,6 +106,7 @@ class AutoUpdateManager
       @checkForUpdatesIntervalID = null
 
   check: ({hidePopups}={}) ->
+    console.log 'checking for update'
     unless hidePopups
       autoUpdater.once 'update-not-available', @onUpdateNotAvailable
       autoUpdater.once 'error', @onUpdateError
