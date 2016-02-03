@@ -43,6 +43,7 @@ class AutoUpdateManager
 
     autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
+      @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
@@ -55,7 +56,7 @@ class AutoUpdateManager
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
-      @emitUpdateAvailableEvent(@getWindows()...)
+      @emitUpdateAvailableEvent()
 
     @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
       if newValue
@@ -71,15 +72,13 @@ class AutoUpdateManager
       when 'linux'
         @setState(UnsupportedState)
 
-  emitUpdateAvailableEvent: (windows...) ->
+  emitUpdateAvailableEvent: ->
     return unless @releaseVersion?
     @emitWindowEvent('update-available', {@releaseVersion})
-    for atomWindow in windows
-      atomWindow.sendMessage('update-available', {@releaseVersion})
     return
 
-  emitWindowEvent: (eventName, windows, payload) ->
-    for atomWindow in windows
+  emitWindowEvent: (eventName, payload) ->
+    for atomWindow in @getWindows()
       atomWindow.sendMessage(eventName, payload)
     return
 

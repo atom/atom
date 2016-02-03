@@ -175,7 +175,7 @@ class ApplicationDelegate
 
   onUpdateAvailable: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'update-available'
+      if message is 'did-begin-downloading-update'
         callback(detail)
 
     ipcRenderer.on('message', outerCallback)
@@ -193,7 +193,7 @@ class ApplicationDelegate
 
   onDidCompleteDownloadingUpdate: (callback) ->
     outerCallback = (message, detail) ->
-      if message is 'update-downloaded'
+      if message is 'update-available'
         callback(detail)
 
     ipc.on('message', outerCallback)

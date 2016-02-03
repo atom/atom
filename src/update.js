@@ -1,6 +1,6 @@
 'use babel'
 
-import {Emitter} from 'event-kit'
+import {Emitter, CompositeDisposable} from 'event-kit'
 
 export default class Update {
   constructor () {
@@ -42,8 +42,16 @@ export default class Update {
     )
   }
 
+  onUpdateAvailable (callback) {
+    this.subscriptions.add(
+      this.emitter.on('update-available', callback)
+    )
+  }
+
   onUpdateNotAvailable (callback) {
-    this.subscriptions.add()
+    this.subscriptions.add(
+      this.emitter.on('update-not-available', callback)
+    )
   }
 
   check () {
