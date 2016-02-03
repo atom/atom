@@ -304,6 +304,9 @@ class AtomApplication
     ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
 
+    ipcMain.on 'check-for-update', =>
+      @autoUpdateManager.check()
+
   setupDockMenu: ->
     if process.platform is 'darwin'
       dockMenu = Menu.buildFromTemplate [

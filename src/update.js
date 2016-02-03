@@ -1,6 +1,7 @@
 'use babel'
 
 import {Emitter, CompositeDisposable} from 'event-kit'
+import ipc from 'ipc'
 
 export default class Update {
   constructor () {
@@ -55,10 +56,6 @@ export default class Update {
   }
 
   check () {
-    // TODO
-  }
-
-  getState () {
-    // TODO
+    ipc.send('check-for-update')
   }
 }

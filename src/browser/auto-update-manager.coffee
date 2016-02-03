@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 Config = require '../config'
 {EventEmitter} = require 'events'
 path = require 'path'
+ipc = require 'ipc'
 
 IdleState = 'idle'
 CheckingState = 'checking'
@@ -47,7 +48,7 @@ class AutoUpdateManager
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
-      # We use sendMessage to send an event called 'update-available' below
+      # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
       # once the update download is complete. This mismatch between the electron
       # autoUpdater events is unfortunate but in the interest of not changing the
       # one existing event handled by applicationDelegate
