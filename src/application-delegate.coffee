@@ -182,6 +182,9 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('message', outerCallback)
 
+  onDidBeginDownloadingUpdate: (callback) ->
+    @onUpdateAvailable(callback)
+
   onDidBeginCheckingForUpdate: (callback) ->
     outerCallback = (message, detail) ->
       if message is 'checking-for-update'
