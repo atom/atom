@@ -32,6 +32,7 @@ test: off
 deploy: off
 artifacts:
   - path: out\**\AtomSetup.exe
+    name: AtomSetup.exe
 
 cache:
   - '%USERPROFILE%\.atom\.apm'
