@@ -41,6 +41,7 @@ TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
+Update = require './update'
 
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
@@ -191,6 +192,7 @@ class AtomEnvironment extends Model
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
+    @update = new Update()
 
     @config.load()
 
