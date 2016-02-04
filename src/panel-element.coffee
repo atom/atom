@@ -16,7 +16,7 @@ class PanelElement extends HTMLElement
     @subscriptions.add window.onresize = @updateModalSize
     this
   
-  updateModalSize:=>
+  updateModalSize: ->
     modalPanels = atom.views.getView(atom.workspace).panelContainers.modal.children
     screenWidth = atom.getSize().width
     fontSize = atom.config.get('editor.fontSize')
