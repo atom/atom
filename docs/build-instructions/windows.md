@@ -31,8 +31,14 @@ Note: If you use cmd or Powershell instead of Git Shell, use a backslash instead
 These instructions will assume the use of Git Shell.
 
 ### `script/build` Options
-  * `--install-dir` - Creates the final built application in this directory.
-  * `--build-dir` - Build the application in this directory.
+  * `--install-dir` - Creates the final built application in this directory. Example (trailing slash is optional):
+```bash
+./script/build --install-dir Z:\Some\Destination\Directory\
+```
+  * `--build-dir` - Build the application in this directory. Example (trailing slash is optional):
+```bash
+./script/build --build-dir Z:\Some\Temporary\Directory\
+```
   * `--verbose` - Verbose mode. A lot more information output.
 
 ## Why do I have to use GitHub Desktop?
