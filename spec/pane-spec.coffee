@@ -183,7 +183,8 @@ describe "Pane", ->
         pane.activateItem(itemD, true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
-  fdescribe "::activateMostRecentlyUsedItem()", ->
+
+  describe "::activateMostRecentlyUsedItem()", ->
     it "sets the active item to the most recently used item", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
@@ -915,3 +916,30 @@ describe "Pane", ->
       pane.focus()
       newPane = Pane.deserialize(pane.serialize(), atom)
       expect(newPane.focused).toBe true
+
+    it "can serialize and deserialize the order of the items in the itemStack", ->
+      [item1, item2, item3] = pane.getItems()
+      pane.itemStack = [item3, item1, item2]
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.itemStack).toEqual pane.itemStack
+      expect(newPane.itemStack[2]).toEqual item2
+
+    it "builds the itemStack if the itemStack is not serialized", ->
+      [item1, item2, item3] = pane.getItems()
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.getItems()).toEqual newPane.itemStack
+
+    it "rebuilds the itemStack if items.length does not match itemStack.length", ->
+      [item1, item2, item3] = pane.getItems()
+      pane.itemStack = [item2, item3]
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.getItems()).toEqual newPane.itemStack
+
+    it "does not serialize items in the itemStack if they will not be serialized", ->
+      [item1, item2, item3] = pane.getItems()
+      pane.itemStack = [item2, item1, item3]
+      unserializable = {}
+      pane.activateItem(unserializable)
+
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.itemStack).toEqual [item2, item1, item3]
