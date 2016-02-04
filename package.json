@@ -148,7 +148,7 @@
     "language-todo": "0.27.0",
     "language-toml": "0.18.0",
     "language-xml": "0.34.2",
-    "language-yaml": "0.25.0"
+    "language-yaml": "0.25.1"
   },
   "private": true,
   "scripts": {
