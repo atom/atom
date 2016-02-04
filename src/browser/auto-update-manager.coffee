@@ -106,7 +106,6 @@ class AutoUpdateManager
       @checkForUpdatesIntervalID = null
 
   check: ({hidePopups}={}) ->
-    console.log 'checking for update'
     unless hidePopups
       autoUpdater.once 'update-not-available', @onUpdateNotAvailable
       autoUpdater.once 'error', @onUpdateError
