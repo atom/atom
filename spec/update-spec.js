@@ -18,11 +18,10 @@ fdescribe('Update', () => {
       update.onUpdateNotAvailable(noUpdateSpy)
 
       const webContents = remote.getCurrentWebContents()
-      // AutoUpdateManager sends these from main process land
-      webContents.send('update-available', {releaseVersion: '1.2.3'})
-      webContents.send('did-begin-downloading-update')
-      webContents.send('checking-for-update')
-      webContents.send('update-not-available')
+      webContents.send('message', 'update-available', {releaseVersion: '1.2.3'})
+      webContents.send('message', 'did-begin-downloading-update')
+      webContents.send('message', 'checking-for-update')
+      webContents.send('message', 'update-not-available')
 
       waitsFor(() => {
         noUpdateSpy.callCount > 0
