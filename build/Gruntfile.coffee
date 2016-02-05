@@ -36,7 +36,7 @@ module.exports = (grunt) ->
   # Options
   installDir = grunt.option('install-dir')
   buildDir = grunt.option('build-dir')
-  buildDir ?= path.join(os.tmpdir(), 'atom-build')
+  buildDir ?= 'out'
   buildDir = path.resolve(buildDir)
 
   channel = grunt.option('channel')
@@ -121,6 +121,8 @@ module.exports = (grunt) ->
       ext: '.css'
 
   prebuildLessConfig =
+    options:
+      cachePath: path.join(homeDir, '.atom', 'compile-cache', 'prebuild-less', require('less-cache/package.json').version)
     src: [
       'static/**/*.less'
     ]
@@ -293,7 +295,7 @@ module.exports = (grunt) ->
   ciTasks.push('download-electron-chromedriver')
   ciTasks.push('build')
   ciTasks.push('fingerprint')
-  ciTasks.push('dump-symbols') if process.platform isnt 'win32'
+  ciTasks.push('dump-symbols') if process.platform is 'darwin'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI

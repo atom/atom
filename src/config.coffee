@@ -203,22 +203,6 @@ ScopeDescriptor = require './scope-descriptor'
 #       maximum: 11.5
 # ```
 #
-# #### object
-#
-# Value must be an object. This allows you to nest config options. Sub options
-# must be under a `properties key`
-#
-# ```coffee
-# config:
-#   someSetting:
-#     type: 'object'
-#     properties:
-#       myChildIntOption:
-#         type: 'integer'
-#         minimum: 1.5
-#         maximum: 11.5
-# ```
-#
 # #### color
 #
 # Values will be coerced into a {Color} with `red`, `green`, `blue`, and `alpha`
@@ -232,6 +216,23 @@ ScopeDescriptor = require './scope-descriptor'
 #   someSetting:
 #     type: 'color'
 #     default: 'white'
+# ```
+#
+# #### object / Grouping other types
+#
+# A config setting with the type `object` allows grouping a set of config
+# settings. The group will be visualy separated and has its own group headline.
+# The sub options must be listed under a `properties` key.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'object'
+#     properties:
+#       myChildIntOption:
+#         type: 'integer'
+#         minimum: 1.5
+#         maximum: 11.5
 # ```
 #
 # ### Other Supported Keys
@@ -291,6 +292,9 @@ ScopeDescriptor = require './scope-descriptor'
 # confusing for users, and a more descriptive title is useful.
 #
 # Descriptions will be displayed below the title in the settings view.
+#
+# For a group of config settings the humanized key or the title and the
+# description are used for the group headline.
 #
 # ```coffee
 # config:

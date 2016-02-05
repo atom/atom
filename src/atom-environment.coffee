@@ -896,8 +896,6 @@ class AtomEnvironment extends Model
         else
           @project.addPath(pathToOpen)
 
-      @applicationDelegate.addRecentDocument(pathToOpen)
-
       unless fs.isDirectorySync(pathToOpen)
         @workspace?.open(pathToOpen, {initialLine, initialColumn})
 

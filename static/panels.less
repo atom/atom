@@ -46,30 +46,25 @@
 
 atom-panel-container.left,
 atom-panel-container.right {
-  display: -webkit-flex;
-  -webkit-flex-direction: row;
-  -webkit-align-items: stretch;
-  height: 100%;
-  atom-panel {
-    height: 100%;
-  }
+  display: flex;
 }
 
+.tool-panel, // deprecated: .tool-panel
 atom-panel {
   display: block;
-}
-
-atom-panel.top,
-atom-panel.bottom,
-atom-panel.left,
-atom-panel.right {
-  background-color: @tool-panel-background-color;
-}
-
-// deprecated
-.tool-panel {
   position: relative;
   background-color: @tool-panel-background-color;
+}
+
+atom-panel-container > atom-panel.left,
+atom-panel-container > atom-panel.right {
+  display: flex;
+}
+
+// Some packages use `height: 100%` which doesn't play nice with flexbox
+atom-panel-container > atom-panel.left > *,
+atom-panel-container > atom-panel.right > * {
+  height: initial;
 }
 
 // Modal panels
@@ -77,6 +72,7 @@ atom-panel.right {
 .overlay, // deprecated .overlay
 atom-panel.modal {
   position: absolute;
+  display: block;
   left: 50%;
   width: 500px;
   margin-left: -250px;
