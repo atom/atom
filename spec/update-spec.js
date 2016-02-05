@@ -17,6 +17,7 @@ fdescribe('Update', () => {
       update.onDidBeginDownload(downloadingSpy)
       update.onUpdateNotAvailable(noUpdateSpy)
 
+      // This doesn't work
       const webContents = remote.getCurrentWebContents()
       webContents.send('message', 'update-available', {releaseVersion: '1.2.3'})
       webContents.send('message', 'did-begin-downloading-update')
