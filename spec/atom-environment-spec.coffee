@@ -159,19 +159,22 @@ describe "AtomEnvironment", ->
         windowState: null
 
       spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
       spyOn(atom, 'serialize').andReturn({stuff: 'cool'})
       spyOn(atom, 'deserialize')
 
       atom.project.setPaths([dir1, dir2])
-      atom.saveState(true)
+      waitsForPromise ->
+        atom.saveState().then ->
+          atom.loadState()
 
-      atom.loadStateSync()
-      expect(atom.deserialize).not.toHaveBeenCalled()
+      runs ->
+        expect(atom.deserialize).not.toHaveBeenCalled()
 
-      loadSettings.initialPaths = [dir2, dir1]
-      atom.loadStateSync()
-      expect(atom.deserialize).toHaveBeenCalledWith({stuff: 'cool'})
+      waitsForPromise ->
+        loadSettings.initialPaths = [dir2, dir1]
+        atom.loadState()
+      runs ->
+        expect(atom.deserialize).toHaveBeenCalledWith({stuff: 'cool'})
 
     it "saves state on keydown and mousedown events", ->
       spyOn(atom, 'saveState')
@@ -242,15 +245,6 @@ describe "AtomEnvironment", ->
 
       atomEnvironment.destroy()
 
-    it "saves the serialized state of the window so it can be deserialized after reload", ->
-      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
-      spyOn(atomEnvironment, 'saveState')
-
-      atomEnvironment.unloadEditorWindow()
-      expect(atomEnvironment.saveState).toHaveBeenCalled()
-
-      atomEnvironment.destroy()
-
   describe "::destroy()", ->
     it "does not throw exceptions when unsubscribing from ipc events (regression)", ->
       configDirPath = temp.mkdirSync()
@@ -262,9 +256,11 @@ describe "AtomEnvironment", ->
       }
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
       spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
-      atomEnvironment.startEditorWindow()
-      atomEnvironment.unloadEditorWindow()
-      atomEnvironment.destroy()
+      waitsForPromise ->
+        atomEnvironment.startEditorWindow()
+      runs ->
+        atomEnvironment.unloadEditorWindow()
+        atomEnvironment.destroy()
 
   describe "::openLocations(locations) (called via IPC from browser process)", ->
     beforeEach ->

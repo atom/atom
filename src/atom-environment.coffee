@@ -10,7 +10,7 @@ fs = require 'fs-plus'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
-StorageFolder = require './storage-folder'
+StateStore = require './state-store'
 {getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
@@ -126,6 +126,8 @@ class AtomEnvironment extends Model
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
+
+    @stateStore = new StateStore
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
@@ -629,18 +631,18 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-    @loadStateSync()
-    @document.body.appendChild(@views.getView(@workspace))
+    @loadState().then =>
+      @document.body.appendChild(@views.getView(@workspace))
 
-    @watchProjectPath()
+      @watchProjectPath()
 
-    @packages.activate()
-    @keymaps.loadUserKeymap()
-    @requireUserInitScript() unless @getLoadSettings().safeMode
+      @packages.activate()
+      @keymaps.loadUserKeymap()
+      @requireUserInitScript() unless @getLoadSettings().safeMode
 
-    @menu.update()
+      @menu.update()
 
-    @openInitialEmptyEditorIfNecessary()
+      @openInitialEmptyEditorIfNecessary()
 
   serialize: ->
     version: @constructor.version
@@ -656,7 +658,6 @@ class AtomEnvironment extends Model
 
     @storeWindowBackground()
     @packages.deactivatePackages()
-    @saveState(true)
     @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
@@ -790,37 +791,39 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveState: (synchronous) ->
-    return unless @enablePersistence
+  saveState: () ->
+    return Promise.resolve() unless @enablePersistence
     state = @serialize()
 
     if storageKey = @getStateKey(@project?.getPaths())
-      if synchronous
-        @getStorageFolder().storeSync(storageKey, state)
-      else
-        @getStorageFolder().store(storageKey, state)
+      @stateStore.save(storageKey, state)
     else
       @getCurrentWindow().loadSettings.windowState = JSON.stringify(state)
+      Promise.resolve()
 
-  loadStateSync: ->
-    return unless @enablePersistence
+  loadState: ->
+    return Promise.resolve() unless @enablePersistence
 
     startTime = Date.now()
 
+    statePromise = null
     if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-      state = @getStorageFolder().load(stateKey)
+      statePromise = @stateStore.load(stateKey)
 
-    if not state? and windowState = @getLoadSettings().windowState
+    if not statePromise? and windowState = @getLoadSettings().windowState
       try
-        state = JSON.parse(@getLoadSettings().windowState)
+        statePromise = Promise.resolve(JSON.parse(@getLoadSettings().windowState))
       catch error
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
-    @deserialize(state) if state?
+    if statePromise?
+      statePromise.then (state) =>
+        @deserializeTimings.atom = Date.now() - startTime
+        @deserialize(state) if state?
+    else
+      Promise.resolve()
 
   deserialize: (state) ->
-    @deserializeTimings.atom = Date.now() -  startTime
-
     if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
@@ -845,9 +848,6 @@ class AtomEnvironment extends Model
 
   getConfigDirPath: ->
     @configDirPath ?= process.env.ATOM_HOME
-
-  getStorageFolder: ->
-    @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   getUserInitScriptPath: ->
     initScriptPath = fs.resolve(@getConfigDirPath(), 'init', ['js', 'coffee'])
