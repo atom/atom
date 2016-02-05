@@ -88,16 +88,16 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
 ## Advanced Options
 
-### Custom install directory
-
-```sh
-sudo script/grunt install --install-dir /install/atom/here
-```
-
 ### Custom build directory
 
 ```sh
 script/build --build-dir /build/atom/here
+```
+
+### Custom install directory
+
+```sh
+sudo script/grunt install --build-dir /build/atom/here --install-dir /install/atom/here
 ```
 
 ## Troubleshooting
