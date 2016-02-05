@@ -96,6 +96,14 @@ script/build --build-dir /build/atom/here
 
 ### Custom install directory
 
+To install to a custom location from the standard build directory:
+
+```sh
+sudo script/grunt install --install-dir /install/atom/here
+```
+
+If you customized your build directory as described above:
+
 ```sh
 sudo script/grunt install --build-dir /build/atom/here --install-dir /install/atom/here
 ```
