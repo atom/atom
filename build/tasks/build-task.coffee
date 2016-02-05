@@ -54,6 +54,7 @@ module.exports = (grunt) ->
     # so that it doesn't becomes larger than it needs to be.
     ignoredPaths = [
       path.join('git-utils', 'deps')
+      path.join('nodegit', 'vendor')
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
       path.join('bootstrap', 'docs')
