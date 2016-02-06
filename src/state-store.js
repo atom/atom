@@ -19,6 +19,7 @@ class StateStore {
 
   save (key, value) {
     return this.dbPromise.then(db => {
+      value.storedAt = new Date().toString()
       return new Promise((resolve, reject) => {
         var request = db.transaction(['states'], 'readwrite')
           .objectStore('states')
