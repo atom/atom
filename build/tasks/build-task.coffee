@@ -55,6 +55,8 @@ module.exports = (grunt) ->
     ignoredPaths = [
       path.join('git-utils', 'deps')
       path.join('nodegit', 'vendor')
+      path.join('nodegit', 'node_modules', 'node-pre-gyp')
+      path.join('nodegit', 'node_modules', '.bin')
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
       path.join('bootstrap', 'docs')
