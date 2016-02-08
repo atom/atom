@@ -11,7 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
+{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = require './deserializer-manager'
@@ -492,6 +492,8 @@ class AtomEnvironment extends Model
 
   # Extended: Reload the current window.
   reload: ->
+    @saveWindowDimensions()
+
     @applicationDelegate.restartWindow()
 
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
@@ -779,6 +781,11 @@ class AtomEnvironment extends Model
     return unless @enablePersistence
 
     @blobStore.save()
+
+  saveWindowDimensions: ->
+    loadSettings = getWindowLoadSettings()
+    loadSettings['windowDimensions'] = @getWindowDimensions()
+    setWindowLoadSettings(loadSettings)
 
   saveStateSync: ->
     return unless @enablePersistence
