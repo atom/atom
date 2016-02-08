@@ -472,7 +472,7 @@ describe "TextEditorPresenter", ->
 
             expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * maxLineLength + 1
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'meta.method-call.js', 'support.function.js'], 'p', 20)
               presenter.measurementsChanged()
             expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
@@ -866,7 +866,7 @@ describe "TextEditorPresenter", ->
 
             expect(getState(presenter).content.scrollWidth).toBe 10 * maxLineLength + 1
             expectStateUpdate presenter, ->
-              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'support.function.js'], 'p', 20)
+              presenter.getLinesYardstick().setScopedCharacterWidth(['source.js', 'meta.method-call.js', 'support.function.js'], 'p', 20)
               presenter.measurementsChanged()
             expect(getState(presenter).content.scrollWidth).toBe (10 * (maxLineLength - 2)) + (20 * 2) + 1 # 2 of the characters are 20px wide now instead of 10px wide
 
