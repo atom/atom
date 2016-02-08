@@ -791,7 +791,7 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveState: () ->
+  saveState: ->
     return Promise.resolve() unless @enablePersistence
     state = @serialize()
 
