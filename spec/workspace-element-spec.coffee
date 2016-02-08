@@ -72,8 +72,48 @@ describe "WorkspaceElement", ->
       expect(topContainer.nextSibling).toBe workspaceElement.paneContainer
       expect(bottomContainer.previousSibling).toBe workspaceElement.paneContainer
 
+      headerContainer = workspaceElement.querySelector('atom-panel-container.header')
+      footerContainer = workspaceElement.querySelector('atom-panel-container.footer')
+      expect(headerContainer.nextSibling).toBe workspaceElement.horizontalAxis
+      expect(footerContainer.previousSibling).toBe workspaceElement.horizontalAxis
+
       modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
       expect(modalContainer.parentNode).toBe workspaceElement
+
+    it 'stretches header/footer panels to the workspace width', ->
+      workspaceElement = atom.views.getView(atom.workspace)
+      jasmine.attachToDOM(workspaceElement)
+      expect(workspaceElement.offsetWidth).toBeGreaterThan(0)
+
+      headerItem = document.createElement('div')
+      atom.workspace.addHeaderPanel({item: headerItem})
+      expect(headerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
+
+      footerItem = document.createElement('div')
+      atom.workspace.addFooterPanel({item: footerItem})
+      expect(footerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
+
+    it 'shrinks horizontal axis according to header/footer panels height', ->
+      workspaceElement = atom.views.getView(atom.workspace)
+      workspaceElement.style.height = '100px'
+      horizontalAxisElement = workspaceElement.querySelector('atom-workspace-axis.horizontal')
+      jasmine.attachToDOM(workspaceElement)
+
+      originalHorizontalAxisHeight = horizontalAxisElement.offsetHeight
+      expect(workspaceElement.offsetHeight).toBeGreaterThan(0)
+      expect(originalHorizontalAxisHeight).toBeGreaterThan(0)
+
+      headerItem = document.createElement('div')
+      headerItem.style.height = '10px'
+      atom.workspace.addHeaderPanel({item: headerItem})
+      expect(headerItem.offsetHeight).toBeGreaterThan(0)
+
+      footerItem = document.createElement('div')
+      footerItem.style.height = '15px'
+      atom.workspace.addFooterPanel({item: footerItem})
+      expect(footerItem.offsetHeight).toBeGreaterThan(0)
+
+      expect(horizontalAxisElement.offsetHeight).toEqual(originalHorizontalAxisHeight - headerItem.offsetHeight - footerItem.offsetHeight)
 
   describe "the 'window:toggle-invisibles' command", ->
     it "shows/hides invisibles in all open and future editors", ->
