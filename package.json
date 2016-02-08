@@ -173,7 +173,8 @@
       "runs",
       "spyOn",
       "waitsFor",
-      "waitsForPromise"
+      "waitsForPromise",
+      "indexedDB"
     ]
   }
 }
