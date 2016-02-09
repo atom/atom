@@ -666,6 +666,8 @@ class Pane extends Model
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
 
+    @moveItemToPane(@activeItem, newPane) if params?.moveActiveItem
+
     newPane.activate()
     newPane
 
