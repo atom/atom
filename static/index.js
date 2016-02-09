@@ -83,8 +83,9 @@
     setupCsonCache(CompileCache.getCacheDirectory())
 
     var initialize = require(loadSettings.windowInitializationScript)
-    initialize({blobStore: blobStore})
-    require('ipc').sendChannel('window-command', 'window:loaded')
+    initialize({blobStore: blobStore}).then(function () {
+      require('ipc').sendChannel('window-command', 'window:loaded')
+    })
   }
 
   function setupCsonCache (cacheDir) {
