@@ -384,6 +384,9 @@ class AtomEnvironment extends Model
   inSpecMode: ->
     @specMode ?= @getLoadSettings().isSpec
 
+  isFirstLoad: ->
+    @firstLoad ?= @getLoadSettings().firstLoad
+
   # Public: Get the version of the Atom application.
   #
   # Returns the version text {String}.
@@ -492,8 +495,6 @@ class AtomEnvironment extends Model
 
   # Extended: Reload the current window.
   reload: ->
-    @saveWindowDimensions()
-
     @applicationDelegate.restartWindow()
 
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
@@ -531,6 +532,11 @@ class AtomEnvironment extends Model
     setImmediate =>
       @setFullScreen(true) if @workspace?.fullScreen
       @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
+
+      if @isFirstLoad()
+        loadSettings = getWindowLoadSettings()
+        loadSettings.firstLoad = false
+        setWindowLoadSettings(loadSettings)
 
   # Get the dimensions of this window.
   #
@@ -593,7 +599,14 @@ class AtomEnvironment extends Model
       {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
-    dimensions = @state.windowDimensions
+    dimensions = null
+
+    # The first time the window's loaded we want to use the default dimensions.
+    # But after that, e.g., when the window's been reloaded, we want to use the
+    # dimensions we've saved for it.
+    if !@isFirstLoad()
+      dimensions = @state.windowDimensions
+
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
     @setWindowDimensions(dimensions)
@@ -625,7 +638,7 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-    @loadStateSync()
+
     @document.body.appendChild(@views.getView(@workspace))
 
     @watchProjectPath()
@@ -781,11 +794,6 @@ class AtomEnvironment extends Model
     return unless @enablePersistence
 
     @blobStore.save()
-
-  saveWindowDimensions: ->
-    loadSettings = getWindowLoadSettings()
-    loadSettings['windowDimensions'] = @getWindowDimensions()
-    setWindowLoadSettings(loadSettings)
 
   saveStateSync: ->
     return unless @enablePersistence

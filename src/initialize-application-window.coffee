@@ -23,6 +23,7 @@ module.exports = ({blobStore}) ->
     enablePersistence: true
   })
 
+  atom.loadStateSync()
   atom.displayWindow()
   atom.startEditorWindow()
 
