@@ -12,7 +12,7 @@ module.exports =
         default: [".git", ".hg", ".svn", ".DS_Store", "._*", "Thumbs.db"]
         items:
           type: 'string'
-        description: 'List of string glob patterns. Files and directories matching these patterns will be ignored by some packages, such as the fuzzy finder and tree view. Individual packages might have additional config settings for ignoring names.'
+        description: 'List of [glob patterns](https://en.wikipedia.org/wiki/Glob_%28programming%29). Files and directories matching these patterns will be ignored by some packages, such as the fuzzy finder and tree view. Individual packages might have additional config settings for ignoring names.'
       excludeVcsIgnoredPaths:
         type: 'boolean'
         default: true
