@@ -32,6 +32,9 @@ start = ->
   app.on 'open-url', addUrlToOpen
   app.on 'will-finish-launching', setupCrashReporter
 
+  if args.userDataDir?
+    app.setPath('userData', args.userDataDir)
+
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
@@ -119,6 +122,7 @@ parseCommandLine = ->
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.string('socket-path')
+  options.string('user-data-dir')
 
   args = options.argv
 
@@ -140,6 +144,7 @@ parseCommandLine = ->
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
   socketPath = args['socket-path']
+  userDataDir = args['user-data-dir']
   profileStartup = args['profile-startup']
   urlsToOpen = []
   devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
@@ -164,6 +169,6 @@ parseCommandLine = ->
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
    version, pidToKillWhenClosed, devMode, safeMode, newWindow,
-   logFile, socketPath, profileStartup, timeout, setPortable}
+   logFile, socketPath, userDataDir, profileStartup, timeout, setPortable}
 
 start()

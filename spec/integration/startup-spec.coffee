@@ -153,6 +153,8 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(0, 3000)
           .execute -> atom.workspace.open()
           .waitForPaneItemCount(1, 3000)
+          .keys("Hello!")
+          .waitUntil((-> Promise.resolve(false)), 1100)
 
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
