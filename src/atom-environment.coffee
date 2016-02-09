@@ -127,7 +127,7 @@ class AtomEnvironment extends Model
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
-    @stateStore = new StateStore
+    @stateStore = new StateStore('AtomEnvironments', 1)
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}

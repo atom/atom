@@ -2,28 +2,33 @@
 
 module.exports =
 class StateStore {
-  constructor () {
-    this.dbPromise = new Promise((resolve, reject) => {
-      let dbOpenRequest = indexedDB.open('AtomEnvironments', 1)
+  constructor (databaseName, version) {
+    this.dbPromise = new Promise((resolve) => {
+      let dbOpenRequest = indexedDB.open(databaseName, version)
       dbOpenRequest.onupgradeneeded = (event) => {
         let db = event.target.result
         db.createObjectStore('states')
-        resolve(db)
       }
       dbOpenRequest.onsuccess = () => {
         resolve(dbOpenRequest.result)
       }
-      dbOpenRequest.onerror = reject
+      dbOpenRequest.onerror = (error) => {
+        console.error("Could not connect to indexedDB", error)
+        resolve(null)
+      }
     })
   }
 
   save (key, value) {
     return this.dbPromise.then(db => {
-      value.storedAt = new Date().toString()
+      if (!db) {
+        return
+      }
+
       return new Promise((resolve, reject) => {
         var request = db.transaction(['states'], 'readwrite')
           .objectStore('states')
-          .put(value, key)
+          .put({value: value, storedAt: new Date().toString()}, key)
 
         request.onsuccess = resolve
         request.onerror = reject
@@ -33,12 +38,20 @@ class StateStore {
 
   load (key) {
     return this.dbPromise.then(db => {
+      if (!db) {
+        return null
+      }
+
       return new Promise((resolve, reject) => {
         var request = db.transaction(['states'])
           .objectStore('states')
           .get(key)
 
-        request.onsuccess = (event) => resolve(event.target.result)
+        request.onsuccess = (event) => {
+          let result = event.target.result
+          resolve(result ? result.value : null)
+        }
+
         request.onerror = (event) => reject(event)
       })
     })
