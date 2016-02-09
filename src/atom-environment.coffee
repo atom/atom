@@ -384,6 +384,8 @@ class AtomEnvironment extends Model
   inSpecMode: ->
     @specMode ?= @getLoadSettings().isSpec
 
+  # Returns a {Boolean} indicating whether this the first time the window's been
+  # loaded.
   isFirstLoad: ->
     @firstLoad ?= @getLoadSettings().firstLoad
 
