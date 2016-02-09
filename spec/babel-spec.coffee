@@ -3,9 +3,9 @@
 # See https://github.com/atom/electron/issues/2033
 process.env.DEBUG='*'
 
-path = require('path')
+path = require 'path'
 temp = require('temp').track()
-CompileCache = require('../src/compile-cache')
+CompileCache = require '../src/compile-cache'
 
 describe "Babel transpiler support", ->
   originalCacheDir = null
@@ -34,6 +34,11 @@ describe "Babel transpiler support", ->
   describe 'when a .js file starts with "use babel";', ->
     it "transpiles it using babel", ->
       transpiled = require('./fixtures/babel/babel-double-quotes.js')
+      expect(transpiled(3)).toBe 4
+
+  describe 'when a .js file starts with /* @flow */', ->
+    it "transpiles it using babel", ->
+      transpiled = require('./fixtures/babel/flow-comment.js')
       expect(transpiled(3)).toBe 4
 
   describe "when a .js file does not start with 'use babel';", ->

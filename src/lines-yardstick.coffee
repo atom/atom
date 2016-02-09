@@ -4,7 +4,7 @@ TokenIterator = require './token-iterator'
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @lineNodesProvider, grammarRegistry) ->
+  constructor: (@model, @lineNodesProvider, @lineTopIndex, grammarRegistry) ->
     @tokenIterator = new TokenIterator({grammarRegistry})
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
@@ -20,8 +20,9 @@ class LinesYardstick
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
-    row = Math.floor(targetTop / @model.getLineHeightInPixels())
-    targetLeft = 0 if row < 0
+    defaultCharWidth = @model.getDefaultCharWidth()
+    row = @lineTopIndex.rowForPixelPosition(targetTop)
+    targetLeft = 0 if targetTop < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
@@ -64,7 +65,7 @@ class LinesYardstick
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
-    top = targetRow * @model.getLineHeightInPixels()
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
     {top, left}

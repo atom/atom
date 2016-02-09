@@ -80,6 +80,23 @@ function bootstrap() {
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
 
+  var moduleInstallEnv = {};
+  for (var e in process.env) {
+    moduleInstallEnv[e] = process.env[e];
+  }
+
+  // Set our target (Electron) version so that node-pre-gyp can download the
+  // proper binaries.
+  var electronVersion = require('../package.json').electronVersion;
+  moduleInstallEnv.npm_config_target = electronVersion;
+
+  // Force 32-bit modules on Windows.
+  // /cc https://github.com/atom/atom/issues/10450
+  if (process.platform === 'win32') {
+    moduleInstallEnv.npm_config_target_arch = 'ia32';
+  }
+  var moduleInstallOptions = {env: moduleInstallEnv};
+
   if (process.argv.indexOf('--no-quiet') === -1) {
     buildInstallCommand  += ' --loglevel error';
     apmInstallCommand    += ' --loglevel error';
@@ -107,10 +124,17 @@ function bootstrap() {
     },
     {
       command: apmPath + ' clean' + apmFlags,
-      message: 'Deleting old packages...'
+      message: 'Deleting old packages...',
+      options: moduleInstallOptions
     },
-    moduleInstallCommand,
-    dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+    {
+      command: moduleInstallCommand,
+      options: moduleInstallOptions
+    },
+    {
+      command: dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+      options: moduleInstallOptions
+    }
   ];
 
   process.chdir(path.dirname(__dirname));

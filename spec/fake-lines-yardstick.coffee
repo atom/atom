@@ -2,7 +2,7 @@
 
 module.exports =
 class FakeLinesYardstick
-  constructor: (@model) ->
+  constructor: (@model, @lineTopIndex) ->
     @characterWidthsByScope = {}
 
   getScopedCharacterWidth: (scopeNames, char) ->
@@ -26,7 +26,7 @@ class FakeLinesYardstick
     targetColumn = screenPosition.column
     baseCharacterWidth = @model.getDefaultCharWidth()
 
-    top = targetRow * @model.getLineHeightInPixels()
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = 0
     column = 0
 

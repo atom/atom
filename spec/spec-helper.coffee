@@ -208,13 +208,15 @@ addCustomMatchers = (spec) ->
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
 window.waitsForPromise = (args...) ->
+  label = null
   if args.length > 1
-    {shouldReject, timeout} = args[0]
+    {shouldReject, timeout, label} = args[0]
   else
     shouldReject = false
+  label ?= 'promise to be resolved or rejected'
   fn = _.last(args)
 
-  window.waitsFor timeout, (moveOn) ->
+  window.waitsFor label, timeout, (moveOn) ->
     promise = fn()
     if shouldReject
       promise.catch.call(promise, moveOn)

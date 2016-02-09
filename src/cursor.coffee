@@ -551,7 +551,7 @@ class Cursor extends Model
 
   # Public: Retrieves the range for the current paragraph.
   #
-  # A paragraph is defined as a block of text surrounded by empty lines.
+  # A paragraph is defined as a block of text surrounded by empty lines or comments.
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->

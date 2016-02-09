@@ -7,7 +7,6 @@ path = require 'path'
 BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
-temp = require "temp"
 
 describe "Project", ->
   beforeEach ->

@@ -81,10 +81,10 @@
   'cmd-_': 'window:decrease-font-size'
   'cmd-0': 'window:reset-font-size'
 
-  'cmd-k up': 'pane:split-up' # Atom Specific
-  'cmd-k down': 'pane:split-down' # Atom Specific
-  'cmd-k left': 'pane:split-left' # Atom Specific
-  'cmd-k right': 'pane:split-right' # Atom Specific
+  'cmd-k up': 'pane:split-up-and-copy-active-item' # Atom Specific
+  'cmd-k down': 'pane:split-down-and-copy-active-item' # Atom Specific
+  'cmd-k left': 'pane:split-left-and-copy-active-item' # Atom Specific
+  'cmd-k right': 'pane:split-right-and-copy-active-item' # Atom Specific
   'cmd-k cmd-w': 'pane:close' # Atom Specific
   'cmd-k alt-cmd-w': 'pane:close-other-items' # Atom Specific
   'cmd-k cmd-p': 'window:focus-previous-pane'

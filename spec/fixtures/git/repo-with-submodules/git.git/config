@@ -1,0 +1,11 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[submodule "jstips"]
+	url = https://github.com/loverajoel/jstips
+[submodule "You-Dont-Need-jQuery"]
+	url = https://github.com/oneuijs/You-Dont-Need-jQuery

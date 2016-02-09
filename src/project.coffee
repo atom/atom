@@ -329,7 +329,7 @@ class Project extends Model
   #
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   bufferForPath: (absoluteFilePath) ->
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
     if existingBuffer
@@ -349,7 +349,7 @@ class Project extends Model
   # * `absoluteFilePath` A {String} representing a path.
   # * `text` The {String} text to use as a buffer.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
