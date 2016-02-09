@@ -606,7 +606,7 @@ class AtomEnvironment extends Model
     # The first time the window's loaded we want to use the default dimensions.
     # But after that, e.g., when the window's been reloaded, we want to use the
     # dimensions we've saved for it.
-    if !@isFirstLoad()
+    if not @isFirstLoad()
       dimensions = @state.windowDimensions
 
     unless @isValidDimensions(dimensions)
