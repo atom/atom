@@ -13,7 +13,7 @@ class StateStore {
         resolve(dbOpenRequest.result)
       }
       dbOpenRequest.onerror = (error) => {
-        console.error("Could not connect to indexedDB", error)
+        console.error('Could not connect to indexedDB', error)
         resolve(null)
       }
     })
