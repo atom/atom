@@ -20,7 +20,7 @@ class Pane extends Model
   focused: false
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
-    {items, itemStack, activeItemURI, activeItemUri} = state
+    {items, itemStackIndices, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
     state.activeItem = find state.items, (item) ->
@@ -48,20 +48,21 @@ class Pane extends Model
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
-    @addItemsToStack(params?.itemStack ? [])
+    @addItemsToStack(params?.itemStackIndices ? [])
     @setFlexScale(params?.flexScale ? 1)
 
   serialize: ->
     if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
-    itemStack = []
-    for item in @items
-      itemStack.push(@itemStack.indexOf(item)) if typeof item.serialize is 'function'
+    itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
+    itemStackIndices = []
+    for item in @itemStack
+      itemStackIndices.push(itemsToBeSerialized.indexOf(item)) if typeof item.serialize is 'function'
 
     deserializer: 'Pane'
     id: @id
-    items: compact(@items.map((item) -> item.serialize?()))
-    itemStack: itemStack
+    items: itemsToBeSerialized.map((item) -> item.serialize())
+    itemStackIndices: itemStackIndices
     activeItemURI: activeItemURI
     focused: @focused
     flexScale: @flexScale
@@ -289,20 +290,20 @@ class Pane extends Model
   # Returns a pane item.
   getActiveItem: -> @activeItem
 
-  setActiveItem: (activeItem) ->
+  setActiveItem: (activeItem, options) ->
+    {modifyStack} = options if options?
     unless activeItem is @activeItem
-      @addItemToStack(activeItem)
+      @addItemToStack(activeItem) unless modifyStack is false
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
 
   # Build the itemStack after deserializing
-  addItemsToStack: (itemStack) ->
-    if itemStack.length is 0 or itemStack.length isnt @items.length or itemStack.indexOf(-1) >= 0
-      itemStack = @items.map((item) => @items.indexOf(item))
-    for item, i in itemStack
-      index = itemStack.indexOf(i)
-      @addItemToStack(@items[index]) unless index is -1
+  addItemsToStack: (itemStackIndices) ->
+    if itemStackIndices.length is 0 or itemStackIndices.length isnt @items.length or itemStackIndices.indexOf(-1) >= 0
+      itemStackIndices = (i for i in [0..@items.length-1])
+    for itemIndex in itemStackIndices
+      @addItemToStack(@items[itemIndex])
 
   # Add item (or move item) to the end of the itemStack
   addItemToStack: (newItem) ->
@@ -325,10 +326,19 @@ class Pane extends Model
   # Makes the most recently used item active.
   activateMostRecentlyUsedItem: ->
     if @items.length > 1
-      index = @itemStack.length - 2
-      mostRecentlyUsedItem = @itemStack[index]
-      @itemStack.splice(index, 1)
-      @setActiveItem(mostRecentlyUsedItem)
+      @itemStackIndex = @itemStack.length - 1
+      @activateNextRecentlyUsedItem()
+
+  # Makes the next item in the itemStack active.
+  activateNextRecentlyUsedItem: ->
+    @itemStackIndex = @itemStackIndex - 1
+    nextRecentlyUsedItem = @itemStack[@itemStackIndex]
+    @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
+    @itemStackIndex = @itemStack.length if @itemStackIndex is 0
+
+  # Moves the active item to the end of the itemStack once the ctrl key is lifted
+  stopMovingThroughStackAndMoveItemToEndOfStack: ->
+    @addItemToStack(@activeItem)
 
   # Public: Makes the next item active.
   activateNextItem: ->
