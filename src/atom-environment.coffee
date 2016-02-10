@@ -11,7 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings} = require './window-load-settings-helpers'
+{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = require './deserializer-manager'
@@ -384,6 +384,11 @@ class AtomEnvironment extends Model
   inSpecMode: ->
     @specMode ?= @getLoadSettings().isSpec
 
+  # Returns a {Boolean} indicating whether this the first time the window's been
+  # loaded.
+  isFirstLoad: ->
+    @firstLoad ?= @getLoadSettings().firstLoad
+
   # Public: Get the version of the Atom application.
   #
   # Returns the version text {String}.
@@ -530,6 +535,11 @@ class AtomEnvironment extends Model
       @setFullScreen(true) if @workspace?.fullScreen
       @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
 
+      if @isFirstLoad()
+        loadSettings = getWindowLoadSettings()
+        loadSettings.firstLoad = false
+        setWindowLoadSettings(loadSettings)
+
   # Get the dimensions of this window.
   #
   # Returns an {Object} with the following keys:
@@ -591,7 +601,14 @@ class AtomEnvironment extends Model
       {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
-    dimensions = @state.windowDimensions
+    dimensions = null
+
+    # The first time the window's loaded we want to use the default dimensions.
+    # But after that, e.g., when the window's been reloaded, we want to use the
+    # dimensions we've saved for it.
+    if not @isFirstLoad()
+      dimensions = @state.windowDimensions
+
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
     @setWindowDimensions(dimensions)
@@ -623,7 +640,7 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-    @loadStateSync()
+
     @document.body.appendChild(@views.getView(@workspace))
 
     @watchProjectPath()
