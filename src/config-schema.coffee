@@ -171,7 +171,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        enum: [1, 2, 3, 4, 6, 8]
+        minimum: 1
         description: 'Number of spaces used to represent a tab.'
       softWrap:
         type: 'boolean'
