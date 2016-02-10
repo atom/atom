@@ -323,21 +323,18 @@ class Pane extends Model
   itemAtIndex: (index) ->
     @items[index]
 
-  # Makes the most recently used item active.
-  activateMostRecentlyUsedItem: ->
-    if @items.length > 1
-      @itemStackIndex = @itemStack.length - 1
-      @activateNextRecentlyUsedItem()
-
   # Makes the next item in the itemStack active.
   activateNextRecentlyUsedItem: ->
-    @itemStackIndex = @itemStackIndex - 1
-    nextRecentlyUsedItem = @itemStack[@itemStackIndex]
-    @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
-    @itemStackIndex = @itemStack.length if @itemStackIndex is 0
+    if @items.length > 1
+      @itemStackIndex = @itemStack.length - 1 unless @itemStackIndex?
+      @itemStackIndex = @itemStackIndex - 1
+      nextRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
+      @itemStackIndex = @itemStack.length if @itemStackIndex is 0
 
   # Moves the active item to the end of the itemStack once the ctrl key is lifted
   stopMovingThroughStackAndMoveItemToEndOfStack: ->
+    delete @itemStackIndex
     @addItemToStack(@activeItem)
 
   # Public: Makes the next item active.

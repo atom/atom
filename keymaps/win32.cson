@@ -52,7 +52,7 @@
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
   'shift-backspace': 'core:backspace'
-  'ctrl-tab': 'pane:show-most-recently-used-item'
+  'ctrl-tab': 'pane:show-next-recently-used-item'
   'ctrl-shift-tab': 'pane:show-previous-item'
   'ctrl-pageup': 'pane:show-previous-item'
   'ctrl-pagedown': 'pane:show-next-item'
