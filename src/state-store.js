@@ -19,6 +19,10 @@ class StateStore {
     })
   }
 
+  connect () {
+    return this.dbPromise.then(db => !!db)
+  }
+
   save (key, value) {
     return this.dbPromise.then(db => {
       if (!db) {

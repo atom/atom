@@ -152,6 +152,8 @@ describe "AtomEnvironment", ->
       atom.enablePersistence = false
 
     it "selects the state based on the current project paths", ->
+      jasmine.useRealClock()
+
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
       loadSettings = _.extend atom.getLoadSettings(),
@@ -163,6 +165,11 @@ describe "AtomEnvironment", ->
       spyOn(atom, 'deserialize')
 
       atom.project.setPaths([dir1, dir2])
+      # State persistence will fail if other Atom instances are running
+      waitsForPromise ->
+        atom.stateStore.connect().then (isConnected) ->
+          expect(isConnected).toBe true
+
       waitsForPromise ->
         atom.saveState().then ->
           atom.loadState()
