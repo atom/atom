@@ -66,13 +66,20 @@ class Uninstall extends Command
       try
         unless options.argv.dev
           packageDirectory = path.join(packagesDirectory, packageName)
-          packageVersion = @getPackageVersion(packageDirectory)
-          fs.removeSync(packageDirectory)
-          if packageVersion
-            uninstallsToRegister.push({packageName, packageVersion})
+          if fs.existsSync(packageDirectory)
+            packageVersion = @getPackageVersion(packageDirectory)
+            fs.removeSync(packageDirectory)
+            if packageVersion
+              uninstallsToRegister.push({packageName, packageVersion})
+          else
+            throw new Error("Does not exist")
 
         if options.argv.hard or options.argv.dev
-          fs.removeSync(path.join(devPackagesDirectory, packageName))
+          packageDirectory = path.join(devPackagesDirectory, packageName)
+          if fs.existsSync(packageDirectory)
+            fs.removeSync(packageDirectory)
+          else
+            throw new Error("Does not exist")
 
         @logSuccess()
       catch error
