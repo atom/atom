@@ -139,6 +139,15 @@ describe "TextEditor", ->
         expect(editor2.getSoftTabs()).toBe true
         expect(editor2.getEncoding()).toBe 'macroman'
 
+        atom.config.set('editor.tabLength', -1)
+        expect(editor2.getTabLength()).toBe 1
+        atom.config.set('editor.tabLength', 2)
+        expect(editor2.getTabLength()).toBe 2
+        atom.config.set('editor.tabLength', 17)
+        expect(editor2.getTabLength()).toBe 17
+        atom.config.set('editor.tabLength', 128)
+        expect(editor2.getTabLength()).toBe 128
+
     it "uses scoped `core.fileEncoding` values", ->
       editor1 = null
       editor2 = null
