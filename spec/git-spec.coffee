@@ -255,7 +255,6 @@ describe "GitRepository", ->
         statusHandler.callCount > 0
 
       runs ->
-        filePath = path.join(subDir, 'b.txt')
         status = repo.getCachedPathStatus(filePath)
         expect(repo.isStatusModified(status)).toBe false
         expect(repo.isStatusNew(status)).toBe false
