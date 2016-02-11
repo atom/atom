@@ -84,7 +84,6 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @loadDeserializers()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -94,13 +93,7 @@ class Package
     this
 
   shouldRequireMainModuleOnLoad: ->
-    not (
-      @metadata.deserializers? or
-      @metadata.viewProviders? or
-      @metadata.configSchema? or
-      @activationShouldBeDeferred() or
-      localStorage.getItem(@getCanDeferMainModuleRequireStorageKey()) is 'true'
-    )
+    not @activationShouldBeDeferred()
 
   reset: ->
     @stylesheets = []
@@ -131,7 +124,6 @@ class Package
     try
       @requireMainModule() unless @mainModule?
       @configSchemaRegisteredOnActivate = @registerConfigSchemaFromMainModule()
-      @registerViewProviders()
       @activateStylesheets()
       if @mainModule? and not @mainActivated
         @mainModule.activateConfig?()
