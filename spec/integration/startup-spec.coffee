@@ -28,13 +28,12 @@ describe "Starting Atom", ->
     it "opens the parent directory and creates an empty text editor", ->
       runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
         client
-          .waitForPaneItemCount(1, 1000)
-
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath])
 
           .waitForExist("atom-text-editor", 5000)
           .then (exists) -> expect(exists).toBe true
+          .waitForPaneItemCount(1, 1000)
           .click("atom-text-editor")
           .keys("Hello!")
           .execute -> atom.workspace.getActiveTextEditor().getText()
