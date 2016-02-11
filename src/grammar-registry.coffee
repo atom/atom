@@ -1,10 +1,9 @@
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 FirstMate = require 'first-mate'
+path = require 'path'
 Token = require './token'
 fs = require 'fs-plus'
-
-PathSplitRegex = new RegExp("[/.]")
 
 # Extended: Syntax class holding the grammars used for tokenizing.
 #
@@ -54,9 +53,9 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
 
   getGrammarPathScore: (grammar, filePath) ->
     return -1 unless filePath
-    filePath = filePath.replace(/\\/g, '/') if process.platform is 'win32'
 
-    pathComponents = filePath.toLowerCase().split(PathSplitRegex)
+    pathComponents = filePath.toLowerCase().split(path.sep)
+    pathComponents = pathComponents.concat(pathComponents.pop().split("."))
     pathScore = -1
 
     fileTypes = grammar.fileTypes
@@ -64,7 +63,8 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       fileTypes = fileTypes.concat(customFileTypes)
 
     for fileType, i in fileTypes
-      fileTypeComponents = fileType.toLowerCase().split(PathSplitRegex)
+      fileTypeComponents = fileType.toLowerCase().split("/")
+      fileTypeComponents = fileTypeComponents.concat(fileTypeComponents.pop().split("."))
       pathSuffix = pathComponents[-fileTypeComponents.length..-1]
       if _.isEqual(pathSuffix, fileTypeComponents)
         pathScore = Math.max(pathScore, fileType.length)
