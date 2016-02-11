@@ -33,8 +33,8 @@ describe "the `grammars` global", ->
       expect(atom.grammars.selectGrammar('test.txt').scopeName).toBe 'text.plain'
 
     it "selects a grammar based on the file path case insensitively", ->
-      expect(atom.grammars.selectGrammar('/tmp/source.coffee').scopeName).toBe 'source.coffee'
-      expect(atom.grammars.selectGrammar('/tmp/source.COFFEE').scopeName).toBe 'source.coffee'
+      expect(atom.grammars.selectGrammar(path.join(temp.dir, 'source.coffee')).scopeName).toBe 'source.coffee'
+      expect(atom.grammars.selectGrammar(path.join(temp.dir, 'source.COFFEE')).scopeName).toBe 'source.coffee'
 
     describe "on Windows", ->
       originalSeparator = null
