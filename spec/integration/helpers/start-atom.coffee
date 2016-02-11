@@ -85,7 +85,8 @@ buildAtomClient = (args, env) ->
 
     .addCommand "waitForPaneItemCount", (count, timeout, cb) ->
       @waitUntil(->
-        @execute(-> atom.workspace?.getActivePane()?.getItems().length)
+        @waitForExist('.tab', 10000)
+        .execute(-> atom.workspace?.getActivePane()?.getItems().length)
           .then(({value}) -> value is count)
       , timeout)
         .then (result) ->
