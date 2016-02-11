@@ -471,6 +471,27 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual {bar: "bar://baz"}
 
+    it "adds the file to the application's recent documents list", ->
+      spyOn(atom.applicationDelegate, 'addRecentDocument')
+
+      waitsForPromise ->
+        workspace.open()
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).not.toHaveBeenCalled()
+
+      waitsForPromise ->
+        workspace.open('something://a/url')
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).not.toHaveBeenCalled()
+
+      waitsForPromise ->
+        workspace.open(__filename)
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).toHaveBeenCalledWith(__filename)
+
     it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newEditorHandler = jasmine.createSpy('newEditorHandler')
@@ -891,6 +912,36 @@ describe "Workspace", ->
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
         itemView = atom.views.getView(atom.workspace.getBottomPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe '::addHeaderPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getHeaderPanels().length).toBe(0)
+        atom.workspace.panelContainers.header.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addHeaderPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getHeaderPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe '::addFooterPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getFooterPanels().length).toBe(0)
+        atom.workspace.panelContainers.footer.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addFooterPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getFooterPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 

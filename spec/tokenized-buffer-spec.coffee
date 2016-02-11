@@ -234,8 +234,8 @@ describe "TokenizedBuffer", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[0, 0], [2, 0]], "foo()\n7\n")
 
-            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.function-call.js', 'punctuation.definition.arguments.begin.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.function-call.js', 'meta.arguments.js', 'punctuation.definition.arguments.begin.bracket.round.js'])
+            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.decimal.js'])
             # line 2 is unchanged
             expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[2]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 

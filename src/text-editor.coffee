@@ -92,7 +92,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate
+      @project, @assert, @applicationDelegate, @pending
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -150,6 +150,7 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
+    pending: @isPending()
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -161,6 +162,9 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
+    if @pending
+      @disposables.add @buffer.onDidChangeModified =>
+        @terminatePendingState() if @buffer.isModified()
 
     @preserveCursorPositionOnBufferReload()
 
@@ -493,6 +497,7 @@ class TextEditor extends Model
     newEditor = new TextEditor({
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config, @notificationManager, @packageManager,
+      @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
     newEditor
@@ -568,6 +573,14 @@ class TextEditor extends Model
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
     @displayBuffer.getEditorWidthInChars()
+
+  onDidTerminatePendingState: (callback) ->
+    @emitter.on 'did-terminate-pending-state', callback
+
+  terminatePendingState: ->
+    return if not @pending
+    @pending = false
+    @emitter.emit 'did-terminate-pending-state'
 
   ###
   Section: File Details
@@ -652,9 +665,13 @@ class TextEditor extends Model
   # Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty: -> @buffer.isEmpty()
 
+  # Returns {Boolean} `true` if this editor is pending and `false` if it is permanent.
+  isPending: -> Boolean(@pending)
+
   # Copies the current file path to the native clipboard.
-  copyPathToClipboard: ->
+  copyPathToClipboard: (relative = false) ->
     if filePath = @getPath()
+      filePath = atom.project.relativize(filePath) if relative
       @clipboard.write(filePath)
 
   ###
@@ -690,7 +707,7 @@ class TextEditor extends Model
       checkoutHead = =>
         @project.repositoryForDirectory(new Directory(@getDirectoryPath()))
           .then (repository) =>
-            repository?.checkoutHeadForEditor(this)
+            repository?.async.checkoutHeadForEditor(this)
 
       if @config.get('editor.confirmCheckoutHeadRevision')
         @applicationDelegate.confirm
@@ -1423,6 +1440,8 @@ class TextEditor extends Model
   # * __gutter__: A decoration that tracks a {TextEditorMarker} in a {Gutter}. Gutter
   #     decorations are created by calling {Gutter::decorateMarker} on the
   #     desired `Gutter` instance.
+  # * __block__: Positions the view associated with the given item before or
+  #     after the row of the given `TextEditorMarker`.
   #
   # ## Arguments
   #
@@ -1442,11 +1461,14 @@ class TextEditor extends Model
   #       property.
   #     * `gutter` Tracks a {TextEditorMarker} in a {Gutter}. Created by calling
   #       {Gutter::decorateMarker} on the desired `Gutter` instance.
+  #     * `block` Positions the view associated with the given item before or
+  #       after the row of the given `TextEditorMarker`, depending on the `position`
+  #       property.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
-  #     corresponding view registered. Only applicable to the `gutter` and
-  #     `overlay` types.
+  #     corresponding view registered. Only applicable to the `gutter`,
+  #     `overlay` and `block` types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
   #     the head of the `TextEditorMarker`. Only applicable to the `line` and
   #     `line-number` types.
@@ -1456,9 +1478,10 @@ class TextEditor extends Model
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
   #     if the associated `TextEditorMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
-  #   * `position` (optional) Only applicable to decorations of type `overlay`,
-  #     controls where the overlay view is positioned relative to the `TextEditorMarker`.
-  #     Values can be `'head'` (the default), or `'tail'`.
+  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`,
+  #     controls where the view is positioned relative to the `TextEditorMarker`.
+  #     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
+  #     `'before'` (the default) or `'after'` for block decorations.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
@@ -3037,7 +3060,7 @@ class TextEditor extends Model
 
   # Essential: Scrolls the editor to the given screen position.
   #
-  # * `screenPosition` An object that represents a buffer position. It can be either
+  # * `screenPosition` An object that represents a screen position. It can be either
   #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # * `options` (optional) {Object}
   #   * `center` Center the editor around the position if possible. (default: false)

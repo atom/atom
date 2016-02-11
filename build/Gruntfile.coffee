@@ -14,6 +14,8 @@ _ = require 'underscore-plus'
 packageJson = require '../package.json'
 
 module.exports = (grunt) ->
+  require('time-grunt')(grunt)
+
   grunt.loadNpmTasks('grunt-babel')
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
@@ -34,9 +36,8 @@ module.exports = (grunt) ->
   # Options
   installDir = grunt.option('install-dir')
   buildDir = grunt.option('build-dir')
-  buildDir ?= path.join(os.tmpdir(), 'atom-build')
+  buildDir ?= 'out'
   buildDir = path.resolve(buildDir)
-  disableAutoUpdate = grunt.option('no-auto-update') ? false
 
   channel = grunt.option('channel')
   releasableBranches = ['stable', 'beta']
@@ -120,6 +121,8 @@ module.exports = (grunt) ->
       ext: '.css'
 
   prebuildLessConfig =
+    options:
+      cachePath: path.join(homeDir, '.atom', 'compile-cache', 'prebuild-less', require('less-cache/package.json').version)
     src: [
       'static/**/*.less'
     ]
@@ -145,6 +148,13 @@ module.exports = (grunt) ->
       src: ['src/**/*.pegjs']
       dest: appDir
       ext: '.js'
+
+  for jsFile in glob.sync("src/**/*.js")
+    if usesBabel(jsFile)
+      babelConfig.dist.files.push({
+        src: [jsFile]
+        dest: path.join(appDir, jsFile)
+      })
 
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
@@ -179,7 +189,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata, disableAutoUpdate,
+      appName, channel, metadata,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
@@ -255,7 +265,7 @@ module.exports = (grunt) ->
       outputDir: 'electron'
       downloadDir: electronDownloadDir
       rebuild: true  # rebuild native modules after electron is updated
-      token: process.env.ATOM_ACCESS_TOKEN
+      token: process.env.ATOM_ACCESS_TOKEN ? 'da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4'
 
     'create-windows-installer':
       installer:
@@ -285,7 +295,7 @@ module.exports = (grunt) ->
   ciTasks.push('download-electron-chromedriver')
   ciTasks.push('build')
   ciTasks.push('fingerprint')
-  ciTasks.push('dump-symbols') if process.platform isnt 'win32'
+  ciTasks.push('dump-symbols') if process.platform is 'darwin'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI

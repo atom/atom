@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	worktree = ../../../You-Dont-Need-jQuery
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = https://github.com/oneuijs/You-Dont-Need-jQuery
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master

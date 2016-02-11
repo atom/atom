@@ -22,6 +22,9 @@ The [API reference](https://atom.io/docs/api) for developing packages is also do
 
 ## Installing
 
+### Prerequisites
+- [Git](https://git-scm.com/)
+
 ### OS X
 
 Download the latest [Atom release](https://github.com/atom/atom/releases/latest).
@@ -67,7 +70,7 @@ repeat these steps to upgrade to future releases.
 Currently only a 64-bit version is available.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dnf install atom.x86_64.rpm` on the downloaded package.
+2. Run `sudo dnf install ./atom.x86_64.rpm` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to
