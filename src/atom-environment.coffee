@@ -615,7 +615,7 @@ class AtomEnvironment extends Model
     # But after that, e.g., when the window's been reloaded, we want to use the
     # dimensions we've saved for it.
     if not @isFirstLoad()
-      dimensions = @state.windowDimensions
+      dimensions = @windowDimensions
 
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
@@ -648,18 +648,18 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-    @loadState().then =>
-      @document.body.appendChild(@views.getView(@workspace))
+    
+    @document.body.appendChild(@views.getView(@workspace))
 
-      @watchProjectPath()
+    @watchProjectPath()
 
-      @packages.activate()
-      @keymaps.loadUserKeymap()
-      @requireUserInitScript() unless @getLoadSettings().safeMode
+    @packages.activate()
+    @keymaps.loadUserKeymap()
+    @requireUserInitScript() unless @getLoadSettings().safeMode
 
-      @menu.update()
+    @menu.update()
 
-      @openInitialEmptyEditorIfNecessary()
+    @openInitialEmptyEditorIfNecessary()
 
   serialize: ->
     version: @constructor.version
@@ -845,6 +845,8 @@ class AtomEnvironment extends Model
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
     @setFullScreen(state.fullScreen)
+
+    @windowDimensions = state.windowDimensions if state.windowDimensions
 
     @packages.packageStates = state.packageStates ? {}
 

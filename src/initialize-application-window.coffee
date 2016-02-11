@@ -23,9 +23,9 @@ module.exports = ({blobStore}) ->
     enablePersistence: true
   })
 
-  atom.loadStateSync()
-  atom.displayWindow()
-  atom.startEditorWindow().then ->
+  atom.loadState().then ->
+    atom.displayWindow()
+    atom.startEditorWindow()
 
     # Workaround for focus getting cleared upon window creation
     windowFocused = ->
