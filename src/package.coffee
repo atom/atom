@@ -291,9 +291,9 @@ class Package
 
   registerViewProviders: ->
     if @metadata.viewProviders? and not @registeredViewProviders
+      @requireMainModule()
       @metadata.viewProviders.forEach (methodName) =>
         @viewRegistry.addViewProvider (model) =>
-          @requireMainModule()
           @mainModule[methodName](model)
       @registeredViewProviders = true
 
