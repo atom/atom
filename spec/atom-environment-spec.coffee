@@ -263,11 +263,9 @@ describe "AtomEnvironment", ->
       }
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
       spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
-      waitsForPromise ->
-        atomEnvironment.startEditorWindow()
-      runs ->
-        atomEnvironment.unloadEditorWindow()
-        atomEnvironment.destroy()
+      atomEnvironment.startEditorWindow()
+      atomEnvironment.unloadEditorWindow()
+      atomEnvironment.destroy()
 
   describe "::openLocations(locations) (called via IPC from browser process)", ->
     beforeEach ->
