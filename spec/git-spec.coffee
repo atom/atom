@@ -249,6 +249,36 @@ describe "GitRepository", ->
         expect(repo.isStatusModified(status)).toBe false
         expect(repo.isStatusNew(status)).toBe false
 
+    it 'caches the proper statuses when multiple project are open', ->
+      otherWorkingDirectory = copyRepository()
+
+      atom.project.setPaths([workingDirectory, otherWorkingDirectory])
+
+      waitsForPromise ->
+        atom.workspace.open('b.txt')
+
+      statusHandler = null
+      runs ->
+        repo = atom.project.getRepositories()[0]
+
+        statusHandler = jasmine.createSpy('statusHandler')
+        repo.onDidChangeStatuses statusHandler
+        repo.refreshStatus()
+
+      waitsFor ->
+        statusHandler.callCount > 0
+
+      runs ->
+        subDir = path.join(workingDirectory, 'dir')
+        fs.mkdirSync(subDir)
+
+        filePath = path.join(subDir, 'b.txt')
+        fs.writeFileSync(filePath, '')
+
+        status = repo.getCachedPathStatus(filePath)
+        expect(repo.isStatusModified(status)).toBe true
+        expect(repo.isStatusNew(status)).toBe false
+
   describe "buffer events", ->
     [editor] = []
 
