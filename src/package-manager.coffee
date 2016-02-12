@@ -357,7 +357,9 @@ class PackageManager
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
-    @loadPackage(packagePath) for packagePath in packagePaths
+    @config.transact =>
+      @loadPackage(packagePath) for packagePath in packagePaths
+      return
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
