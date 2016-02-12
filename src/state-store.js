@@ -25,9 +25,7 @@ class StateStore {
 
   save (key, value) {
     return this.dbPromise.then(db => {
-      if (!db) {
-        return
-      }
+      if (!db) return
 
       return new Promise((resolve, reject) => {
         var request = db.transaction(['states'], 'readwrite')
@@ -42,9 +40,7 @@ class StateStore {
 
   load (key) {
     return this.dbPromise.then(db => {
-      if (!db) {
-        return null
-      }
+      if (!db) return
 
       return new Promise((resolve, reject) => {
         var request = db.transaction(['states'])
@@ -57,6 +53,38 @@ class StateStore {
         }
 
         request.onerror = (event) => reject(event)
+      })
+    })
+  }
+
+  clear () {
+    return this.dbPromise.then(db => {
+      if (!db) return
+
+      return new Promise((resolve, reject) => {
+        var request = db.transaction(['states'], 'readwrite')
+          .objectStore('states')
+          .clear()
+
+        request.onsuccess = resolve
+        request.onerror = reject
+      })
+    })
+  }
+
+  count () {
+    return this.dbPromise.then(db => {
+      if (!db) return
+
+      return new Promise((resolve, reject) => {
+        var request = db.transaction(['states'])
+          .objectStore('states')
+          .count()
+
+        request.onsuccess = () => {
+          resolve(request.result)
+        }
+        request.onerror = reject
       })
     })
   }

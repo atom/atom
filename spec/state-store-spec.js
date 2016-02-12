@@ -21,7 +21,21 @@ describe("StateStore", () => {
     return store.load('no-such-key').then((value) => {
       expect(value).toBeNull()
     })
-  });
+  })
+
+  it("can clear the state object store", () => {
+    const store = new StateStore(databaseName, version)
+    return store.save('key', {foo:'bar'})
+      .then(() => store.count())
+      .then((count) =>
+        expect(count).toBe(1)
+      )
+      .then(() => store.clear())
+      .then(() => store.count())
+      .then((count) => {
+        expect(count).toBe(0)
+      })
+  })
 
   describe("when there is an error reading from the database", () => {
     it("rejects the promise returned by load", () => {
