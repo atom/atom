@@ -91,13 +91,11 @@ describe "TextEditorPresenter", ->
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
     waitsForStateToUpdate2 = (presenter, fn) ->
-      didUpdate = false
-      disposable = presenter.onDidUpdateState ->
-        disposable.dispose()
-        didUpdate = true
-      fn?()
       waitsFor "presenter state to update", 5000, (done) ->
-        didUpdate
+        disposable = presenter.onDidUpdateState ->
+          disposable.dispose()
+          process.nextTick(done)
+        fn?()
 
     waitsForStateToUpdate = (presenter, fn) ->
       waitsFor "presenter state to update", 5000, (done) ->
