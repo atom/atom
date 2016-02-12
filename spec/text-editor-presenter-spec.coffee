@@ -90,6 +90,15 @@ describe "TextEditorPresenter", ->
 
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
+    waitsForStateToUpdate2 = (presenter, fn) ->
+      didUpdate = false
+      disposable = presenter.onDidUpdateState ->
+        disposable.dispose()
+        didUpdate = true
+      fn?()
+      waitsFor "presenter state to update", 5000, (done) ->
+        didUpdate
+
     waitsForStateToUpdate = (presenter, fn) ->
       waitsFor "presenter state to update", 5000, (done) ->
         fn?()
@@ -1680,7 +1689,7 @@ describe "TextEditorPresenter", ->
           blockDecoration1 = addBlockDecorationBeforeScreenRow(0)
           blockDecoration2 = addBlockDecorationBeforeScreenRow(1)
 
-          waitsForStateToUpdate presenter, ->
+          waitsForStateToUpdate2 presenter, ->
             presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
             presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
 
@@ -1691,7 +1700,7 @@ describe "TextEditorPresenter", ->
             expect(stateForCursor(presenter, 3)).toBeUndefined()
             expect(stateForCursor(presenter, 4)).toBeUndefined()
 
-          waitsForStateToUpdate presenter, ->
+          waitsForStateToUpdate2 presenter, ->
             blockDecoration2.destroy()
             editor.setCursorBufferPosition([0, 0])
             editor.insertNewline()
