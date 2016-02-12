@@ -88,6 +88,8 @@ describe "TextEditor", ->
     it "returns a different edit session with the same initial state", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
+      editor.firstVisibleScreenRow = 5
+      editor.firstVisibleScreenColumn = 5
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
@@ -95,6 +97,8 @@ describe "TextEditor", ->
       expect(editor2.id).not.toBe editor.id
       expect(editor2.getSelectedBufferRanges()).toEqual editor.getSelectedBufferRanges()
       expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
+      expect(editor2.getFirstVisibleScreenRow()).toBe 5
+      expect(editor2.getFirstVisibleScreenColumn()).toBe 5
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
 
       # editor2 can now diverge from its origin edit session
@@ -134,6 +138,15 @@ describe "TextEditor", ->
         expect(editor2.isSoftWrapped()).toBe false
         expect(editor2.getSoftTabs()).toBe true
         expect(editor2.getEncoding()).toBe 'macroman'
+
+        atom.config.set('editor.tabLength', -1)
+        expect(editor2.getTabLength()).toBe 1
+        atom.config.set('editor.tabLength', 2)
+        expect(editor2.getTabLength()).toBe 2
+        atom.config.set('editor.tabLength', 17)
+        expect(editor2.getTabLength()).toBe 17
+        atom.config.set('editor.tabLength', 128)
+        expect(editor2.getTabLength()).toBe 128
 
     it "uses scoped `core.fileEncoding` values", ->
       editor1 = null

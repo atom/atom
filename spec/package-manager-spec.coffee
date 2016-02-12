@@ -88,17 +88,15 @@ describe "PackageManager", ->
 
       state1 = {deserializer: 'Deserializer1', a: 'b'}
       expect(atom.deserializers.deserialize(state1)).toEqual {
-        wasDeserializedBy: 'Deserializer1'
+        wasDeserializedBy: 'deserializeMethod1'
         state: state1
       }
 
       state2 = {deserializer: 'Deserializer2', c: 'd'}
       expect(atom.deserializers.deserialize(state2)).toEqual {
-        wasDeserializedBy: 'Deserializer2'
+        wasDeserializedBy: 'deserializeMethod2'
         state: state2
       }
-
-      expect(pack.mainModule).toBeNull()
 
     describe "when there are view providers specified in the package's package.json", ->
       model1 = {worksWithViewProvider1: true}

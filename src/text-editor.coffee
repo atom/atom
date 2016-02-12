@@ -497,6 +497,7 @@ class TextEditor extends Model
     newEditor = new TextEditor({
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config, @notificationManager, @packageManager,
+      @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
     newEditor

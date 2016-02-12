@@ -84,7 +84,10 @@
     setupCsonCache(CompileCache.getCacheDirectory())
 
     var initialize = require(loadSettings.windowInitializationScript)
-    initialize({blobStore: blobStore})
+
+    initialize({blobStore: blobStore}).then(function () {
+      require('electron').ipcRenderer.send('window-command', 'window:loaded')
+    })
   }
 
   function setupCsonCache (cacheDir) {
