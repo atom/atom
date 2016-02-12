@@ -270,7 +270,6 @@ describe "GitRepository", ->
       statusHandler = null
       runs ->
         repo = atom.project.getRepositories()[0]
-        console.log(repo.getPath())
 
         statusHandler = jasmine.createSpy('statusHandler')
         repo.onDidChangeStatuses statusHandler
