@@ -259,7 +259,7 @@ describe "GitRepository", ->
         expect(repo.isStatusModified(status)).toBe false
         expect(repo.isStatusNew(status)).toBe false
 
-    fit 'caches the proper statuses when multiple project are open', ->
+    it 'caches the proper statuses when multiple project are open', ->
       otherWorkingDirectory = copyRepository()
 
       atom.project.setPaths([workingDirectory, otherWorkingDirectory])
