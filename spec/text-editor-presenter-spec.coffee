@@ -3467,9 +3467,9 @@ describe "TextEditorPresenter", ->
               gutterName: 'test-gutter-2'
               class: 'test-class'
             marker4 = editor.markBufferRange([[0, 0], [1, 0]])
-            decoration4 = editor.decorateMarker(marker4, decorationParams)
+            decoration4 = null
 
-            waitsForStateToUpdate presenter
+            waitsForStateToUpdate2 presenter, -> decoration4 = editor.decorateMarker(marker4, decorationParams)
 
             runs ->
               expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})
