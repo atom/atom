@@ -20,7 +20,6 @@ describe "TextEditorPresenter", ->
 
       buffer = new TextBuffer(filePath: require.resolve('./fixtures/sample.js'))
       editor = atom.workspace.buildTextEditor({buffer})
-      editor.setUpdatedSynchronously(true)
       waitsForPromise -> buffer.load()
 
     afterEach ->
