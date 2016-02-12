@@ -2979,7 +2979,6 @@ describe "TextEditorPresenter", ->
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 35)
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 40)
               presenter.setBlockDecorationDimensions(blockDecoration5, 0, 50)
-              presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
 
               waitsForStateToUpdate presenter, -> presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
               runs ->
