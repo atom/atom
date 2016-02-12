@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 FirstMate = require 'first-mate'
-path = require 'path'
 Token = require './token'
 fs = require 'fs-plus'
 
@@ -53,8 +52,9 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
 
   getGrammarPathScore: (grammar, filePath) ->
     return -1 unless filePath
+    filePath = filePath.replace(/\\/g, '/') if process.platform is 'win32'
 
-    pathComponents = filePath.toLowerCase().split(path.sep)
+    pathComponents = filePath.toLowerCase().split('/')
     pathComponents = pathComponents.concat(pathComponents.pop().split('.'))
     pathScore = -1
 

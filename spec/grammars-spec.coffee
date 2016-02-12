@@ -37,14 +37,14 @@ describe "the `grammars` global", ->
       expect(atom.grammars.selectGrammar(path.join(temp.dir, 'source.COFFEE')).scopeName).toBe 'source.coffee'
 
     describe "on Windows", ->
-      originalSeparator = null
+      originalPlatform = null
 
       beforeEach ->
-        originalSeparator = path.sep
-        Object.defineProperty path, 'sep', value: path.win32.sep
+        originalPlatform = process.platform
+        Object.defineProperty process, 'platform', value: 'win32'
 
       afterEach ->
-        Object.defineProperty path, 'sep', value: originalSeparator
+        Object.defineProperty process, 'platform', value: originalPlatform
 
       it "normalizes back slashes to forward slashes when matching the fileTypes", ->
         expect(atom.grammars.selectGrammar(path.win32.join('something', '.git', 'config')).scopeName).toBe 'source.git-config'
