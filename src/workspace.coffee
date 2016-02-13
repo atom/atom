@@ -394,7 +394,7 @@ class Workspace extends Model
   #     initially. Defaults to `0`.
   #   * `initialColumn` A {Number} indicating which column to move the cursor to
   #     initially. Defaults to `0`.
-  #   * `split` Either 'left', 'right', 'top' or 'bottom'.
+  #   * `split` Either 'left', 'right', 'up' or 'down'.
   #     If 'left', the item will be opened in leftmost pane of the current active pane's row.
   #     If 'right', the item will be opened in the rightmost pane of the current active pane's row.
   #     If 'up', the item will be opened in topmost pane of the current active pane's row.
