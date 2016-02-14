@@ -249,11 +249,11 @@ class LanguageMode
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
     increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    decreaseThisIndentRegex = @decreaseThisIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
 
-    if not decreaseThisIndentRegex
-      decreaseThisIndentRegex = decreaseIndentRegex
+    if not decreaseNextIndentRegex
+      decreaseNextIndentRegex = decreaseIndentRegex
 
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
@@ -276,18 +276,18 @@ class LanguageMode
       # desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
       if increaseIndentRegex
         desiredIndentLevel += @countRegex(increaseIndentRegex, precedingLine, tokenizedPrecedingLine)
-      # desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(precedingLine)
-      if decreaseIndentRegex
-        desiredIndentLevel -= @countRegex(decreaseIndentRegex, precedingLine, tokenizedPrecedingLine)
+      # desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
+      if decreaseNextIndentRegex
+        desiredIndentLevel -= @countRegex(decreaseNextIndentRegex, precedingLine, tokenizedPrecedingLine)
       # we need to add back one if we already closed one scope on the previous line itself
-      if decreaseThisIndentRegex and @countRegex(decreaseThisIndentRegex, precedingLine, tokenizedPrecedingLine)
+      if decreaseIndentRegex and @countRegex(decreaseIndentRegex, precedingLine, tokenizedPrecedingLine)
         desiredIndentLevel += 1
 
     unless @buffer.isRowBlank(precedingRow)
-      # desiredIndentLevel -= 1 if decreaseThisIndentRegex?.testSync(line)
-      if decreaseThisIndentRegex and @countRegex(decreaseThisIndentRegex, line, tokenizedLine)
+      # desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
+      if decreaseIndentRegex and @countRegex(decreaseIndentRegex, line, tokenizedLine)
         desiredIndentLevel -= 1
-      # desiredIndentLevel -= @countRegex(decreaseThisIndentRegex, line) if decreaseThisIndentRegex
+      # desiredIndentLevel -= @countRegex(decreaseIndentRegex, line) if decreaseIndentRegex
 
     # console.log("suggestedIndentForTokenizedLineAtBufferRow: rtv", desiredIndentLevel)
     Math.max(desiredIndentLevel, 0)
@@ -339,10 +339,10 @@ class LanguageMode
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    return unless decreaseThisIndentRegex = @decreaseThisIndentRegexForScopeDescriptor(scopeDescriptor)
+    return unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
     line = @buffer.lineForRow(bufferRow)
-    return unless decreaseThisIndentRegex.testSync(line)
+    return unless decreaseIndentRegex.testSync(line)
 
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return if currentIndentLevel is 0
@@ -356,9 +356,9 @@ class LanguageMode
     if increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
       desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
 
-    if decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-      desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(precedingLine)
-      # desiredIndentLevel -= @countRegex(decreaseIndentRegex, precedingLine)
+    if decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+      desiredIndentLevel -= 1 if decreaseNextIndentRegex.testSync(precedingLine)
+      # desiredIndentLevel -= @countRegex(decreaseNextIndentRegex, precedingLine)
 
     # console.log("autoDecreaseThisIndentForBufferRow: desiredIndentLevel", desiredIndentLevel)
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
@@ -376,13 +376,13 @@ class LanguageMode
   # when the *current* line matches this pattern than decrease indentation of
   # the current line (this, e.g., puts closing brackets with nothing before them
   # at the level of the opening statement, as in the KR style for C)
-  decreaseThisIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseThisIndentPattern')
+  decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
 
   # when the previous line matches this pattern than decrease indentation of the
   # current line
-  decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
+  decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
