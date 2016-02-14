@@ -6,11 +6,11 @@ return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # run them on Travis.
 return if process.env.CI
 
-fs = require "fs-plus"
-path = require "path"
-temp = require("temp").track()
-runAtom = require "./helpers/start-atom"
-CSON = require "season"
+fs = require 'fs-plus'
+path = require 'path'
+temp = require('temp').track()
+runAtom = require './helpers/start-atom'
+CSON = require 'season'
 
 describe "Starting Atom", ->
   atomHome = temp.mkdirSync('atom-home')
@@ -124,6 +124,27 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(0, 1000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([otherTempDirPath])
+
+    it "opens the new window offset from the other window", ->
+      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
+        win0Position = null
+        win1Position = null
+        client
+          .waitForWindowCount(1, 10000)
+          .execute -> atom.getPosition()
+          .then ({value}) -> win0Position = value
+          .waitForNewWindow(->
+            @startAnotherAtom([path.join(temp.mkdirSync("a-third-dir"), "a-file")], ATOM_HOME: atomHome)
+          , 5000)
+          .waitForWindowCount(2, 10000)
+          .execute -> atom.getPosition()
+          .then ({value}) -> win1Position = value
+          .then ->
+            expect(win1Position.x).toBeGreaterThan(win0Position.x)
+            # Ideally we'd test the y coordinate too, but if the window's
+            # already as tall as it can be, then OS X won't move it down outside
+            # the screen.
+            # expect(win1Position.y).toBeGreaterThan(win0Position.y)
 
   describe "reopening a directory that was previously opened", ->
     it "remembers the state of the window", ->

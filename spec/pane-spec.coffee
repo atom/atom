@@ -18,6 +18,8 @@ describe "Pane", ->
     onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
     destroy: -> @destroyed = true; @emitter.emit('did-destroy')
     isDestroyed: -> @destroyed
+    isPending: -> @pending
+    pending: false
 
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm')
@@ -130,6 +132,16 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
+    it "destroys any existing pending item if the new item is pending", ->
+      pane = new Pane(paneParams(items: []))
+      itemA = new Item("A")
+      itemB = new Item("B")
+      itemA.pending = true
+      itemB.pending = true
+      pane.addItem(itemA)
+      pane.addItem(itemB)
+      expect(itemA.isDestroyed()).toBe true
+
   describe "::activateItem(item)", ->
     pane = null
 
@@ -152,6 +164,28 @@ describe "Pane", ->
       pane.onDidChangeActiveItem (item) -> observed.push(item)
       pane.activateItem(pane.itemAtIndex(1))
       expect(observed).toEqual [pane.itemAtIndex(1)]
+
+    describe "when the item being activated is pending", ->
+      itemC = null
+      itemD = null
+
+      beforeEach ->
+        itemC = new Item("C")
+        itemD = new Item("D")
+        itemC.pending = true
+        itemD.pending = true
+
+      it "replaces the active item if it is pending", ->
+        pane.activateItem(itemC)
+        expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'C', 'B']
+        pane.activateItem(itemD)
+        expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'D', 'B']
+
+      it "adds the item after the active item if it is not pending", ->
+        pane.activateItem(itemC)
+        pane.activateItemAtIndex(2)
+        pane.activateItem(itemD)
+        expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
@@ -572,12 +606,13 @@ describe "Pane", ->
           expect(item4.isDestroyed()).toBe false
 
   describe "split methods", ->
-    [pane1, container] = []
+    [pane1, item1, container] = []
 
     beforeEach ->
       container = new PaneContainer(config: atom.config, confirm: confirm, deserializerManager: atom.deserializers)
       pane1 = container.getActivePane()
-      pane1.addItem(new Item("A"))
+      item1 = new Item("A")
+      pane1.addItem(item1)
 
     describe "::splitLeft(params)", ->
       describe "when the parent is the container root", ->
@@ -586,6 +621,11 @@ describe "Pane", ->
           pane3 = pane1.splitLeft(items: [new Item("C")])
           expect(container.root.orientation).toBe 'horizontal'
           expect(container.root.children).toEqual [pane2, pane3, pane1]
+
+      describe "when `moveActiveItem: true` is passed in the params", ->
+        it "moves the active item", ->
+          pane2 = pane1.splitLeft(moveActiveItem: true)
+          expect(pane2.getActiveItem()).toBe item1
 
       describe "when `copyActiveItem: true` is passed in the params", ->
         it "duplicates the active item", ->
@@ -609,6 +649,11 @@ describe "Pane", ->
           expect(container.root.orientation).toBe 'horizontal'
           expect(container.root.children).toEqual [pane1, pane3, pane2]
 
+      describe "when `moveActiveItem: true` is passed in the params", ->
+        it "moves the active item", ->
+          pane2 = pane1.splitLeft(moveActiveItem: true)
+          expect(pane2.getActiveItem()).toBe item1
+
       describe "when `copyActiveItem: true` is passed in the params", ->
         it "duplicates the active item", ->
           pane2 = pane1.splitRight(copyActiveItem: true)
@@ -631,6 +676,11 @@ describe "Pane", ->
           expect(container.root.orientation).toBe 'vertical'
           expect(container.root.children).toEqual [pane2, pane3, pane1]
 
+      describe "when `moveActiveItem: true` is passed in the params", ->
+        it "moves the active item", ->
+          pane2 = pane1.splitLeft(moveActiveItem: true)
+          expect(pane2.getActiveItem()).toBe item1
+
       describe "when `copyActiveItem: true` is passed in the params", ->
         it "duplicates the active item", ->
           pane2 = pane1.splitUp(copyActiveItem: true)
@@ -652,6 +702,11 @@ describe "Pane", ->
           pane3 = pane1.splitDown(items: [new Item("C")])
           expect(container.root.orientation).toBe 'vertical'
           expect(container.root.children).toEqual [pane1, pane3, pane2]
+
+      describe "when `moveActiveItem: true` is passed in the params", ->
+        it "moves the active item", ->
+          pane2 = pane1.splitLeft(moveActiveItem: true)
+          expect(pane2.getActiveItem()).toBe item1
 
       describe "when `copyActiveItem: true` is passed in the params", ->
         it "duplicates the active item", ->

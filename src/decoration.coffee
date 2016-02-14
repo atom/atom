@@ -35,7 +35,6 @@ translateDecorationParamsOldToNew = (decorationParams) ->
 # the marker.
 module.exports =
 class Decoration
-
   # Private: Check if the `decorationProperties.type` matches `type`
   #
   # * `decorationProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
@@ -153,6 +152,13 @@ class Decoration
       @displayBuffer.decorationDidChangeType(this)
     @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
+
+  ###
+  Section: Utility
+  ###
+
+  inspect: ->
+    "<Decoration #{@id}>"
 
   ###
   Section: Private methods

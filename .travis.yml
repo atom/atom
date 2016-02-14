@@ -35,6 +35,9 @@ script: script/cibuild
 cache:
   directories:
     - node_modules
+    - build/node_modules
+    - apm/node_modules
+    - $HOME/.atom/compile-cache
 
 notifications:
   email:

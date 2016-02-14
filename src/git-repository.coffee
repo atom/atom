@@ -3,6 +3,7 @@
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+GitRepositoryAsync = require './git-repository-async'
 GitUtils = require 'git-utils'
 
 Task = require './task'
@@ -75,6 +76,13 @@ class GitRepository
     unless @repo?
       throw new Error("No Git repository found searching path: #{path}")
 
+    asyncOptions = _.clone(options)
+    # GitRepository itself will handle these cases by manually calling through
+    # to the async repo.
+    asyncOptions.refreshOnWindowFocus = false
+    asyncOptions.subscribeToBuffers = false
+    @async = GitRepositoryAsync.open(path, asyncOptions)
+
     @statuses = {}
     @upstream = {ahead: 0, behind: 0}
     for submodulePath, submoduleRepo of @repo.submodules
@@ -116,6 +124,10 @@ class GitRepository
     if @subscriptions?
       @subscriptions.dispose()
       @subscriptions = null
+
+    if @async?
+      @async.destroy()
+      @async = null
 
   # Public: Invoke the given callback when this GitRepository's destroy() method
   # is invoked.
@@ -316,6 +328,9 @@ class GitRepository
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
+    # Trigger events emitted on the async repo as well
+    @async.refreshStatusForPath(path)
+
     repo = @getRepo(path)
     relativePath = @relativize(path)
     currentPathStatus = @statuses[relativePath] ? 0
@@ -460,23 +475,35 @@ class GitRepository
 
   # Refreshes the current git status in an outside process and asynchronously
   # updates the relevant properties.
+  #
+  # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
-    @handlerPath ?= require.resolve('./repository-status-handler')
+    asyncRefresh = @async.refreshStatus()
+    syncRefresh = new Promise (resolve, reject) =>
+      @handlerPath ?= require.resolve('./repository-status-handler')
 
-    @statusTask?.terminate()
-    @statusTask = Task.once @handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
-      statusesUnchanged = _.isEqual(statuses, @statuses) and
-                          _.isEqual(upstream, @upstream) and
-                          _.isEqual(branch, @branch) and
-                          _.isEqual(submodules, @submodules)
+      relativeProjectPaths = @project?.getPaths()
+        .map (path) => @relativize(path)
+        .map (path) -> if path.length > 0 then path + '/**' else '*'
 
-      @statuses = statuses
-      @upstream = upstream
-      @branch = branch
-      @submodules = submodules
+      @statusTask?.terminate()
+      @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
+        statusesUnchanged = _.isEqual(statuses, @statuses) and
+                            _.isEqual(upstream, @upstream) and
+                            _.isEqual(branch, @branch) and
+                            _.isEqual(submodules, @submodules)
 
-      for submodulePath, submoduleRepo of @getRepo().submodules
-        submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
+        @statuses = statuses
+        @upstream = upstream
+        @branch = branch
+        @submodules = submodules
 
-      unless statusesUnchanged
-        @emitter.emit 'did-change-statuses'
+        for submodulePath, submoduleRepo of @getRepo().submodules
+          submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
+
+        resolve()
+
+        unless statusesUnchanged
+          @emitter.emit 'did-change-statuses'
+
+    return Promise.all([asyncRefresh, syncRefresh])

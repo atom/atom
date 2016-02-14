@@ -1,5 +1,6 @@
 autoUpdater = null
 _ = require 'underscore-plus'
+Config = require '../config'
 {EventEmitter} = require 'events'
 path = require 'path'
 
@@ -15,10 +16,13 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: (@version, @testMode, @disabled) ->
+  constructor: (@version, @testMode, resourcePath) ->
     @state = IdleState
     @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+    @config = new Config({configDirPath: process.env.ATOM_HOME, resourcePath, enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config.load()
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
@@ -46,18 +50,19 @@ class AutoUpdateManager
       @setState(UpdateAvailableState)
       @emitUpdateAvailableEvent(@getWindows()...)
 
-    # Only check for updates periodically if enabled and running in release
-    # version.
-    @scheduleUpdateCheck() unless /\w{7}/.test(@version) or @disabled
+    @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
+      if newValue
+        @scheduleUpdateCheck()
+      else
+        @cancelScheduledUpdateCheck()
+
+    @scheduleUpdateCheck() if @config.get 'core.automaticallyUpdate'
 
     switch process.platform
       when 'win32'
         @setState(UnsupportedState) unless autoUpdater.supportsUpdates()
       when 'linux'
         @setState(UnsupportedState)
-
-  isDisabled: ->
-    @disabled
 
   emitUpdateAvailableEvent: (windows...) ->
     return unless @releaseVersion?
@@ -74,10 +79,18 @@ class AutoUpdateManager
     @state
 
   scheduleUpdateCheck: ->
-    checkForUpdates = => @check(hidePopups: true)
-    fourHours = 1000 * 60 * 60 * 4
-    setInterval(checkForUpdates, fourHours)
-    checkForUpdates()
+    # Only schedule update check periodically if running in release version and
+    # and there is no existing scheduled update check.
+    unless /\w{7}/.test(@version) or @checkForUpdatesIntervalID
+      checkForUpdates = => @check(hidePopups: true)
+      fourHours = 1000 * 60 * 60 * 4
+      @checkForUpdatesIntervalID = setInterval(checkForUpdates, fourHours)
+      checkForUpdates()
+
+  cancelScheduledUpdateCheck: ->
+    if @checkForUpdatesIntervalID
+      clearInterval(@checkForUpdatesIntervalID)
+      @checkForUpdatesIntervalID = null
 
   check: ({hidePopups}={}) ->
     unless hidePopups
