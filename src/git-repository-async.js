@@ -456,7 +456,10 @@ export default class GitRepositoryAsync {
   // information.
   getDirectoryStatus (directoryPath) {
     return this.relativizeToWorkingDirectory(directoryPath)
-      .then(relativePath => this._getStatus([relativePath]))
+      .then(relativePath => {
+        const pathspec = relativePath + '/**'
+        return this._getStatus([pathspec])
+      })
       .then(statuses => {
         return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
           return bits
@@ -800,7 +803,7 @@ export default class GitRepositoryAsync {
     }
 
     return Promise.all(projectPathsPromises)
-      .then(paths => paths.filter(p => p.length > 0))
+      .then(paths => paths.map(p => p.length > 0 ? p + '/**' : '*'))
       .then(projectPaths => {
         return this._getStatus(projectPaths.length > 0 ? projectPaths : null)
       })
@@ -1032,7 +1035,7 @@ export default class GitRepositoryAsync {
     return this.getRepo()
       .then(repo => {
         const opts = {
-          flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS | Git.Status.OPT.DISABLE_PATHSPEC_MATCH
+          flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS
         }
 
         if (paths) {
