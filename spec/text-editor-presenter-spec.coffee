@@ -1336,9 +1336,9 @@ describe "TextEditorPresenter", ->
               presenter = buildPresenter()
               blockDecoration2 = addBlockDecorationBeforeScreenRow(3)
               blockDecoration3 = addBlockDecorationBeforeScreenRow(7)
-              blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+              blockDecoration4 = null
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, blockDecoration4 = addBlockDecorationAfterScreenRow(7)
               runs ->
                 expect(lineStateForScreenRow(presenter, 0).precedingBlockDecorations).toEqual([blockDecoration1])
                 expect(lineStateForScreenRow(presenter, 0).followingBlockDecorations).toEqual([])
