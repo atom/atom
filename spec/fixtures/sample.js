@@ -11,3 +11,19 @@ var quicksort = function () {
 
   return sort(Array.apply(this, arguments));
 };
+
+foo({
+    atIndentTwo: true
+  },
+  atIndentOne
+);
+atIndentZero = true;
+
+bar({
+    atIndentTwo: true
+  });
+atIndentZero = true;
+
+bar({
+    atIndentTwo: true });
+atIndentZero = true;
