@@ -1532,3 +1532,14 @@ describe "Workspace", ->
 
       atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.close).toHaveBeenCalled()
+
+  describe "when the core.openPendingPaneItems option is falsey", ->
+    it "does not open item with `pending: true` option as pending", ->
+      editor = null
+      atom.config.set('core.openPendingPaneItems', false)
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', pending: true).then (o) -> editor = o
+
+      runs ->
+        expect(editor.isPending()).toBeFalsy()
