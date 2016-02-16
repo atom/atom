@@ -122,12 +122,14 @@ class AtomEnvironment extends Model
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @loadTime = null
-    {devMode, safeMode, resourcePath} = @getLoadSettings()
+    {devMode, safeMode, resourcePath, clearState} = @getLoadSettings()
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
     @stateStore = new StateStore('AtomEnvironments', 1)
+
+    @stateStore.clear() if clearState
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
@@ -648,7 +650,7 @@ class AtomEnvironment extends Model
     @registerDefaultTargetForKeymaps()
 
     @packages.loadPackages()
-    
+
     @document.body.appendChild(@views.getView(@workspace))
 
     @watchProjectPath()
