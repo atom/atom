@@ -109,6 +109,9 @@ module.exports = (grunt) ->
             ATOM_INTEGRATION_TESTS_ENABLED: true
           )
 
+    if logOutput
+      options.opts.stdio = 'inherit'
+
     grunt.log.ok "Launching core specs."
     spawn options, (error, results, code) ->
       if process.platform is 'win32'
