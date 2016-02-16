@@ -86,7 +86,7 @@ module.exports = (grunt) ->
     packageSpecQueue.concurrency = Math.max(1, concurrency - 1)
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
-  runCoreSpecs = (callback) ->
+  runCoreSpecs = (callback, logOutput = false) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
@@ -130,11 +130,17 @@ module.exports = (grunt) ->
       else
         async.parallel
 
+    # If we're just running the core specs then we won't have any output to
+    # indicate the tests actually *are* running. This upsets Travis:
+    # https://github.com/atom/atom/issues/10837. So pass the test output
+    # through.
+    runCoreSpecsWithLogging = (callback) -> runCoreSpecs(callback, true)
+
     specs =
       if process.env.ATOM_SPECS_TASK is 'packages'
         [runPackageSpecs]
       else if process.env.ATOM_SPECS_TASK is 'core'
-        [runCoreSpecs]
+        [runCoreSpecsWithLogging]
       else
         [runCoreSpecs, runPackageSpecs]
 
