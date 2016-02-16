@@ -338,10 +338,10 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.refreshStatus()', () => {
-    let newPath, modifiedPath, cleanPath
+    let newPath, modifiedPath, cleanPath, workingDirectory
 
     beforeEach(() => {
-      const workingDirectory = copyRepository()
+      workingDirectory = copyRepository()
       repo = GitRepositoryAsync.open(workingDirectory)
       modifiedPath = path.join(workingDirectory, 'file.txt')
       newPath = path.join(workingDirectory, 'untracked.txt')
@@ -362,7 +362,7 @@ describe('GitRepositoryAsync', () => {
 
     describe('in a repository with submodules', () => {
       beforeEach(() => {
-        const workingDirectory = copySubmoduleRepository()
+        workingDirectory = copySubmoduleRepository()
         repo = GitRepositoryAsync.open(workingDirectory)
         modifiedPath = path.join(workingDirectory, 'jstips', 'README.md')
         newPath = path.join(workingDirectory, 'You-Dont-Need-jQuery', 'untracked.txt')
@@ -379,6 +379,48 @@ describe('GitRepositoryAsync', () => {
         expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
         expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
       })
+    })
+
+    it('caches the proper statuses when a subdir is open', async () => {
+      const subDir = path.join(workingDirectory, 'dir')
+      fs.mkdirSync(subDir)
+
+      const filePath = path.join(subDir, 'b.txt')
+      fs.writeFileSync(filePath, '')
+
+      atom.project.setPaths([subDir])
+
+      await atom.workspace.open('b.txt')
+
+      const repo = atom.project.getRepositories()[0].async
+
+      await repo.refreshStatus()
+
+      const status = await repo.getCachedPathStatus(filePath)
+      expect(repo.isStatusModified(status)).toBe(false)
+      expect(repo.isStatusNew(status)).toBe(false)
+    })
+
+    it('caches the proper statuses when multiple project are open', async () => {
+      const otherWorkingDirectory = copyRepository()
+
+      atom.project.setPaths([workingDirectory, otherWorkingDirectory])
+
+      await atom.workspace.open('b.txt')
+
+      const repo = atom.project.getRepositories()[0].async
+
+      await repo.refreshStatus()
+
+      const subDir = path.join(workingDirectory, 'dir')
+      fs.mkdirSync(subDir)
+
+      const filePath = path.join(subDir, 'b.txt')
+      fs.writeFileSync(filePath, 'some content!')
+
+      const status = await repo.getCachedPathStatus(filePath)
+      expect(repo.isStatusModified(status)).toBe(true)
+      expect(repo.isStatusNew(status)).toBe(false)
     })
   })
 
