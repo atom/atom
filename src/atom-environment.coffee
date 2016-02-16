@@ -27,6 +27,7 @@ PackageManager = require './package-manager'
 ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
+WinContextMenuSettings = require './win-context-menu-settings'
 CommandInstaller = require './command-installer'
 Clipboard = require './clipboard'
 Project = require './project'
@@ -162,6 +163,8 @@ class AtomEnvironment extends Model
     @menu = new MenuManager({resourcePath, keymapManager: @keymaps, packageManager: @packages})
 
     @contextMenu = new ContextMenuManager({resourcePath, devMode, keymapManager: @keymaps})
+    
+    @disposables.add (new WinContextMenuSettings())
 
     @packages.setMenuManager(@menu)
     @packages.setContextMenuManager(@contextMenu)
