@@ -213,6 +213,14 @@ class AtomEnvironment extends Model
 
     checkPortableHomeWritable()
 
+    setupOpenDefaultPath = ->
+      if process.platform is 'linux'
+        ipc.on 'get-open-default-path', (responseChannel) ->
+          filename = atom.workspace.getActiveTextEditor()?.getDirectoryPath()
+          ipc.send responseChannel, filename
+
+    setupOpenDefaultPath()
+
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
 
