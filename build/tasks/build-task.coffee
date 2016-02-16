@@ -188,6 +188,7 @@ module.exports = (grunt) ->
       cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
       cp path.join('resources', 'win', 'apm.cmd'), path.join(shellAppDir, 'resources', 'cli', 'apm.cmd')
       cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
+      cp path.join('src', 'win32-open-file-extensions.json'), path.join(shellAppDir, 'resources', 'cli', 'win32-open-file-extensions.json')
 
     if process.platform is 'linux'
       cp path.join('resources', 'app-icons', channel, 'png'), path.join(buildDir, 'icons')

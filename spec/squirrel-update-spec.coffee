@@ -25,6 +25,22 @@ describe "Windows squirrel updates", ->
       else
         originalSpawn('ls')
 
+  it "registers for open with", ->
+    app = quit: jasmine.createSpy('quit')
+    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
+
+    waitsFor ->
+      callParameters = ChildProcess.spawn.argsForCall[ChildProcess.spawn.callCount - 1][1]
+      callParameters[0] is 'add' and callParameters[1] is 'HKCU\\Software\\Classes\\.yy\\OpenWithProgIds'
+
+    runs ->
+      atomKeyCalls = ChildProcess.spawn.argsForCall.filter (args) -> args[1][0] is 'add' and args[1][1].match('HKCU\\\\Software\\\\Classes\\\\Atom\\\\(.*)')
+      fileExtensionCalls = ChildProcess.spawn.argsForCall.filter (args) -> args[1][0] is 'add' and args[1][1].match('HKCU\\\\Software\\\\Classes\\\\\.(.*)\\\\OpenWithProgIds')
+      expect(atomKeyCalls.length).toBe 2
+      expect(atomKeyCalls[0][1][1]).toBe 'HKCU\\Software\\Classes\\Atom\\DefaultIcon'
+      expect(atomKeyCalls[1][1][1]).toBe 'HKCU\\Software\\Classes\\Atom\\shell\\open\\command'
+      expect(fileExtensionCalls.length).toBe 225
+
   it "ignores errors spawning Squirrel", ->
     jasmine.unspy(ChildProcess, 'spawn')
     spyOn(ChildProcess, 'spawn').andCallFake -> throw new Error("EBUSY")

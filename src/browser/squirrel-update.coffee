@@ -5,6 +5,7 @@ path = require 'path'
 appFolder = path.resolve(process.execPath, '..')
 rootAtomFolder = path.resolve(appFolder, '..')
 binFolder = path.join(rootAtomFolder, 'bin')
+binFolder = path.join(appFolder, 'resources', 'cli') unless fs.existsSync(binFolder)
 updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 exeName = path.basename(process.execPath)
 
@@ -21,6 +22,9 @@ fileKeyPath = 'HKCU\\Software\\Classes\\*\\shell\\Atom'
 directoryKeyPath = 'HKCU\\Software\\Classes\\directory\\shell\\Atom'
 backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom'
 environmentKeyPath = 'HKCU\\Environment'
+openWithKeyPath = 'HKCU\\Software\\Classes\\Atom'
+filetypeKeyPath = (fileExtension) -> "HKCU\\Software\\Classes\\.#{fileExtension}\\OpenWithProgIds"
+openWithFileExtensions = require path.join(binFolder, 'win32-open-file-extensions.json')
 
 # Spawn a command and invoke the callback when it completes with an error
 # and the output from standard out.
@@ -72,9 +76,28 @@ installContextMenu = (callback) ->
         args = ["#{keyPath}\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
         addToRegistry(args, callback)
 
+  recursivelyRegisterFileTypesForOpenWith = (index, callback) ->
+    if index >= openWithFileExtensions.length
+      callback()
+    else
+      args = [filetypeKeyPath(openWithFileExtensions[index]), '/v', 'Atom']
+      addToRegistry(args, callback)
+      recursivelyRegisterFileTypesForOpenWith(++index, callback)
+
+  registerFileTypesForOpenWith = (callback) ->
+    recursivelyRegisterFileTypesForOpenWith(0, callback)
+
+  installToOpenWith = (keyPath, arg, callback) ->
+    args = ["#{keyPath}\\DefaultIcon", '/ve', '/d', "\"#{process.execPath}\""]
+    addToRegistry args, ->
+      args = ["#{keyPath}\\shell\\open\\command", '/ve', '/d', "\"#{process.execPath}\" \"#{arg}\""]
+      addToRegistry args, ->
+        registerFileTypesForOpenWith(callback)
+
   installMenu fileKeyPath, '%1', ->
     installMenu directoryKeyPath, '%1', ->
-      installMenu(backgroundKeyPath, '%V', callback)
+      installMenu backgroundKeyPath, '%V', ->
+        installToOpenWith(openWithKeyPath, '%1', callback)
 
 isAscii = (text) ->
   index = 0
@@ -119,12 +142,27 @@ getPath = (callback) ->
 
 # Uninstall the Open with Atom explorer context menu items via the registry.
 uninstallContextMenu = (callback) ->
-  deleteFromRegistry = (keyPath, callback) ->
+  deleteKeyFromRegistry = (keyPath, callback) ->
     spawnReg(['delete', keyPath, '/f'], callback)
 
-  deleteFromRegistry fileKeyPath, ->
-    deleteFromRegistry directoryKeyPath, ->
-      deleteFromRegistry(backgroundKeyPath, callback)
+  deleteValueFromRegistry = (keyPath, valueName, callback) ->
+    spawnReg(['delete', keyPath, '/v', valueName, '/f'], callback)
+
+  recursivelyRemoveFileTypesForOpenWith = (index, callback) ->
+    if index >= openWithFileExtensions.length
+      callback()
+    else
+      deleteValueFromRegistry(filetypeKeyPath(openWithFileExtensions[index]), 'Atom', callback)
+      recursivelyRemoveFileTypesForOpenWith(++index, callback)
+
+  removeFileTypesForOpenWith = (callback) ->
+    recursivelyRemoveFileTypesForOpenWith(0, callback)
+
+  deleteKeyFromRegistry fileKeyPath, ->
+    deleteKeyFromRegistry directoryKeyPath, ->
+      deleteKeyFromRegistry backgroundKeyPath, ->
+        deleteKeyFromRegistry openWithKeyPath, ->
+          removeFileTypesForOpenWith(callback)
 
 # Add atom and apm to the PATH
 #
