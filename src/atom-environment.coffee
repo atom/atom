@@ -4,13 +4,13 @@ ipc = require 'ipc'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
-{CompositeDisposable, Emitter} = require 'event-kit'
+{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
-StorageFolder = require './storage-folder'
+StateStore = require './state-store'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
@@ -111,6 +111,8 @@ class AtomEnvironment extends Model
   # Public: A {Workspace} instance
   workspace: null
 
+  saveStateDebounceInterval: 1000
+
   ###
   Section: Construction and Destruction
   ###
@@ -119,13 +121,15 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
-    @state = {version: @constructor.version}
-
     @loadTime = null
-    {devMode, safeMode, resourcePath} = @getLoadSettings()
+    {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
+
+    @stateStore = new StateStore('AtomEnvironments', 1)
+
+    @stateStore.clear() if clearWindowState
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
@@ -200,6 +204,7 @@ class AtomEnvironment extends Model
     @registerDefaultViewProviders()
 
     @installUncaughtErrorHandler()
+    @attachSaveStateListeners()
     @installWindowEventHandler()
 
     @observeAutoHideMenuBar()
@@ -212,6 +217,14 @@ class AtomEnvironment extends Model
       ipc.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
+
+  attachSaveStateListeners: ->
+    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
+    @document.addEventListener('mousedown', debouncedSaveState, true)
+    @document.addEventListener('keydown', debouncedSaveState, true)
+    @disposables.add new Disposable =>
+      @document.removeEventListener('mousedown', debouncedSaveState, true)
+      @document.removeEventListener('keydown', debouncedSaveState, true)
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
@@ -301,9 +314,6 @@ class AtomEnvironment extends Model
 
     @views.clear()
     @registerDefaultViewProviders()
-
-    @state.packageStates = {}
-    delete @state.workspace
 
   destroy: ->
     return if not @project
@@ -607,7 +617,7 @@ class AtomEnvironment extends Model
     # But after that, e.g., when the window's been reloaded, we want to use the
     # dimensions we've saved for it.
     if not @isFirstLoad()
-      dimensions = @state.windowDimensions
+      dimensions = @windowDimensions
 
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
@@ -616,7 +626,7 @@ class AtomEnvironment extends Model
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
-    @state.windowDimensions = dimensions if @isValidDimensions(dimensions)
+    @windowDimensions = dimensions if @isValidDimensions(dimensions)
 
   storeWindowBackground: ->
     return if @inSpecMode()
@@ -653,17 +663,20 @@ class AtomEnvironment extends Model
 
     @openInitialEmptyEditorIfNecessary()
 
+  serialize: ->
+    version: @constructor.version
+    project: @project.serialize()
+    workspace: @workspace.serialize()
+    packageStates: @packages.serialize()
+    grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
+    fullScreen: @isFullScreen()
+    windowDimensions: @windowDimensions
+
   unloadEditorWindow: ->
     return if not @project
 
     @storeWindowBackground()
-    @state.grammars = {grammarOverridesByPath: @grammars.grammarOverridesByPath}
-    @state.project = @project.serialize()
-    @state.workspace = @workspace.serialize()
     @packages.deactivatePackages()
-    @state.packageStates = @packages.packageStates
-    @state.fullScreen = @isFullScreen()
-    @saveStateSync()
     @saveBlobStoreSync()
 
   openInitialEmptyEditorIfNecessary: ->
@@ -797,45 +810,54 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveStateSync: ->
-    return unless @enablePersistence
+  saveState: ->
+    return Promise.resolve() unless @enablePersistence
+    state = @serialize()
 
     if storageKey = @getStateKey(@project?.getPaths())
-      @getStorageFolder().store(storageKey, @state)
+      @stateStore.save(storageKey, state)
     else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(@state)
+      @getCurrentWindow().loadSettings.windowState = JSON.stringify(state)
+      Promise.resolve()
 
-  loadStateSync: ->
-    return unless @enablePersistence
+  loadState: ->
+    return Promise.resolve() unless @enablePersistence
 
     startTime = Date.now()
 
+    statePromise = null
     if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-      if state = @getStorageFolder().load(stateKey)
-        @state = state
+      statePromise = @stateStore.load(stateKey)
 
-    if not @state? and windowState = @getLoadSettings().windowState
+    if not statePromise? and windowState = @getLoadSettings().windowState
       try
-        if state = JSON.parse(@getLoadSettings().windowState)
-          @state = state
+        statePromise = Promise.resolve(JSON.parse(@getLoadSettings().windowState))
       catch error
         console.warn "Error parsing window state: #{statePath} #{error.stack}", error
 
-    @deserializeTimings.atom = Date.now() -  startTime
+    if statePromise?
+      statePromise.then (state) =>
+        @deserializeTimings.atom = Date.now() - startTime
+        @deserialize(state) if state?
+    else
+      Promise.resolve()
 
-    if grammarOverridesByPath = @state.grammars?.grammarOverridesByPath
+  deserialize: (state) ->
+    if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
-    @setFullScreen(@state.fullScreen)
+    @setFullScreen(state.fullScreen)
 
-    @packages.packageStates = @state.packageStates ? {}
+    @windowDimensions = state.windowDimensions if state.windowDimensions
+
+    @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()
-    @project.deserialize(@state.project, @deserializers) if @state.project?
+    @project.deserialize(state.project, @deserializers) if state.project?
     @deserializeTimings.project = Date.now() - startTime
 
     startTime = Date.now()
-    @workspace.deserialize(@state.workspace, @deserializers) if @state.workspace?
+    @workspace.deserialize(state.workspace, @deserializers) if state.workspace?
     @deserializeTimings.workspace = Date.now() - startTime
 
   getStateKey: (paths) ->
@@ -847,9 +869,6 @@ class AtomEnvironment extends Model
 
   getConfigDirPath: ->
     @configDirPath ?= process.env.ATOM_HOME
-
-  getStorageFolder: ->
-    @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   getUserInitScriptPath: ->
     initScriptPath = fs.resolve(@getConfigDirPath(), 'init', ['js', 'coffee'])

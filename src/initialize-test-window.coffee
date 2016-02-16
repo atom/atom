@@ -68,7 +68,9 @@ module.exports = ({blobStore}) ->
       logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner
     })
 
-    promise.then(exitWithStatusCode) if getWindowLoadSettings().headless
+    promise.then (statusCode) ->
+      exitWithStatusCode(statusCode) if getWindowLoadSettings().headless
+
   catch error
     if getWindowLoadSettings().headless
       console.error(error.stack ? error)

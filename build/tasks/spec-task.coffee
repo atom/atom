@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+temp = require('temp').track()
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -94,7 +95,7 @@ module.exports = (grunt) ->
     if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
-        args: ['--test', "--resource-path=#{resourcePath}", coreSpecsPath]
+        args: ['--test', "--resource-path=#{resourcePath}", coreSpecsPath, "--user-data-dir=#{temp.mkdirSync('atom-user-data-dir')}"]
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
