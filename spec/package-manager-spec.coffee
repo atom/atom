@@ -446,16 +446,15 @@ describe "PackageManager", ->
       pack = null
       waitsForPromise ->
         atom.packages.activatePackage("package-with-serialization").then (p) -> pack = p
-
       runs ->
         expect(pack.mainModule.someNumber).not.toBe 77
         pack.mainModule.someNumber = 77
         atom.packages.deactivatePackage("package-with-serialization")
         spyOn(pack.mainModule, 'activate').andCallThrough()
-        waitsForPromise ->
-          atom.packages.activatePackage("package-with-serialization")
-        runs ->
-          expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
+      waitsForPromise ->
+        atom.packages.activatePackage("package-with-serialization")
+      runs ->
+        expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
     it "invokes ::onDidActivatePackage listeners with the activated package", ->
       activatedPackage = null
@@ -819,6 +818,34 @@ describe "PackageManager", ->
           expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
           expect(addErrorHandler.callCount).toBe 0
 
+  describe "::serialize", ->
+    it "does not serialize packages that threw an error during activation", ->
+      spyOn(console, 'warn')
+      badPack = null
+      waitsForPromise ->
+        atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
+
+      runs ->
+        spyOn(badPack.mainModule, 'serialize').andCallThrough()
+
+        atom.packages.serialize()
+        expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
+
+    it "absorbs exceptions that are thrown by the package module's serialize method", ->
+      spyOn(console, 'error')
+
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-serialize-error')
+
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-serialization')
+
+      runs ->
+        atom.packages.serialize()
+        expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+        expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
+        expect(console.error).toHaveBeenCalled()
+
   describe "::deactivatePackage(id)", ->
     afterEach ->
       atom.packages.unloadPackages()
@@ -849,33 +876,6 @@ describe "PackageManager", ->
         atom.packages.deactivatePackage("package-that-throws-on-activate")
         expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
         expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
-
-    it "does not serialize packages that have not been activated called on their main module", ->
-      spyOn(console, 'warn')
-      badPack = null
-      waitsForPromise ->
-        atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
-
-      runs ->
-        spyOn(badPack.mainModule, 'serialize').andCallThrough()
-
-        atom.packages.deactivatePackage("package-that-throws-on-activate")
-        expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
-
-    it "absorbs exceptions that are thrown by the package module's serialize method", ->
-      spyOn(console, 'error')
-
-      waitsForPromise ->
-        atom.packages.activatePackage('package-with-serialize-error')
-
-      waitsForPromise ->
-        atom.packages.activatePackage('package-with-serialization')
-
-      runs ->
-        atom.packages.deactivatePackages()
-        expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
-        expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
-        expect(console.error).toHaveBeenCalled()
 
     it "absorbs exceptions that are thrown by the package module's deactivate method", ->
       spyOn(console, 'error')

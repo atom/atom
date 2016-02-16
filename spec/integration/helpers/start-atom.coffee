@@ -15,6 +15,8 @@ ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
 
+userDataDir = temp.mkdirSync('atom-user-data-dir')
+
 chromeDriverUp = (done) ->
   checkStatus = ->
     http
@@ -48,7 +50,7 @@ buildAtomClient = (args, env) ->
           "atom-env=#{map(env, (value, key) -> "#{key}=#{value}").join(" ")}"
           "dev"
           "safe"
-          "user-data-dir=#{temp.mkdirSync('atom-user-data-dir')}"
+          "user-data-dir=#{userDataDir}"
           "socket-path=#{SocketPath}"
         ])
 

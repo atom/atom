@@ -713,7 +713,7 @@ class Pane extends Model
     if @parent.orientation is 'vertical'
       bottommostSibling = last(@parent.children)
       if bottommostSibling instanceof PaneAxis
-        @splitRight()
+        @splitDown()
       else
         bottommostSibling
     else
