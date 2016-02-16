@@ -50,7 +50,7 @@ class AtomWindow
     loadSettings.safeMode ?= false
     loadSettings.atomHome = process.env.ATOM_HOME
     loadSettings.firstLoad = true
-    loadSettings.clearState ?= false
+    loadSettings.clearWindowState ?= false
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec

@@ -122,14 +122,14 @@ class AtomEnvironment extends Model
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @loadTime = null
-    {devMode, safeMode, resourcePath, clearState} = @getLoadSettings()
+    {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
-    @stateStore.clear() if clearState
+    @stateStore.clear() if clearWindowState
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
