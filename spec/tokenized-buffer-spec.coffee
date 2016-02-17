@@ -900,7 +900,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(9).indentLevel).toBe 2
         expect(tokenizedBuffer.tokenizedLineForRow(10).indentLevel).toBe 2 # }
 
-  describe "::foldableRowsForRowRange(startRow, endRow)", ->
+  describe "::isFoldableAtRow(row)", ->
     changes = null
 
     beforeEach ->
@@ -914,72 +914,64 @@ describe "TokenizedBuffer", ->
       fullyTokenize(tokenizedBuffer)
 
     it "includes the first line of multi-line comments", ->
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(0, 16)
-      expect(foldableRows.has(0)).toBe true
-      expect(foldableRows.has(1)).toBe false
-      expect(foldableRows.has(2)).toBe false
-      expect(foldableRows.has(3)).toBe true # because of indent
-      expect(foldableRows.has(13)).toBe true
-      expect(foldableRows.has(14)).toBe false
-      expect(foldableRows.has(15)).toBe false
-      expect(foldableRows.has(16)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe true # because of indent
+      expect(tokenizedBuffer.isFoldableAtRow(13)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(14)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(15)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(16)).toBe false
 
       buffer.insert([0, Infinity], '\n')
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(0, 3)
-      expect(foldableRows.has(0)).toBe false
-      expect(foldableRows.has(1)).toBe false
-      expect(foldableRows.has(2)).toBe true
-      expect(foldableRows.has(3)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe false
 
       buffer.undo()
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(0, 3)
-      expect(foldableRows.has(0)).toBe true
-      expect(foldableRows.has(1)).toBe false
-      expect(foldableRows.has(2)).toBe false
-      expect(foldableRows.has(3)).toBe true # because of indent
+      expect(tokenizedBuffer.isFoldableAtRow(0)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe true # because of indent
 
     it "includes non-comment lines that precede an increase in indentation", ->
       buffer.insert([2, 0], '  ') # commented lines preceding an indent aren't foldable
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(0, 8)
-      expect(foldableRows.has(1)).toBe false
-      expect(foldableRows.has(2)).toBe false
-      expect(foldableRows.has(3)).toBe true
-      expect(foldableRows.has(4)).toBe true
-      expect(foldableRows.has(5)).toBe false
-      expect(foldableRows.has(6)).toBe false
-      expect(foldableRows.has(7)).toBe true
-      expect(foldableRows.has(8)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(1)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(2)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(3)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(4)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(5)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
       buffer.insert([7, 0], '  ')
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(6, 8)
-      expect(foldableRows.has(6)).toBe true
-      expect(foldableRows.has(7)).toBe false
-      expect(foldableRows.has(8)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
       buffer.undo()
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(6, 8)
-      expect(foldableRows.has(6)).toBe false
-      expect(foldableRows.has(7)).toBe true
-      expect(foldableRows.has(8)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
       buffer.insert([7, 0], "    \n      x\n")
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(6, 8)
-      expect(foldableRows.has(6)).toBe true
-      expect(foldableRows.has(7)).toBe false
-      expect(foldableRows.has(8)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
       buffer.insert([9, 0], "  ")
 
-      foldableRows = tokenizedBuffer.foldableRowsForRowRange(6, 8)
-      expect(foldableRows.has(6)).toBe true
-      expect(foldableRows.has(7)).toBe false
-      expect(foldableRows.has(8)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(6)).toBe true
+      expect(tokenizedBuffer.isFoldableAtRow(7)).toBe false
+      expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
   describe "when the buffer is configured with the null grammar", ->
     it "uses the placeholder tokens and does not actually tokenize using the grammar", ->

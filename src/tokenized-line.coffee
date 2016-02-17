@@ -33,7 +33,6 @@ class TokenizedLine
   endOfLineInvisibles: null
   lineIsWhitespaceOnly: false
   firstNonWhitespaceIndex: 0
-  foldable: false
 
   constructor: (properties) ->
     @id = idCounter++

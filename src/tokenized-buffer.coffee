@@ -282,15 +282,6 @@ class TokenizedBuffer extends Model
 
     row - increment
 
-  foldableRowsForRowRange: (startRow, endRow) ->
-    scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
-    scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
-    scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
-    foldableRows = new Set
-    for row in [scanStartRow..scanEndRow] by 1 when @isFoldableAtRow(row)
-      foldableRows.add(row)
-    foldableRows
-
   isFoldableAtRow: (row) ->
     if @largeFileMode
       false

@@ -2939,8 +2939,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
-    # @languageMode.isFoldableAtBufferRow(bufferRow)
-    @foldableBufferRowsForBufferRowRange(bufferRow, bufferRow).has(bufferRow)
+    @displayBuffer.isFoldableAtBufferRow(bufferRow)
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
   #
@@ -2952,9 +2951,6 @@ class TextEditor extends Model
   isFoldableAtScreenRow: (screenRow) ->
     bufferRow = @displayBuffer.bufferRowForScreenRow(screenRow)
     @isFoldableAtBufferRow(bufferRow)
-
-  foldableBufferRowsForBufferRowRange: (startRow, endRow) ->
-    @displayBuffer.foldableBufferRowsForBufferRowRange(startRow, endRow)
 
   # Extended: Fold the given buffer row if it isn't currently folded, and unfold
   # it otherwise.
