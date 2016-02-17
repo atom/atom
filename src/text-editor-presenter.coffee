@@ -599,6 +599,7 @@ class TextEditorPresenter
 
     if endRow > startRow
       bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
+      foldableBufferRows = @model.foldableBufferRowsForBufferRowRange(bufferRows[0], bufferRows[bufferRows.length - 1])
       for bufferRow, i in bufferRows
         if bufferRow is lastBufferRow
           softWrapped = true
@@ -609,7 +610,7 @@ class TextEditorPresenter
         screenRow = startRow + i
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-        foldable = @model.isFoldableAtScreenRow(screenRow)
+        foldable = foldableBufferRows.has(bufferRow)
         blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
         blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
         if screenRow % @tileSize isnt 0
