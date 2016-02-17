@@ -202,8 +202,7 @@ describe "TokenizedBuffer", ->
             expect(tokenizedBuffer.firstInvalidRow()).toBe 3
 
             advanceClock()
-             # we discover that row 2 starts a foldable region when line 3 gets tokenized
-            expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 7, delta: 0)
+            expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
             expect(tokenizedBuffer.firstInvalidRow()).toBe 8
 
       describe "when there is a buffer change surrounding an invalid row", ->
@@ -253,7 +252,7 @@ describe "TokenizedBuffer", ->
               expect(changeHandler).toHaveBeenCalled()
               [event] = changeHandler.argsForCall[0]
               delete event.bufferChange
-              expect(event).toEqual(start: 1, end: 2, delta: 0)
+              expect(event).toEqual(start: 2, end: 2, delta: 0)
               changeHandler.reset()
 
               advanceClock()
@@ -263,8 +262,7 @@ describe "TokenizedBuffer", ->
               expect(changeHandler).toHaveBeenCalled()
               [event] = changeHandler.argsForCall[0]
               delete event.bufferChange
-               # we discover that row 2 starts a foldable region when line 3 gets tokenized
-              expect(event).toEqual(start: 2, end: 5, delta: 0)
+              expect(event).toEqual(start: 3, end: 5, delta: 0)
 
           it "resumes highlighting with the state of the previous line", ->
             buffer.insert([0, 0], '/*')
@@ -292,7 +290,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 0, end: 3, delta: -2) # starts at 0 because foldable on row 0 becomes false
+            expect(event).toEqual(start: 1, end: 3, delta: -2)
 
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
@@ -305,7 +303,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 1, end: 3, delta: -1)
+            expect(event).toEqual(start: 2, end: 3, delta: -1)
             changeHandler.reset()
 
             advanceClock()
@@ -314,8 +312,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            # we discover that row 2 starts a foldable region when line 3 gets tokenized
-            expect(event).toEqual(start: 2, end: 4, delta: 0)
+            expect(event).toEqual(start: 3, end: 4, delta: 0)
 
         describe "when lines are both updated and inserted", ->
           it "updates tokens to reflect the change", ->
@@ -339,7 +336,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 0, end: 2, delta: 2) # starts at 0 because .foldable becomes false on row 0
+            expect(event).toEqual(start: 1, end: 2, delta: 2)
 
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
@@ -350,7 +347,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 1, end: 2, delta: 2)
+            expect(event).toEqual(start: 2, end: 2, delta: 2)
             expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
             expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
@@ -894,7 +891,7 @@ describe "TokenizedBuffer", ->
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
 
         delete changeHandler.argsForCall[0][0].bufferChange
-        expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 10, delta: -1) # starts at row 4 because it became foldable
+        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 10, delta: -1)
 
         expect(tokenizedBuffer.tokenizedLineForRow(5).indentLevel).toBe 2
         expect(tokenizedBuffer.tokenizedLineForRow(6).indentLevel).toBe 2
