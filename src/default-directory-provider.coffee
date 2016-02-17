@@ -16,7 +16,7 @@ class DefaultDirectoryProvider
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURISync: (uri) ->
     normalizedPath = path.normalize(uri)
-    host = url.parse(uri).host;
+    {host} = url.parse(uri)
     directoryPath = if host
       uri
     else if not fs.isDirectorySync(normalizedPath) and fs.isDirectorySync(path.dirname(normalizedPath))
