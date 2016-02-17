@@ -18,7 +18,7 @@
 
 [Description of the bug or feature]
 
-### Repro Steps
+### Steps to Reproduce
 
 1. [First Step]
 2. [Second Step]
