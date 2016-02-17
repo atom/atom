@@ -108,8 +108,8 @@ module.exports =
         description: 'Automatically update Atom when a new release is available.'
         type: 'boolean'
         default: true
-      openPendingPaneItems:
-        description: 'Open pane items in pending state, such that only one pending item is open per pane.'
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
         type: 'boolean'
         default: true
 

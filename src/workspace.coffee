@@ -414,7 +414,7 @@ class Workspace extends Model
     split = options.split
     uri = @project.resolvePath(uri)
 
-    if not atom.config.get('core.openPendingPaneItems')
+    if not atom.config.get('core.allowPendingPaneItems')
       options.pending = false
 
     # Avoid adding URLs as recent documents to work-around this Spotlight crash:
