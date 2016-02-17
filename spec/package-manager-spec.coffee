@@ -977,9 +977,22 @@ describe "PackageManager", ->
       atom.packages.onDidActivateInitialPackages(activateSpy)
 
       atom.packages.activate()
+
+      waits(0)
+
+      runs ->
+
+        # Only packages with 'activateImmediately' are activated synchronously.
+        expect(package1 in atom.packages.getActivePackages()).toBe true
+        expect(package2 in atom.packages.getActivePackages()).toBe false
+        expect(package3 in atom.packages.getActivePackages()).toBe false
+
       waitsFor -> activateSpy.callCount > 0
       runs ->
         jasmine.unspy(atom.packages, 'getLoadedPackages')
+
+        # Packages without 'activationCommands' are activated before calling
+        # `onDidActivateInitialPackages` listeners.
         expect(package1 in atom.packages.getActivePackages()).toBe true
         expect(package2 in atom.packages.getActivePackages()).toBe true
         expect(package3 in atom.packages.getActivePackages()).toBe false

@@ -461,6 +461,26 @@ class Package
   activationShouldBeDeferred: ->
     @hasActivationCommands() or @hasActivationHooks()
 
+  PackagesToActivateImmediately = [
+    # core
+    'status-bar',
+    'tabs',
+    'tree-view',
+    'wrap-guide',
+
+    # 3rd-party
+    'linter',
+    'vim-mode'
+  ]
+
+  activationShouldBeImmediate: ->
+    (
+      @theme or
+      @metadata.activateImmediately or
+      @name.startsWith('language-') or
+      @name in PackagesToActivateImmediately
+    )
+
   hasActivationHooks: ->
     @getActivationHooks()?.length > 0
 

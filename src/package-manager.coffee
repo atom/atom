@@ -430,10 +430,33 @@ class PackageManager
   activatePackages: (packages) ->
     promises = []
     @config.transactAsync =>
-      for pack in packages
-        promise = @activatePackage(pack.name)
-        promises.push(promise) unless pack.activationShouldBeDeferred()
+      deferredQueue = []
+
+      packages.forEach (pack) =>
+        if pack.activationShouldBeDeferred()
+          deferredQueue.push({name: pack.name, callback: null})
+        else if pack.activationShouldBeImmediate()
+          promises.push(@activatePackage(pack.name))
+        else
+          promises.push(new Promise (resolve) =>
+            deferredQueue.push({name: pack.name, callback: resolve})
+          )
+
+      processQueue = (deadline) =>
+        while deadline.timeRemaining() > 0
+          entry = deferredQueue.shift()
+          break unless entry?
+          activation = @activatePackage(entry.name)
+          if entry.callback?
+            activation.then(entry.callback)
+
+        if deferredQueue.length > 0
+          requestIdleCallback(processQueue)
+
+      process.nextTick -> requestIdleCallback(processQueue)
+
       Promise.all(promises)
+
     @observeDisabledPackages()
     @observePackagesWithKeymapsDisabled()
     promises
