@@ -288,6 +288,7 @@ class TokenizedBuffer extends Model
     row - increment
 
   updateFoldableStatus: (startRow, endRow) ->
+    return [startRow, endRow]
     return [startRow, endRow] if @largeFileMode
 
     scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
