@@ -30,13 +30,4 @@
 
 ### Versions
 
-You can get this information from executing `atom --version` and `apm --version` at the command line:
-
-* **Atom:**     x.y.z
-* **Electron:** x.y.z
-* **OS:**       OS x.y.z
-* **APM**
-    * apm    x.y.z
-    * npm    x.y.z
-    * python x.y.z
-    * git    x.y.z
+You can get this information from executing `atom --version` and `apm --version` at the command line.
