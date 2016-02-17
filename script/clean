@@ -4,15 +4,16 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 
-var removeCommand = process.platform === 'win32' ? 'rmdir /S /Q ' : 'rm -rf ';
+var isWindows = process.platform === 'win32';
+var removeCommand = isWindows ? 'rmdir /S /Q ' : 'rm -rf ';
 var productName = require('../package.json').productName;
 
 process.chdir(path.dirname(__dirname));
-var home = process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
+var home = process.env[isWindows ? 'USERPROFILE' : 'HOME'];
 var tmpdir = os.tmpdir();
 
 // Windows: Use START as a way to ignore error if Atom.exe isnt running
-var killatom = process.platform === 'win32' ? 'START taskkill /F /IM ' + productName + '.exe' : 'pkill -9 ' + productName + ' || true';
+var killatom = isWindows ? 'START taskkill /F /IM ' + productName + '.exe' : 'pkill -9 ' + productName + ' || true';
 
 var commands = [
   killatom,
@@ -39,12 +40,32 @@ var run = function() {
 
   if (Array.isArray(next)) {
     var pathToRemove = path.resolve.apply(path.resolve, next);
-    if (fs.existsSync(pathToRemove))
-      next = removeCommand + pathToRemove;
-    else
+    if (fs.existsSync(pathToRemove)) {
+      if (isWindows) {
+        removeFolderRecursive(pathToRemove);
+      } else {
+        next = removeCommand + pathToRemove;
+        cp.safeExec(next, run);
+      }
+    }
+    else {
       return run();
+    }
   }
-
-  cp.safeExec(next, run);
+  else
+    cp.safeExec(next, run);
 };
 run();
+
+// Windows has a 260-char path limit for rmdir etc. Just recursively delete in Node.
+var removeFolderRecursive = function(folderPath) {
+  fs.readdirSync(folderPath).forEach(function(entry, index) {
+    var entryPath = path.join(folderPath, entry);
+    if (fs.lstatSync(entryPath).isDirectory()) {
+      removeFolderRecursive(entryPath);
+    } else {
+      fs.unlinkSync(entryPath);
+    }
+  });
+  fs.rmdirSync(folderPath);
+};
