@@ -491,15 +491,20 @@ class TokenizedLine
         @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
+    return @isCommentLine if @isCommentLine?
+
+    @isCommentLine = false
     iterator = @getTokenIterator()
     while iterator.next()
       scopes = iterator.getScopes()
       continue if scopes.length is 1
       continue unless NonWhitespaceRegex.test(iterator.getText())
       for scope in scopes
-        return true if CommentScopeRegex.test(scope)
+        if CommentScopeRegex.test(scope)
+          @isCommentLine = true
+          break
       break
-    false
+    @isCommentLine
 
   isOnlyWhitespace: ->
     @lineIsWhitespaceOnly
