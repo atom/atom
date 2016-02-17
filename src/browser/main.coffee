@@ -83,7 +83,7 @@ setupCompileCache = ->
   compileCache = require('../compile-cache')
   compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
-fullVersion = ->
+writeFullVersion = ->
   process.stdout.write """
     Atom    : #{app.getVersion()}
     Electron: #{process.versions.electron}
@@ -140,7 +140,7 @@ parseCommandLine = ->
     process.exit(0)
 
   if args.version
-    fullVersion()
+    writeFullVersion()
     process.exit(0)
 
   executedFrom = args['executed-from']?.toString() ? process.cwd()
