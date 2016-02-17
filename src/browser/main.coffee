@@ -84,10 +84,13 @@ setupCompileCache = ->
   compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
 fullVersion = ->
-  process.stdout.write("Atom    : #{app.getVersion()}\n")
-  process.stdout.write("Electron: #{process.versions.electron}\n")
-  process.stdout.write("Chrome  : #{process.versions.chrome}\n")
-  process.stdout.write("Node    : #{process.versions.node}\n")
+  process.stdout.write """
+    Atom    : #{app.getVersion()}
+    Electron: #{process.versions.electron}
+    Chrome  : #{process.versions.chrome}
+    Node    : #{process.versions.node}
+
+  """
 
 parseCommandLine = ->
   version = app.getVersion()
