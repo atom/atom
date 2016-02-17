@@ -585,6 +585,22 @@ describe "Workspace", ->
           open = -> workspace.open('file1', workspace.getActivePane())
           expect(open).toThrow()
 
+    describe "when the file is already open in pending state", ->
+      it "should terminate the pending state", ->
+        editor = null
+
+        waitsForPromise ->
+          atom.workspace.open('sample.js', pending: true).then (o) -> editor = o
+          
+        runs ->
+          expect(editor.isPending()).toBe true
+          
+        waitsForPromise ->
+          atom.workspace.open('sample.js').then (o) -> editor = o
+          
+        runs ->
+          expect(editor.isPending()).toBe false
+  
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
