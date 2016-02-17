@@ -25,6 +25,7 @@
 3. [and so on...]
 
 **Expected:** [What you expected to happen]
+
 **Actual:** [What actually happened]
 
 ### Versions
