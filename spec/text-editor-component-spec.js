@@ -544,7 +544,7 @@ describe('TextEditorComponent', function () {
           editor.setSoftWrapped(true)
           await nextViewUpdatePromise()
 
-          componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+          componentNode.style.width = 17 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
           component.measureDimensions()
           await nextViewUpdatePromise()
         })
