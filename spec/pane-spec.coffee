@@ -196,7 +196,7 @@ describe "Pane", ->
       pane.activateNextRecentlyUsedItem()
       expect(pane.getActiveItem()).toBe item2
       pane.activateNextRecentlyUsedItem()
-      pane.stopMovingThroughStackAndMoveItemToEndOfStack()
+      pane.moveItemToTopOfStack()
       expect(pane.getActiveItem()).toBe item1
       expect(pane.itemStack[4]).toBe item1
       pane.activateNextRecentlyUsedItem()
@@ -210,7 +210,7 @@ describe "Pane", ->
       pane.activateNextRecentlyUsedItem()
       expect(pane.getActiveItem()).toBe item1
       pane.activateNextRecentlyUsedItem()
-      pane.stopMovingThroughStackAndMoveItemToEndOfStack()
+      pane.moveItemToTopOfStack()
       expect(pane.getActiveItem()).toBe item4
       expect(pane.itemStack[4]).toBe item4
 
