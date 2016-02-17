@@ -1,6 +1,6 @@
 crypto = require 'crypto'
 path = require 'path'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
@@ -211,10 +211,10 @@ class AtomEnvironment extends Model
 
     checkPortableHomeWritable = ->
       responseChannel = "check-portable-home-writable-response"
-      ipc.on responseChannel, (response) ->
-        ipc.removeAllListeners(responseChannel)
+      ipcRenderer.on responseChannel, (event, response) ->
+        ipcRenderer.removeAllListeners(responseChannel)
         atom.notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      ipc.send('check-portable-home-writable', responseChannel)
+      ipcRenderer.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
 
@@ -507,7 +507,7 @@ class AtomEnvironment extends Model
 
   # Extended: Reload the current window.
   reload: ->
-    @applicationDelegate.restartWindow()
+    @applicationDelegate.reloadWindow()
 
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
@@ -534,16 +534,18 @@ class AtomEnvironment extends Model
 
   # Restore the window to its previous dimensions and show it.
   #
-  # Also restores the full screen and maximized state on the next tick to
+  # Restores the full screen and maximized state after the window has resized to
   # prevent resize glitches.
   displayWindow: ->
-    dimensions = @restoreWindowDimensions()
-    @show()
-    @focus()
-
-    setImmediate =>
-      @setFullScreen(true) if @workspace?.fullScreen
-      @maximize() if dimensions?.maximized and process.platform isnt 'darwin'
+    @restoreWindowDimensions().then (dimensions) =>
+      steps = [
+        @restoreWindowBackground(),
+        @show(),
+        @focus()
+      ]
+      steps.push(@setFullScreen(true)) if @workspace.fullScreen
+      steps.push(@maximize()) if dimensions?.maximized and process.platform isnt 'darwin'
+      Promise.all(steps)
 
       if @isFirstLoad()
         loadSettings = getWindowLoadSettings()
@@ -576,12 +578,14 @@ class AtomEnvironment extends Model
   #   * `width` The new width.
   #   * `height` The new height.
   setWindowDimensions: ({x, y, width, height}) ->
+    steps = []
     if width? and height?
-      @setSize(width, height)
+      steps.push(@setSize(width, height))
     if x? and y?
-      @setPosition(x, y)
+      steps.push(@setPosition(x, y))
     else
-      @center()
+      steps.push(@center())
+    Promise.all(steps)
 
   # Returns true if the dimensions are useable, false if they should be ignored.
   # Work around for https://github.com/atom/atom-shell/issues/473
@@ -621,12 +625,18 @@ class AtomEnvironment extends Model
 
     unless @isValidDimensions(dimensions)
       dimensions = @getDefaultWindowDimensions()
-    @setWindowDimensions(dimensions)
-    dimensions
+    @setWindowDimensions(dimensions).then -> dimensions
 
   storeWindowDimensions: ->
     dimensions = @getWindowDimensions()
     @windowDimensions = dimensions if @isValidDimensions(dimensions)
+
+  restoreWindowBackground: ->
+    if backgroundColor = window.localStorage.getItem('atom:window-background-color')
+      @backgroundStylesheet = document.createElement('style')
+      @backgroundStylesheet.type = 'text/css'
+      @backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + ' !important; }'
+      document.head.appendChild(@backgroundStylesheet)
 
   storeWindowBackground: ->
     return if @inSpecMode()
@@ -652,6 +662,7 @@ class AtomEnvironment extends Model
     @packages.loadPackages()
 
     @document.body.appendChild(@views.getView(@workspace))
+    @backgroundStylesheet?.remove()
 
     @watchProjectPath()
 

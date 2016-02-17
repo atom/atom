@@ -4,8 +4,7 @@ process.on 'uncaughtException', (error={}) ->
   console.log(error.message) if error.message?
   console.log(error.stack) if error.stack?
 
-crashReporter = require 'crash-reporter'
-app = require 'app'
+{crashReporter, app} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
 yargs = require 'yargs'
@@ -57,12 +56,12 @@ handleStartupEventWithSquirrel = ->
   SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
 setupCrashReporter = ->
-  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
 setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
 
-  atomHome = path.join(app.getHomeDir(), '.atom')
+  atomHome = path.join(app.getPath('home'), '.atom')
   AtomPortable = require './atom-portable'
 
   if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
@@ -149,7 +148,7 @@ parseCommandLine = ->
   profileStartup = args['profile-startup']
   clearWindowState = args['clear-window-state']
   urlsToOpen = []
-  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getPath('home'), 'github', 'atom')
   setPortable = args.portable
 
   if args['resource-path']

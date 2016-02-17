@@ -2,14 +2,10 @@ AtomWindow = require './atom-window'
 ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
-BrowserWindow = require 'browser-window'
 StorageFolder = require '../storage-folder'
-Menu = require 'menu'
-app = require 'app'
-dialog = require 'dialog'
-shell = require 'shell'
+ipcHelpers = require '../ipc-helpers'
+{BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
 fs = require 'fs-plus'
-ipc = require 'ipc'
 path = require 'path'
 os = require 'os'
 net = require 'net'
@@ -51,7 +47,7 @@ class AtomApplication
     client = net.connect {path: options.socketPath}, ->
       client.write JSON.stringify(options), ->
         client.end()
-        app.terminate()
+        app.quit()
 
     client.on 'error', createAtomApplication
 
@@ -212,7 +208,6 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     app.on 'before-quit', =>
-      @saveState(false)
       @quitting = true
 
     app.on 'will-quit', =>
@@ -232,7 +227,7 @@ class AtomApplication
       @emit('application:new-window')
 
     # A request from the associated render process to open a new render process.
-    ipc.on 'open', (event, options) =>
+    ipcMain.on 'open', (event, options) =>
       window = @windowForEvent(event)
       if options?
         if typeof options.pathsToOpen is 'string'
@@ -245,43 +240,64 @@ class AtomApplication
       else
         @promptForPathToOpen('all', {window})
 
-    ipc.on 'update-application-menu', (event, template, keystrokesByCommand) =>
+    ipcMain.on 'update-application-menu', (event, template, keystrokesByCommand) =>
       win = BrowserWindow.fromWebContents(event.sender)
       @applicationMenu.update(win, template, keystrokesByCommand)
 
-    ipc.on 'run-package-specs', (event, packageSpecPath) =>
+    ipcMain.on 'run-package-specs', (event, packageSpecPath) =>
       @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
 
-    ipc.on 'command', (event, command) =>
+    ipcMain.on 'command', (event, command) =>
       @emit(command)
 
-    ipc.on 'window-command', (event, command, args...) ->
+    ipcMain.on 'window-command', (event, command, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win.emit(command, args...)
 
-    ipc.on 'call-window-method', (event, method, args...) ->
+    ipcMain.on 'call-window-method', (event, method, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
 
-    ipc.on 'pick-folder', (event, responseChannel) =>
+    ipcMain.on 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
 
-    ipc.on 'did-cancel-window-unload', =>
+    ipcHelpers.respondTo 'set-window-size', (win, width, height) ->
+      win.setSize(width, height)
+
+    ipcHelpers.respondTo 'set-window-position', (win, x, y) ->
+      win.setPosition(x, y)
+
+    ipcHelpers.respondTo 'center-window', (win) ->
+      win.center()
+
+    ipcHelpers.respondTo 'focus-window', (win) ->
+      win.focus()
+
+    ipcHelpers.respondTo 'show-window', (win) ->
+      win.show()
+
+    ipcHelpers.respondTo 'hide-window', (win) ->
+      win.hide()
+
+    ipcMain.on 'did-cancel-window-unload', =>
       @quitting = false
 
     clipboard = require '../safe-clipboard'
-    ipc.on 'write-text-to-selection-clipboard', (event, selectedText) ->
+    ipcMain.on 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard.writeText(selectedText, 'selection')
 
-    ipc.on 'write-to-stdout', (event, output) ->
+    ipcMain.on 'write-to-stdout', (event, output) ->
       process.stdout.write(output)
 
-    ipc.on 'write-to-stderr', (event, output) ->
+    ipcMain.on 'write-to-stderr', (event, output) ->
       process.stderr.write(output)
 
-    ipc.on 'add-recent-document', (event, filename) ->
+    ipcMain.on 'add-recent-document', (event, filename) ->
       app.addRecentDocument(filename)
+
+    ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
+      event.sender.devToolsWebContents?.executeJavaScript(code)
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -350,7 +366,7 @@ class AtomApplication
     _.find @windows, (atomWindow) ->
       atomWindow.devMode is devMode and atomWindow.containsPaths(pathsToOpen)
 
-  # Returns the {AtomWindow} for the given ipc event.
+  # Returns the {AtomWindow} for the given ipcMain event.
   windowForEvent: ({sender}) ->
     window = BrowserWindow.fromWebContents(sender)
     _.find @windows, ({browserWindow}) -> window is browserWindow
