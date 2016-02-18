@@ -7,7 +7,7 @@
 * [ ] Are you reporting to the [correct repository](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#atom-and-packages)?
 * [ ] Did you [perform a cursory search](https://github.com/issues?q=is%3Aissue+user%3Aatom+-repo%3Aatom%2Felectron) to see if your bug or enhancement is already reported?
 
-For more information on how to write a good [bug report](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report) or [enhancement request](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion), see the `CONTRIBUTING` guide
+For more information on how to write a good [bug report](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report) or [enhancement request](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion), see the `CONTRIBUTING` guide.
 
 ### Description
 
