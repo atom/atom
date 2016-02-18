@@ -1,4 +1,4 @@
-### Flow
+### Prerequisites
 
 * [ ] Can you reproduce the problem in [safe mode](https://atom.io/docs/latest/hacking-atom-debugging#check-if-the-problem-shows-up-in-safe-mode)?
 * [ ] Are you running the [latest version of Atom](https://atom.io/docs/latest/hacking-atom-debugging#update-to-the-latest-version)?
