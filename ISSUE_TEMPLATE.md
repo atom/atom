@@ -19,9 +19,9 @@ For more information on how to write a good [bug report](https://github.com/atom
 2. [Second Step]
 3. [and so on...]
 
-**Expected:** [What you expected to happen]
+**Expected behavior:** [What you expected to happen]
 
-**Actual:** [What actually happened]
+**Actual behavior:** [What actually happened]
 
 ### Versions
 
