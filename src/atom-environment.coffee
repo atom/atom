@@ -543,7 +543,7 @@ class AtomEnvironment extends Model
         @show(),
         @focus()
       ]
-      steps.push(@setFullScreen(true)) if @workspace.fullScreen
+      steps.push(@setFullScreen(true)) if @windowDimensions?.fullScreen
       steps.push(@maximize()) if @windowDimensions?.maximized and process.platform isnt 'darwin'
       Promise.all(steps)
 
