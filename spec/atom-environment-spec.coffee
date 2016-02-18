@@ -259,6 +259,7 @@ describe "AtomEnvironment", ->
       }
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
       spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
+      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
       atomEnvironment.startEditorWindow()
       atomEnvironment.unloadEditorWindow()
       atomEnvironment.destroy()

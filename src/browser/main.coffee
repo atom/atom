@@ -7,6 +7,7 @@ process.on 'uncaughtException', (error={}) ->
 {crashReporter, app} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
+temp = require 'temp'
 yargs = require 'yargs'
 console.log = require 'nslog'
 
@@ -33,6 +34,8 @@ start = ->
 
   if args.userDataDir?
     app.setPath('userData', args.userDataDir)
+  else if args.test
+    app.setPath('userData', temp.mkdirSync('atom-test-data'))
 
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
