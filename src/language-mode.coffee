@@ -10,6 +10,7 @@ class LanguageMode
   # editor - The {TextEditor} to associate with
   constructor: (@editor, @config) ->
     {@buffer} = @editor
+    @regexesByPattern = {}
 
   destroy: ->
 
@@ -328,7 +329,8 @@ class LanguageMode
 
   getRegexForProperty: (scopeDescriptor, property) ->
     if pattern = @config.get(property, scope: scopeDescriptor)
-      new OnigRegExp(pattern)
+      @regexesByPattern[pattern] ?= new OnigRegExp(pattern)
+      @regexesByPattern[pattern]
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
