@@ -1,6 +1,4 @@
-BrowserWindow = require 'browser-window'
-app = require 'app'
-dialog = require 'dialog'
+{BrowserWindow, app, dialog} = require 'electron'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -50,6 +48,7 @@ class AtomWindow
     loadSettings.safeMode ?= false
     loadSettings.atomHome = process.env.ATOM_HOME
     loadSettings.firstLoad = true
+    loadSettings.clearWindowState ?= false
 
     # Only send to the first non-spec window created
     if @constructor.includeShellLoadTime and not @isSpec
@@ -82,7 +81,7 @@ class AtomWindow
     loadSettings = _.clone(loadSettingsObj)
     delete loadSettings['windowState']
 
-    @browserWindow.loadUrl url.format
+    @browserWindow.loadURL url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
@@ -90,7 +89,7 @@ class AtomWindow
 
   getLoadSettings: ->
     if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
+      hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
@@ -122,6 +121,9 @@ class AtomWindow
         false
 
   handleEvents: ->
+    @browserWindow.on 'close', ->
+      global.atomApplication.saveState(false)
+
     @browserWindow.on 'closed', =>
       global.atomApplication.removeWindow(this)
 
@@ -145,10 +147,10 @@ class AtomWindow
         detail: 'Please report this issue to https://github.com/atom/atom'
       switch chosen
         when 0 then @browserWindow.destroy()
-        when 1 then @browserWindow.restart()
+        when 1 then @browserWindow.reload()
 
     @browserWindow.webContents.on 'will-navigate', (event, url) =>
-      unless url is @browserWindow.webContents.getUrl()
+      unless url is @browserWindow.webContents.getURL()
         event.preventDefault()
 
     @setupContextMenu()
@@ -221,6 +223,6 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.restart()
+  reload: -> @browserWindow.reload()
 
   toggleDevTools: -> @browserWindow.toggleDevTools()

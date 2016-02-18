@@ -2151,10 +2151,11 @@ describe('TextEditorComponent', function () {
         item.style.height = itemHeight + 'px'
         wrapperNode.style.width = windowWidth + 'px'
         wrapperNode.style.height = windowHeight + 'px'
-        atom.setWindowDimensions({
+        await atom.setWindowDimensions({
           width: windowWidth,
           height: windowHeight
         })
+
         component.measureDimensions()
         component.measureWindowSize()
         await nextViewUpdatePromise()
@@ -4834,7 +4835,7 @@ describe('TextEditorComponent', function () {
 
     it('pastes the previously selected text at the clicked location', async function () {
       let clipboardWrittenTo = false
-      spyOn(require('ipc'), 'send').andCallFake(function (eventName, selectedText) {
+      spyOn(require('electron').ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
         if (eventName === 'write-text-to-selection-clipboard') {
           require('../src/safe-clipboard').writeText(selectedText, 'selection')
           clipboardWrittenTo = true

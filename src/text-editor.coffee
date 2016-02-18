@@ -109,6 +109,7 @@ class TextEditor extends Model
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
+    @cursorsByMarkerId = new Map
     @selections = []
 
     buffer ?= new TextBuffer
@@ -1944,10 +1945,18 @@ class TextEditor extends Model
   getCursorsOrderedByBufferPosition: ->
     @getCursors().sort (a, b) -> a.compare(b)
 
+  cursorsForScreenRowRange: (startScreenRow, endScreenRow) ->
+    cursors = []
+    for marker in @selectionsMarkerLayer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
+      if cursor = @cursorsByMarkerId.get(marker.id)
+        cursors.push(cursor)
+    cursors
+
   # Add a cursor based on the given {TextEditorMarker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker, config: @config)
     @cursors.push(cursor)
+    @cursorsByMarkerId.set(marker.id, cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
@@ -2446,6 +2455,7 @@ class TextEditor extends Model
   removeSelection: (selection) ->
     _.remove(@cursors, selection.cursor)
     _.remove(@selections, selection)
+    @cursorsByMarkerId.delete(selection.cursor.marker.id)
     @emitter.emit 'did-remove-cursor', selection.cursor
     @emitter.emit 'did-remove-selection', selection
 
@@ -2929,8 +2939,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
-    # @languageMode.isFoldableAtBufferRow(bufferRow)
-    @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)?.foldable ? false
+    @displayBuffer.isFoldableAtBufferRow(bufferRow)
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
   #

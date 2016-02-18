@@ -432,18 +432,14 @@ class TextEditorPresenter
     return
 
   updateCursorsState: ->
-    @state.content.cursors = {}
-    @updateCursorState(cursor) for cursor in @model.cursors # using property directly to avoid allocation
-    return
-
-  updateCursorState: (cursor) ->
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
-    screenRange = cursor.getScreenRange()
-    return unless cursor.isVisible() and @startRow <= screenRange.start.row < @endRow
 
-    pixelRect = @pixelRectForScreenRange(screenRange)
-    pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
-    @state.content.cursors[cursor.id] = pixelRect
+    @state.content.cursors = {}
+    for cursor in @model.cursorsForScreenRowRange(@startRow, @endRow - 1) when cursor.isVisible()
+      pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
+      pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
+      @state.content.cursors[cursor.id] = pixelRect
+    return
 
   updateOverlaysState: ->
     return unless @hasOverlayPositionRequirements()
@@ -603,7 +599,14 @@ class TextEditorPresenter
 
     if endRow > startRow
       bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
+      previousBufferRow = -1
+      foldable = false
       for bufferRow, i in bufferRows
+         # don't compute foldability more than once per buffer row
+        if previousBufferRow isnt bufferRow
+          foldable = @model.isFoldableAtBufferRow(bufferRow)
+          previousBufferRow = bufferRow
+
         if bufferRow is lastBufferRow
           softWrapped = true
         else
@@ -613,7 +616,6 @@ class TextEditorPresenter
         screenRow = startRow + i
         line = @model.tokenizedLineForScreenRow(screenRow)
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-        foldable = @model.isFoldableAtScreenRow(screenRow)
         blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
         blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
         if screenRow % @tileSize isnt 0

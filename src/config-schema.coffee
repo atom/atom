@@ -108,6 +108,10 @@ module.exports =
         description: 'Automatically update Atom when a new release is available.'
         type: 'boolean'
         default: true
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
+        type: 'boolean'
+        default: true
 
   editor:
     type: 'object'

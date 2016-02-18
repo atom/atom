@@ -414,6 +414,9 @@ class Workspace extends Model
     split = options.split
     uri = @project.resolvePath(uri)
 
+    if not atom.config.get('core.allowPendingPaneItems')
+      options.pending = false
+
     # Avoid adding URLs as recent documents to work-around this Spotlight crash:
     # https://github.com/atom/atom/issues/10071
     if uri? and not url.parse(uri).protocol?
@@ -473,7 +476,8 @@ class Workspace extends Model
     activateItem = options.activateItem ? true
 
     if uri?
-      item = pane.itemForURI(uri)
+      if item = pane.itemForURI(uri)
+        item.terminatePendingState?() if item.isPending?() and not options.pending
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try

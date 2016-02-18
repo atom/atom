@@ -5,13 +5,13 @@ SquirrelUpdate = require './squirrel-update'
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
-  setFeedUrl: (@updateUrl) ->
+  setFeedURL: (@updateUrl) ->
 
   quitAndInstall: ->
     if SquirrelUpdate.existsSync()
-      SquirrelUpdate.restartAtom(require('app'))
+      SquirrelUpdate.restartAtom(require('electron').app)
     else
-      require('auto-updater').quitAndInstall()
+      require('electron').autoUpdater.quitAndInstall()
 
   downloadUpdate: (callback) ->
     SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
