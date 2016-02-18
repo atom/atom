@@ -41,13 +41,11 @@ class AtomWindow
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
-    loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false
     loadSettings.safeMode ?= false
     loadSettings.atomHome = process.env.ATOM_HOME
-    loadSettings.firstLoad = true
     loadSettings.clearWindowState ?= false
 
     # Only send to the first non-spec window created
@@ -64,23 +62,18 @@ class AtomWindow
 
     loadSettings.initialPaths.sort()
 
-    @browserWindow.loadSettings = loadSettings
     @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
 
     @setLoadSettings(loadSettings)
     @browserWindow.focusOnWebView() if @isSpec
+    @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  setLoadSettings: (loadSettingsObj) ->
-    # Ignore the windowState when passing loadSettings via URL, since it could
-    # be quite large.
-    loadSettings = _.clone(loadSettingsObj)
-    delete loadSettings['windowState']
-
+  setLoadSettings: (loadSettings) ->
     @browserWindow.loadURL url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"

@@ -133,7 +133,7 @@ class WindowEventHandler
 
   handleWindowBlur: =>
     @document.body.classList.add('is-blurred')
-    @atomEnvironment.storeDefaultWindowDimensions()
+    @atomEnvironment.storeWindowDimensions()
 
   handleWindowBeforeunload: =>
     confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)
@@ -141,8 +141,8 @@ class WindowEventHandler
       @atomEnvironment.hide()
     @reloadRequested = false
 
-    @atomEnvironment.storeDefaultWindowDimensions()
     @atomEnvironment.storeWindowDimensions()
+    @atomEnvironment.saveState()
     if confirmed
       @atomEnvironment.unloadEditorWindow()
     else

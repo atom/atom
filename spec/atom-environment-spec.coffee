@@ -162,7 +162,6 @@ describe "AtomEnvironment", ->
 
       spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
       spyOn(atom, 'serialize').andReturn({stuff: 'cool'})
-      spyOn(atom, 'deserialize')
 
       atom.project.setPaths([dir1, dir2])
       # State persistence will fail if other Atom instances are running
@@ -172,16 +171,13 @@ describe "AtomEnvironment", ->
 
       waitsForPromise ->
         atom.saveState().then ->
-          atom.loadState()
-
-      runs ->
-        expect(atom.deserialize).not.toHaveBeenCalled()
+          atom.loadState().then (state) ->
+            expect(state).toBeNull()
 
       waitsForPromise ->
         loadSettings.initialPaths = [dir2, dir1]
-        atom.loadState()
-      runs ->
-        expect(atom.deserialize).toHaveBeenCalledWith({stuff: 'cool'})
+        atom.loadState().then (state) ->
+          expect(state).toEqual({stuff: 'cool'})
 
     it "saves state on keydown and mousedown events", ->
       spyOn(atom, 'saveState')

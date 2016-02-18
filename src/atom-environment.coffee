@@ -537,20 +537,15 @@ class AtomEnvironment extends Model
   # Restores the full screen and maximized state after the window has resized to
   # prevent resize glitches.
   displayWindow: ->
-    @restoreWindowDimensions().then (dimensions) =>
+    @restoreWindowDimensions().then =>
       steps = [
         @restoreWindowBackground(),
         @show(),
         @focus()
       ]
       steps.push(@setFullScreen(true)) if @workspace.fullScreen
-      steps.push(@maximize()) if dimensions?.maximized and process.platform isnt 'darwin'
+      steps.push(@maximize()) if @windowDimensions?.maximized and process.platform isnt 'darwin'
       Promise.all(steps)
-
-      if @isFirstLoad()
-        loadSettings = getWindowLoadSettings()
-        loadSettings.firstLoad = false
-        setWindowLoadSettings(loadSettings)
 
   # Get the dimensions of this window.
   #
@@ -592,10 +587,10 @@ class AtomEnvironment extends Model
   isValidDimensions: ({x, y, width, height}={}) ->
     width > 0 and height > 0 and x + width > 0 and y + height > 0
 
-  storeDefaultWindowDimensions: ->
-    dimensions = @getWindowDimensions()
-    if @isValidDimensions(dimensions)
-      localStorage.setItem("defaultWindowDimensions", JSON.stringify(dimensions))
+  storeWindowDimensions: ->
+    @windowDimensions = @getWindowDimensions()
+    if @isValidDimensions(@windowDimensions)
+      localStorage.setItem("defaultWindowDimensions", JSON.stringify(@windowDimensions))
 
   getDefaultWindowDimensions: ->
     {windowDimensions} = @getLoadSettings()
@@ -615,21 +610,9 @@ class AtomEnvironment extends Model
       {x: 0, y: 0, width: Math.min(1024, width), height}
 
   restoreWindowDimensions: ->
-    dimensions = null
-
-    # The first time the window's loaded we want to use the default dimensions.
-    # But after that, e.g., when the window's been reloaded, we want to use the
-    # dimensions we've saved for it.
-    if not @isFirstLoad()
-      dimensions = @windowDimensions
-
-    unless @isValidDimensions(dimensions)
-      dimensions = @getDefaultWindowDimensions()
-    @setWindowDimensions(dimensions).then -> dimensions
-
-  storeWindowDimensions: ->
-    dimensions = @getWindowDimensions()
-    @windowDimensions = dimensions if @isValidDimensions(dimensions)
+    unless @windowDimensions? and @isValidDimensions(@windowDimensions)
+      @windowDimensions = @getDefaultWindowDimensions()
+    @setWindowDimensions(@windowDimensions).then -> @windowDimensions
 
   restoreWindowBackground: ->
     if backgroundColor = window.localStorage.getItem('atom:window-background-color')
@@ -647,32 +630,39 @@ class AtomEnvironment extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
-    @commandInstaller.installAtomCommand false, (error) ->
-      console.warn error.message if error?
-    @commandInstaller.installApmCommand false, (error) ->
-      console.warn error.message if error?
+    @loadState().then (state) =>
+      @windowDimensions = state?.windowDimensions
+      @displayWindow().then =>
+        @commandInstaller.installAtomCommand false, (error) ->
+          console.warn error.message if error?
+        @commandInstaller.installApmCommand false, (error) ->
+          console.warn error.message if error?
 
-    @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
-    @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
-    @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
-    @listenForUpdates()
+        @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
+        @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
+        @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+        @listenForUpdates()
 
-    @registerDefaultTargetForKeymaps()
+        @registerDefaultTargetForKeymaps()
 
-    @packages.loadPackages()
+        @packages.loadPackages()
 
-    @document.body.appendChild(@views.getView(@workspace))
-    @backgroundStylesheet?.remove()
+        startTime = Date.now()
+        @deserialize(state) if state?
+        @deserializeTimings.atom = Date.now() - startTime
 
-    @watchProjectPath()
+        @document.body.appendChild(@views.getView(@workspace))
+        @backgroundStylesheet?.remove()
 
-    @packages.activate()
-    @keymaps.loadUserKeymap()
-    @requireUserInitScript() unless @getLoadSettings().safeMode
+        @watchProjectPath()
 
-    @menu.update()
+        @packages.activate()
+        @keymaps.loadUserKeymap()
+        @requireUserInitScript() unless @getLoadSettings().safeMode
 
-    @openInitialEmptyEditorIfNecessary()
+        @menu.update()
+
+        @openInitialEmptyEditorIfNecessary()
 
   serialize: ->
     version: @constructor.version
@@ -828,38 +818,22 @@ class AtomEnvironment extends Model
     if storageKey = @getStateKey(@project?.getPaths())
       @stateStore.save(storageKey, state)
     else
-      @getCurrentWindow().loadSettings.windowState = JSON.stringify(state)
-      Promise.resolve()
+      @applicationDelegate.setTemporaryWindowState(state)
 
   loadState: ->
-    return Promise.resolve() unless @enablePersistence
-
-    startTime = Date.now()
-
-    statePromise = null
-    if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-      statePromise = @stateStore.load(stateKey)
-
-    if not statePromise? and windowState = @getLoadSettings().windowState
-      try
-        statePromise = Promise.resolve(JSON.parse(@getLoadSettings().windowState))
-      catch error
-        console.warn "Error parsing window state: #{statePath} #{error.stack}", error
-
-    if statePromise?
-      statePromise.then (state) =>
-        @deserializeTimings.atom = Date.now() - startTime
-        @deserialize(state) if state?
+    if @enablePersistence
+      if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+        @stateStore.load(stateKey)
+      else
+        @applicationDelegate.getTemporaryWindowState()
     else
-      Promise.resolve()
+      Promise.resolve(null)
 
   deserialize: (state) ->
     if grammarOverridesByPath = state.grammars?.grammarOverridesByPath
       @grammars.grammarOverridesByPath = grammarOverridesByPath
 
     @setFullScreen(state.fullScreen)
-
-    @windowDimensions = state.windowDimensions if state.windowDimensions
 
     @packages.packageStates = state.packageStates ? {}
 
