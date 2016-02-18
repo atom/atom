@@ -1,0 +1,16 @@
+pkgname=<%= appFileName %>
+pkgver=<%= version %>
+pkgrel=1
+pkgdesc="Chrome-based text editor from Github"
+arch=('<%= arch %>')
+url="http://atom.io"
+license=('MIT')
+provides=('atom')
+conflicts=('atom-editor' 'atom-editor-bin')
+depends=('nss' 'gtk2' 'libnotify' 'alsa-lib' 'gconf' 'libxtst' 'nodejs' 'libgnome-keyring' 'python' 'desktop-file-utils')
+makedepends=('npm')
+md5sums=()
+
+package() {
+  cp -r * "$pkgdir/"
+}

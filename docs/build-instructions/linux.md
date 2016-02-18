@@ -74,16 +74,22 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb`, `.rpm` and `.pkg.tar.xz` package types are supported. To create a debian `.deb` package run:
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create an `.rpm` package run
+  To create a redhat `.rpm` package run
 
   ```sh
   script/grunt mkrpm
+  ```
+
+  To create an archlinux `.pkg.tar.xz` package run
+
+  ```sh
+  script/grunt mkpkg
   ```
 
 ## Advanced Options
