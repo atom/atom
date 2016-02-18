@@ -463,17 +463,6 @@ describe "LanguageMode", ->
         fold2 = editor.tokenizedLineForScreenRow(5).fold
         expect(fold2).toBeFalsy()
 
-    describe ".isFoldableAtBufferRow(bufferRow)", ->
-      it "returns true if the line starts a multi-line comment", ->
-        expect(languageMode.isFoldableAtBufferRow(1)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(6)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(17)).toBe false
-
-      it "does not return true for a line in the middle of a comment that's followed by an indented line", ->
-        expect(languageMode.isFoldableAtBufferRow(7)).toBe false
-        editor.buffer.insert([8, 0], '  ')
-        expect(languageMode.isFoldableAtBufferRow(7)).toBe false
-
   describe "css", ->
     beforeEach ->
       waitsForPromise ->

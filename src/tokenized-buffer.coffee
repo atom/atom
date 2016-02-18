@@ -210,8 +210,6 @@ class TokenizedBuffer extends Model
       @validateRow(endRow)
       @invalidateRow(endRow + 1) unless filledRegion
 
-      [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
-
       event = {start: startRow, end: endRow, delta: 0}
       @emitter.emit 'did-change', event
 
@@ -271,9 +269,6 @@ class TokenizedBuffer extends Model
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
-    [start, end] = @updateFoldableStatus(start, end + delta)
-    end -= delta
-
     event = {start, end, delta, bufferChange: e}
     @emitter.emit 'did-change', event
 
@@ -286,23 +281,6 @@ class TokenizedBuffer extends Model
         line = @tokenizedLineForRow(row)
 
     row - increment
-
-  updateFoldableStatus: (startRow, endRow) ->
-    return [startRow, endRow] if @largeFileMode
-
-    scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
-    scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
-    scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
-
-    for row in [scanStartRow..scanEndRow] by 1
-      foldable = @isFoldableAtRow(row)
-      line = @tokenizedLineForRow(row)
-      unless line.foldable is foldable
-        line.foldable = foldable
-        startRow = Math.min(startRow, row)
-        endRow = Math.max(endRow, row)
-
-    [startRow, endRow]
 
   isFoldableAtRow: (row) ->
     if @largeFileMode

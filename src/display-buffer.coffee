@@ -413,6 +413,9 @@ class DisplayBuffer extends Model
   isFoldedAtScreenRow: (screenRow) ->
     @largestFoldContainingBufferRow(@bufferRowForScreenRow(screenRow))?
 
+  isFoldableAtBufferRow: (row) ->
+    @tokenizedBuffer.isFoldableAtRow(row)
+
   # Destroys the fold with the given id
   destroyFoldWithId: (id) ->
     @foldsByMarkerId[id]?.destroy()
