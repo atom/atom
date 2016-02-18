@@ -755,7 +755,7 @@ class Selection extends Model
   #
   # * `otherSelection` A {Selection} to compare against
   compare: (otherSelection) ->
-    @getBufferRange().compare(otherSelection.getBufferRange())
+    @marker.compare(otherSelection.marker)
 
   ###
   Section: Private Utilities
