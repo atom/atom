@@ -83,6 +83,15 @@ setupCompileCache = ->
   compileCache = require('../compile-cache')
   compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 
+writeFullVersion = ->
+  process.stdout.write """
+    Atom    : #{app.getVersion()}
+    Electron: #{process.versions.electron}
+    Chrome  : #{process.versions.chrome}
+    Node    : #{process.versions.node}
+
+  """
+
 parseCommandLine = ->
   version = app.getVersion()
   options = yargs(process.argv[1..]).wrap(100)
@@ -118,7 +127,7 @@ parseCommandLine = ->
   options.boolean('portable').describe('portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
-  options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
+  options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.string('socket-path')
   options.string('user-data-dir')
@@ -131,7 +140,7 @@ parseCommandLine = ->
     process.exit(0)
 
   if args.version
-    process.stdout.write("#{version}\n")
+    writeFullVersion()
     process.exit(0)
 
   executedFrom = args['executed-from']?.toString() ? process.cwd()
