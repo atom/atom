@@ -476,7 +476,8 @@ class Workspace extends Model
     activateItem = options.activateItem ? true
 
     if uri?
-      item = pane.itemForURI(uri)
+      if item = pane.itemForURI(uri)
+        item.terminatePendingState?() if item.isPending?() and not options.pending
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
