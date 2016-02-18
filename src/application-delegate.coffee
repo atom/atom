@@ -22,6 +22,12 @@ class ApplicationDelegate
   closeWindow: ->
     ipcRenderer.send("call-window-method", "close")
 
+  getTemporaryWindowState: ->
+    ipcHelpers.call('get-temporary-window-state')
+
+  setTemporaryWindowState: (state) ->
+    ipcHelpers.call('set-temporary-window-state', state)
+
   getWindowSize: ->
     [width, height] = remote.getCurrentWindow().getSize()
     {width, height}

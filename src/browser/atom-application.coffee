@@ -280,6 +280,12 @@ class AtomApplication
     ipcHelpers.respondTo 'hide-window', (win) ->
       win.hide()
 
+    ipcHelpers.respondTo 'get-temporary-window-state', (win) ->
+      win.temporaryState
+
+    ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
+      win.temporaryState = state
+
     ipcMain.on 'did-cancel-window-unload', =>
       @quitting = false
 
@@ -528,7 +534,7 @@ class AtomApplication
       if pack.urlMain
         packagePath = @packages.resolvePackagePath(packageName)
         windowInitializationScript = path.resolve(packagePath, pack.urlMain)
-        windowDimensions = @focusedWindow()?.getDimensions()
+        windowDimensions = @getDimensionsForNewWindow()
         new AtomWindow({windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
