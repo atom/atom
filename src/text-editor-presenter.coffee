@@ -90,7 +90,7 @@ class TextEditorPresenter
       @updateLineDecorations()
       @updateBlockDecorations()
 
-    @updateTilesState(true)
+    @updateTilesState()
 
     @updating = false
     @state
@@ -112,7 +112,7 @@ class TextEditorPresenter
     @updateHiddenInputState()
     @updateContentState()
     @updateHighlightDecorations() if @shouldUpdateDecorations
-    @updateTilesState(false)
+    @updateTilesState()
     @updateCursorsState()
     @updateOverlaysState()
     @updateLineNumberGutterState()
@@ -327,7 +327,7 @@ class TextEditorPresenter
   clearScreenRowsToMeasure: ->
     @screenRowsToMeasure = []
 
-  updateTilesState: (updateLinesState) ->
+  updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
     screenRows = @getScreenRows()
@@ -367,9 +367,8 @@ class TextEditorPresenter
       gutterTile.display = "block"
       gutterTile.zIndex = zIndex
 
-      if updateLinesState
-        @updateLinesState(tile, rowsWithinTile)
-        @updateLineNumbersState(gutterTile, rowsWithinTile)
+      @updateLinesState(tile, rowsWithinTile)
+      @updateLineNumbersState(gutterTile, rowsWithinTile)
 
       visibleTiles[tileStartRow] = true
       zIndex++
