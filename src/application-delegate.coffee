@@ -186,31 +186,31 @@ class ApplicationDelegate
     @onUpdateAvailable(callback)
 
   onDidBeginCheckingForUpdate: (callback) ->
-    outerCallback = (message, detail) ->
+    outerCallback = (event, message, detail) ->
       if message is 'checking-for-update'
         callback(detail)
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
 
   onDidCompleteDownloadingUpdate: (callback) ->
-    outerCallback = (message, detail) ->
+    outerCallback = (event, message, detail) ->
       if message is 'update-available'
         callback(detail)
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
 
   onUpdateNotAvailable: (callback) ->
-    outerCallback = (message, detail) ->
+    outerCallback = (event, message, detail) ->
       if message is 'update-not-available'
         callback(detail)
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
 
 
   onApplicationMenuCommand: (callback) ->
