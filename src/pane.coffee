@@ -661,7 +661,7 @@ class Pane extends Model
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
       @setFlexScale(1)
 
-    newPane = new Pane(extend({@applicationDelegate, @deserializerManager, @config}, params))
+    newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
