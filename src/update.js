@@ -1,7 +1,7 @@
 'use babel'
 
 import {Emitter, CompositeDisposable} from 'event-kit'
-import ipc from 'ipc'
+import {ipcRenderer} from 'electron'
 
 export default class Update {
   constructor () {
@@ -67,6 +67,6 @@ export default class Update {
   }
 
   check () {
-    ipc.send('check-for-update')
+    ipcRenderer.send('check-for-update')
   }
 }
