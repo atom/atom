@@ -3,7 +3,6 @@ _ = require 'underscore-plus'
 Config = require '../config'
 {EventEmitter} = require 'events'
 path = require 'path'
-ipc = require 'ipc'
 
 IdleState = 'idle'
 CheckingState = 'checking'
