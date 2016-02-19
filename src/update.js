@@ -10,15 +10,26 @@ export default class Update {
   }
 
   initialize () {
-    atom.applicationDelegate.onDidBeginDownloadingUpdate(() => {
-      this.emitter.emit('did-begin-downloading-update')
-    })
-    atom.applicationDelegate.onDidBeginCheckingForUpdate(() => {
-      this.emitter.emit('did-begin-checking-for-update')
-    })
-    atom.applicationDelegate.onUpdateAvailable(() => {
-      this.emitter.emit('did-complete-downloading-update')
-    })
+    this.subscriptions.add(
+      atom.applicationDelegate.onDidBeginDownloadingUpdate(() => {
+        this.emitter.emit('did-begin-downloading-update')
+      })
+    )
+    this.subscriptions.add(
+      atom.applicationDelegate.onDidBeginCheckingForUpdate(() => {
+        this.emitter.emit('did-begin-checking-for-update')
+      })
+    )
+    this.subscriptions.add(
+      atom.applicationDelegate.onDidCompleteDownloadingUpdate(() => {
+        this.emitter.emit('did-complete-downloading-update')
+      })
+    )
+    this.subscriptions.add(
+      atom.applicationDelegate.onUpdateNotAvailable(() => {
+        this.emitter.emit('update-not-available')
+      })
+    )
   }
 
   dispose () {
