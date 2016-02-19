@@ -174,7 +174,6 @@
       { label: "VERSION", enabled: false }
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
-      { label: 'Roadmap', command: 'application:open-roadmap' }
       { label: 'Frequently Asked Questions', command: 'application:open-faq' }
       { type: 'separator' }
       { label: 'Community Discussions', command: 'application:open-discussions' }

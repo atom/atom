@@ -175,7 +175,6 @@ class AtomApplication
 
     @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
     @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
-    @on 'application:open-roadmap', -> shell.openExternal('https://atom.io/roadmap?app')
     @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
     @on 'application:report-issue', -> shell.openExternal('https://github.com/atom/atom/blob/master/CONTRIBUTING.md#submitting-issues')
