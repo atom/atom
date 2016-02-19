@@ -891,7 +891,8 @@ class AtomEnvironment extends Model
     @emitter.emit 'update-available', details
 
   listenForUpdates: ->
-    @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
+    # listen for updates available locally (that have been successfully downloaded)
+    @disposables.add(@applicationDelegate.onDidCompleteDownloadingUpdate(@updateAvailable.bind(this)))
 
   setBodyPlatformClass: ->
     @document.body.classList.add("platform-#{process.platform}")
