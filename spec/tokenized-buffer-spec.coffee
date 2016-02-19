@@ -2,12 +2,25 @@ TokenizedBuffer = require '../src/tokenized-buffer'
 TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
+fakeIdleTime = 5
+
 describe "TokenizedBuffer", ->
-  [tokenizedBuffer, buffer, changeHandler] = []
+  [tokenizedBuffer, buffer, changeHandler, idleCallbacks] = []
+
+  goIdle = ->
+    if callback = idleCallbacks.shift()
+      callback({
+        time: fakeIdleTime,
+        timeRemaining: -> @time--
+      })
 
   beforeEach ->
     # enable async tokenization
     TokenizedBuffer.prototype.chunkSize = 5
+    idleCallbacks = []
+    spyOn(window, 'requestIdleCallback').andCallFake (callback) ->
+      idleCallbacks.push(callback)
+
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
 
     waitsForPromise ->
@@ -21,7 +34,7 @@ describe "TokenizedBuffer", ->
 
   fullyTokenize = (tokenizedBuffer) ->
     tokenizedBuffer.setVisible(true)
-    advanceClock() while tokenizedBuffer.firstInvalidRow()?
+    goIdle() while tokenizedBuffer.firstInvalidRow()?
     changeHandler?.reset()
 
   describe "serialization", ->
@@ -115,7 +128,7 @@ describe "TokenizedBuffer", ->
     it "stops tokenization", ->
       tokenizedBuffer.destroy()
       spyOn(tokenizedBuffer, 'tokenizeNextChunk')
-      advanceClock()
+      goIdle()
       expect(tokenizedBuffer.tokenizeNextChunk).not.toHaveBeenCalled()
 
   describe "when the buffer contains soft-tabs", ->
@@ -146,7 +159,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack).toBeUndefined()
 
         # tokenize chunk 1
-        advanceClock()
+        goIdle()
         expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
@@ -154,7 +167,7 @@ describe "TokenizedBuffer", ->
         changeHandler.reset()
 
         # tokenize chunk 2
-        advanceClock()
+        goIdle()
         expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(9).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeFalsy()
@@ -162,7 +175,7 @@ describe "TokenizedBuffer", ->
         changeHandler.reset()
 
         # tokenize last chunk
-        advanceClock()
+        goIdle()
         expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(12).ruleStack?).toBeTruthy()
         expect(changeHandler).toHaveBeenCalledWith(start: 10, end: 12, delta: 0)
@@ -170,7 +183,7 @@ describe "TokenizedBuffer", ->
     describe "when the buffer is partially tokenized", ->
       beforeEach ->
         # tokenize chunk 1 only
-        advanceClock()
+        goIdle()
         changeHandler.reset()
 
       describe "when there is a buffer change inside the tokenized region", ->
@@ -181,7 +194,7 @@ describe "TokenizedBuffer", ->
             changeHandler.reset()
 
             expect(tokenizedBuffer.firstInvalidRow()).toBe 7
-            advanceClock()
+            goIdle()
             expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 11, delta: 0)
 
         describe "when lines are removed", ->
@@ -191,7 +204,7 @@ describe "TokenizedBuffer", ->
             changeHandler.reset()
 
             expect(tokenizedBuffer.firstInvalidRow()).toBe 3
-            advanceClock()
+            goIdle()
             expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
 
         describe "when the change invalidates all the lines before the current invalid region", ->
@@ -201,7 +214,7 @@ describe "TokenizedBuffer", ->
             changeHandler.reset()
             expect(tokenizedBuffer.firstInvalidRow()).toBe 3
 
-            advanceClock()
+            goIdle()
             expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
             expect(tokenizedBuffer.firstInvalidRow()).toBe 8
 
@@ -211,7 +224,7 @@ describe "TokenizedBuffer", ->
           changeHandler.reset()
 
           expect(tokenizedBuffer.firstInvalidRow()).toBe 8
-          advanceClock()
+          goIdle()
 
       describe "when there is a buffer change inside an invalid region", ->
         it "does not attempt to tokenize the lines in the change, and preserves the existing invalid row", ->
@@ -255,7 +268,7 @@ describe "TokenizedBuffer", ->
               expect(event).toEqual(start: 2, end: 2, delta: 0)
               changeHandler.reset()
 
-              advanceClock()
+              goIdle()
               expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
               expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
               expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
@@ -306,7 +319,7 @@ describe "TokenizedBuffer", ->
             expect(event).toEqual(start: 2, end: 3, delta: -1)
             changeHandler.reset()
 
-            advanceClock()
+            goIdle()
             expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(changeHandler).toHaveBeenCalled()
@@ -354,7 +367,7 @@ describe "TokenizedBuffer", ->
             expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js']
             changeHandler.reset()
 
-            advanceClock() # tokenize invalidated lines in background
+            goIdle() # tokenize invalidated lines in background
             expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
@@ -367,13 +380,13 @@ describe "TokenizedBuffer", ->
 
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
-          commentBlock = _.multiplyString("// a comment\n", tokenizedBuffer.chunkSize + 2)
+          commentBlock = _.multiplyString("// a comment\n", fakeIdleTime + 2)
           buffer.insert([0, 0], commentBlock)
           expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
 
-          advanceClock()
+          goIdle()
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeTruthy()
 
@@ -619,7 +632,6 @@ describe "TokenizedBuffer", ->
         expect(tokenizedHandler.callCount).toBe(1)
 
     it "retokenizes the buffer", ->
-
       waitsForPromise ->
         atom.packages.activatePackage('language-ruby-on-rails')
 
@@ -997,13 +1009,15 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
       expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'
 
-  describe 'when a file is opened', ->
-    [registration, editor, called] = []
-    beforeEach ->
-      runs ->
-        called = false
-        registration = atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', -> called = true)
+  describe 'the grammar-used hook', ->
+    it "triggers the hook when opening a file or changing its grammar", ->
+      atom.packages.triggerDeferredActivationHooks()
 
+      javascriptUsed = false
+      atom.packages.onDidTriggerActivationHook 'language-javascript:grammar-used', ->
+        javascriptUsed = true
+
+      editor = null
       waitsForPromise ->
         atom.workspace.open('sample.js', autoIndent: false).then (o) ->
           editor = o
@@ -1011,42 +1025,18 @@ describe "TokenizedBuffer", ->
       waitsForPromise ->
         atom.packages.activatePackage('language-javascript')
 
-    afterEach: ->
-      registration?.dispose?()
-      atom.packages.deactivatePackages()
-      atom.packages.unloadPackages()
+      waitsFor -> javascriptUsed
 
-    it 'triggers the grammar-used hook', ->
-      waitsFor ->
-        called is true
+      coffeeUsed = false
 
       runs ->
-        expect(called).toBe true
+        atom.packages.onDidTriggerActivationHook 'language-coffee-script:grammar-used', ->
+          coffeeUsed = true
 
-    describe 'when changing the grammar of an open file', ->
-      [coffeeRegistration, coffeeCalled] = []
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
 
-      beforeEach ->
-        coffeeCalled = false
-        coffeeRegistration = atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', -> coffeeCalled = true)
-
-        waitsForPromise ->
-          atom.packages.activatePackage('language-coffee-script')
-
-      afterEach ->
-        coffeeRegistration?.dispose()
-
-      it 'triggers the grammar-used hook', ->
-        waitsFor ->
-          called is true
-
-        runs ->
-          expect(called).toBe true
-          expect(coffeeCalled).toBe false
-          editor.setGrammar(atom.grammars.selectGrammar('.coffee'))
-
-        waitsFor ->
-          coffeeCalled is true
-
-        runs ->
-          expect(coffeeCalled).toBe true
+      runs ->
+        expect(coffeeUsed).toBe false
+        editor.setGrammar(atom.grammars.selectGrammar('.coffee'))
+        expect(coffeeUsed).toBe true

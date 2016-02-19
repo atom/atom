@@ -175,20 +175,18 @@ class TokenizedBuffer extends Model
     return if not @visible or @pendingChunk or not @isAlive()
 
     @pendingChunk = true
-    _.defer =>
+    requestIdleCallback (deadline) =>
       @pendingChunk = false
-      @tokenizeNextChunk() if @isAlive() and @buffer.isAlive()
+      @tokenizeNextChunk(deadline) if @isAlive() and @buffer.isAlive()
 
-  tokenizeNextChunk: ->
+  tokenizeNextChunk: (deadline) ->
     # Short circuit null grammar which can just use the placeholder tokens
     if @grammar is @grammarRegistry.nullGrammar and @firstInvalidRow()?
       @invalidRows = []
       @markTokenizationComplete()
       return
 
-    rowsRemaining = @chunkSize
-
-    while @firstInvalidRow()? and rowsRemaining > 0
+    while @firstInvalidRow()? and deadline.timeRemaining() > 0
       startRow = @invalidRows.shift()
       lastRow = @getLastRow()
       continue if startRow > lastRow
@@ -197,7 +195,7 @@ class TokenizedBuffer extends Model
       loop
         previousStack = @stackForRow(row)
         @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @openScopesForRow(row))
-        if --rowsRemaining is 0
+        if deadline.timeRemaining() <= 0
           filledRegion = false
           endRow = row
           break
