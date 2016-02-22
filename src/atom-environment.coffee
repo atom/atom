@@ -813,12 +813,17 @@ class AtomEnvironment extends Model
 
   saveState: ->
     return Promise.resolve() unless @enablePersistence
-    state = @serialize()
 
-    if storageKey = @getStateKey(@project?.getPaths())
-      @stateStore.save(storageKey, state)
-    else
-      @applicationDelegate.setTemporaryWindowState(state)
+    new Promise (resolve, reject) =>
+      window.requestIdleCallback =>
+        state = @serialize()
+        savePromise =
+          if storageKey = @getStateKey(@project?.getPaths())
+            @stateStore.save(storageKey, state)
+          else
+            @applicationDelegate.setTemporaryWindowState(state)
+        savePromise.catch(reject).then(resolve)
+
 
   loadState: ->
     if @enablePersistence
