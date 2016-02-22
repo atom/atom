@@ -202,6 +202,7 @@ export default class GitRepositoryAsync {
 
     workingDirectory = workingDirectory.replace(/\/$/, '')
 
+    const originalPath = _path
     if (this.isCaseInsensitive) {
       _path = _path.toLowerCase()
       workingDirectory = workingDirectory.toLowerCase()
@@ -212,7 +213,6 @@ export default class GitRepositoryAsync {
     _path = _path.replace(/^\/private\//, '/')
     workingDirectory = workingDirectory.replace(/^\/private\//, '/')
 
-    const originalPath = _path
     if (_path.indexOf(workingDirectory) === 0) {
       return originalPath.substring(workingDirectory.length + 1)
     } else if (_path === workingDirectory) {
