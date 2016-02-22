@@ -24,16 +24,18 @@ class StateStore {
   }
 
   save (key, value) {
-    return this.dbPromise.then(db => {
-      if (!db) return
+    return new Promise((resolve, reject) => {
+      window.requestIdleCallback(deadline => {
+        this.dbPromise.then(db => {
+          if (db == null) resolve()
 
-      return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'], 'readwrite')
-          .objectStore('states')
-          .put({value: value, storedAt: new Date().toString()}, key)
+          var request = db.transaction(['states'], 'readwrite')
+            .objectStore('states')
+            .put({value: value, storedAt: new Date().toString()}, key)
 
-        request.onsuccess = resolve
-        request.onerror = reject
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
       })
     })
   }
