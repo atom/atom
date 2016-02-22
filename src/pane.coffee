@@ -300,10 +300,11 @@ class Pane extends Model
 
   # Build the itemStack after deserializing
   addItemsToStack: (itemStackIndices) ->
-    if itemStackIndices.length is 0 or itemStackIndices.length isnt @items.length or itemStackIndices.indexOf(-1) >= 0
-      itemStackIndices = (i for i in [0..@items.length-1])
-    for itemIndex in itemStackIndices
-      @addItemToStack(@items[itemIndex])
+    if @items.length > 0
+      if itemStackIndices.length is 0 or itemStackIndices.length isnt @items.length or itemStackIndices.indexOf(-1) >= 0
+        itemStackIndices = (i for i in [0..@items.length-1]) unless @items.length is 0
+      for itemIndex in itemStackIndices
+        @addItemToStack(@items[itemIndex])
 
   # Add item (or move item) to the end of the itemStack
   addItemToStack: (newItem) ->
