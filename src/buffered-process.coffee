@@ -111,11 +111,12 @@ class BufferedProcess
 
     stream.on 'data', (data) =>
       return if @killed
+      bufferedLength = buffered.length
       buffered += data
-      lastNewlineIndex = buffered.lastIndexOf('\n')
+      lastNewlineIndex = data.lastIndexOf('\n')
       if lastNewlineIndex isnt -1
-        onLines(buffered.substring(0, lastNewlineIndex + 1))
-        buffered = buffered.substring(lastNewlineIndex + 1)
+        onLines(buffered.substring(0, lastNewlineIndex + bufferedLength + 1))
+        buffered = buffered.substring(lastNewlineIndex + bufferedLength + 1)
 
     stream.on 'close', =>
       return if @killed
