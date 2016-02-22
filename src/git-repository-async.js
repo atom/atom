@@ -202,32 +202,35 @@ export default class GitRepositoryAsync {
 
     workingDirectory = workingDirectory.replace(/\/$/, '')
 
+    // Depending on where the paths come from, they may have a '/private/'
+    // prefix. Standardize by stripping that out.
+    _path = _path.replace(/^\/private\//i, '/')
+    workingDirectory = workingDirectory.replace(/^\/private\//i, '/')
+
+    const originalPath = _path
+    const originalWorkingDirectory = workingDirectory
     if (this.isCaseInsensitive) {
       _path = _path.toLowerCase()
       workingDirectory = workingDirectory.toLowerCase()
     }
 
-    // Depending on where the paths come from, they may have a '/private/'
-    // prefix. Standardize by stripping that out.
-    _path = _path.replace(/^\/private\//, '/')
-    workingDirectory = workingDirectory.replace(/^\/private\//, '/')
-
-    const originalPath = _path
     if (_path.indexOf(workingDirectory) === 0) {
-      return originalPath.substring(workingDirectory.length + 1)
+      return originalPath.substring(originalWorkingDirectory.length + 1)
     } else if (_path === workingDirectory) {
       return ''
     }
 
     if (openedWorkingDirectory) {
+      openedWorkingDirectory = openedWorkingDirectory.replace(/\/$/, '')
+      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//i, '/')
+
+      const originalOpenedWorkingDirectory = openedWorkingDirectory
       if (this.isCaseInsensitive) {
         openedWorkingDirectory = openedWorkingDirectory.toLowerCase()
       }
-      openedWorkingDirectory = openedWorkingDirectory.replace(/\/$/, '')
-      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//, '/')
 
       if (_path.indexOf(openedWorkingDirectory) === 0) {
-        return originalPath.substring(openedWorkingDirectory.length + 1)
+        return originalPath.substring(originalOpenedWorkingDirectory.length + 1)
       } else if (_path === openedWorkingDirectory) {
         return ''
       }
