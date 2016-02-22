@@ -302,7 +302,7 @@ class Pane extends Model
   addItemsToStack: (itemStackIndices) ->
     if @items.length > 0
       if itemStackIndices.length is 0 or itemStackIndices.length isnt @items.length or itemStackIndices.indexOf(-1) >= 0
-        itemStackIndices = (i for i in [0..@items.length-1]) unless @items.length is 0
+        itemStackIndices = (i for i in [0..@items.length-1])
       for itemIndex in itemStackIndices
         @addItemToStack(@items[itemIndex])
 
