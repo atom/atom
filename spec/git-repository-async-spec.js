@@ -592,6 +592,8 @@ describe('GitRepositoryAsync', () => {
     })
 
     it('preserves file case', () => {
+      repo.isCaseInsensitive = true
+
       const workdir = '/tmp/foo/bar/baz/'
       const relativizedPath = repo.relativize(`${workdir}a/README.txt`, workdir)
       expect(relativizedPath).toBe('a/README.txt')
