@@ -91,7 +91,9 @@ describe "TextEditorPresenter", ->
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
     waitsForStateToUpdate = (presenter, fn) ->
-      waitsFor "presenter state to update", 1000, (done) ->
+      line = new Error().stack.split('\n')[2].split(':')[1]
+
+      waitsFor "presenter state to update at line #{line}", 1000, (done) ->
         disposable = presenter.onDidUpdateState ->
           disposable.dispose()
           process.nextTick(done)
