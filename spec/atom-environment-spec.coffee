@@ -275,6 +275,14 @@ describe "AtomEnvironment", ->
         atom.openLocations([{pathToOpen}])
         expect(atom.project.getPaths()[0]).toBe __dirname
 
+      describe "then a second path is opened with forceAddToWindow", ->
+        it "adds the second path to the project's paths", ->
+          firstPathToOpen = __dirname
+          secondPathToOpen = path.resolve(__dirname, './fixtures')
+          atom.openLocations([{pathToOpen: firstPathToOpen}])
+          atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
+          expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
+
     describe "when the opened path does not exist but its parent directory does", ->
       it "adds the parent directory to the project paths", ->
         pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
