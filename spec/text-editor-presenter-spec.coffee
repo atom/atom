@@ -91,7 +91,9 @@ describe "TextEditorPresenter", ->
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
     waitsForStateToUpdate = (presenter, fn) ->
-      waitsFor "presenter state to update", 1000, (done) ->
+      line = new Error().stack.split('\n')[2].split(':')[1]
+
+      waitsFor "presenter state to update at line #{line}", 1000, (done) ->
         disposable = presenter.onDidUpdateState ->
           disposable.dispose()
           process.nextTick(done)
@@ -1338,7 +1340,9 @@ describe "TextEditorPresenter", ->
               blockDecoration3 = addBlockDecorationBeforeScreenRow(7)
               blockDecoration4 = null
 
-              waitsForStateToUpdate presenter, blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+              waitsForStateToUpdate presenter, ->
+                blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+
               runs ->
                 expect(lineStateForScreenRow(presenter, 0).precedingBlockDecorations).toEqual([blockDecoration1])
                 expect(lineStateForScreenRow(presenter, 0).followingBlockDecorations).toEqual([])
