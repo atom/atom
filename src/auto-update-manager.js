@@ -43,10 +43,6 @@ export default class AutoUpdateManager {
     return this.emitter.on('did-complete-downloading-update', callback)
   }
 
-  onUpdateAvailable (callback) {
-    return this.emitter.on('update-available', callback)
-  }
-
   onUpdateNotAvailable (callback) {
     return this.emitter.on('update-not-available', callback)
   }
