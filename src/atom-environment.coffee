@@ -41,7 +41,7 @@ TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
-Update = require './update'
+AutoUpdateManager = require './auto-update-manager'
 
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
@@ -116,8 +116,8 @@ class AtomEnvironment extends Model
   # Public: A {TextEditorRegistry} instance
   textEditors: null
 
-  # Public: An {Update} instance
-  update: null
+  # Public: An {AutoUpdateManager} instance
+  autoUpdater: null
 
   saveStateDebounceInterval: 1000
 
@@ -192,7 +192,7 @@ class AtomEnvironment extends Model
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
-    @update = new Update()
+    @autoUpdater = new AutoUpdateManager
 
     @config.load()
 

@@ -1,25 +1,25 @@
 'use babel'
 
-import Update from '../src/update'
+import AutoUpdateManager from '../src/auto-update-manager'
 import {remote} from 'electron'
 const electronAutoUpdater = remote.require('electron').autoUpdater
 
-describe('Update', () => {
-  let update
+fdescribe('AutoUpdateManager (renderer)', () => {
+  let autoUpdateManager
 
   beforeEach(() => {
-    update = new Update()
-    update.initialize()
+    autoUpdateManager = new AutoUpdateManager()
+    autoUpdateManager.initialize()
   })
 
   afterEach(() => {
-    update.dispose()
+    autoUpdateManager.dispose()
   })
 
   describe('::onDidBeginCheckingForUpdate', () => {
     it('subscribes to "did-begin-checking-for-update" event', () => {
       const spy = jasmine.createSpy('spy')
-      update.onDidBeginCheckingForUpdate(spy)
+      autoUpdateManager.onDidBeginCheckingForUpdate(spy)
       electronAutoUpdater.emit('checking-for-update')
       waitsFor(() => {
         return spy.callCount === 1
@@ -30,7 +30,7 @@ describe('Update', () => {
   describe('::onDidBeginDownload', () => {
     it('subscribes to "did-begin-downloading-update" event', () => {
       const spy = jasmine.createSpy('spy')
-      update.onDidBeginDownload(spy)
+      autoUpdateManager.onDidBeginDownload(spy)
       electronAutoUpdater.emit('update-available')
       waitsFor(() => {
         return spy.callCount === 1
@@ -41,7 +41,7 @@ describe('Update', () => {
   describe('::onDidCompleteDownload', () => {
     it('subscribes to "did-complete-downloading-update" event', () => {
       const spy = jasmine.createSpy('spy')
-      update.onDidCompleteDownload(spy)
+      autoUpdateManager.onDidCompleteDownload(spy)
       electronAutoUpdater.emit('update-downloaded', null, null, {releaseVersion: '1.2.3'})
       waitsFor(() => {
         return spy.callCount === 1
@@ -52,12 +52,11 @@ describe('Update', () => {
   describe('::onUpdateNotAvailable', () => {
     it('subscribes to "update-not-available" event', () => {
       const spy = jasmine.createSpy('spy')
-      update.onUpdateNotAvailable(spy)
+      autoUpdateManager.onUpdateNotAvailable(spy)
       electronAutoUpdater.emit('update-not-available')
       waitsFor(() => {
         return spy.callCount === 1
       })
     })
   })
-
 })

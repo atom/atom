@@ -3,7 +3,7 @@
 import {Emitter, CompositeDisposable} from 'event-kit'
 import {ipcRenderer} from 'electron'
 
-export default class Update {
+export default class AutoUpdateManager {
   constructor () {
     this.subscriptions = new CompositeDisposable()
     this.emitter = new Emitter()
