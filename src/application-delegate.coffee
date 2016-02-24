@@ -166,8 +166,7 @@ class ApplicationDelegate
 
   onDidOpenLocations: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'open-locations'
-        callback(detail)
+      callback(detail) if message is 'open-locations'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
@@ -175,8 +174,7 @@ class ApplicationDelegate
 
   onUpdateAvailable: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'did-begin-downloading-update'
-        callback(detail)
+      callback(detail) if message is 'did-begin-downloading-update'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
@@ -187,8 +185,7 @@ class ApplicationDelegate
 
   onDidBeginCheckingForUpdate: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'checking-for-update'
-        callback(detail)
+      callback(detail) if message is 'checking-for-update'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
@@ -196,8 +193,7 @@ class ApplicationDelegate
 
   onDidCompleteDownloadingUpdate: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'update-available'
-        callback(detail)
+      callback(detail) if message is 'update-available'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
@@ -205,13 +201,11 @@ class ApplicationDelegate
 
   onUpdateNotAvailable: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'update-not-available'
-        callback(detail)
+      callback(detail) if message is 'update-not-available'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
       ipcRenderer.removeListener('message', outerCallback)
-
 
   onApplicationMenuCommand: (callback) ->
     outerCallback = (event, args...) ->
