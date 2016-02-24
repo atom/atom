@@ -4,7 +4,7 @@ import AutoUpdateManager from '../src/auto-update-manager'
 import {remote} from 'electron'
 const electronAutoUpdater = remote.require('electron').autoUpdater
 
-fdescribe('AutoUpdateManager (renderer)', () => {
+describe('AutoUpdateManager (renderer)', () => {
   let autoUpdateManager
 
   beforeEach(() => {
