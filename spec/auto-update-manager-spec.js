@@ -9,7 +9,7 @@ fdescribe('AutoUpdateManager (renderer)', () => {
 
   beforeEach(() => {
     autoUpdateManager = new AutoUpdateManager()
-    autoUpdateManager.initialize()
+    autoUpdateManager.initialize(atom.applicationDelegate)
   })
 
   afterEach(() => {

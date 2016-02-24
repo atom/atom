@@ -9,18 +9,18 @@ export default class AutoUpdateManager {
     this.emitter = new Emitter()
   }
 
-  initialize () {
+  initialize (updateEventEmitter) {
     this.subscriptions.add(
-      atom.applicationDelegate.onDidBeginDownloadingUpdate(() => {
+      updateEventEmitter.onDidBeginDownloadingUpdate(() => {
         this.emitter.emit('did-begin-downloading-update')
       }),
-      atom.applicationDelegate.onDidBeginCheckingForUpdate(() => {
+      updateEventEmitter.onDidBeginCheckingForUpdate(() => {
         this.emitter.emit('did-begin-checking-for-update')
       }),
-      atom.applicationDelegate.onDidCompleteDownloadingUpdate(() => {
+      updateEventEmitter.onDidCompleteDownloadingUpdate(() => {
         this.emitter.emit('did-complete-downloading-update')
       }),
-      atom.applicationDelegate.onUpdateNotAvailable(() => {
+      updateEventEmitter.onUpdateNotAvailable(() => {
         this.emitter.emit('update-not-available')
       })
     )
