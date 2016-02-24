@@ -196,7 +196,7 @@ describe "Pane", ->
       pane.activateNextRecentlyUsedItem()
       expect(pane.getActiveItem()).toBe item2
       pane.activateNextRecentlyUsedItem()
-      pane.moveItemToTopOfStack()
+      pane.moveActiveItemToTopOfStack()
       expect(pane.getActiveItem()).toBe item1
       expect(pane.itemStack[4]).toBe item1
       pane.activateNextRecentlyUsedItem()
@@ -210,7 +210,7 @@ describe "Pane", ->
       pane.activateNextRecentlyUsedItem()
       expect(pane.getActiveItem()).toBe item1
       pane.activateNextRecentlyUsedItem()
-      pane.moveItemToTopOfStack()
+      pane.moveActiveItemToTopOfStack()
       expect(pane.getActiveItem()).toBe item4
       expect(pane.itemStack[4]).toBe item4
 
@@ -280,7 +280,7 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
       [item1, item2, item3] = pane.getItems()
 
-    it "removes the item from the items list and destroyes it", ->
+    it "removes the item from the items list and destroys it", ->
       expect(pane.getActiveItem()).toBe item1
       pane.destroyItem(item2)
       expect(item2 in pane.getItems()).toBe false
@@ -290,6 +290,19 @@ describe "Pane", ->
       pane.destroyItem(item1)
       expect(item1 in pane.getItems()).toBe false
       expect(item1.isDestroyed()).toBe true
+
+    it "removes the item from the itemStack", ->
+      pane.itemStack = [item2, item3, item1]
+
+      pane.activateItem(item1)
+      expect(pane.getActiveItem()).toBe item1
+      pane.destroyItem(item3)
+      expect(pane.itemStack).toEqual [item2, item1]
+      expect(pane.getActiveItem()).toBe item1
+
+      pane.destroyItem(item1)
+      expect(pane.itemStack).toEqual [item2]
+      expect(pane.getActiveItem()).toBe item2
 
     it "invokes ::onWillDestroyItem() observers before destroying the item", ->
       events = []
@@ -944,7 +957,7 @@ describe "Pane", ->
       newPane = Pane.deserialize(pane.serialize(), atom)
       expect(newPane.getItems()).toEqual newPane.itemStack
 
-    it "does not serialize items in the itemStack if they will not be serialized", ->
+    it "does not serialize the reference to the items in the itemStack for pane items that will not be serialized", ->
       [item1, item2, item3] = pane.getItems()
       pane.itemStack = [item2, item1, item3]
       unserializable = {}
