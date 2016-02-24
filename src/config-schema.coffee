@@ -111,7 +111,7 @@ module.exports =
       allowPendingPaneItems:
         description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
         type: 'boolean'
-        default: true
+        default: false
 
   editor:
     type: 'object'
