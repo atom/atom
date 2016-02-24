@@ -334,7 +334,7 @@ class Pane extends Model
       @itemStackIndex = @itemStack.length if @itemStackIndex is 0
 
   # Moves the active item to the end of the itemStack once the ctrl key is lifted
-  moveItemToTopOfStack: ->
+  moveActiveItemToTopOfStack: ->
     delete @itemStackIndex
     @addItemToStack(@activeItem)
 
