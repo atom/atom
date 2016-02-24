@@ -17,8 +17,8 @@ export default class AutoUpdateManager {
       updateEventEmitter.onDidBeginCheckingForUpdate(() => {
         this.emitter.emit('did-begin-checking-for-update')
       }),
-      updateEventEmitter.onDidCompleteDownloadingUpdate(() => {
-        this.emitter.emit('did-complete-downloading-update')
+      updateEventEmitter.onDidCompleteDownloadingUpdate((details) => {
+        this.emitter.emit('did-complete-downloading-update', details)
       }),
       updateEventEmitter.onUpdateNotAvailable(() => {
         this.emitter.emit('update-not-available')

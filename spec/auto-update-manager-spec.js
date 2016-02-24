@@ -42,9 +42,12 @@ fdescribe('AutoUpdateManager (renderer)', () => {
     it('subscribes to "did-complete-downloading-update" event', () => {
       const spy = jasmine.createSpy('spy')
       autoUpdateManager.onDidCompleteDownload(spy)
-      electronAutoUpdater.emit('update-downloaded', null, null, {releaseVersion: '1.2.3'})
+      electronAutoUpdater.emit('update-downloaded', null, null, '1.2.3')
       waitsFor(() => {
         return spy.callCount === 1
+      })
+      runs(() => {
+        expect(spy.mostRecentCall.args[0].releaseVersion).toBe('1.2.3')
       })
     })
   })
@@ -72,7 +75,7 @@ fdescribe('AutoUpdateManager (renderer)', () => {
       autoUpdateManager.onUpdateNotAvailable(spy)
       electronAutoUpdater.emit('checking-for-update')
       electronAutoUpdater.emit('update-available')
-      electronAutoUpdater.emit('update-downloaded', null, null, {releaseVersion: '1.2.3'})
+      electronAutoUpdater.emit('update-downloaded', null, null, '1.2.3')
       electronAutoUpdater.emit('update-not-available')
 
       waitsFor(() => {
