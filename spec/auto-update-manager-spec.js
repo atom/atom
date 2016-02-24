@@ -59,4 +59,29 @@ fdescribe('AutoUpdateManager (renderer)', () => {
       })
     })
   })
+
+  describe('::dispose', () => {
+    it('subscribes to "update-not-available" event', () => {
+      const spy = jasmine.createSpy('spy')
+      const doneIndicator = jasmine.createSpy('spy')
+      atom.applicationDelegate.onUpdateNotAvailable(doneIndicator)
+      autoUpdateManager.dispose()
+      autoUpdateManager.onDidBeginCheckingForUpdate(spy)
+      autoUpdateManager.onDidBeginDownload(spy)
+      autoUpdateManager.onDidCompleteDownload(spy)
+      autoUpdateManager.onUpdateNotAvailable(spy)
+      electronAutoUpdater.emit('checking-for-update')
+      electronAutoUpdater.emit('update-available')
+      electronAutoUpdater.emit('update-downloaded', null, null, {releaseVersion: '1.2.3'})
+      electronAutoUpdater.emit('update-not-available')
+
+      waitsFor(() => {
+        return doneIndicator.callCount === 1
+      })
+
+      runs(() => {
+        expect(spy.callCount).toBe(0)
+      })
+    })
+  })
 })
