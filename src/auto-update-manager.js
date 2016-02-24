@@ -60,7 +60,7 @@ export default class AutoUpdateManager {
     )
   }
 
-  check () {
+  checkForUpdate () {
     ipcRenderer.send('check-for-update')
   }
 }
