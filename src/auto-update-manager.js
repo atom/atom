@@ -28,6 +28,7 @@ export default class AutoUpdateManager {
 
   dispose () {
     this.subscriptions.dispose()
+    this.emitter.dispose()
   }
 
   onDidBeginCheckingForUpdate (callback) {
