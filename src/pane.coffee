@@ -55,9 +55,7 @@ class Pane extends Model
     if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
     itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
-    itemStackIndices = []
-    for item in @itemStack
-      itemStackIndices.push(itemsToBeSerialized.indexOf(item)) if typeof item.serialize is 'function'
+    itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
 
     deserializer: 'Pane'
     id: @id
@@ -305,6 +303,7 @@ class Pane extends Model
         itemStackIndices = (i for i in [0..@items.length-1])
       for itemIndex in itemStackIndices
         @addItemToStack(@items[itemIndex])
+      return
 
   # Add item (or move item) to the end of the itemStack
   addItemToStack: (newItem) ->
