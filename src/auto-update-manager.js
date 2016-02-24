@@ -11,11 +11,11 @@ export default class AutoUpdateManager {
 
   initialize (updateEventEmitter) {
     this.subscriptions.add(
-      updateEventEmitter.onDidBeginDownloadingUpdate(() => {
-        this.emitter.emit('did-begin-downloading-update')
-      }),
       updateEventEmitter.onDidBeginCheckingForUpdate(() => {
         this.emitter.emit('did-begin-checking-for-update')
+      }),
+      updateEventEmitter.onDidBeginDownloadingUpdate(() => {
+        this.emitter.emit('did-begin-downloading-update')
       }),
       updateEventEmitter.onDidCompleteDownloadingUpdate((details) => {
         this.emitter.emit('did-complete-downloading-update', details)
