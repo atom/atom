@@ -32,33 +32,23 @@ export default class AutoUpdateManager {
   }
 
   onDidBeginCheckingForUpdate (callback) {
-    this.subscriptions.add(
-      this.emitter.on('did-begin-checking-for-update', callback)
-    )
+    return this.emitter.on('did-begin-checking-for-update', callback)
   }
 
   onDidBeginDownload (callback) {
-    this.subscriptions.add(
-      this.emitter.on('did-begin-downloading-update', callback)
-    )
+    return this.emitter.on('did-begin-downloading-update', callback)
   }
 
   onDidCompleteDownload (callback) {
-    this.subscriptions.add(
-      this.emitter.on('did-complete-downloading-update', callback)
-    )
+    return this.emitter.on('did-complete-downloading-update', callback)
   }
 
   onUpdateAvailable (callback) {
-    this.subscriptions.add(
-      this.emitter.on('update-available', callback)
-    )
+    return this.emitter.on('update-available', callback)
   }
 
   onUpdateNotAvailable (callback) {
-    this.subscriptions.add(
-      this.emitter.on('update-not-available', callback)
-    )
+    return this.emitter.on('update-not-available', callback)
   }
 
   checkForUpdate () {
