@@ -43,6 +43,12 @@ class Workspace extends Model
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
 
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, which means it'd be `new`d in which case `this` would the new
+    # object.
+    realThis = this
+    @buildTextEditor = (params) -> realThis.buildTextEditor_(params)
+
     @panelContainers =
       top: new PanelContainer({location: 'top'})
       left: new PanelContainer({location: 'left'})
@@ -550,7 +556,7 @@ class Workspace extends Model
   # Extended: Create a new text editor.
   #
   # Returns a {TextEditor}.
-  buildTextEditor: (params) ->
+  buildTextEditor_: (params) ->
     params = _.extend({
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
       @grammarRegistry, @project, @assert, @applicationDelegate
