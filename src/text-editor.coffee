@@ -3215,7 +3215,7 @@ class TextEditor extends Model
   # top of the visible area.
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
-      maxScreenRow = @getLineCount() - 1
+      maxScreenRow = @getScreenLineCount() - 1
       unless @config.get('editor.scrollPastEnd')
         height = @displayBuffer.getHeight()
         lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
@@ -3233,7 +3233,7 @@ class TextEditor extends Model
     height = @displayBuffer.getHeight()
     lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
     if height? and lineHeightInPixels?
-      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getLineCount() - 1)
+      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getScreenLineCount() - 1)
     else
       null
 
