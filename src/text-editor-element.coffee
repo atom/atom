@@ -344,6 +344,10 @@ class TextEditorElement extends HTMLElement
     @style.height = height + "px"
     @component.measureDimensions()
 
+  disableAutoHeight: ->
+    @style.height = "100%"
+    @component.measureDimensions()
+
   getHeight: ->
     @offsetHeight
 

@@ -97,7 +97,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, @pending, grammarName, ignoreInvisibles
+      @project, @assert, @applicationDelegate, @pending, grammarName, ignoreInvisibles, @autoHeight
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -116,6 +116,7 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
+    @autoHeight ?= true
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
@@ -3152,7 +3153,11 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom)
+    if not @editorElement?
+      @editorElement = new TextEditorElement().initialize(this, atom)
+      if not @autoHeight
+        @editorElement.disableAutoHeight()
+    @editorElement
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
