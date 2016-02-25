@@ -171,6 +171,11 @@ class ViewRegistry
     if object instanceof HTMLElement
       return object
 
+    if typeof object?.getElement is 'function'
+      element = object.getElement()
+      if element instanceof HTMLElement
+        return element
+
     if object?.element instanceof HTMLElement
       return object.element
 
