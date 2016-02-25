@@ -1119,20 +1119,57 @@ class TextEditor extends Model
         selection.destroy()
       return
 
-  # Extended: For each selection, transpose the selected text.
+  # Extended: Transpose the selected text.
   #
   # If the selection is empty, the characters preceding and following the cursor
-  # are swapped. Otherwise, the selected characters are reversed.
+  # are swapped. Otherwise, the selected characters are reversed. If there are
+  # multiple selections, the selections are cycled.
   transpose: ->
-    @mutateSelectedText (selection) ->
+    selections = @getSelectionsOrderedByBufferPosition()
+    return if selections.length == 0
+
+    # Declare empty selection transpose
+    transposeEmptySelection = (selection) ->
+      selection.selectRight()
+      text = selection.getText()
+      selection.delete()
+      selection.cursor.moveLeft()
+      selection.insertText text
+
+    if selections.length == 1
+      selection = selections[0]
+
       if selection.isEmpty()
-        selection.selectRight()
-        text = selection.getText()
-        selection.delete()
-        selection.cursor.moveLeft()
-        selection.insertText text
+        transposeEmptySelection selection
       else
         selection.insertText selection.getText().split('').reverse().join('')
+
+      return
+
+    # If any selection is wordwise, make empty selections select words
+    count = _.countBy(selections, (sel) -> sel.isEmpty())
+    if count["false"] < selections.length
+      # There is at least 1 selection that is empty and at least
+      # one that is non-empty
+      for selection in selections
+        if selection.isEmpty()
+          selection.selectWord()
+
+    else if count["true"] == selections.length
+      # All selections are empty; perform the empty transpose on all
+      for selection in selections
+        transposeEmptySelection selection
+
+      return
+
+    # In a 3 selection scenario:
+    # Move [0] to [1], which pushes [1] to [2], and then [2] falls back
+    # to [0]
+    texts = selections.map (selection) -> selection.getText()
+    for selection, index in selections
+      text = texts[if index > 0 then index - 1 else selections.length - 1]
+      selection.insertText text
+      selection.selectLeft text.length
 
   # Extended: Convert the selected text to upper case.
   #
