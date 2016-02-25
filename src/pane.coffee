@@ -8,6 +8,11 @@ TextEditor = require './text-editor'
 # Panes can contain multiple items, one of which is *active* at a given time.
 # The view corresponding to the active item is displayed in the interface. In
 # the default configuration, tabs are also displayed for each item.
+#
+# Each pane may also contain one *pending* item. When a pending item is added
+# to a pane, it will replace the currently pending item, if any, instead of
+# simply being added. In the default configuration, the text in the tab for
+# pending items is shown in italics.
 module.exports =
 class Pane extends Model
   container: undefined
@@ -380,19 +385,47 @@ class Pane extends Model
     @setActiveItem(item) unless @getActiveItem()?
     item
 
+  clearPendingItem: =>
+    @setPendingItem(null)
+
   setPendingItem: (item) =>
+    # TODO: figure out events for changing/clearing pending item
     @pendingItem = item
+    @emitter.emit 'did-change-pending-item', @pendingItem
     @emitter.emit 'did-terminate-pending-state' if not item
 
+  # Public: Get the pending pane item in this pane, if any.
+  #
+  # Returns a pane item or `null`.
   getPendingItem: =>
-    @pendingItem
+    @pendingItem or null
 
   isItemPending: (item) =>
     @pendingItem is item
 
+  # Invoke the given callback when the value of {::getPendingItem} changes.
+  #
+  # * `callback` {Function} to be called with when the pending item changes.
+  #   * `pendingItem` The current pending item, or `null`.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  onDidChangePendingItem: (callback) =>
+    @emitter.on 'did-change-pending-item', callback
+
+  # Public: Invoke the given callback with the current and future values of
+  # {::getPendingItem}.
+  #
+  # * `callback` {Function} to be called with the current and future pending
+  #   items.
+  #   * `pendingItem` The current pending item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observePendingItem: (callback) ->
+    callback(@getPendingItem())
+    @onDidChangePendingItem(callback)
+
   onDidTerminatePendingState: (callback) =>
-    @emitter.on 'did-terminate-pending-state', ->
-      callback()
+    @emitter.on 'did-terminate-pending-state', callback
 
   # Public: Add the given items to the pane.
   #
