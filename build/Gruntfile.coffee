@@ -34,9 +34,10 @@ module.exports = (grunt) ->
   grunt.file.setBase(path.resolve('..'))
 
   # Options
+  [defaultChannel, releaseBranch] = getDefaultChannelAndReleaseBranch(packageJson.version)
   installDir = grunt.option('install-dir')
   buildDir = path.resolve(grunt.option('build-dir') ? 'out')
-  channel = grunt.option('channel') ? getDefaultReleaseChannel()
+  channel = grunt.option('channel') ? defaultChannel
 
   metadata = packageJson
   appName = packageJson.productName
@@ -175,7 +176,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata,
+      appName, channel, metadata, releaseBranch,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
@@ -297,14 +298,19 @@ module.exports = (grunt) ->
     defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)
 
-getDefaultReleaseChannel = ->
-  {version} = packageJson
+getDefaultChannelAndReleaseBranch = (version) ->
   if version.match(/dev/) or isBuildingPR()
-    'dev'
-  else if version.match(/beta/)
-    'beta'
+    channel = 'dev'
+    releaseBranch = null
   else
-    'stable'
+    if version.match(/beta/)
+      channel = 'beta'
+    else
+      channel = 'stable'
+
+    minorVersion = version.match(/^\d\.\d/)[0]
+    releaseBranch = "#{minorVersion}-releases"
+  [channel, releaseBranch]
 
 isBuildingPR = ->
   process.env.APPVEYOR_PULL_REQUEST_NUMBER? or process.env.TRAVIS_PULL_REQUEST?
