@@ -477,7 +477,7 @@ class Workspace extends Model
 
     if uri?
       if item = pane.itemForURI(uri)
-        item.terminatePendingState?() if item.isPending?() and not options.pending
+        pane.setPendingItem(null) if not options.pending
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
@@ -500,7 +500,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item) if activateItem
+        pane.activateItem(item, options.pending) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
@@ -514,6 +514,12 @@ class Workspace extends Model
         index = pane.getActiveItemIndex()
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
+
+  setItemNotPending: (item) =>
+    for pane in @getPanes()
+      if item is pane.getPendingItem()
+        pane.setPendingItem(null)
+        break
 
   openTextFile: (uri, options) ->
     filePath = @project.resolvePath(uri)

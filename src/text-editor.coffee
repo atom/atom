@@ -92,7 +92,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, @pending
+      @project, @assert, @applicationDelegate
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -111,6 +111,7 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
+    @bufferHasChanged = false
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
@@ -151,7 +152,7 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
-    pending: @isPending()
+    bufferHasChanged: @bufferHasChanged
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -163,9 +164,9 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
-    if @pending
-      @disposables.add @buffer.onDidChangeModified =>
-        @terminatePendingState() if @buffer.isModified()
+    @disposables.add @buffer.onDidChangeModified =>
+      atom.workspace.setItemNotPending(this) if not @bufferHasChanged and @buffer.isModified()
+      @bufferHasChanged = true
 
     @preserveCursorPositionOnBufferReload()
 
@@ -575,13 +576,6 @@ class TextEditor extends Model
   getEditorWidthInChars: ->
     @displayBuffer.getEditorWidthInChars()
 
-  onDidTerminatePendingState: (callback) ->
-    @emitter.on 'did-terminate-pending-state', callback
-
-  terminatePendingState: ->
-    return if not @pending
-    @pending = false
-    @emitter.emit 'did-terminate-pending-state'
 
   ###
   Section: File Details
@@ -665,9 +659,6 @@ class TextEditor extends Model
 
   # Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty: -> @buffer.isEmpty()
-
-  # Returns {Boolean} `true` if this editor is pending and `false` if it is permanent.
-  isPending: -> Boolean(@pending)
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: (relative = false) ->
