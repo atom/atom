@@ -731,7 +731,8 @@ class TextEditorComponent
   measureDimensions: ->
     return unless @mounted
 
-    {position, height} = getComputedStyle(@hostElement)
+    {position} = getComputedStyle(@hostElement)
+    {height} = @hostElement.style
 
     if position is 'absolute' or height
       @presenter.setAutoHeight(false)
