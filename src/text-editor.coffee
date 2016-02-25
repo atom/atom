@@ -97,7 +97,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, @pending
+      @project, @assert, @applicationDelegate, @pending, grammarName, ignoreInvisibles
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -119,7 +119,7 @@ class TextEditor extends Model
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode,
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini || ignoreInvisibles, largeFileMode,
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
@@ -147,6 +147,9 @@ class TextEditor extends Model
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
+
+    if grammarName?
+      @setGrammar(@grammarRegistry.grammarForScopeName(grammarName))
 
   serialize: ->
     deserializer: 'TextEditor'
