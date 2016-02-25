@@ -47,7 +47,7 @@ class Workspace extends Model
     # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
     # the newly created object.
     realThis = this
-    @buildTextEditor = (params) -> realThis.buildTextEditor_(params)
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
 
     @panelContainers =
       top: new PanelContainer({location: 'top'})
@@ -556,7 +556,7 @@ class Workspace extends Model
   # Extended: Create a new text editor.
   #
   # Returns a {TextEditor}.
-  buildTextEditor_: (params) ->
+  buildTextEditor: (params) ->
     params = _.extend({
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
       @grammarRegistry, @project, @assert, @applicationDelegate
