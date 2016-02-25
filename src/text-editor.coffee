@@ -11,6 +11,7 @@ Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
+TextEditorElement = require './text-editor-element'
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -61,6 +62,10 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   selectionFlashDuration: 500
   gutterContainer: null
+  editorElement: null
+
+  Object.defineProperty @prototype, "element",
+    get: -> @getElement()
 
   @deserialize: (state, atomEnvironment) ->
     try
@@ -3141,6 +3146,10 @@ class TextEditor extends Model
   ###
   Section: TextEditor Rendering
   ###
+
+  # Get the Element for the editor.
+  getElement: ->
+    @editorElement ?= new TextEditorElement().initialize(this, atom)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
