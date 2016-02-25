@@ -44,8 +44,8 @@ class Workspace extends Model
     @consumeServices(@packageManager)
 
     # One cannot simply .bind here since it could be used as a component with
-    # Etch, which means it'd be `new`d in which case `this` would the new
-    # object.
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
     realThis = this
     @buildTextEditor = (params) -> realThis.buildTextEditor_(params)
 
