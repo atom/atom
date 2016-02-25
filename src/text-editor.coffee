@@ -97,7 +97,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, @pending, grammarName, ignoreInvisibles, @autoHeight
+      @project, @assert, @applicationDelegate, @pending, grammarName, ignoreInvisibles, @autoHeight, @ignoreScrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -117,6 +117,7 @@ class TextEditor extends Model
     @cursorsByMarkerId = new Map
     @selections = []
     @autoHeight ?= true
+    @ignoreScrollPastEnd ?= false
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
@@ -3153,9 +3154,9 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    if not @editorElement?
-      @editorElement = new TextEditorElement().initialize(this, atom)
-      if not @autoHeight
+    unless @editorElement?
+      @editorElement = new TextEditorElement().initialize(this, atom, @ignoreScrollPastEnd)
+      unless @autoHeight
         @editorElement.disableAutoHeight()
     @editorElement
 
@@ -3233,7 +3234,7 @@ class TextEditor extends Model
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
-      unless @config.get('editor.scrollPastEnd')
+      unless @config.get('editor.scrollPastEnd') and not @ignoreScrollPastEnd
         height = @displayBuffer.getHeight()
         lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
         if height? and lineHeightInPixels?
