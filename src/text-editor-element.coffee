@@ -39,6 +39,9 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
+    unless @autoHeight
+      @style.height = "100%"
+
     if @config.get('editor.useShadowDOM')
       @useShadowDOM = true
 
@@ -87,7 +90,7 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @ignoreScrollPastEnd = false) ->
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @ignoreScrollPastEnd = false) ->
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
@@ -344,10 +347,6 @@ class TextEditorElement extends HTMLElement
 
   setHeight: (height) ->
     @style.height = height + "px"
-    @component.measureDimensions()
-
-  disableAutoHeight: ->
-    @style.height = "100%"
     @component.measureDimensions()
 
   getHeight: ->

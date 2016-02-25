@@ -3154,11 +3154,7 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    unless @editorElement?
-      @editorElement = new TextEditorElement().initialize(this, atom, @ignoreScrollPastEnd)
-      unless @autoHeight
-        @editorElement.disableAutoHeight()
-    @editorElement
+    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @ignoreScrollPastEnd)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
