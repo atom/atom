@@ -426,7 +426,7 @@ class Pane extends Model
     index = @items.indexOf(item)
     return if index is -1
 
-    @pendingItem = null if @isItemPending(item)
+    @pendingItem = null if @getPendingItem() is item
 
     @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
