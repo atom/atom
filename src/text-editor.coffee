@@ -164,7 +164,7 @@ class TextEditor extends Model
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
     @disposables.add @buffer.onDidChangeModified =>
-      @terminatePendingState() if @buffer.isModified()
+      @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
 
     @preserveCursorPositionOnBufferReload()
 
