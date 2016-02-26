@@ -64,7 +64,7 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
-  describe('::isEnabled', () => {
+  describe('::platformSupportsUpdates', () => {
     let platform, releaseChannel
     it('returns true on OS X and Windows, when in stable', () => {
       spyOn(autoUpdateManager, 'getPlatform').andCallFake(() =>  platform)
@@ -72,27 +72,27 @@ describe('AutoUpdateManager (renderer)', () => {
 
       platform = 'win32'
       releaseChannel = 'stable'
-      expect(autoUpdateManager.isEnabled()).toBe(true)
+      expect(autoUpdateManager.platformSupportsUpdates()).toBe(true)
 
       platform = 'win32'
       releaseChannel = 'dev'
-      expect(autoUpdateManager.isEnabled()).toBe(false)
+      expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
 
       platform = 'darwin'
       releaseChannel = 'stable'
-      expect(autoUpdateManager.isEnabled()).toBe(true)
+      expect(autoUpdateManager.platformSupportsUpdates()).toBe(true)
 
       platform = 'darwin'
       releaseChannel = 'dev'
-      expect(autoUpdateManager.isEnabled()).toBe(false)
+      expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
 
       platform = 'linux'
       releaseChannel = 'stable'
-      expect(autoUpdateManager.isEnabled()).toBe(false)
+      expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
 
       platform = 'linux'
       releaseChannel = 'dev'
-      expect(autoUpdateManager.isEnabled()).toBe(false)
+      expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
     })
   })
 

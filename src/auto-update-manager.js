@@ -37,7 +37,7 @@ export default class AutoUpdateManager {
     ipcRenderer.send('install-update')
   }
 
-  isEnabled () {
+  platformSupportsUpdates () {
     return this.getReleaseChannel() == 'stable' && (this.getPlatform() === 'darwin' || this.getPlatform() === 'win32')
   }
 
