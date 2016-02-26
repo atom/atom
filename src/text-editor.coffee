@@ -111,7 +111,7 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
-    @bufferHasChanged = false
+    @hasTerminatedPendingState = false
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
@@ -152,7 +152,6 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
-    bufferHasChanged: @bufferHasChanged
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -165,9 +164,13 @@ class TextEditor extends Model
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
     @disposables.add @buffer.onDidChangeModified =>
-      @emitter.emit 'did-terminate-pending-state'
+      @terminatePendingState() if @buffer.isModified()
 
     @preserveCursorPositionOnBufferReload()
+
+  terminatePendingState: ->
+    @emitter.emit 'did-terminate-pending-state' if not @hasTerminatedPendingState
+    @hasTerminatedPendingState = true
 
   onDidTerminatePendingState: (callback) ->
     @emitter.on 'did-terminate-pending-state', callback

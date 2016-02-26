@@ -18,8 +18,8 @@ describe "Pane", ->
     onDidDestroy: (fn) -> @emitter.on('did-destroy', fn)
     destroy: -> @destroyed = true; @emitter.emit('did-destroy')
     isDestroyed: -> @destroyed
-    isPending: -> @pending
-    pending: false
+    onDidTerminatePendingState: (callback) -> @emitter.on 'terminate-pending-state', callback
+    terminatePendingState: -> @emitter.emit 'terminate-pending-state'
 
   beforeEach ->
     confirm = spyOn(atom.applicationDelegate, 'confirm')
@@ -136,10 +136,8 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: []))
       itemA = new Item("A")
       itemB = new Item("B")
-      itemA.pending = true
-      itemB.pending = true
-      pane.addItem(itemA)
-      pane.addItem(itemB)
+      pane.addItem(itemA, undefined, false, true)
+      pane.addItem(itemB, undefined, false, true)
       expect(itemA.isDestroyed()).toBe true
 
   describe "::activateItem(item)", ->
@@ -172,19 +170,17 @@ describe "Pane", ->
       beforeEach ->
         itemC = new Item("C")
         itemD = new Item("D")
-        itemC.pending = true
-        itemD.pending = true
 
       it "replaces the active item if it is pending", ->
-        pane.activateItem(itemC)
+        pane.activateItem(itemC, true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'C', 'B']
-        pane.activateItem(itemD)
+        pane.activateItem(itemD, true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'D', 'B']
 
       it "adds the item after the active item if it is not pending", ->
-        pane.activateItem(itemC)
+        pane.activateItem(itemC, true)
         pane.activateItemAtIndex(2)
-        pane.activateItem(itemD)
+        pane.activateItem(itemD, true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
   describe "::activateNextItem() and ::activatePreviousItem()", ->
@@ -805,6 +801,67 @@ describe "Pane", ->
         expect(container.root.children).toEqual [pane1, pane2]
         pane2.destroy()
         expect(container.root).toBe pane1
+
+  describe "pending state", ->
+    editor1 = null
+    pane = null
+    eventCount = null
+
+    beforeEach ->
+      waitsForPromise ->
+        atom.workspace.open('sample.txt', pending: true).then (o) ->
+          editor1 = o
+          pane = atom.workspace.getActivePane()
+
+      runs ->
+        eventCount = 0
+        editor1.onDidTerminatePendingState -> eventCount++
+
+    it "does not open file in pending state by default", ->
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (o) ->
+          editor1 = o
+          pane = atom.workspace.getActivePane()
+
+      runs ->
+        expect(pane.getPendingItem()).toBeNull()
+
+    it "opens file in pending state if 'pending' option is true", ->
+      expect(pane.getPendingItem()).toEqual editor1
+
+    it "terminates pending state if ::terminatePendingState is invoked", ->
+      editor1.terminatePendingState()
+
+      expect(pane.getPendingItem()).toBeNull()
+      expect(eventCount).toBe 1
+
+    it "terminates pending state when buffer is changed", ->
+      editor1.insertText('I\'ll be back!')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+
+      expect(pane.getPendingItem()).toBeNull()
+      expect(eventCount).toBe 1
+
+    it "only calls terminate handler once when text is modified twice", ->
+      editor1.insertText('Some text')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+
+      editor1.save()
+
+      editor1.insertText('More text')
+      advanceClock(editor1.getBuffer().stoppedChangingDelay)
+
+      expect(pane.getPendingItem()).toBeNull()
+      expect(eventCount).toBe 1
+
+    it "only calls clearPendingItem if there is a pending item to clear", ->
+      spyOn(pane, "clearPendingItem").andCallThrough()
+
+      editor1.terminatePendingState()
+      editor1.terminatePendingState()
+
+      expect(pane.getPendingItem()).toBeNull()
+      expect(pane.clearPendingItem.callCount).toBe 1
 
   describe "serialization", ->
     pane = null
