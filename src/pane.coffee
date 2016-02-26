@@ -1,5 +1,5 @@
 {find, compact, extend, last} = require 'underscore-plus'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
@@ -8,6 +8,11 @@ TextEditor = require './text-editor'
 # Panes can contain multiple items, one of which is *active* at a given time.
 # The view corresponding to the active item is displayed in the interface. In
 # the default configuration, tabs are also displayed for each item.
+#
+# Each pane may also contain one *pending* item. When a pending item is added
+# to a pane, it will replace the currently pending item, if any, instead of
+# simply being added. In the default configuration, the text in the tab for
+# pending items is shown in italics.
 module.exports =
 class Pane extends Model
   container: undefined
@@ -37,7 +42,7 @@ class Pane extends Model
     } = params
 
     @emitter = new Emitter
-    @itemSubscriptions = new WeakMap
+    @subscriptionsPerItem = new WeakMap
     @items = []
 
     @addItems(compact(params?.items ? []))
@@ -260,8 +265,8 @@ class Pane extends Model
   getPanes: -> [this]
 
   unsubscribeFromItem: (item) ->
-    @itemSubscriptions.get(item)?.dispose()
-    @itemSubscriptions.delete(item)
+    @subscriptionsPerItem.get(item)?.dispose()
+    @subscriptionsPerItem.delete(item)
 
   ###
   Section: Items
@@ -342,13 +347,17 @@ class Pane extends Model
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
-  activateItem: (item) ->
+  #
+  # * `pending` (optional) {Boolean} indicating that the item should be added
+  #   in a pending state if it does not yet exist in the pane. Existing pending
+  #   items in a pane are replaced with new pending items when they are opened.
+  activateItem: (item, pending=false) ->
     if item?
-      if @activeItem?.isPending?()
+      if @getPendingItem() is @activeItem
         index = @getActiveItemIndex()
       else
         index = @getActiveItemIndex() + 1
-      @addItem(item, index, false)
+      @addItem(item, index, false, pending)
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -357,27 +366,47 @@ class Pane extends Model
   #   view.
   # * `index` (optional) {Number} indicating the index at which to add the item.
   #   If omitted, the item is added after the current active item.
+  # * `pending` (optional) {Boolean} indicating that the item should be
+  #   added in a pending state. Existing pending items in a pane are replaced with
+  #   new pending items when they are opened.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
+  addItem: (item, index=@getActiveItemIndex() + 1, moved=false, pending=false) ->
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
-    if item.isPending?()
-      for existingItem, i in @items
-        if existingItem.isPending?()
-          @destroyItem(existingItem)
-          break
+    pendingItem = @getPendingItem()
+    @destroyItem(pendingItem) if pendingItem?
+    @setPendingItem(item) if pending
 
     if typeof item.onDidDestroy is 'function'
-      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
+      itemSubscriptions = new CompositeDisposable
+      itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
+      if typeof item.onDidTerminatePendingState is "function"
+        itemSubscriptions.add item.onDidTerminatePendingState =>
+          @clearPendingItem() if @getPendingItem() is item
+      itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
+      @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
     @emitter.emit 'did-add-item', {item, index, moved}
     @setActiveItem(item) unless @getActiveItem()?
     item
+
+  setPendingItem: (item) =>
+    @pendingItem = item if @pendingItem isnt item
+    @emitter.emit 'did-terminate-pending-state' if not item
+
+  getPendingItem: =>
+    @pendingItem or null
+
+  clearPendingItem: =>
+    @setPendingItem(null)
+
+  onDidTerminatePendingState: (callback) =>
+    @emitter.on 'did-terminate-pending-state', callback
 
   # Public: Add the given items to the pane.
   #
@@ -396,6 +425,8 @@ class Pane extends Model
   removeItem: (item, moved) ->
     index = @items.indexOf(item)
     return if index is -1
+
+    @pendingItem = null if @getPendingItem() is item
 
     @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
