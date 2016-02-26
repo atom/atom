@@ -58,7 +58,7 @@ class Pane extends Model
     items: compact(@items.map((item) -> item.serialize?()))
     activeItemURI: activeItemURI
     focused: @focused
-    flexScale: @flexScale # TODO: is it okay to not serialize pending state? does it need to be restored?
+    flexScale: @flexScale
 
   getParent: -> @parent
 
@@ -348,7 +348,9 @@ class Pane extends Model
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   #
-  # * `pending` TODO
+  # * `pending` (optional) {Boolean} indicating that the item should be added
+  #   in a pending state if it does not yet exist in the pane. Existing pending
+  #   items in a pane are replaced with new pending items when they are opened.
   activateItem: (item, pending=false) ->
     if item?
       if @isItemPending(@activeItem)
@@ -364,7 +366,9 @@ class Pane extends Model
   #   view.
   # * `index` (optional) {Number} indicating the index at which to add the item.
   #   If omitted, the item is added after the current active item.
-  # * `pending` TODO
+  # * `pending` (optional) {Boolean} indicating that the item should be
+  #   added in a pending state. Existing pending items in a pane are replaced with
+  #   new pending items when they are opened.
   #
   # Returns the added item.
   addItem: (item, index=@getActiveItemIndex() + 1, moved=false, pending=false) ->
@@ -391,44 +395,15 @@ class Pane extends Model
     @setActiveItem(item) unless @getActiveItem()?
     item
 
-  clearPendingItem: =>
-    @setPendingItem(null)
-
   setPendingItem: (item) =>
-    # TODO: figure out events for changing/clearing pending item
-    @pendingItem = item
-    @emitter.emit 'did-change-pending-item', @pendingItem
+    @pendingItem = item if @pendingItem isnt item
     @emitter.emit 'did-terminate-pending-state' if not item
 
-  # Public: Get the pending pane item in this pane, if any.
-  #
-  # Returns a pane item or `null`.
   getPendingItem: =>
     @pendingItem or null
 
-  isItemPending: (item) =>
-    @pendingItem is item
-
-  # Invoke the given callback when the value of {::getPendingItem} changes.
-  #
-  # * `callback` {Function} to be called with when the pending item changes.
-  #   * `pendingItem` The current pending item, or `null`.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangePendingItem: (callback) =>
-    @emitter.on 'did-change-pending-item', callback
-
-  # Public: Invoke the given callback with the current and future values of
-  # {::getPendingItem}.
-  #
-  # * `callback` {Function} to be called with the current and future pending
-  #   items.
-  #   * `pendingItem` The current pending item.
-  #
-  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePendingItem: (callback) ->
-    callback(@getPendingItem())
-    @onDidChangePendingItem(callback)
+  clearPendingItem: =>
+    @setPendingItem(null)
 
   onDidTerminatePendingState: (callback) =>
     @emitter.on 'did-terminate-pending-state', callback
