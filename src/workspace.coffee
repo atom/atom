@@ -403,6 +403,9 @@ class Workspace extends Model
   #     containing pane. Defaults to `true`.
   #   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
   #     on containing pane. Defaults to `true`.
+  #   * `pending` A {Boolean} indicating whether or not the item should be opened
+  #     in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
   #     activate an existing item for the given URI on any pane.
   #     If `false`, only the active pane will be searched for
@@ -477,7 +480,7 @@ class Workspace extends Model
 
     if uri?
       if item = pane.itemForURI(uri)
-        item.terminatePendingState?() if item.isPending?() and not options.pending
+        pane.clearPendingItem() if not options.pending and pane.getPendingItem() is item
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
@@ -500,7 +503,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item) if activateItem
+        pane.activateItem(item, options.pending) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
