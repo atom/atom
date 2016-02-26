@@ -1,5 +1,5 @@
 {find, compact, extend, last} = require 'underscore-plus'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
@@ -42,7 +42,7 @@ class Pane extends Model
     } = params
 
     @emitter = new Emitter
-    @itemSubscriptions = new WeakMap
+    @subscriptionsPerItem = new WeakMap
     @items = []
 
     @addItems(compact(params?.items ? []))
@@ -265,8 +265,8 @@ class Pane extends Model
   getPanes: -> [this]
 
   unsubscribeFromItem: (item) ->
-    @itemSubscriptions.get(item)?.dispose()
-    @itemSubscriptions.delete(item)
+    @subscriptionsPerItem.get(item)?.dispose()
+    @subscriptionsPerItem.delete(item)
 
   ###
   Section: Items
@@ -378,7 +378,13 @@ class Pane extends Model
     @setPendingItem(item) if pending
 
     if typeof item.onDidDestroy is 'function'
-      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
+      itemSubscriptions = new CompositeDisposable
+      itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
+      if typeof item.onDidTerminatePendingState is "function"
+        itemSubscriptions.add item.onDidTerminatePendingState =>
+          @clearPendingItem() if @getPendingItem() is item
+      itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
+      @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
     @emitter.emit 'did-add-item', {item, index, moved}

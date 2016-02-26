@@ -165,10 +165,12 @@ class TextEditor extends Model
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
     @disposables.add @buffer.onDidChangeModified =>
-      atom.workspace.setItemNotPending(this) if not @bufferHasChanged and @buffer.isModified()
-      @bufferHasChanged = true
+      @emitter.emit 'did-terminate-pending-state'
 
     @preserveCursorPositionOnBufferReload()
+
+  onDidTerminatePendingState: (callback) ->
+    @emitter.on 'did-terminate-pending-state', callback
 
   subscribeToDisplayBuffer: ->
     @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)

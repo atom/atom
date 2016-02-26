@@ -515,12 +515,6 @@ class Workspace extends Model
         @emitter.emit 'did-open', {uri, pane, item, index}
         item
 
-  setItemNotPending: (item) =>
-    for pane in @getPanes()
-      if item is pane.getPendingItem()
-        pane.setPendingItem(null)
-        break
-
   openTextFile: (uri, options) ->
     filePath = @project.resolvePath(uri)
 
