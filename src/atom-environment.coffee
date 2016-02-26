@@ -892,7 +892,7 @@ class AtomEnvironment extends Model
 
   listenForUpdates: ->
     # listen for updates available locally (that have been successfully downloaded)
-    @disposables.add(@autoUpdater.onDidCompleteDownload(@updateAvailable.bind(this)))
+    @disposables.add(@autoUpdater.onDidCompleteDownloadingUpdate(@updateAvailable.bind(this)))
 
   setBodyPlatformClass: ->
     @document.body.classList.add("platform-#{process.platform}")
