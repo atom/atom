@@ -63,6 +63,38 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
+  describe('::isEnabled', () => {
+    let platform, releaseChannel
+    it('returns true on OS X and Windows, when in stable', () => {
+      spyOn(autoUpdateManager, 'getPlatform').andCallFake(() =>  platform)
+      spyOn(autoUpdateManager, 'getReleaseChannel').andCallFake(() => releaseChannel)
+
+      platform = 'win32'
+      releaseChannel = 'stable'
+      expect(autoUpdateManager.isEnabled()).toBe(true)
+
+      platform = 'win32'
+      releaseChannel = 'dev'
+      expect(autoUpdateManager.isEnabled()).toBe(false)
+
+      platform = 'darwin'
+      releaseChannel = 'stable'
+      expect(autoUpdateManager.isEnabled()).toBe(true)
+
+      platform = 'darwin'
+      releaseChannel = 'dev'
+      expect(autoUpdateManager.isEnabled()).toBe(false)
+
+      platform = 'linux'
+      releaseChannel = 'stable'
+      expect(autoUpdateManager.isEnabled()).toBe(false)
+
+      platform = 'linux'
+      releaseChannel = 'dev'
+      expect(autoUpdateManager.isEnabled()).toBe(false)
+    })
+  })
+
   describe('::dispose', () => {
     it('subscribes to "update-not-available" event', () => {
       const spy = jasmine.createSpy('spy')

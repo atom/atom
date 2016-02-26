@@ -31,6 +31,18 @@ export default class AutoUpdateManager {
     this.emitter.dispose()
   }
 
+  checkForUpdate () {
+    ipcRenderer.send('check-for-update')
+  }
+
+  quitAndInstallUpdate () {
+    ipcRenderer.send('install-update')
+  }
+
+  isEnabled () {
+    return this.getReleaseChannel() == 'stable' && (this.getPlatform() === 'darwin' || this.getPlatform() === 'win32')
+  }
+
   onDidBeginCheckingForUpdate (callback) {
     return this.emitter.on('did-begin-checking-for-update', callback)
   }
@@ -47,7 +59,18 @@ export default class AutoUpdateManager {
     return this.emitter.on('update-not-available', callback)
   }
 
-  checkForUpdate () {
-    ipcRenderer.send('check-for-update')
+  getPlatform () {
+    return process.platform
+  }
+
+  // TODO: We should move this into atom env or something.
+  getReleaseChannel () {
+    let version = atom.getVersion()
+    if (version.indexOf('beta') > -1) {
+      return 'beta'
+    } else if (version.indexOf('dev') > -1) {
+      return 'dev'
+    }
+    return 'stable'
   }
 }
