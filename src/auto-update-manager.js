@@ -55,6 +55,12 @@ export default class AutoUpdateManager {
     return this.emitter.on('did-complete-downloading-update', callback)
   }
 
+  // TODO: When https://github.com/atom/electron/issues/4587 is closed, we can
+  // add an update-available event.
+  // onUpdateAvailable (callback) {
+  //   return this.emitter.on('update-available', callback)
+  // }
+
   onUpdateNotAvailable (callback) {
     return this.emitter.on('update-not-available', callback)
   }
