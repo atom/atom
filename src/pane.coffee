@@ -353,7 +353,7 @@ class Pane extends Model
   #   items in a pane are replaced with new pending items when they are opened.
   activateItem: (item, pending=false) ->
     if item?
-      if @isItemPending(@activeItem)
+      if @getPendingItem() is @activeItem
         index = @getActiveItemIndex()
       else
         index = @getActiveItemIndex() + 1
