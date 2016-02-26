@@ -35,11 +35,11 @@ export default class AutoUpdateManager {
     return this.emitter.on('did-begin-checking-for-update', callback)
   }
 
-  onDidBeginDownload (callback) {
+  onDidBeginDownloadingUpdate (callback) {
     return this.emitter.on('did-begin-downloading-update', callback)
   }
 
-  onDidCompleteDownload (callback) {
+  onDidCompleteDownloadingUpdate (callback) {
     return this.emitter.on('did-complete-downloading-update', callback)
   }
 

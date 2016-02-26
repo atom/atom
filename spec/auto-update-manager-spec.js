@@ -27,10 +27,10 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
-  describe('::onDidBeginDownload', () => {
+  describe('::onDidBeginDownloadingUpdate', () => {
     it('subscribes to "did-begin-downloading-update" event', () => {
       const spy = jasmine.createSpy('spy')
-      autoUpdateManager.onDidBeginDownload(spy)
+      autoUpdateManager.onDidBeginDownloadingUpdate(spy)
       electronAutoUpdater.emit('update-available')
       waitsFor(() => {
         return spy.callCount === 1
@@ -38,10 +38,10 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
-  describe('::onDidCompleteDownload', () => {
+  describe('::onDidCompleteDownloadingUpdate', () => {
     it('subscribes to "did-complete-downloading-update" event', () => {
       const spy = jasmine.createSpy('spy')
-      autoUpdateManager.onDidCompleteDownload(spy)
+      autoUpdateManager.onDidCompleteDownloadingUpdate(spy)
       electronAutoUpdater.emit('update-downloaded', null, null, '1.2.3')
       waitsFor(() => {
         return spy.callCount === 1
@@ -69,8 +69,8 @@ describe('AutoUpdateManager (renderer)', () => {
       const doneIndicator = jasmine.createSpy('spy')
       atom.applicationDelegate.onUpdateNotAvailable(doneIndicator)
       autoUpdateManager.onDidBeginCheckingForUpdate(spy)
-      autoUpdateManager.onDidBeginDownload(spy)
-      autoUpdateManager.onDidCompleteDownload(spy)
+      autoUpdateManager.onDidBeginDownloadingUpdate(spy)
+      autoUpdateManager.onDidCompleteDownloadingUpdate(spy)
       autoUpdateManager.onUpdateNotAvailable(spy)
       autoUpdateManager.dispose()
       electronAutoUpdater.emit('checking-for-update')
