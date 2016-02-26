@@ -192,8 +192,7 @@ class AtomEnvironment extends Model
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
-    @autoUpdater = new AutoUpdateManager
-    @autoUpdater.initialize(@applicationDelegate)
+    @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
     @config.load()
 

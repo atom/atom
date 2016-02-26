@@ -4,23 +4,21 @@ import {Emitter, CompositeDisposable} from 'event-kit'
 import {ipcRenderer} from 'electron'
 
 export default class AutoUpdateManager {
-  constructor () {
+  constructor ({applicationDelegate}) {
     this.subscriptions = new CompositeDisposable()
     this.emitter = new Emitter()
-  }
 
-  initialize (updateEventEmitter) {
     this.subscriptions.add(
-      updateEventEmitter.onDidBeginCheckingForUpdate(() => {
+      applicationDelegate.onDidBeginCheckingForUpdate(() => {
         this.emitter.emit('did-begin-checking-for-update')
       }),
-      updateEventEmitter.onDidBeginDownloadingUpdate(() => {
+      applicationDelegate.onDidBeginDownloadingUpdate(() => {
         this.emitter.emit('did-begin-downloading-update')
       }),
-      updateEventEmitter.onDidCompleteDownloadingUpdate((details) => {
+      applicationDelegate.onDidCompleteDownloadingUpdate((details) => {
         this.emitter.emit('did-complete-downloading-update', details)
       }),
-      updateEventEmitter.onUpdateNotAvailable(() => {
+      applicationDelegate.onUpdateNotAvailable(() => {
         this.emitter.emit('update-not-available')
       })
     )
