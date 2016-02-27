@@ -33,7 +33,7 @@ export default class AutoUpdateManager {
     ipcRenderer.send('check-for-update')
   }
 
-  quitAndInstallUpdate () {
+  restartAndInstallUpdate () {
     ipcRenderer.send('install-update')
   }
 
