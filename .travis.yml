@@ -30,7 +30,7 @@ install:
   - nvm install $NODE_VERSION
   - nvm use $NODE_VERSION
 
-script: script/cibuild
+script: script/cibuild-when-code-changed
 
 cache:
   directories:

@@ -15,3 +15,6 @@ debug.log
 docs/output
 docs/includes
 spec/fixtures/evil-files/
+
+.ci-cache-previous.txt
+.ci-cache-this.txt

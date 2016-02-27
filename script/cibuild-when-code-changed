@@ -1,0 +1,79 @@
+#!/bin/sh
+
+COFFEE=./node_modules/.bin/coffee
+UGLIFY=./node_modules/.bin/uglifyjs
+BABEL=./node_modules/.bin/babel
+
+# Was unsure where to place these since putting them in build/ is too late.
+npm install coffee-script@1.8.0
+npm install babel-cli@6.2.0
+npm install uglify-js@2.6.1
+
+# Find the two commits to compare against: [START ... END]
+END_COMMIT=$(git rev-parse HEAD)
+
+# Find the commit to start from
+if [ "${TRAVIS_PULL_REQUEST}" != "false" ]
+then
+  # Testing a whole Pull Request.
+  # This means the current commit is a new one with the branch merged into the PR destination.
+  # What Travis did:
+  # 1. `git fetch origin +refs/pull/[PR_NUMBER]/merge:`
+  # 2. `git checkout -qf FETCH_HEAD`
+  echo "DID_CODE_CHANGE: CASE 1: This is the continuous-integration/travis-ci/pr case"
+  START_COMMIT=$(git rev-parse HEAD^1)
+
+elif [ -n "${TRAVIS_COMMIT_RANGE}" ]
+then
+  # Multiple commits occurred between the last Travis test
+  echo "DID_CODE_CHANGE: CASE 2: This is a continuous-integration/travis-ci/push case"
+  # What Travis did: `git checkout -qf [SHA]`
+  START_COMMIT=$(echo ${TRAVIS_COMMIT_RANGE} | sed 's/\([a-z0-9\^]*\).*/\1/')
+
+else
+  # No commit range specified. This is 1 commit on a new branch
+  # What Travis did: `git checkout -qf [SHA]`
+  echo "DID_CODE_CHANGE: CASE 3: This is the other continuous-integration/travis-ci/push case"
+  START_COMMIT=$(git rev-parse HEAD^1)
+fi
+
+echo "DID_CODE_CHANGE: Building slug for this commit"
+echo "DID_CODE_CHANGE: END_COMMIT=${END_COMMIT}"
+
+# No need to check out since the END_COMMIT is already checked out
+# git checkout -q ${END_COMMIT}
+
+# Files that go into the blob:
+#
+# 1. Compile & Minify CoffeeScript files
+# 2. Transpile JavaScript files
+# 3. Concat JSON/CSON files
+# 4. Concat spec tests and fixtures
+cat $(find ./ -name "*.coffee" | grep -v "spec") | ${COFFEE} --compile --stdio | ${UGLIFY} --beautify > .ci-cache-this.txt
+find ./src -name "*.js" | xargs ${BABEL} >> .ci-cache-this.txt
+cat $(find ./ -name "*.?son" | grep -v "node_modules") >> .ci-cache-this.txt
+cat $(find ./spec -type f) >> .ci-cache-this.txt
+
+
+echo "DID_CODE_CHANGE: Building slug for the previous commit (to compare against)"
+echo "DID_CODE_CHANGE: START_COMMIT=${START_COMMIT}"
+
+# Check out the version *just before* the testing range
+git checkout -q ${START_COMMIT}
+
+cat $(find ./ -name "*.coffee" | grep -v "spec") | ${COFFEE} --compile --stdio | ${UGLIFY} --beautify > .ci-cache-previous.txt
+find ./src -name "*.js" | xargs ${BABEL} >> .ci-cache-previous.txt
+cat $(find ./ -name "*.?son" | grep -v "node_modules") >> .ci-cache-previous.txt
+cat $(find ./spec -type f) >> .ci-cache-previous.txt
+
+
+echo "DID_CODE_CHANGE: Comparing slugs"
+diff ./.ci-cache-previous.txt ./.ci-cache-this.txt > /dev/null
+
+if [ $? -eq 0 ]
+then
+  echo "DID_CODE_CHANGE: Just a documentation change. No need to run tests"
+else
+  echo "DID_CODE_CHANGE: Yes, code changed. Running tests"
+  script/cibuild
+fi
