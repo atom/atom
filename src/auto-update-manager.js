@@ -42,7 +42,7 @@ export default class AutoUpdateManager {
   }
 
   platformSupportsUpdates () {
-    return this.getReleaseChannel() == 'stable' && (this.getPlatform() === 'darwin' || this.getPlatform() === 'win32')
+    return this.getReleaseChannel() !== 'dev' && this.getState() !== 'unsupported'
   }
 
   onDidBeginCheckingForUpdate (callback) {
