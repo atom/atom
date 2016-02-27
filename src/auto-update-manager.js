@@ -37,6 +37,10 @@ export default class AutoUpdateManager {
     ipcRenderer.send('install-update')
   }
 
+  getState () {
+    return ipcRenderer.sendSync('get-auto-update-manager-state')
+  }
+
   platformSupportsUpdates () {
     return this.getReleaseChannel() == 'stable' && (this.getPlatform() === 'darwin' || this.getPlatform() === 'win32')
   }
