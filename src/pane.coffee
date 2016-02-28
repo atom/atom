@@ -20,7 +20,7 @@ class Pane extends Model
   focused: false
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
-    {items, activeItemURI, activeItemUri} = state
+    {items, itemStackIndices, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
     state.activeItem = find state.items, (item) ->
@@ -44,18 +44,23 @@ class Pane extends Model
     @emitter = new Emitter
     @subscriptionsPerItem = new WeakMap
     @items = []
+    @itemStack = []
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
+    @addItemsToStack(params?.itemStackIndices ? [])
     @setFlexScale(params?.flexScale ? 1)
 
   serialize: ->
     if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
+    itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
+    itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
 
     deserializer: 'Pane'
     id: @id
-    items: compact(@items.map((item) -> item.serialize?()))
+    items: itemsToBeSerialized.map((item) -> item.serialize())
+    itemStackIndices: itemStackIndices
     activeItemURI: activeItemURI
     focused: @focused
     flexScale: @flexScale
@@ -283,11 +288,28 @@ class Pane extends Model
   # Returns a pane item.
   getActiveItem: -> @activeItem
 
-  setActiveItem: (activeItem) ->
+  setActiveItem: (activeItem, options) ->
+    {modifyStack} = options if options?
     unless activeItem is @activeItem
+      @addItemToStack(activeItem) unless modifyStack is false
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
+
+  # Build the itemStack after deserializing
+  addItemsToStack: (itemStackIndices) ->
+    if @items.length > 0
+      if itemStackIndices.length is 0 or itemStackIndices.length isnt @items.length or itemStackIndices.indexOf(-1) >= 0
+        itemStackIndices = (i for i in [0..@items.length-1])
+      for itemIndex in itemStackIndices
+        @addItemToStack(@items[itemIndex])
+      return
+
+  # Add item (or move item) to the end of the itemStack
+  addItemToStack: (newItem) ->
+    index = @itemStack.indexOf(newItem)
+    @itemStack.splice(index, 1) unless index is -1
+    @itemStack.push(newItem)
 
   # Return an {TextEditor} if the pane item is an {TextEditor}, or null otherwise.
   getActiveEditor: ->
@@ -300,6 +322,29 @@ class Pane extends Model
   # Returns an item or `null` if no item exists at the given index.
   itemAtIndex: (index) ->
     @items[index]
+
+  # Makes the next item in the itemStack active.
+  activateNextRecentlyUsedItem: ->
+    if @items.length > 1
+      @itemStackIndex = @itemStack.length - 1 unless @itemStackIndex?
+      @itemStackIndex = @itemStack.length if @itemStackIndex is 0
+      @itemStackIndex = @itemStackIndex - 1
+      nextRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
+
+  # Makes the previous item in the itemStack active.
+  activatePreviousRecentlyUsedItem: ->
+    if @items.length > 1
+      if @itemStackIndex + 1 is @itemStack.length or not @itemStackIndex?
+        @itemStackIndex = -1
+      @itemStackIndex = @itemStackIndex + 1
+      previousRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @setActiveItem(previousRecentlyUsedItem, modifyStack: false)
+
+  # Moves the active item to the end of the itemStack once the ctrl key is lifted
+  moveActiveItemToTopOfStack: ->
+    delete @itemStackIndex
+    @addItemToStack(@activeItem)
 
   # Public: Makes the next item active.
   activateNextItem: ->
@@ -425,9 +470,8 @@ class Pane extends Model
   removeItem: (item, moved) ->
     index = @items.indexOf(item)
     return if index is -1
-
     @pendingItem = null if @getPendingItem() is item
-
+    @removeItemFromStack(item)
     @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
 
@@ -442,6 +486,14 @@ class Pane extends Model
     @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
     @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
     @destroy() if @items.length is 0 and @config.get('core.destroyEmptyPanes')
+
+  # Remove the given item from the itemStack.
+  #
+  # * `item` The item to remove.
+  # * `index` {Number} indicating the index to which to remove the item from the itemStack.
+  removeItemFromStack: (item) ->
+    index = @itemStack.indexOf(item)
+    @itemStack.splice(index, 1) unless index is -1
 
   # Public: Move the given item to the given index.
   #
