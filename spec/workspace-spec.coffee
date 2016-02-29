@@ -604,6 +604,25 @@ describe "Workspace", ->
         runs ->
           expect(pane.getPendingItem()).toBeNull()
 
+    describe "when opening will switch from a pending tab to a permanent tab", ->
+      it "keeps the pending tab open", ->
+        editor1 = null
+        editor2 = null
+
+        waitsForPromise ->
+          atom.workspace.open('sample.txt').then (o) ->
+            editor1 = o
+
+        waitsForPromise ->
+          atom.workspace.open('sample2.txt', pending: true).then (o) ->
+            editor2 = o
+
+        runs ->
+          pane = atom.workspace.getActivePane()
+          pane.activateItem(editor1)
+          expect(pane.getItems().length).toBe 2
+          expect(pane.getItems()).toEqual [editor1, editor2]
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
