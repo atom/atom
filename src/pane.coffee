@@ -441,8 +441,10 @@ class Pane extends Model
     item
 
   setPendingItem: (item) =>
-    @pendingItem = item if @pendingItem isnt item
-    @emitter.emit 'did-terminate-pending-state' if not item
+    if @pendingItem isnt item
+      mostRecentPendingItem = @pendingItem
+      @pendingItem = item
+      @emitter.emit 'item-did-terminate-pending-state', mostRecentPendingItem
 
   getPendingItem: =>
     @pendingItem or null
@@ -450,8 +452,8 @@ class Pane extends Model
   clearPendingItem: =>
     @setPendingItem(null)
 
-  onDidTerminatePendingState: (callback) =>
-    @emitter.on 'did-terminate-pending-state', callback
+  onItemDidTerminatePendingState: (callback) =>
+    @emitter.on 'item-did-terminate-pending-state', callback
 
   # Public: Add the given items to the pane.
   #
