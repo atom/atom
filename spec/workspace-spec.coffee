@@ -588,19 +588,22 @@ describe "Workspace", ->
     describe "when the file is already open in pending state", ->
       it "should terminate the pending state", ->
         editor = null
+        pane = null
 
         waitsForPromise ->
-          atom.workspace.open('sample.js', pending: true).then (o) -> editor = o
-          
+          atom.workspace.open('sample.js', pending: true).then (o) ->
+            editor = o
+            pane = atom.workspace.getActivePane()
+
         runs ->
-          expect(editor.isPending()).toBe true
-          
+          expect(pane.getPendingItem()).toEqual editor
+
         waitsForPromise ->
-          atom.workspace.open('sample.js').then (o) -> editor = o
-          
+          atom.workspace.open('sample.js')
+
         runs ->
-          expect(editor.isPending()).toBe false
-  
+          expect(pane.getPendingItem()).toBeNull()
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
@@ -1551,11 +1554,12 @@ describe "Workspace", ->
 
   describe "when the core.allowPendingPaneItems option is falsey", ->
     it "does not open item with `pending: true` option as pending", ->
-      editor = null
+      pane = null
       atom.config.set('core.allowPendingPaneItems', false)
 
       waitsForPromise ->
-        atom.workspace.open('sample.js', pending: true).then (o) -> editor = o
+        atom.workspace.open('sample.js', pending: true).then ->
+          pane = atom.workspace.getActivePane()
 
       runs ->
-        expect(editor.isPending()).toBeFalsy()
+        expect(pane.getPendingItem()).toBeFalsy()
