@@ -337,6 +337,10 @@ describe "Pane", ->
       expect(pane.itemStack).toEqual [item2]
       expect(pane.getActiveItem()).toBe item2
 
+      pane.destroyItem(item2)
+      expect(pane.itemStack).toEqual []
+      expect(pane.getActiveItem()).toBeUndefined()
+
     it "invokes ::onWillDestroyItem() observers before destroying the item", ->
       events = []
       pane.onWillDestroyItem (event) ->

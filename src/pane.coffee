@@ -307,6 +307,7 @@ class Pane extends Model
 
   # Add item (or move item) to the end of the itemStack
   addItemToStack: (newItem) ->
+    return unless newItem?
     index = @itemStack.indexOf(newItem)
     @itemStack.splice(index, 1) unless index is -1
     @itemStack.push(newItem)
