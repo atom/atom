@@ -183,6 +183,41 @@ describe "Pane", ->
         pane.activateItem(itemD, true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
+  describe "::setPendingItem", ->
+    pane = null
+
+    beforeEach ->
+      pane = atom.workspace.getActivePane()
+
+    it "changes the pending item", ->
+      expect(pane.getPendingItem()).toBeNull()
+      pane.setPendingItem("fake item")
+      expect(pane.getPendingItem()).toEqual "fake item"
+
+  describe "::onItemDidTerminatePendingState callback", ->
+    pane = null
+    callbackCalled = false
+
+    beforeEach ->
+      pane = atom.workspace.getActivePane()
+      callbackCalled = false
+
+    it "is called when the pending item changes", ->
+      pane.setPendingItem("fake item one")
+      pane.onItemDidTerminatePendingState (item) ->
+        callbackCalled = true
+        expect(item).toEqual "fake item one"
+      pane.setPendingItem("fake item two")
+      expect(callbackCalled).toBeTruthy()
+
+    it "has access to the new pending item via ::getPendingItem", ->
+      pane.setPendingItem("fake item one")
+      pane.onItemDidTerminatePendingState (item) ->
+        callbackCalled = true
+        expect(pane.getPendingItem()).toEqual "fake item two"
+      pane.setPendingItem("fake item two")
+      expect(callbackCalled).toBeTruthy()
+
   describe "::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()", ->
     it "sets the active item to the next/previous item in the itemStack, looping around at either end", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D"), new Item("E")]))
