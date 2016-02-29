@@ -596,7 +596,15 @@ export default class GitRepositoryAsync {
       .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
       .then(([repo, tree]) => {
         const options = new Git.DiffOptions()
+        options.contextLines = 0
+        options.flags = Git.Diff.OPTION.DISABLE_PATHSPEC_MATCH
         options.pathspec = this.relativize(_path, repo.workdir())
+        if (process.platform === 'win32') {
+          // Ignore eol of line differences on windows so that files checked in
+          // as LF don't report every line modified when the text contains CRLF
+          // endings.
+          options.flags |= Git.Diff.OPTION.IGNORE_WHITESPACE_EOL
+        }
         return Git.Diff.treeToWorkdir(repo, tree, options)
       })
       .then(diff => this._getDiffLines(diff))
