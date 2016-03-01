@@ -1,7 +1,6 @@
 'use babel'
 
 import {Emitter, CompositeDisposable} from 'event-kit'
-import {ipcRenderer} from 'electron'
 
 export default class AutoUpdateManager {
   constructor ({applicationDelegate}) {
