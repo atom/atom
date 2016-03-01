@@ -65,32 +65,24 @@ describe('AutoUpdateManager (renderer)', () => {
   })
 
   describe('::platformSupportsUpdates', () => {
-    let platform, releaseChannel
+    let state, releaseChannel
     it('returns true on OS X and Windows, when in stable', () => {
-      spyOn(autoUpdateManager, 'getPlatform').andCallFake(() =>  platform)
+      spyOn(autoUpdateManager, 'getState').andCallFake(() =>  state)
       spyOn(autoUpdateManager, 'getReleaseChannel').andCallFake(() => releaseChannel)
 
-      platform = 'win32'
+      state = 'idle'
       releaseChannel = 'stable'
       expect(autoUpdateManager.platformSupportsUpdates()).toBe(true)
 
-      platform = 'win32'
+      state = 'idle'
       releaseChannel = 'dev'
       expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
 
-      platform = 'darwin'
-      releaseChannel = 'stable'
-      expect(autoUpdateManager.platformSupportsUpdates()).toBe(true)
-
-      platform = 'darwin'
-      releaseChannel = 'dev'
-      expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
-
-      platform = 'linux'
+      state = 'unsupported'
       releaseChannel = 'stable'
       expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
 
-      platform = 'linux'
+      state = 'unsupported'
       releaseChannel = 'dev'
       expect(autoUpdateManager.platformSupportsUpdates()).toBe(false)
     })
