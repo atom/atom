@@ -55,11 +55,16 @@ describe "PackageManager", ->
     it "normalizes short repository urls in package.json", ->
       {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
       expect(metadata.repository.type).toBe "git"
-      expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo"
 
       {metadata} = atom.packages.loadPackage("package-with-invalid-url-package-json")
       expect(metadata.repository.type).toBe "git"
       expect(metadata.repository.url).toBe "foo"
+
+    it "trims git+ from the beginning and .git from the end of repository URLs, even if npm already normalized them ", ->
+      {metadata} = atom.packages.loadPackage("package-with-prefixed-and-suffixed-repo-url")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo"
 
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
