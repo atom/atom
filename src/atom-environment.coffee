@@ -846,7 +846,6 @@ class AtomEnvironment extends Model
             @applicationDelegate.setTemporaryWindowState(state)
         savePromise.catch(reject).then(resolve)
 
-
   loadState: ->
     if @enablePersistence
       if stateKey = @getStateKey(@getLoadSettings().initialPaths)
