@@ -68,7 +68,7 @@ describe('AutoUpdateManager (renderer)', () => {
     let state, releaseChannel
     it('returns true on OS X and Windows when in stable', () => {
       spyOn(autoUpdateManager, 'getState').andCallFake(() =>  state)
-      spyOn(autoUpdateManager, 'getReleaseChannel').andCallFake(() => releaseChannel)
+      spyOn(atom, 'getReleaseChannel').andCallFake(() => releaseChannel)
 
       state = 'idle'
       releaseChannel = 'stable'

@@ -42,7 +42,7 @@ export default class AutoUpdateManager {
   }
 
   platformSupportsUpdates () {
-    return this.getReleaseChannel() !== 'dev' && this.getState() !== 'unsupported'
+    return atom.getReleaseChannel() !== 'dev' && this.getState() !== 'unsupported'
   }
 
   onDidBeginCheckingForUpdate (callback) {
@@ -69,16 +69,5 @@ export default class AutoUpdateManager {
 
   getPlatform () {
     return process.platform
-  }
-
-  // TODO: We should move this into atom env or something.
-  getReleaseChannel () {
-    let version = atom.getVersion()
-    if (version.indexOf('beta') > -1) {
-      return 'beta'
-    } else if (version.indexOf('dev') > -1) {
-      return 'dev'
-    }
-    return 'stable'
   }
 }
