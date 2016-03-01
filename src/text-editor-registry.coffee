@@ -1,9 +1,16 @@
 {Emitter, Disposable} = require 'event-kit'
 
-# This global registry tracks registered `TextEditors`.
+# Experimental: This global registry tracks registered `TextEditors`.
 #
-# Packages that provide extra functionality to `TextEditors`, such as
-# autocompletion, can observe this registry to find applicable editors.
+# If you want to add functionality to a wider set of text editors than just
+# those appearing within workspace panes, use `atom.textEditors.observe` to
+# invoke a callback for all current and future registered text editors.
+#
+# If you want packages to be able to add functionality to your non-pane text
+# editors (such as a search field in a custom user interface element), register
+# them for observation via `atom.textEditors.add`. **Important:** When you're
+# done using your editor, be sure to call `dispose` on the returned disposable
+# to avoid leaking editors.
 module.exports =
 class TextEditorRegistry
   constructor: ->
