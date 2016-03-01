@@ -558,7 +558,10 @@ class Workspace extends Model
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
       @grammarRegistry, @project, @assert, @applicationDelegate
     }, params)
-    new TextEditor(params)
+    editor = new TextEditor(params)
+    disposable = atom.textEditors.add(editor)
+    editor.onDidDestroy -> disposable.dispose()
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

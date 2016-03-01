@@ -423,10 +423,6 @@ class Pane extends Model
 
     return if item in @items
 
-    pendingItem = @getPendingItem()
-    @destroyItem(pendingItem) if pendingItem?
-    @setPendingItem(item) if pending
-
     if typeof item.onDidDestroy is 'function'
       itemSubscriptions = new CompositeDisposable
       itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
@@ -437,6 +433,10 @@ class Pane extends Model
       @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
+    pendingItem = @getPendingItem()
+    @destroyItem(pendingItem) if pendingItem?
+    @setPendingItem(item) if pending
+
     @emitter.emit 'did-add-item', {item, index, moved}
     @setActiveItem(item) unless @getActiveItem()?
     item
