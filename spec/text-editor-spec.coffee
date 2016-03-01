@@ -5829,6 +5829,29 @@ describe "TextEditor", ->
           rangeIsReversed: false
         }
 
+  describe "when the editor is constructed with the ignoreInvisibles option set to true", ->
+    beforeEach ->
+      atom.workspace.destroyActivePane()
+      waitsForPromise ->
+        atom.workspace.open('sample.js', ignoreInvisibles: true).then (o) -> editor = o
+
+    it "ignores invisibles even if editor.showInvisibles is true", ->
+      atom.config.set('editor.showInvisibles', true)
+      invisibles = editor.tokenizedLineForScreenRow(0).invisibles
+      expect(invisibles).toBe(null)
+
+  describe "when the editor is constructed with the grammarName option set", ->
+    beforeEach ->
+      atom.workspace.destroyActivePane()
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', grammarName: 'source.coffee').then (o) -> editor = o
+
+    it "sets the grammar", ->
+      expect(editor.getGrammar().name).toBe 'CoffeeScript'
+
   describe "::getElement", ->
     it "returns an element", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
