@@ -24,7 +24,7 @@ export default class AutoUpdateManager {
     )
   }
 
-  dispose () {
+  destroy () {
     this.subscriptions.dispose()
     this.emitter.dispose()
   }

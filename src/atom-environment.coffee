@@ -338,6 +338,7 @@ class AtomEnvironment extends Model
     @commands.clear()
     @stylesElement.remove()
     @config.unobserveUserConfig()
+    @autoUpdater.destroy()
 
     @uninstallWindowEventHandler()
 

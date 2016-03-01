@@ -14,7 +14,7 @@ describe('AutoUpdateManager (renderer)', () => {
   })
 
   afterEach(() => {
-    autoUpdateManager.dispose()
+    autoUpdateManager.destroy()
   })
 
   describe('::onDidBeginCheckingForUpdate', () => {
@@ -88,8 +88,8 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
-  describe('::dispose', () => {
-    it('subscribes to "update-not-available" event', () => {
+  describe('::destroy', () => {
+    it('unsubscribes from all events', () => {
       const spy = jasmine.createSpy('spy')
       const doneIndicator = jasmine.createSpy('spy')
       atom.applicationDelegate.onUpdateNotAvailable(doneIndicator)
@@ -97,7 +97,7 @@ describe('AutoUpdateManager (renderer)', () => {
       autoUpdateManager.onDidBeginDownloadingUpdate(spy)
       autoUpdateManager.onDidCompleteDownloadingUpdate(spy)
       autoUpdateManager.onUpdateNotAvailable(spy)
-      autoUpdateManager.dispose()
+      autoUpdateManager.destroy()
       electronAutoUpdater.emit('checking-for-update')
       electronAutoUpdater.emit('update-available')
       electronAutoUpdater.emit('update-downloaded', null, null, '1.2.3')
