@@ -40,6 +40,7 @@ Project = require './project'
 TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
+TextEditorRegistry = require './text-editor-registry'
 
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
@@ -110,6 +111,9 @@ class AtomEnvironment extends Model
 
   # Public: A {Workspace} instance
   workspace: null
+
+  # Public: A {TextEditorRegistry} instance
+  textEditors: null
 
   saveStateDebounceInterval: 1000
 
@@ -182,6 +186,8 @@ class AtomEnvironment extends Model
       notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
     @themes.workspace = @workspace
+
+    @textEditors = new TextEditorRegistry
 
     @config.load()
 

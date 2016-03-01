@@ -34,23 +34,10 @@ module.exports = (grunt) ->
   grunt.file.setBase(path.resolve('..'))
 
   # Options
+  [defaultChannel, releaseBranch] = getDefaultChannelAndReleaseBranch(packageJson.version)
   installDir = grunt.option('install-dir')
-  buildDir = grunt.option('build-dir')
-  buildDir ?= 'out'
-  buildDir = path.resolve(buildDir)
-
-  channel = grunt.option('channel')
-  releasableBranches = ['stable', 'beta']
-  if process.env.APPVEYOR and not process.env.APPVEYOR_PULL_REQUEST_NUMBER
-    channel ?= process.env.APPVEYOR_REPO_BRANCH if process.env.APPVEYOR_REPO_BRANCH in releasableBranches
-
-  if process.env.TRAVIS and not process.env.TRAVIS_PULL_REQUEST
-    channel ?= process.env.TRAVIS_BRANCH if process.env.TRAVIS_BRANCH in releasableBranches
-
-  if process.env.JANKY_BRANCH
-    channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in releasableBranches
-
-  channel ?= 'dev'
+  buildDir = path.resolve(grunt.option('build-dir') ? 'out')
+  channel = grunt.option('channel') ? defaultChannel
 
   metadata = packageJson
   appName = packageJson.productName
@@ -189,7 +176,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata,
+      appName, channel, metadata, releaseBranch,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
@@ -310,3 +297,20 @@ module.exports = (grunt) ->
   unless process.platform is 'linux' or grunt.option('no-install')
     defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)
+
+getDefaultChannelAndReleaseBranch = (version) ->
+  if version.match(/dev/) or isBuildingPR()
+    channel = 'dev'
+    releaseBranch = null
+  else
+    if version.match(/beta/)
+      channel = 'beta'
+    else
+      channel = 'stable'
+
+    minorVersion = version.match(/^\d\.\d/)[0]
+    releaseBranch = "#{minorVersion}-releases"
+  [channel, releaseBranch]
+
+isBuildingPR = ->
+  process.env.APPVEYOR_PULL_REQUEST_NUMBER? or process.env.TRAVIS_PULL_REQUEST?
