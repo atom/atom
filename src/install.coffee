@@ -31,6 +31,8 @@ class Install extends Command
 
       Usage: apm install [<package_name>...]
              apm install <package_name>@<package_version>
+             apm install <git_remote>
+             apm install <github_username>/<github_project>
              apm install --packages-file my-packages.txt
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
