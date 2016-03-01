@@ -2141,8 +2141,11 @@ describe "TextEditor", ->
         expect(editor.getSelections()).toEqual [selection, selection2, selection3, selection4]
         [selection, selection2, selection3, selection4]
 
-      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
+      it "destroys all selections but the oldest selection and autoscrolls to it, returning true if any selections were destroyed", ->
         [selection1] = makeMultipleSelections()
+
+        autoscrollEvents = []
+        editor.onDidRequestAutoscroll (event) -> autoscrollEvents.push(event)
 
         expect(editor.consolidateSelections()).toBeTruthy()
         expect(editor.getSelections()).toEqual [selection1]
@@ -2150,23 +2153,9 @@ describe "TextEditor", ->
         expect(editor.consolidateSelections()).toBeFalsy()
         expect(editor.getSelections()).toEqual [selection1]
 
-      it "scrolls to the remaining selection", ->
-        [selection1] = makeMultipleSelections()
-
-        atom.config.set('editor.scrollPastEnd', true)
-        editor.setHeight(100, true)
-        editor.setLineHeightInPixels(10)
-        editor.setFirstVisibleScreenRow(10)
-        expect(editor.getVisibleRowRange()[0]).toBeGreaterThan(selection1.getBufferRowRange()[1])
-
-        editor.consolidateSelections()
-
-        waitsForPromise ->
-          new Promise((resolve) -> window.requestAnimationFrame(resolve))
-
-        runs ->
-          expect(editor.getVisibleRowRange()[0]).not.toBeGreaterThan(selection1.getBufferRowRange()[0])
-          expect(editor.getVisibleRowRange()[1]).not.toBeLessThan(selection1.getBufferRowRange()[0])
+        expect(autoscrollEvents).toEqual([
+          {screenRange: selection1.getScreenRange(), options: {center: true, reversed: false}}
+        ])
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
