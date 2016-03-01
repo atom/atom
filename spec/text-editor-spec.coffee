@@ -2132,19 +2132,41 @@ describe "TextEditor", ->
         editor.splitSelectionsIntoLines()
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
 
-    describe ".consolidateSelections()", ->
-      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
-        editor.setSelectedBufferRange([[3, 16], [3, 21]])
-        selection1 = editor.getLastSelection()
+    describe "::consolidateSelections()", ->
+      makeMultipleSelections = ->
+        selection.setBufferRange [[3, 16], [3, 21]]
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
         selection3 = editor.addSelectionForBufferRange([[8, 4], [8, 10]])
+        selection4 = editor.addSelectionForBufferRange([[1, 6], [1, 10]])
+        expect(editor.getSelections()).toEqual [selection, selection2, selection3, selection4]
+        [selection, selection2, selection3, selection4]
 
-        expect(editor.getSelections()).toEqual [selection1, selection2, selection3]
+      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
+        [selection1] = makeMultipleSelections()
+
         expect(editor.consolidateSelections()).toBeTruthy()
         expect(editor.getSelections()).toEqual [selection1]
         expect(selection1.isEmpty()).toBeFalsy()
         expect(editor.consolidateSelections()).toBeFalsy()
         expect(editor.getSelections()).toEqual [selection1]
+
+      it "scrolls to the remaining selection", ->
+        [selection1] = makeMultipleSelections()
+
+        atom.config.set('editor.scrollPastEnd', true)
+        editor.setHeight(100, true)
+        editor.setLineHeightInPixels(10)
+        editor.setFirstVisibleScreenRow(10)
+        expect(editor.getVisibleRowRange()[0]).toBeGreaterThan(selection1.getBufferRowRange()[1])
+
+        editor.consolidateSelections()
+
+        waitsForPromise ->
+          new Promise((resolve) -> window.requestAnimationFrame(resolve))
+
+        runs ->
+          expect(editor.getVisibleRowRange()[0]).not.toBeGreaterThan(selection1.getBufferRowRange()[0])
+          expect(editor.getVisibleRowRange()[1]).not.toBeLessThan(selection1.getBufferRowRange()[0])
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
