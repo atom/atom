@@ -174,6 +174,9 @@ class ApplicationDelegate
 
   onUpdateAvailable: (callback) ->
     outerCallback = (event, message, detail) ->
+      # TODO: Yes, this is strange that `onUpdateAvailable` is listening for
+      # `did-begin-downloading-update`. We currently have no mechanism to know
+      # if there is an update, so begin of downloading is a good proxy.
       callback(detail) if message is 'did-begin-downloading-update'
 
     ipcRenderer.on('message', outerCallback)
@@ -193,6 +196,7 @@ class ApplicationDelegate
 
   onDidCompleteDownloadingUpdate: (callback) ->
     outerCallback = (event, message, detail) ->
+      # TODO: We could rename this event to `did-complete-downloading-update`
       callback(detail) if message is 'update-available'
 
     ipcRenderer.on('message', outerCallback)
