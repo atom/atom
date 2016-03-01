@@ -36,5 +36,5 @@ class TextEditorRegistry
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observe: (callback) ->
-    @editors.forEach (editor) -> callback(editor)
+    @editors.forEach(callback)
     @emitter.on 'did-add-editor', callback
