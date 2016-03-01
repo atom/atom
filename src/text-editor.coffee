@@ -82,7 +82,10 @@ class TextEditor extends Model
     state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     state.applicationDelegate = atomEnvironment.applicationDelegate
-    new this(state)
+    editor = new this(state)
+    disposable = atomEnvironment.textEditors.add(editor)
+    editor.onDidDestroy -> disposable.dispose()
+    editor
 
   constructor: (params={}) ->
     super
