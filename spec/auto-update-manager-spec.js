@@ -66,7 +66,7 @@ describe('AutoUpdateManager (renderer)', () => {
 
   describe('::platformSupportsUpdates', () => {
     let state, releaseChannel
-    it('returns true on OS X and Windows, when in stable', () => {
+    it('returns true on OS X and Windows when in stable', () => {
       spyOn(autoUpdateManager, 'getState').andCallFake(() =>  state)
       spyOn(autoUpdateManager, 'getReleaseChannel').andCallFake(() => releaseChannel)
 
