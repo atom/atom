@@ -884,6 +884,7 @@ class AtomEnvironment extends Model
           detail: error.message
           dismissable: true
 
+  # TODO: We should deprecate the update events here, and use `atom.autoUpdater` instead
   onUpdateAvailable: (callback) ->
     @emitter.on 'update-available', callback
 
