@@ -5828,3 +5828,7 @@ describe "TextEditor", ->
           screenRange: marker1.getRange(),
           rangeIsReversed: false
         }
+
+  describe "::getElement", ->
+    it "returns an element", ->
+      expect(editor.getElement() instanceof HTMLElement).toBe(true)
