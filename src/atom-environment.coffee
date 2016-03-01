@@ -417,6 +417,16 @@ class AtomEnvironment extends Model
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
 
+  # Returns the release channel as a {String}. Will return one of `'dev', 'beta', 'stable'`
+  getReleaseChannel: ->
+    version = @getVersion()
+    if version.indexOf('beta') > -1
+      'beta'
+    else if version.indexOf('dev') > -1
+      'dev'
+    else
+      'stable'
+
   # Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion: ->
     not /\w{7}/.test(@getVersion()) # Check if the release is a 7-character SHA prefix

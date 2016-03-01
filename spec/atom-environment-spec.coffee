@@ -328,3 +328,18 @@ describe "AtomEnvironment", ->
       runs ->
         {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
         expect(releaseVersion).toBe 'version'
+
+  describe "::getReleaseChannel()", ->
+    [version] = []
+    beforeEach ->
+      spyOn(atom, 'getVersion').andCallFake -> version
+
+    it "returns the correct channel based on the version number", ->
+      version = '1.5.6'
+      expect(atom.getReleaseChannel()).toBe 'stable'
+
+      version = '1.5.0-beta10'
+      expect(atom.getReleaseChannel()).toBe 'beta'
+
+      version = '1.7.0-dev-5340c91'
+      expect(atom.getReleaseChannel()).toBe 'dev'
