@@ -235,3 +235,12 @@ class ApplicationDelegate
 
   disablePinchToZoom: ->
     webFrame.setZoomLevelLimits(1, 1)
+
+  checkForUpdate: ->
+    ipcRenderer.send('check-for-update')
+
+  restartAndInstallUpdate: ->
+    ipcRenderer.send('install-update')
+
+  getAutoUpdateManagerState: ->
+    ipcRenderer.sendSync('get-auto-update-manager-state')

@@ -5,6 +5,7 @@ import {ipcRenderer} from 'electron'
 
 export default class AutoUpdateManager {
   constructor ({applicationDelegate}) {
+    this.applicationDelegate = applicationDelegate
     this.subscriptions = new CompositeDisposable()
     this.emitter = new Emitter()
 
@@ -30,15 +31,15 @@ export default class AutoUpdateManager {
   }
 
   checkForUpdate () {
-    ipcRenderer.send('check-for-update')
+    this.applicationDelegate.checkForUpdate()
   }
 
   restartAndInstallUpdate () {
-    ipcRenderer.send('install-update')
+    this.applicationDelegate.restartAndInstallUpdate()
   }
 
   getState () {
-    return ipcRenderer.sendSync('get-auto-update-manager-state')
+    return this.applicationDelegate.getAutoUpdateManagerState()
   }
 
   platformSupportsUpdates () {
