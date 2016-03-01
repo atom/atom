@@ -16,7 +16,7 @@ request = require './request'
 
 module.exports =
 class Install extends Command
-  @commandNames: ['install']
+  @commandNames: ['install', 'i']
 
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
@@ -34,6 +34,7 @@ class Install extends Command
              apm install <git_remote>
              apm install <github_username>/<github_project>
              apm install --packages-file my-packages.txt
+             apm i (with any of the previous argument usage)
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
