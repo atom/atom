@@ -809,6 +809,7 @@ class AtomEnvironment extends Model
 
   # Notify the browser project of the window's current project path
   watchProjectPaths: ->
+    @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
     @disposables.add @project.onDidChangePaths =>
       @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
