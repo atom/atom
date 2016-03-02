@@ -677,6 +677,8 @@ class AtomEnvironment extends Model
         @backgroundStylesheet?.remove()
 
         @watchProjectPath()
+        # Ensure initialPaths is up to date
+        @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
         @packages.activate()
         @keymaps.loadUserKeymap()
@@ -811,6 +813,7 @@ class AtomEnvironment extends Model
   watchProjectPath: ->
     @disposables.add @project.onDidChangePaths =>
       @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
+      @applicationDelegate.setRepresentedStateKey(@getStateKey(@project.getPaths()))
 
   setDocumentEdited: (edited) ->
     @applicationDelegate.setWindowDocumentEdited?(edited)
@@ -848,7 +851,9 @@ class AtomEnvironment extends Model
 
   loadState: ->
     if @enablePersistence
-      if stateKey = @getStateKey(@getLoadSettings().initialPaths)
+      stateKey = @getLoadSettings().stateKey
+      stateKey ?= @getStateKey(@getLoadSettings().initialPaths) # backwards compability
+      if stateKey
         @stateStore.load(stateKey)
       else
         @applicationDelegate.getTemporaryWindowState()
