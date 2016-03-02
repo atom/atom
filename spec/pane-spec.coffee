@@ -218,35 +218,6 @@ describe "Pane", ->
       pane.setPendingItem("fake item two")
       expect(callbackCalled).toBeTruthy()
 
-  describe "::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()", ->
-    it "sets the active item to the next/previous item in the itemStack, looping around at either end", ->
-      pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D"), new Item("E")]))
-      [item1, item2, item3, item4, item5] = pane.getItems()
-      pane.itemStack = [item3, item1, item2, item5, item4]
-
-      pane.activateItem(item4)
-      expect(pane.getActiveItem()).toBe item4
-      pane.activateNextRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item5
-      pane.activateNextRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item2
-      pane.activatePreviousRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item5
-      pane.activatePreviousRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item4
-      pane.activatePreviousRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item3
-      pane.activatePreviousRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item1
-      pane.activateNextRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item3
-      pane.activateNextRecentlyUsedItem()
-      expect(pane.getActiveItem()).toBe item4
-      pane.activateNextRecentlyUsedItem()
-      pane.moveActiveItemToTopOfStack()
-      expect(pane.getActiveItem()).toBe item5
-      expect(pane.itemStack[4]).toBe item5
-
   describe "::activateNextItem() and ::activatePreviousItem()", ->
     it "sets the active item to the next/previous item, looping around at either end", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C")]))
