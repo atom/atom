@@ -121,6 +121,11 @@ class ApplicationDelegate
     loadSettings['initialPaths'] = paths
     setWindowLoadSettings(loadSettings)
 
+  setRepresentedStateKey: (stateKey) ->
+    loadSettings = getWindowLoadSettings()
+    loadSettings['stateKey'] = stateKey
+    setWindowLoadSettings(loadSettings)
+
   setAutoHideWindowMenuBar: (autoHide) ->
     ipcRenderer.send("call-window-method", "setAutoHideMenuBar", autoHide)
 

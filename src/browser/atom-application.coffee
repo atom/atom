@@ -432,7 +432,7 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   #   :addToLastWindow - Boolean of whether this should be opened in last focused window.
-  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow}={}) ->
+  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow, stateKey}={}) ->
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
@@ -469,7 +469,7 @@ class AtomApplication
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
       windowDimensions ?= @getDimensionsForNewWindow()
-      openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState})
+      openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, stateKey})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -504,19 +504,26 @@ class AtomApplication
     for window in @windows
       unless window.isSpec
         if loadSettings = window.getLoadSettings()
-          states.push(initialPaths: loadSettings.initialPaths)
+          states.push(stateKey: loadSettings.stateKey)
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 
   loadState: (options) ->
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
-        @openWithOptions(_.extend(options, {
-          pathsToOpen: state.initialPaths
-          urlsToOpen: []
-          devMode: @devMode
-          safeMode: @safeMode
-        }))
+        if 'stateKey' of state
+          @openPaths(_.extend(options, {
+            pathsToOpen: []
+            urlsToOpen: []
+            stateKey: state.stateKey
+          }))
+        else
+          # backwards compatability
+          @openWithOptions(_.extend(options, {
+            pathsToOpen: state.initialPaths or []
+            urlsToOpen: []
+          }))
+
       true
     else
       false
