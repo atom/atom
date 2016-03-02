@@ -28,10 +28,15 @@ class Command
       else
         errorChunks.push(chunk)
 
-    spawned.on 'error', (error) ->
-      callback(error, Buffer.concat(errorChunks).toString(), Buffer.concat(outputChunks).toString())
-    spawned.on 'close', (code) ->
-      callback(code, Buffer.concat(errorChunks).toString(), Buffer.concat(outputChunks).toString())
+    onChildExit = (errorOrExitCode) ->
+      spawned.removeListener 'error', onChildExit
+      spawned.removeListener 'close', onChildExit
+      callback?(errorOrExitCode, Buffer.concat(errorChunks).toString(), Buffer.concat(outputChunks).toString())
+
+    spawned.on 'error', onChildExit
+    spawned.on 'close', onChildExit
+
+    spawned
 
   fork: (script, args, remaining...) ->
     args.unshift(script)
