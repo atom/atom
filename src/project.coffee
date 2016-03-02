@@ -56,6 +56,7 @@ class Project extends Model
 
   deserialize: (state, deserializerManager) ->
     state.paths = [state.path] if state.path? # backward compatibility
+    state.paths = state.paths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
 
     @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
