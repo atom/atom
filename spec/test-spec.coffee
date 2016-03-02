@@ -51,6 +51,7 @@ describe "apm test", ->
         stderr:
           on: ->
         on: atomReturnFn
+        removeListener: -> # no op
       apm.run(['test'], callback)
 
     describe 'successfully', ->
