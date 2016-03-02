@@ -504,7 +504,7 @@ class AtomApplication
     for window in @windows
       unless window.isSpec
         if loadSettings = window.getLoadSettings()
-          states.push(stateKey: loadSettings.stateKey)
+          states.push(stateKey: loadSettings.stateKey, initialPaths: loadSettings.initialPaths)
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 

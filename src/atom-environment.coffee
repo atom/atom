@@ -677,6 +677,8 @@ class AtomEnvironment extends Model
         @backgroundStylesheet?.remove()
 
         @watchProjectPath()
+        # Ensure initialPaths is up to date
+        @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
         @packages.activate()
         @keymaps.loadUserKeymap()
