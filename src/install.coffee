@@ -6,6 +6,7 @@ yargs = require 'yargs'
 CSON = require 'season'
 semver = require 'npm/node_modules/semver'
 temp = require 'temp'
+hostedGitInfo = require 'hosted-git-info'
 
 config = require './apm'
 Command = require './command'
@@ -21,6 +22,7 @@ class Install extends Command
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
+    @atomGitPackagesDirectory = path.join(@atomDirectory, 'git-packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
     @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
@@ -87,7 +89,7 @@ class Install extends Command
       else
         callback("#{stdout}\n#{stderr}")
 
-  installModule: (options, pack, modulePath, callback) ->
+  installModule: (options, pack, modulePath, destination=@atomPackagesDirectory, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{@electronVersion}")
@@ -117,7 +119,7 @@ class Install extends Command
           commands = []
           for child in fs.readdirSync(nodeModulesDirectory)
             source = path.join(nodeModulesDirectory, child)
-            destination = path.join(@atomPackagesDirectory, child)
+            destination = path.join(destination, child)
             do (source, destination) ->
               commands.push (callback) -> fs.cp(source, destination, callback)
 
@@ -296,7 +298,7 @@ class Install extends Command
   # options - The installation options object.
   # callback - The function to invoke when installation completes with an
   #            error as the first argument.
-  installPackage: (metadata, options, callback) ->
+  installRegisteredPackage: (metadata, options, callback) ->
     packageName = metadata.name
     packageVersion = metadata.version
 
@@ -361,7 +363,7 @@ class Install extends Command
     for name, version of @getPackageDependencies()
       do (name, version) =>
         commands.push (callback) =>
-          @installPackage({name, version}, options, callback)
+          @installRegisteredPackage({name, version}, options, callback)
 
     async.waterfall(commands, callback)
 
@@ -482,6 +484,28 @@ class Install extends Command
 
     latestVersion
 
+  getHostedGitInfo: (name) ->
+    hostedGitInfo.fromUrl(name)
+
+  clone: (url, targetDir, callback) =>
+    @spawn 'git', ['clone', url, targetDir], {streaming: true}, callback
+
+  installGitPackage: (packageInfo, targetDir, callback) =>
+    if packageInfo.default is 'sshurl'
+      url = packageInfo.toString()
+      @clone url, targetDir, callback
+    else if packageInfo.default is 'https'
+      @clone name, targetDir, callback
+    else if packageInfo.default is 'shortcut'
+      url = packageInfo.https().replace(/^git\+https:/, "https:")
+      @clone url, targetDir, (error) =>
+        if error
+          # more error checking to make sure failure is because of protocol
+          url = packageInfo.sshurl()
+          @clone url, targetDir, callback
+        else
+          callback()
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -501,9 +525,18 @@ class Install extends Command
       process.env.NODE_DEBUG = 'request'
 
     installPackage = (name, callback) =>
-      if name is '.'
+      gitPackageInfo = @getHostedGitInfo(name)
+      targetDir = path.join(@atomGitPackagesDirectory, gitPackageInfo.project)
+
+      if gitPackageInfo
+        @installGitPackage gitPackageInfo, targetDir, (error) =>
+          return callback(error) if error?
+          pack =
+            name: gitPackageInfo.project
+          @installModule options, pack, targetDir, @atomGitPackagesDirectory, callback
+      else if name is '.'
         @installDependencies(options, callback)
-      else
+      else # is registered package
         atIndex = name.indexOf('@')
         if atIndex > 0
           version = name.substring(atIndex + 1)
@@ -516,7 +549,7 @@ class Install extends Command
               You can run `apm uninstall #{name}` to uninstall it and then the version bundled
               with Atom will be used.
             """.yellow
-          @installPackage({name, version}, options, callback)
+          @installRegisteredPackage({name, version}, options, callback)
 
     if packagesFilePath
       try
