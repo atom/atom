@@ -676,7 +676,7 @@ class AtomEnvironment extends Model
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
 
-        @watchProjectPath()
+        @watchProjectPaths()
 
         @packages.activate()
         @keymaps.loadUserKeymap()
@@ -808,7 +808,7 @@ class AtomEnvironment extends Model
     @themes.load()
 
   # Notify the browser project of the window's current project path
-  watchProjectPath: ->
+  watchProjectPaths: ->
     @disposables.add @project.onDidChangePaths =>
       @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
