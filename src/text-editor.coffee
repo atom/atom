@@ -100,7 +100,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, grammarName, showInvisibles, @autoHeight, @ignoreScrollPastEnd
+      @project, @assert, @applicationDelegate, grammarName, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -120,7 +120,7 @@ class TextEditor extends Model
     @cursorsByMarkerId = new Map
     @selections = []
     @autoHeight ?= true
-    @ignoreScrollPastEnd ?= false
+    @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
 
     showInvisibles ?= true
@@ -3156,7 +3156,7 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @ignoreScrollPastEnd)
+    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
@@ -3232,7 +3232,7 @@ class TextEditor extends Model
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
-      unless @config.get('editor.scrollPastEnd') and not @ignoreScrollPastEnd
+      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
         height = @displayBuffer.getHeight()
         lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
         if height? and lineHeightInPixels?

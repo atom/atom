@@ -17,7 +17,7 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
-  ignoreScrollPastEnd: false
+  scrollPastEnd: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
@@ -90,7 +90,7 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @ignoreScrollPastEnd = false) ->
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
@@ -147,7 +147,7 @@ class TextEditorElement extends HTMLElement
       workspace: @workspace
       assert: @assert
       grammars: @grammars
-      ignoreScrollPastEnd: @ignoreScrollPastEnd
+      scrollPastEnd: @scrollPastEnd
     )
     @rootElement.appendChild(@component.getDomNode())
 
