@@ -534,7 +534,7 @@ class Install extends Command
       if gitPackageInfo
         targetDir = path.join(@atomGitPackagesDirectory, gitPackageInfo.project)
         @installGitPackage gitPackageInfo, targetDir, (error) =>
-          return callback(error) if error?
+          return callback(error) if error
           pack =
             name: gitPackageInfo.project
           gitInstallOptions = _.extend {}, options, installInPlace: true
