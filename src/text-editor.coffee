@@ -127,7 +127,7 @@ class TextEditor extends Model
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or !showInvisibles, largeFileMode,
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or not showInvisibles, largeFileMode,
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
