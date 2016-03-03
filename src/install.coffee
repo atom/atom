@@ -96,7 +96,7 @@ class Install extends Command
     installArgs.push("--arch=#{config.getElectronArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
-    installArgs.push('--production') if options.argv.production
+    installArgs.push('--production') if options.argv.production or options.installInPlace
 
     if vsArgs = @getVisualStudioFlags()
       installArgs.push(vsArgs)
