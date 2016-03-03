@@ -89,7 +89,7 @@ class Install extends Command
       else
         callback("#{stdout}\n#{stderr}")
 
-  installModule: (options, pack, modulePath, destination=@atomPackagesDirectory, callback) ->
+  installModule: (options, pack, modulePath, destination, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{@electronVersion}")
@@ -344,7 +344,7 @@ class Install extends Command
           commands.push (packagePath, callback) =>
             @installNode (error) -> callback(error, packagePath)
         commands.push (packagePath, callback) =>
-          @installModule(options, pack, packagePath, callback)
+          @installModule(options, pack, packagePath, @atomPackagesDirectory, callback)
 
         async.waterfall commands, (error) =>
           unless installGlobally
