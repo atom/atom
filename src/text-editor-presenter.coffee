@@ -42,7 +42,7 @@ class TextEditorPresenter
     @startReflowing() if @continuousReflow
     @updating = false
 
-    @scrollPastEndOverride = scrollPastEnd || true
+    @scrollPastEndOverride = scrollPastEnd ? true
 
   setLinesYardstick: (@linesYardstick) ->
 
