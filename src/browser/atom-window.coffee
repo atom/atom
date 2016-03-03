@@ -47,7 +47,13 @@ class AtomWindow
     loadSettings.safeMode ?= false
     loadSettings.atomHome = process.env.ATOM_HOME
     loadSettings.clearWindowState ?= false
-    loadSettings.initialPaths ?= []
+    loadSettings.initialPaths ?=
+      for {pathToOpen} in locationsToOpen when pathToOpen
+        if fs.statSyncNoException(pathToOpen).isFile?()
+          path.dirname(pathToOpen)
+        else
+          pathToOpen
+
     loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
