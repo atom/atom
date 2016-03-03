@@ -3,11 +3,13 @@ path = require 'path'
 _ = require 'underscore-plus'
 CSON = require 'season'
 yargs = require 'yargs'
+Git = require 'git-utils'
 
 Command = require './command'
 fs = require './fs'
 config = require './apm'
 tree = require './tree'
+{getRepository} = require "./packages"
 
 module.exports =
 class List extends Command
@@ -57,6 +59,11 @@ class List extends Command
       tree packages, (pack) =>
         packageLine = pack.name
         packageLine += "@#{pack.version}" if pack.version?
+        if pack.sha?
+          repo = getRepository(pack)
+          shaLine = "##{pack.sha}"
+          shaLine = repo + shaLine if repo?
+          packageLine += " (#{shaLine})"
         packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
         packageLine
     console.log()
@@ -74,6 +81,10 @@ class List extends Command
         try
           manifest = CSON.readFileSync(manifestPath)
       manifest ?= {}
+      try
+        if directoryPath is @gitPackagesDirectory
+          repo = Git.open(path.join(directoryPath, child))
+          manifest.sha = repo.getReferenceTarget(repo.getHead()).substr(0, 7)
       manifest.name = child
       if options.argv.themes
         packages.push(manifest) if manifest.theme
