@@ -16,6 +16,7 @@ class List extends Command
   constructor: ->
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     @devPackagesDirectory = path.join(config.getAtomDirectory(), 'dev', 'packages')
+    @gitPackagesDirectory = path.join(config.getAtomDirectory(), 'git-packages')
     if configPath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
       try
         @disabledPackages = CSON.readFileSync(configPath)?.core?.disabledPackages
@@ -98,6 +99,13 @@ class List extends Command
         console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
     callback?(null, devPackages)
 
+  listGitPackages: (options, callback) ->
+    gitPackages = @listPackages(@gitPackagesDirectory, options)
+    if gitPackages.length > 0
+      unless options.argv.bare or options.argv.json
+        console.log "#{@gitPackagesDirectory.cyan} (#{gitPackages.length})"
+    callback?(null, gitPackages)
+
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) ->
       try
@@ -129,19 +137,25 @@ class List extends Command
       @listUserPackages options, (error, packages) =>
         @logPackages(packages, options)
 
+        @listGitPackages options, (error, packages) =>
+          @logPackages(packages, options)
+
   listPackagesAsJson: (options) ->
     output =
       core: []
       dev: []
+      git: []
       user: []
 
     @listBundledPackages options, (error, packages) =>
       output.core = packages
       @listDevPackages options, (error, packages) =>
         output.dev = packages
-        @listUserPackages options, (error, packages) ->
+        @listUserPackages options, (error, packages) =>
           output.user = packages
-          console.log JSON.stringify(output)
+          @listGitPackages options, (error, packages) ->
+            output.git = packages
+            console.log JSON.stringify(output)
 
   run: (options) ->
     {callback} = options
