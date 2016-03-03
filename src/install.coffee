@@ -105,8 +105,10 @@ class Install extends Command
     @addBuildEnvVars(env)
     installOptions = {env}
     installOptions.streaming = true if @verbose
+    installOptions.cwd = modulePath if options.installInPlace
 
-    installGlobally = options.installGlobally ? true
+    installGlobally = options.installGlobally and not options.installInPlace
+
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
@@ -533,7 +535,8 @@ class Install extends Command
           return callback(error) if error?
           pack =
             name: gitPackageInfo.project
-          @installModule options, pack, targetDir, @atomGitPackagesDirectory, callback
+          gitInstallOptions = _.extend {}, options, installInPlace: true
+          @installModule gitInstallOptions, pack, targetDir, @atomGitPackagesDirectory, callback
       else if name is '.'
         @installDependencies(options, callback)
       else # is registered package
