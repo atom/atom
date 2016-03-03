@@ -39,16 +39,24 @@ class AutoUpdateManager
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
+      @emitWindowEvent('checking-for-update')
 
     autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
+      @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
+      # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
+      # once the update download is complete. This mismatch between the electron
+      # autoUpdater events is unfortunate but in the interest of not changing the
+      # one existing event handled by applicationDelegate
+      @emitWindowEvent('did-begin-downloading-update')
+      @emit('did-begin-download')
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
-      @emitUpdateAvailableEvent(@getWindows()...)
+      @emitUpdateAvailableEvent()
 
     @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
       if newValue
@@ -64,10 +72,14 @@ class AutoUpdateManager
       when 'linux'
         @setState(UnsupportedState)
 
-  emitUpdateAvailableEvent: (windows...) ->
+  emitUpdateAvailableEvent: ->
     return unless @releaseVersion?
-    for atomWindow in windows
-      atomWindow.sendMessage('update-available', {@releaseVersion})
+    @emitWindowEvent('update-available', {@releaseVersion})
+    return
+
+  emitWindowEvent: (eventName, payload) ->
+    for atomWindow in @getWindows()
+      atomWindow.sendMessage(eventName, payload)
     return
 
   setState: (state) ->
