@@ -100,7 +100,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, grammarName, showInvisibles, @autoHeight, @scrollPastEnd
+      @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -156,8 +156,8 @@ class TextEditor extends Model
       priority: 0
       visible: lineNumberGutterVisible
 
-    if grammarName?
-      @setGrammar(@grammarRegistry.grammarForScopeName(grammarName))
+    if grammar?
+      @setGrammar(grammar)
 
   serialize: ->
     deserializer: 'TextEditor'

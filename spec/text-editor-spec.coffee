@@ -5840,14 +5840,14 @@ describe "TextEditor", ->
       invisibles = editor.tokenizedLineForScreenRow(0).invisibles
       expect(invisibles).toBe(null)
 
-  describe "when the editor is constructed with the grammarName option set", ->
+  describe "when the editor is constructed with the grammar option set", ->
     beforeEach ->
       atom.workspace.destroyActivePane()
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
 
       waitsForPromise ->
-        atom.workspace.open('sample.js', grammarName: 'source.coffee').then (o) -> editor = o
+        atom.workspace.open('sample.js', grammar: atom.grammars.grammarForScopeName('source.coffee')).then (o) -> editor = o
 
     it "sets the grammar", ->
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
