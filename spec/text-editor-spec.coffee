@@ -5829,11 +5829,11 @@ describe "TextEditor", ->
           rangeIsReversed: false
         }
 
-  describe "when the editor is constructed with the ignoreInvisibles option set to true", ->
+  describe "when the editor is constructed with the showInvisibles option set to false", ->
     beforeEach ->
       atom.workspace.destroyActivePane()
       waitsForPromise ->
-        atom.workspace.open('sample.js', ignoreInvisibles: true).then (o) -> editor = o
+        atom.workspace.open('sample.js', showInvisibles: false).then (o) -> editor = o
 
     it "ignores invisibles even if editor.showInvisibles is true", ->
       atom.config.set('editor.showInvisibles', true)

@@ -100,7 +100,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, grammarName, ignoreInvisibles, @autoHeight, @ignoreScrollPastEnd
+      @project, @assert, @applicationDelegate, grammarName, showInvisibles, @autoHeight, @ignoreScrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -123,9 +123,11 @@ class TextEditor extends Model
     @ignoreScrollPastEnd ?= false
     @hasTerminatedPendingState = false
 
+    showInvisibles ?= true
+
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or ignoreInvisibles, largeFileMode,
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or !showInvisibles, largeFileMode,
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
