@@ -530,9 +530,9 @@ class Install extends Command
 
     installPackage = (name, callback) =>
       gitPackageInfo = @getHostedGitInfo(name)
-      targetDir = path.join(@atomGitPackagesDirectory, gitPackageInfo.project)
 
       if gitPackageInfo
+        targetDir = path.join(@atomGitPackagesDirectory, gitPackageInfo.project)
         @installGitPackage gitPackageInfo, targetDir, (error) =>
           return callback(error) if error?
           pack =
