@@ -107,7 +107,9 @@ class Install extends Command
     installOptions.streaming = true if @verbose
     installOptions.cwd = modulePath if options.installInPlace
 
-    installGlobally = options.installGlobally and not options.installInPlace
+    installGlobally = options.installGlobally ? true
+    if options.installInPlace
+      installGlobally = false
 
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
