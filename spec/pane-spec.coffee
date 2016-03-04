@@ -1,5 +1,6 @@
 {extend} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
+Grim = require 'grim'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
@@ -164,21 +165,24 @@ describe "Pane", ->
       runs ->
         expect(eventOrder).toEqual ["add", "remove"]
 
-    it "supports the older public API of ::addItem(item, index, moved)", ->
-      pane = new Pane(paneParams(items: []))
-      itemA = new Item("A")
-      itemB = new Item("B")
-      itemC = new Item("C")
-      pane.addItem(itemA, undefined, false, false)
-      pane.addItem(itemB, undefined, false, true)
-      pane.addItem(itemC, undefined, false, false)
-      expect(itemB.isDestroyed()).toBe true
+    describe "when using the old API of ::addItem(item, index)", ->
+      beforeEach ->
+        spyOn Grim, "deprecate"
 
-    it "shows a deprecation warning when passing a number", ->
-      spyOn Grim, "deprecate"
-      pane = new Pane(paneParams(items: []))
-      pane.addItem(new Item(), 2)
-      expect(Grim.deprecate).toHaveBeenCalledWith "Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})"
+      it "supports the older public API", ->
+        pane = new Pane(paneParams(items: []))
+        itemA = new Item("A")
+        itemB = new Item("B")
+        itemC = new Item("C")
+        pane.addItem(itemA, 0)
+        pane.addItem(itemB, 0)
+        pane.addItem(itemC, 0)
+        expect(pane.getItems()).toEqual [itemC, itemB, itemA]
+
+      it "shows a deprecation warning", ->
+        pane = new Pane(paneParams(items: []))
+        pane.addItem(new Item(), 2)
+        expect(Grim.deprecate).toHaveBeenCalledWith "Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})"
 
   describe "::activateItem(item)", ->
     pane = null

@@ -1,4 +1,3 @@
-_ = require 'underscore-plus'
 Grim = require 'grim'
 {find, compact, extend, last} = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
@@ -360,7 +359,7 @@ class Pane extends Model
         index = @getActiveItemIndex()
       else
         index = @getActiveItemIndex() + 1
-      @addItem(item, _.extend({index: index}, options))
+      @addItem(item, extend({}, options, {index: index}))
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -375,23 +374,12 @@ class Pane extends Model
   #     new pending items when they are opened.
   #
   # Returns the added item.
-  # addItem: (item, index=@getActiveItemIndex() + 1, moved=false, pending=false) ->
-  addItem: (item, options, args...) ->
+  addItem: (item, options={}) ->
     # Backward compat with old API:
-    #   addItem(item, index=@getActiveItemIndex() + 1, moved=false, pending=false)
-    unless options? and typeof options is "object"
-      if typeof options is "number"
-        Grim.deprecate("Pane::addItem(item, #{options}) is deprecated in favor of Pane::addItem(item, {index: #{options}})")
-
-      options =
-        index: options
-        moved: false
-        pending: false
-
-      if args.length > 0
-        [moved, pending] = args
-        options.moved = moved
-        options.pending = pending
+    #   addItem(item, index=@getActiveItemIndex() + 1)
+    if typeof options is "number"
+      Grim.deprecate("Pane::addItem(item, #{options}) is deprecated in favor of Pane::addItem(item, {index: #{options}})")
+      options = index: options
 
     index = options.index ? @getActiveItemIndex() + 1
     moved = options.moved ? false
