@@ -54,7 +54,7 @@ class Project extends Model
   Section: Serialization
   ###
 
-  deserialize: (state, deserializerManager) ->
+  deserialize: (state) ->
     state.paths = [state.path] if state.path? # backward compatibility
 
     @buffers = _.compact state.buffers.map (bufferState) ->
@@ -65,15 +65,15 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
-      deserializerManager.deserialize(bufferState)
+      TextBuffer.deserialize(bufferState)
 
     @subscribeToBuffer(buffer) for buffer in @buffers
     @setPaths(state.paths)
 
-  serialize: ->
+  serialize: (options) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isQuitting is true}) if buffer.isRetained())
 
   ###
   Section: Event Subscription

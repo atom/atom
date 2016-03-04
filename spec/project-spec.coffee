@@ -29,7 +29,7 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
 
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
+        deserializedProject.deserialize(atom.project.serialize())
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
@@ -39,7 +39,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
+        deserializedProject.deserialize(atom.project.serialize())
 
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
@@ -56,7 +56,7 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.mkdirSync(pathToOpen)
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
+        deserializedProject.deserialize(atom.project.serialize())
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
@@ -70,8 +70,25 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.chmodSync(pathToOpen, '000')
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize(), atom.deserializers)
+        deserializedProject.deserialize(atom.project.serialize())
         expect(deserializedProject.getBuffers().length).toBe 0
+
+    it "serializes marker / marker only if Atom is quitting", ->
+      waitsForPromise ->
+        atom.workspace.open('a')
+
+      runs ->
+        bufferA = atom.project.getBuffers()[0]
+        layerA = bufferA.addMarkerLayer(maintainHistory: true)
+        markerA = layerA.markPosition([0, 3])
+
+        notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        notQuittingProject.deserialize(atom.project.serialize({isQuitting: false}))
+        expect(notQuittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).toBeUndefined()
+
+        quittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        quittingProject.deserialize(atom.project.serialize({isQuitting: true}))
+        expect(quittingProject.getBuffers()[0].getMarkerLayer(layerA.id)?.getMarker(markerA.id)).not.toBeUndefined()
 
   describe "when an editor is saved and the project has no path", ->
     it "sets the project's path to the saved file's parent directory", ->
