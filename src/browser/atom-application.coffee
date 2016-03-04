@@ -85,16 +85,16 @@ class AtomApplication
     else
       @loadState(options) or @openPath(options)
 
-  openWithOptions: ({pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow}) ->
+  openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow}) ->
     if test
       @runTests({headless: true, devMode, @resourcePath, executedFrom, pathsToOpen, logFile, timeout})
     else if pathsToOpen.length > 0
-      @openPaths({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow})
+      @openPaths({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow})
     else if urlsToOpen.length > 0
       @openUrl({urlToOpen, devMode, safeMode}) for urlToOpen in urlsToOpen
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow})
+      @openPath({initialPaths, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow})
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -418,8 +418,8 @@ class AtomApplication
   #   :profileStartup - Boolean to control creating a profile of the startup time.
   #   :window - {AtomWindow} to open file paths in.
   #   :addToLastWindow - Boolean of whether this should be opened in last focused window.
-  openPath: ({pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window, clearWindowState, addToLastWindow} = {}) ->
-    @openPaths({pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window, clearWindowState, addToLastWindow})
+  openPath: ({initialPaths, pathToOpen, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window, clearWindowState, addToLastWindow} = {}) ->
+    @openPaths({initialPaths, pathsToOpen: [pathToOpen], pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, window, clearWindowState, addToLastWindow})
 
   # Public: Opens multiple paths, in existing windows if possible.
   #
@@ -432,7 +432,7 @@ class AtomApplication
   #   :windowDimensions - Object with height and width keys.
   #   :window - {AtomWindow} to open file paths in.
   #   :addToLastWindow - Boolean of whether this should be opened in last focused window.
-  openPaths: ({pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow}={}) ->
+  openPaths: ({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow}={}) ->
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
@@ -469,7 +469,7 @@ class AtomApplication
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
       windowDimensions ?= @getDimensionsForNewWindow()
-      openedWindow = new AtomWindow({locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState})
+      openedWindow = new AtomWindow({initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -512,7 +512,8 @@ class AtomApplication
     if (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(_.extend(options, {
-          pathsToOpen: state.initialPaths
+          initialPaths: state.initialPaths
+          pathsToOpen: state.initialPaths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
