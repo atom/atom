@@ -92,7 +92,7 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       [item1, item2] = pane.getItems()
       item3 = new Item("C")
-      pane.addItem(item3, 1)
+      pane.addItem(item3, index: 1)
       expect(pane.getItems()).toEqual [item1, item3, item2]
 
     it "adds the item after the active item if no index is provided", ->
@@ -115,7 +115,7 @@ describe "Pane", ->
       pane.onDidAddItem (event) -> events.push(event)
 
       item = new Item("C")
-      pane.addItem(item, 1)
+      pane.addItem(item, index: 1)
       expect(events).toEqual [{item, index: 1, moved: false}]
 
     it "throws an exception if the item is already present on a pane", ->
@@ -137,9 +137,9 @@ describe "Pane", ->
       itemA = new Item("A")
       itemB = new Item("B")
       itemC = new Item("C")
-      pane.addItem(itemA, undefined, pending: false)
-      pane.addItem(itemB, undefined, pending: true)
-      pane.addItem(itemC, undefined, pending: false)
+      pane.addItem(itemA, pending: false)
+      pane.addItem(itemB, pending: true)
+      pane.addItem(itemC, pending: false)
       expect(itemB.isDestroyed()).toBe true
 
     it "adds the new item before destroying any existing pending item", ->
@@ -148,7 +148,7 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: []))
       itemA = new Item("A")
       itemB = new Item("B")
-      pane.addItem(itemA, undefined, pending: true)
+      pane.addItem(itemA, pending: true)
 
       pane.onDidAddItem ({item}) ->
         eventOrder.push("add") if item is itemB
@@ -163,6 +163,16 @@ describe "Pane", ->
 
       runs ->
         expect(eventOrder).toEqual ["add", "remove"]
+
+    it "supports the older public API of ::addItem(item, index, moved)", ->
+      pane = new Pane(paneParams(items: []))
+      itemA = new Item("A")
+      itemB = new Item("B")
+      itemC = new Item("C")
+      pane.addItem(itemA, undefined, false, false)
+      pane.addItem(itemB, undefined, false, true)
+      pane.addItem(itemC, undefined, false, false)
+      expect(itemB.isDestroyed()).toBe true
 
   describe "::activateItem(item)", ->
     pane = null

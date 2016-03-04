@@ -1,3 +1,4 @@
+_ = require 'underscore-plus'
 {find, compact, extend, last} = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 Model = require './model'
@@ -358,24 +359,38 @@ class Pane extends Model
         index = @getActiveItemIndex()
       else
         index = @getActiveItemIndex() + 1
-      @addItem(item, index, options)
+      @addItem(item, _.extend({index: index}, options))
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
   #
   # * `item` The item to add. It can be a model with an associated view or a
   #   view.
-  # * `index` (optional) {Number} indicating the index at which to add the item.
-  #   If omitted, the item is added after the current active item.
   # * `options` (optional) {Object}
+  #   * `index` (optional) {Number} indicating the index at which to add the item.
+  #     If omitted, the item is added after the current active item.
   #   * `pending` (optional) {Boolean} indicating that the item should be
   #     added in a pending state. Existing pending items in a pane are replaced with
   #     new pending items when they are opened.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1, options={}) ->
-    pending = options.pending ? false
+  addItem: (item, options, args...) ->
+    # Backward compat with old API:
+    #   addItem(item, index=@getActiveItemIndex() + 1, moved=false, pending=false)
+    unless options? and typeof options is "object"
+      options =
+        index: options
+        moved: false
+        pending: false
+
+      if args.length > 0
+        [moved, pending] = args
+        options.moved = moved
+        options.pending = pending
+
+    index = options.index ? @getActiveItemIndex() + 1
     moved = options.moved ? false
+    pending = options.pending ? false
 
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
@@ -426,7 +441,7 @@ class Pane extends Model
   # Returns an {Array} of added items.
   addItems: (items, index=@getActiveItemIndex() + 1) ->
     items = items.filter (item) => not (item in @items)
-    @addItem(item, index + i, false) for item, i in items
+    @addItem(item, {index: index + i}) for item, i in items
     items
 
   removeItem: (item, moved) ->
@@ -468,7 +483,7 @@ class Pane extends Model
   #   given pane.
   moveItemToPane: (item, pane, index) ->
     @removeItem(item, true)
-    pane.addItem(item, index, {moved: true})
+    pane.addItem(item, {index: index, moved: true})
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
