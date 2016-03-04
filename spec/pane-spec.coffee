@@ -174,6 +174,12 @@ describe "Pane", ->
       pane.addItem(itemC, undefined, false, false)
       expect(itemB.isDestroyed()).toBe true
 
+    it "shows a deprecation warning when passing a number", ->
+      spyOn Grim, "deprecate"
+      pane = new Pane(paneParams(items: []))
+      pane.addItem(new Item(), 2)
+      expect(Grim.deprecate).toHaveBeenCalledWith "Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})"
+
   describe "::activateItem(item)", ->
     pane = null
 
