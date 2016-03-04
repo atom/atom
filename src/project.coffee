@@ -12,6 +12,9 @@ TextEditor = require './text-editor'
 Task = require './task'
 GitRepositoryProvider = require './git-repository-provider'
 
+child_process = require 'child_process'
+os = require 'os'
+
 # Extended: Represents a project that's opened in Atom.
 #
 # An instance of this class is always available as the `atom.project` global.
@@ -270,6 +273,42 @@ class Project extends Model
   # Returns whether the path is inside the project's root directory.
   contains: (pathToCheck) ->
     @rootDirectories.some (dir) -> dir.contains(pathToCheck)
+
+  ###
+  Section: Environment
+  ###
+
+  getEnv: ->
+    unless @env?
+      @env = _.clone(process.env)
+      if process.platform is "darwin" and not process.env.TERM?
+        @env.PATH = @getShellPath()
+
+    _.clone(@env)
+
+  getShellPath: ->
+    shellEnvText = @getShellEnv()
+    env = {}
+
+    for line in shellEnvText.split(os.EOL)
+      if line.includes("=")
+        components = line.split("=")
+        if components.length is 2
+          env[components[0]] = components[1]
+        else
+          k = components.shift()
+          v = components.join("=")
+          env[k] = v
+
+    env.PATH
+
+  getShellEnv: ->
+    shell = process.env.SHELL ? "/bin/bash"
+    results = child_process.spawnSync shell, ["--login"], input: "env", encoding: "utf8"
+    return if results.error?
+    return unless results.stdout and results.stdout.length > 0
+
+    results.stdout
 
   ###
   Section: Private

@@ -537,3 +537,56 @@ describe "Project", ->
 
       randomPath = path.join("some", "random", "path")
       expect(atom.project.contains(randomPath)).toBe false
+
+  describe ".getEnv", ->
+    afterEach ->
+      delete atom.project.env
+
+    it "returns a copy of the environment", ->
+      env = atom.project.getEnv()
+
+      env.PROJECT_GET_ENV_TESTING = "foo"
+      expect(process.env.PROJECT_GET_ENV_TESTING).not.toEqual "foo"
+      expect(atom.project.getEnv().PROJECT_GET_ENV_TESTING).not.toEqual "foo"
+
+    describe "on platforms other than OS X", ->
+      beforeEach ->
+        spyOn(process, "platform").andReturn("foo")
+
+      describe "when TERM is not set", ->
+        it "returns the PATH unchanged", ->
+          spyOn(process.env, "TERM").andReturn(undefined)
+
+          expect(atom.project.getEnv().PATH).toEqual process.env.PATH
+
+      describe "when TERM is set", ->
+        it "returns the PATH unchanged", ->
+          spyOn(process.env, "TERM").andReturn("foo")
+
+          expect(atom.project.getEnv().PATH).toEqual process.env.PATH
+
+    describe "on OS X", ->
+      beforeEach ->
+        spyOn(process, "platform").andReturn("darwin")
+
+      describe "when TERM is not set", ->
+        it "replaces the PATH with the one obtained from the shell", ->
+          env = _.clone(process.env)
+          delete env.TERM
+
+          spyOn(process, "env").andReturn(env)
+
+          spyOn(atom.project, "getShellEnv").andReturn """
+            FOO=BAR
+            TERM=xterm-something
+            PATH=/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist
+            """
+
+          expect(atom.project.getShellPath()).toEqual "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
+          expect(atom.project.getEnv().PATH).toEqual "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
+
+      describe "when TERM is set", ->
+        it "returns the PATH unchanged", ->
+          spyOn(process.env, "TERM").andReturn("foo")
+
+          expect(atom.project.getEnv().PATH).toEqual process.env.PATH
