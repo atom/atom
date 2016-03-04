@@ -132,13 +132,37 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
-    it "destroys any existing pending item if the new item is pending", ->
+    it "destroys any existing pending item", ->
+      pane = new Pane(paneParams(items: []))
+      itemA = new Item("A")
+      itemB = new Item("B")
+      itemC = new Item("C")
+      pane.addItem(itemA, undefined, false, false)
+      pane.addItem(itemB, undefined, false, true)
+      pane.addItem(itemC, undefined, false, false)
+      expect(itemB.isDestroyed()).toBe true
+
+    it "adds the new item before destroying any existing pending item", ->
+      eventOrder = []
+
       pane = new Pane(paneParams(items: []))
       itemA = new Item("A")
       itemB = new Item("B")
       pane.addItem(itemA, undefined, false, true)
-      pane.addItem(itemB, undefined, false, true)
-      expect(itemA.isDestroyed()).toBe true
+
+      pane.onDidAddItem ({item}) ->
+        eventOrder.push("add") if item is itemB
+
+      pane.onDidRemoveItem ({item}) ->
+        eventOrder.push("remove") if item is itemA
+
+      pane.addItem(itemB)
+
+      waitsFor ->
+        eventOrder.length is 2
+
+      runs ->
+        expect(eventOrder).toEqual ["add", "remove"]
 
   describe "::activateItem(item)", ->
     pane = null

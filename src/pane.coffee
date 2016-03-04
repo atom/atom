@@ -433,11 +433,11 @@ class Pane extends Model
       @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
-    pendingItem = @getPendingItem()
-    @destroyItem(pendingItem) if pendingItem?
+    lastPendingItem = @getPendingItem()
     @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
+    @destroyItem(lastPendingItem) if lastPendingItem?
     @setActiveItem(item) unless @getActiveItem()?
     item
 
