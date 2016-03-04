@@ -292,6 +292,10 @@ class Project extends Model
 
     _.clone(@env)
 
+  ###
+  Section: Private
+  ###
+
   getShellPath: ->
     shellEnvText = @getShellEnv()
     env = {}
@@ -315,10 +319,6 @@ class Project extends Model
     return unless results.stdout and results.stdout.length > 0
 
     results.stdout
-
-  ###
-  Section: Private
-  ###
 
   consumeServices: ({serviceHub}) ->
     serviceHub.consume(
