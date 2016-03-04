@@ -348,16 +348,17 @@ class Pane extends Model
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   #
-  # * `pending` (optional) {Boolean} indicating that the item should be added
-  #   in a pending state if it does not yet exist in the pane. Existing pending
-  #   items in a pane are replaced with new pending items when they are opened.
-  activateItem: (item, pending=false) ->
+  # * `options` (optional) {Object}
+  #   * `pending` (optional) {Boolean} indicating that the item should be added
+  #     in a pending state if it does not yet exist in the pane. Existing pending
+  #     items in a pane are replaced with new pending items when they are opened.
+  activateItem: (item, options={}) ->
     if item?
       if @getPendingItem() is @activeItem
         index = @getActiveItemIndex()
       else
         index = @getActiveItemIndex() + 1
-      @addItem(item, index, false, pending)
+      @addItem(item, index, options)
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
@@ -366,12 +367,16 @@ class Pane extends Model
   #   view.
   # * `index` (optional) {Number} indicating the index at which to add the item.
   #   If omitted, the item is added after the current active item.
-  # * `pending` (optional) {Boolean} indicating that the item should be
-  #   added in a pending state. Existing pending items in a pane are replaced with
-  #   new pending items when they are opened.
+  # * `options` (optional) {Object}
+  #   * `pending` (optional) {Boolean} indicating that the item should be
+  #     added in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1, moved=false, pending=false) ->
+  addItem: (item, index=@getActiveItemIndex() + 1, options={}) ->
+    pending = options.pending ? false
+    moved = options.moved ? false
+
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
@@ -463,7 +468,7 @@ class Pane extends Model
   #   given pane.
   moveItemToPane: (item, pane, index) ->
     @removeItem(item, true)
-    pane.addItem(item, index, true)
+    pane.addItem(item, index, {moved: true})
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->

@@ -137,9 +137,9 @@ describe "Pane", ->
       itemA = new Item("A")
       itemB = new Item("B")
       itemC = new Item("C")
-      pane.addItem(itemA, undefined, false, false)
-      pane.addItem(itemB, undefined, false, true)
-      pane.addItem(itemC, undefined, false, false)
+      pane.addItem(itemA, undefined, pending: false)
+      pane.addItem(itemB, undefined, pending: true)
+      pane.addItem(itemC, undefined, pending: false)
       expect(itemB.isDestroyed()).toBe true
 
     it "adds the new item before destroying any existing pending item", ->
@@ -148,7 +148,7 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: []))
       itemA = new Item("A")
       itemB = new Item("B")
-      pane.addItem(itemA, undefined, false, true)
+      pane.addItem(itemA, undefined, pending: true)
 
       pane.onDidAddItem ({item}) ->
         eventOrder.push("add") if item is itemB
@@ -196,15 +196,15 @@ describe "Pane", ->
         itemD = new Item("D")
 
       it "replaces the active item if it is pending", ->
-        pane.activateItem(itemC, true)
+        pane.activateItem(itemC, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'C', 'B']
-        pane.activateItem(itemD, true)
+        pane.activateItem(itemD, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'D', 'B']
 
       it "adds the item after the active item if it is not pending", ->
-        pane.activateItem(itemC, true)
+        pane.activateItem(itemC, pending: true)
         pane.activateItemAtIndex(2)
-        pane.activateItem(itemD, true)
+        pane.activateItem(itemD, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
   describe "::setPendingItem", ->
