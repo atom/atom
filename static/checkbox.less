@@ -39,12 +39,12 @@
   }
   &:before {
     width: .35em;
-    transform: rotate(225deg) scale(0);
+    transform: translate3d(0,0,0) rotate(225deg) scale(0);
   }
   &:after {
     width: .7em;
     margin: -1px;
-    transform: translate(0, 0) rotate(-45deg) scale(0);
+    transform: translate3d(0,0,0) rotate(-45deg) scale(0);
     transition-delay: .05s;
   }
 
@@ -55,12 +55,12 @@
     }
     &:before {
       opacity: 1;
-      transform: rotate(225deg) scale(1);
+      transform: translate3d(0,0,0) rotate(225deg) scale(1);
       transition-delay: .05s;
     }
     &:after {
       opacity: 1;
-      transform: translate(0, 0) rotate(-45deg) scale(1);
+      transform: translate3d(0, 0, 0) rotate(-45deg) scale(1);
       transition-delay: 0;
     }
   }
@@ -72,7 +72,7 @@
     }
     &:after {
       opacity: 1;
-      transform: translate(-.125em, -.25em) rotate(0deg) scale(1);
+      transform: translate3d(-.125em, -.25em, 0) rotate(0deg) scale(1);
       transition-delay: 0;
     }
   }
