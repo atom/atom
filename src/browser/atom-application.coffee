@@ -513,6 +513,7 @@ class AtomApplication
       for state in states
         @openWithOptions(_.extend(options, {
           initialPaths: state.initialPaths
+          pathsToOpen: state.initialPaths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
           urlsToOpen: []
           devMode: @devMode
           safeMode: @safeMode
