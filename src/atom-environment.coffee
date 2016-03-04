@@ -670,9 +670,9 @@ class AtomEnvironment extends Model
 
         @openInitialEmptyEditorIfNecessary()
 
-  serialize: ->
+  serialize: (options) ->
     version: @constructor.version
-    project: @project.serialize()
+    project: @project.serialize(options)
     workspace: @workspace.serialize()
     packageStates: @packages.serialize()
     grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
@@ -817,8 +817,11 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveState: ->
+  saveState: (options) ->
     return Promise.resolve() unless @enablePersistence
+
+    options ?= {}
+    options.isQuitting ?= false
 
     new Promise (resolve, reject) =>
       window.requestIdleCallback =>
