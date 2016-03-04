@@ -825,7 +825,7 @@ class AtomEnvironment extends Model
 
     new Promise (resolve, reject) =>
       window.requestIdleCallback =>
-        state = @serialize()
+        state = @serialize(options)
         savePromise =
           if storageKey = @getStateKey(@project?.getPaths())
             @stateStore.save(storageKey, state)
