@@ -185,12 +185,12 @@ describe "AtomEnvironment", ->
       keydown = new KeyboardEvent('keydown')
       atom.document.dispatchEvent(keydown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveState).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalledWith({isQuitting: false})
 
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveState).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalledWith({isQuitting: false})
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->

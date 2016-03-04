@@ -225,7 +225,7 @@ class AtomEnvironment extends Model
     checkPortableHomeWritable()
 
   attachSaveStateListeners: ->
-    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
+    debouncedSaveState = _.debounce((=> @saveState({isQuitting: false})), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', debouncedSaveState, true)
     @document.addEventListener('keydown', debouncedSaveState, true)
     @disposables.add new Disposable =>
