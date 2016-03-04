@@ -29,7 +29,7 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
 
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize())
+        deserializedProject.deserialize(atom.project.serialize({isQuitting: false}))
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "listens for destroyed events on deserialized buffers and removes them when they are destroyed", ->
@@ -39,7 +39,7 @@ describe "Project", ->
       runs ->
         expect(atom.project.getBuffers().length).toBe 1
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize())
+        deserializedProject.deserialize(atom.project.serialize({isQuitting: false}))
 
         expect(deserializedProject.getBuffers().length).toBe 1
         deserializedProject.getBuffers()[0].destroy()
@@ -56,7 +56,7 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.mkdirSync(pathToOpen)
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize())
+        deserializedProject.deserialize(atom.project.serialize({isQuitting: false}))
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "does not deserialize buffers when their path is inaccessible", ->
@@ -70,7 +70,7 @@ describe "Project", ->
         expect(atom.project.getBuffers().length).toBe 1
         fs.chmodSync(pathToOpen, '000')
         deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        deserializedProject.deserialize(atom.project.serialize())
+        deserializedProject.deserialize(atom.project.serialize({isQuitting: false}))
         expect(deserializedProject.getBuffers().length).toBe 0
 
     it "serializes marker / marker only if Atom is quitting", ->
