@@ -404,7 +404,7 @@ class Pane extends Model
     @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
-    @destroyItem(lastPendingItem) if lastPendingItem?
+    @destroyItem(lastPendingItem) if lastPendingItem? and not moved
     @setActiveItem(item) unless @getActiveItem()?
     item
 

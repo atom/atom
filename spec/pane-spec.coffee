@@ -680,6 +680,23 @@ describe "Pane", ->
           expect(pane2.isDestroyed()).toBe true
           expect(item4.isDestroyed()).toBe false
 
+    describe "when the item being moved is pending", ->
+      it "is made permanent in the new pane", ->
+        item6 = new Item("F")
+        pane1.addItem(item6, pending: true)
+        expect(pane1.getPendingItem()).toEqual item6
+        pane1.moveItemToPane(item6, pane2, 0)
+        expect(pane2.getPendingItem()).not.toEqual item6
+
+    describe "when the target pane has a pending item", ->
+      it "does not destroy the pending item", ->
+        item6 = new Item("F")
+        pane1.addItem(item6, pending: true)
+        expect(pane1.getPendingItem()).toEqual item6
+        pane2.moveItemToPane(item5, pane1, 0)
+        expect(pane1.getPendingItem()).toEqual item6
+
+
   describe "split methods", ->
     [pane1, item1, container] = []
 
