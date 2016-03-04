@@ -18,6 +18,7 @@ class TextEditorElement extends HTMLElement
   hasTiledRendering: true
   logicalDisplayBuffer: true
   scrollPastEnd: true
+  autoHeight: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
