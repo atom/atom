@@ -73,7 +73,7 @@ describe "Project", ->
         deserializedProject.deserialize(atom.project.serialize({isQuitting: false}))
         expect(deserializedProject.getBuffers().length).toBe 0
 
-    it "serializes marker / marker only if Atom is quitting", ->
+    it "serializes marker layers only if Atom is quitting", ->
       waitsForPromise ->
         atom.workspace.open('a')
 
