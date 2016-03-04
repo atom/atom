@@ -43,6 +43,12 @@ class Workspace extends Model
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
 
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
+    realThis = this
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
+
     @panelContainers =
       top: new PanelContainer({location: 'top'})
       left: new PanelContainer({location: 'left'})
