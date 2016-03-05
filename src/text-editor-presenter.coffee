@@ -18,7 +18,7 @@ class TextEditorPresenter
     {@contentFrameWidth} = params
 
     @gutterWidth = 0
-    @tileSize ?= 6
+    @tileSize ?= 1
     @realScrollTop = @scrollTop
     @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
@@ -1228,51 +1228,17 @@ class TextEditorPresenter
     spannedRows = screenRange.end.row - screenRange.start.row + 1
 
     regions = []
+    region =
+      top: startPixelPosition.top
+      height: lineHeightInPixels
+      left: startPixelPosition.left
 
-    if spannedRows is 1
-      region =
-        top: startPixelPosition.top
-        height: lineHeightInPixels
-        left: startPixelPosition.left
+    region.width = endPixelPosition.left - startPixelPosition.left
+    if screenRange.end.column is Infinity
+      # Select the new line character
+      region.width += @baseCharacterWidth
 
-      if screenRange.end.column is Infinity
-        region.right = 0
-      else
-        region.width = endPixelPosition.left - startPixelPosition.left
-
-      regions.push(region)
-    else
-      # First row, extending from selection start to the right side of screen
-      regions.push(
-        top: startPixelPosition.top
-        left: startPixelPosition.left
-        height: lineHeightInPixels
-        right: 0
-      )
-
-      # Middle rows, extending from left side to right side of screen
-      if spannedRows > 2
-        regions.push(
-          top: startPixelPosition.top + lineHeightInPixels
-          height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
-          left: 0
-          right: 0
-        )
-
-      # Last row, extending from left side of screen to selection end
-      if screenRange.end.column > 0
-        region =
-          top: endPixelPosition.top
-          height: lineHeightInPixels
-          left: 0
-
-        if screenRange.end.column is Infinity
-          region.right = 0
-        else
-          region.width = endPixelPosition.left
-
-        regions.push(region)
-
+    regions.push(region)
     regions
 
   setOverlayDimensions: (decorationId, itemWidth, itemHeight, contentMargin) ->
