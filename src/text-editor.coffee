@@ -2936,6 +2936,7 @@ class TextEditor extends Model
   # Extended: Unfold all existing folds.
   unfoldAll: ->
     @languageMode.unfoldAll()
+    @scrollToCursorPosition()
 
   # Extended: Fold all foldable lines at the given indent level.
   #
