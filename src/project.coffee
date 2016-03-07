@@ -288,7 +288,8 @@ class Project extends Model
     unless @env?
       @env = _.clone(process.env)
       if process.platform is "darwin" and not process.env.TERM?
-        @env.PATH = @getShellPath()
+        shellPath = @getShellPath()
+        @env.PATH = shellPath if shellPath?
 
     _.clone(@env)
 
@@ -296,8 +297,13 @@ class Project extends Model
   Section: Private
   ###
 
+  # Gets the user's configured shell `PATH`.
+  #
+  # Returns the value of `PATH` or `undefined` if there was an error.
   getShellPath: ->
     shellEnvText = @getShellEnv()
+    return unless shellEnvText?
+
     env = {}
 
     for line in shellEnvText.split(os.EOL)
@@ -312,9 +318,18 @@ class Project extends Model
 
     env.PATH
 
+  # Gets a dump of the user's configured shell environment.
+  #
+  # Returns the output of the `env` command or `undefined` if there was an error.
   getShellEnv: ->
     shell = process.env.SHELL ? "/bin/bash"
-    results = child_process.spawnSync shell, ["--login", "--interactive"], input: "env", encoding: "utf8"
+
+    # The `-ilc` set of options was tested to work with the OS X v10.11
+    # default-installed versions of bash, zsh, sh, and ksh. It *does not*
+    # work with csh or tcsh. Given that bash and zsh should cover the
+    # vast majority of users and it gracefully falls back to prior behavior,
+    # this should be safe.
+    results = child_process.spawnSync shell, ["-ilc"], input: "env", encoding: "utf8"
     return if results.error?
     return unless results.stdout and results.stdout.length > 0
 
