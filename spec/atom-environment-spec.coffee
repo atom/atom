@@ -179,19 +179,21 @@ describe "AtomEnvironment", ->
         atom.loadState().then (state) ->
           expect(state).toEqual({stuff: 'cool'})
 
-    it "saves state on keydown and mousedown events when the editor window hasn't been unloaded", ->
+    it "saves state on keydown, mousedown, and when the editor window unloads", ->
       spyOn(atom, 'saveState')
 
       keydown = new KeyboardEvent('keydown')
       atom.document.dispatchEvent(keydown)
       advanceClock atom.saveStateDebounceInterval
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
       atom.saveState.reset()
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
       atom.saveState.reset()
       atom.unloadEditorWindow()
