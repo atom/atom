@@ -314,7 +314,7 @@ class Project extends Model
 
   getShellEnv: ->
     shell = process.env.SHELL ? "/bin/bash"
-    results = child_process.spawnSync shell, ["--login"], input: "env", encoding: "utf8"
+    results = child_process.spawnSync shell, ["--login", "--interactive"], input: "env", encoding: "utf8"
     return if results.error?
     return unless results.stdout and results.stdout.length > 0
 
