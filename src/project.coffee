@@ -281,9 +281,9 @@ class Project extends Model
   # Public: Retrieves a normalized copy of the environment.
   #
   # On OS X, the `PATH` can be different depending on whether Atom is launched
-  # from the Dock, Spotlight or the terminal. This detects how Atom was started
-  # and corrects the `PATH` environment variable before returning a copy of the
-  # environment.
+  # from the Dock, Finder, Spotlight or the terminal. This detects how Atom was
+  # started and corrects the `PATH` environment variable before returning a copy
+  # of the environment.
   getEnv: ->
     unless @env?
       @env = _.clone(process.env)
