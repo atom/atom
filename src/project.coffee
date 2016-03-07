@@ -74,7 +74,7 @@ class Project extends Model
   serialize: (options) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isQuitting is true}) if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
 
   ###
   Section: Event Subscription
