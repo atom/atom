@@ -623,6 +623,34 @@ describe "Workspace", ->
           expect(pane.getItems().length).toBe 2
           expect(pane.getItems()).toEqual [editor1, editor2]
 
+    describe "when replacing a pending item which is the last item in a second pane", ->
+      it "does not destory the pane even if core.destroyEmptyPanes is on", ->
+        atom.config.set('core.destroyEmptyPanes', true)
+        editor1 = null
+        editor2 = null
+        leftPane = atom.workspace.getActivePane()
+        rightPane = null
+
+        waitsForPromise ->
+          atom.workspace.open('sample.js', pending: true, split: 'right').then (o) ->
+            editor1 = o
+            rightPane = atom.workspace.getActivePane()
+            spyOn rightPane, "destroyed"
+
+        runs ->
+          expect(leftPane).not.toBe rightPane
+          expect(atom.workspace.getActivePane()).toBe rightPane
+          expect(atom.workspace.getActivePane().getItems().length).toBe 1
+          expect(rightPane.getPendingItem()).toBe editor1
+
+        waitsForPromise ->
+          atom.workspace.open('sample.txt', pending: true).then (o) ->
+            editor2 = o
+
+        runs ->
+          expect(rightPane.getPendingItem()).toBe editor2
+          expect(rightPane.destroyed.callCount).toBe 0
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()

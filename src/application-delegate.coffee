@@ -166,8 +166,7 @@ class ApplicationDelegate
 
   onDidOpenLocations: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'open-locations'
-        callback(detail)
+      callback(detail) if message is 'open-locations'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
@@ -175,8 +174,38 @@ class ApplicationDelegate
 
   onUpdateAvailable: (callback) ->
     outerCallback = (event, message, detail) ->
-      if message is 'update-available'
-        callback(detail)
+      # TODO: Yes, this is strange that `onUpdateAvailable` is listening for
+      # `did-begin-downloading-update`. We currently have no mechanism to know
+      # if there is an update, so begin of downloading is a good proxy.
+      callback(detail) if message is 'did-begin-downloading-update'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onDidBeginDownloadingUpdate: (callback) ->
+    @onUpdateAvailable(callback)
+
+  onDidBeginCheckingForUpdate: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'checking-for-update'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onDidCompleteDownloadingUpdate: (callback) ->
+    outerCallback = (event, message, detail) ->
+      # TODO: We could rename this event to `did-complete-downloading-update`
+      callback(detail) if message is 'update-available'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onUpdateNotAvailable: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'update-not-available'
 
     ipcRenderer.on('message', outerCallback)
     new Disposable ->
@@ -206,3 +235,12 @@ class ApplicationDelegate
 
   disablePinchToZoom: ->
     webFrame.setZoomLevelLimits(1, 1)
+
+  checkForUpdate: ->
+    ipcRenderer.send('check-for-update')
+
+  restartAndInstallUpdate: ->
+    ipcRenderer.send('install-update')
+
+  getAutoUpdateManagerState: ->
+    ipcRenderer.sendSync('get-auto-update-manager-state')

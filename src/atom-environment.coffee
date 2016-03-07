@@ -41,6 +41,7 @@ TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
+AutoUpdateManager = require './auto-update-manager'
 
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
@@ -115,6 +116,9 @@ class AtomEnvironment extends Model
   # Public: A {TextEditorRegistry} instance
   textEditors: null
 
+  # Private: An {AutoUpdateManager} instance
+  autoUpdater: null
+
   saveStateDebounceInterval: 1000
 
   ###
@@ -188,6 +192,7 @@ class AtomEnvironment extends Model
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
+    @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
     @config.load()
 
@@ -260,8 +265,6 @@ class AtomEnvironment extends Model
       new PaneAxisElement().initialize(model, env)
     @views.addViewProvider Pane, (model, env) ->
       new PaneElement().initialize(model, env)
-    @views.addViewProvider TextEditor, (model, env) ->
-      new TextEditorElement().initialize(model, env)
     @views.addViewProvider(Gutter, createGutterView)
 
   registerDefaultOpeners: ->
@@ -333,6 +336,7 @@ class AtomEnvironment extends Model
     @commands.clear()
     @stylesElement.remove()
     @config.unobserveUserConfig()
+    @autoUpdater.destroy()
 
     @uninstallWindowEventHandler()
 
@@ -410,6 +414,16 @@ class AtomEnvironment extends Model
   # Returns the version text {String}.
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
+
+  # Returns the release channel as a {String}. Will return one of `'dev', 'beta', 'stable'`
+  getReleaseChannel: ->
+    version = @getVersion()
+    if version.indexOf('beta') > -1
+      'beta'
+    else if version.indexOf('dev') > -1
+      'dev'
+    else
+      'stable'
 
   # Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion: ->
@@ -660,7 +674,7 @@ class AtomEnvironment extends Model
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
 
-        @watchProjectPath()
+        @watchProjectPaths()
 
         @packages.activate()
         @keymaps.loadUserKeymap()
@@ -792,7 +806,7 @@ class AtomEnvironment extends Model
     @themes.load()
 
   # Notify the browser project of the window's current project path
-  watchProjectPath: ->
+  watchProjectPaths: ->
     @disposables.add @project.onDidChangePaths =>
       @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
@@ -832,7 +846,6 @@ class AtomEnvironment extends Model
           else
             @applicationDelegate.setTemporaryWindowState(state)
         savePromise.catch(reject).then(resolve)
-
 
   loadState: ->
     if @enablePersistence
@@ -882,6 +895,7 @@ class AtomEnvironment extends Model
           detail: error.message
           dismissable: true
 
+  # TODO: We should deprecate the update events here, and use `atom.autoUpdater` instead
   onUpdateAvailable: (callback) ->
     @emitter.on 'update-available', callback
 
@@ -889,7 +903,8 @@ class AtomEnvironment extends Model
     @emitter.emit 'update-available', details
 
   listenForUpdates: ->
-    @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
+    # listen for updates available locally (that have been successfully downloaded)
+    @disposables.add(@autoUpdater.onDidCompleteDownloadingUpdate(@updateAvailable.bind(this)))
 
   setBodyPlatformClass: ->
     @document.body.classList.add("platform-#{process.platform}")

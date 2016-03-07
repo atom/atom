@@ -11,6 +11,7 @@ Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
+TextEditorElement = require './text-editor-element'
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -61,6 +62,10 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   selectionFlashDuration: 500
   gutterContainer: null
+  editorElement: null
+
+  Object.defineProperty @prototype, "element",
+    get: -> @getElement()
 
   @deserialize: (state, atomEnvironment) ->
     try
@@ -95,7 +100,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate
+      @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -114,11 +119,15 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
+    @autoHeight ?= true
+    @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
+
+    showInvisibles ?= true
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode,
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or not showInvisibles, largeFileMode,
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
@@ -146,6 +155,9 @@ class TextEditor extends Model
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
+
+    if grammar?
+      @setGrammar(grammar)
 
   serialize: ->
     deserializer: 'TextEditor'
@@ -3142,6 +3154,10 @@ class TextEditor extends Model
   Section: TextEditor Rendering
   ###
 
+  # Get the Element for the editor.
+  getElement: ->
+    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
+
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
   # Returns a {String}.
@@ -3216,7 +3232,7 @@ class TextEditor extends Model
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
-      unless @config.get('editor.scrollPastEnd')
+      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
         height = @displayBuffer.getHeight()
         lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
         if height? and lineHeightInPixels?
