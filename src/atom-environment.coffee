@@ -230,7 +230,7 @@ class AtomEnvironment extends Model
     checkPortableHomeWritable()
 
   attachSaveStateListeners: ->
-    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
+    debouncedSaveState = _.debounce((=> @saveState({isUnloading: false})), @saveStateDebounceInterval)
     @document.addEventListener('mousedown', debouncedSaveState, true)
     @document.addEventListener('keydown', debouncedSaveState, true)
     @disposables.add new Disposable =>
@@ -684,9 +684,9 @@ class AtomEnvironment extends Model
 
         @openInitialEmptyEditorIfNecessary()
 
-  serialize: ->
+  serialize: (options) ->
     version: @constructor.version
-    project: @project.serialize()
+    project: @project.serialize(options)
     workspace: @workspace.serialize()
     packageStates: @packages.serialize()
     grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
@@ -831,12 +831,12 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveState: ->
+  saveState: (options) ->
     return Promise.resolve() unless @enablePersistence
 
     new Promise (resolve, reject) =>
       window.requestIdleCallback =>
-        state = @serialize()
+        state = @serialize(options)
         savePromise =
           if storageKey = @getStateKey(@project?.getPaths())
             @stateStore.save(storageKey, state)

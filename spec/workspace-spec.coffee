@@ -22,11 +22,11 @@ describe "Workspace", ->
   describe "serialization", ->
     simulateReload = ->
       workspaceState = atom.workspace.serialize()
-      projectState = atom.project.serialize()
+      projectState = atom.project.serialize({isUnloading: true})
       atom.workspace.destroy()
       atom.project.destroy()
       atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom)})
-      atom.project.deserialize(projectState, atom.deserializers)
+      atom.project.deserialize(projectState)
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, deserializerManager: atom.deserializers,
