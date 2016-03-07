@@ -6,6 +6,7 @@ while getopts ":fhtvw-:" opt; do
       case "${OPTARG}" in
         wait)
           WAIT=1
+          EXPECT_OUTPUT=1
           ;;
         help|version)
           REDIRECT_STDERR=1
@@ -18,6 +19,7 @@ while getopts ":fhtvw-:" opt; do
       ;;
     w)
       WAIT=1
+      EXPECT_OUTPUT=1
       ;;
     h|v)
       REDIRECT_STDERR=1
@@ -31,19 +33,14 @@ done
 
 directory=$(dirname "$0")
 
-WINPS=`ps | grep -i $$`
-PID=`echo $WINPS | cut -d' ' -f 4`
-
 if [ $EXPECT_OUTPUT ]; then
   export ELECTRON_ENABLE_LOGGING=1
-  "$directory/../../atom.exe" --executed-from="$(pwd)" --pid=$PID "$@"
+  if [ $WAIT == 'YES' ]; then
+    powershell -noexit "%~dp0\..\..\atom.exe" --pid=$pid "$@" ; 
+wait-event
+  else
+    "$directory/../../atom.exe" "$@"
+  fi
 else
   "$directory/../app/apm/bin/node.exe" "$directory/atom.js" "$@"
-fi
-
-# If the wait flag is set, don't exit this process until Atom tells it to.
-if [ $WAIT ]; then
-  while true; do
-    sleep 1
-  done
 fi
