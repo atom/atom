@@ -179,7 +179,7 @@ describe "AtomEnvironment", ->
         atom.loadState().then (state) ->
           expect(state).toEqual({stuff: 'cool'})
 
-    it "saves state on keydown and mousedown events", ->
+    it "saves state on keydown and mousedown events when the editor window hasn't been unloaded", ->
       spyOn(atom, 'saveState')
 
       keydown = new KeyboardEvent('keydown')
@@ -187,10 +187,19 @@ describe "AtomEnvironment", ->
       advanceClock atom.saveStateDebounceInterval
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
 
+      atom.saveState.reset()
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+
+      atom.saveState.reset()
+      atom.unloadEditorWindow()
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock atom.saveStateDebounceInterval
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->

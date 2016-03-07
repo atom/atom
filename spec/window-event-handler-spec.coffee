@@ -55,11 +55,6 @@ describe "WindowEventHandler", ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
       spyOn(ipcRenderer, 'send')
 
-    it "saves AtomEnvironment's state with the {isUnloading: true} option", ->
-      spyOn(atom, 'saveState')
-      window.dispatchEvent(new CustomEvent('beforeunload'))
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
-
     describe "when pane items are modified", ->
       editor = null
       beforeEach ->

@@ -129,6 +129,7 @@ class AtomEnvironment extends Model
   constructor: (params={}) ->
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
+    @unloaded = false
     @loadTime = null
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
@@ -230,7 +231,8 @@ class AtomEnvironment extends Model
     checkPortableHomeWritable()
 
   attachSaveStateListeners: ->
-    debouncedSaveState = _.debounce((=> @saveState({isUnloading: false})), @saveStateDebounceInterval)
+    saveState = => @saveState({isUnloading: false}) unless @unloaded
+    debouncedSaveState = _.debounce(saveState, @saveStateDebounceInterval)
     @document.addEventListener('mousedown', debouncedSaveState, true)
     @document.addEventListener('keydown', debouncedSaveState, true)
     @disposables.add new Disposable =>
@@ -696,9 +698,11 @@ class AtomEnvironment extends Model
   unloadEditorWindow: ->
     return if not @project
 
+    @saveState({isUnloading: true})
     @storeWindowBackground()
     @packages.deactivatePackages()
     @saveBlobStoreSync()
+    @unloaded = true
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
@@ -836,6 +840,8 @@ class AtomEnvironment extends Model
 
     new Promise (resolve, reject) =>
       window.requestIdleCallback =>
+        return if not @project
+
         state = @serialize(options)
         savePromise =
           if storageKey = @getStateKey(@project?.getPaths())
