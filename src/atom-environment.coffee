@@ -834,9 +834,6 @@ class AtomEnvironment extends Model
   saveState: (options) ->
     return Promise.resolve() unless @enablePersistence
 
-    options ?= {}
-    options.isUnloading ?= false
-
     new Promise (resolve, reject) =>
       window.requestIdleCallback =>
         state = @serialize(options)
