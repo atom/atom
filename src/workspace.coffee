@@ -509,7 +509,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item, options.pending) if activateItem
+        pane.activateItem(item, {pending: options.pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
