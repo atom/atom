@@ -1,6 +1,7 @@
 path = require 'path'
 
 async = require 'async'
+CSON = require 'season'
 _ = require 'underscore-plus'
 yargs = require 'yargs'
 CSON = require 'season'
@@ -389,6 +390,7 @@ class Install extends Command
   createAtomDirectories: ->
     fs.makeTreeSync(@atomDirectory)
     fs.makeTreeSync(@atomPackagesDirectory)
+    fs.makeTreeSync(@atomGitPackagesDirectory)
     fs.makeTreeSync(@atomNodeDirectory)
 
   # Compile a sample native module to see if a useable native build toolchain
@@ -488,22 +490,44 @@ class Install extends Command
   getHostedGitInfo: (name) ->
     hostedGitInfo.fromUrl(name)
 
-  installGitPackage: (packageInfo, targetDir, callback) ->
+  installGitPackage: (gitPackageInfo, options, callback) ->
+    cloneDir = temp.mkdirSync("atom-git-package-clone-")
+    tasks = []
+
+    tasks.push (cb) => @cloneGitPackage gitPackageInfo, cloneDir, cb
+    tasks.push (cb) => @installGitPackageDependencies(cloneDir, options, cb)
+    tasks.push ({name}, cb) =>
+      targetDir = path.join(@atomGitPackagesDirectory, name)
+      fs.cp cloneDir, targetDir, cb
+
+    async.waterfall tasks, callback
+
+  installGitPackageDependencies: (directory, options, callback) =>
+    tasks = []
+
+    options.cwd = directory
+    tasks.push (cb) => @installDependencies(options, cb)
+    tasks.push (cb) -> CSON.readFile(CSON.resolve(path.join(directory, 'package')), cb)
+
+    async.waterfall tasks, (err, metadata) ->
+      callback(err, metadata)
+
+  cloneGitPackage: (packageInfo, cloneDir, callback) ->
     Develop = require './develop'
     develop = new Develop()
 
     if packageInfo.default is 'sshurl'
       url = packageInfo.toString()
-      develop.cloneRepository url, targetDir, {}, callback
+      develop.cloneRepository url, cloneDir, {}, callback
     else if packageInfo.default is 'https'
-      develop.cloneRepository name, targetDir, {}, callback
+      develop.cloneRepository name, cloneDir, {}, callback
     else if packageInfo.default is 'shortcut'
       url = packageInfo.https().replace(/^git\+https:/, "https:")
-      develop.cloneRepository url, targetDir, {}, (error) ->
+      develop.cloneRepository url, cloneDir, {}, (error) ->
         if error
           # more error checking to make sure failure is because of protocol
           url = packageInfo.sshurl()
-          develop.cloneRepository url, targetDir, {}, callback
+          develop.cloneRepository url, cloneDir, {}, callback
         else
           callback()
 
@@ -529,21 +553,7 @@ class Install extends Command
       gitPackageInfo = @getHostedGitInfo(name)
 
       if gitPackageInfo
-        targetDir = path.join(@atomGitPackagesDirectory, gitPackageInfo.project)
-        @installGitPackage gitPackageInfo, targetDir, (error) =>
-          return callback(error) if error
-          pack =
-            name: gitPackageInfo.project
-          installDirectory = temp.mkdirSync('apm-install-dir-')
-
-          tasks = []
-          tasks.push (cb) -> fs.cp(targetDir, installDirectory, cb)
-          tasks.push (cb) =>
-            options.cwd = installDirectory
-            @installDependencies(options, cb)
-          tasks.push (cb) -> fs.cp(installDirectory, targetDir, cb)
-          async.waterfall tasks, options.callback
-
+        @installGitPackage gitPackageInfo, options, options.callback
       else if name is '.'
         @installDependencies(options, callback)
       else # is registered package
