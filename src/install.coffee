@@ -488,22 +488,22 @@ class Install extends Command
   getHostedGitInfo: (name) ->
     hostedGitInfo.fromUrl(name)
 
-  clone: (url, targetDir, callback) =>
-    @spawn 'git', ['clone', url, targetDir], {streaming: true}, callback
-
   installGitPackage: (packageInfo, targetDir, callback) =>
+    Develop = require './develop'
+    develop = new Develop()
+
     if packageInfo.default is 'sshurl'
       url = packageInfo.toString()
-      @clone url, targetDir, callback
+      develop.cloneRepository url, targetDir, {}, callback
     else if packageInfo.default is 'https'
-      @clone name, targetDir, callback
+      develop.cloneRepository name, targetDir, {}, callback
     else if packageInfo.default is 'shortcut'
       url = packageInfo.https().replace(/^git\+https:/, "https:")
-      @clone url, targetDir, (error) =>
+      develop.cloneRepository url, targetDir, {}, (error) =>
         if error
           # more error checking to make sure failure is because of protocol
           url = packageInfo.sshurl()
-          @clone url, targetDir, callback
+          develop.cloneRepository url, targetDir, {}, callback
         else
           callback()
 

@@ -2,6 +2,7 @@ fs = require 'fs'
 path = require 'path'
 
 _ = require 'underscore-plus'
+async = require 'async'
 yargs = require 'yargs'
 
 config = require './apm'
@@ -54,33 +55,25 @@ class Develop extends Command
         message = request.getErrorMessage(response, body)
         callback("Request for package information failed: #{message}")
 
-  cloneRepository: (repoUrl, packageDirectory, options) ->
+  cloneRepository: (repoUrl, packageDirectory, options, callback = ->) ->
     config.getSetting 'git', (command) =>
       command ?= 'git'
       args = ['clone', '--recursive', repoUrl, packageDirectory]
       process.stdout.write "Cloning #{repoUrl} "
       git.addGitToEnv(process.env)
-      @spawn command, args, (code, stderr='', stdout='') =>
-        if code is 0
-          @logSuccess()
-          @installDependencies(packageDirectory, options)
-        else
-          @logFailure()
-          options.callback("#{stdout}\n#{stderr}".trim())
+      @spawn command, args, callback
 
-  installDependencies: (packageDirectory, options) ->
+  installDependencies: (packageDirectory, options, callback = ->) ->
     process.chdir(packageDirectory)
     installOptions = _.clone(options)
-    installOptions.callback = (error) =>
-      if error?
-        options.callback(error)
-      else
-        @linkPackage(packageDirectory, options)
+    installOptions.callback = callback
 
     new Install().run(installOptions)
 
-  linkPackage: (packageDirectory, options) ->
+  linkPackage: (packageDirectory, options, callback) ->
     linkOptions = _.clone(options)
+    if callback
+      linkOptions.callback = callback
     linkOptions.commandArgs = [packageDirectory, '--dev']
     new Link().run(linkOptions)
 
@@ -100,4 +93,17 @@ class Develop extends Command
         if error?
           options.callback(error)
         else
-          @cloneRepository repoUrl, packageDirectory, options
+          tasks = []
+          tasks.push (callback) => @cloneRepository repoUrl, packageDirectory, options, (code, stderr='', stdout='') =>
+            if code is 0
+              @logSuccess()
+              callback()
+            else
+              @logFailure()
+              callback("#{stdout}\n#{stderr}".trim())
+
+          tasks.push (callback) => @installDependencies packageDirectory, options, callback
+
+          tasks.push (callback) => @linkPackage packageDirectory, options, callback
+
+          async.waterfall tasks, options.callback
