@@ -933,7 +933,7 @@ export default class GitRepositoryAsync {
   refreshStatus () {
     const status = this._refreshStatus()
     const branch = this._refreshBranch()
-    const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
+    const aheadBehind = branch.then(() => this._refreshAheadBehindCount(this.branch))
 
     this._refreshingPromise = this._refreshingPromise.then(_ => {
       return Promise.all([status, branch, aheadBehind])
