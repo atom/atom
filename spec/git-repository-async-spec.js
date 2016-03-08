@@ -422,6 +422,44 @@ describe('GitRepositoryAsync', () => {
       expect(repo.isStatusModified(status)).toBe(true)
       expect(repo.isStatusNew(status)).toBe(false)
     })
+
+    it('emits did-change-statuses if the status changes', async () => {
+      const someNewPath = path.join(workingDirectory, 'MyNewJSFramework.md')
+      fs.writeFileSync(someNewPath, '')
+
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses(statusHandler)
+
+      await repo.refreshStatus()
+
+      waitsFor('the onDidChangeStatuses handler to be called', () => statusHandler.callCount > 0)
+    })
+
+    it('emits did-change-statuses if the branch changes', async () => {
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses(statusHandler)
+
+      repo._refreshBranch = jasmine.createSpy('_refreshBranch').andCallFake(() => {
+        return Promise.resolve(true)
+      })
+
+      await repo.refreshStatus()
+
+      waitsFor('the onDidChangeStatuses handler to be called', () => statusHandler.callCount > 0)
+    })
+
+    it('emits did-change-statuses if the ahead/behind changes', async () => {
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses(statusHandler)
+
+      repo._refreshAheadBehindCount = jasmine.createSpy('_refreshAheadBehindCount').andCallFake(() => {
+        return Promise.resolve(true)
+      })
+
+      await repo.refreshStatus()
+
+      waitsFor('the onDidChangeStatuses handler to be called', () => statusHandler.callCount > 0)
+    })
   })
 
   describe('.isProjectAtRoot()', () => {
@@ -676,7 +714,7 @@ describe('GitRepositoryAsync', () => {
         repo = GitRepositoryAsync.open(workingDirectory)
       })
 
-      it('returns 0, 0 for a branch with no upstream', async () => {
+      it('returns 1, 0 for a branch which is ahead by 1', async () => {
         await repo.refreshStatus()
 
         const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount('You-Dont-Need-jQuery')
