@@ -8,6 +8,8 @@ BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 
+environment = require '../src/environment'
+
 describe "Project", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
@@ -581,21 +583,19 @@ describe "Project", ->
         beforeEach ->
           delete process.env.TERM
 
-        it "replaces the PATH with the one obtained from the shell", ->
-          spyOn(atom.project, "getShellEnv").andReturn """
-            FOO=BAR
-            TERM=xterm-something
-            PATH=/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist
-            """
+        it "replaces the environment with the one obtained from the shell", ->
+          spyOn(environment, "getShellEnv").andReturn
+            FOO: "BAR"
+            TERM: "xterm-something"
+            PATH: "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
 
-          expect(atom.project.getShellPath()).toEqual "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
+          expect(atom.project.getEnv().TERM).toEqual "xterm-something"
           expect(atom.project.getEnv().PATH).toEqual "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
-          expect(atom.project.getEnv().FOO).not.toEqual "BAR"
+          expect(atom.project.getEnv().FOO).toEqual "BAR"
 
         it "does the best it can when there is an error retrieving the shell environment", ->
-          spyOn(atom.project, "getShellEnv").andReturn(undefined)
+          spyOn(environment, "getShellEnv").andReturn(undefined)
 
-          expect(atom.project.getShellPath()).toBeUndefined()
           expect(atom.project.getEnv().PATH).not.toBeUndefined()
           expect(atom.project.getEnv().PATH).toEqual process.env.PATH
 
