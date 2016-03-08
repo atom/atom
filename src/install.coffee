@@ -488,7 +488,7 @@ class Install extends Command
   getHostedGitInfo: (name) ->
     hostedGitInfo.fromUrl(name)
 
-  installGitPackage: (packageInfo, targetDir, callback) =>
+  installGitPackage: (packageInfo, targetDir, callback) ->
     Develop = require './develop'
     develop = new Develop()
 
@@ -499,7 +499,7 @@ class Install extends Command
       develop.cloneRepository name, targetDir, {}, callback
     else if packageInfo.default is 'shortcut'
       url = packageInfo.https().replace(/^git\+https:/, "https:")
-      develop.cloneRepository url, targetDir, {}, (error) =>
+      develop.cloneRepository url, targetDir, {}, (error) ->
         if error
           # more error checking to make sure failure is because of protocol
           url = packageInfo.sshurl()
@@ -534,7 +534,16 @@ class Install extends Command
           return callback(error) if error
           pack =
             name: gitPackageInfo.project
-            # TODO: install modules
+          installDirectory = temp.mkdirSync('apm-install-dir-')
+
+          tasks = []
+          tasks.push (cb) -> fs.cp(targetDir, installDirectory, cb)
+          tasks.push (cb) =>
+            options.cwd = installDirectory
+            @installDependencies(options, cb)
+          tasks.push (cb) -> fs.cp(installDirectory, targetDir, cb)
+          async.waterfall tasks, options.callback
+
       else if name is '.'
         @installDependencies(options, callback)
       else # is registered package
