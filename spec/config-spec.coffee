@@ -1621,6 +1621,16 @@ describe "Config", ->
           expect(color.toHexString()).toBe '#ff0000'
           expect(color.toRGBAString()).toBe 'rgba(255, 0, 0, 1)'
 
+          color.red = 11
+          color.green = 11
+          color.blue = 124
+          color.alpha = 1
+          atom.config.set('foo.bar.aColor', color)
+
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#0b0b7c'
+          expect(color.toRGBAString()).toBe 'rgba(11, 11, 124, 1)'
+
         it 'coerces various types to a color object', ->
           atom.config.set('foo.bar.aColor', 'red')
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
