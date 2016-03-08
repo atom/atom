@@ -38,7 +38,8 @@ if [ $EXPECT_OUTPUT ]; then
   export ELECTRON_ENABLE_LOGGING=1
   "$directory/../../atom.exe" --executed-from="$(pwd)" --pid=$PID "$@"
 else
-  "$directory/../app/apm/bin/node.exe" "$directory/atom.js" "$@"
+  cd "$directory"
+  "$directory/../app/apm/bin/node.exe" "atom.js" "$@"
 fi
 
 # If the wait flag is set, don't exit this process until Atom tells it to.
