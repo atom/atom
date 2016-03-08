@@ -714,7 +714,7 @@ describe('GitRepositoryAsync', () => {
         repo = GitRepositoryAsync.open(workingDirectory)
       })
 
-      it('returns 0, 0 for a branch with no upstream', async () => {
+      it('returns 1, 0 for a branch which is ahead by 1', async () => {
         await repo.refreshStatus()
 
         const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount('You-Dont-Need-jQuery')
