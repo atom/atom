@@ -230,6 +230,10 @@ class AtomEnvironment extends Model
 
     checkPortableHomeWritable()
 
+    # Patch the `process.env` on startup to fix the problem first documented
+    # in #4126
+    process.env = @project.getEnv()
+
   attachSaveStateListeners: ->
     saveState = => @saveState({isUnloading: false}) unless @unloaded
     debouncedSaveState = _.debounce(saveState, @saveStateDebounceInterval)
