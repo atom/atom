@@ -89,14 +89,14 @@ class Install extends Command
       else
         callback("#{stdout}\n#{stderr}")
 
-  installModule: (options, pack, modulePath, destination, callback) ->
+  installModule: (options, pack, modulePath, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{@electronVersion}")
     installArgs.push("--arch=#{config.getElectronArch()}")
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
-    installArgs.push('--production') if options.argv.production or options.installInPlace
+    installArgs.push('--production') if options.argv.production
 
     if vsArgs = @getVisualStudioFlags()
       installArgs.push(vsArgs)
@@ -105,11 +105,8 @@ class Install extends Command
     @addBuildEnvVars(env)
     installOptions = {env}
     installOptions.streaming = true if @verbose
-    installOptions.cwd = modulePath if options.installInPlace
 
     installGlobally = options.installGlobally ? true
-    if options.installInPlace
-      installGlobally = false
 
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
@@ -123,7 +120,7 @@ class Install extends Command
           commands = []
           for child in fs.readdirSync(nodeModulesDirectory)
             source = path.join(nodeModulesDirectory, child)
-            destination = path.join(destination, child)
+            destination = path.join(@atomPackagesDirectory, child)
             do (source, destination) ->
               commands.push (callback) -> fs.cp(source, destination, callback)
 
@@ -346,7 +343,7 @@ class Install extends Command
           commands.push (packagePath, callback) =>
             @installNode (error) -> callback(error, packagePath)
         commands.push (packagePath, callback) =>
-          @installModule(options, pack, packagePath, @atomPackagesDirectory, callback)
+          @installModule(options, pack, packagePath, callback)
 
         async.waterfall commands, (error) =>
           unless installGlobally
@@ -537,8 +534,7 @@ class Install extends Command
           return callback(error) if error
           pack =
             name: gitPackageInfo.project
-          gitInstallOptions = _.extend {}, options, installInPlace: true
-          @installModule gitInstallOptions, pack, targetDir, @atomGitPackagesDirectory, callback
+            # TODO: install modules
       else if name is '.'
         @installDependencies(options, callback)
       else # is registered package
