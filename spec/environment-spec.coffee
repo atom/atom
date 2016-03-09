@@ -1,7 +1,7 @@
 child_process = require('child_process')
 {getShellEnv} = require("../src/environment")
 
-describe "Environment handling", ->
+fdescribe "Environment handling", ->
   describe "when things are configured properly", ->
     beforeEach ->
       spyOn(child_process, "spawnSync").andReturn
@@ -21,7 +21,7 @@ describe "Environment handling", ->
   describe "when an error occurs", ->
     beforeEach ->
       spyOn(child_process, "spawnSync").andReturn
-        error: new Error
+        error: new Error("testing when an error occurs")
 
     it "returns undefined", ->
       expect(getShellEnv()).toBeUndefined()

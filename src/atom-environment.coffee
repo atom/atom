@@ -231,7 +231,8 @@ class AtomEnvironment extends Model
     checkPortableHomeWritable()
 
     # Patch the `process.env` on startup to fix the problem first documented
-    # in #4126
+    # in #4126. Retain the original in case someone needs it.
+    process._originalEnv = process.env
     process.env = @project.getEnv()
 
   attachSaveStateListeners: ->

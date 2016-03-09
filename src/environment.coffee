@@ -12,7 +12,7 @@ getRawShellEnv = ->
   # work with csh or tcsh. Given that bash and zsh should cover the
   # vast majority of users and it gracefully falls back to prior behavior,
   # this should be safe.
-  results = child_process.spawnSync shell, ["-ilc"], input: "env", encoding: "utf8"
+  results = child_process.spawnSync(shell, ["-ilc", "env"], encoding: "utf8")
   return if results.error?
   return unless results.stdout and results.stdout.length > 0
 
