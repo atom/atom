@@ -3,7 +3,6 @@ path = require 'path'
 _ = require 'underscore-plus'
 CSON = require 'season'
 yargs = require 'yargs'
-Git = require 'git-utils'
 
 Command = require './command'
 fs = require './fs'
@@ -18,7 +17,6 @@ class List extends Command
   constructor: ->
     @userPackagesDirectory = path.join(config.getAtomDirectory(), 'packages')
     @devPackagesDirectory = path.join(config.getAtomDirectory(), 'dev', 'packages')
-    @gitPackagesDirectory = path.join(config.getAtomDirectory(), 'git-packages')
     if configPath = CSON.resolve(path.join(config.getAtomDirectory(), 'config'))
       try
         @disabledPackages = CSON.readFileSync(configPath)?.core?.disabledPackages
@@ -59,11 +57,11 @@ class List extends Command
       tree packages, (pack) =>
         packageLine = pack.name
         packageLine += "@#{pack.version}" if pack.version?
-        if pack.sha?
+        if pack.apmInstallSource?.type is 'git'
           repo = getRepository(pack)
-          shaLine = "##{pack.sha}"
+          shaLine = "##{pack.apmInstallSource.sha.substr(0,8)}"
           shaLine = repo + shaLine if repo?
-          packageLine += " (#{shaLine})"
+          packageLine += " (#{shaLine})".grey
         packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
         packageLine
     console.log()
@@ -81,10 +79,6 @@ class List extends Command
         try
           manifest = CSON.readFileSync(manifestPath)
       manifest ?= {}
-      try
-        if directoryPath is @gitPackagesDirectory
-          repo = Git.open(path.join(directoryPath, child))
-          manifest.sha = repo.getReferenceTarget(repo.getHead()).substr(0, 7)
       manifest.name = child
       if options.argv.themes
         packages.push(manifest) if manifest.theme
@@ -97,8 +91,9 @@ class List extends Command
 
   listUserPackages: (options, callback) ->
     userPackages = @listPackages(@userPackagesDirectory, options)
+      .filter (pack) -> not pack.apmInstallSource
     unless options.argv.bare or options.argv.json
-      console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
+      console.log "Community Packages (#{userPackages.length})".cyan, "#{@userPackagesDirectory}"
     callback?(null, userPackages)
 
   listDevPackages: (options, callback) ->
@@ -107,14 +102,15 @@ class List extends Command
     devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
       unless options.argv.bare or options.argv.json
-        console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
+        console.log "Dev Packages (#{devPackages.length})".cyan, "#{@devPackagesDirectory}"
     callback?(null, devPackages)
 
   listGitPackages: (options, callback) ->
-    gitPackages = @listPackages(@gitPackagesDirectory, options)
+    gitPackages = @listPackages(@userPackagesDirectory, options)
+      .filter (pack) -> pack.apmInstallSource?.type is 'git'
     if gitPackages.length > 0
       unless options.argv.bare or options.argv.json
-        console.log "#{@gitPackagesDirectory.cyan} (#{gitPackages.length})"
+        console.log "Git Packages (#{gitPackages.length})".cyan, "#{@userPackagesDirectory}"
     callback?(null, gitPackages)
 
   listBundledPackages: (options, callback) ->
