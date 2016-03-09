@@ -5,6 +5,7 @@ async = require 'async'
 yargs = require 'yargs'
 read = require 'read'
 semver = require 'npm/node_modules/semver'
+Git = require 'git-utils'
 
 Command = require './command'
 config = require './apm'
@@ -96,18 +97,37 @@ class Upgrade extends Command
           latestVersion = version if semver.gt(version, latestVersion)
 
         if latestVersion isnt pack.version and @hasRepo(pack)
-          callback(null, {pack, latestVersion})
+          callback(null, latestVersion)
         else
           callback()
+
+  getLatestSha: (pack, callback) ->
+    repoPath = path.join(@atomPackagesDirectory, pack.name)
+    @spawn 'git', ['fetch', 'origin', 'master'], {cwd: repoPath}, (code, stderr='', stdout='') =>
+      return callback(code) unless code is 0
+      repo = Git.open(repoPath)
+      sha = repo.getReferenceTarget(repo.getUpstreamBranch('refs/heads/master'))
+      if sha isnt pack.apmInstallSource.sha
+        callback(null, sha)
+      else
+        callback()
 
   hasRepo: (pack) ->
     Packages.getRepository(pack)?
 
   getAvailableUpdates: (packages, callback) ->
-    async.map packages, @getLatestVersion.bind(this), (error, updates) ->
+    getLatestVersionOrSha = (pack, done) =>
+      if pack.apmInstallSource?.type is 'git'
+        @getLatestSha pack, (err, sha) =>
+          done(err, {pack, sha})
+      else
+        @getLatestVersion pack, (err, latestVersion) =>
+          done(err, {pack, latestVersion})
+
+    async.map packages, getLatestVersionOrSha, (error, updates) ->
       return callback(error) if error?
 
-      updates = _.compact(updates)
+      updates = _.filter updates, (update) -> update.latestVersion? or update.sha?
       updates.sort (updateA, updateB) ->
         updateA.pack.name.localeCompare(updateB.pack.name)
 
@@ -124,7 +144,10 @@ class Upgrade extends Command
     for {pack, latestVersion} in updates
       do (pack, latestVersion) ->
         installCommands.push (callback) ->
-          commandArgs = ["#{pack.name}@#{latestVersion}"]
+          if pack.apmInstallSource?.type is 'git'
+            commandArgs = [pack.apmInstallSource.source]
+          else
+            commandArgs = ["#{pack.name}@#{latestVersion}"]
           commandArgs.unshift('--verbose') if verbose
           new Install().run({callback, commandArgs})
 
@@ -152,14 +175,24 @@ class Upgrade extends Command
       return callback(error) if error?
 
       if options.argv.json
-        packagesWithLatestVersion = updates.map ({pack, latestVersion}) ->
-          pack.latestVersion = latestVersion
+        packagesWithLatestVersionOrSha = updates.map ({pack, latestVersion, sha}) ->
+          pack.latestVersion = latestVersion if latestVersion
+          pack.sha = sha if sha
           pack
-        console.log JSON.stringify(packagesWithLatestVersion)
+        console.log JSON.stringify(packagesWithLatestVersionOrSha)
       else
         console.log "Package Updates Available".cyan + " (#{updates.length})"
-        tree updates, ({pack, latestVersion}) ->
-          "#{pack.name.yellow} #{pack.version.red} -> #{latestVersion.green}"
+        tree updates, ({pack, latestVersion, sha}) ->
+          {name, apmInstallSource, version} = pack
+          name = name.yellow
+          if sha?
+            version = apmInstallSource.sha.substr(0, 8).red
+            latestVersion = sha.substr(0, 8).green
+          else
+            version = version.red
+            latestVersion = latestVersion.green
+          latestVersion = latestVersion?.green or apmInstallSource?.sha?.green
+          "#{name} #{version} -> #{latestVersion}"
 
       return callback() if options.command is 'outdated'
       return callback() if options.argv.list
