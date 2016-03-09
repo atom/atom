@@ -498,7 +498,6 @@ class Install extends Command
         next(err, data)
 
     tasks.push (data, next) =>
-      console.log()
       @installGitPackageDependencies cloneDir, options, (err) ->
         next(err, data)
 
@@ -525,7 +524,13 @@ class Install extends Command
     tasks.push (data, next) =>
       {name} = data.metadata
       targetDir = path.join(@atomPackagesDirectory, name)
-      fs.cp cloneDir, targetDir, next
+      process.stdout.write "Moving #{name} to #{targetDir} "
+      fs.cp cloneDir, targetDir, (err) =>
+        if err
+          next(err)
+        else
+          @logSuccess()
+          next()
 
     iteratee = (currentData, task, next) -> task(currentData, next)
     async.reduce tasks, {}, iteratee, callback
