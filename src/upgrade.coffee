@@ -103,7 +103,7 @@ class Upgrade extends Command
 
   getLatestSha: (pack, callback) ->
     repoPath = path.join(@atomPackagesDirectory, pack.name)
-    @spawn 'git', ['fetch', 'origin', 'master'], {cwd: repoPath}, (code, stderr='', stdout='') =>
+    @spawn 'git', ['fetch', 'origin', 'master'], {cwd: repoPath}, (code, stderr='', stdout='') ->
       return callback(code) unless code is 0
       repo = Git.open(repoPath)
       sha = repo.getReferenceTarget(repo.getUpstreamBranch('refs/heads/master'))
@@ -118,10 +118,10 @@ class Upgrade extends Command
   getAvailableUpdates: (packages, callback) ->
     getLatestVersionOrSha = (pack, done) =>
       if pack.apmInstallSource?.type is 'git'
-        @getLatestSha pack, (err, sha) =>
+        @getLatestSha pack, (err, sha) ->
           done(err, {pack, sha})
       else
-        @getLatestVersion pack, (err, latestVersion) =>
+        @getLatestVersion pack, (err, latestVersion) ->
           done(err, {pack, latestVersion})
 
     async.map packages, getLatestVersionOrSha, (error, updates) ->

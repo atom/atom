@@ -59,7 +59,7 @@ class List extends Command
         packageLine += "@#{pack.version}" if pack.version?
         if pack.apmInstallSource?.type is 'git'
           repo = getRepository(pack)
-          shaLine = "##{pack.apmInstallSource.sha.substr(0,8)}"
+          shaLine = "##{pack.apmInstallSource.sha.substr(0, 8)}"
           shaLine = repo + shaLine if repo?
           packageLine += " (#{shaLine})".grey
         packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
