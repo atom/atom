@@ -177,7 +177,7 @@ class Upgrade extends Command
       if options.argv.json
         packagesWithLatestVersionOrSha = updates.map ({pack, latestVersion, sha}) ->
           pack.latestVersion = latestVersion if latestVersion
-          pack.sha = sha if sha
+          pack.latestSha = sha if sha
           pack
         console.log JSON.stringify(packagesWithLatestVersionOrSha)
       else
