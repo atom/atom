@@ -1,10 +1,10 @@
 path = require 'path'
 
+_ = require 'underscore-plus'
 async = require 'async'
 CSON = require 'season'
-_ = require 'underscore-plus'
 yargs = require 'yargs'
-CSON = require 'season'
+Git = require 'git-utils'
 semver = require 'npm/node_modules/semver'
 temp = require 'temp'
 hostedGitInfo = require 'hosted-git-info'
@@ -23,7 +23,6 @@ class Install extends Command
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
     @atomPackagesDirectory = path.join(@atomDirectory, 'packages')
-    @atomGitPackagesDirectory = path.join(@atomDirectory, 'git-packages')
     @atomNodeDirectory = path.join(@atomDirectory, '.node-gyp')
     @atomNpmPath = require.resolve('npm/bin/npm-cli')
     @atomNodeGypPath = require.resolve('npm/node_modules/node-gyp/bin/node-gyp')
@@ -390,7 +389,6 @@ class Install extends Command
   createAtomDirectories: ->
     fs.makeTreeSync(@atomDirectory)
     fs.makeTreeSync(@atomPackagesDirectory)
-    fs.makeTreeSync(@atomGitPackagesDirectory)
     fs.makeTreeSync(@atomNodeDirectory)
 
   # Compile a sample native module to see if a useable native build toolchain
@@ -490,27 +488,51 @@ class Install extends Command
   getHostedGitInfo: (name) ->
     hostedGitInfo.fromUrl(name)
 
-  installGitPackage: (gitPackageInfo, options, callback) ->
-    cloneDir = temp.mkdirSync("atom-git-package-clone-")
+  installGitPackage: (packageUrl, gitPackageInfo, options, callback) ->
     tasks = []
 
-    tasks.push (cb) => @cloneGitPackage gitPackageInfo, cloneDir, cb
-    tasks.push (cb) => @installGitPackageDependencies(cloneDir, options, cb)
-    tasks.push ({name}, cb) =>
-      targetDir = path.join(@atomGitPackagesDirectory, name)
-      fs.cp cloneDir, targetDir, cb
+    cloneDir = temp.mkdirSync("atom-git-package-clone-")
 
-    async.waterfall tasks, callback
+    tasks.push (data, next) =>
+      @cloneGitPackage gitPackageInfo, cloneDir, (err) ->
+        next(err, data)
+
+    tasks.push (data, next) =>
+      console.log()
+      @installGitPackageDependencies cloneDir, options, (err) ->
+        next(err, data)
+
+    tasks.push (data, next) =>
+      @getRepositoryHeadSha cloneDir, (err, sha) ->
+        data.sha = sha
+        next(err, data)
+
+    tasks.push (data, next) ->
+      metadataFilePath = CSON.resolve(path.join(cloneDir, 'package'))
+      CSON.readFile metadataFilePath, (err, metadata) ->
+        data.metadataFilePath = metadataFilePath
+        data.metadata = metadata
+        next(err, data)
+
+    tasks.push (data, next) ->
+      data.metadata.apmInstallSource =
+        type: "git"
+        source: packageUrl
+        sha: data.sha
+      CSON.writeFile data.metadataFilePath, data.metadata, (err) ->
+        next(err, data)
+
+    tasks.push (data, next) =>
+      {name} = data.metadata
+      targetDir = path.join(@atomPackagesDirectory, name)
+      fs.cp cloneDir, targetDir, next
+
+    iteratee = (currentData, task, next) -> task(currentData, next)
+    async.reduce tasks, {}, iteratee, callback
 
   installGitPackageDependencies: (directory, options, callback) =>
-    tasks = []
-
     options.cwd = directory
-    tasks.push (cb) => @installDependencies(options, cb)
-    tasks.push (cb) -> CSON.readFile(CSON.resolve(path.join(directory, 'package')), cb)
-
-    async.waterfall tasks, (err, metadata) ->
-      callback(err, metadata)
+    @installDependencies(options, callback)
 
   cloneGitPackage: (packageInfo, cloneDir, callback) ->
     Develop = require './develop'
@@ -530,6 +552,14 @@ class Install extends Command
           develop.cloneRepository url, cloneDir, {}, callback
         else
           callback()
+
+  getRepositoryHeadSha: (repoDir, callback) ->
+    try
+      repo = Git.open(repoDir)
+      sha = repo.getReferenceTarget("HEAD")
+      callback(null, sha)
+    catch err
+      callback(err)
 
   run: (options) ->
     {callback} = options
@@ -553,7 +583,7 @@ class Install extends Command
       gitPackageInfo = @getHostedGitInfo(name)
 
       if gitPackageInfo
-        @installGitPackage gitPackageInfo, options, options.callback
+        @installGitPackage name, gitPackageInfo, options, callback
       else if name is '.'
         @installDependencies(options, callback)
       else # is registered package
