@@ -61,7 +61,8 @@ class Develop extends Command
       args = ['clone', '--recursive', repoUrl, packageDirectory]
       process.stdout.write "Cloning #{repoUrl} "
       git.addGitToEnv(process.env)
-      @spawn command, args, callback
+      @spawn command, args, (args...) =>
+        @logCommandResults(callback, args...)
 
   installDependencies: (packageDirectory, options, callback = ->) ->
     process.chdir(packageDirectory)
@@ -94,13 +95,7 @@ class Develop extends Command
           options.callback(error)
         else
           tasks = []
-          tasks.push (callback) => @cloneRepository repoUrl, packageDirectory, options, (code, stderr='', stdout='') =>
-            if code is 0
-              @logSuccess()
-              callback()
-            else
-              @logFailure()
-              callback("#{stdout}\n#{stderr}".trim())
+          tasks.push (callback) => @cloneRepository repoUrl, packageDirectory, options, callback
 
           tasks.push (callback) => @installDependencies packageDirectory, options, callback
 
