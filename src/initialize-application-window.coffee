@@ -23,11 +23,10 @@ module.exports = ({blobStore}) ->
     enablePersistence: true
   })
 
-  atom.displayWindow()
-  atom.startEditorWindow()
+  atom.startEditorWindow().then ->
 
-  # Workaround for focus getting cleared upon window creation
-  windowFocused = ->
-    window.removeEventListener('focus', windowFocused)
-    setTimeout (-> document.querySelector('atom-workspace').focus()), 0
-  window.addEventListener('focus', windowFocused)
+    # Workaround for focus getting cleared upon window creation
+    windowFocused = ->
+      window.removeEventListener('focus', windowFocused)
+      setTimeout (-> document.querySelector('atom-workspace').focus()), 0
+    window.addEventListener('focus', windowFocused)

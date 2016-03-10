@@ -1,6 +1,6 @@
 fs = require 'fs-plus'
 path = require 'path'
-ipc = require 'ipc'
+{ipcMain} = require 'electron'
 
 module.exports =
 class AtomPortable
@@ -30,6 +30,6 @@ class AtomPortable
     catch error
       message = "Failed to use portable Atom home directory (#{@getPortableAtomHomePath()}).  Using the default instead (#{defaultHome}).  #{error.message}"
 
-    ipc.on 'check-portable-home-writable', (event) ->
+    ipcMain.on 'check-portable-home-writable', (event) ->
       event.sender.send 'check-portable-home-writable-response', {writable, message}
     writable

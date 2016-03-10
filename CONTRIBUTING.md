@@ -365,7 +365,7 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 | `blocked` | [search][search-atom-repo-label-blocked] | [search][search-atom-org-label-blocked] | Issues blocked on other issues. |
 | `duplicate` | [search][search-atom-repo-label-duplicate] | [search][search-atom-org-label-duplicate] | Issues which are duplicates of other issues, i.e. they have been reported before. |
 | `wontfix` | [search][search-atom-repo-label-wontfix] | [search][search-atom-org-label-wontfix] | The Atom core team has decided not to fix these issues for now, either because they're working as intended or for some other reason. |
-| `invalid` | [search][search-atom-repo-label-invalid] | [search][search-atom-org-label-invalid] | Issues which are't valid (e.g. user errors). |
+| `invalid` | [search][search-atom-repo-label-invalid] | [search][search-atom-org-label-invalid] | Issues which aren't valid (e.g. user errors). |
 | `package-idea` | [search][search-atom-repo-label-package-idea] | [search][search-atom-org-label-package-idea] | Feature request which might be good candidates for new packages, instead of extending Atom or core Atom packages. |
 | `wrong-repo` | [search][search-atom-repo-label-wrong-repo] | [search][search-atom-org-label-wrong-repo] | Issues reported on the wrong repository (e.g. a bug related to the [Settings View package](https://github.com/atom/settings-view) was reported on [Atom core](https://github.com/atom/atom)). |
 
@@ -406,10 +406,6 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 
 | Label name | `atom/atom` :mag_right: | `atom`‑org :mag_right: | Description |
 | --- | --- | --- | --- |
-| `in-progress` | [search][search-atom-repo-label-in-progress] | [search][search-atom-org-label-in-progress] | Tasks which the Atom core team is working on currently. |
-| `on-deck` | [search][search-atom-repo-label-on-deck] | [search][search-atom-org-label-on-deck] | Tasks which the Atom core team plans to work on next. |
-| `shipping` | [search][search-atom-repo-label-shipping] | [search][search-atom-org-label-shipping] | Tasks which the Atom core team completed and will be released in one of the next releases. |
-| `post-1.0-roadmap` | [search][search-atom-repo-label-post-1.0-roadmap] | [search][search-atom-org-label-post-1.0-roadmap] | The Atom core team's roadmap post version 1.0.0. |
 | `atom` | [search][search-atom-repo-label-atom] | [search][search-atom-org-label-atom] | Topics discussed for prioritization at the next meeting of Atom core team members. |
 
 #### Pull Request Labels
@@ -498,14 +494,6 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 [search-atom-org-label-deprecation-help]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Adeprecation-help
 [search-atom-repo-label-electron]: https://github.com/issues?q=is%3Aissue+repo%3Aatom%2Fatom+is%3Aopen+label%3Aelectron
 [search-atom-org-label-electron]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aelectron
-[search-atom-repo-label-on-deck]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Aon-deck
-[search-atom-org-label-on-deck]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aon-deck
-[search-atom-repo-label-in-progress]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Ain-progress
-[search-atom-org-label-in-progress]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Ain-progress
-[search-atom-repo-label-shipping]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Ashipping
-[search-atom-org-label-shipping]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Ashipping
-[search-atom-repo-label-post-1.0-roadmap]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Apost-1.0-roadmap
-[search-atom-org-label-post-1.0-roadmap]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Apost-1.0-roadmap
 [search-atom-repo-label-atom]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Aatom
 [search-atom-org-label-atom]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aatom
 [search-atom-repo-label-work-in-progress]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Awork-in-progress

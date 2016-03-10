@@ -10,6 +10,7 @@ class LanguageMode
   # editor - The {TextEditor} to associate with
   constructor: (@editor, @config) ->
     {@buffer} = @editor
+    @regexesByPattern = {}
 
   destroy: ->
 
@@ -144,13 +145,11 @@ class LanguageMode
 
     if bufferRow > 0
       for currentRow in [bufferRow-1..0] by -1
-        break if @buffer.isRowBlank(currentRow)
         break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
         startRow = currentRow
 
     if bufferRow < @buffer.getLastRow()
       for currentRow in [bufferRow+1..@buffer.getLastRow()] by 1
-        break if @buffer.isRowBlank(currentRow)
         break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
         endRow = currentRow
 
@@ -326,7 +325,8 @@ class LanguageMode
 
   getRegexForProperty: (scopeDescriptor, property) ->
     if pattern = @config.get(property, scope: scopeDescriptor)
-      new OnigRegExp(pattern)
+      @regexesByPattern[pattern] ?= new OnigRegExp(pattern)
+      @regexesByPattern[pattern]
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')

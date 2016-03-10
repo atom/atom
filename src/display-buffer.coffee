@@ -393,7 +393,10 @@ class DisplayBuffer extends Model
     @displayLayer.foldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity))).length > 0
 
   isFoldedAtScreenRow: (screenRow) ->
-    @isFoldedAtBufferRow(@bufferRowForScreenRow(screenRow))?
+    @isFoldedAtBufferRow(@bufferRowForScreenRow(screenRow))
+
+  isFoldableAtBufferRow: (row) ->
+    @tokenizedBuffer.isFoldableAtRow(row)
 
   # Removes any folds found that contain the given buffer row.
   #

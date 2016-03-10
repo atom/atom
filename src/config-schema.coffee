@@ -108,6 +108,10 @@ module.exports =
         description: 'Automatically update Atom when a new release is available.'
         type: 'boolean'
         default: true
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
+        type: 'boolean'
+        default: true
 
   editor:
     type: 'object'
@@ -171,7 +175,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        enum: [1, 2, 3, 4, 6, 8]
+        minimum: 1
         description: 'Number of spaces used to represent a tab.'
       softWrap:
         type: 'boolean'

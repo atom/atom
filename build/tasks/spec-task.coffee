@@ -1,5 +1,6 @@
 fs = require 'fs'
 path = require 'path'
+temp = require('temp').track()
 
 _ = require 'underscore-plus'
 async = require 'async'
@@ -86,7 +87,7 @@ module.exports = (grunt) ->
     packageSpecQueue.concurrency = Math.max(1, concurrency - 1)
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
-  runCoreSpecs = (callback) ->
+  runCoreSpecs = (callback, logOutput = false) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
@@ -94,7 +95,7 @@ module.exports = (grunt) ->
     if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
-        args: ['--test', "--resource-path=#{resourcePath}", coreSpecsPath]
+        args: ['--test', "--resource-path=#{resourcePath}", coreSpecsPath, "--user-data-dir=#{temp.mkdirSync('atom-user-data-dir')}"]
         opts:
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
@@ -108,6 +109,9 @@ module.exports = (grunt) ->
           env: _.extend({}, process.env,
             ATOM_INTEGRATION_TESTS_ENABLED: true
           )
+
+    if logOutput
+      options.opts.stdio = 'inherit'
 
     grunt.log.ok "Launching core specs."
     spawn options, (error, results, code) ->
@@ -130,11 +134,17 @@ module.exports = (grunt) ->
       else
         async.parallel
 
+    # If we're just running the core specs then we won't have any output to
+    # indicate the tests actually *are* running. This upsets Travis:
+    # https://github.com/atom/atom/issues/10837. So pass the test output
+    # through.
+    runCoreSpecsWithLogging = (callback) -> runCoreSpecs(callback, true)
+
     specs =
       if process.env.ATOM_SPECS_TASK is 'packages'
         [runPackageSpecs]
       else if process.env.ATOM_SPECS_TASK is 'core'
-        [runCoreSpecs]
+        [runCoreSpecsWithLogging]
       else
         [runCoreSpecs, runPackageSpecs]
 

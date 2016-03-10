@@ -43,6 +43,12 @@ class Workspace extends Model
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
 
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
+    realThis = this
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
+
     @panelContainers =
       top: new PanelContainer({location: 'top'})
       left: new PanelContainer({location: 'left'})
@@ -394,15 +400,18 @@ class Workspace extends Model
   #     initially. Defaults to `0`.
   #   * `initialColumn` A {Number} indicating which column to move the cursor to
   #     initially. Defaults to `0`.
-  #   * `split` Either 'left', 'right', 'top' or 'bottom'.
+  #   * `split` Either 'left', 'right', 'up' or 'down'.
   #     If 'left', the item will be opened in leftmost pane of the current active pane's row.
-  #     If 'right', the item will be opened in the rightmost pane of the current active pane's row.
-  #     If 'up', the item will be opened in topmost pane of the current active pane's row.
-  #     If 'down', the item will be opened in the bottommost pane of the current active pane's row.
+  #     If 'right', the item will be opened in the rightmost pane of the current active pane's row. If only one pane exists in the row, a new pane will be created.
+  #     If 'up', the item will be opened in topmost pane of the current active pane's column.
+  #     If 'down', the item will be opened in the bottommost pane of the current active pane's column. If only one pane exists in the column, a new pane will be created.
   #   * `activatePane` A {Boolean} indicating whether to call {Pane::activate} on
   #     containing pane. Defaults to `true`.
   #   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
   #     on containing pane. Defaults to `true`.
+  #   * `pending` A {Boolean} indicating whether or not the item should be opened
+  #     in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
   #     activate an existing item for the given URI on any pane.
   #     If `false`, only the active pane will be searched for
@@ -413,6 +422,9 @@ class Workspace extends Model
     searchAllPanes = options.searchAllPanes
     split = options.split
     uri = @project.resolvePath(uri)
+
+    if not atom.config.get('core.allowPendingPaneItems')
+      options.pending = false
 
     # Avoid adding URLs as recent documents to work-around this Spotlight crash:
     # https://github.com/atom/atom/issues/10071
@@ -473,7 +485,8 @@ class Workspace extends Model
     activateItem = options.activateItem ? true
 
     if uri?
-      item = pane.itemForURI(uri)
+      if item = pane.itemForURI(uri)
+        pane.clearPendingItem() if not options.pending and pane.getPendingItem() is item
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
@@ -496,7 +509,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item) if activateItem
+        pane.activateItem(item, {pending: options.pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
@@ -551,7 +564,10 @@ class Workspace extends Model
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
       @grammarRegistry, @project, @assert, @applicationDelegate
     }, params)
-    new TextEditor(params)
+    editor = new TextEditor(params)
+    disposable = atom.textEditors.add(editor)
+    editor.onDidDestroy -> disposable.dispose()
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

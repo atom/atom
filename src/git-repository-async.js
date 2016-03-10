@@ -202,32 +202,35 @@ export default class GitRepositoryAsync {
 
     workingDirectory = workingDirectory.replace(/\/$/, '')
 
+    // Depending on where the paths come from, they may have a '/private/'
+    // prefix. Standardize by stripping that out.
+    _path = _path.replace(/^\/private\//i, '/')
+    workingDirectory = workingDirectory.replace(/^\/private\//i, '/')
+
+    const originalPath = _path
+    const originalWorkingDirectory = workingDirectory
     if (this.isCaseInsensitive) {
       _path = _path.toLowerCase()
       workingDirectory = workingDirectory.toLowerCase()
     }
 
-    // Depending on where the paths come from, they may have a '/private/'
-    // prefix. Standardize by stripping that out.
-    _path = _path.replace(/^\/private\//, '/')
-    workingDirectory = workingDirectory.replace(/^\/private\//, '/')
-
-    const originalPath = _path
     if (_path.indexOf(workingDirectory) === 0) {
-      return originalPath.substring(workingDirectory.length + 1)
+      return originalPath.substring(originalWorkingDirectory.length + 1)
     } else if (_path === workingDirectory) {
       return ''
     }
 
     if (openedWorkingDirectory) {
+      openedWorkingDirectory = openedWorkingDirectory.replace(/\/$/, '')
+      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//i, '/')
+
+      const originalOpenedWorkingDirectory = openedWorkingDirectory
       if (this.isCaseInsensitive) {
         openedWorkingDirectory = openedWorkingDirectory.toLowerCase()
       }
-      openedWorkingDirectory = openedWorkingDirectory.replace(/\/$/, '')
-      openedWorkingDirectory = openedWorkingDirectory.replace(/^\/private\//, '/')
 
       if (_path.indexOf(openedWorkingDirectory) === 0) {
-        return originalPath.substring(openedWorkingDirectory.length + 1)
+        return originalPath.substring(originalOpenedWorkingDirectory.length + 1)
       } else if (_path === openedWorkingDirectory) {
         return ''
       }
@@ -456,7 +459,10 @@ export default class GitRepositoryAsync {
   // information.
   getDirectoryStatus (directoryPath) {
     return this.relativizeToWorkingDirectory(directoryPath)
-      .then(relativePath => this._getStatus([relativePath]))
+      .then(relativePath => {
+        const pathspec = relativePath + '/**'
+        return this._getStatus([pathspec])
+      })
       .then(statuses => {
         return Promise.all(statuses.map(s => s.statusBit())).then(bits => {
           return bits
@@ -590,7 +596,15 @@ export default class GitRepositoryAsync {
       .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
       .then(([repo, tree]) => {
         const options = new Git.DiffOptions()
+        options.contextLines = 0
+        options.flags = Git.Diff.OPTION.DISABLE_PATHSPEC_MATCH
         options.pathspec = this.relativize(_path, repo.workdir())
+        if (process.platform === 'win32') {
+          // Ignore eol of line differences on windows so that files checked in
+          // as LF don't report every line modified when the text contains CRLF
+          // endings.
+          options.flags |= Git.Diff.OPTION.IGNORE_WHITESPACE_EOL
+        }
         return Git.Diff.treeToWorkdir(repo, tree, options)
       })
       .then(diff => this._getDiffLines(diff))
@@ -769,12 +783,17 @@ export default class GitRepositoryAsync {
 
   // Get the current branch and update this.branch.
   //
-  // Returns a {Promise} which resolves to the {String} branch name.
+  // Returns a {Promise} which resolves to a {boolean} indicating whether the
+  // branch name changed.
   _refreshBranch () {
     return this.getRepo()
       .then(repo => repo.getCurrentBranch())
       .then(ref => ref.name())
-      .then(branchName => this.branch = branchName)
+      .then(branchName => {
+        const changed = branchName !== this.branch
+        this.branch = branchName
+        return changed
+      })
   }
 
   // Refresh the cached ahead/behind count with the given branch.
@@ -782,10 +801,15 @@ export default class GitRepositoryAsync {
   // * `branchName` The {String} name of the branch whose ahead/behind should be
   //                used for the refresh.
   //
-  // Returns a {Promise} which will resolve to {null}.
+  // Returns a {Promise} which will resolve to a {boolean} indicating whether
+  // the ahead/behind count changed.
   _refreshAheadBehindCount (branchName) {
     return this.getAheadBehindCount(branchName)
-      .then(counts => this.upstream = counts)
+      .then(counts => {
+        const changed = !_.isEqual(counts, this.upstream)
+        this.upstream = counts
+        return changed
+      })
   }
 
   // Get the status for this repository.
@@ -800,7 +824,7 @@ export default class GitRepositoryAsync {
     }
 
     return Promise.all(projectPathsPromises)
-      .then(paths => paths.filter(p => p.length > 0))
+      .then(paths => paths.map(p => p.length > 0 ? p + '/**' : '*'))
       .then(projectPaths => {
         return this._getStatus(projectPaths.length > 0 ? projectPaths : null)
       })
@@ -891,15 +915,15 @@ export default class GitRepositoryAsync {
 
   // Refresh the cached status.
   //
-  // Returns a {Promise} which will resolve to {null}.
+  // Returns a {Promise} which will resolve to a {boolean} indicating whether
+  // any statuses changed.
   _refreshStatus () {
     return Promise.all([this._getRepositoryStatus(), this._getSubmoduleStatuses()])
       .then(([repositoryStatus, submoduleStatus]) => {
         const statusesByPath = _.extend({}, repositoryStatus, submoduleStatus)
-        if (!_.isEqual(this.pathStatusCache, statusesByPath) && this.emitter != null) {
-          this.emitter.emit('did-change-statuses')
-        }
+        const changed = !_.isEqual(this.pathStatusCache, statusesByPath)
         this.pathStatusCache = statusesByPath
+        return changed
       })
   }
 
@@ -909,11 +933,17 @@ export default class GitRepositoryAsync {
   refreshStatus () {
     const status = this._refreshStatus()
     const branch = this._refreshBranch()
-    const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
+    const aheadBehind = branch.then(() => this._refreshAheadBehindCount(this.branch))
 
     this._refreshingPromise = this._refreshingPromise.then(_ => {
       return Promise.all([status, branch, aheadBehind])
-        .then(_ => null)
+        .then(([statusChanged, branchChanged, aheadBehindChanged]) => {
+          if (this.emitter && (statusChanged || branchChanged || aheadBehindChanged)) {
+            this.emitter.emit('did-change-statuses')
+          }
+
+          return null
+        })
         // Because all these refresh steps happen asynchronously, it's entirely
         // possible the repository was destroyed while we were working. In which
         // case we should just swallow the error.
@@ -1032,7 +1062,7 @@ export default class GitRepositoryAsync {
     return this.getRepo()
       .then(repo => {
         const opts = {
-          flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS | Git.Status.OPT.DISABLE_PATHSPEC_MATCH
+          flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS
         }
 
         if (paths) {

@@ -64,7 +64,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   script/build
   ```
 
-  This will create the atom application at `$TMPDIR/atom-build/Atom`.
+  This will create the atom application at `out/Atom`.
 
 4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
 
@@ -74,7 +74,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb

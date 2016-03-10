@@ -29,26 +29,34 @@ class AutoUpdateManager
     if process.platform is 'win32'
       autoUpdater = require './auto-updater-win32'
     else
-      autoUpdater = require 'auto-updater'
+      {autoUpdater} = require 'electron'
 
     autoUpdater.on 'error', (event, message) =>
       @setState(ErrorState)
       console.error "Error Downloading Update: #{message}"
 
-    autoUpdater.setFeedUrl @feedUrl
+    autoUpdater.setFeedURL @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
+      @emitWindowEvent('checking-for-update')
 
     autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
+      @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
+      # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
+      # once the update download is complete. This mismatch between the electron
+      # autoUpdater events is unfortunate but in the interest of not changing the
+      # one existing event handled by applicationDelegate
+      @emitWindowEvent('did-begin-downloading-update')
+      @emit('did-begin-download')
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
-      @emitUpdateAvailableEvent(@getWindows()...)
+      @emitUpdateAvailableEvent()
 
     @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
       if newValue
@@ -64,10 +72,14 @@ class AutoUpdateManager
       when 'linux'
         @setState(UnsupportedState)
 
-  emitUpdateAvailableEvent: (windows...) ->
+  emitUpdateAvailableEvent: ->
     return unless @releaseVersion?
-    for atomWindow in windows
-      atomWindow.sendMessage('update-available', {@releaseVersion})
+    @emitWindowEvent('update-available', {@releaseVersion})
+    return
+
+  emitWindowEvent: (eventName, payload) ->
+    for atomWindow in @getWindows()
+      atomWindow.sendMessage(eventName, payload)
     return
 
   setState: (state) ->
@@ -104,7 +116,7 @@ class AutoUpdateManager
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
-    dialog = require 'dialog'
+    {dialog} = require 'electron'
     dialog.showMessageBox
       type: 'info'
       buttons: ['OK']
@@ -115,7 +127,7 @@ class AutoUpdateManager
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
-    dialog = require 'dialog'
+    {dialog} = require 'electron'
     dialog.showMessageBox
       type: 'warning'
       buttons: ['OK']

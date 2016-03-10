@@ -91,11 +91,13 @@ describe "TextEditorPresenter", ->
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
     waitsForStateToUpdate = (presenter, fn) ->
-      waitsFor "presenter state to update", 1000, (done) ->
-        fn?()
+      line = new Error().stack.split('\n')[2].split(':')[1]
+
+      waitsFor "presenter state to update at line #{line}", 1000, (done) ->
         disposable = presenter.onDidUpdateState ->
           disposable.dispose()
           process.nextTick(done)
+        fn?()
 
     tiledContentContract = (stateFn) ->
       it "contains states for tiles that are visible on screen", ->
@@ -633,16 +635,28 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
           expect(getState(presenter).verticalScrollbar.scrollHeight).toBe 500
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+        describe "scrollPastEnd", ->
+          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+
+          it "doesn't add the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true but the presenter is created with scrollPastEnd as false", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10, scrollPastEnd: false)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
@@ -1336,9 +1350,11 @@ describe "TextEditorPresenter", ->
               presenter = buildPresenter()
               blockDecoration2 = addBlockDecorationBeforeScreenRow(3)
               blockDecoration3 = addBlockDecorationBeforeScreenRow(7)
-              blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+              blockDecoration4 = null
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, ->
+                blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+
               runs ->
                 expect(lineStateForScreenRow(presenter, 0).precedingBlockDecorations).toEqual([blockDecoration1])
                 expect(lineStateForScreenRow(presenter, 0).followingBlockDecorations).toEqual([])
@@ -1472,9 +1488,9 @@ describe "TextEditorPresenter", ->
               decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
               presenter = buildPresenter()
               marker2 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
-              decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
+              decoration2 = null
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, -> decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
               runs ->
                 expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
                 expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
@@ -2150,31 +2166,40 @@ describe "TextEditorPresenter", ->
             }
 
           # becoming empty
-          waitsForStateToUpdate presenter, -> editor.getSelections()[1].clear(autoscroll: false)
+          runs ->
+            editor.getSelections()[1].clear(autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectUndefinedStateForSelection(presenter, 1)
 
           # becoming non-empty
-          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
+          runs ->
+            editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectValues stateForSelectionInTile(presenter, 1, 2), {
               regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
             }
 
           # moving out of view
-          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
+          runs ->
+            editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectUndefinedStateForSelection(presenter, 1)
 
           # adding
-          waitsForStateToUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
+          runs -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectValues stateForSelectionInTile(presenter, 2, 0), {
               regions: [{top: 10, left: 4 * 10, width: 2 * 10, height: 10}]
             }
 
           # moving added selection
-          waitsForStateToUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
+          runs ->
+            editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
+          waitsForStateToUpdate presenter
 
           destroyedSelection = null
           runs ->
@@ -2208,8 +2233,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20, tileSize: 2)
 
           marker = editor.markBufferPosition([2, 2])
-          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
+          highlight = null
           waitsForStateToUpdate presenter, ->
+            highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
             marker.setBufferRange([[2, 2], [5, 2]])
             highlight.flash('b', 500)
           runs ->
@@ -2969,9 +2995,8 @@ describe "TextEditorPresenter", ->
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 35)
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 40)
               presenter.setBlockDecorationDimensions(blockDecoration5, 0, 50)
-              presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, -> presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
               runs ->
                 expect(lineNumberStateForScreenRow(presenter, 0).blockDecorationsHeight).toBe(10)
                 expect(lineNumberStateForScreenRow(presenter, 1).blockDecorationsHeight).toBe(0)
@@ -3460,9 +3485,9 @@ describe "TextEditorPresenter", ->
               gutterName: 'test-gutter-2'
               class: 'test-class'
             marker4 = editor.markBufferRange([[0, 0], [1, 0]])
-            decoration4 = editor.decorateMarker(marker4, decorationParams)
+            decoration4 = null
 
-            waitsForStateToUpdate presenter
+            waitsForStateToUpdate presenter, -> decoration4 = editor.decorateMarker(marker4, decorationParams)
 
             runs ->
               expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})

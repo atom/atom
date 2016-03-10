@@ -338,10 +338,10 @@ describe('GitRepositoryAsync', () => {
   })
 
   describe('.refreshStatus()', () => {
-    let newPath, modifiedPath, cleanPath
+    let newPath, modifiedPath, cleanPath, workingDirectory
 
     beforeEach(() => {
-      const workingDirectory = copyRepository()
+      workingDirectory = copyRepository()
       repo = GitRepositoryAsync.open(workingDirectory)
       modifiedPath = path.join(workingDirectory, 'file.txt')
       newPath = path.join(workingDirectory, 'untracked.txt')
@@ -362,7 +362,7 @@ describe('GitRepositoryAsync', () => {
 
     describe('in a repository with submodules', () => {
       beforeEach(() => {
-        const workingDirectory = copySubmoduleRepository()
+        workingDirectory = copySubmoduleRepository()
         repo = GitRepositoryAsync.open(workingDirectory)
         modifiedPath = path.join(workingDirectory, 'jstips', 'README.md')
         newPath = path.join(workingDirectory, 'You-Dont-Need-jQuery', 'untracked.txt')
@@ -379,6 +379,86 @@ describe('GitRepositoryAsync', () => {
         expect(repo.isStatusNew(await repo.getCachedPathStatus(newPath))).toBe(true)
         expect(repo.isStatusModified(await repo.getCachedPathStatus(modifiedPath))).toBe(true)
       })
+    })
+
+    it('caches the proper statuses when a subdir is open', async () => {
+      const subDir = path.join(workingDirectory, 'dir')
+      fs.mkdirSync(subDir)
+
+      const filePath = path.join(subDir, 'b.txt')
+      fs.writeFileSync(filePath, '')
+
+      atom.project.setPaths([subDir])
+
+      await atom.workspace.open('b.txt')
+
+      const repo = atom.project.getRepositories()[0].async
+
+      await repo.refreshStatus()
+
+      const status = await repo.getCachedPathStatus(filePath)
+      expect(repo.isStatusModified(status)).toBe(false)
+      expect(repo.isStatusNew(status)).toBe(false)
+    })
+
+    it('caches the proper statuses when multiple project are open', async () => {
+      const otherWorkingDirectory = copyRepository()
+
+      atom.project.setPaths([workingDirectory, otherWorkingDirectory])
+
+      await atom.workspace.open('b.txt')
+
+      const repo = atom.project.getRepositories()[0].async
+
+      await repo.refreshStatus()
+
+      const subDir = path.join(workingDirectory, 'dir')
+      fs.mkdirSync(subDir)
+
+      const filePath = path.join(subDir, 'b.txt')
+      fs.writeFileSync(filePath, 'some content!')
+
+      const status = await repo.getCachedPathStatus(filePath)
+      expect(repo.isStatusModified(status)).toBe(true)
+      expect(repo.isStatusNew(status)).toBe(false)
+    })
+
+    it('emits did-change-statuses if the status changes', async () => {
+      const someNewPath = path.join(workingDirectory, 'MyNewJSFramework.md')
+      fs.writeFileSync(someNewPath, '')
+
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses(statusHandler)
+
+      await repo.refreshStatus()
+
+      waitsFor('the onDidChangeStatuses handler to be called', () => statusHandler.callCount > 0)
+    })
+
+    it('emits did-change-statuses if the branch changes', async () => {
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses(statusHandler)
+
+      repo._refreshBranch = jasmine.createSpy('_refreshBranch').andCallFake(() => {
+        return Promise.resolve(true)
+      })
+
+      await repo.refreshStatus()
+
+      waitsFor('the onDidChangeStatuses handler to be called', () => statusHandler.callCount > 0)
+    })
+
+    it('emits did-change-statuses if the ahead/behind changes', async () => {
+      const statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses(statusHandler)
+
+      repo._refreshAheadBehindCount = jasmine.createSpy('_refreshAheadBehindCount').andCallFake(() => {
+        return Promise.resolve(true)
+      })
+
+      await repo.refreshStatus()
+
+      waitsFor('the onDidChangeStatuses handler to be called', () => statusHandler.callCount > 0)
     })
   })
 
@@ -499,7 +579,7 @@ describe('GitRepositoryAsync', () => {
       await atom.workspace.open('file.txt')
 
       project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-      project2.deserialize(atom.project.serialize(), atom.deserializers)
+      project2.deserialize(atom.project.serialize({isUnloading: true}))
 
       const repo = project2.getRepositories()[0].async
       waitsForPromise(() => repo.refreshStatus())
@@ -547,6 +627,14 @@ describe('GitRepositoryAsync', () => {
       const workdir = '/tmp/foo/bar/baz'
       const relativizedPath = repo.relativize(`${workdir}/a/b.txt`, workdir)
       expect(relativizedPath).toBe('a/b.txt')
+    })
+
+    it('preserves file case', () => {
+      repo.isCaseInsensitive = true
+
+      const workdir = '/tmp/foo/bar/baz/'
+      const relativizedPath = repo.relativize(`${workdir}a/README.txt`, workdir)
+      expect(relativizedPath).toBe('a/README.txt')
     })
   })
 
@@ -626,7 +714,7 @@ describe('GitRepositoryAsync', () => {
         repo = GitRepositoryAsync.open(workingDirectory)
       })
 
-      it('returns 0, 0 for a branch with no upstream', async () => {
+      it('returns 1, 0 for a branch which is ahead by 1', async () => {
         await repo.refreshStatus()
 
         const {ahead, behind} = await repo.getCachedUpstreamAheadBehindCount('You-Dont-Need-jQuery')
