@@ -428,13 +428,13 @@ class DisplayBuffer extends Model
     if @largeFileMode
       bufferRow
     else
-      @rowMap.screenRowRangeForBufferRow(bufferRow)[0]
+      @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
 
   lastScreenRowForBufferRow: (bufferRow) ->
     if @largeFileMode
       bufferRow
     else
-      @rowMap.screenRowRangeForBufferRow(bufferRow)[1] - 1
+      @displayLayer.translateScreenPosition(Point(screenRow, 0), clip: 'forward').row
 
   # Given a screen row, this converts it into a buffer row.
   #
@@ -502,33 +502,35 @@ class DisplayBuffer extends Model
   screenPositionForBufferPosition: (bufferPosition, options) ->
     throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
-    {row, column} = @buffer.clipPosition(bufferPosition)
-    [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
-    for screenRow in [startScreenRow...endScreenRow]
-      screenLine = @tokenizedLineForScreenRow(screenRow)
-
-      unless screenLine?
-        throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
-          softWrapEnabled: @isSoftWrapped()
-          lastBufferRow: @buffer.getLastRow()
-          lastScreenRow: @getLastRow()
-          bufferRow: row
-          screenRow: screenRow
-          displayBufferChangeCount: @changeCount
-          tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
-          bufferChangeCount: @buffer.changeCount
-
-      maxBufferColumn = screenLine.getMaxBufferColumn()
-      if screenLine.isSoftWrapped() and column > maxBufferColumn
-        continue
-      else
-        if column <= maxBufferColumn
-          screenColumn = screenLine.screenColumnForBufferColumn(column)
-        else
-          screenColumn = Infinity
-        break
-
-    @clipScreenPosition([screenRow, screenColumn], options)
+    return @displayLayer.translateBufferPosition(bufferPosition, options)
+    # TODO: should DisplayLayer deal with options.wrapBeyondNewlines / options.wrapAtSoftNewlines?
+    # {row, column} = @buffer.clipPosition(bufferPosition)
+    # [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
+    # for screenRow in [startScreenRow...endScreenRow]
+    #   screenLine = @tokenizedLineForScreenRow(screenRow)
+    #
+    #   unless screenLine?
+    #     throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
+    #       softWrapEnabled: @isSoftWrapped()
+    #       lastBufferRow: @buffer.getLastRow()
+    #       lastScreenRow: @getLastRow()
+    #       bufferRow: row
+    #       screenRow: screenRow
+    #       displayBufferChangeCount: @changeCount
+    #       tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+    #       bufferChangeCount: @buffer.changeCount
+    #
+    #   maxBufferColumn = screenLine.getMaxBufferColumn()
+    #   if screenLine.isSoftWrapped() and column > maxBufferColumn
+    #     continue
+    #   else
+    #     if column <= maxBufferColumn
+    #       screenColumn = screenLine.screenColumnForBufferColumn(column)
+    #     else
+    #       screenColumn = Infinity
+    #     break
+    #
+    # @clipScreenPosition([screenRow, screenColumn], options)
 
   # Given a buffer position, this converts it into a screen position.
   #
@@ -540,9 +542,11 @@ class DisplayBuffer extends Model
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
-    [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
-    new Point(bufferRow, @tokenizedLineForScreenRow(row).bufferColumnForScreenColumn(column))
+    return @displayLayer.translateScreenPosition(screenPosition, options)
+    # TODO: should DisplayLayer deal with options.wrapBeyondNewlines / options.wrapAtSoftNewlines?
+    # {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
+    # [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
+    # new Point(bufferRow, @tokenizedLineForScreenRow(row).bufferColumnForScreenColumn(column))
 
   # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
@@ -594,53 +598,55 @@ class DisplayBuffer extends Model
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    {wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation} = options
-    {row, column} = Point.fromObject(screenPosition)
-
-    if row < 0
-      row = 0
-      column = 0
-    else if row > @getLastRow()
-      row = @getLastRow()
-      column = Infinity
-    else if column < 0
-      column = 0
-
-    screenLine = @tokenizedLineForScreenRow(row)
-    unless screenLine?
-      error = new Error("Undefined screen line when clipping screen position")
-      Error.captureStackTrace(error)
-      error.metadata = {
-        screenRow: row
-        screenColumn: column
-        maxScreenRow: @getLastRow()
-        screenLinesDefined: @screenLines.map (sl) -> sl?
-        displayBufferChangeCount: @changeCount
-        tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
-        bufferChangeCount: @buffer.changeCount
-      }
-      throw error
-
-    maxScreenColumn = screenLine.getMaxScreenColumn()
-
-    if screenLine.isSoftWrapped() and column >= maxScreenColumn
-      if wrapAtSoftNewlines
-        row++
-        column = @tokenizedLineForScreenRow(row).clipScreenColumn(0)
-      else
-        column = screenLine.clipScreenColumn(maxScreenColumn - 1)
-    else if screenLine.isColumnInsideSoftWrapIndentation(column)
-      if skipSoftWrapIndentation
-        column = screenLine.clipScreenColumn(0)
-      else
-        row--
-        column = @tokenizedLineForScreenRow(row).getMaxScreenColumn() - 1
-    else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
-      row++
-      column = 0
-    else
-      column = screenLine.clipScreenColumn(column, options)
-    new Point(row, column)
+    return @displayLayer.clipScreenPosition(screenPosition, options)
+    # TODO: should DisplayLayer deal with options.wrapBeyondNewlines / options.wrapAtSoftNewlines?
+    # {wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation} = options
+    # {row, column} = Point.fromObject(screenPosition)
+    #
+    # if row < 0
+    #   row = 0
+    #   column = 0
+    # else if row > @getLastRow()
+    #   row = @getLastRow()
+    #   column = Infinity
+    # else if column < 0
+    #   column = 0
+    #
+    # screenLine = @tokenizedLineForScreenRow(row)
+    # unless screenLine?
+    #   error = new Error("Undefined screen line when clipping screen position")
+    #   Error.captureStackTrace(error)
+    #   error.metadata = {
+    #     screenRow: row
+    #     screenColumn: column
+    #     maxScreenRow: @getLastRow()
+    #     screenLinesDefined: @screenLines.map (sl) -> sl?
+    #     displayBufferChangeCount: @changeCount
+    #     tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
+    #     bufferChangeCount: @buffer.changeCount
+    #   }
+    #   throw error
+    #
+    # maxScreenColumn = screenLine.getMaxScreenColumn()
+    #
+    # if screenLine.isSoftWrapped() and column >= maxScreenColumn
+    #   if wrapAtSoftNewlines
+    #     row++
+    #     column = @tokenizedLineForScreenRow(row).clipScreenColumn(0)
+    #   else
+    #     column = screenLine.clipScreenColumn(maxScreenColumn - 1)
+    # else if screenLine.isColumnInsideSoftWrapIndentation(column)
+    #   if skipSoftWrapIndentation
+    #     column = screenLine.clipScreenColumn(0)
+    #   else
+    #     row--
+    #     column = @tokenizedLineForScreenRow(row).getMaxScreenColumn() - 1
+    # else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
+    #   row++
+    #   column = 0
+    # else
+    #   column = screenLine.clipScreenColumn(column, options)
+    # new Point(row, column)
 
   # Clip the start and end of the given range to valid positions on screen.
   # See {::clipScreenPosition} for more information.

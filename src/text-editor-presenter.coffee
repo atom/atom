@@ -17,7 +17,7 @@ class TextEditorPresenter
     {@model, @config, @lineTopIndex, scrollPastEnd} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
-    @tokenIterator = @model.displayLayer.buildTokenIterator()
+    {@displayLayer} = @model
 
     @gutterWidth = 0
     @tileSize ?= 6
@@ -25,9 +25,7 @@ class TextEditorPresenter
     @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
     @emitter = new Emitter
-    @lineIdCounter = 1
-    @linesById = new Map
-    @lineMarkerIndex = new MarkerIndex
+    @linesByScreenRow = new Map
     @visibleHighlights = {}
     @characterWidthsByScope = {}
     @lineDecorationsByScreenRow = {}
@@ -141,7 +139,6 @@ class TextEditorPresenter
   observeModel: ->
     @disposables.add @model.displayLayer.onDidChangeSync (changes) =>
       for change in changes
-        @invalidateLines(change)
         startRow = change.start.row
         endRow = startRow + change.oldExtent.row
         @spliceBlockDecorationsInRange(startRow, endRow, change.newExtent.row - change.oldExtent.row)
@@ -316,7 +313,7 @@ class TextEditorPresenter
   isValidScreenRow: (screenRow) ->
     screenRow >= 0 and screenRow < @model.getScreenLineCount()
 
-  getScreenRows: ->
+  getScreenRowsToRender: ->
     startRow = @getStartTileRow()
     endRow = @constrainRow(@getEndTileRow() + @tileSize)
 
@@ -331,6 +328,22 @@ class TextEditorPresenter
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
 
+  getScreenRangesToRender: ->
+    screenRows = @getScreenRowsToRender()
+    screenRows.push(Infinity) # makes the loop below inclusive
+
+    startRow = screenRows[0]
+    endRow = startRow - 1
+    screenRanges = []
+    for row in screenRows
+      if row is endRow + 1
+        endRow++
+      else
+        screenRanges.push([startRow, endRow])
+        startRow = endRow = row
+
+    screenRanges
+
   setScreenRowsToMeasure: (screenRows) ->
     return if not screenRows? or screenRows.length is 0
 
@@ -343,7 +356,7 @@ class TextEditorPresenter
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    screenRows = @getScreenRows()
+    screenRows = @getScreenRowsToRender()
     visibleTiles = {}
     startRow = screenRows[0]
     endRow = screenRows[screenRows.length - 1]
@@ -404,7 +417,7 @@ class TextEditorPresenter
     tileState.lines ?= {}
     visibleLineIds = {}
     for screenRow in screenRows
-      line = @lineForScreenRow(screenRow)
+      line = @linesByScreenRow.get(screenRow)
       unless line?
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
@@ -616,7 +629,7 @@ class TextEditorPresenter
           softWrapped = false
 
         screenRow = startRow + i
-        lineId = @lineIdForScreenRow(screenRow)
+        lineId = @linesByScreenRow.get(screenRow).id
         decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
         blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
         blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
@@ -1057,48 +1070,11 @@ class TextEditorPresenter
     rect
 
   updateLines: ->
-    visibleLineIds = new Set
+    @linesByScreenRow.clear()
 
-    for screenRow in @getScreenRows()
-      screenRowStart = Point(screenRow, 0)
-      lineIds = @lineMarkerIndex.findStartingAt(screenRowStart)
-      if lineIds.size is 0
-        line = @buildLine(screenRow)
-        @lineMarkerIndex.insert(line.id, screenRowStart, Point(screenRow, Infinity))
-        @linesById.set(line.id, line)
-        visibleLineIds.add(line.id)
-      else
-        lineIds.forEach (id) ->
-          visibleLineIds.add(id)
-
-    @linesById.forEach (line, lineId) =>
-      unless visibleLineIds.has(lineId)
-        @lineMarkerIndex.delete(lineId)
-        @linesById.delete(lineId)
-
-  buildLine: (screenRow) ->
-    line = {id: @lineIdCounter++, tokens: []}
-    @tokenIterator.seekToScreenRow(screenRow)
-    loop
-      line.tokens.push({
-        text: @tokenIterator.getText(),
-        closeTags: @tokenIterator.getCloseTags(),
-        openTags: @tokenIterator.getOpenTags()
-      })
-      break unless @tokenIterator.moveToSuccessor()
-      break unless @tokenIterator.getStartScreenPosition().row is screenRow
-    line
-
-  invalidateLines: ({start, oldExtent, newExtent}) ->
-    {touch} = @lineMarkerIndex.splice(start, oldExtent, newExtent)
-    touch.forEach (lineId) =>
-      @lineMarkerIndex.delete(lineId)
-      @linesById.delete(lineId)
-
-  lineForScreenRow: (screenRow) ->
-    lineIds = @lineMarkerIndex.findStartingAt(Point(screenRow, 0))
-    lineId = lineIds.values().next().value
-    @linesById.get(lineId)
+    for [startRow, endRow] in @getScreenRangesToRender()
+      for line, index in @displayLayer.getScreenLines(startRow, endRow + 1)
+        @linesByScreenRow.set(startRow + index, line)
 
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
@@ -1571,7 +1547,3 @@ class TextEditorPresenter
 
   isRowVisible: (row) ->
     @startRow <= row < @endRow
-
-  lineIdForScreenRow: (screenRow) ->
-    ids = @lineMarkerIndex.findStartingAt(Point(screenRow, 0))
-    ids.values().next().value if ids.size > 0
