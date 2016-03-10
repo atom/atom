@@ -12,9 +12,6 @@ TextEditor = require './text-editor'
 Task = require './task'
 GitRepositoryProvider = require './git-repository-provider'
 
-child_process = require 'child_process'
-os = require 'os'
-
 # Extended: Represents a project that's opened in Atom.
 #
 # An instance of this class is always available as the `atom.project` global.
