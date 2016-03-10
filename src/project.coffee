@@ -71,7 +71,7 @@ class Project extends Model
     @subscribeToBuffer(buffer) for buffer in @buffers
     @setPaths(state.paths)
 
-  serialize: (options) ->
+  serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
     buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
