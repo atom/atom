@@ -275,26 +275,6 @@ class Project extends Model
     @rootDirectories.some (dir) -> dir.contains(pathToCheck)
 
   ###
-  Section: Environment
-  ###
-
-  # Public: Retrieves a normalized copy of the environment.
-  #
-  # On OS X, the `PATH` can be different depending on whether Atom is launched
-  # from the Dock, Finder, Spotlight or the terminal. This detects how Atom was
-  # started and corrects the `PATH` environment variable before returning a copy
-  # of the environment.
-  getEnv: ->
-    unless @env?
-      @env = _.clone(process.env)
-      if process.platform is "darwin" and not process.env.TERM?
-        {getShellEnv} = require("../src/environment")
-        shellEnv = getShellEnv()
-        @env = shellEnv if shellEnv?
-
-    _.clone(@env)
-
-  ###
   Section: Private
   ###
 

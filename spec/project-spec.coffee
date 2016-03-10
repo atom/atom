@@ -8,8 +8,6 @@ BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 
-environment = require '../src/environment'
-
 describe "Project", ->
   beforeEach ->
     atom.project.setPaths([atom.project.getDirectories()[0]?.resolve('dir')])
@@ -539,69 +537,3 @@ describe "Project", ->
 
       randomPath = path.join("some", "random", "path")
       expect(atom.project.contains(randomPath)).toBe false
-
-  describe ".getEnv", ->
-    [originalTerm] = []
-
-    beforeEach ->
-      originalTerm = process.env.TERM
-
-    afterEach ->
-      process.env.TERM = originalTerm
-      delete atom.project.env
-
-    it "returns a copy of the environment", ->
-      env = atom.project.getEnv()
-
-      env.PROJECT_GET_ENV_TESTING = "foo"
-      expect(process.env.PROJECT_GET_ENV_TESTING).not.toEqual "foo"
-      expect(atom.project.getEnv().PROJECT_GET_ENV_TESTING).not.toEqual "foo"
-
-    describe "on platforms other than OS X", ->
-      beforeEach ->
-        spyOn(process, "platform").andReturn("foo")
-
-      describe "when TERM is not set", ->
-        beforeEach ->
-          delete process.env.TERM
-
-        it "returns the PATH unchanged", ->
-          expect(atom.project.getEnv().PATH).toEqual process.env.PATH
-
-      describe "when TERM is set", ->
-        beforeEach ->
-          process.env.TERM = "foo"
-
-        it "returns the PATH unchanged", ->
-          expect(atom.project.getEnv().PATH).toEqual process.env.PATH
-
-    describe "on OS X", ->
-      beforeEach ->
-        spyOn(process, "platform").andReturn("darwin")
-
-      describe "when TERM is not set", ->
-        beforeEach ->
-          delete process.env.TERM
-
-        it "replaces the environment with the one obtained from the shell", ->
-          spyOn(environment, "getShellEnv").andReturn
-            FOO: "BAR"
-            TERM: "xterm-something"
-            PATH: "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
-
-          expect(atom.project.getEnv().TERM).toEqual "xterm-something"
-          expect(atom.project.getEnv().PATH).toEqual "/usr/bin:/bin:/usr/sbin:/sbin:/some/crazy/path/entry/that/should/not/exist"
-          expect(atom.project.getEnv().FOO).toEqual "BAR"
-
-        it "does the best it can when there is an error retrieving the shell environment", ->
-          spyOn(environment, "getShellEnv").andReturn(undefined)
-
-          expect(atom.project.getEnv().PATH).not.toBeUndefined()
-          expect(atom.project.getEnv().PATH).toEqual process.env.PATH
-
-      describe "when TERM is set", ->
-        beforeEach ->
-          process.env.TERM = "foo"
-
-        it "returns the PATH unchanged", ->
-          expect(atom.project.getEnv().PATH).toEqual process.env.PATH

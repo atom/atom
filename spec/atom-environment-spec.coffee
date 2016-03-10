@@ -362,16 +362,3 @@ describe "AtomEnvironment", ->
 
       version = '1.7.0-dev-5340c91'
       expect(atom.getReleaseChannel()).toBe 'dev'
-
-  describe "environment patching", ->
-    it "patches process.env on startup", ->
-      configDirPath = temp.mkdirSync()
-      fakeDocument = {
-        addEventListener: ->
-        removeEventListener: ->
-        head: document.createElement('head')
-        body: document.createElement('body')
-      }
-      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
-
-      expect(process.env).toEqual atomEnvironment.project.getEnv()

@@ -4,6 +4,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
+environment = require('./environment')
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
@@ -127,6 +128,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
+    environment.normalize(params)
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
@@ -229,11 +231,6 @@ class AtomEnvironment extends Model
       ipcRenderer.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
-
-    # Patch the `process.env` on startup to fix the problem first documented
-    # in #4126. Retain the original in case someone needs it.
-    process._originalEnv = process.env
-    process.env = @project.getEnv()
 
   attachSaveStateListeners: ->
     saveState = => @saveState({isUnloading: false}) unless @unloaded
