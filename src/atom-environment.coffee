@@ -880,7 +880,8 @@ class AtomEnvironment extends Model
       sha1 = crypto.createHash('sha1').update(paths.slice().sort().join("\n")).digest('hex')
       "editor-#{sha1}"
     else
-      null
+      # Represents an empty editor (no project folders)
+      "editor-<empty>"
 
   getConfigDirPath: ->
     @configDirPath ?= process.env.ATOM_HOME
