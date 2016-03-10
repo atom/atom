@@ -203,6 +203,14 @@ describe "AtomEnvironment", ->
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
       expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
 
+    it "serializes the project state with all the options supplied in saveState", ->
+      spyOn(atom.project, 'serialize').andReturn({foo: 42})
+
+      waitsForPromise -> atom.saveState({anyOption: 'any option'})
+      runs ->
+        expect(atom.project.serialize.calls.length).toBe(1)
+        expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
+
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
       beforeEach ->
