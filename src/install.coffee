@@ -547,7 +547,8 @@ class Install extends Command
       url = packageInfo.toString()
       develop.cloneRepository url, cloneDir, {}, callback
     else if packageInfo.default is 'https'
-      develop.cloneRepository name, cloneDir, {}, callback
+      url = packageInfo.https().replace(/^git\+https:/, "https:")
+      develop.cloneRepository url, cloneDir, {}, callback
     else if packageInfo.default is 'shortcut'
       url = packageInfo.https().replace(/^git\+https:/, "https:")
       develop.cloneRepository url, cloneDir, {}, (error) ->
