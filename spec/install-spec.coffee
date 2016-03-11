@@ -322,7 +322,7 @@ describe 'apm install', ->
         runs ->
           expect(callback.mostRecentCall.args[0]).toBeTruthy()
 
-    describe '#getNormalizedGitUrls', ->
+    describe '::getNormalizedGitUrls', ->
       it 'normalizes https:// urls', ->
         url = "https://github.com/user/repo.git"
         urls = new Install().getNormalizedGitUrls url
@@ -343,7 +343,7 @@ describe 'apm install', ->
         urls = new Install().getNormalizedGitUrls url
         expect(urls).toEqual ["https://github.com/user/repo.git", "git+ssh://git@github.com/user/repo.git"]
 
-    describe '#cloneFirstValidGitUrl', ->
+    describe '::cloneFirstValidGitUrl', ->
       describe 'when cloning a URL fails', ->
         install = null
         urls = ["url1", "url2", "url3"]
