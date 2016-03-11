@@ -346,18 +346,19 @@ describe 'apm install', ->
     describe '::cloneFirstValidGitUrl', ->
       describe 'when cloning a URL fails', ->
         install = null
-        urls = ["url1", "url2", "url3"]
+        urls = ["url1", "url2", "url3", "url4"]
 
         beforeEach ->
           install = new Install()
 
           fakeCloneRepository = (url, args...) ->
             callback = args[args.length - 1]
-            callback(new Error("Failed to clone"))
+            unless url is urls[2]
+              callback(new Error("Failed to clone"))
 
           spyOn(install, "cloneNormalizedUrl").andCallFake(fakeCloneRepository)
 
-        it 'tries cloning the next URL', ->
+        it 'tries cloning the next URL until one works', ->
           install.cloneFirstValidGitUrl urls, {}, ->
           expect(install.cloneNormalizedUrl.calls.length).toBe 3
           expect(install.cloneNormalizedUrl.calls[0].args[0]).toBe urls[0]
