@@ -488,13 +488,14 @@ class Install extends Command
   getHostedGitInfo: (name) ->
     hostedGitInfo.fromUrl(name)
 
-  installGitPackage: (packageUrl, gitPackageInfo, options, callback) ->
+  installGitPackage: (packageUrl, options, callback) ->
     tasks = []
 
     cloneDir = temp.mkdirSync("atom-git-package-clone-")
 
     tasks.push (data, next) =>
-      @cloneGitPackage gitPackageInfo, cloneDir, (err) ->
+      urls = @getNormalizedGitUrls(packageUrl)
+      @cloneFirstValidGitUrl urls, cloneDir, (err) ->
         next(err, data)
 
     tasks.push (data, next) =>
@@ -535,29 +536,44 @@ class Install extends Command
     iteratee = (currentData, task, next) -> task(currentData, next)
     async.reduce tasks, {}, iteratee, callback
 
-  installGitPackageDependencies: (directory, options, callback) =>
-    options.cwd = directory
-    @installDependencies(options, callback)
+  getNormalizedGitUrls: (packageUrl) ->
+    packageInfo = @getHostedGitInfo(packageUrl)
 
-  cloneGitPackage: (packageInfo, cloneDir, callback) ->
+    if packageUrl.indexOf('file://') is 0
+      [packageUrl]
+    else if packageInfo.default is 'sshurl'
+      [packageInfo.toString()]
+    else if packageInfo.default is 'https'
+      [packageInfo.https().replace(/^git\+https:/, "https:")]
+    else if packageInfo.default is 'shortcut'
+      [
+        packageInfo.https().replace(/^git\+https:/, "https:"),
+        packageInfo.sshurl()
+      ]
+
+  cloneFirstValidGitUrl: (urls, cloneDir, callback) ->
+    async.detectSeries urls, (url, next) =>
+      @cloneNormalizedUrl url, cloneDir, (error) ->
+        next(not error)
+    , (result) ->
+      if not result
+        invalidUrls = "Couldn't clone #{urls.join(' or ')}"
+        invalidUrlsError = new Error(invalidUrls)
+        callback(invalidUrlsError)
+      else
+        callback()
+
+  cloneNormalizedUrl: (url, cloneDir, callback) ->
+    # Require here to avoid circular dependency
     Develop = require './develop'
     develop = new Develop()
 
-    if packageInfo.default is 'sshurl'
-      url = packageInfo.toString()
-      develop.cloneRepository url, cloneDir, {}, callback
-    else if packageInfo.default is 'https'
-      url = packageInfo.https().replace(/^git\+https:/, "https:")
-      develop.cloneRepository url, cloneDir, {}, callback
-    else if packageInfo.default is 'shortcut'
-      url = packageInfo.https().replace(/^git\+https:/, "https:")
-      develop.cloneRepository url, cloneDir, {}, (error) ->
-        if error
-          # more error checking to make sure failure is because of protocol
-          url = packageInfo.sshurl()
-          develop.cloneRepository url, cloneDir, {}, callback
-        else
-          callback()
+    develop.cloneRepository url, cloneDir, {}, (err) ->
+      callback(err)
+
+  installGitPackageDependencies: (directory, options, callback) =>
+    options.cwd = directory
+    @installDependencies(options, callback)
 
   getRepositoryHeadSha: (repoDir, callback) ->
     try
@@ -588,8 +604,8 @@ class Install extends Command
     installPackage = (name, callback) =>
       gitPackageInfo = @getHostedGitInfo(name)
 
-      if gitPackageInfo
-        @installGitPackage name, gitPackageInfo, options, callback
+      if gitPackageInfo or name.indexOf('file://') is 0
+        @installGitPackage name, options, callback
       else if name is '.'
         @installDependencies(options, callback)
       else # is registered package
