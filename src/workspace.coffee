@@ -548,7 +548,10 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      editor = @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      disposable = atom.textEditors.add(editor)
+      editor.onDidDestroy -> disposable.dispose()
+      editor
 
   # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
   #
@@ -564,10 +567,7 @@ class Workspace extends Model
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
       @grammarRegistry, @project, @assert, @applicationDelegate
     }, params)
-    editor = new TextEditor(params)
-    disposable = atom.textEditors.add(editor)
-    editor.onDidDestroy -> disposable.dispose()
-    editor
+    new TextEditor(params)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
