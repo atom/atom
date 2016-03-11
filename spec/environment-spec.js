@@ -6,7 +6,7 @@ import environment from '../src/environment'
 import os from 'os'
 import _ from 'underscore-plus'
 
-fdescribe('Environment handling', () => {
+describe('Environment handling', () => {
   let originalEnv
   let options
 
