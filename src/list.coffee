@@ -147,7 +147,7 @@ class List extends Command
         @listGitPackages options, (error, packages) =>
           @logPackages(packages, options)
 
-  listPackagesAsJson: (options) ->
+  listPackagesAsJson: (options, callback = ->) ->
     output =
       core: []
       dev: []
@@ -155,21 +155,26 @@ class List extends Command
       user: []
 
     @listBundledPackages options, (error, packages) =>
+      return callback(error) if error
       output.core = packages
       @listDevPackages options, (error, packages) =>
+        return callback(error) if error
         output.dev = packages
         @listUserPackages options, (error, packages) =>
+          return callback(error) if error
           output.user = packages
           @listGitPackages options, (error, packages) ->
+            return callback(error) if error
             output.git = packages
             console.log JSON.stringify(output)
+            callback()
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
     if options.argv.json
-      @listPackagesAsJson(options)
+      @listPackagesAsJson(options, callback)
     else if options.argv.installed
       @listInstalledPackages(options)
       callback()
