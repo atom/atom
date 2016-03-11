@@ -361,9 +361,9 @@ describe 'apm install', ->
         it 'tries cloning the next URL until one works', ->
           install.cloneFirstValidGitUrl urls, {}, ->
           expect(install.cloneNormalizedUrl.calls.length).toBe 3
-          expect(install.cloneNormalizedUrl.calls[0].args[0]).toBe urls[0]
-          expect(install.cloneNormalizedUrl.calls[1].args[0]).toBe urls[1]
-          expect(install.cloneNormalizedUrl.calls[2].args[0]).toBe urls[2]
+          expect(install.cloneNormalizedUrl.argsForCall[0][0]).toBe urls[0]
+          expect(install.cloneNormalizedUrl.argsForCall[1][0]).toBe urls[1]
+          expect(install.cloneNormalizedUrl.argsForCall[2][0]).toBe urls[2]
 
     describe 'when installing a package from a git repository', ->
       [cloneUrl, pkgJsonPath] = []
