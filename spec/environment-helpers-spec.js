@@ -2,7 +2,7 @@
 /* eslint-env jasmine */
 
 import child_process from 'child_process'
-import environment from '../src/environment'
+import environmentHelpers from '../src/environment-helpers'
 import os from 'os'
 import _ from 'underscore-plus'
 
@@ -32,18 +32,18 @@ describe('Environment handling', () => {
     describe('needsPatching', () => {
       it('returns true if PWD is unset', () => {
         delete options.env.PWD
-        expect(environment.needsPatching(options)).toBe(true)
+        expect(environmentHelpers.needsPatching(options)).toBe(true)
         options.env.PWD = undefined
-        expect(environment.needsPatching(options)).toBe(true)
+        expect(environmentHelpers.needsPatching(options)).toBe(true)
         options.env.PWD = null
-        expect(environment.needsPatching(options)).toBe(true)
+        expect(environmentHelpers.needsPatching(options)).toBe(true)
         options.env.PWD = false
-        expect(environment.needsPatching(options)).toBe(true)
+        expect(environmentHelpers.needsPatching(options)).toBe(true)
       })
 
       it('returns false if PWD is set', () => {
         options.env.PWD = 'xterm'
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
       })
     })
 
@@ -53,7 +53,7 @@ describe('Environment handling', () => {
           return
         }
         delete options.env.PWD
-        environment.normalize(options)
+        environmentHelpers.normalize(options)
         expect(process._originalEnv).toBeDefined()
         expect(process._originalEnv).toBeTruthy()
         expect(process.env).toBeDefined()
@@ -76,27 +76,27 @@ describe('Environment handling', () => {
     describe('needsPatching', () => {
       it('returns false if PWD is set or unset', () => {
         delete options.env.PWD
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
         options.env.PWD = undefined
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
         options.env.PWD = null
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
         options.env.PWD = false
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
         options.env.PWD = '/'
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
       })
 
       it('returns false for linux', () => {
         options.platform = 'linux'
         options.PWD = '/'
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
       })
 
       it('returns false for windows', () => {
         options.platform = 'win32'
         options.PWD = 'c:\\'
-        expect(environment.needsPatching(options)).toBe(false)
+        expect(environmentHelpers.needsPatching(options)).toBe(false)
       })
     })
 
@@ -106,7 +106,7 @@ describe('Environment handling', () => {
           return
         }
         delete options.env.PWD
-        environment.normalize(options)
+        environmentHelpers.normalize(options)
         expect(process._originalEnv).toBeUndefined()
         expect(process.env).toBeDefined()
         expect(process.env).toBeTruthy()
@@ -130,7 +130,7 @@ describe('Environment handling', () => {
       })
 
       it('returns an object containing the information from the user\'s shell environment', () => {
-        let env = environment.getFromShell()
+        let env = environmentHelpers.getFromShell()
         expect(env.FOO).toEqual('BAR')
         expect(env.TERM).toEqual('xterm-something')
         expect(env.PATH).toEqual('/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path')
@@ -145,14 +145,14 @@ describe('Environment handling', () => {
       })
 
       it('returns undefined', () => {
-        expect(environment.getFromShell()).toBeUndefined()
+        expect(environmentHelpers.getFromShell()).toBeUndefined()
       })
 
       it('leaves the environment as-is when normalize() is called', () => {
         options.platform = 'darwin'
         delete options.env.PWD
-        expect(environment.needsPatching(options)).toBe(true)
-        environment.normalize(options)
+        expect(environmentHelpers.needsPatching(options)).toBe(true)
+        environmentHelpers.normalize(options)
         expect(process.env).toBeDefined()
         expect(process._originalEnv).toBeUndefined()
       })

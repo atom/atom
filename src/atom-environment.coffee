@@ -4,7 +4,7 @@ path = require 'path'
 
 _ = require 'underscore-plus'
 {deprecate} = require 'grim'
-environment = require('./environment')
+environmentHelpers = require('./environment-helpers')
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
@@ -128,7 +128,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    environment.normalize(params)
+    environmentHelpers.normalize(params)
     {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
