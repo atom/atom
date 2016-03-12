@@ -781,14 +781,15 @@ class Selection extends Model
       @cursor.emitter.emit('did-change-position', cursorMovedEvent)
       @editor.cursorMoved(cursorMovedEvent)
 
-    @emitter.emit 'did-change-range'
-    @editor.selectionRangeChanged(
+    rangeChangedEvent =
       oldBufferRange: new Range(oldHeadBufferPosition, oldTailBufferPosition)
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition)
       newBufferRange: @getBufferRange()
       newScreenRange: @getScreenRange()
       selection: this
-    )
+
+    @emitter.emit('did-change-range', rangeChangedEvent)
+    @editor.selectionRangeChanged(rangeChangedEvent)
 
   markerDidDestroy: ->
     return if @editor.isDestroyed()
