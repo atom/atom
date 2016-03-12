@@ -4,7 +4,7 @@ module.exports = ({blobStore}) ->
   require './window'
   {getWindowLoadSettings} = require './window-load-settings-helpers'
 
-  {resourcePath, isSpec, devMode} = getWindowLoadSettings()
+  {resourcePath, isSpec, devMode, env} = getWindowLoadSettings()
 
   # Add application-specific exports to module search path.
   exportsPath = path.join(resourcePath, 'exports')
@@ -21,6 +21,7 @@ module.exports = ({blobStore}) ->
     applicationDelegate: new ApplicationDelegate,
     configDirPath: process.env.ATOM_HOME
     enablePersistence: true
+    env: env
   })
 
   atom.startEditorWindow().then ->
