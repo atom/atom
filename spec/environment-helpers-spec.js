@@ -4,7 +4,6 @@
 import child_process from 'child_process'
 import environmentHelpers from '../src/environment-helpers'
 import os from 'os'
-import _ from 'underscore-plus'
 
 describe('Environment handling', () => {
   let originalEnv
@@ -15,7 +14,7 @@ describe('Environment handling', () => {
     delete process._originalEnv
     options = {
       platform: process.platform,
-      env: _.clone(process.env)
+      env: Object.assign({}, process.env)
     }
   })
 
