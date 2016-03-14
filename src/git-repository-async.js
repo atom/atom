@@ -660,6 +660,11 @@ export default class GitRepositoryAsync {
         }
         return this._diffBlobToBuffer(blob, text, options)
       })
+      .catch(e => {
+        // NB: I don't love this, but we're matching the behavior of
+        // `GitRepository` here for API compatibility.
+        return {}
+      })
   }
 
   // Checking Out
