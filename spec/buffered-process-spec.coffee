@@ -119,13 +119,16 @@ describe "BufferedProcess", ->
     exitCallback = jasmine.createSpy('exit callback')
     baseContent = "There are dozens of us! Dozens! It's as Ann as the nose on Plain's face. Can you believe that the only reason the club is going under is because it's in a terrifying neighborhood? She calls it a Mayonegg. Waiting for the Emmys. BTW did you know won 6 Emmys and was still canceled early by Fox? COME ON. I'll buy you a hundred George Michaels that you can teach to drive! Never once touched my per diem. I'd go to Craft Service, get some raw veggies, bacon, Cup-A-Soup…baby, I got a stew goin'"
     content = (baseContent for _ in [1..200]).join('\n')
+    stdout = ''
+    endLength = 10
     outputAlwaysEndsWithStew = true
     process = new BufferedProcess
       command: '/bin/echo'
       args: [content]
       options: {}
       stdout: (lines) ->
-        endLength = 10
+        stdout += lines
+
         end = baseContent.substr(baseContent.length - endLength, endLength)
         lineEndsWithStew = lines.substr(lines.length - endLength, endLength) is end
         expect(lineEndsWithStew).toBeTrue
@@ -137,3 +140,4 @@ describe "BufferedProcess", ->
 
     runs ->
       expect(outputAlwaysEndsWithStew).toBeTrue
+      expect(stdout).toBe content += '\n'
