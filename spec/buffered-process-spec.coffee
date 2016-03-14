@@ -97,7 +97,7 @@ describe "BufferedProcess", ->
       expect(ChildProcess.spawn.argsForCall[0][1][1]).toBe '/c'
       expect(ChildProcess.spawn.argsForCall[0][1][2]).toBe '"dir"'
 
-  it "calls the specified stdout, stderr, and exit callbacks ", ->
+  it "calls the specified stdout, stderr, and exit callbacks", ->
     stdout = ''
     stderr = ''
     exitCallback = jasmine.createSpy('exit callback')
