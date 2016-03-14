@@ -133,7 +133,7 @@ describe "BufferedProcess", ->
         lineEndsWithStew = lines.substr(lines.length - endLength, endLength) is end
         expect(lineEndsWithStew).toBeTrue
 
-        outputAlwaysEndsWithStew = outputAlwaysEndsWithStew && lineEndsWithStew
+        outputAlwaysEndsWithStew = outputAlwaysEndsWithStew and lineEndsWithStew
       exit: exitCallback
 
     waitsFor -> exitCallback.callCount is 1
