@@ -115,8 +115,9 @@ class BufferedProcess
       buffered += data
       lastNewlineIndex = data.lastIndexOf('\n')
       if lastNewlineIndex isnt -1
-        onLines(buffered.substring(0, lastNewlineIndex + bufferedLength + 1))
-        buffered = buffered.substring(lastNewlineIndex + bufferedLength + 1)
+        lineLength = lastNewlineIndex + bufferedLength + 1
+        onLines(buffered.substring(0, lineLength))
+        buffered = buffered.substring(lineLength)
 
     stream.on 'close', =>
       return if @killed
