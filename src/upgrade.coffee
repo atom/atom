@@ -14,6 +14,7 @@ Install = require './install'
 Packages = require './packages'
 request = require './request'
 tree = require './tree'
+git = require './git'
 
 module.exports =
 class Upgrade extends Command
@@ -103,14 +104,18 @@ class Upgrade extends Command
 
   getLatestSha: (pack, callback) ->
     repoPath = path.join(@atomPackagesDirectory, pack.name)
-    @spawn 'git', ['fetch', 'origin', 'master'], {cwd: repoPath}, (code, stderr='', stdout='') ->
-      return callback(code) unless code is 0
-      repo = Git.open(repoPath)
-      sha = repo.getReferenceTarget(repo.getUpstreamBranch('refs/heads/master'))
-      if sha isnt pack.apmInstallSource.sha
-        callback(null, sha)
-      else
-        callback()
+    config.getSetting 'git', (command) =>
+      command ?= 'git'
+      args = ['fetch', 'origin', 'master']
+      git.addGitToEnv(process.env)
+      @spawn command, args, {cwd: repoPath}, (code, stderr='', stdout='') ->
+        return callback(code) unless code is 0
+        repo = Git.open(repoPath)
+        sha = repo.getReferenceTarget(repo.getUpstreamBranch('refs/heads/master'))
+        if sha isnt pack.apmInstallSource.sha
+          callback(null, sha)
+        else
+          callback()
 
   hasRepo: (pack) ->
     Packages.getRepository(pack)?
