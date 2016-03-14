@@ -319,6 +319,23 @@ ScopeDescriptor = require './scope-descriptor'
 # * line breaks - `line breaks<br/>`
 # * ~~strikethrough~~ - `~~strikethrough~~`
 #
+# #### order
+#
+# The settings view orders your settings alphabetically. You can override this
+# ordering with the order key.
+#
+# ```coffee
+# config:
+#   zSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 1
+#   aSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 2
+# ```
+#
 # ## Best practices
 #
 # * Don't depend on (or write to) configuration keys outside of your keypath.

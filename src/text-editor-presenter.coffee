@@ -13,7 +13,7 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @config, @lineTopIndex} = params
+    {@model, @config, @lineTopIndex, scrollPastEnd} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
 
@@ -41,6 +41,8 @@ class TextEditorPresenter
     @startBlinkingCursors() if @focused
     @startReflowing() if @continuousReflow
     @updating = false
+
+    @scrollPastEndOverride = scrollPastEnd ? true
 
   setLinesYardstick: (@linesYardstick) ->
 
@@ -661,7 +663,7 @@ class TextEditorPresenter
     return unless @contentHeight? and @clientHeight?
 
     contentHeight = @contentHeight
-    if @scrollPastEnd
+    if @scrollPastEnd and @scrollPastEndOverride
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
     scrollHeight = Math.max(contentHeight, @height)

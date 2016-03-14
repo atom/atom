@@ -17,6 +17,20 @@ describe "PackageManager", ->
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
 
+  describe "::getApmPath()", ->
+    it "returns the path to the apm command", ->
+      apmPath = path.join(process.resourcesPath, "app", "apm", "bin", "apm")
+      if process.platform is 'win32'
+        apmPath += ".cmd"
+      expect(atom.packages.getApmPath()).toBe apmPath
+
+      describe "when the core.apmPath setting is set", ->
+        beforeEach ->
+          atom.config.set("core.apmPath", "/path/to/apm")
+
+        it "returns the value of the core.apmPath config setting", ->
+          expect(atom.packages.getApmPath()).toBe "/path/to/apm"
+
   describe "::loadPackage(name)", ->
     beforeEach ->
       atom.config.set("core.disabledPackages", [])
@@ -55,11 +69,16 @@ describe "PackageManager", ->
     it "normalizes short repository urls in package.json", ->
       {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
       expect(metadata.repository.type).toBe "git"
-      expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo"
 
       {metadata} = atom.packages.loadPackage("package-with-invalid-url-package-json")
       expect(metadata.repository.type).toBe "git"
       expect(metadata.repository.url).toBe "foo"
+
+    it "trims git+ from the beginning and .git from the end of repository URLs, even if npm already normalized them ", ->
+      {metadata} = atom.packages.loadPackage("package-with-prefixed-and-suffixed-repo-url")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo"
 
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')

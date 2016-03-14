@@ -24,10 +24,10 @@ class StateStore {
   }
 
   save (key, value) {
-    return this.dbPromise.then(db => {
-      if (!db) return
+    return new Promise((resolve, reject) => {
+      this.dbPromise.then(db => {
+        if (db == null) resolve()
 
-      return new Promise((resolve, reject) => {
         var request = db.transaction(['states'], 'readwrite')
           .objectStore('states')
           .put({value: value, storedAt: new Date().toString()}, key)
@@ -49,7 +49,11 @@ class StateStore {
 
         request.onsuccess = (event) => {
           let result = event.target.result
-          resolve(result ? result.value : null)
+          if (result && !result.isJSON) {
+            resolve(result.value)
+          } else {
+            resolve(null)
+          }
         }
 
         request.onerror = (event) => reject(event)

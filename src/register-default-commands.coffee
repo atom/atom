@@ -2,6 +2,9 @@
 
 module.exports = ({commandRegistry, commandInstaller, config}) ->
   commandRegistry.add 'atom-workspace',
+    'pane:show-next-recently-used-item': -> @getModel().getActivePane().activateNextRecentlyUsedItem()
+    'pane:show-previous-recently-used-item': -> @getModel().getActivePane().activatePreviousRecentlyUsedItem()
+    'pane:move-active-item-to-top-of-stack': -> @getModel().getActivePane().moveActiveItemToTopOfStack()
     'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
     'pane:show-previous-item': -> @getModel().getActivePane().activatePreviousItem()
     'pane:show-item-1': -> @getModel().getActivePane().activateItemAtIndex(0)

@@ -179,18 +179,37 @@ describe "AtomEnvironment", ->
         atom.loadState().then (state) ->
           expect(state).toEqual({stuff: 'cool'})
 
-    it "saves state on keydown and mousedown events", ->
+    it "saves state on keydown, mousedown, and when the editor window unloads", ->
       spyOn(atom, 'saveState')
 
       keydown = new KeyboardEvent('keydown')
       atom.document.dispatchEvent(keydown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveState).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
+      atom.saveState.reset()
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveState).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+
+      atom.saveState.reset()
+      atom.unloadEditorWindow()
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock atom.saveStateDebounceInterval
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
+
+    it "serializes the project state with all the options supplied in saveState", ->
+      spyOn(atom.project, 'serialize').andReturn({foo: 42})
+
+      waitsForPromise -> atom.saveState({anyOption: 'any option'})
+      runs ->
+        expect(atom.project.serialize.calls.length).toBe(1)
+        expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -275,6 +294,14 @@ describe "AtomEnvironment", ->
         atom.openLocations([{pathToOpen}])
         expect(atom.project.getPaths()[0]).toBe __dirname
 
+      describe "then a second path is opened with forceAddToWindow", ->
+        it "adds the second path to the project's paths", ->
+          firstPathToOpen = __dirname
+          secondPathToOpen = path.resolve(__dirname, './fixtures')
+          atom.openLocations([{pathToOpen: firstPathToOpen}])
+          atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
+          expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
+
     describe "when the opened path does not exist but its parent directory does", ->
       it "adds the parent directory to the project paths", ->
         pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
@@ -320,3 +347,18 @@ describe "AtomEnvironment", ->
       runs ->
         {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
         expect(releaseVersion).toBe 'version'
+
+  describe "::getReleaseChannel()", ->
+    [version] = []
+    beforeEach ->
+      spyOn(atom, 'getVersion').andCallFake -> version
+
+    it "returns the correct channel based on the version number", ->
+      version = '1.5.6'
+      expect(atom.getReleaseChannel()).toBe 'stable'
+
+      version = '1.5.0-beta10'
+      expect(atom.getReleaseChannel()).toBe 'beta'
+
+      version = '1.7.0-dev-5340c91'
+      expect(atom.getReleaseChannel()).toBe 'dev'

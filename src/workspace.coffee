@@ -43,6 +43,12 @@ class Workspace extends Model
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
 
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
+    realThis = this
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
+
     @panelContainers =
       top: new PanelContainer({location: 'top'})
       left: new PanelContainer({location: 'left'})
@@ -403,6 +409,9 @@ class Workspace extends Model
   #     containing pane. Defaults to `true`.
   #   * `activateItem` A {Boolean} indicating whether to call {Pane::activateItem}
   #     on containing pane. Defaults to `true`.
+  #   * `pending` A {Boolean} indicating whether or not the item should be opened
+  #     in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #   * `searchAllPanes` A {Boolean}. If `true`, the workspace will attempt to
   #     activate an existing item for the given URI on any pane.
   #     If `false`, only the active pane will be searched for
@@ -477,7 +486,7 @@ class Workspace extends Model
 
     if uri?
       if item = pane.itemForURI(uri)
-        item.terminatePendingState?() if item.isPending?() and not options.pending
+        pane.clearPendingItem() if not options.pending and pane.getPendingItem() is item
       item ?= opener(uri, options) for opener in @getOpeners() when not item
 
     try
@@ -500,7 +509,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item) if activateItem
+        pane.activateItem(item, {pending: options.pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
@@ -555,7 +564,10 @@ class Workspace extends Model
       @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
       @grammarRegistry, @project, @assert, @applicationDelegate
     }, params)
-    new TextEditor(params)
+    editor = new TextEditor(params)
+    disposable = atom.textEditors.add(editor)
+    editor.onDidDestroy -> disposable.dispose()
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

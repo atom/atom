@@ -55,16 +55,6 @@ describe "TextEditor", ->
 
       expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
 
-    it "restores pending tabs in pending state", ->
-      expect(editor.isPending()).toBe false
-      editor2 = TextEditor.deserialize(editor.serialize(), atom)
-      expect(editor2.isPending()).toBe false
-
-      pendingEditor = atom.workspace.buildTextEditor(pending: true)
-      expect(pendingEditor.isPending()).toBe true
-      editor3 = TextEditor.deserialize(pendingEditor.serialize(), atom)
-      expect(editor3.isPending()).toBe true
-
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
       editor = null
@@ -2142,19 +2132,30 @@ describe "TextEditor", ->
         editor.splitSelectionsIntoLines()
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]]]
 
-    describe ".consolidateSelections()", ->
-      it "destroys all selections but the least recent, returning true if any selections were destroyed", ->
-        editor.setSelectedBufferRange([[3, 16], [3, 21]])
-        selection1 = editor.getLastSelection()
+    describe "::consolidateSelections()", ->
+      makeMultipleSelections = ->
+        selection.setBufferRange [[3, 16], [3, 21]]
         selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
         selection3 = editor.addSelectionForBufferRange([[8, 4], [8, 10]])
+        selection4 = editor.addSelectionForBufferRange([[1, 6], [1, 10]])
+        expect(editor.getSelections()).toEqual [selection, selection2, selection3, selection4]
+        [selection, selection2, selection3, selection4]
 
-        expect(editor.getSelections()).toEqual [selection1, selection2, selection3]
+      it "destroys all selections but the oldest selection and autoscrolls to it, returning true if any selections were destroyed", ->
+        [selection1] = makeMultipleSelections()
+
+        autoscrollEvents = []
+        editor.onDidRequestAutoscroll (event) -> autoscrollEvents.push(event)
+
         expect(editor.consolidateSelections()).toBeTruthy()
         expect(editor.getSelections()).toEqual [selection1]
         expect(selection1.isEmpty()).toBeFalsy()
         expect(editor.consolidateSelections()).toBeFalsy()
         expect(editor.getSelections()).toEqual [selection1]
+
+        expect(autoscrollEvents).toEqual([
+          {screenRange: selection1.getScreenRange(), options: {center: true, reversed: false}}
+        ])
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
@@ -5828,52 +5829,29 @@ describe "TextEditor", ->
           rangeIsReversed: false
         }
 
-  describe "pending state", ->
-    editor1 = null
-    eventCount = null
-
+  describe "when the editor is constructed with the showInvisibles option set to false", ->
     beforeEach ->
+      atom.workspace.destroyActivePane()
       waitsForPromise ->
-        atom.workspace.open('sample.txt', pending: true).then (o) -> editor1 = o
+        atom.workspace.open('sample.js', showInvisibles: false).then (o) -> editor = o
 
-      runs ->
-        eventCount = 0
-        editor1.onDidTerminatePendingState -> eventCount++
+    it "ignores invisibles even if editor.showInvisibles is true", ->
+      atom.config.set('editor.showInvisibles', true)
+      invisibles = editor.tokenizedLineForScreenRow(0).invisibles
+      expect(invisibles).toBe(null)
 
-    it "does not open file in pending state by default", ->
-      expect(editor.isPending()).toBe false
+  describe "when the editor is constructed with the grammar option set", ->
+    beforeEach ->
+      atom.workspace.destroyActivePane()
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
 
-    it "opens file in pending state if 'pending' option is true", ->
-      expect(editor1.isPending()).toBe true
+      waitsForPromise ->
+        atom.workspace.open('sample.js', grammar: atom.grammars.grammarForScopeName('source.coffee')).then (o) -> editor = o
 
-    it "terminates pending state if ::terminatePendingState is invoked", ->
-      editor1.terminatePendingState()
+    it "sets the grammar", ->
+      expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
-      expect(editor1.isPending()).toBe false
-      expect(eventCount).toBe 1
-
-    it "terminates pending state when buffer is changed", ->
-      editor1.insertText('I\'ll be back!')
-      advanceClock(editor1.getBuffer().stoppedChangingDelay)
-
-      expect(editor1.isPending()).toBe false
-      expect(eventCount).toBe 1
-
-    it "only calls terminate handler once when text is modified twice", ->
-      editor1.insertText('Some text')
-      advanceClock(editor1.getBuffer().stoppedChangingDelay)
-
-      editor1.save()
-
-      editor1.insertText('More text')
-      advanceClock(editor1.getBuffer().stoppedChangingDelay)
-
-      expect(editor1.isPending()).toBe false
-      expect(eventCount).toBe 1
-
-    it "only calls terminate handler once when terminatePendingState is called twice", ->
-      editor1.terminatePendingState()
-      editor1.terminatePendingState()
-
-      expect(editor1.isPending()).toBe false
-      expect(eventCount).toBe 1
+  describe "::getElement", ->
+    it "returns an element", ->
+      expect(editor.getElement() instanceof HTMLElement).toBe(true)

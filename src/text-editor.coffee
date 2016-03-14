@@ -11,6 +11,7 @@ Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
+TextEditorElement = require './text-editor-element'
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -61,6 +62,10 @@ class TextEditor extends Model
   suppressSelectionMerging: false
   selectionFlashDuration: 500
   gutterContainer: null
+  editorElement: null
+
+  Object.defineProperty @prototype, "element",
+    get: -> @getElement()
 
   @deserialize: (state, atomEnvironment) ->
     try
@@ -82,7 +87,10 @@ class TextEditor extends Model
     state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     state.applicationDelegate = atomEnvironment.applicationDelegate
-    new this(state)
+    editor = new this(state)
+    disposable = atomEnvironment.textEditors.add(editor)
+    editor.onDidDestroy -> disposable.dispose()
+    editor
 
   constructor: (params={}) ->
     super
@@ -92,7 +100,7 @@ class TextEditor extends Model
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, @pending
+      @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -111,10 +119,15 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
+    @autoHeight ?= true
+    @scrollPastEnd ?= true
+    @hasTerminatedPendingState = false
+
+    showInvisibles ?= true
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode,
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or not showInvisibles, largeFileMode,
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
@@ -143,6 +156,9 @@ class TextEditor extends Model
       priority: 0
       visible: lineNumberGutterVisible
 
+    if grammar?
+      @setGrammar(grammar)
+
   serialize: ->
     deserializer: 'TextEditor'
     id: @id
@@ -151,7 +167,6 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
-    pending: @isPending()
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -163,11 +178,17 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
-    if @pending
-      @disposables.add @buffer.onDidChangeModified =>
-        @terminatePendingState() if @buffer.isModified()
+    @disposables.add @buffer.onDidChangeModified =>
+      @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
 
     @preserveCursorPositionOnBufferReload()
+
+  terminatePendingState: ->
+    @emitter.emit 'did-terminate-pending-state' if not @hasTerminatedPendingState
+    @hasTerminatedPendingState = true
+
+  onDidTerminatePendingState: (callback) ->
+    @emitter.on 'did-terminate-pending-state', callback
 
   subscribeToDisplayBuffer: ->
     @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
@@ -575,13 +596,6 @@ class TextEditor extends Model
   getEditorWidthInChars: ->
     @displayBuffer.getEditorWidthInChars()
 
-  onDidTerminatePendingState: (callback) ->
-    @emitter.on 'did-terminate-pending-state', callback
-
-  terminatePendingState: ->
-    return if not @pending
-    @pending = false
-    @emitter.emit 'did-terminate-pending-state'
 
   ###
   Section: File Details
@@ -665,9 +679,6 @@ class TextEditor extends Model
 
   # Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty: -> @buffer.isEmpty()
-
-  # Returns {Boolean} `true` if this editor is pending and `false` if it is permanent.
-  isPending: -> Boolean(@pending)
 
   # Copies the current file path to the native clipboard.
   copyPathToClipboard: (relative = false) ->
@@ -2470,6 +2481,7 @@ class TextEditor extends Model
     selections = @getSelections()
     if selections.length > 1
       selection.destroy() for selection in selections[1...(selections.length)]
+      selections[0].autoscroll(center: true)
       true
     else
       false
@@ -2924,6 +2936,7 @@ class TextEditor extends Model
   # Extended: Unfold all existing folds.
   unfoldAll: ->
     @languageMode.unfoldAll()
+    @scrollToCursorPosition()
 
   # Extended: Fold all foldable lines at the given indent level.
   #
@@ -3142,6 +3155,10 @@ class TextEditor extends Model
   Section: TextEditor Rendering
   ###
 
+  # Get the Element for the editor.
+  getElement: ->
+    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
+
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
   # Returns a {String}.
@@ -3215,8 +3232,8 @@ class TextEditor extends Model
   # top of the visible area.
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
-      maxScreenRow = @getLineCount() - 1
-      unless @config.get('editor.scrollPastEnd')
+      maxScreenRow = @getScreenLineCount() - 1
+      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
         height = @displayBuffer.getHeight()
         lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
         if height? and lineHeightInPixels?
@@ -3233,7 +3250,7 @@ class TextEditor extends Model
     height = @displayBuffer.getHeight()
     lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
     if height? and lineHeightInPixels?
-      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getLineCount() - 1)
+      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getScreenLineCount() - 1)
     else
       null
 
