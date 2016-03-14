@@ -28,6 +28,8 @@ class AutoUpdateManager
   setupAutoUpdater: ->
     if process.platform is 'win32'
       autoUpdater = require './auto-updater-win32'
+    else if process.platform is 'linux'
+      autoUpdater = require './auto-updater-linux'
     else
       {autoUpdater} = require 'electron'
 
@@ -67,10 +69,8 @@ class AutoUpdateManager
     @scheduleUpdateCheck() if @config.get 'core.automaticallyUpdate'
 
     switch process.platform
-      when 'win32'
+      when 'win32', 'linux'
         @setState(UnsupportedState) unless autoUpdater.supportsUpdates()
-      when 'linux'
-        @setState(UnsupportedState)
 
   emitUpdateAvailableEvent: ->
     return unless @releaseVersion?
