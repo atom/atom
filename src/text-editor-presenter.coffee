@@ -1,6 +1,5 @@
 {CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
-MarkerIndex = require 'marker-index'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
 

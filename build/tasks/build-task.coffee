@@ -133,7 +133,6 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('scrollbar-style', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('cached-run-in-this-context', 'src') + path.sep)}.*\\.(cc|h)?"
-    ignoredPaths.push "#{_.escapeRegExp(path.join('marker-index', 'src') + path.sep)}.*\\.(cc|h)?"
     ignoredPaths.push "#{_.escapeRegExp(path.join('keyboard-layout', 'src') + path.sep)}.*\\.(cc|h|mm)*"
 
     # Ignore build files
