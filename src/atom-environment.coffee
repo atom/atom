@@ -231,6 +231,10 @@ class AtomEnvironment extends Model
       ipcRenderer.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
+    
+    @config.onDidChange 'core.openEmptyEditorOnStart', ({newValue}) =>
+      ipcRenderer.send('config-initial-empty-editor', newValue)
+    ipcRenderer.send('config-initial-empty-editor', @config.get('core.openEmptyEditorOnStart') ? false)
 
   attachSaveStateListeners: ->
     saveState = => @saveState({isUnloading: false}) unless @unloaded
@@ -867,6 +871,8 @@ class AtomEnvironment extends Model
 
     @setFullScreen(state.fullScreen)
 
+    return if @config.get('core.openEmptyEditorOnStart')
+    
     @packages.packageStates = state.packageStates ? {}
 
     startTime = Date.now()

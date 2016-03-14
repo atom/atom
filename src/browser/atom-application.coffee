@@ -57,6 +57,7 @@ class AtomApplication
   resourcePath: null
   version: null
   quitting: false
+  initialEmptyEditor: false
 
   exit: (status) -> app.exit(status)
 
@@ -314,6 +315,10 @@ class AtomApplication
     ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
 
+    ipcMain.on 'config-initial-empty-editor', (event, newValue) =>
+      @initialEmptyEditor = newValue
+      @saveState(true)
+      
   setupDockMenu: ->
     if process.platform is 'darwin'
       dockMenu = Menu.buildFromTemplate [
@@ -502,10 +507,11 @@ class AtomApplication
   saveState: (allowEmpty=false) ->
     return if @quitting
     states = []
-    for window in @windows
-      unless window.isSpec
-        if loadSettings = window.getLoadSettings()
-          states.push(initialPaths: loadSettings.initialPaths)
+    unless @initialEmptyEditor
+      for window in @windows
+        unless window.isSpec
+          if loadSettings = window.getLoadSettings()
+            states.push(initialPaths: loadSettings.initialPaths)
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 
