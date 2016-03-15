@@ -442,9 +442,6 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is ignored.
   isPathIgnored (_path) {
-    // NB: We're matching the behavior of `GitRepository` here.
-    if (!_path) return Promise.resolve(false)
-
     return this.getRepo()
       .then(repo => {
         const relativePath = this.relativize(_path, repo.workdir())
@@ -521,10 +518,6 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a status {Number} or null if the
   // path is not in the cache.
   getCachedPathStatus (_path) {
-    // NB: I don't love this, but we're matching the behavior of
-    // `GitRepository` here for API compatibility.
-    if (!_path) return null
-
     return this.relativizeToWorkingDirectory(_path)
       .then(relativePath => this.pathStatusCache[relativePath])
   }
