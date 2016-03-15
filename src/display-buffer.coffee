@@ -55,6 +55,7 @@ class DisplayBuffer extends Model
       tabLength: @getTabLength(), invisibles: @config.get('editor.invisibles'),
       showIndentGuides: @config.get('editor.showIndentGuide'),
       softWrapColumn: @config.get('editor.preferredLineLength')
+      softWrapHangingIndent: @config.get('editor.softWrapHangingIndent')
     })
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
