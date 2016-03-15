@@ -8,6 +8,7 @@ Command = require './command'
 fs = require './fs'
 config = require './apm'
 tree = require './tree'
+{getRepository} = require "./packages"
 
 module.exports =
 class List extends Command
@@ -56,6 +57,11 @@ class List extends Command
       tree packages, (pack) =>
         packageLine = pack.name
         packageLine += "@#{pack.version}" if pack.version?
+        if pack.apmInstallSource?.type is 'git'
+          repo = getRepository(pack)
+          shaLine = "##{pack.apmInstallSource.sha.substr(0, 8)}"
+          shaLine = repo + shaLine if repo?
+          packageLine += " (#{shaLine})".grey
         packageLine += ' (disabled)' if @isPackageDisabled(pack.name)
         packageLine
     console.log()
@@ -85,8 +91,9 @@ class List extends Command
 
   listUserPackages: (options, callback) ->
     userPackages = @listPackages(@userPackagesDirectory, options)
+      .filter (pack) -> not pack.apmInstallSource
     unless options.argv.bare or options.argv.json
-      console.log "#{@userPackagesDirectory.cyan} (#{userPackages.length})"
+      console.log "Community Packages (#{userPackages.length})".cyan, "#{@userPackagesDirectory}"
     callback?(null, userPackages)
 
   listDevPackages: (options, callback) ->
@@ -95,8 +102,16 @@ class List extends Command
     devPackages = @listPackages(@devPackagesDirectory, options)
     if devPackages.length > 0
       unless options.argv.bare or options.argv.json
-        console.log "#{@devPackagesDirectory.cyan} (#{devPackages.length})"
+        console.log "Dev Packages (#{devPackages.length})".cyan, "#{@devPackagesDirectory}"
     callback?(null, devPackages)
+
+  listGitPackages: (options, callback) ->
+    gitPackages = @listPackages(@userPackagesDirectory, options)
+      .filter (pack) -> pack.apmInstallSource?.type is 'git'
+    if gitPackages.length > 0
+      unless options.argv.bare or options.argv.json
+        console.log "Git Packages (#{gitPackages.length})".cyan, "#{@userPackagesDirectory}"
+    callback?(null, gitPackages)
 
   listBundledPackages: (options, callback) ->
     config.getResourcePath (resourcePath) ->
@@ -116,9 +131,9 @@ class List extends Command
 
       unless options.argv.bare or options.argv.json
         if options.argv.themes
-          console.log "#{'Built-in Atom themes'.cyan} (#{packages.length})"
+          console.log "#{'Built-in Atom Themes'.cyan} (#{packages.length})"
         else
-          console.log "#{'Built-in Atom packages'.cyan} (#{packages.length})"
+          console.log "#{'Built-in Atom Packages'.cyan} (#{packages.length})"
 
       callback?(null, packages)
 
@@ -129,26 +144,37 @@ class List extends Command
       @listUserPackages options, (error, packages) =>
         @logPackages(packages, options)
 
-  listPackagesAsJson: (options) ->
+        @listGitPackages options, (error, packages) =>
+          @logPackages(packages, options)
+
+  listPackagesAsJson: (options, callback = ->) ->
     output =
       core: []
       dev: []
+      git: []
       user: []
 
     @listBundledPackages options, (error, packages) =>
+      return callback(error) if error
       output.core = packages
       @listDevPackages options, (error, packages) =>
+        return callback(error) if error
         output.dev = packages
-        @listUserPackages options, (error, packages) ->
+        @listUserPackages options, (error, packages) =>
+          return callback(error) if error
           output.user = packages
-          console.log JSON.stringify(output)
+          @listGitPackages options, (error, packages) ->
+            return callback(error) if error
+            output.git = packages
+            console.log JSON.stringify(output)
+            callback()
 
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
 
     if options.argv.json
-      @listPackagesAsJson(options)
+      @listPackagesAsJson(options, callback)
     else if options.argv.installed
       @listInstalledPackages(options)
       callback()

@@ -1,11 +1,12 @@
 path = require 'path'
 CSON = require 'season'
-fs = require 'fs-plus'
+fs = require '../lib/fs'
 temp = require 'temp'
 express = require 'express'
 http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
+Install = require '../lib/install'
 
 describe 'apm install', ->
   [atomHome, resourcePath] = []
@@ -320,3 +321,83 @@ describe 'apm install', ->
 
         runs ->
           expect(callback.mostRecentCall.args[0]).toBeTruthy()
+
+    describe '::getNormalizedGitUrls', ->
+      it 'normalizes https:// urls', ->
+        url = "https://github.com/user/repo.git"
+        urls = new Install().getNormalizedGitUrls url
+        expect(urls).toEqual [url]
+
+      it 'normalizes git@ urls', ->
+        url = "git@github.com:user/repo.git"
+        urls = new Install().getNormalizedGitUrls url
+        expect(urls).toEqual ["git+ssh://git@github.com/user/repo.git"]
+
+      it 'normalizes file:// urls', ->
+        url = "file:///path/to/folder"
+        urls = new Install().getNormalizedGitUrls url
+        expect(urls).toEqual [url]
+
+      it 'normalizes user/repo shortcuts into both HTTPS and SSH URLs', ->
+        url = "user/repo"
+        urls = new Install().getNormalizedGitUrls url
+        expect(urls).toEqual ["https://github.com/user/repo.git", "git+ssh://git@github.com/user/repo.git"]
+
+    describe '::cloneFirstValidGitUrl', ->
+      describe 'when cloning a URL fails', ->
+        install = null
+        urls = ["url1", "url2", "url3", "url4"]
+
+        beforeEach ->
+          install = new Install()
+
+          fakeCloneRepository = (url, args...) ->
+            callback = args[args.length - 1]
+            unless url is urls[2]
+              callback(new Error("Failed to clone"))
+
+          spyOn(install, "cloneNormalizedUrl").andCallFake(fakeCloneRepository)
+
+        it 'tries cloning the next URL until one works', ->
+          install.cloneFirstValidGitUrl urls, {}, ->
+          expect(install.cloneNormalizedUrl.calls.length).toBe 3
+          expect(install.cloneNormalizedUrl.argsForCall[0][0]).toBe urls[0]
+          expect(install.cloneNormalizedUrl.argsForCall[1][0]).toBe urls[1]
+          expect(install.cloneNormalizedUrl.argsForCall[2][0]).toBe urls[2]
+
+    describe 'when installing a package from a git repository', ->
+      [cloneUrl, pkgJsonPath] = []
+
+      beforeEach ->
+        count = 0
+        gitRepo = path.join(__dirname, "fixtures", "test-git-repo.git")
+        cloneUrl = "file://#{gitRepo}"
+
+        apm.run ["install", cloneUrl], -> count++
+
+        waitsFor ->
+          count is 1
+
+        runs ->
+          pkgJsonPath = path.join(process.env.ATOM_HOME, 'packages', 'test-git-repo', 'package.json')
+
+      it 'installs the repository with a working dir to $ATOM_HOME/packages', ->
+        expect(fs.existsSync(pkgJsonPath)).toBeTruthy()
+
+      it 'adds apmInstallSource to the package.json with the source and sha', ->
+        sha = '8ae432341ac6708aff9bb619eb015da14e9d0c0f'
+        json = require(pkgJsonPath)
+        expect(json.apmInstallSource).toEqual
+          type: 'git'
+          source: cloneUrl
+          sha: sha
+
+      it 'installs dependencies and devDependencies', ->
+        json = require(pkgJsonPath)
+        deps = Object.keys(json.dependencies)
+        devDeps = Object.keys(json.devDependencies)
+        allDeps = deps.concat(devDeps)
+        expect(allDeps).toEqual ["tiny-node-module-one", "tiny-node-module-two"]
+        allDeps.forEach (dep) ->
+          modPath = path.join(process.env.ATOM_HOME, 'packages', 'test-git-repo', 'node_modules', dep)
+          expect(fs.existsSync(modPath)).toBeTruthy()

@@ -6,6 +6,12 @@ http = require 'http'
 wrench = require 'wrench'
 apm = require '../lib/apm-cli'
 
+apmRun = (args, callback) ->
+  ran = false
+  apm.run args, -> ran = true
+  waitsFor "waiting for apm #{args.join(' ')}", 60000, -> ran
+  runs callback
+
 describe "apm upgrade", ->
   [atomApp, atomHome, packagesDir, server] = []
 
@@ -159,3 +165,30 @@ describe "apm upgrade", ->
     runs ->
       expect(console.log).toHaveBeenCalled()
       expect(console.log.argsForCall[1][0]).toContain 'multi-module 0.1.0 -> 0.3.0'
+
+  describe "for outdated git packages", ->
+    [pkgJsonPath] = []
+
+    beforeEach ->
+      delete process.env.ATOM_ELECTRON_URL
+      delete process.env.ATOM_PACKAGES_URL
+      delete process.env.ATOM_ELECTRON_VERSION
+
+      gitRepo = path.join(__dirname, "fixtures", "test-git-repo.git")
+      cloneUrl = "file://#{gitRepo}"
+
+      apmRun ["install", cloneUrl], ->
+        pkgJsonPath = path.join(process.env.ATOM_HOME, 'packages', 'test-git-repo', 'package.json')
+        json = JSON.parse(fs.readFileSync(pkgJsonPath), 'utf8')
+        json.apmInstallSource.sha = 'abcdef1234567890'
+        fs.writeFileSync pkgJsonPath, JSON.stringify(json)
+
+    it 'shows an upgrade plan', ->
+      apmRun ['upgrade', '--list', '--no-color'], ->
+        text = console.log.argsForCall.map((arr) -> arr.join(' ')).join("\n")
+        expect(text).toMatch /Available \(1\).*\n.*test-git-repo abcdef12 -> 8ae43234/
+
+    it 'updates to the latest sha', ->
+      apmRun ['upgrade', '-c', 'false', 'test-git-repo'], ->
+        json = JSON.parse(fs.readFileSync(pkgJsonPath), 'utf8')
+        expect(json.apmInstallSource.sha).toBe '8ae432341ac6708aff9bb619eb015da14e9d0c0f'

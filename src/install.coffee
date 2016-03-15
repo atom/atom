@@ -1,11 +1,13 @@
 path = require 'path'
 
-async = require 'async'
 _ = require 'underscore-plus'
-yargs = require 'yargs'
+async = require 'async'
 CSON = require 'season'
+yargs = require 'yargs'
+Git = require 'git-utils'
 semver = require 'npm/node_modules/semver'
 temp = require 'temp'
+hostedGitInfo = require 'hosted-git-info'
 
 config = require './apm'
 Command = require './command'
@@ -16,7 +18,7 @@ request = require './request'
 
 module.exports =
 class Install extends Command
-  @commandNames: ['install']
+  @commandNames: ['install', 'i']
 
   constructor: ->
     @atomDirectory = config.getAtomDirectory()
@@ -31,7 +33,10 @@ class Install extends Command
 
       Usage: apm install [<package_name>...]
              apm install <package_name>@<package_version>
+             apm install <git_remote>
+             apm install <github_username>/<github_project>
              apm install --packages-file my-packages.txt
+             apm i (with any of the previous argument usage)
 
       Install the given Atom package to ~/.atom/packages/<package_name>.
 
@@ -102,6 +107,7 @@ class Install extends Command
     installOptions.streaming = true if @verbose
 
     installGlobally = options.installGlobally ? true
+
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
       nodeModulesDirectory = path.join(installDirectory, 'node_modules')
@@ -293,7 +299,7 @@ class Install extends Command
   # options - The installation options object.
   # callback - The function to invoke when installation completes with an
   #            error as the first argument.
-  installPackage: (metadata, options, callback) ->
+  installRegisteredPackage: (metadata, options, callback) ->
     packageName = metadata.name
     packageVersion = metadata.version
 
@@ -358,7 +364,7 @@ class Install extends Command
     for name, version of @getPackageDependencies()
       do (name, version) =>
         commands.push (callback) =>
-          @installPackage({name, version}, options, callback)
+          @installRegisteredPackage({name, version}, options, callback)
 
     async.waterfall(commands, callback)
 
@@ -479,6 +485,104 @@ class Install extends Command
 
     latestVersion
 
+  getHostedGitInfo: (name) ->
+    hostedGitInfo.fromUrl(name)
+
+  installGitPackage: (packageUrl, options, callback) ->
+    tasks = []
+
+    cloneDir = temp.mkdirSync("atom-git-package-clone-")
+
+    tasks.push (data, next) =>
+      urls = @getNormalizedGitUrls(packageUrl)
+      @cloneFirstValidGitUrl urls, cloneDir, (err) ->
+        next(err, data)
+
+    tasks.push (data, next) =>
+      @installGitPackageDependencies cloneDir, options, (err) ->
+        next(err, data)
+
+    tasks.push (data, next) =>
+      @getRepositoryHeadSha cloneDir, (err, sha) ->
+        data.sha = sha
+        next(err, data)
+
+    tasks.push (data, next) ->
+      metadataFilePath = CSON.resolve(path.join(cloneDir, 'package'))
+      CSON.readFile metadataFilePath, (err, metadata) ->
+        data.metadataFilePath = metadataFilePath
+        data.metadata = metadata
+        next(err, data)
+
+    tasks.push (data, next) ->
+      data.metadata.apmInstallSource =
+        type: "git"
+        source: packageUrl
+        sha: data.sha
+      CSON.writeFile data.metadataFilePath, data.metadata, (err) ->
+        next(err, data)
+
+    tasks.push (data, next) =>
+      {name} = data.metadata
+      targetDir = path.join(@atomPackagesDirectory, name)
+      process.stdout.write "Moving #{name} to #{targetDir} "
+      fs.cp cloneDir, targetDir, (err) =>
+        if err
+          next(err)
+        else
+          @logSuccess()
+          next()
+
+    iteratee = (currentData, task, next) -> task(currentData, next)
+    async.reduce tasks, {}, iteratee, callback
+
+  getNormalizedGitUrls: (packageUrl) ->
+    packageInfo = @getHostedGitInfo(packageUrl)
+
+    if packageUrl.indexOf('file://') is 0
+      [packageUrl]
+    else if packageInfo.default is 'sshurl'
+      [packageInfo.toString()]
+    else if packageInfo.default is 'https'
+      [packageInfo.https().replace(/^git\+https:/, "https:")]
+    else if packageInfo.default is 'shortcut'
+      [
+        packageInfo.https().replace(/^git\+https:/, "https:"),
+        packageInfo.sshurl()
+      ]
+
+  cloneFirstValidGitUrl: (urls, cloneDir, callback) ->
+    async.detectSeries urls, (url, next) =>
+      @cloneNormalizedUrl url, cloneDir, (error) ->
+        next(not error)
+    , (result) ->
+      if not result
+        invalidUrls = "Couldn't clone #{urls.join(' or ')}"
+        invalidUrlsError = new Error(invalidUrls)
+        callback(invalidUrlsError)
+      else
+        callback()
+
+  cloneNormalizedUrl: (url, cloneDir, callback) ->
+    # Require here to avoid circular dependency
+    Develop = require './develop'
+    develop = new Develop()
+
+    develop.cloneRepository url, cloneDir, {}, (err) ->
+      callback(err)
+
+  installGitPackageDependencies: (directory, options, callback) =>
+    options.cwd = directory
+    @installDependencies(options, callback)
+
+  getRepositoryHeadSha: (repoDir, callback) ->
+    try
+      repo = Git.open(repoDir)
+      sha = repo.getReferenceTarget("HEAD")
+      callback(null, sha)
+    catch err
+      callback(err)
+
   run: (options) ->
     {callback} = options
     options = @parseOptions(options.commandArgs)
@@ -498,9 +602,13 @@ class Install extends Command
       process.env.NODE_DEBUG = 'request'
 
     installPackage = (name, callback) =>
-      if name is '.'
+      gitPackageInfo = @getHostedGitInfo(name)
+
+      if gitPackageInfo or name.indexOf('file://') is 0
+        @installGitPackage name, options, callback
+      else if name is '.'
         @installDependencies(options, callback)
-      else
+      else # is registered package
         atIndex = name.indexOf('@')
         if atIndex > 0
           version = name.substring(atIndex + 1)
@@ -513,7 +621,7 @@ class Install extends Command
               You can run `apm uninstall #{name}` to uninstall it and then the version bundled
               with Atom will be used.
             """.yellow
-          @installPackage({name, version}, options, callback)
+          @installRegisteredPackage({name, version}, options, callback)
 
     if packagesFilePath
       try
