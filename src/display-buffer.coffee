@@ -51,12 +51,7 @@ class DisplayBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
-    @displayLayer = @buffer.addDisplayLayer({
-      tabLength: @getTabLength(), invisibles: @config.get('editor.invisibles'),
-      showIndentGuides: @config.get('editor.showIndentGuide'),
-      softWrapColumn: @config.get('editor.preferredLineLength')
-      softWrapHangingIndent: @config.get('editor.softWrapHangingIndent')
-    })
+    @displayLayer = @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
@@ -78,35 +73,16 @@ class DisplayBuffer extends Model
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getRootScopeDescriptor()
+    subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.invisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.showIndentGuide', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
 
-    oldConfigSettings = @configSettings
-    @configSettings =
-      scrollPastEnd: @config.get('editor.scrollPastEnd', scope: scopeDescriptor)
-      softWrap: @config.get('editor.softWrap', scope: scopeDescriptor)
-      softWrapAtPreferredLineLength: @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
-      softWrapHangingIndent: @config.get('editor.softWrapHangingIndent', scope: scopeDescriptor)
-      preferredLineLength: @config.get('editor.preferredLineLength', scope: scopeDescriptor)
-
-    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, ({newValue}) =>
-      @configSettings.softWrap = newValue
-      @updateWrappedScreenLines()
-
-    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, ({newValue}) =>
-      @configSettings.softWrapHangingIndent = newValue
-      @updateWrappedScreenLines()
-
-    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, ({newValue}) =>
-      @configSettings.softWrapAtPreferredLineLength = newValue
-      @updateWrappedScreenLines() if @isSoftWrapped()
-
-    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, ({newValue}) =>
-      @configSettings.preferredLineLength = newValue
-      @updateWrappedScreenLines() if @isSoftWrapped() and @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
-
-    subscriptions.add @config.observe 'editor.scrollPastEnd', scope: scopeDescriptor, (value) =>
-      @configSettings.scrollPastEnd = value
-
-    @updateWrappedScreenLines() if oldConfigSettings? and not _.isEqual(oldConfigSettings, @configSettings)
+    @resetDisplayLayer()
 
   serialize: ->
     deserializer: 'DisplayBuffer'
@@ -120,6 +96,31 @@ class DisplayBuffer extends Model
     new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
       @grammarRegistry, @packageManager
+    })
+
+  resetDisplayLayer: ->
+    scopeDescriptor = @getRootScopeDescriptor()
+    invisibles =
+      if @config.get('editor.showInvisibles', scope: scopeDescriptor)
+        @config.get('editor.invisibles', scope: scopeDescriptor)
+      else
+        {}
+
+    softWrapColumn =
+      if @isSoftWrapped()
+        if @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+          @config.get('editor.preferredLineLength', scope: scopeDescriptor)
+        else
+          @getEditorWidthInChars()
+      else
+        Infinity
+
+    @displayLayer.reset({
+      invisibles: invisibles
+      softWrapColumn: softWrapColumn
+      showIndentGuides: @config.get('editor.showIndentGuide', scope: scopeDescriptor)
+      tabLength: @config.get('editor.tabLength', scope: scopeDescriptor),
+      ratioForCharacter: -> 1.0 # TODO: replace this with korean/double/half width characters.
     })
 
   updateAllScreenLines: ->
@@ -208,7 +209,7 @@ class DisplayBuffer extends Model
   setWidth: (newWidth) ->
     oldWidth = @width
     @width = newWidth
-    @updateWrappedScreenLines() if newWidth isnt oldWidth and @isSoftWrapped()
+    @resetDisplayLayer() if newWidth isnt oldWidth and @isSoftWrapped()
     @width
 
   getLineHeightInPixels: -> @lineHeightInPixels
@@ -231,7 +232,7 @@ class DisplayBuffer extends Model
       @doubleWidthCharWidth = doubleWidthCharWidth
       @halfWidthCharWidth = halfWidthCharWidth
       @koreanCharWidth = koreanCharWidth
-      @updateWrappedScreenLines() if @isSoftWrapped() and @getEditorWidthInChars()?
+      @resetDisplayLayer() if @isSoftWrapped() and @getEditorWidthInChars()?
     defaultCharWidth
 
   getCursorWidth: -> 1
@@ -264,7 +265,7 @@ class DisplayBuffer extends Model
   setSoftWrapped: (softWrapped) ->
     if softWrapped isnt @softWrapped
       @softWrapped = softWrapped
-      @updateWrappedScreenLines()
+      @resetDisplayLayer()
       softWrapped = @isSoftWrapped()
       @emitter.emit 'did-change-soft-wrapped', softWrapped
       softWrapped
@@ -275,7 +276,8 @@ class DisplayBuffer extends Model
     if @largeFileMode
       false
     else
-      @softWrapped ? @configSettings.softWrap ? false
+      scopeDescriptor = @getRootScopeDescriptor()
+      @softWrapped ? @config.get('editor.softWrap', scope: scopeDescriptor) ? false
 
   # Set the number of characters that fit horizontally in the editor.
   #
@@ -285,7 +287,7 @@ class DisplayBuffer extends Model
       previousWidthInChars = @editorWidthInChars
       @editorWidthInChars = editorWidthInChars
       if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
-        @updateWrappedScreenLines()
+        @resetDisplayLayer()
 
   # Returns the editor width in characters for soft wrap.
   getEditorWidthInChars: ->
