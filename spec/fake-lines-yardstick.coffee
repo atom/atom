@@ -1,8 +1,10 @@
 {Point} = require 'text-buffer'
+{isPairedCharacter} = require '../src/text-utils'
 
 module.exports =
 class FakeLinesYardstick
   constructor: (@model, @lineTopIndex) ->
+    {@displayLayer} = @model
     @characterWidthsByScope = {}
 
   getScopedCharacterWidth: (scopeNames, char) ->
@@ -30,25 +32,27 @@ class FakeLinesYardstick
     left = 0
     column = 0
 
-    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
+    for {tokens} in @displayLayer.getScreenLines(targetRow, targetRow + 1)[0]
+      scopes = []
+      for {text, closeTags, openTags} in tokens
+        scopes.splice(scopes.lastIndexOf(closeTag), 1) for closeTag in closeTags
+        scopes.push(openTag) for openTag in openTags
 
-      valueIndex = 0
-      text = iterator.getText()
-      while valueIndex < text.length
-        if iterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          valueIndex += 2
-        else
-          char = text[valueIndex]
-          charLength = 1
-          valueIndex++
+        characterWidths = @getScopedCharacterWidths(iterator.getScopes())
+        valueIndex = 0
+        while valueIndex < text.length
+          if isPairedCharacter(text, valueIndex)
+            char = text[valueIndex...valueIndex + 2]
+            charLength = 2
+            valueIndex += 2
+          else
+            char = text[valueIndex]
+            charLength = 1
+            valueIndex++
 
-        break if column is targetColumn
+          break if column is targetColumn
 
-        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
-        column += charLength
+          left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
+          column += charLength
 
     {top, left}
