@@ -3095,7 +3095,7 @@ describe('TextEditorComponent', function () {
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(11), {
               shiftKey: true
             }))
-            expect(editor.getSelectedScreenRange()).toEqual([[7, 4], [16, 0]])
+            expect(editor.getSelectedScreenRange()).toEqual([[7, 4], [17, 0]])
           })
         })
       })
@@ -3169,7 +3169,7 @@ describe('TextEditorComponent', function () {
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(11), {
               metaKey: true
             }))
-            expect(editor.getSelectedScreenRanges()).toEqual([[[7, 4], [7, 6]], [[11, 4], [19, 0]]])
+            expect(editor.getSelectedScreenRanges()).toEqual([[[7, 4], [7, 6]], [[11, 4], [20, 0]]])
           })
 
           it('merges overlapping selections on mouseup', async function () {
@@ -3183,7 +3183,7 @@ describe('TextEditorComponent', function () {
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(5), {
               metaKey: true
             }))
-            expect(editor.getSelectedScreenRanges()).toEqual([[[5, 0], [19, 0]]])
+            expect(editor.getSelectedScreenRanges()).toEqual([[[5, 0], [20, 0]]])
           })
         })
       })
@@ -3198,7 +3198,7 @@ describe('TextEditorComponent', function () {
               }))
               gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(11)))
               await nextAnimationFramePromise()
-              expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [11, 14]])
+              expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [11, 5]])
             })
           })
 
