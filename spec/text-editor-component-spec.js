@@ -69,13 +69,12 @@ describe('TextEditorComponent', function () {
   describe('line rendering', async function () {
     function expectTileContainsRow (tileNode, screenRow, {top}) {
       let lineNode = tileNode.querySelector('[data-screen-row="' + screenRow + '"]')
-      let tokenizedLine = editor.tokenizedLineForScreenRow(screenRow)
-
+      let text = editor.lineTextForScreenRow(screenRow)
       expect(lineNode.offsetTop).toBe(top)
-      if (tokenizedLine.text === '') {
+      if (text === '') {
         expect(lineNode.innerHTML).toBe('&nbsp;')
       } else {
-        expect(lineNode.textContent).toBe(tokenizedLine.text)
+        expect(lineNode.textContent).toBe(text)
       }
     }
 
@@ -294,12 +293,12 @@ describe('TextEditorComponent', function () {
 
       await nextViewUpdatePromise()
 
-      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.tokenizedLineForScreenRow(3).text)
+      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.lineTextForScreenRow(3))
       buffer.delete([[0, 0], [3, 0]])
 
       await nextViewUpdatePromise()
 
-      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.tokenizedLineForScreenRow(3).text)
+      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.lineTextForScreenRow(3))
     })
 
     it('updates the top position of lines when the line height changes', async function () {
@@ -550,8 +549,8 @@ describe('TextEditorComponent', function () {
         })
 
         it('does not show end of line invisibles at the end of wrapped lines', function () {
-          expect(component.lineNodeForScreenRow(0).textContent).toBe('a line that ')
-          expect(component.lineNodeForScreenRow(1).textContent).toBe('wraps' + invisibles.space + invisibles.eol)
+          expect(component.lineNodeForScreenRow(0).textContent).toBe('a line ')
+          expect(component.lineNodeForScreenRow(1).textContent).toBe('that wraps' + invisibles.space + invisibles.eol)
         })
       })
     })
