@@ -700,9 +700,6 @@ class TextEditorPresenter
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
       rightmostPosition = @model.getRightmostScreenPosition()
-      # TODO: Add some version of this back once softwrap is reintroduced
-      # if @model.tokenizedLineForScreenRow(rightmostPosition.row)?.isSoftWrapped()
-      #   rightmostPosition = @model.clipScreenPosition(rightmostPosition)
       @contentWidth = @pixelPositionForScreenPosition(rightmostPosition).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
@@ -1076,6 +1073,9 @@ class TextEditorPresenter
     for [startRow, endRow] in @getScreenRangesToRender()
       for line, index in @displayLayer.getScreenLines(startRow, endRow + 1)
         @linesByScreenRow.set(startRow + index, line)
+
+  lineIdForScreenRow: (screenRow) ->
+    @linesByScreenRow.get(screenRow).id
 
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
