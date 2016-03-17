@@ -483,7 +483,7 @@ describe('TextEditorComponent', function () {
       it('displays newlines as their own token outside of the other tokens\' scopeDescriptor', async function () {
         editor.setText('let\n')
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="source js"><span class="storage type var js">let</span></span><span class="invisible-character">' + invisibles.eol + '</span>')
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="source js"><span class="storage type var js">let</span><span class="invisible-character eol">' + invisibles.eol + '</span></span>')
       })
 
       it('displays trailing carriage returns using a visible, non-empty value', async function () {
@@ -522,19 +522,19 @@ describe('TextEditorComponent', function () {
         })
         await nextViewUpdatePromise()
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol indent-guide">CE</span><span class="indent-guide">  </span>')
         editor.setTabLength(3)
         await nextViewUpdatePromise()
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span> </span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol indent-guide">CE</span><span class="indent-guide">  </span>')
         editor.setTabLength(1)
         await nextViewUpdatePromise()
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span></span><span class="indent-guide"><span class="invisible-character">E</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol indent-guide">CE</span><span class="indent-guide">  </span>')
         editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol">CE</span>')
       })
 
       describe('when soft wrapping is enabled', function () {
@@ -1198,10 +1198,10 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
-      let range = document.createRange()
-      range.setStart(cursorLocationTextNode, 0)
-      range.setEnd(cursorLocationTextNode, 1)
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[0]
+      let range = document.createRange(cursorLocationTextNode)
+      range.setStart(cursorLocationTextNode, 3)
+      range.setEnd(cursorLocationTextNode, 4)
       let rangeRect = range.getBoundingClientRect()
       expect(cursorRect.left).toBeCloseTo(rangeRect.left, 0)
       expect(cursorRect.width).toBeCloseTo(rangeRect.width, 0)

@@ -1075,7 +1075,7 @@ class TextEditorPresenter
         @linesByScreenRow.set(startRow + index, line)
 
   lineIdForScreenRow: (screenRow) ->
-    @linesByScreenRow.get(screenRow).id
+    @linesByScreenRow.get(screenRow)?.id
 
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
