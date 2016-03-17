@@ -110,6 +110,8 @@ class TextEditorPresenter
     @clearPendingScrollPosition()
     @updateRowsPerPage()
 
+    @updateLines()
+
     @updateFocusedState()
     @updateHeightState()
     @updateVerticalScrollState()
