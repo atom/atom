@@ -69,6 +69,13 @@ class Command
       @logFailure()
       callback("#{stdout}\n#{stderr}".trim())
 
+  logCommandResultsIfFail: (callback, code, stderr='', stdout='') =>
+    if code is 0
+      callback()
+    else
+      @logFailure()
+      callback("#{stdout}\n#{stderr}".trim())
+
   normalizeVersion: (version) ->
     if typeof version is 'string'
       # Remove commit SHA suffix
