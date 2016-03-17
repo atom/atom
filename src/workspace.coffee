@@ -932,7 +932,15 @@ class Workspace extends Model
 
   addPanel: (location, options) ->
     options ?= {}
-    @panelContainers[location].addPanel(new Panel(options))
+    panel = @panelContainers[location].addPanel(new Panel(options))
+
+    panel.onDidChangeVisible (visible) =>
+      setTimeout(=>
+        editor = @getActiveTextEditor()
+        editor?.scrollToCursorPosition(center: false, includeMargin: false)
+      , 0)
+
+    panel
 
   ###
   Section: Searching and Replacing
