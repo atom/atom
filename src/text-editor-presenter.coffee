@@ -1407,7 +1407,7 @@ class TextEditorPresenter
   startBlinkingCursors: ->
     unless @isCursorBlinking()
       @state.content.cursorsVisible = true
-      # @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
+      @toggleCursorBlinkHandle = setInterval(@toggleCursorBlink.bind(this), @getCursorBlinkPeriod() / 2)
 
   isCursorBlinking: ->
     @toggleCursorBlinkHandle?
