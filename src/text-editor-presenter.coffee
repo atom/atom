@@ -1444,9 +1444,12 @@ class TextEditorPresenter
       unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
         desiredScrollTop = desiredScrollCenter - @getClientHeight() / 2
         desiredScrollBottom = desiredScrollCenter + @getClientHeight() / 2
-    else
+    else if options?.includeMargin ? true
       desiredScrollTop = top - verticalScrollMarginInPixels
       desiredScrollBottom = bottom + verticalScrollMarginInPixels
+    else
+      desiredScrollTop = top
+      desiredScrollBottom = bottom
 
     if options?.reversed ? true
       if desiredScrollBottom > @getScrollBottom()
