@@ -52,6 +52,12 @@ if [ $EXPECT_OUTPUT ]; then
   export ELECTRON_ENABLE_LOGGING=1
 fi
 
+if [ ! -t 0 ]; then
+  TEMPFILE="$(mktemp)"
+  cat > "$TEMPFILE"
+  set "$TEMPFILE" "$@"
+fi
+
 if [ $OS == 'Mac' ]; then
   if [ -n "$BETA_VERSION" ]; then
     ATOM_APP_NAME="Atom Beta.app"
