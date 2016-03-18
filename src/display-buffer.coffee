@@ -441,7 +441,7 @@ class DisplayBuffer extends Model
     if @largeFileMode
       bufferRow
     else
-      @displayLayer.translateScreenPosition(Point(screenRow, 0), clip: 'forward').row
+      @displayLayer.translateBufferPosition(Point(bufferRow, 0), clip: 'forward').row
 
   # Given a screen row, this converts it into a buffer row.
   #
