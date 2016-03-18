@@ -39,7 +39,7 @@ class DisplayBuffer extends Model
     super
 
     {
-      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, ignoreInvisibles,
+      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @ignoreInvisibles,
       @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
     } = params
 
@@ -47,7 +47,7 @@ class DisplayBuffer extends Model
     @disposables = new CompositeDisposable
 
     @tokenizedBuffer ?= new TokenizedBuffer({
-      tabLength, buffer, ignoreInvisibles, @largeFileMode, @config,
+      tabLength, buffer, @largeFileMode, @config,
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
@@ -101,7 +101,7 @@ class DisplayBuffer extends Model
   resetDisplayLayer: ->
     scopeDescriptor = @getRootScopeDescriptor()
     invisibles =
-      if @config.get('editor.showInvisibles', scope: scopeDescriptor)
+      if @config.get('editor.showInvisibles', scope: scopeDescriptor) and not @ignoreInvisibles
         @config.get('editor.invisibles', scope: scopeDescriptor)
       else
         {}
@@ -260,7 +260,10 @@ class DisplayBuffer extends Model
     @tokenizedBuffer.setTabLength(tabLength)
 
   setIgnoreInvisibles: (ignoreInvisibles) ->
-    @tokenizedBuffer.setIgnoreInvisibles(ignoreInvisibles)
+    return if ignoreInvisibles is @ignoreInvisibles
+
+    @ignoreInvisibles = ignoreInvisibles
+    @resetDisplayLayer()
 
   setSoftWrapped: (softWrapped) ->
     if softWrapped isnt @softWrapped

@@ -5837,8 +5837,7 @@ describe "TextEditor", ->
 
     it "ignores invisibles even if editor.showInvisibles is true", ->
       atom.config.set('editor.showInvisibles', true)
-      invisibles = editor.tokenizedLineForScreenRow(0).invisibles
-      expect(invisibles).toBe(null)
+      expect(editor.lineTextForScreenRow(0).indexOf(atom.config.get('editor.invisibles.eol'))).toBe(-1)
 
   describe "when the editor is constructed with the grammar option set", ->
     beforeEach ->

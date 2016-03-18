@@ -36,7 +36,7 @@ class TokenizedBuffer extends Model
 
   constructor: (params) ->
     {
-      @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
+      @buffer, @tabLength, @largeFileMode, @config,
       @grammarRegistry, @packageManager, @assert, grammarScopeName
     } = params
 
@@ -74,7 +74,6 @@ class TokenizedBuffer extends Model
       bufferPath: @buffer.getPath()
       bufferId: @buffer.getId()
       tabLength: @tabLength
-      ignoreInvisibles: @ignoreInvisibles
       largeFileMode: @largeFileMode
     }
     state.grammarScopeName = @grammar?.scopeName unless @buffer.getPath()
@@ -128,11 +127,6 @@ class TokenizedBuffer extends Model
     @configSubscriptions.add @config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
       @configSettings.tabLength = newValue
       @retokenizeLines()
-    ['invisibles', 'showInvisibles'].forEach (key) =>
-      @configSubscriptions.add @config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
-        oldInvisibles = @getInvisiblesToShow()
-        @configSettings[key] = newValue
-        @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
@@ -174,12 +168,6 @@ class TokenizedBuffer extends Model
 
     @tabLength = tabLength
     @retokenizeLines()
-
-  setIgnoreInvisibles: (ignoreInvisibles) ->
-    if ignoreInvisibles isnt @ignoreInvisibles
-      @ignoreInvisibles = ignoreInvisibles
-      if @configSettings.showInvisibles and @configSettings.invisibles?
-        @retokenizeLines()
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -362,7 +350,7 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
@@ -372,13 +360,7 @@ class TokenizedBuffer extends Model
     tabLength = @getTabLength()
     indentLevel = @indentLevelForRow(row)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
-    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, invisibles: @getInvisiblesToShow(), @tokenIterator})
-
-  getInvisiblesToShow: ->
-    if @configSettings.showInvisibles and not @ignoreInvisibles
-      @configSettings.invisibles
-    else
-      null
+    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length

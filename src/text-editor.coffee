@@ -1055,7 +1055,7 @@ class TextEditor extends Model
             range
         ).map (range) -> range.translate([insertDelta, 0])
 
-        # # Make sure the inserted text doesn't go into an existing fold
+        # Make sure the inserted text doesn't go into an existing fold
         if fold = @displayLayer.largestFoldStartingAtBufferRow(followingBufferRow)
           rangesToRefold.push(@displayLayer.bufferRangeForFold(fold).translate([insertDelta - 1, 0]))
           @displayLayer.destroyFold(fold)
