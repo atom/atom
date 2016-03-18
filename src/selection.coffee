@@ -628,8 +628,8 @@ class Selection extends Model
   # Public: Creates a fold containing the current selection.
   fold: ->
     range = @getBufferRange()
-    @editor.foldBufferRowRange(range.start.row, range.end.row)
-    @cursor.setBufferPosition([range.end.row + 1, 0])
+    @editor.foldBufferRange(range)
+    @cursor.setBufferPosition(range.end)
 
   # Private: Increase the indentation level of the given text by given number
   # of levels. Leaves the first line unchanged.

@@ -3009,6 +3009,9 @@ class TextEditor extends Model
   foldBufferRowRange: (startRow, endRow) ->
     @displayBuffer.foldBufferRowRange(startRow, endRow)
 
+  foldBufferRange: (range) ->
+    @displayLayer.foldBufferRange(range)
+
   # Remove any {Fold}s found that intersect the given buffer range.
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
