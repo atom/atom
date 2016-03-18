@@ -923,10 +923,14 @@ class TextEditorPresenter
     height = @explicitHeight ? @contentHeight
     unless @height is height
       @height = height
+      @scrollCursorToVisible()
       @updateScrollbarDimensions()
       @updateClientHeight()
       @updateScrollHeight()
       @updateEndRow()
+
+  scrollCursorToVisible: ->
+    @model.scrollToCursorPosition(center: false, includeMargin: false)
 
   setContentFrameWidth: (contentFrameWidth) ->
     if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
