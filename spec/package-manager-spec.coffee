@@ -17,6 +17,20 @@ describe "PackageManager", ->
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
 
+  describe "::getApmPath()", ->
+    it "returns the path to the apm command", ->
+      apmPath = path.join(process.resourcesPath, "app", "apm", "bin", "apm")
+      if process.platform is 'win32'
+        apmPath += ".cmd"
+      expect(atom.packages.getApmPath()).toBe apmPath
+
+      describe "when the core.apmPath setting is set", ->
+        beforeEach ->
+          atom.config.set("core.apmPath", "/path/to/apm")
+
+        it "returns the value of the core.apmPath config setting", ->
+          expect(atom.packages.getApmPath()).toBe "/path/to/apm"
+
   describe "::loadPackage(name)", ->
     beforeEach ->
       atom.config.set("core.disabledPackages", [])

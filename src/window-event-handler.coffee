@@ -143,7 +143,6 @@ class WindowEventHandler
     @reloadRequested = false
 
     @atomEnvironment.storeWindowDimensions()
-    @atomEnvironment.saveState()
     if confirmed
       @atomEnvironment.unloadEditorWindow()
     else
