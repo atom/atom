@@ -5436,25 +5436,28 @@ describe "TextEditor", ->
           runs ->
             editor.setText("// SELECT * FROM OCTOCATS")
 
-            {tokens} = editor.tokenizedLineForScreenRow(0)
-            expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-            expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+            {tokens} = editor.screenLineForScreenRow(0)
+            expect(tokens[2].closeTags).toEqual ['comment.line.double-slash.js', 'source.js']
+            expect(tokens[2].openTags).toEqual []
+            expect(tokens[2].text).toBe ""
 
           waitsForPromise ->
             atom.packages.activatePackage('package-with-injection-selector')
 
           runs ->
-            {tokens} = editor.tokenizedLineForScreenRow(0)
-            expect(tokens[1].value).toBe " SELECT * FROM OCTOCATS"
-            expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+            {tokens} = editor.screenLineForScreenRow(0)
+            expect(tokens[2].closeTags).toEqual ['comment.line.double-slash.js', 'source.js']
+            expect(tokens[2].openTags).toEqual []
+            expect(tokens[2].text).toBe ""
 
           waitsForPromise ->
             atom.packages.activatePackage('language-sql')
 
           runs ->
-            {tokens} = editor.tokenizedLineForScreenRow(0)
-            expect(tokens[2].value).toBe "SELECT"
-            expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "keyword.other.DML.sql"]
+            {tokens} = editor.screenLineForScreenRow(2)
+            expect(tokens[2].closeTags).toEqual []
+            expect(tokens[2].openTags).toEqual ["keyword.other.DML.sql"]
+            expect(tokens[2].text).toBe "SELECT"
 
   describe ".normalizeTabsInBufferRange()", ->
     it "normalizes tabs depending on the editor's soft tab/tab length settings", ->
