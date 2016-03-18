@@ -437,11 +437,14 @@ class TextEditorPresenter
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
 
     @state.content.cursors = {}
-    for cursor in @model.cursorsForScreenRowRange(@startRow, @endRow - 1) when cursor.isVisible()
+    for cursor in @getVisibleCursors()
       pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
       pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
       @state.content.cursors[cursor.id] = pixelRect
     return
+
+  getVisibleCursors: ->
+    @model.cursorsForScreenRowRange(@startRow, @endRow - 1).filter (cursor) -> cursor.isVisible()
 
   updateOverlaysState: ->
     return unless @hasOverlayPositionRequirements()
@@ -930,7 +933,7 @@ class TextEditorPresenter
       @updateEndRow()
 
   scrollToCursor: ->
-    cursors = @model.cursorsForScreenRowRange(@startRow, @endRow - 1)
+    cursors = @getVisibleCursors()
     if cursors.length > 0
       cursors[cursors.length - 1].autoscroll(center: false, includeMargin: false)
 
