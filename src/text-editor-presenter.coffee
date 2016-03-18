@@ -436,7 +436,8 @@ class TextEditorPresenter
       else
         tileState.lines[line.id] =
           screenRow: screenRow
-          tokens: line.tokens
+          lineText: line.lineText
+          tagCodes: line.tagCodes
           decorationClasses: @lineDecorationClassesForRow(screenRow)
           precedingBlockDecorations: precedingBlockDecorations
           followingBlockDecorations: followingBlockDecorations
@@ -1548,3 +1549,12 @@ class TextEditorPresenter
 
   isRowVisible: (row) ->
     @startRow <= row < @endRow
+
+  isOpenTagCode: (tagCode) ->
+    @displayLayer.isOpenTagCode(tagCode)
+
+  isCloseTagCode: (tagCode) ->
+    @displayLayer.isCloseTagCode(tagCode)
+
+  tagForCode: (tagCode) ->
+    @displayLayer.tagForCode(tagCode)

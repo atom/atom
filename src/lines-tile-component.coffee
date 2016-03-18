@@ -253,26 +253,26 @@ class LinesTileComponent
         @currentLineTextNodes.push(textNode)
 
   setLineInnerNodes: (id, lineNode) ->
-    {tokens} = @newTileState.lines[id]
+    {lineText, tagCodes} = @newTileState.lines[id]
+
     lineLength = 0
+    startIndex = 0
     openScopeNode = lineNode
-    for token in tokens when token.text.length > 0
-      {closeTags, openTags, text} = token
-
-      for scope in closeTags
+    for tagCode in tagCodes when tagCode isnt 0
+      if @presenter.isCloseTagCode(tagCode)
         openScopeNode = openScopeNode.parentElement
-
-      for scope in openTags
+      else if @presenter.isOpenTagCode(tagCode)
+        scope = @presenter.tagForCode(tagCode)
         newScopeNode = @domElementPool.buildElement("span", scope.replace(/\.+/g, ' '))
         openScopeNode.appendChild(newScopeNode)
         openScopeNode = newScopeNode
+      else
+        textNode = @domElementPool.buildText(lineText.substr(startIndex, tagCode).replace(/\s/g, NBSPCharacter))
+        startIndex += tagCode
+        openScopeNode.appendChild(textNode)
+        @currentLineTextNodes.push(textNode)
 
-      lineLength += text.length
-      textNode = @domElementPool.buildText(text.replace(/\s/g, NBSPCharacter))
-      openScopeNode.appendChild(textNode)
-      @currentLineTextNodes.push(textNode)
-
-    if lineLength is 0
+    if startIndex is 0
       textNode = @domElementPool.buildText(NBSPCharacter)
       lineNode.appendChild(textNode)
       @currentLineTextNodes.push(textNode)
