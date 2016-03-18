@@ -926,7 +926,7 @@ class TextEditorPresenter
     height = @explicitHeight ? @contentHeight
     unless @height is height
       @height = height
-      @ensureCursorIsVisible()
+      @ensureCursorIsVisible() unless @explicitHeight?
       @updateScrollbarDimensions()
       @updateClientHeight()
       @updateScrollHeight()
