@@ -1092,7 +1092,7 @@ class TextEditor extends Model
         [startRow, endRow] = selection.getBufferRowRange()
         endRow++
 
-        outermostFolds = @displayLayer.outermostFoldsInBufferRowRange(startRow, endRow)
+        intersectingFolds = @displayLayer.foldsIntersectingBufferRange([[startRow, 0], [endRow, 0]])
         rangeToDuplicate = [[startRow, 0], [endRow, 0]]
         textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
         textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
@@ -1100,7 +1100,7 @@ class TextEditor extends Model
 
         delta = endRow - startRow
         selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
-        for fold in outermostFolds
+        for fold in intersectingFolds
           foldRange = @displayLayer.bufferRangeForFold(fold)
           @displayLayer.foldBufferRange(foldRange.translate([delta, 0]))
       return
