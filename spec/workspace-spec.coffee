@@ -624,7 +624,7 @@ describe "Workspace", ->
           expect(pane.getItems()).toEqual [editor1, editor2]
 
     describe "when replacing a pending item which is the last item in a second pane", ->
-      it "does not destory the pane even if core.destroyEmptyPanes is on", ->
+      it "does not destroy the pane even if core.destroyEmptyPanes is on", ->
         atom.config.set('core.destroyEmptyPanes', true)
         editor1 = null
         editor2 = null
