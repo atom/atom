@@ -158,8 +158,7 @@ export default class GitRepositoryAsync {
 
     if (!this.projectAtRoot) {
       this.projectAtRoot = this.getRepo()
-        .then(repo => this.project.relativize(repo.workdir()))
-        .then(relativePath => relativePath === '')
+        .then(repo => this.project.relativize(repo.workdir()) === '')
     }
 
     return this.projectAtRoot
