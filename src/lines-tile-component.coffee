@@ -277,49 +277,6 @@ class LinesTileComponent
       lineNode.appendChild(textNode)
       @currentLineTextNodes.push(textNode)
 
-    # lineState = @newTileState.lines[id]
-    # {firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, invisibles} = lineState
-    # lineIsWhitespaceOnly = firstTrailingWhitespaceIndex is 0
-    #
-    # @tokenIterator.reset(lineState)
-    # openScopeNode = lineNode
-    #
-    # while @tokenIterator.next()
-    #   for scope in @tokenIterator.getScopeEnds()
-    #     openScopeNode = openScopeNode.parentElement
-    #
-    #   for scope in @tokenIterator.getScopeStarts()
-    #     newScopeNode = @domElementPool.buildElement("span", scope.replace(/\.+/g, ' '))
-    #     openScopeNode.appendChild(newScopeNode)
-    #     openScopeNode = newScopeNode
-    #
-    #   tokenStart = @tokenIterator.getScreenStart()
-    #   tokenEnd = @tokenIterator.getScreenEnd()
-    #   tokenText = @tokenIterator.getText()
-    #   isHardTab = @tokenIterator.isHardTab()
-    #
-    #   if hasLeadingWhitespace = tokenStart < firstNonWhitespaceIndex
-    #     tokenFirstNonWhitespaceIndex = firstNonWhitespaceIndex - tokenStart
-    #   else
-    #     tokenFirstNonWhitespaceIndex = null
-    #
-    #   if hasTrailingWhitespace = tokenEnd > firstTrailingWhitespaceIndex
-    #     tokenFirstTrailingWhitespaceIndex = Math.max(0, firstTrailingWhitespaceIndex - tokenStart)
-    #   else
-    #     tokenFirstTrailingWhitespaceIndex = null
-    #
-    #   hasIndentGuide =
-    #     @newState.indentGuidesVisible and
-    #       (hasLeadingWhitespace or lineIsWhitespaceOnly)
-    #
-    #   hasInvisibleCharacters =
-    #     (invisibles?.tab and isHardTab) or
-    #       (invisibles?.space and (hasLeadingWhitespace or hasTrailingWhitespace))
-    #
-    #   @appendTokenNodes(tokenText, isHardTab, tokenFirstNonWhitespaceIndex, tokenFirstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, openScopeNode)
-    #
-    # @appendEndOfLineNodes(id, lineNode)
-
   appendTokenNodes: (tokenText, isHardTab, firstNonWhitespaceIndex, firstTrailingWhitespaceIndex, hasIndentGuide, hasInvisibleCharacters, scopeNode) ->
     if isHardTab
       textNode = @domElementPool.buildText(tokenText)
