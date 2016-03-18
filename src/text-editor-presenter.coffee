@@ -926,13 +926,13 @@ class TextEditorPresenter
     height = @explicitHeight ? @contentHeight
     unless @height is height
       @height = height
-      @scrollToCursor()
+      @ensureCursorIsVisible()
       @updateScrollbarDimensions()
       @updateClientHeight()
       @updateScrollHeight()
       @updateEndRow()
 
-  scrollToCursor: ->
+  ensureCursorIsVisible: ->
     cursors = @getVisibleCursors()
     if cursors.length > 0
       cursors[cursors.length - 1].autoscroll(center: false, includeMargin: false)
