@@ -7,7 +7,7 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 LayerDecoration = require './layer-decoration'
-{isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter} = require './text-utils'
+{isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -122,6 +122,7 @@ class DisplayBuffer extends Model
       showIndentGuides: @config.get('editor.showIndentGuide', scope: scopeDescriptor)
       tabLength: @config.get('editor.tabLength', scope: scopeDescriptor),
       ratioForCharacter: @ratioForCharacter.bind(this)
+      isWrapBoundary: isWrapBoundary
     })
 
   updateAllScreenLines: ->
