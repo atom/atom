@@ -7,6 +7,7 @@ Model = require './model'
 Token = require './token'
 Decoration = require './decoration'
 LayerDecoration = require './layer-decoration'
+{isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter} = require './text-utils'
 
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
@@ -120,7 +121,7 @@ class DisplayBuffer extends Model
       softWrapColumn: softWrapColumn
       showIndentGuides: @config.get('editor.showIndentGuide', scope: scopeDescriptor)
       tabLength: @config.get('editor.tabLength', scope: scopeDescriptor),
-      ratioForCharacter: -> 1.0 # TODO: replace this with korean/double/half width characters.
+      ratioForCharacter: @ratioForCharacter.bind(this)
     })
 
   updateAllScreenLines: ->
@@ -214,6 +215,16 @@ class DisplayBuffer extends Model
 
   getLineHeightInPixels: -> @lineHeightInPixels
   setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
+
+  ratioForCharacter: (character) ->
+    if isKoreanCharacter(character)
+      @getKoreanCharWidth() / @getDefaultCharWidth()
+    else if isHalfWidthCharacter(character)
+      @getHalfWidthCharWidth() / @getDefaultCharWidth()
+    else if isDoubleWidthCharacter(character)
+      @getDoubleWidthCharWidth() / @getDefaultCharWidth()
+    else
+      1
 
   getKoreanCharWidth: -> @koreanCharWidth
 
