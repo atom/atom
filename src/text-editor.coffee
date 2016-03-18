@@ -3071,7 +3071,7 @@ class TextEditor extends Model
   # * `options` (optional) {Object}
   #   * `center` Center the editor around the cursor if possible. (default: true)
   scrollToCursorPosition: (options) ->
-    @getLastCursor().autoscroll(center: options?.center ? true, includeMargin: options?.includeMargin ? true)
+    @getLastCursor().autoscroll(center: options?.center ? true)
 
   # Essential: Scrolls the editor to the given buffer position.
   #
