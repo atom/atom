@@ -1085,15 +1085,12 @@ class TextEditor extends Model
         selectedBufferRange = selection.getBufferRange()
         if selection.isEmpty()
           {start} = selection.getScreenRange()
-          selection.selectToScreenPosition([start.row + 1, 0])
+          selection.setScreenRange([[start.row, 0], [start.row + 1, 0]], preserveFolds: true)
 
         [startRow, endRow] = selection.getBufferRowRange()
         endRow++
 
-        foldedRowRanges =
-          @outermostFoldsInBufferRowRange(startRow, endRow)
-            .map (fold) -> fold.getBufferRowRange()
-
+        outermostFolds = @displayLayer.outermostFoldsInBufferRowRange(startRow, endRow)
         rangeToDuplicate = [[startRow, 0], [endRow, 0]]
         textToDuplicate = @getTextInBufferRange(rangeToDuplicate)
         textToDuplicate = '\n' + textToDuplicate if endRow > @getLastBufferRow()
@@ -1101,8 +1098,9 @@ class TextEditor extends Model
 
         delta = endRow - startRow
         selection.setBufferRange(selectedBufferRange.translate([delta, 0]))
-        for [foldStartRow, foldEndRow] in foldedRowRanges
-          @foldBufferRowRange(foldStartRow + delta, foldEndRow + delta)
+        for fold in outermostFolds
+          foldRange = @displayLayer.bufferRangeForFold(fold)
+          @displayLayer.foldBufferRange(foldRange.translate([delta, 0]))
       return
 
   replaceSelectedText: (options={}, fn) ->
@@ -3013,9 +3011,9 @@ class TextEditor extends Model
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
 
-  # {Delegates to: DisplayBuffer.outermostFoldsForBufferRowRange}
+  # {Delegates to: DisplayLayer.outermostFoldsForBufferRowRange}
   outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    @displayBuffer.outermostFoldsInBufferRowRange(startRow, endRow)
+    @displayLayer.outermostFoldsInBufferRowRange(startRow, endRow)
 
   ###
   Section: Gutters
