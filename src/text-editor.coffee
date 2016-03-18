@@ -945,14 +945,14 @@ class TextEditor extends Model
         # insert delta is know.
         selectionFoldRanges = []
         foldAtSelectionStart =
-          @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+          @displayLayer.largestFoldContainingBufferRow(selection.start.row)
         foldAtSelectionEnd =
-          @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+          @displayLayer.largestFoldContainingBufferRow(selection.end.row)
         if fold = foldAtSelectionStart ? foldAtSelectionEnd
-          selectionFoldRanges.push range = fold.getBufferRange()
+          selectionFoldRanges.push range = @displayLayer.bufferRangeForFold(fold)
           newEndRow = range.end.row + 1
           linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
-          fold.destroy()
+          @displayLayer.destroyFold(fold)
 
         # If selected line range is preceded by a fold, one line above on screen
         # could be multiple lines in the buffer.
@@ -963,16 +963,18 @@ class TextEditor extends Model
         # Any folds in the text that is moved will need to be re-created.
         # It includes the folds that were intersecting with the selection.
         rangesToRefold = selectionFoldRanges.concat(
-          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
-            range = fold.getBufferRange()
-            fold.destroy()
+          @displayLayer.outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
+            range = @displayLayer.bufferRangeForFold(fold)
+            @displayLayer.destroyFold(fold)
             range
         ).map (range) -> range.translate([-insertDelta, 0])
 
-        # # Make sure the inserted text doesn't go into an existing fold
-        # if fold = @displayBuffer.largestFoldStartingAtBufferRow(precedingBufferRow)
-        #   rangesToRefold.push(fold.getBufferRange().translate([linesRange.getRowCount() - 1, 0]))
-        #   fold.destroy()
+        # Make sure the inserted text doesn't go into an existing fold
+        if fold = @displayLayer.largestFoldStartingAtBufferRow(precedingBufferRow)
+          rangesToRefold.push(
+            @displayLayer.bufferRangeForFold(fold).translate([linesRange.getRowCount() - 1, 0])
+          )
+          @displayLayer.destroyFold(fold)
 
         # Delete lines spanned by selection and insert them on the preceding buffer row
         lines = @buffer.getTextInRange(linesRange)
@@ -982,7 +984,7 @@ class TextEditor extends Model
 
         # Restore folds that existed before the lines were moved
         for rangeToRefold in rangesToRefold
-          @displayBuffer.foldBufferRowRange(rangeToRefold.start.row, rangeToRefold.end.row)
+          @displayLayer.foldBufferRange(rangeToRefold)
 
         for selection in selectionsToMove
           newSelectionRanges.push(selection.translate([-insertDelta, 0]))
@@ -1027,14 +1029,14 @@ class TextEditor extends Model
         # insert delta is know.
         selectionFoldRanges = []
         foldAtSelectionStart =
-          @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+          @displayLayer.largestFoldContainingBufferRow(selection.start.row)
         foldAtSelectionEnd =
-          @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+          @displayLayer.largestFoldContainingBufferRow(selection.end.row)
         if fold = foldAtSelectionStart ? foldAtSelectionEnd
-          selectionFoldRanges.push range = fold.getBufferRange()
+          selectionFoldRanges.push range = @displayLayer.bufferRangeForFold(fold)
           newEndRow = range.end.row + 1
           linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
-          fold.destroy()
+          @displayLayer.destroyFold(fold)
 
         # If selected line range is followed by a fold, one line below on screen
         # could be multiple lines in the buffer. But at the same time, if the
@@ -1047,16 +1049,16 @@ class TextEditor extends Model
         # Any folds in the text that is moved will need to be re-created.
         # It includes the folds that were intersecting with the selection.
         rangesToRefold = selectionFoldRanges.concat(
-          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
+          @displayLayer.outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
             range = fold.getBufferRange()
-            fold.destroy()
+            @displayLayer.destroyFold(fold)
             range
         ).map (range) -> range.translate([insertDelta, 0])
 
         # # Make sure the inserted text doesn't go into an existing fold
-        # if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow)
-        #   rangesToRefold.push(fold.getBufferRange().translate([insertDelta - 1, 0]))
-        #   fold.destroy()
+        if fold = @displayLayer.largestFoldStartingAtBufferRow(followingBufferRow)
+          rangesToRefold.push(@displayLayer.bufferRangeForFold(fold).translate([insertDelta - 1, 0]))
+          @displayLayer.destroyFold(fold)
 
         # Delete lines spanned by selection and insert them on the following correct buffer row
         insertPosition = new Point(selection.translate([insertDelta, 0]).start.row, 0)
@@ -1069,7 +1071,7 @@ class TextEditor extends Model
 
         # Restore folds that existed before the lines were moved
         for rangeToRefold in rangesToRefold
-          @displayBuffer.foldBufferRowRange(rangeToRefold.start.row, rangeToRefold.end.row)
+          @displayLayer.foldBufferRange(rangeToRefold)
 
         for selection in selectionsToMove
           newSelectionRanges.push(selection.translate([insertDelta, 0]))
