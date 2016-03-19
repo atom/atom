@@ -1,6 +1,3 @@
-{SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
-{isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter} = require './text-utils'
-
 module.exports =
 class TokenIterator
   constructor: ({@grammarRegistry}, line, enableScopes) ->
@@ -32,15 +29,8 @@ class TokenIterator
         @handleScopeForTag(tag) if @enableScopes
         @index++
       else
-        if @isHardTab()
-          @screenEnd = @screenStart + tag
-          @bufferEnd = @bufferStart + 1
-        else if @isSoftWrapIndentation()
-          @screenEnd = @screenStart + tag
-          @bufferEnd = @bufferStart + 0
-        else
-          @screenEnd = @screenStart + tag
-          @bufferEnd = @bufferStart + tag
+        @screenEnd = @screenStart + tag
+        @bufferEnd = @bufferStart + tag
 
         @text = @line.text.substring(@screenStart, @screenEnd)
         return true
@@ -80,27 +70,3 @@ class TokenIterator
   getScopes: -> @scopes
 
   getText: -> @text
-
-  isSoftTab: ->
-    @line.specialTokens[@index] is SoftTab
-
-  isHardTab: ->
-    @line.specialTokens[@index] is HardTab
-
-  isSoftWrapIndentation: ->
-    @line.specialTokens[@index] is SoftWrapIndent
-
-  isPairedCharacter: ->
-    @line.specialTokens[@index] is PairedCharacter
-
-  hasDoubleWidthCharacterAt: (charIndex) ->
-    isDoubleWidthCharacter(@getText()[charIndex])
-
-  hasHalfWidthCharacterAt: (charIndex) ->
-    isHalfWidthCharacter(@getText()[charIndex])
-
-  hasKoreanCharacterAt: (charIndex) ->
-    isKoreanCharacter(@getText()[charIndex])
-
-  isAtomic: ->
-    @isSoftTab() or @isHardTab() or @isSoftWrapIndentation() or @isPairedCharacter()

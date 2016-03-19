@@ -1,22 +1,7 @@
 _ = require 'underscore-plus'
 {isPairedCharacter, isCJKCharacter} = require './text-utils'
 Token = require './token'
-{SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
-
-NonWhitespaceRegex = /\S/
-LeadingWhitespaceRegex = /^\s*/
-TrailingWhitespaceRegex = /\s*$/
-RepeatedSpaceRegex = /[ ]/g
 CommentScopeRegex = /(\b|\.)comment/
-TabCharCode = 9
-SpaceCharCode = 32
-SpaceString = ' '
-TabStringsByLength = {
-  1: ' '
-  2: '  '
-  3: '   '
-  4: '    '
-}
 
 idCounter = 1
 
@@ -31,7 +16,6 @@ class TokenizedLine
 
     return unless properties?
 
-    @specialTokens = {}
     {@openScopes, @text, @tags, @lineEnding, @ruleStack, @tokenIterator} = properties
     {@startBufferColumn, @fold, @tabLength, @invisibles} = properties
 
