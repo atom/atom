@@ -20,14 +20,6 @@ TabStringsByLength = {
 
 idCounter = 1
 
-getTabString = (length) ->
-  TabStringsByLength[length] ?= buildTabString(length)
-
-buildTabString = (length) ->
-  string = SpaceString
-  string += SpaceString for i in [1...length] by 1
-  string
-
 module.exports =
 class TokenizedLine
   endOfLineInvisibles: null
@@ -80,79 +72,6 @@ class TokenizedLine
 
     tokens
 
-  # This clips a given screen column to a valid column that's within the line
-  # and not in the middle of any atomic tokens.
-  #
-  # column - A {Number} representing the column to clip
-  # options - A hash with the key clip. Valid values for this key:
-  #           'closest' (default): clip to the closest edge of an atomic token.
-  #           'forward': clip to the forward edge.
-  #           'backward': clip to the backward edge.
-  #
-  # Returns a {Number} representing the clipped column.
-  clipScreenColumn: (column, options={}) ->
-    return 0 if @tags.length is 0
-
-    {clip} = options
-    column = Math.min(column, @getMaxScreenColumn())
-
-    tokenStartColumn = 0
-
-    iterator = @getTokenIterator()
-    while iterator.next()
-      break if iterator.getScreenEnd() > column
-
-    if iterator.isSoftWrapIndentation()
-      iterator.next() while iterator.isSoftWrapIndentation()
-      iterator.getScreenStart()
-    else if iterator.isAtomic() and iterator.getScreenStart() < column
-      if clip is 'forward'
-        iterator.getScreenEnd()
-      else if clip is 'backward'
-        iterator.getScreenStart()
-      else #'closest'
-        if column > ((iterator.getScreenStart() + iterator.getScreenEnd()) / 2)
-          iterator.getScreenEnd()
-        else
-          iterator.getScreenStart()
-    else
-      column
-
-  screenColumnForBufferColumn: (targetBufferColumn, options) ->
-    iterator = @getTokenIterator()
-    while iterator.next()
-      tokenBufferStart = iterator.getBufferStart()
-      tokenBufferEnd = iterator.getBufferEnd()
-      if tokenBufferStart <= targetBufferColumn < tokenBufferEnd
-        overshoot = targetBufferColumn - tokenBufferStart
-        return Math.min(
-          iterator.getScreenStart() + overshoot,
-          iterator.getScreenEnd()
-        )
-    iterator.getScreenEnd()
-
-  bufferColumnForScreenColumn: (targetScreenColumn) ->
-    iterator = @getTokenIterator()
-    while iterator.next()
-      tokenScreenStart = iterator.getScreenStart()
-      tokenScreenEnd = iterator.getScreenEnd()
-      if tokenScreenStart <= targetScreenColumn < tokenScreenEnd
-        overshoot = targetScreenColumn - tokenScreenStart
-        return Math.min(
-          iterator.getBufferStart() + overshoot,
-          iterator.getBufferEnd()
-        )
-    iterator.getBufferEnd()
-
-  getMaxScreenColumn: ->
-    if @fold
-      0
-    else
-      @text.length
-
-  getMaxBufferColumn: ->
-    @startBufferColumn + @bufferDelta
-
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
 
@@ -170,17 +89,6 @@ class TokenizedLine
       break if nextDelta > bufferColumn
       delta = nextDelta
     delta
-
-  buildEndOfLineInvisibles: ->
-    @endOfLineInvisibles = []
-    {cr, eol} = @invisibles
-
-    switch @lineEnding
-      when '\r\n'
-        @endOfLineInvisibles.push(cr) if cr
-        @endOfLineInvisibles.push(eol) if eol
-      when '\n'
-        @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
     return @isCommentLine if @isCommentLine?
