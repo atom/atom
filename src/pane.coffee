@@ -439,7 +439,7 @@ class Pane extends Model
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if promptToSave
-        if @promptToSaveItem(item)
+        if @promptToSaveItem(item) is promptToSaveReturns.Single
           @removeItem(item, false)
           item.destroy?()
           true
@@ -460,15 +460,21 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
     return
 
+  promptToSaveReturns =
+    Single: 0
+    Cancel: 1
+    NoForAll: 2
+    YesForAll: 3
+
   promptToSaveItem: (item, options={}, multiple=false) ->
-    return true unless item.shouldPromptToSave?(options)
+    return promptToSaveReturns.Single unless item.shouldPromptToSave?(options)
 
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
       uri = item.getUri()
     else
-      return true
+      return promptToSaveReturns.Single
 
     chosen = @applicationDelegate.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
@@ -476,11 +482,11 @@ class Pane extends Model
       buttons: if multiple then ["Save", "Cancel", "Don't Save", "No For All", "Yes For All"] else ["Save", "Cancel", "Don't Save"]
 
     switch chosen
-      when 0 then @saveItem(item, -> true)
-      when 1 then false
-      when 2 then true
-      when 3 then return 1
-      when 4 then return 2
+      when 0 then (if @saveItem(item, -> true) then return promptToSaveReturns.Single else return promptToSaveReturns.Cancel)
+      when 1 then return promptToSaveReturns.Cancel
+      when 2 then return promptToSaveReturns.Single
+      when 3 then return promptToSaveReturns.NoForAll
+      when 4 then return promptToSaveReturns.YesForAll
 
   # Public: Save the active item.
   saveActiveItem: (nextAction) ->
@@ -719,17 +725,17 @@ class Pane extends Model
 
   confirmClose: ->
     items = @getItems()
-    promptToSave = true
+    promptToSave = promptToSaveReturns.Single
     for item in items
-      if promptToSave is true
+      if promptToSave is promptToSaveReturns.Single
         promptToSave = @promptToSaveItem(item, {}, (items.length > 1))
-        if promptToSave is 2
+        if promptToSave is promptToSaveReturns.YesForAll
           @saveItem(item)
-      else if promptToSave is false
+      else if promptToSave is promptToSaveReturns.Cancel
         return false
-      else if promptToSave is 1  #return for no for all
+      else if promptToSave is promptToSaveReturns.NoForAll
         break
-      else if promptToSave is 2 #return for yes for all
+      else if promptToSave is promptToSaveReturns.YesForAll
         @saveItem(item) if item.shouldPromptToSave?()
     true
 

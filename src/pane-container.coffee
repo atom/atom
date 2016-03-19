@@ -137,7 +137,7 @@ class PaneContainer extends Model
 
     for pane in @getPanes()
       for item in pane.getItems()
-        unless pane.promptToSaveItem(item, options)
+        unless pane.promptToSaveItem(item, options) is 0
           allSaved = false
           break
 
