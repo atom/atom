@@ -80,25 +80,6 @@ class TokenizedLine
 
     tokens
 
-  copy: ->
-    copy = new TokenizedLine
-    copy.tokenIterator = @tokenIterator
-    copy.openScopes = @openScopes
-    copy.text = @text
-    copy.tags = @tags
-    copy.specialTokens = @specialTokens
-    copy.startBufferColumn = @startBufferColumn
-    copy.bufferDelta = @bufferDelta
-    copy.ruleStack = @ruleStack
-    copy.lineEnding = @lineEnding
-    copy.invisibles = @invisibles
-    copy.endOfLineInvisibles = @endOfLineInvisibles
-    copy.tabLength = @tabLength
-    copy.firstNonWhitespaceIndex = @firstNonWhitespaceIndex
-    copy.firstTrailingWhitespaceIndex = @firstTrailingWhitespaceIndex
-    copy.fold = @fold
-    copy
-
   # This clips a given screen column to a valid column that's within the line
   # and not in the middle of any atomic tokens.
   #
