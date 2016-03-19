@@ -41,7 +41,7 @@ class TokenizedLine
 
     @specialTokens = {}
     {@openScopes, @text, @tags, @lineEnding, @ruleStack, @tokenIterator} = properties
-    {@startBufferColumn, @fold, @tabLength, @indentLevel, @invisibles} = properties
+    {@startBufferColumn, @fold, @tabLength, @invisibles} = properties
 
     @startBufferColumn ?= 0
     @bufferDelta = @text.length
@@ -93,7 +93,6 @@ class TokenizedLine
     copy.lineEnding = @lineEnding
     copy.invisibles = @invisibles
     copy.endOfLineInvisibles = @endOfLineInvisibles
-    copy.indentLevel = @indentLevel
     copy.tabLength = @tabLength
     copy.firstNonWhitespaceIndex = @firstNonWhitespaceIndex
     copy.firstTrailingWhitespaceIndex = @firstTrailingWhitespaceIndex
@@ -172,157 +171,6 @@ class TokenizedLine
 
   getMaxBufferColumn: ->
     @startBufferColumn + @bufferDelta
-
-  # Given a boundary column, finds the point where this line would wrap.
-  #
-  # maxColumn - The {Number} where you want soft wrapping to occur
-  #
-  # Returns a {Number} representing the `line` position where the wrap would take place.
-  # Returns `null` if a wrap wouldn't occur.
-  findWrapColumn: (maxColumn) ->
-    return unless maxColumn?
-    return unless @text.length > maxColumn
-
-    if /\s/.test(@text[maxColumn])
-      # search forward for the start of a word past the boundary
-      for column in [maxColumn..@text.length]
-        return column if /\S/.test(@text[column])
-
-      return @text.length
-    else if isCJKCharacter(@text[maxColumn])
-      maxColumn
-    else
-      # search backward for the start of the word on the boundary
-      for column in [maxColumn..@firstNonWhitespaceIndex]
-        if /\s/.test(@text[column]) or isCJKCharacter(@text[column])
-          return column + 1
-
-      return maxColumn
-
-  softWrapAt: (column, hangingIndent) ->
-    return [null, this] if column is 0
-
-    leftText = @text.substring(0, column)
-    rightText = @text.substring(column)
-
-    leftTags = []
-    rightTags = []
-
-    leftSpecialTokens = {}
-    rightSpecialTokens = {}
-
-    rightOpenScopes = @openScopes.slice()
-
-    screenColumn = 0
-
-    for tag, index in @tags
-      # tag represents a token
-      if tag >= 0
-        # token ends before the soft wrap column
-        if screenColumn + tag <= column
-          if specialToken = @specialTokens[index]
-            leftSpecialTokens[index] = specialToken
-          leftTags.push(tag)
-          screenColumn += tag
-
-        # token starts before and ends after the split column
-        else if screenColumn <= column
-          leftSuffix = column - screenColumn
-          rightPrefix = screenColumn + tag - column
-
-          leftTags.push(leftSuffix) if leftSuffix > 0
-
-          softWrapIndent = @indentLevel * @tabLength + (hangingIndent ? 0)
-          for i in [0...softWrapIndent] by 1
-            rightText = ' ' + rightText
-          remainingSoftWrapIndent = softWrapIndent
-          while remainingSoftWrapIndent > 0
-            indentToken = Math.min(remainingSoftWrapIndent, @tabLength)
-            rightSpecialTokens[rightTags.length] = SoftWrapIndent
-            rightTags.push(indentToken)
-            remainingSoftWrapIndent -= indentToken
-
-          rightTags.push(rightPrefix) if rightPrefix > 0
-
-          screenColumn += tag
-
-         # token is after split column
-        else
-          if specialToken = @specialTokens[index]
-            rightSpecialTokens[rightTags.length] = specialToken
-          rightTags.push(tag)
-
-      # tag represents the start of a scope
-      else if (tag % 2) is -1
-        if screenColumn < column
-          leftTags.push(tag)
-          rightOpenScopes.push(tag)
-        else
-          rightTags.push(tag)
-
-      # tag represents the end of a scope
-      else
-        if screenColumn <= column
-          leftTags.push(tag)
-          rightOpenScopes.pop()
-        else
-          rightTags.push(tag)
-
-    splitBufferColumn = @bufferColumnForScreenColumn(column)
-
-    leftFragment = new TokenizedLine
-    leftFragment.tokenIterator = @tokenIterator
-    leftFragment.openScopes = @openScopes
-    leftFragment.text = leftText
-    leftFragment.tags = leftTags
-    leftFragment.specialTokens = leftSpecialTokens
-    leftFragment.startBufferColumn = @startBufferColumn
-    leftFragment.bufferDelta = splitBufferColumn - @startBufferColumn
-    leftFragment.ruleStack = @ruleStack
-    leftFragment.invisibles = @invisibles
-    leftFragment.lineEnding = null
-    leftFragment.indentLevel = @indentLevel
-    leftFragment.tabLength = @tabLength
-    leftFragment.firstNonWhitespaceIndex = Math.min(column, @firstNonWhitespaceIndex)
-    leftFragment.firstTrailingWhitespaceIndex = Math.min(column, @firstTrailingWhitespaceIndex)
-
-    rightFragment = new TokenizedLine
-    rightFragment.tokenIterator = @tokenIterator
-    rightFragment.openScopes = rightOpenScopes
-    rightFragment.text = rightText
-    rightFragment.tags = rightTags
-    rightFragment.specialTokens = rightSpecialTokens
-    rightFragment.startBufferColumn = splitBufferColumn
-    rightFragment.bufferDelta = @startBufferColumn + @bufferDelta - splitBufferColumn
-    rightFragment.ruleStack = @ruleStack
-    rightFragment.invisibles = @invisibles
-    rightFragment.lineEnding = @lineEnding
-    rightFragment.indentLevel = @indentLevel
-    rightFragment.tabLength = @tabLength
-    rightFragment.endOfLineInvisibles = @endOfLineInvisibles
-    rightFragment.firstNonWhitespaceIndex = Math.max(softWrapIndent, @firstNonWhitespaceIndex - column + softWrapIndent)
-    rightFragment.firstTrailingWhitespaceIndex = Math.max(softWrapIndent, @firstTrailingWhitespaceIndex - column + softWrapIndent)
-
-    [leftFragment, rightFragment]
-
-  isSoftWrapped: ->
-    @lineEnding is null
-
-  isColumnInsideSoftWrapIndentation: (targetColumn) ->
-    targetColumn < @getSoftWrapIndentationDelta()
-
-  getSoftWrapIndentationDelta: ->
-    delta = 0
-    for tag, index in @tags
-      if tag >= 0
-        if @specialTokens[index] is SoftWrapIndent
-          delta += tag
-        else
-          break
-    delta
-
-  hasOnlySoftWrapIndentation: ->
-    @getSoftWrapIndentationDelta() is @text.length
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]

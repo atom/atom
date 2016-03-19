@@ -261,9 +261,6 @@ class TokenizedBuffer extends Model
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
-    start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
-    end = @retokenizeWhitespaceRowsIfIndentLevelChanged(newRange.end.row + 1, 1) - delta
-
     newEndStack = @stackForRow(end + delta)
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
@@ -272,16 +269,6 @@ class TokenizedBuffer extends Model
 
     event = {start, end, delta, bufferChange: e}
     @emitter.emit 'did-change', event
-
-  retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
-    line = @tokenizedLineForRow(row)
-    if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
-      while line?.isOnlyWhitespace()
-        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @openScopesForRow(row))
-        row += increment
-        line = @tokenizedLineForRow(row)
-
-    row - increment
 
   isFoldableAtRow: (row) ->
     if @largeFileMode
@@ -348,9 +335,8 @@ class TokenizedBuffer extends Model
     text = @buffer.lineForRow(row)
     tags = [text.length]
     tabLength = @getTabLength()
-    indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, lineEnding, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, tabLength, lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
@@ -358,9 +344,8 @@ class TokenizedBuffer extends Model
   buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), openScopes = @openScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
     tabLength = @getTabLength()
-    indentLevel = @indentLevelForRow(row)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
-    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length
