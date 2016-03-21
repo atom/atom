@@ -59,10 +59,13 @@ class Develop extends Command
     config.getSetting 'git', (command) =>
       command ?= 'git'
       args = ['clone', '--recursive', repoUrl, packageDirectory]
-      process.stdout.write "Cloning #{repoUrl} "
+      process.stdout.write "Cloning #{repoUrl} " unless options.argv.json
       git.addGitToEnv(process.env)
       @spawn command, args, (args...) =>
-        @logCommandResults(callback, args...)
+        if options.argv.json
+          @logCommandResultsIfFail(callback, args...)
+        else
+          @logCommandResults(callback, args...)
 
   installDependencies: (packageDirectory, options, callback = ->) ->
     process.chdir(packageDirectory)

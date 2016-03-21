@@ -221,7 +221,7 @@ describe 'apm install', ->
         runs ->
           expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'index.js'))).toBeTruthy()
           expect(fs.existsSync(path.join(moduleDirectory, 'node_modules', 'test-module', 'package.json'))).toBeTruthy()
-          expect(callback.mostRecentCall.args[0]).toBeUndefined()
+          expect(callback.mostRecentCall.args[0]).toEqual null
 
     describe "when the packages directory does not exist", ->
       it "creates the packages directory and any intermediate directories that do not exist", ->
@@ -375,7 +375,7 @@ describe 'apm install', ->
 
         apm.run ["install", cloneUrl], -> count++
 
-        waitsFor ->
+        waitsFor 10000, ->
           count is 1
 
         runs ->
@@ -401,3 +401,48 @@ describe 'apm install', ->
         allDeps.forEach (dep) ->
           modPath = path.join(process.env.ATOM_HOME, 'packages', 'test-git-repo', 'node_modules', dep)
           expect(fs.existsSync(modPath)).toBeTruthy()
+
+    describe 'when installing a Git URL and --json is specified', ->
+      [cloneUrl, pkgJsonPath] = []
+
+      beforeEach ->
+        callback = jasmine.createSpy('callback')
+        gitRepo = path.join(__dirname, "fixtures", "test-git-repo.git")
+        cloneUrl = "file://#{gitRepo}"
+
+        apm.run ["install", cloneUrl, '--json'], callback
+
+        waitsFor 10000, ->
+          callback.callCount is 1
+
+        runs ->
+          pkgJsonPath = path.join(process.env.ATOM_HOME, 'packages', 'test-git-repo', 'package.json')
+
+      it 'logs the installation path and the package metadata for a package installed via git url', ->
+        sha = '8ae432341ac6708aff9bb619eb015da14e9d0c0f'
+        expect(process.stdout.write.calls.length).toBe 0
+        json = JSON.parse(console.log.argsForCall[0][0])
+        expect(json.length).toBe 1
+        expect(json[0].installPath).toBe path.join(process.env.ATOM_HOME, 'packages', 'test-git-repo')
+        expect(json[0].metadata.name).toBe 'test-git-repo'
+        expect(json[0].metadata.apmInstallSource).toEqual
+          type: 'git'
+          source: cloneUrl
+          sha: sha
+
+    describe 'when installing a registred package and --json is specified', ->
+      beforeEach ->
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', "test-module", "test-module2", "--json"], callback)
+
+        waitsFor 'waiting for install to complete', 600000, ->
+          callback.callCount is 1
+
+      it 'logs the installation path and the package metadata for a registered package', ->
+        expect(process.stdout.write.calls.length).toBe 0
+        json = JSON.parse(console.log.argsForCall[0][0])
+        expect(json.length).toBe 2
+        expect(json[0].installPath).toBe path.join(process.env.ATOM_HOME, 'packages', 'test-module')
+        expect(json[0].metadata.name).toBe 'test-module'
+        expect(json[1].installPath).toBe path.join(process.env.ATOM_HOME, 'packages', 'test-module2')
+        expect(json[1].metadata.name).toBe 'test-module2'

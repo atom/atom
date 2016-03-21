@@ -1,3 +1,4 @@
+assert = require 'assert'
 path = require 'path'
 
 _ = require 'underscore-plus'
@@ -118,23 +119,23 @@ class Install extends Command
       if code is 0
         if installGlobally
           commands = []
-          for child in fs.readdirSync(nodeModulesDirectory)
-            source = path.join(nodeModulesDirectory, child)
-            destination = path.join(@atomPackagesDirectory, child)
-            do (source, destination) ->
-              commands.push (callback) -> fs.cp(source, destination, callback)
-
-          commands.push (callback) => @buildModuleCache(pack.name, callback)
-          commands.push (callback) => @warmCompileCache(pack.name, callback)
+          children = fs.readdirSync(nodeModulesDirectory)
+          assert.equal(children.length, 1, "Expected there to only be one child in node_modules")
+          child = children[0]
+          source = path.join(nodeModulesDirectory, child)
+          destination = path.join(@atomPackagesDirectory, child)
+          commands.push (next) -> fs.cp(source, destination, next)
+          commands.push (next) => @buildModuleCache(pack.name, next)
+          commands.push (next) => @warmCompileCache(pack.name, next)
 
           async.waterfall commands, (error) =>
             if error?
               @logFailure()
             else
-              @logSuccess()
-            callback(error)
+              @logSuccess() unless options.argv.json
+            callback(error, {name: child, installPath: destination})
         else
-          callback()
+          callback(null, {name: child, installPath: destination})
       else
         if installGlobally
           fs.removeSync(installDirectory)
@@ -176,10 +177,13 @@ class Install extends Command
     message
 
   installModules: (options, callback) =>
-    process.stdout.write 'Installing modules '
+    process.stdout.write 'Installing modules ' unless options.argv.json
 
     @forkInstallCommand options, (args...) =>
-      @logCommandResults(callback, args...)
+      if options.argv.json
+        @logCommandResultsIfFail(callback, args...)
+      else
+        @logCommandResults(callback, args...)
 
   forkInstallCommand: (options, callback) ->
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
@@ -311,9 +315,10 @@ class Install extends Command
 
     label = packageName
     label += "@#{packageVersion}" if packageVersion
-    process.stdout.write "Installing #{label} "
-    if installGlobally
-      process.stdout.write "to #{@atomPackagesDirectory} "
+    unless options.argv.json
+      process.stdout.write "Installing #{label} "
+      if installGlobally
+        process.stdout.write "to #{@atomPackagesDirectory} "
 
     @requestPackage packageName, (error, pack) =>
       if error?
@@ -344,14 +349,18 @@ class Install extends Command
             @installNode (error) -> callback(error, packagePath)
         commands.push (packagePath, callback) =>
           @installModule(options, pack, packagePath, callback)
+        commands.push ({installPath}, callback) ->
+          metadata = JSON.parse(fs.readFileSync(path.join(installPath, 'package.json'), 'utf8'))
+          json = {installPath, metadata}
+          callback(null, json)
 
-        async.waterfall commands, (error) =>
+        async.waterfall commands, (error, json) =>
           unless installGlobally
             if error?
               @logFailure()
             else
-              @logSuccess()
-          callback(error)
+              @logSuccess() unless options.argv.json
+          callback(error, json)
 
   # Install all the package dependencies found in the package.json file.
   #
@@ -495,7 +504,7 @@ class Install extends Command
 
     tasks.push (data, next) =>
       urls = @getNormalizedGitUrls(packageUrl)
-      @cloneFirstValidGitUrl urls, cloneDir, (err) ->
+      @cloneFirstValidGitUrl urls, cloneDir, options, (err) ->
         next(err, data)
 
     tasks.push (data, next) =>
@@ -525,13 +534,14 @@ class Install extends Command
     tasks.push (data, next) =>
       {name} = data.metadata
       targetDir = path.join(@atomPackagesDirectory, name)
-      process.stdout.write "Moving #{name} to #{targetDir} "
+      process.stdout.write "Moving #{name} to #{targetDir} " unless options.argv.json
       fs.cp cloneDir, targetDir, (err) =>
         if err
           next(err)
         else
-          @logSuccess()
-          next()
+          @logSuccess() unless options.argv.json
+          json = {installPath: targetDir, metadata: data.metadata}
+          next(null, json)
 
     iteratee = (currentData, task, next) -> task(currentData, next)
     async.reduce tasks, {}, iteratee, callback
@@ -551,9 +561,9 @@ class Install extends Command
         packageInfo.sshurl()
       ]
 
-  cloneFirstValidGitUrl: (urls, cloneDir, callback) ->
+  cloneFirstValidGitUrl: (urls, cloneDir, options, callback) ->
     async.detectSeries urls, (url, next) =>
-      @cloneNormalizedUrl url, cloneDir, (error) ->
+      @cloneNormalizedUrl url, cloneDir, options, (error) ->
         next(not error)
     , (result) ->
       if not result
@@ -563,12 +573,12 @@ class Install extends Command
       else
         callback()
 
-  cloneNormalizedUrl: (url, cloneDir, callback) ->
+  cloneNormalizedUrl: (url, cloneDir, options, callback) ->
     # Require here to avoid circular dependency
     Develop = require './develop'
     develop = new Develop()
 
-    develop.cloneRepository url, cloneDir, {}, (err) ->
+    develop.cloneRepository url, cloneDir, options, (err) ->
       callback(err)
 
   installGitPackageDependencies: (directory, options, callback) =>
@@ -601,13 +611,13 @@ class Install extends Command
       request.debug(true)
       process.env.NODE_DEBUG = 'request'
 
-    installPackage = (name, callback) =>
+    installPackage = (name, nextInstallStep) =>
       gitPackageInfo = @getHostedGitInfo(name)
 
       if gitPackageInfo or name.indexOf('file://') is 0
-        @installGitPackage name, options, callback
+        @installGitPackage name, options, nextInstallStep
       else if name is '.'
-        @installDependencies(options, callback)
+        @installDependencies(options, nextInstallStep)
       else # is registered package
         atIndex = name.indexOf('@')
         if atIndex > 0
@@ -621,7 +631,7 @@ class Install extends Command
               You can run `apm uninstall #{name}` to uninstall it and then the version bundled
               with Atom will be used.
             """.yellow
-          @installRegisteredPackage({name, version}, options, callback)
+          @installRegisteredPackage({name, version}, options, nextInstallStep)
 
     if packagesFilePath
       try
@@ -633,8 +643,15 @@ class Install extends Command
       packageNames.push('.') if packageNames.length is 0
 
     commands = []
-    commands.push (callback) => config.loadNpm (error, @npm) => callback()
-    commands.push (callback) => @loadInstalledAtomMetadata(callback)
+    commands.push (callback) => config.loadNpm (error, @npm) => callback(error)
+    commands.push (callback) => @loadInstalledAtomMetadata -> callback()
     packageNames.forEach (packageName) ->
       commands.push (callback) -> installPackage(packageName, callback)
-    async.waterfall(commands, callback)
+    iteratee = (item, next) -> item(next)
+    async.mapSeries commands, iteratee, (err, installedPackagesInfo) ->
+      return callback(err) if err
+      installedPackagesInfo = _.compact(installedPackagesInfo)
+      installedPackagesInfo = installedPackagesInfo.filter (item, idx) ->
+        packageNames[idx] isnt "."
+      console.log(JSON.stringify(installedPackagesInfo, null, "  ")) if options.argv.json
+      callback(null)
