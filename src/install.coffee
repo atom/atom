@@ -310,7 +310,7 @@ class Install extends Command
     installGlobally = options.installGlobally ? true
     unless installGlobally
       if packageVersion and @isPackageInstalled(packageName, packageVersion)
-        callback()
+        callback(null, {})
         return
 
     label = packageName
@@ -329,6 +329,7 @@ class Install extends Command
         unless packageVersion
           @logFailure()
           callback("No available version compatible with the installed Atom version: #{@installedAtomVersion}")
+          return
 
         {tarball} = pack.versions[packageVersion]?.dist ? {}
         unless tarball
@@ -337,22 +338,25 @@ class Install extends Command
           return
 
         commands = []
-        commands.push (callback) =>
+        commands.push (next) =>
           @getPackageCachePath packageName, packageVersion, (error, packagePath) =>
             if packagePath
-              callback(null, packagePath)
+              next(null, packagePath)
             else
-              @downloadPackage(tarball, installGlobally, callback)
+              @downloadPackage(tarball, installGlobally, next)
         installNode = options.installNode ? true
         if installNode
-          commands.push (packagePath, callback) =>
-            @installNode (error) -> callback(error, packagePath)
-        commands.push (packagePath, callback) =>
-          @installModule(options, pack, packagePath, callback)
-        commands.push ({installPath}, callback) ->
-          metadata = JSON.parse(fs.readFileSync(path.join(installPath, 'package.json'), 'utf8'))
-          json = {installPath, metadata}
-          callback(null, json)
+          commands.push (packagePath, next) =>
+            @installNode (error) -> next(error, packagePath)
+        commands.push (packagePath, next) =>
+          @installModule(options, pack, packagePath, next)
+        commands.push ({installPath}, next) ->
+          if installPath?
+            metadata = JSON.parse(fs.readFileSync(path.join(installPath, 'package.json'), 'utf8'))
+            json = {installPath, metadata}
+            next(null, json)
+          else
+            next(null, {}) # installed locally, no install path data
 
         async.waterfall commands, (error, json) =>
           unless installGlobally
@@ -372,10 +376,10 @@ class Install extends Command
     commands = []
     for name, version of @getPackageDependencies()
       do (name, version) =>
-        commands.push (callback) =>
-          @installRegisteredPackage({name, version}, options, callback)
+        commands.push (next) =>
+          @installRegisteredPackage({name, version}, options, next)
 
-    async.waterfall(commands, callback)
+    async.series(commands, callback)
 
   installDependencies: (options, callback) ->
     options.installGlobally = false
