@@ -29,30 +29,10 @@ class TokenizedLine
     tokens = []
 
     while iterator.next()
-      properties = {
+      tokens.push(new Token({
         value: iterator.getText()
         scopes: iterator.getScopes().slice()
-        isAtomic: iterator.isAtomic()
-        isHardTab: iterator.isHardTab()
-        hasPairedCharacter: iterator.isPairedCharacter()
-        isSoftWrapIndentation: iterator.isSoftWrapIndentation()
-      }
-
-      if iterator.isHardTab()
-        properties.bufferDelta = 1
-        properties.hasInvisibleCharacters = true if @invisibles?.tab
-
-      if iterator.getScreenStart() < @firstNonWhitespaceIndex
-        properties.firstNonWhitespaceIndex =
-          Math.min(@firstNonWhitespaceIndex, iterator.getScreenEnd()) - iterator.getScreenStart()
-        properties.hasInvisibleCharacters = true if @invisibles?.space
-
-      if @lineEnding? and iterator.getScreenEnd() > @firstTrailingWhitespaceIndex
-        properties.firstTrailingWhitespaceIndex =
-          Math.max(0, @firstTrailingWhitespaceIndex - iterator.getScreenStart())
-        properties.hasInvisibleCharacters = true if @invisibles?.space
-
-      tokens.push(new Token(properties))
+      }))
 
     tokens
 
