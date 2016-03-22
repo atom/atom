@@ -69,15 +69,13 @@ class BlockDecorationsComponent
     @updateBlockDecorationNode(id)
 
   updateBlockDecorationNode: (id) ->
-    newBlockDecorationState = @newState.blockDecorations[id]
-    oldBlockDecorationState = @oldState.blockDecorations[id]
     blockDecorationNode = @blockDecorationNodesById[id]
 
-    if newBlockDecorationState.isVisible
+    if @newState.blockDecorations[id].isVisible
+      blockDecorationNode.previousSibling.classList.remove("atom--invisible-block-decoration")
       blockDecorationNode.classList.remove("atom--invisible-block-decoration")
+      blockDecorationNode.nextSibling.classList.remove("atom--invisible-block-decoration")
     else
+      blockDecorationNode.previousSibling.classList.add("atom--invisible-block-decoration")
       blockDecorationNode.classList.add("atom--invisible-block-decoration")
-
-    if oldBlockDecorationState.screenRow isnt newBlockDecorationState.screenRow
-      blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
-      oldBlockDecorationState.screenRow = newBlockDecorationState.screenRow
+      blockDecorationNode.nextSibling.classList.add("atom--invisible-block-decoration")
