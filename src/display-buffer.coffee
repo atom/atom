@@ -52,7 +52,7 @@ class DisplayBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
-    @displayLayer = @buffer.getDisplayLayer() ? @buffer.addDisplayLayer()
+    @displayLayer ?= @buffer.getDisplayLayer() ? @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
@@ -96,7 +96,7 @@ class DisplayBuffer extends Model
   copy: ->
     new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
-      @grammarRegistry, @packageManager
+      @grammarRegistry, @packageManager, displayLayer: @displayLayer.copy()
     })
 
   resetDisplayLayer: ->
