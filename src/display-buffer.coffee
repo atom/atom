@@ -52,7 +52,7 @@ class DisplayBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
-    @displayLayer = @buffer.addDisplayLayer()
+    @displayLayer = @buffer.getDisplayLayer() ? @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
