@@ -776,7 +776,7 @@ class TextEditor extends Model
   #
   # * `screenRow` A {Number} representing a zero-indexed screen row.
   lineTextForScreenRow: (screenRow) ->
-    @screenLineForScreenRow(screenRow)?.tokens.map((t) -> t.text).join('')
+    @screenLineForScreenRow(screenRow)?.lineText
 
   screenLineForScreenRow: (screenRow) ->
     @displayLayer.getScreenLines(screenRow, screenRow + 1)[0]
