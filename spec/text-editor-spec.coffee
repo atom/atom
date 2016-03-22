@@ -490,7 +490,7 @@ describe "TextEditor", ->
           it "wraps to the end of the previous line", ->
             editor.setCursorScreenPosition([4, 4])
             editor.moveLeft()
-            expect(editor.getCursorScreenPosition()).toEqual [3, 50]
+            expect(editor.getCursorScreenPosition()).toEqual [3, 46]
 
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
@@ -678,7 +678,7 @@ describe "TextEditor", ->
         editor.setCursorScreenPosition([0, 2])
         editor.moveToEndOfLine()
         cursor = editor.getLastCursor()
-        expect(cursor.getScreenPosition()).toEqual [3, 4]
+        expect(cursor.getScreenPosition()).toEqual [4, 4]
 
     describe ".moveToFirstCharacterOfLine()", ->
       describe "when soft wrap is on", ->
@@ -1803,10 +1803,10 @@ describe "TextEditor", ->
           editor.foldBufferRowRange(10, 11)
 
           editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
-          expect(editor.tokenizedLineForScreenRow(1).fold).toBeUndefined()
-          expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
-          expect(editor.tokenizedLineForScreenRow(6).fold).toBeUndefined()
-          expect(editor.tokenizedLineForScreenRow(10).fold).toBeDefined()
+          expect(editor.isFoldedAtScreenRow(1)).toBeFalsy()
+          expect(editor.isFoldedAtScreenRow(2)).toBeFalsy()
+          expect(editor.isFoldedAtScreenRow(6)).toBeFalsy()
+          expect(editor.isFoldedAtScreenRow(10)).toBeTruthy()
 
       describe "when the 'preserveFolds' option is true", ->
         it "does not remove folds that contain the selections", ->
@@ -2951,7 +2951,7 @@ describe "TextEditor", ->
           editor.foldBufferRowRange(2, 4)
           editor.setSelectedBufferRange([[1, 0], [2, 0]])
           editor.insertText('holy cow')
-          expect(editor.tokenizedLineForScreenRow(2).fold).toBeUndefined()
+          expect(editor.isFoldedAtScreenRow(2)).toBeFalsy()
 
       describe "when there are ::onWillInsertText and ::onDidInsertText observers", ->
         beforeEach ->
