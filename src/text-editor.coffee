@@ -778,6 +778,10 @@ class TextEditor extends Model
   lineTextForScreenRow: (screenRow) ->
     @screenLineForScreenRow(screenRow)?.lineText
 
+  tokensForScreenRow: (screenRow) ->
+    for tagCode in @screenLineForScreenRow(screenRow).tagCodes when @displayLayer.isOpenTagCode(tagCode)
+      @displayLayer.tagForCode(tagCode)
+
   screenLineForScreenRow: (screenRow) ->
     @displayLayer.getScreenLines(screenRow, screenRow + 1)[0]
 

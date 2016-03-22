@@ -39,21 +39,19 @@ describe "TextEditor", ->
 
     it "preserves the invisibles setting", ->
       atom.config.set('editor.showInvisibles', true)
-      previousInvisibles = editor.tokenizedLineForScreenRow(0).invisibles
-
+      previousLineText = editor.lineTextForScreenRow(0)
       editor2 = TextEditor.deserialize(editor.serialize(), atom)
-
-      expect(previousInvisibles).toBeDefined()
-      expect(editor2.displayBuffer.tokenizedLineForScreenRow(0).invisibles).toEqual previousInvisibles
+      expect(editor2.lineTextForScreenRow(0)).toBe(previousLineText)
 
     it "updates invisibles if the settings have changed between serialization and deserialization", ->
       atom.config.set('editor.showInvisibles', true)
-
+      previousLineText = editor.lineTextForScreenRow(0)
       state = editor.serialize()
       atom.config.set('editor.invisibles', eol: '?')
       editor2 = TextEditor.deserialize(state, atom)
 
-      expect(editor.tokenizedLineForScreenRow(0).invisibles.eol).toBe '?'
+      expect(editor2.lineTextForScreenRow(0)).not.toBe(previousLineText)
+      expect(editor2.lineTextForScreenRow(0).endsWith('?')).toBe(true)
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
@@ -64,15 +62,14 @@ describe "TextEditor", ->
 
       runs ->
         buffer = editor.getBuffer()
-        expect(editor.tokenizedLineForScreenRow(0).text).toBe buffer.lineForRow(0)
-        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
-        expect(editor.tokenizedLineForScreenRow(1).tokens.length).toBe 2 # soft tab
-        expect(editor.tokenizedLineForScreenRow(12).text).toBe buffer.lineForRow(12)
-        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
+        expect(editor.lineTextForScreenRow(0)).toBe buffer.lineForRow(0)
+        expect(editor.tokensForScreenRow(0).length).toBe 1
+        expect(editor.tokensForScreenRow(1).length).toBe 2 # soft tab
+        expect(editor.lineTextForScreenRow(12)).toBe buffer.lineForRow(12)
         expect(editor.getCursorScreenPosition()).toEqual [0, 0]
         editor.insertText('hey"')
-        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
-        expect(editor.tokenizedLineForScreenRow(1).tokens.length).toBe 2 # sof tab
+        expect(editor.tokensForScreenRow(0).length).toBe 1
+        expect(editor.tokensForScreenRow(1).length).toBe 2 # soft tab
 
   describe ".copy()", ->
     it "returns a different edit session with the same initial state", ->
