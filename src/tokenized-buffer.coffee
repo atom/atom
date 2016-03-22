@@ -63,7 +63,10 @@ class TokenizedBuffer extends Model
     new TokenizedBufferIterator(this, @grammarRegistry)
 
   getInvalidatedRanges: ->
-    [@invalidatedRange]
+    if @invalidatedRange?
+      [@invalidatedRange]
+    else
+      []
 
   onDidInvalidateRange: (fn) ->
     @emitter.on 'did-invalidate-range', fn
