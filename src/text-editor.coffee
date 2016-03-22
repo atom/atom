@@ -88,8 +88,9 @@ class TextEditor extends Model
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     state.applicationDelegate = atomEnvironment.applicationDelegate
     editor = new this(state)
-    disposable = atomEnvironment.textEditors.add(editor)
-    editor.onDidDestroy -> disposable.dispose()
+    if state.registered
+      disposable = atomEnvironment.textEditors.add(editor)
+      editor.onDidDestroy -> disposable.dispose()
     editor
 
   constructor: (params={}) ->
@@ -167,6 +168,7 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
+    registered: atom.textEditors.editors.has this
 
   subscribeToBuffer: ->
     @buffer.retain()

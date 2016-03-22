@@ -15,6 +15,12 @@ const submoduleMode = 57344 // TODO: compose this from libgit2 constants
 // Just using this for _.isEqual and _.object, we should impl our own here
 import _ from 'underscore-plus'
 
+// For the most part, this class behaves the same as `GitRepository`, with a few
+// notable differences:
+//   * Errors are generally propagated out to the caller instead of being
+//     swallowed within `GitRepositoryAsync`.
+//   * Methods accepting a path shouldn't be given a null path, unless it is
+//     specifically allowed as noted in the method's documentation.
 export default class GitRepositoryAsync {
   static open (path, options = {}) {
     // QUESTION: Should this wrap Git.Repository and reject with a nicer message?
@@ -152,8 +158,7 @@ export default class GitRepositoryAsync {
 
     if (!this.projectAtRoot) {
       this.projectAtRoot = this.getRepo()
-        .then(repo => this.project.relativize(repo.workdir()))
-        .then(relativePath => relativePath === '')
+        .then(repo => this.project.relativize(repo.workdir()) === '')
     }
 
     return this.projectAtRoot
