@@ -1840,17 +1840,22 @@ describe('TextEditorComponent', function () {
       expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
     })
 
-    it('measures block decorations taking into account both top and bottom margins', async function () {
+    it('measures block decorations taking into account both top and bottom margins of the element and its children', async function () {
       let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
+      let child = document.createElement("div")
+      child.style.height = "7px"
+      child.style.width = "30px"
+      child.style.marginBottom = "20px"
+      item.appendChild(child)
       atom.styles.addStyleSheet(
-        'atom-text-editor .decoration-1 { width: 30px; height: 30px; margin-top: 10px; margin-bottom: 5px; }',
+        'atom-text-editor .decoration-1 { width: 30px; margin-top: 10px; }',
          {context: 'atom-text-editor'}
       )
 
       await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
       await nextAnimationFramePromise() // applies the changes
 
-      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 30 + 10 + 5 + "px")
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 10 + 7 + 20 + "px")
       expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
       expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
       expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
