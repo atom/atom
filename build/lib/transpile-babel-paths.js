@@ -10,7 +10,9 @@ const fs = require('fs')
 const glob = require('glob')
 const mkdirp = require('mkdirp')
 const path = require('path')
+const computeDestinationPath = require('./compute-destination-path')
 
+const CONFIG = require('../config')
 const BABEL_OPTIONS = require('../../static/babelrc.json')
 const BABEL_PREFIXES = [
   "'use babel'",
@@ -21,14 +23,10 @@ const BABEL_PREFIXES = [
 const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.length))
 const BUFFER = Buffer(PREFIX_LENGTH)
 
-const CONFIG = require('../config')
-
 function transpileBabelPaths () {
-  for (let srcPath of glob.sync(`${__dirname}/../../src/**/*.js`)) {
+  for (let srcPath of glob.sync(`${CONFIG.repositoryRootPath}/src/**/*.js`)) {
     if (usesBabel(srcPath)) {
-      const relPath = path.relative(CONFIG.repositoryRootPath, srcPath)
-      const destPath = path.join(CONFIG.electronAppPath, relPath)
-      transpileBabelPath(srcPath, destPath)
+      transpileBabelPath(srcPath, computeDestinationPath(srcPath))
     }
   }
 }
