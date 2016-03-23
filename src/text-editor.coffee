@@ -1016,13 +1016,12 @@ class TextEditor extends Model
           .map((range) -> range.translate([insertDelta, 0]))
 
         # Delete lines spanned by selection and insert them on the following correct buffer row
-        insertPosition = new Point(selection.translate([insertDelta, 0]).start.row, 0)
         lines = @buffer.getTextInRange(linesRange)
         if linesRange.end.row is @buffer.getLastRow()
           lines = "\n#{lines}"
 
+        @buffer.insert([followingRow, 0], lines)
         @buffer.delete(linesRange)
-        @buffer.insert(insertPosition, lines)
 
         # Restore folds that existed before the lines were moved
         for rangeToRefold in rangesToRefold
