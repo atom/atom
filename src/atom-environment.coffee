@@ -128,7 +128,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@blobStore, @applicationDelegate, @window, @document, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
@@ -148,10 +148,10 @@ class AtomEnvironment extends Model
 
     @notifications = new NotificationManager
 
-    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
+    @config = new Config({@configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
     @setConfigSchema()
 
-    @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
+    @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
 
     @tooltips = new TooltipManager(keymapManager: @keymaps)
 
@@ -160,16 +160,16 @@ class AtomEnvironment extends Model
 
     @grammars = new GrammarRegistry({@config})
 
-    @styles = new StyleManager({configDirPath})
+    @styles = new StyleManager({@configDirPath})
 
     @packages = new PackageManager({
-      devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
+      devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
     })
 
     @themes = new ThemeManager({
-      packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
+      packageManager: @packages, @configDirPath, resourcePath, safeMode, @config,
       styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
     })
 
