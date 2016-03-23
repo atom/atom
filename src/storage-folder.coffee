@@ -12,7 +12,7 @@ class StorageFolder
     try
       fs.removeSync(@path)
     catch error
-      console.warn "Error deleting #{statePath}", error.stack, error
+      console.warn "Error deleting #{@path}", error.stack, error
 
   storeSync: (name, object) ->
     return unless @path?
