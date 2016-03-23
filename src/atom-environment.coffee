@@ -139,7 +139,9 @@ class AtomEnvironment extends Model
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
-    @stateStore.clear() if clearWindowState
+    if clearWindowState
+      @getStorageFolder().clear()
+      @stateStore.clear()
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
