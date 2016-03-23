@@ -11,6 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StateStore = require './state-store'
+StorageFolder = require './storage-folder'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
@@ -853,7 +854,12 @@ class AtomEnvironment extends Model
   loadState: ->
     if @enablePersistence
       if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-        @stateStore.load(stateKey)
+        @stateStore.load(stateKey).then (state) =>
+          if state
+            state
+          else
+            # TODO: remove this when every user has migrated to the IndexedDb state store.
+            @getStorageFolder().load(stateKey)
       else
         @applicationDelegate.getTemporaryWindowState()
     else
@@ -881,6 +887,9 @@ class AtomEnvironment extends Model
       "editor-#{sha1}"
     else
       null
+
+  getStorageFolder: ->
+    @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   getConfigDirPath: ->
     @configDirPath ?= process.env.ATOM_HOME
