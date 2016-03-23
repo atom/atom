@@ -30,6 +30,7 @@ class DisplayBuffer extends Model
 
   @deserialize: (state, atomEnvironment) ->
     state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+    state.displayLayer = state.tokenizedBuffer.buffer.getDisplayLayer(state.displayLayerId)
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
     state.grammarRegistry = atomEnvironment.grammars
@@ -41,7 +42,7 @@ class DisplayBuffer extends Model
 
     {
       tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @ignoreInvisibles,
-      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager, @displayLayer
     } = params
 
     @emitter = new Emitter
@@ -52,7 +53,7 @@ class DisplayBuffer extends Model
       @grammarRegistry, @packageManager, @assert
     })
     @buffer = @tokenizedBuffer.buffer
-    @displayLayer ?= @buffer.getDisplayLayer() ? @buffer.addDisplayLayer()
+    @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @charWidthsByScope = {}
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
@@ -92,11 +93,12 @@ class DisplayBuffer extends Model
     editorWidthInChars: @editorWidthInChars
     tokenizedBuffer: @tokenizedBuffer.serialize()
     largeFileMode: @largeFileMode
+    displayLayerId: @displayLayer.id
 
   copy: ->
     new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
-      @grammarRegistry, @packageManager, displayLayer: @displayLayer.copy()
+      @grammarRegistry, @packageManager, displayLayer: @buffer.copyDisplayLayer(@displayLayer.id)
     })
 
   resetDisplayLayer: ->
