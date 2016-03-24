@@ -244,6 +244,7 @@ class TextEditorComponent
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
     @domNode.addEventListener 'textInput', @onTextInput
+    @domNode.addEventListener 'keypress', @onKeyPress
     @scrollViewNode.addEventListener 'mousedown', @onMouseDown
     @scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
 
@@ -266,6 +267,7 @@ class TextEditorComponent
 
     checkpoint = null
     @domNode.addEventListener 'compositionstart', =>
+      @imeMode = true
       checkpoint = @editor.createCheckpoint()
     @domNode.addEventListener 'compositionupdate', (event) =>
       @editor.insertText(event.data, select: true)
@@ -319,26 +321,27 @@ class TextEditorComponent
     if @mounted
       @presenter.setFocused(false)
 
+  onKeyPress: (event) =>
+    @detectedKeyPress = true
+
   onTextInput: (event) =>
     event.stopPropagation()
-
-    # If we prevent the insertion of a space character, then the browser
-    # interprets the spacebar keypress as a page-down command.
-    event.preventDefault() unless event.data is ' '
+    event.preventDefault()
 
     return unless @isInputEnabled()
 
-    inputNode = event.target
+    # Workaround of the accented character suggestion feature in OS X.
+    # This will only occur when the user is not composing in IME mode.
+    # When the user selects a modified character from the OSX menu, `textInput`
+    # will occur twice, once for the initial character, and once for the
+    # modified character. However, only a single keypress will have fired. If
+    # this is the case, select backward to replace the original character.
+    if not @imeMode and not @detectedKeyPress
+      @editor.selectLeft()
 
-    # Work around of the accented character suggestion feature in OS X.
-    # Text input fires before a character is inserted, and if the browser is
-    # replacing the previous un-accented character with an accented variant, it
-    # will select backward over it.
-    selectedLength = inputNode.selectionEnd - inputNode.selectionStart
-    @editor.selectLeft() if selectedLength is 1
-
-    insertedRange = @editor.insertText(event.data, groupUndo: true)
-    inputNode.value = event.data if insertedRange
+    @editor.insertText(event.data, groupUndo: true)
+    @detectedKeyPress = false
+    @imeMode = false
 
   onVerticalScroll: (scrollTop) =>
     return if @updateRequested or scrollTop is @presenter.getScrollTop()
