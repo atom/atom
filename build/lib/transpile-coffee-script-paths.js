@@ -3,7 +3,10 @@
 
 'use strict'
 
+const coffee = require('coffee-script')
+const fs = require('fs')
 const glob = require('glob')
+const mkdirp = require('mkdirp')
 const path = require('path')
 
 const CONFIG = require('../config')
@@ -18,8 +21,9 @@ const GLOBS = [
 
 module.exports =
 function transpileCoffeeScriptPaths () {
+  console.log('Transpiling CoffeeScript paths...');
   for (let srcPath of getPathsToTranspile()) {
-    transpileCoffeeScriptPath(srcPath, computeDestinationPath(srcPath))
+    transpileCoffeeScriptPath(srcPath, computeDestinationPath(srcPath).replace(/coffee$/, 'js'))
   }
 }
 
@@ -32,5 +36,8 @@ function getPathsToTranspile () {
 }
 
 function transpileCoffeeScriptPath (srcPath, destPath) {
-  console.log(srcPath);
+  const inputCode = fs.readFileSync(srcPath, 'utf8')
+  let outputCode = coffee.compile(inputCode)
+  mkdirp.sync(path.dirname(destPath))
+  fs.writeFileSync(destPath, outputCode)
 }

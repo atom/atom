@@ -24,6 +24,7 @@ const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.l
 const BUFFER = Buffer(PREFIX_LENGTH)
 
 function transpileBabelPaths () {
+  console.log('Transpiling Babel paths...');
   for (let srcPath of glob.sync(`${CONFIG.repositoryRootPath}/src/**/*.js`)) {
     if (usesBabel(srcPath)) {
       transpileBabelPath(srcPath, computeDestinationPath(srcPath))

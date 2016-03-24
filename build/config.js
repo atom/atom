@@ -10,13 +10,14 @@ const appMetadata = require('../package.json')
 const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
 
-const appName = appMetadata.productName
+let appName = appMetadata.productName
 const appFileName = appMetadata.name
 
 let electronRootPath, electronAppPath
 
 switch (process.platform) {
   case 'darwin':
+    appName += '.app'
     electronRootPath = path.join(buildOutputPath, appName, 'Contents')
     electronAppPath = path.join(electronRootPath, 'Resources', 'app')
     break;
