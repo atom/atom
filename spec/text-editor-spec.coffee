@@ -3245,15 +3245,14 @@ describe "TextEditor", ->
             editor.setCursorScreenPosition(row: 0, column: 0)
             editor.backspace()
 
-        describe "when the cursor is on the first column of a line below a fold", ->
-          it "deletes the folded lines", ->
-            editor.setCursorScreenPosition([4, 0])
-            editor.foldCurrentRow()
-            editor.setCursorScreenPosition([5, 0])
+        describe "when the cursor is after a fold", ->
+          it "deletes the folded range", ->
+            editor.foldBufferRange([[4, 7], [5, 8]])
+            editor.setCursorBufferPosition([5, 8])
             editor.backspace()
 
-            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
-            expect(buffer.lineForRow(4).fold).toBeUndefined()
+            expect(buffer.lineForRow(4)).toBe "    whirrent = items.shift();"
+            expect(editor.isFoldedAtBufferRow(4)).toBe(false)
 
         describe "when the cursor is in the middle of a line below a fold", ->
           it "backspaces as normal", ->
@@ -3266,14 +3265,13 @@ describe "TextEditor", ->
             expect(buffer.lineForRow(8)).toBe "    eturn sort(left).concat(pivot).concat(sort(right));"
 
         describe "when the cursor is on a folded screen line", ->
-          it "deletes all of the folded lines along with the fold", ->
+          it "deletes the contents of the fold before the cursor", ->
             editor.setCursorBufferPosition([3, 0])
             editor.foldCurrentRow()
             editor.backspace()
 
-            expect(buffer.lineForRow(1)).toBe ""
-            expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"
-            expect(editor.getCursorScreenPosition()).toEqual [1, 0]
+            expect(buffer.lineForRow(1)).toBe "  var sort = function(items)     var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.getCursorScreenPosition()).toEqual [1, 29]
 
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
@@ -3340,7 +3338,7 @@ describe "TextEditor", ->
             editor.backspace()
 
             expect(buffer.lineForRow(3)).toBe "    while(items.length > 0) {"
-            expect(editor.tokenizedLineForScreenRow(3).fold).toBeDefined()
+            expect(editor.isFoldedAtScreenRow(3)).toBe(true)
 
       describe "when there are multiple selections", ->
         it "removes all selected text", ->
@@ -3513,16 +3511,16 @@ describe "TextEditor", ->
             editor.delete()
             expect(buffer.lineForRow(12)).toBe '};'
 
-        describe "when the cursor is on the end of a line above a fold", ->
+        describe "when the cursor is before a fold", ->
           it "only deletes the lines inside the fold", ->
-            editor.foldBufferRow(4)
-            editor.setCursorScreenPosition([3, Infinity])
+            editor.foldBufferRange([[3, 6], [4, 8]])
+            editor.setCursorScreenPosition([3, 6])
             cursorPositionBefore = editor.getCursorScreenPosition()
 
             editor.delete()
 
-            expect(buffer.lineForRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
-            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(buffer.lineForRow(3)).toBe "    vae(items.length > 0) {"
+            expect(buffer.lineForRow(4)).toBe "      current = items.shift();"
             expect(editor.getCursorScreenPosition()).toEqual cursorPositionBefore
 
         describe "when the cursor is in the middle a line above a fold", ->
@@ -3534,20 +3532,21 @@ describe "TextEditor", ->
             editor.delete()
 
             expect(buffer.lineForRow(3)).toBe "    ar pivot = items.shift(), current, left = [], right = [];"
-            expect(editor.tokenizedLineForScreenRow(4).fold).toBeDefined()
+            expect(editor.isFoldedAtScreenRow(4)).toBe(true)
             expect(editor.getCursorScreenPosition()).toEqual [3, 4]
 
-        describe "when the cursor is on a folded line", ->
-          it "removes the lines contained by the fold", ->
-            editor.setSelectedBufferRange([[2, 0], [2, 0]])
-            editor.foldBufferRowRange(2, 4)
-            editor.foldBufferRowRange(2, 6)
-            oldLine7 = buffer.lineForRow(7)
-            oldLine8 = buffer.lineForRow(8)
+        describe "when the cursor is inside a fold", ->
+          it "removes the folded content after the cursor", ->
+            editor.foldBufferRange([[2, 6], [6, 21]])
+            editor.setCursorBufferPosition([4, 9])
 
             editor.delete()
-            expect(editor.tokenizedLineForScreenRow(2).text).toBe oldLine7
-            expect(editor.tokenizedLineForScreenRow(3).text).toBe oldLine8
+
+            expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+            expect(buffer.lineForRow(4)).toBe '    while ? left.push(current) : right.push(current);'
+            expect(buffer.lineForRow(5)).toBe '    }'
+            expect(editor.getCursorBufferPosition()).toEqual [4, 9]
 
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
