@@ -650,7 +650,8 @@ class TextEditorComponent
         stopDragging()
         @editor.finalizeSelections()
         @editor.mergeIntersectingSelections()
-      pasteSelectionClipboard(event)
+      else
+        pasteSelectionClipboard(event)
 
     stopDragging = ->
       dragging = false
