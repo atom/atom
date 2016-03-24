@@ -783,6 +783,7 @@ class TextEditor extends Model
       @displayLayer.tagForCode(tagCode)
 
   screenLineForScreenRow: (screenRow) ->
+    return if screenRow < 0 or screenRow > @getLastScreenRow()
     @displayLayer.getScreenLines(screenRow, screenRow + 1)[0]
 
   bufferRowForScreenRow: (row) -> @displayLayer.translateScreenPosition(Point(row, 0)).row
