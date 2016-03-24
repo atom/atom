@@ -3803,10 +3803,10 @@ describe "TextEditor", ->
           it "cuts up to the end of the line", ->
             editor.setSoftWrapped(true)
             editor.setDefaultCharWidth(1)
-            editor.setEditorWidthInChars(10)
-            editor.setCursorScreenPosition([2, 2])
+            editor.setEditorWidthInChars(25)
+            editor.setCursorScreenPosition([2, 6])
             editor.cutToEndOfLine()
-            expect(editor.tokenizedLineForScreenRow(2).text).toBe '=  () {'
+            expect(editor.lineTextForScreenRow(2)).toBe '  var  function(items) {'
 
         describe "when soft wrap is off", ->
           describe "when nothing is selected", ->
