@@ -347,10 +347,7 @@ class GitRepository
 
     pathStatus = repo.getStatus(repo.relativize(path)) ? 0
     pathStatus = 0 if repo.isStatusIgnored(pathStatus)
-    if pathStatus > 0
-      @statusesByPath[relativePath] = pathStatus
-    else
-      delete @statusesByPath[relativePath]
+    @statusesByPath[relativePath] = pathStatus
 
     if currentPathStatus isnt pathStatus
       @emitter.emit 'did-change-status', {path, pathStatus}
