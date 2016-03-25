@@ -493,7 +493,7 @@ class GitRepository
   refreshStatus: ->
     asyncRefresh = @async.refreshStatus().then =>
       @statusesByPath = {}
-      @branch = @async.branch
+      @branch = @async?.branch
 
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
