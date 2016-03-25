@@ -4988,11 +4988,11 @@ describe "TextEditor", ->
 
       runs ->
         expect(editor.getGrammar()).toBe atom.grammars.nullGrammar
-        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBe 1
+        expect(editor.tokensForScreenRow(0).length).toBe(1)
 
         atom.grammars.addGrammar(jsGrammar)
         expect(editor.getGrammar()).toBe jsGrammar
-        expect(editor.tokenizedLineForScreenRow(0).tokens.length).toBeGreaterThan 1
+        expect(editor.tokensForScreenRow(0).length).toBeGreaterThan 1
 
   describe "editor.autoIndent", ->
     describe "when editor.autoIndent is false (default)", ->
@@ -5220,10 +5220,10 @@ describe "TextEditor", ->
       expect(editor.getSelectedBufferRanges()).toEqual [[[3, 5], [3, 5]], [[9, 0], [14, 0]]]
 
       # folds are also duplicated
-      expect(editor.tokenizedLineForScreenRow(5).fold).toBeDefined()
-      expect(editor.tokenizedLineForScreenRow(7).fold).toBeDefined()
-      expect(editor.tokenizedLineForScreenRow(7).text).toBe "    while(items.length > 0) {"
-      expect(editor.tokenizedLineForScreenRow(8).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+      expect(editor.isFoldedAtScreenRow(5)).toBe(true)
+      expect(editor.isFoldedAtScreenRow(7)).toBe(true)
+      expect(editor.lineTextForScreenRow(7)).toBe "    while(items.length > 0) {⋯"
+      expect(editor.lineTextForScreenRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
     it "duplicates all folded lines for empty selections on folded lines", ->
       editor.foldBufferRow(4)
@@ -5419,17 +5419,15 @@ describe "TextEditor", ->
         runs ->
           editor.setText("// http://github.com")
 
-          {tokens} = editor.tokenizedLineForScreenRow(0)
-          expect(tokens[1].value).toBe " http://github.com"
-          expect(tokens[1].scopes).toEqual ["source.js", "comment.line.double-slash.js"]
+          tokens = editor.tokensForScreenRow(0)
+          expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']
 
         waitsForPromise ->
           atom.packages.activatePackage('language-hyperlink')
 
         runs ->
-          {tokens} = editor.tokenizedLineForScreenRow(0)
-          expect(tokens[2].value).toBe "http://github.com"
-          expect(tokens[2].scopes).toEqual ["source.js", "comment.line.double-slash.js", "markup.underline.link.http.hyperlink"]
+          tokens = editor.tokensForScreenRow(0)
+          expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js', 'markup.underline.link.http.hyperlink']
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
@@ -5439,28 +5437,22 @@ describe "TextEditor", ->
           runs ->
             editor.setText("// SELECT * FROM OCTOCATS")
 
-            {tokens} = editor.screenLineForScreenRow(0)
-            expect(tokens[2].closeTags).toEqual ['comment.line.double-slash.js', 'source.js']
-            expect(tokens[2].openTags).toEqual []
-            expect(tokens[2].text).toBe ""
+            tokens = editor.tokensForScreenRow(0)
+            expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']
 
           waitsForPromise ->
             atom.packages.activatePackage('package-with-injection-selector')
 
           runs ->
-            {tokens} = editor.screenLineForScreenRow(0)
-            expect(tokens[2].closeTags).toEqual ['comment.line.double-slash.js', 'source.js']
-            expect(tokens[2].openTags).toEqual []
-            expect(tokens[2].text).toBe ""
+            tokens = editor.tokensForScreenRow(0)
+            expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']
 
           waitsForPromise ->
             atom.packages.activatePackage('language-sql')
 
           runs ->
-            {tokens} = editor.screenLineForScreenRow(2)
-            expect(tokens[2].closeTags).toEqual []
-            expect(tokens[2].openTags).toEqual ["keyword.other.DML.sql"]
-            expect(tokens[2].text).toBe "SELECT"
+            tokens = editor.tokensForScreenRow(0)
+            expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js', 'keyword.other.DML.sql', 'keyword.operator.star.sql', 'keyword.other.DML.sql']
 
   describe ".normalizeTabsInBufferRange()", ->
     it "normalizes tabs depending on the editor's soft tab/tab length settings", ->
