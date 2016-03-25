@@ -1058,15 +1058,9 @@ export default class GitRepositoryAsync {
       }
     }
 
-    // TextBuffers will emit a reload event when they're first loaded. We don't
-    // need to refresh in that case.
-    let firstReload = true
     bufferSubscriptions.add(
       buffer.onDidSave(refreshStatusForBuffer),
-      buffer.onDidReload(() => {
-        if (!firstReload) refreshStatusForBuffer()
-        firstReload = false
-      }),
+      buffer.onDidReload(refreshStatusForBuffer),
       buffer.onDidChangePath(refreshStatusForBuffer),
       buffer.onDidDestroy(() => {
         bufferSubscriptions.dispose()

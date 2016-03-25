@@ -448,14 +448,7 @@ class GitRepository
 
     bufferSubscriptions = new CompositeDisposable
     bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
-
-    # TextBuffers will emit a reload event when they're first loaded. We don't
-    # need to refresh in that case.
-    firstReload = true
-    bufferSubscriptions.add buffer.onDidReload(->
-      getBufferPathStatus() unless firstReload
-      firstReload = false
-    )
+    bufferSubscriptions.add buffer.onDidReload(getBufferPathStatus)
     bufferSubscriptions.add buffer.onDidChangePath(getBufferPathStatus)
     bufferSubscriptions.add buffer.onDidDestroy =>
       bufferSubscriptions.dispose()
