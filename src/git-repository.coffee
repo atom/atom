@@ -318,7 +318,7 @@ class GitRepository
   getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
-    for path, status of @async.getCachedPathStatuses()
+    for path, status of _.extend({}, @async.getCachedPathStatuses(), @statusesByPath)
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
@@ -331,7 +331,16 @@ class GitRepository
   getPathStatus: (path) ->
     repo = @getRepo(path)
     relativePath = @relativize(path)
-    currentPathStatus = @statusesByPath[relativePath] ? @async.getCachedPathStatuses()[relativePath] ? 0
+
+    # This is a bit particular. If a package calls `getPathStatus` like this:
+    #  - change the file
+    #  - getPathStatus
+    #  - change the file
+    #  - getPathStatus
+    # We need to preserve the guarantee that each call to `getPathStatus` will
+    # synchronously emit 'did-change-status'. So we need to keep a cache of the
+    # statuses found from this call.
+    currentPathStatus = @getCachedRelativePathStatus(relativePath) ? 0
 
     # Trigger events emitted on the async repo as well
     @async.refreshStatusForPath(path)
@@ -354,7 +363,11 @@ class GitRepository
   #
   # Returns a status {Number} or null if the path is not in the cache.
   getCachedPathStatus: (path) ->
-    @async.getCachedPathStatuses()[@relativize(path)]
+    relativePath = @relativize(path)
+    @getCachedRelativePathStatus(relativePath)
+
+  getCachedRelativePathStatus: (relativePath) ->
+    @statusesByPath[relativePath] ? @async.getCachedPathStatuses()[relativePath]
 
   # Public: Returns true if the given status indicates modification.
   #
