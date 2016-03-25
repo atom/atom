@@ -1,7 +1,7 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-{Disposable, CompositeDisposable} = require 'event-kit'
+{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitRepositoryAsync = require './git-repository-async'
 GitUtils = require 'git-utils'
@@ -69,6 +69,7 @@ class GitRepository
       null
 
   constructor: (path, options={}) ->
+    @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
     @repo = GitUtils.open(path)
@@ -85,6 +86,8 @@ class GitRepository
     @upstream = {ahead: 0, behind: 0}
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
+
+    @statusesByPath = {}
 
     {@project, @config, refreshOnWindowFocus} = options
 
@@ -106,6 +109,11 @@ class GitRepository
   # This destroys any tasks and subscriptions and releases the underlying
   # libgit2 repository handle. This method is idempotent.
   destroy: ->
+    if @emitter?
+      @emitter.emit 'did-destroy'
+      @emitter.dispose()
+      @emitter = null
+
     if @statusTask?
       @statusTask.terminate()
       @statusTask = null
@@ -129,7 +137,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @async.onDidDestroy callback
+    @emitter.on 'did-destroy', callback
 
   ###
   Section: Event Subscription
@@ -147,7 +155,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatus: (callback) ->
-    @async.onDidChangeStatus callback
+    @emitter.on 'did-change-status', callback
 
   # Public: Invoke the given callback when a multiple files' statuses have
   # changed. For example, on window focus, the status of all the paths in the
@@ -321,13 +329,22 @@ class GitRepository
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
+    repo = @getRepo(path)
+    relativePath = @relativize(path)
+    currentPathStatus = @statusesByPath[relativePath] ? @async.getCachedPathStatuses()[relativePath] ? 0
+
     # Trigger events emitted on the async repo as well
     @async.refreshStatusForPath(path)
 
-    repo = @getRepo(path)
-    relativePath = @relativize(path)
     pathStatus = repo.getStatus(repo.relativize(path)) ? 0
     pathStatus = 0 if repo.isStatusIgnored(pathStatus)
+    if pathStatus > 0
+      @statusesByPath[relativePath] = pathStatus
+    else
+      delete @statusesByPath[relativePath]
+
+    if currentPathStatus isnt pathStatus
+      @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
 
@@ -465,6 +482,7 @@ class GitRepository
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
     asyncRefresh = @async.refreshStatus().then =>
+      @statusesByPath = {}
       @branch = @async.branch
 
     syncRefresh = new Promise (resolve, reject) =>
