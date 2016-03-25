@@ -290,10 +290,11 @@ describe "GitRepository", ->
         expect(repo.isStatusNew(status)).toBe false
 
   describe "buffer events", ->
-    [editor] = []
+    [editor, workingDirectory] = []
 
     beforeEach ->
-      atom.project.setPaths([copyRepository()])
+      workingDirectory = copyRepository()
+      atom.project.setPaths([workingDirectory])
 
       waitsForPromise ->
         atom.workspace.open('other.txt').then (o) -> editor = o
@@ -310,13 +311,16 @@ describe "GitRepository", ->
     it "emits a status-changed event when a buffer is reloaded", ->
       fs.writeFileSync(editor.getPath(), 'changed')
 
-      statusHandler = jasmine.createSpy('statusHandler')
-      atom.project.getRepositories()[0].onDidChangeStatus statusHandler
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
-      expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
-      editor.getBuffer().reload()
-      expect(statusHandler.callCount).toBe 1
+      waitsForPromise ->
+        atom.workspace.open(path.join(workingDirectory, 'other.txt')).then (o) -> editor = o
+      runs ->
+        statusHandler = jasmine.createSpy('statusHandler')
+        atom.project.getRepositories()[0].onDidChangeStatus statusHandler
+        editor.getBuffer().reload()
+        expect(statusHandler.callCount).toBe 1
+        expect(statusHandler).toHaveBeenCalledWith {path: editor.getPath(), pathStatus: 256}
+        editor.getBuffer().reload()
+        expect(statusHandler.callCount).toBe 1
 
     it "emits a status-changed event when a buffer's path changes", ->
       fs.writeFileSync(editor.getPath(), 'changed')

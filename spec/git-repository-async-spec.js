@@ -483,9 +483,10 @@ describe('GitRepositoryAsync', () => {
 
   describe('buffer events', () => {
     let repo
+    let workingDirectory
 
     beforeEach(() => {
-      const workingDirectory = copyRepository()
+      workingDirectory = copyRepository()
       atom.project.setPaths([workingDirectory])
 
       // When the path is added to the project, the repository is refreshed. We
@@ -512,9 +513,8 @@ describe('GitRepositoryAsync', () => {
     })
 
     it('emits a status-changed event when a buffer is reloaded', async () => {
+      fs.writeFileSync(path.join(workingDirectory, 'other.txt'), 'changed')
       const editor = await atom.workspace.open('other.txt')
-
-      fs.writeFileSync(editor.getPath(), 'changed')
 
       const statusHandler = jasmine.createSpy('statusHandler')
       repo.onDidChangeStatus(statusHandler)
