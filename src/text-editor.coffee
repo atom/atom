@@ -2971,10 +2971,6 @@ class TextEditor extends Model
   destroyFoldsIntersectingBufferRange: (bufferRange) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
 
-  # {Delegates to: DisplayLayer.outermostFoldsForBufferRowRange}
-  outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    @displayLayer.outermostFoldsInBufferRowRange(startRow, endRow)
-
   ###
   Section: Gutters
   ###

@@ -32,25 +32,32 @@ class FakeLinesYardstick
     column = 0
 
     scopes = []
-    for {text, closeTags, openTags} in @displayLayer.getScreenLines(targetRow, targetRow + 1)[0].tokens
-      scopes.splice(scopes.lastIndexOf(closeTag), 1) for closeTag in closeTags
-      scopes.push(openTag) for openTag in openTags
-      characterWidths = @getScopedCharacterWidths(scopes)
+    startIndex = 0
+    {tagCodes, lineText} = @model.screenLineForScreenRow(targetRow)
+    for tagCode in tagCodes
+      if @displayLayer.isOpenTagCode(tagCode)
+        scopes.push(@displayLayer.tagForCode(tagCode))
+      else if @displayLayer.isCloseTagCode(tagCode)
+        scopes.splice(scopes.lastIndexOf(@displayLayer.tagForCode(tagCode)), 1)
+      else
+        text = lineText.substr(startIndex, tagCode)
+        startIndex += tagCode
+        characterWidths = @getScopedCharacterWidths(scopes)
 
-      valueIndex = 0
-      while valueIndex < text.length
-        if isPairedCharacter(text, valueIndex)
-          char = text[valueIndex...valueIndex + 2]
-          charLength = 2
-          valueIndex += 2
-        else
-          char = text[valueIndex]
-          charLength = 1
-          valueIndex++
+        valueIndex = 0
+        while valueIndex < text.length
+          if isPairedCharacter(text, valueIndex)
+            char = text[valueIndex...valueIndex + 2]
+            charLength = 2
+            valueIndex += 2
+          else
+            char = text[valueIndex]
+            charLength = 1
+            valueIndex++
 
-        break if column is targetColumn
+          break if column is targetColumn
 
-        left += characterWidths[char] ? @model.getDefaultCharWidth() unless char is '\0'
-        column += charLength
+          left += characterWidths[char] ? @model.getDefaultCharWidth() unless char is '\0'
+          column += charLength
 
     {top, left}
