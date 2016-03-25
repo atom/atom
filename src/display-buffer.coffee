@@ -122,7 +122,7 @@ class DisplayBuffer extends Model
       invisibles: invisibles
       softWrapColumn: softWrapColumn
       showIndentGuides: @config.get('editor.showIndentGuide', scope: scopeDescriptor)
-      tabLength: @config.get('editor.tabLength', scope: scopeDescriptor),
+      tabLength: @getTabLength(),
       ratioForCharacter: @ratioForCharacter.bind(this)
       isWrapBoundary: isWrapBoundary
     })
@@ -265,13 +265,20 @@ class DisplayBuffer extends Model
   #
   # Returns a {Number}.
   getTabLength: ->
-    @tokenizedBuffer.getTabLength()
+    if @tabLength?
+      @tabLength
+    else
+      @config.get('editor.tabLength', scope: @getRootScopeDescriptor())
 
   # Specifies the tab length.
   #
   # tabLength - A {Number} that defines the new tab length.
   setTabLength: (tabLength) ->
-    @tokenizedBuffer.setTabLength(tabLength)
+    return if tabLength is @tabLength
+
+    @tabLength = tabLength
+    @tokenizedBuffer.setTabLength(@tabLength)
+    @resetDisplayLayer()
 
   setIgnoreInvisibles: (ignoreInvisibles) ->
     return if ignoreInvisibles is @ignoreInvisibles

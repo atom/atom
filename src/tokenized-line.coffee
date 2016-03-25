@@ -16,11 +16,7 @@ class TokenizedLine
 
     return unless properties?
 
-    {@openScopes, @text, @tags, @lineEnding, @ruleStack, @tokenIterator} = properties
-    {@startBufferColumn, @fold, @tabLength, @invisibles} = properties
-
-    @startBufferColumn ?= 0
-    @bufferDelta = @text.length
+    {@openScopes, @text, @tags, @ruleStack, @tokenIterator} = properties
 
   getTokenIterator: -> @tokenIterator.reset(this, arguments...)
 

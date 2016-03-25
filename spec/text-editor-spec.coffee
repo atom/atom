@@ -4919,11 +4919,13 @@ describe "TextEditor", ->
 
       it 'retokenizes when the tab length is updated via .setTabLength()', ->
         expect(editor.getTabLength()).toBe 2
-        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+        leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+        expect(leadingWhitespaceTokens.length).toBe(3)
 
         editor.setTabLength(6)
         expect(editor.getTabLength()).toBe 6
-        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+        leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+        expect(leadingWhitespaceTokens.length).toBe(1)
 
         changeHandler = jasmine.createSpy('changeHandler')
         editor.onDidChange(changeHandler)
@@ -4932,21 +4934,25 @@ describe "TextEditor", ->
 
       it 'retokenizes when the editor.tabLength setting is updated', ->
         expect(editor.getTabLength()).toBe 2
-        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+        leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+        expect(leadingWhitespaceTokens.length).toBe(3)
 
         atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.js'
         expect(editor.getTabLength()).toBe 6
-        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+        leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+        expect(leadingWhitespaceTokens.length).toBe(1)
 
       it 'updates the tab length when the grammar changes', ->
         atom.config.set 'editor.tabLength', 6, scopeSelector: '.source.coffee'
 
         expect(editor.getTabLength()).toBe 2
-        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 2
+        leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+        expect(leadingWhitespaceTokens.length).toBe(3)
 
         editor.setGrammar(coffeeEditor.getGrammar())
         expect(editor.getTabLength()).toBe 6
-        expect(editor.tokenizedLineForScreenRow(5).tokens[0].firstNonWhitespaceIndex).toBe 6
+        leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+        expect(leadingWhitespaceTokens.length).toBe(1)
 
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->

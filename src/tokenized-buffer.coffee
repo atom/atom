@@ -117,19 +117,14 @@ class TokenizedBuffer extends Model
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
     @disposables.add(@grammarUpdateDisposable)
 
-    scopeOptions = {scope: @rootScopeDescriptor}
-    @configSettings =
-      tabLength: @config.get('editor.tabLength', scopeOptions)
-      invisibles: @config.get('editor.invisibles', scopeOptions)
-      showInvisibles: @config.get('editor.showInvisibles', scopeOptions)
+    @configSettings = {tabLength: @config.get('editor.tabLength', {scope: @rootScopeDescriptor})}
 
     if @configSubscriptions?
       @configSubscriptions.dispose()
       @disposables.remove(@configSubscriptions)
     @configSubscriptions = new CompositeDisposable
-    @configSubscriptions.add @config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
+    @configSubscriptions.add @config.onDidChange 'editor.tabLength', {scope: @rootScopeDescriptor}, ({newValue}) =>
       @configSettings.tabLength = newValue
-      @retokenizeLines()
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
@@ -170,7 +165,6 @@ class TokenizedBuffer extends Model
     return if tabLength is @tabLength
 
     @tabLength = tabLength
-    @retokenizeLines()
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -337,18 +331,16 @@ class TokenizedBuffer extends Model
     openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
     text = @buffer.lineForRow(row)
     tags = [text.length]
-    tabLength = @getTabLength()
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, lineEnding, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
 
   buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), openScopes = @openScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
-    tabLength = @getTabLength()
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
-    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length
