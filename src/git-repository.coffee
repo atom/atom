@@ -83,7 +83,6 @@ class GitRepository
     asyncOptions.subscribeToBuffers = false
     @async = GitRepositoryAsync.open(path, asyncOptions)
 
-    @statuses = {}
     @upstream = {ahead: 0, behind: 0}
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
@@ -317,7 +316,7 @@ class GitRepository
   getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
-    for path, status of @statuses
+    for path, status of @async.getCachedPathStatuses()
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
@@ -333,15 +332,8 @@ class GitRepository
 
     repo = @getRepo(path)
     relativePath = @relativize(path)
-    currentPathStatus = @statuses[relativePath] ? 0
     pathStatus = repo.getStatus(repo.relativize(path)) ? 0
     pathStatus = 0 if repo.isStatusIgnored(pathStatus)
-    if pathStatus > 0
-      @statuses[relativePath] = pathStatus
-    else
-      delete @statuses[relativePath]
-    if currentPathStatus isnt pathStatus
-      @emitter.emit 'did-change-status', {path, pathStatus}
 
     pathStatus
 
@@ -351,7 +343,7 @@ class GitRepository
   #
   # Returns a status {Number} or null if the path is not in the cache.
   getCachedPathStatus: (path) ->
-    @statuses[@relativize(path)]
+    @async.getCachedPathStatuses()[@relativize(path)]
 
   # Public: Returns true if the given status indicates modification.
   #
