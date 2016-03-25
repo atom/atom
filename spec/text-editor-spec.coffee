@@ -5136,7 +5136,7 @@ describe "TextEditor", ->
   describe ".destroy()", ->
     it "destroys marker layers associated with the text editor", ->
       selectionsMarkerLayerId = editor.selectionsMarkerLayer.id
-      foldsMarkerLayerId = editor.displayBuffer.foldsMarkerLayer.id
+      foldsMarkerLayerId = editor.displayLayer.foldsMarkerLayer.id
       editor.destroy()
       expect(buffer.getMarkerLayer(selectionsMarkerLayerId)).toBeUndefined()
       expect(buffer.getMarkerLayer(foldsMarkerLayerId)).toBeUndefined()

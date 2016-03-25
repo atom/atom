@@ -885,6 +885,7 @@ class DisplayBuffer extends Model
     return
 
   destroyed: ->
+    @displayLayer.destroy()
     @defaultMarkerLayer.destroy()
     @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
