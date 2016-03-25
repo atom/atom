@@ -476,18 +476,8 @@ class GitRepository
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
 
-      relativeProjectPaths = @project?.getPaths()
-        .map (path) => @relativize(path)
-        .map (path) -> if path.length > 0 then path + '/**' else '*'
-
       @statusTask?.terminate()
-      @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
-        statusesUnchanged = _.isEqual(statuses, @statuses) and
-                            _.isEqual(upstream, @upstream) and
-                            _.isEqual(branch, @branch) and
-                            _.isEqual(submodules, @submodules)
-
-        @statuses = statuses
+      @statusTask = Task.once @handlerPath, @getPath(), ({upstream, submodules}) =>
         @upstream = upstream
         @submodules = submodules
 
