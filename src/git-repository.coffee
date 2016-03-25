@@ -470,7 +470,9 @@ class GitRepository
   #
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
-    asyncRefresh = @async.refreshStatus()
+    asyncRefresh = @async.refreshStatus().then =>
+      @branch = @async.branch
+
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
 
@@ -487,7 +489,6 @@ class GitRepository
 
         @statuses = statuses
         @upstream = upstream
-        @branch = branch
         @submodules = submodules
 
         for submodulePath, submoduleRepo of @getRepo().submodules
