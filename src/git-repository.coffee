@@ -136,7 +136,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidDestroy: (callback) ->
-    @emitter.on 'did-destroy', callback
+    @async.onDidDestroy callback
 
   ###
   Section: Event Subscription
@@ -154,7 +154,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatus: (callback) ->
-    @emitter.on 'did-change-status', callback
+    @async.onDidChangeStatus callback
 
   # Public: Invoke the given callback when a multiple files' statuses have
   # changed. For example, on window focus, the status of all the paths in the
@@ -165,7 +165,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
-    @emitter.on 'did-change-statuses', callback
+    @async.onDidChangeStatuses callback
 
   ###
   Section: Repository Details
