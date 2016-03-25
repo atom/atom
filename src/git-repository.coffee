@@ -1,7 +1,7 @@
 {basename, join} = require 'path'
 
 _ = require 'underscore-plus'
-{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
+{Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 GitRepositoryAsync = require './git-repository-async'
 GitUtils = require 'git-utils'
@@ -69,7 +69,6 @@ class GitRepository
       null
 
   constructor: (path, options={}) ->
-    @emitter = new Emitter
     @subscriptions = new CompositeDisposable
 
     @repo = GitUtils.open(path)
@@ -107,11 +106,6 @@ class GitRepository
   # This destroys any tasks and subscriptions and releases the underlying
   # libgit2 repository handle. This method is idempotent.
   destroy: ->
-    if @emitter?
-      @emitter.emit 'did-destroy'
-      @emitter.dispose()
-      @emitter = null
-
     if @statusTask?
       @statusTask.terminate()
       @statusTask = null
@@ -485,8 +479,5 @@ class GitRepository
           submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
         resolve()
-
-        unless statusesUnchanged
-          @emitter.emit 'did-change-statuses'
 
     return Promise.all([asyncRefresh, syncRefresh])
