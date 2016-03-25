@@ -148,6 +148,7 @@ export default class GitRepositoryAsync {
       if (!this.path) {
         this.path = repo.path().replace(/\/$/, '')
       }
+
       return this.path
     })
   }
@@ -463,6 +464,7 @@ export default class GitRepositoryAsync {
     return Promise.all([this.getRepo(), this.getWorkingDirectory()])
       .then(([repo, wd]) => {
         const relativePath = this.relativize(_path, wd)
+        return Git.Ignore.pathIsIgnored(repo, relativePath)
       })
       .then(ignored => Boolean(ignored))
   }
