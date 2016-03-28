@@ -43,6 +43,8 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
+    this.workdir = null
+    this.path = null
 
     // NB: These needs to happen before the following .openRepository call.
     this.openedPath = _path
@@ -142,13 +144,25 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to the {String} path of the
   // repository.
   getPath () {
-    return this.getRepo().then(repo => repo.path().replace(/\/$/, ''))
+    return this.getRepo().then(repo => {
+      if (!this.path) {
+        this.path = repo.path().replace(/\/$/, '')
+      }
+
+      return this.path
+    })
   }
 
   // Public: Returns a {Promise} which resolves to the {String} working
   // directory path of the repository.
   getWorkingDirectory () {
-    return this.getRepo().then(repo => repo.workdir())
+    return this.getRepo().then(repo => {
+      if (!this.workdir) {
+        this.workdir = repo.workdir()
+      }
+
+      return this.workdir
+    })
   }
 
   // Public: Returns a {Promise} that resolves to true if at the root, false if
@@ -157,8 +171,8 @@ export default class GitRepositoryAsync {
     if (!this.project) return Promise.resolve(false)
 
     if (!this.projectAtRoot) {
-      this.projectAtRoot = this.getRepo()
-        .then(repo => this.project.relativize(repo.workdir()) === '')
+      this.projectAtRoot = this.getWorkingDirectory()
+        .then(wd => this.project.relativize(wd) === '')
     }
 
     return this.projectAtRoot
@@ -170,8 +184,8 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to the relative {String} path.
   relativizeToWorkingDirectory (_path) {
-    return this.getRepo()
-      .then(repo => this.relativize(_path, repo.workdir()))
+    return this.getWorkingDirectory()
+      .then(wd => this.relativize(_path, wd))
   }
 
   // Public: Makes a path relative to the repository's working directory.
@@ -447,9 +461,9 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is ignored.
   isPathIgnored (_path) {
-    return this.getRepo()
-      .then(repo => {
-        const relativePath = this.relativize(_path, repo.workdir())
+    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+      .then(([repo, wd]) => {
+        const relativePath = this.relativize(_path, wd)
         return Git.Ignore.pathIsIgnored(repo, relativePath)
       })
       .then(ignored => Boolean(ignored))
@@ -488,9 +502,9 @@ export default class GitRepositoryAsync {
   // status bit for the path.
   refreshStatusForPath (_path) {
     let relativePath
-    return this.getRepo()
-      .then(repo => {
-        relativePath = this.relativize(_path, repo.workdir())
+    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+      .then(([repo, wd]) => {
+        relativePath = this.relativize(_path, wd)
         return this._getStatus([relativePath])
       })
       .then(statuses => {
@@ -598,12 +612,12 @@ export default class GitRepositoryAsync {
   getDiffStats (_path) {
     return this.getRepo()
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
-      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
-      .then(([repo, tree]) => {
+      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree(), this.getWorkingDirectory()]))
+      .then(([repo, tree, wd]) => {
         const options = new Git.DiffOptions()
         options.contextLines = 0
         options.flags = Git.Diff.OPTION.DISABLE_PATHSPEC_MATCH
-        options.pathspec = this.relativize(_path, repo.workdir())
+        options.pathspec = this.relativize(_path, wd)
         if (process.platform === 'win32') {
           // Ignore eol of line differences on windows so that files checked in
           // as LF don't report every line modified when the text contains CRLF
@@ -640,9 +654,9 @@ export default class GitRepositoryAsync {
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
     let relativePath = null
-    return this.getRepo()
-      .then(repo => {
-        relativePath = this.relativize(_path, repo.workdir())
+    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+      .then(([repo, wd]) => {
+        relativePath = this.relativize(_path, wd)
         return repo.getHeadCommit()
       })
       .then(commit => commit.getEntry(relativePath))
@@ -678,10 +692,10 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that resolves or rejects depending on whether the
   // method was successful.
   checkoutHead (_path) {
-    return this.getRepo()
-      .then(repo => {
+    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+      .then(([repo, wd]) => {
         const checkoutOptions = new Git.CheckoutOptions()
-        checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
+        checkoutOptions.paths = [this.relativize(_path, wd)]
         checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
         return Git.Checkout.head(repo, checkoutOptions)
       })
@@ -873,13 +887,14 @@ export default class GitRepositoryAsync {
   // submodule names with {GitRepositoryAsync} values.
   async _refreshSubmodules () {
     const repo = await this.getRepo()
+    const wd = await this.getWorkingDirectory()
     const submoduleNames = await repo.getSubmoduleNames()
     for (const name of submoduleNames) {
       const alreadyExists = Boolean(this.submodules[name])
       if (alreadyExists) continue
 
       const submodule = await Git.Submodule.lookup(repo, name)
-      const absolutePath = path.join(repo.workdir(), submodule.path())
+      const absolutePath = path.join(wd, submodule.path())
       const submoduleRepo = GitRepositoryAsync.open(absolutePath, {openExactPath: true, refreshOnWindowFocus: false})
       this.submodules[name] = submoduleRepo
     }
