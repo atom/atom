@@ -3,7 +3,17 @@ PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
   attachedCallback: ->
-    @subscriptions = @subscribeToModel()
+    @subscriptions ?= @subscribeToModel()
+    @childAdded({child, index}) for child, index in @model.getChildren()
+
+  detachedCallback: ->
+    @subscriptions.dispose()
+    @subscriptions = null
+    @childRemoved({child}) for child in @model.getChildren()
+
+  initialize: (@model, {@views}) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
+    @subscriptions ?= @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
     switch @model.getOrientation()
@@ -11,21 +21,6 @@ class PaneAxisElement extends HTMLElement
         @classList.add('horizontal', 'pane-row')
       when 'vertical'
         @classList.add('vertical', 'pane-column')
-
-  detachedCallback: ->
-    @subscriptions.dispose()
-    @subscriptions = null
-    @childRemoved({child}) for child in @model.getChildren()
-
-    switch @model.getOrientation()
-      when 'horizontal'
-        @classList.remove('horizontal', 'pane-row')
-      when 'vertical'
-        @classList.remove('vertical', 'pane-column')
-
-  initialize: (@model, {@views}) ->
-    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
-
     this
 
   subscribeToModel: ->
