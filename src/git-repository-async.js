@@ -596,7 +596,7 @@ export default class GitRepositoryAsync {
   //   * `added` The {Number} of added lines.
   //   * `deleted` The {Number} of deleted lines.
   getDiffStats (_path) {
-    return this.getRepo()
+    return this.getRepo(_path)
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
       .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
       .then(([repo, tree]) => {
@@ -640,7 +640,7 @@ export default class GitRepositoryAsync {
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
     let relativePath = null
-    return this.getRepo()
+    return this.getRepo(_path)
       .then(repo => {
         relativePath = this.relativize(_path, repo.workdir())
         return repo.getHeadCommit()
@@ -678,7 +678,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that resolves or rejects depending on whether the
   // method was successful.
   checkoutHead (_path) {
-    return this.getRepo()
+    return this.getRepo(_path)
       .then(repo => {
         const checkoutOptions = new Git.CheckoutOptions()
         checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
