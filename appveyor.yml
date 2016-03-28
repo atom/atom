@@ -31,8 +31,8 @@ build_script:
 test: off
 deploy: off
 artifacts:
-  - path: out\**\AtomSetup.exe
-    name: AtomSetup.exe
+  - path: out\installer\*
+    name: Release
 
 cache:
   - '%USERPROFILE%\.atom\.apm'
