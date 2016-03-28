@@ -10,6 +10,7 @@ describe "PaneContainerElement", ->
 
       paneAxis = new PaneAxis
       paneAxisElement = new PaneAxisElement().initialize(paneAxis, atom)
+      jasmine.attachToDOM(paneAxisElement)
 
       expect(childTagNames()).toEqual []
 
@@ -41,6 +42,8 @@ describe "PaneContainerElement", ->
         'atom-pane-axis'
       ]
 
+      paneAxisElement.remove()
+
     it "transfers focus to the next pane if a focused pane is removed", ->
       container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       containerElement = atom.views.getView(container)
@@ -60,6 +63,7 @@ describe "PaneContainerElement", ->
     it "builds appropriately-oriented atom-pane-axis elements", ->
       container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
       containerElement = atom.views.getView(container)
+      jasmine.attachToDOM(containerElement)
 
       pane1 = container.getActivePane()
       pane2 = pane1.splitRight()
@@ -79,6 +83,8 @@ describe "PaneContainerElement", ->
       expect(verticalPanes.length).toBe 2
       expect(verticalPanes[0]).toBe atom.views.getView(pane2)
       expect(verticalPanes[1]).toBe atom.views.getView(pane3)
+
+      containerElement.remove()
 
   describe "when the resize element is dragged ", ->
     [container, containerElement] = []
