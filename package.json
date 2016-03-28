@@ -54,7 +54,7 @@
     "service-hub": "^0.7.0",
     "source-map-support": "^0.3.2",
     "temp": "0.8.1",
-    "text-buffer": "8.4.2",
+    "text-buffer": "8.4.3",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.6",
     "yargs": "^3.23.0"
@@ -105,7 +105,7 @@
     "open-on-github": "1.0.1",
     "package-generator": "1.0.0",
     "settings-view": "0.235.1",
-    "snippets": "1.0.1",
+    "snippets": "1.0.2",
     "spell-check": "0.67.0",
     "status-bar": "1.2.0",
     "styleguide": "0.45.2",
@@ -141,14 +141,14 @@
     "language-ruby": "0.68.3",
     "language-ruby-on-rails": "0.25.0",
     "language-sass": "0.46.0",
-    "language-shellscript": "0.21.0",
+    "language-shellscript": "0.21.1",
     "language-source": "0.9.0",
     "language-sql": "0.20.0",
     "language-text": "0.7.1",
     "language-todo": "0.27.0",
     "language-toml": "0.18.0",
     "language-xml": "0.34.4",
-    "language-yaml": "0.25.1"
+    "language-yaml": "0.25.2"
   },
   "private": true,
   "scripts": {

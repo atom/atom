@@ -3,6 +3,9 @@ Notification = require '../src/notification'
 
 # Public: A notification manager used to create {Notification}s to be shown
 # to the user.
+#
+# An instance of this class is always available as the `atom.notifications`
+# global.
 module.exports =
 class NotificationManager
   constructor: ->
