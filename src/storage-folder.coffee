@@ -6,6 +6,14 @@ class StorageFolder
   constructor: (containingPath) ->
     @path = path.join(containingPath, "storage") if containingPath?
 
+  clear: ->
+    return unless @path?
+
+    try
+      fs.removeSync(@path)
+    catch error
+      console.warn "Error deleting #{@path}", error.stack, error
+
   storeSync: (name, object) ->
     return unless @path?
 
