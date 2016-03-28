@@ -3,7 +3,7 @@ PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
   attachedCallback: ->
-    @subscriptions ?= @subscribeToModel()
+    @subscriptions = @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
     switch @model.getOrientation()
