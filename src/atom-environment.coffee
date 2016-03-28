@@ -11,6 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StateStore = require './state-store'
+StorageFolder = require './storage-folder'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
@@ -127,7 +128,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@blobStore, @applicationDelegate, @window, @document, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
@@ -138,7 +139,9 @@ class AtomEnvironment extends Model
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
-    @stateStore.clear() if clearWindowState
+    if clearWindowState
+      @getStorageFolder().clear()
+      @stateStore.clear()
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
@@ -147,10 +150,10 @@ class AtomEnvironment extends Model
 
     @notifications = new NotificationManager
 
-    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
+    @config = new Config({@configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
     @setConfigSchema()
 
-    @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
+    @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
 
     @tooltips = new TooltipManager(keymapManager: @keymaps)
 
@@ -159,16 +162,16 @@ class AtomEnvironment extends Model
 
     @grammars = new GrammarRegistry({@config})
 
-    @styles = new StyleManager({configDirPath})
+    @styles = new StyleManager({@configDirPath})
 
     @packages = new PackageManager({
-      devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
+      devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
     })
 
     @themes = new ThemeManager({
-      packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
+      packageManager: @packages, @configDirPath, resourcePath, safeMode, @config,
       styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
     })
 
@@ -853,7 +856,12 @@ class AtomEnvironment extends Model
   loadState: ->
     if @enablePersistence
       if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-        @stateStore.load(stateKey)
+        @stateStore.load(stateKey).then (state) =>
+          if state
+            state
+          else
+            # TODO: remove this when every user has migrated to the IndexedDb state store.
+            @getStorageFolder().load(stateKey)
       else
         @applicationDelegate.getTemporaryWindowState()
     else
@@ -881,6 +889,9 @@ class AtomEnvironment extends Model
       "editor-#{sha1}"
     else
       null
+
+  getStorageFolder: ->
+    @storageFolder ?= new StorageFolder(@getConfigDirPath())
 
   getConfigDirPath: ->
     @configDirPath ?= process.env.ATOM_HOME
