@@ -37,7 +37,6 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    this.workdir = null
     this.path = null
 
     // NB: These needs to happen before the following .openRepository call.
@@ -149,13 +148,13 @@ export default class GitRepositoryAsync {
 
   // Public: Returns a {Promise} which resolves to the {String} working
   // directory path of the repository.
-  getWorkingDirectory () {
-    return this.getRepo().then(repo => {
-      if (!this.workdir) {
-        this.workdir = repo.workdir()
+  getWorkingDirectory (_path) {
+    return this.getRepo(_path).then(repo => {
+      if (!repo.cachedWorkdir) {
+        repo.cachedWorkdir = repo.workdir()
       }
 
-      return this.workdir
+      return repo.cachedWorkdir
     })
   }
 
@@ -604,9 +603,9 @@ export default class GitRepositoryAsync {
   //   * `added` The {Number} of added lines.
   //   * `deleted` The {Number} of deleted lines.
   getDiffStats (_path) {
-    return this.getRepo()
+    return this.getRepo(_path)
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
-      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree(), this.getWorkingDirectory()]))
+      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree(), this.getWorkingDirectory(_path)]))
       .then(([repo, tree, wd]) => {
         const options = new Git.DiffOptions()
         options.contextLines = 0
@@ -648,7 +647,7 @@ export default class GitRepositoryAsync {
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
     let relativePath = null
-    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+    return Promise.all([this.getRepo(_path), this.getWorkingDirectory(_path)])
       .then(([repo, wd]) => {
         relativePath = this.relativize(_path, wd)
         return repo.getHeadCommit()
@@ -686,7 +685,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that resolves or rejects depending on whether the
   // method was successful.
   checkoutHead (_path) {
-    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+    return Promise.all([this.getRepo(_path), this.getWorkingDirectory(_path)])
       .then(([repo, wd]) => {
         const checkoutOptions = new Git.CheckoutOptions()
         checkoutOptions.paths = [this.relativize(_path, wd)]
