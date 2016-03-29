@@ -1269,6 +1269,7 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
       let cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe(1)
+      expect(cursorNodes[0].style['opacity']).toBe('0')
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
     })
 
@@ -1279,8 +1280,9 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
       let cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe(1)
+      expect(cursorNodes[0].style['opacity']).toBe('1')
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
-      atom.config.unsetset('editor.showCursorWhenSelecting')
+      atom.config.unset('editor.showCursorWhenSelecting')
     })
 
     it('updates cursor positions when the line height changes', async function () {
