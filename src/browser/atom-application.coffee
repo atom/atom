@@ -506,18 +506,17 @@ class AtomApplication
 
   saveState: (allowEmpty=false) ->
     return if @quitting
-    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
     states = []
-    if restorePreviousState
-      for window in @windows
-        unless window.isSpec
-          if loadSettings = window.getLoadSettings()
-            states.push(initialPaths: loadSettings.initialPaths)
-    if states.length > 0 or allowEmpty or not restorePreviousState
+    for window in @windows
+      unless window.isSpec
+        if loadSettings = window.getLoadSettings()
+          states.push(initialPaths: loadSettings.initialPaths)
+    if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 
   loadState: (options) ->
-    if (states = @storageFolder.load('application.json'))?.length > 0
+    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
+    if (states = @storageFolder.load('application.json'))?.length > 0 and restorePreviousState
       for state in states
         @openWithOptions(_.extend(options, {
           initialPaths: state.initialPaths
