@@ -15,6 +15,12 @@ const submoduleMode = 57344 // TODO: compose this from libgit2 constants
 // Just using this for _.isEqual and _.object, we should impl our own here
 import _ from 'underscore-plus'
 
+// For the most part, this class behaves the same as `GitRepository`, with a few
+// notable differences:
+//   * Errors are generally propagated out to the caller instead of being
+//     swallowed within `GitRepositoryAsync`.
+//   * Methods accepting a path shouldn't be given a null path, unless it is
+//     specifically allowed as noted in the method's documentation.
 export default class GitRepositoryAsync {
   static open (path, options = {}) {
     // QUESTION: Should this wrap Git.Repository and reject with a nicer message?
@@ -37,6 +43,7 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
+    this.path = null
 
     // NB: These needs to happen before the following .openRepository call.
     this.openedPath = _path
@@ -136,13 +143,25 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to the {String} path of the
   // repository.
   getPath () {
-    return this.getRepo().then(repo => repo.path().replace(/\/$/, ''))
+    return this.getRepo().then(repo => {
+      if (!this.path) {
+        this.path = repo.path().replace(/\/$/, '')
+      }
+
+      return this.path
+    })
   }
 
   // Public: Returns a {Promise} which resolves to the {String} working
   // directory path of the repository.
-  getWorkingDirectory () {
-    return this.getRepo().then(repo => repo.workdir())
+  getWorkingDirectory (_path) {
+    return this.getRepo(_path).then(repo => {
+      if (!repo.cachedWorkdir) {
+        repo.cachedWorkdir = repo.workdir()
+      }
+
+      return repo.cachedWorkdir
+    })
   }
 
   // Public: Returns a {Promise} that resolves to true if at the root, false if
@@ -151,9 +170,8 @@ export default class GitRepositoryAsync {
     if (!this.project) return Promise.resolve(false)
 
     if (!this.projectAtRoot) {
-      this.projectAtRoot = this.getRepo()
-        .then(repo => this.project.relativize(repo.workdir()))
-        .then(relativePath => relativePath === '')
+      this.projectAtRoot = this.getWorkingDirectory()
+        .then(wd => this.project.relativize(wd) === '')
     }
 
     return this.projectAtRoot
@@ -165,8 +183,8 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to the relative {String} path.
   relativizeToWorkingDirectory (_path) {
-    return this.getRepo()
-      .then(repo => this.relativize(_path, repo.workdir()))
+    return this.getWorkingDirectory()
+      .then(wd => this.relativize(_path, wd))
   }
 
   // Public: Makes a path relative to the repository's working directory.
@@ -442,9 +460,9 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {Boolean} that's true if the `path`
   // is ignored.
   isPathIgnored (_path) {
-    return this.getRepo()
-      .then(repo => {
-        const relativePath = this.relativize(_path, repo.workdir())
+    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+      .then(([repo, wd]) => {
+        const relativePath = this.relativize(_path, wd)
         return Git.Ignore.pathIsIgnored(repo, relativePath)
       })
       .then(ignored => Boolean(ignored))
@@ -483,9 +501,9 @@ export default class GitRepositoryAsync {
   // status bit for the path.
   refreshStatusForPath (_path) {
     let relativePath
-    return this.getRepo()
-      .then(repo => {
-        relativePath = this.relativize(_path, repo.workdir())
+    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
+      .then(([repo, wd]) => {
+        relativePath = this.relativize(_path, wd)
         return this._getStatus([relativePath])
       })
       .then(statuses => {
@@ -591,12 +609,20 @@ export default class GitRepositoryAsync {
   //   * `added` The {Number} of added lines.
   //   * `deleted` The {Number} of deleted lines.
   getDiffStats (_path) {
-    return this.getRepo()
+    return this.getRepo(_path)
       .then(repo => Promise.all([repo, repo.getHeadCommit()]))
-      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
-      .then(([repo, tree]) => {
+      .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree(), this.getWorkingDirectory(_path)]))
+      .then(([repo, tree, wd]) => {
         const options = new Git.DiffOptions()
-        options.pathspec = this.relativize(_path, repo.workdir())
+        options.contextLines = 0
+        options.flags = Git.Diff.OPTION.DISABLE_PATHSPEC_MATCH
+        options.pathspec = this.relativize(_path, wd)
+        if (process.platform === 'win32') {
+          // Ignore eol of line differences on windows so that files checked in
+          // as LF don't report every line modified when the text contains CRLF
+          // endings.
+          options.flags |= Git.Diff.OPTION.IGNORE_WHITESPACE_EOL
+        }
         return Git.Diff.treeToWorkdir(repo, tree, options)
       })
       .then(diff => this._getDiffLines(diff))
@@ -627,9 +653,9 @@ export default class GitRepositoryAsync {
   //   * `newLines` The {Number} of lines in the new hunk
   getLineDiffs (_path, text) {
     let relativePath = null
-    return this.getRepo()
-      .then(repo => {
-        relativePath = this.relativize(_path, repo.workdir())
+    return Promise.all([this.getRepo(_path), this.getWorkingDirectory(_path)])
+      .then(([repo, wd]) => {
+        relativePath = this.relativize(_path, wd)
         return repo.getHeadCommit()
       })
       .then(commit => commit.getEntry(relativePath))
@@ -665,10 +691,10 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} that resolves or rejects depending on whether the
   // method was successful.
   checkoutHead (_path) {
-    return this.getRepo()
-      .then(repo => {
+    return Promise.all([this.getRepo(_path), this.getWorkingDirectory(_path)])
+      .then(([repo, wd]) => {
         const checkoutOptions = new Git.CheckoutOptions()
-        checkoutOptions.paths = [this.relativize(_path, repo.workdir())]
+        checkoutOptions.paths = [this.relativize(_path, wd)]
         checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
         return Git.Checkout.head(repo, checkoutOptions)
       })
@@ -775,12 +801,17 @@ export default class GitRepositoryAsync {
 
   // Get the current branch and update this.branch.
   //
-  // Returns a {Promise} which resolves to the {String} branch name.
+  // Returns a {Promise} which resolves to a {boolean} indicating whether the
+  // branch name changed.
   _refreshBranch () {
     return this.getRepo()
       .then(repo => repo.getCurrentBranch())
       .then(ref => ref.name())
-      .then(branchName => this.branch = branchName)
+      .then(branchName => {
+        const changed = branchName !== this.branch
+        this.branch = branchName
+        return changed
+      })
   }
 
   // Refresh the cached ahead/behind count with the given branch.
@@ -788,10 +819,15 @@ export default class GitRepositoryAsync {
   // * `branchName` The {String} name of the branch whose ahead/behind should be
   //                used for the refresh.
   //
-  // Returns a {Promise} which will resolve to {null}.
+  // Returns a {Promise} which will resolve to a {boolean} indicating whether
+  // the ahead/behind count changed.
   _refreshAheadBehindCount (branchName) {
     return this.getAheadBehindCount(branchName)
-      .then(counts => this.upstream = counts)
+      .then(counts => {
+        const changed = !_.isEqual(counts, this.upstream)
+        this.upstream = counts
+        return changed
+      })
   }
 
   // Get the status for this repository.
@@ -850,13 +886,14 @@ export default class GitRepositoryAsync {
   // submodule names with {GitRepositoryAsync} values.
   async _refreshSubmodules () {
     const repo = await this.getRepo()
+    const wd = await this.getWorkingDirectory()
     const submoduleNames = await repo.getSubmoduleNames()
     for (const name of submoduleNames) {
       const alreadyExists = Boolean(this.submodules[name])
       if (alreadyExists) continue
 
       const submodule = await Git.Submodule.lookup(repo, name)
-      const absolutePath = path.join(repo.workdir(), submodule.path())
+      const absolutePath = path.join(wd, submodule.path())
       const submoduleRepo = GitRepositoryAsync.open(absolutePath, {openExactPath: true, refreshOnWindowFocus: false})
       this.submodules[name] = submoduleRepo
     }
@@ -897,15 +934,15 @@ export default class GitRepositoryAsync {
 
   // Refresh the cached status.
   //
-  // Returns a {Promise} which will resolve to {null}.
+  // Returns a {Promise} which will resolve to a {boolean} indicating whether
+  // any statuses changed.
   _refreshStatus () {
     return Promise.all([this._getRepositoryStatus(), this._getSubmoduleStatuses()])
       .then(([repositoryStatus, submoduleStatus]) => {
         const statusesByPath = _.extend({}, repositoryStatus, submoduleStatus)
-        if (!_.isEqual(this.pathStatusCache, statusesByPath) && this.emitter != null) {
-          this.emitter.emit('did-change-statuses')
-        }
+        const changed = !_.isEqual(this.pathStatusCache, statusesByPath)
         this.pathStatusCache = statusesByPath
+        return changed
       })
   }
 
@@ -915,11 +952,17 @@ export default class GitRepositoryAsync {
   refreshStatus () {
     const status = this._refreshStatus()
     const branch = this._refreshBranch()
-    const aheadBehind = branch.then(branchName => this._refreshAheadBehindCount(branchName))
+    const aheadBehind = branch.then(() => this._refreshAheadBehindCount(this.branch))
 
     this._refreshingPromise = this._refreshingPromise.then(_ => {
       return Promise.all([status, branch, aheadBehind])
-        .then(_ => null)
+        .then(([statusChanged, branchChanged, aheadBehindChanged]) => {
+          if (this.emitter && (statusChanged || branchChanged || aheadBehindChanged)) {
+            this.emitter.emit('did-change-statuses')
+          }
+
+          return null
+        })
         // Because all these refresh steps happen asynchronously, it's entirely
         // possible the repository was destroyed while we were working. In which
         // case we should just swallow the error.

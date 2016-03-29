@@ -43,6 +43,12 @@ class Workspace extends Model
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
 
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
+    realThis = this
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
+
     @panelContainers =
       top: new PanelContainer({location: 'top'})
       left: new PanelContainer({location: 'left'})
@@ -503,7 +509,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item, options.pending) if activateItem
+        pane.activateItem(item, {pending: options.pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
@@ -542,7 +548,10 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      editor = @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      disposable = atom.textEditors.add(editor)
+      editor.onDidDestroy -> disposable.dispose()
+      editor
 
   # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
   #

@@ -810,11 +810,11 @@ class Selection extends Model
       @wordwise = false
       @linewise = false
 
-  autoscroll: ->
+  autoscroll: (options) ->
     if @marker.hasTail()
-      @editor.scrollToScreenRange(@getScreenRange(), reversed: @isReversed())
+      @editor.scrollToScreenRange(@getScreenRange(), Object.assign({reversed: @isReversed()}, options))
     else
-      @cursor.autoscroll()
+      @cursor.autoscroll(options)
 
   clearAutoscroll: ->
 

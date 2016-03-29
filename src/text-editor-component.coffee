@@ -43,7 +43,7 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars, scrollPastEnd}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
@@ -61,6 +61,7 @@ class TextEditorComponent
       stoppedScrollingDelay: 200
       config: @config
       lineTopIndex: lineTopIndex
+      scrollPastEnd: scrollPastEnd
 
     @presenter.onDidUpdateState(@requestUpdate)
 

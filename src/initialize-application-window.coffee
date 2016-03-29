@@ -1,10 +1,14 @@
 # Like sands through the hourglass, so are the days of our lives.
 module.exports = ({blobStore}) ->
+  environmentHelpers = require('./environment-helpers')
   path = require 'path'
   require './window'
   {getWindowLoadSettings} = require './window-load-settings-helpers'
 
-  {resourcePath, isSpec, devMode} = getWindowLoadSettings()
+  {resourcePath, isSpec, devMode, env} = getWindowLoadSettings()
+
+  # Set baseline environment
+  environmentHelpers.normalize({env: env})
 
   # Add application-specific exports to module search path.
   exportsPath = path.join(resourcePath, 'exports')
@@ -21,6 +25,7 @@ module.exports = ({blobStore}) ->
     applicationDelegate: new ApplicationDelegate,
     configDirPath: process.env.ATOM_HOME
     enablePersistence: true
+    env: env
   })
 
   atom.startEditorWindow().then ->

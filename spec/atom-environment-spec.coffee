@@ -4,6 +4,7 @@ temp = require 'temp'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 AtomEnvironment = require '../src/atom-environment'
+StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
   describe 'window sizing methods', ->
@@ -172,25 +173,70 @@ describe "AtomEnvironment", ->
       waitsForPromise ->
         atom.saveState().then ->
           atom.loadState().then (state) ->
-            expect(state).toBeNull()
+            expect(state).toBeFalsy()
 
       waitsForPromise ->
         loadSettings.initialPaths = [dir2, dir1]
         atom.loadState().then (state) ->
           expect(state).toEqual({stuff: 'cool'})
 
-    it "saves state on keydown and mousedown events", ->
+    it "loads state from the storage folder when it can't be found in atom.stateStore", ->
+      jasmine.useRealClock()
+
+      storageFolderState = {foo: 1, bar: 2}
+      serializedState = {someState: 42}
+      loadSettings = _.extend(atom.getLoadSettings(), {initialPaths: [temp.mkdirSync("project-directory")]})
+      spyOn(atom, 'getLoadSettings').andReturn(loadSettings)
+      spyOn(atom, 'serialize').andReturn(serializedState)
+      spyOn(atom, 'getStorageFolder').andReturn(new StorageFolder(temp.mkdirSync("config-directory")))
+      atom.project.setPaths(atom.getLoadSettings().initialPaths)
+
+      waitsForPromise ->
+        atom.stateStore.connect()
+
+      runs ->
+        atom.getStorageFolder().storeSync(atom.getStateKey(loadSettings.initialPaths), storageFolderState)
+
+      waitsForPromise ->
+        atom.loadState().then (state) -> expect(state).toEqual(storageFolderState)
+
+      waitsForPromise ->
+        atom.saveState()
+
+      waitsForPromise ->
+        atom.loadState().then (state) -> expect(state).toEqual(serializedState)
+
+    it "saves state on keydown, mousedown, and when the editor window unloads", ->
       spyOn(atom, 'saveState')
 
       keydown = new KeyboardEvent('keydown')
       atom.document.dispatchEvent(keydown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveState).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
+      atom.saveState.reset()
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
-      expect(atom.saveState).toHaveBeenCalled()
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+
+      atom.saveState.reset()
+      atom.unloadEditorWindow()
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock atom.saveStateDebounceInterval
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
+
+    it "serializes the project state with all the options supplied in saveState", ->
+      spyOn(atom.project, 'serialize').andReturn({foo: 42})
+
+      waitsForPromise -> atom.saveState({anyOption: 'any option'})
+      runs ->
+        expect(atom.project.serialize.calls.length).toBe(1)
+        expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -328,3 +374,18 @@ describe "AtomEnvironment", ->
       runs ->
         {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
         expect(releaseVersion).toBe 'version'
+
+  describe "::getReleaseChannel()", ->
+    [version] = []
+    beforeEach ->
+      spyOn(atom, 'getVersion').andCallFake -> version
+
+    it "returns the correct channel based on the version number", ->
+      version = '1.5.6'
+      expect(atom.getReleaseChannel()).toBe 'stable'
+
+      version = '1.5.0-beta10'
+      expect(atom.getReleaseChannel()).toBe 'beta'
+
+      version = '1.7.0-dev-5340c91'
+      expect(atom.getReleaseChannel()).toBe 'dev'

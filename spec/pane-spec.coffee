@@ -1,5 +1,6 @@
 {extend} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
+Grim = require 'grim'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
@@ -92,7 +93,7 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       [item1, item2] = pane.getItems()
       item3 = new Item("C")
-      pane.addItem(item3, 1)
+      pane.addItem(item3, index: 1)
       expect(pane.getItems()).toEqual [item1, item3, item2]
 
     it "adds the item after the active item if no index is provided", ->
@@ -115,7 +116,7 @@ describe "Pane", ->
       pane.onDidAddItem (event) -> events.push(event)
 
       item = new Item("C")
-      pane.addItem(item, 1)
+      pane.addItem(item, index: 1)
       expect(events).toEqual [{item, index: 1, moved: false}]
 
     it "throws an exception if the item is already present on a pane", ->
@@ -132,13 +133,56 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
-    it "destroys any existing pending item if the new item is pending", ->
+    it "destroys any existing pending item", ->
       pane = new Pane(paneParams(items: []))
       itemA = new Item("A")
       itemB = new Item("B")
-      pane.addItem(itemA, undefined, false, true)
-      pane.addItem(itemB, undefined, false, true)
-      expect(itemA.isDestroyed()).toBe true
+      itemC = new Item("C")
+      pane.addItem(itemA, pending: false)
+      pane.addItem(itemB, pending: true)
+      pane.addItem(itemC, pending: false)
+      expect(itemB.isDestroyed()).toBe true
+
+    it "adds the new item before destroying any existing pending item", ->
+      eventOrder = []
+
+      pane = new Pane(paneParams(items: []))
+      itemA = new Item("A")
+      itemB = new Item("B")
+      pane.addItem(itemA, pending: true)
+
+      pane.onDidAddItem ({item}) ->
+        eventOrder.push("add") if item is itemB
+
+      pane.onDidRemoveItem ({item}) ->
+        eventOrder.push("remove") if item is itemA
+
+      pane.addItem(itemB)
+
+      waitsFor ->
+        eventOrder.length is 2
+
+      runs ->
+        expect(eventOrder).toEqual ["add", "remove"]
+
+    describe "when using the old API of ::addItem(item, index)", ->
+      beforeEach ->
+        spyOn Grim, "deprecate"
+
+      it "supports the older public API", ->
+        pane = new Pane(paneParams(items: []))
+        itemA = new Item("A")
+        itemB = new Item("B")
+        itemC = new Item("C")
+        pane.addItem(itemA, 0)
+        pane.addItem(itemB, 0)
+        pane.addItem(itemC, 0)
+        expect(pane.getItems()).toEqual [itemC, itemB, itemA]
+
+      it "shows a deprecation warning", ->
+        pane = new Pane(paneParams(items: []))
+        pane.addItem(new Item(), 2)
+        expect(Grim.deprecate).toHaveBeenCalledWith "Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})"
 
   describe "::activateItem(item)", ->
     pane = null
@@ -172,16 +216,51 @@ describe "Pane", ->
         itemD = new Item("D")
 
       it "replaces the active item if it is pending", ->
-        pane.activateItem(itemC, true)
+        pane.activateItem(itemC, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'C', 'B']
-        pane.activateItem(itemD, true)
+        pane.activateItem(itemD, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'D', 'B']
 
       it "adds the item after the active item if it is not pending", ->
-        pane.activateItem(itemC, true)
+        pane.activateItem(itemC, pending: true)
         pane.activateItemAtIndex(2)
-        pane.activateItem(itemD, true)
+        pane.activateItem(itemD, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
+
+  describe "::setPendingItem", ->
+    pane = null
+
+    beforeEach ->
+      pane = atom.workspace.getActivePane()
+
+    it "changes the pending item", ->
+      expect(pane.getPendingItem()).toBeNull()
+      pane.setPendingItem("fake item")
+      expect(pane.getPendingItem()).toEqual "fake item"
+
+  describe "::onItemDidTerminatePendingState callback", ->
+    pane = null
+    callbackCalled = false
+
+    beforeEach ->
+      pane = atom.workspace.getActivePane()
+      callbackCalled = false
+
+    it "is called when the pending item changes", ->
+      pane.setPendingItem("fake item one")
+      pane.onItemDidTerminatePendingState (item) ->
+        callbackCalled = true
+        expect(item).toEqual "fake item one"
+      pane.setPendingItem("fake item two")
+      expect(callbackCalled).toBeTruthy()
+
+    it "has access to the new pending item via ::getPendingItem", ->
+      pane.setPendingItem("fake item one")
+      pane.onItemDidTerminatePendingState (item) ->
+        callbackCalled = true
+        expect(pane.getPendingItem()).toEqual "fake item two"
+      pane.setPendingItem("fake item two")
+      expect(callbackCalled).toBeTruthy()
 
   describe "::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()", ->
     it "sets the active item to the next/previous item in the itemStack, looping around at either end", ->
@@ -301,6 +380,10 @@ describe "Pane", ->
       pane.destroyItem(item1)
       expect(pane.itemStack).toEqual [item2]
       expect(pane.getActiveItem()).toBe item2
+
+      pane.destroyItem(item2)
+      expect(pane.itemStack).toEqual []
+      expect(pane.getActiveItem()).toBeUndefined()
 
     it "invokes ::onWillDestroyItem() observers before destroying the item", ->
       events = []
@@ -642,6 +725,23 @@ describe "Pane", ->
           pane2.moveItemToPane(item4, pane1, 0)
           expect(pane2.isDestroyed()).toBe true
           expect(item4.isDestroyed()).toBe false
+
+    describe "when the item being moved is pending", ->
+      it "is made permanent in the new pane", ->
+        item6 = new Item("F")
+        pane1.addItem(item6, pending: true)
+        expect(pane1.getPendingItem()).toEqual item6
+        pane1.moveItemToPane(item6, pane2, 0)
+        expect(pane2.getPendingItem()).not.toEqual item6
+
+    describe "when the target pane has a pending item", ->
+      it "does not destroy the pending item", ->
+        item6 = new Item("F")
+        pane1.addItem(item6, pending: true)
+        expect(pane1.getPendingItem()).toEqual item6
+        pane2.moveItemToPane(item5, pane1, 0)
+        expect(pane1.getPendingItem()).toEqual item6
+
 
   describe "split methods", ->
     [pane1, item1, container] = []

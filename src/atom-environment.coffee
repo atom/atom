@@ -11,6 +11,7 @@ Model = require './model'
 WindowEventHandler = require './window-event-handler'
 StylesElement = require './styles-element'
 StateStore = require './state-store'
+StorageFolder = require './storage-folder'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
@@ -40,6 +41,8 @@ Project = require './project'
 TextEditor = require './text-editor'
 TextBuffer = require 'text-buffer'
 Gutter = require './gutter'
+TextEditorRegistry = require './text-editor-registry'
+AutoUpdateManager = require './auto-update-manager'
 
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
@@ -111,6 +114,12 @@ class AtomEnvironment extends Model
   # Public: A {Workspace} instance
   workspace: null
 
+  # Public: A {TextEditorRegistry} instance
+  textEditors: null
+
+  # Private: An {AutoUpdateManager} instance
+  autoUpdater: null
+
   saveStateDebounceInterval: 1000
 
   ###
@@ -119,8 +128,9 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@blobStore, @applicationDelegate, @window, @document, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
+    @unloaded = false
     @loadTime = null
     {devMode, safeMode, resourcePath, clearWindowState} = @getLoadSettings()
 
@@ -129,7 +139,9 @@ class AtomEnvironment extends Model
 
     @stateStore = new StateStore('AtomEnvironments', 1)
 
-    @stateStore.clear() if clearWindowState
+    if clearWindowState
+      @getStorageFolder().clear()
+      @stateStore.clear()
 
     @deserializers = new DeserializerManager(this)
     @deserializeTimings = {}
@@ -138,10 +150,10 @@ class AtomEnvironment extends Model
 
     @notifications = new NotificationManager
 
-    @config = new Config({configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
+    @config = new Config({@configDirPath, resourcePath, notificationManager: @notifications, @enablePersistence})
     @setConfigSchema()
 
-    @keymaps = new KeymapManager({configDirPath, resourcePath, notificationManager: @notifications})
+    @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
 
     @tooltips = new TooltipManager(keymapManager: @keymaps)
 
@@ -150,16 +162,16 @@ class AtomEnvironment extends Model
 
     @grammars = new GrammarRegistry({@config})
 
-    @styles = new StyleManager({configDirPath})
+    @styles = new StyleManager({@configDirPath})
 
     @packages = new PackageManager({
-      devMode, configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
+      devMode, @configDirPath, resourcePath, safeMode, @config, styleManager: @styles,
       commandRegistry: @commands, keymapManager: @keymaps, notificationManager: @notifications,
       grammarRegistry: @grammars, deserializerManager: @deserializers, viewRegistry: @views
     })
 
     @themes = new ThemeManager({
-      packageManager: @packages, configDirPath, resourcePath, safeMode, @config,
+      packageManager: @packages, @configDirPath, resourcePath, safeMode, @config,
       styleManager: @styles, notificationManager: @notifications, viewRegistry: @views
     })
 
@@ -182,6 +194,9 @@ class AtomEnvironment extends Model
       notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
     @themes.workspace = @workspace
+
+    @textEditors = new TextEditorRegistry
+    @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
     @config.load()
 
@@ -219,7 +234,8 @@ class AtomEnvironment extends Model
     checkPortableHomeWritable()
 
   attachSaveStateListeners: ->
-    debouncedSaveState = _.debounce((=> @saveState()), @saveStateDebounceInterval)
+    saveState = => @saveState({isUnloading: false}) unless @unloaded
+    debouncedSaveState = _.debounce(saveState, @saveStateDebounceInterval)
     @document.addEventListener('mousedown', debouncedSaveState, true)
     @document.addEventListener('keydown', debouncedSaveState, true)
     @disposables.add new Disposable =>
@@ -254,8 +270,6 @@ class AtomEnvironment extends Model
       new PaneAxisElement().initialize(model, env)
     @views.addViewProvider Pane, (model, env) ->
       new PaneElement().initialize(model, env)
-    @views.addViewProvider TextEditor, (model, env) ->
-      new TextEditorElement().initialize(model, env)
     @views.addViewProvider(Gutter, createGutterView)
 
   registerDefaultOpeners: ->
@@ -327,6 +341,7 @@ class AtomEnvironment extends Model
     @commands.clear()
     @stylesElement.remove()
     @config.unobserveUserConfig()
+    @autoUpdater.destroy()
 
     @uninstallWindowEventHandler()
 
@@ -404,6 +419,16 @@ class AtomEnvironment extends Model
   # Returns the version text {String}.
   getVersion: ->
     @appVersion ?= @getLoadSettings().appVersion
+
+  # Returns the release channel as a {String}. Will return one of `'dev', 'beta', 'stable'`
+  getReleaseChannel: ->
+    version = @getVersion()
+    if version.indexOf('beta') > -1
+      'beta'
+    else if version.indexOf('dev') > -1
+      'dev'
+    else
+      'stable'
 
   # Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion: ->
@@ -654,7 +679,7 @@ class AtomEnvironment extends Model
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
 
-        @watchProjectPath()
+        @watchProjectPaths()
 
         @packages.activate()
         @keymaps.loadUserKeymap()
@@ -664,9 +689,9 @@ class AtomEnvironment extends Model
 
         @openInitialEmptyEditorIfNecessary()
 
-  serialize: ->
+  serialize: (options) ->
     version: @constructor.version
-    project: @project.serialize()
+    project: @project.serialize(options)
     workspace: @workspace.serialize()
     packageStates: @packages.serialize()
     grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
@@ -676,9 +701,11 @@ class AtomEnvironment extends Model
   unloadEditorWindow: ->
     return if not @project
 
+    @saveState({isUnloading: true})
     @storeWindowBackground()
     @packages.deactivatePackages()
     @saveBlobStoreSync()
+    @unloaded = true
 
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
@@ -786,7 +813,7 @@ class AtomEnvironment extends Model
     @themes.load()
 
   # Notify the browser project of the window's current project path
-  watchProjectPath: ->
+  watchProjectPaths: ->
     @disposables.add @project.onDidChangePaths =>
       @applicationDelegate.setRepresentedDirectoryPaths(@project.getPaths())
 
@@ -811,12 +838,14 @@ class AtomEnvironment extends Model
 
     @blobStore.save()
 
-  saveState: ->
+  saveState: (options) ->
     return Promise.resolve() unless @enablePersistence
 
     new Promise (resolve, reject) =>
       window.requestIdleCallback =>
-        state = @serialize()
+        return if not @project
+
+        state = @serialize(options)
         savePromise =
           if storageKey = @getStateKey(@project?.getPaths())
             @stateStore.save(storageKey, state)
@@ -824,11 +853,15 @@ class AtomEnvironment extends Model
             @applicationDelegate.setTemporaryWindowState(state)
         savePromise.catch(reject).then(resolve)
 
-
   loadState: ->
     if @enablePersistence
       if stateKey = @getStateKey(@getLoadSettings().initialPaths)
-        @stateStore.load(stateKey)
+        @stateStore.load(stateKey).then (state) =>
+          if state
+            state
+          else
+            # TODO: remove this when every user has migrated to the IndexedDb state store.
+            @getStorageFolder().load(stateKey)
       else
         @applicationDelegate.getTemporaryWindowState()
     else
@@ -857,6 +890,9 @@ class AtomEnvironment extends Model
     else
       null
 
+  getStorageFolder: ->
+    @storageFolder ?= new StorageFolder(@getConfigDirPath())
+
   getConfigDirPath: ->
     @configDirPath ?= process.env.ATOM_HOME
 
@@ -873,6 +909,7 @@ class AtomEnvironment extends Model
           detail: error.message
           dismissable: true
 
+  # TODO: We should deprecate the update events here, and use `atom.autoUpdater` instead
   onUpdateAvailable: (callback) ->
     @emitter.on 'update-available', callback
 
@@ -880,7 +917,8 @@ class AtomEnvironment extends Model
     @emitter.emit 'update-available', details
 
   listenForUpdates: ->
-    @disposables.add(@applicationDelegate.onUpdateAvailable(@updateAvailable.bind(this)))
+    # listen for updates available locally (that have been successfully downloaded)
+    @disposables.add(@autoUpdater.onDidCompleteDownloadingUpdate(@updateAvailable.bind(this)))
 
   setBodyPlatformClass: ->
     @document.body.classList.add("platform-#{process.platform}")

@@ -23,6 +23,15 @@ describe "ViewRegistry", ->
         component = new TestComponent
         expect(registry.getView(component)).toBe component.element
 
+    describe "when passed an object with a getElement function", ->
+      it "returns the return value of getElement if it's an instance of HTMLElement", ->
+        class TestComponent
+          getElement: ->
+            @myElement ?= document.createElement('div')
+
+        component = new TestComponent
+        expect(registry.getView(component)).toBe component.myElement
+
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
         it "constructs a view element and assigns the model on it", ->

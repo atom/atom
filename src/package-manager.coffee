@@ -128,8 +128,12 @@ class PackageManager
 
   # Public: Get the path to the apm command.
   #
+  # Uses the value of the `core.apmPath` config setting if it exists.
+  #
   # Return a {String} file path to apm.
   getApmPath: ->
+    configPath = atom.config.get('core.apmPath')
+    return configPath if configPath
     return @apmPath if @apmPath?
 
     commandName = 'apm'
@@ -541,11 +545,12 @@ class PackageManager
     unless typeof metadata.name is 'string' and metadata.name.length > 0
       metadata.name = packageName
 
+    if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+      metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
+
     metadata
 
   normalizePackageMetadata: (metadata) ->
     unless metadata?._id
       normalizePackageData ?= require 'normalize-package-data'
       normalizePackageData(metadata)
-      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
-        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')

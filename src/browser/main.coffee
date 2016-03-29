@@ -13,6 +13,7 @@ console.log = require 'nslog'
 
 start = ->
   args = parseCommandLine()
+  args.env = process.env
   setupAtomHome(args)
   setupCompileCache()
   return if handleStartupEventWithSquirrel()

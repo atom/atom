@@ -1,3 +1,4 @@
+Grim = require 'grim'
 {find, compact, extend, last} = require 'underscore-plus'
 {CompositeDisposable, Emitter} = require 'event-kit'
 Model = require './model'
@@ -307,6 +308,7 @@ class Pane extends Model
 
   # Add item (or move item) to the end of the itemStack
   addItemToStack: (newItem) ->
+    return unless newItem?
     index = @itemStack.indexOf(newItem)
     @itemStack.splice(index, 1) unless index is -1
     @itemStack.push(newItem)
@@ -393,38 +395,46 @@ class Pane extends Model
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
   #
-  # * `pending` (optional) {Boolean} indicating that the item should be added
-  #   in a pending state if it does not yet exist in the pane. Existing pending
-  #   items in a pane are replaced with new pending items when they are opened.
-  activateItem: (item, pending=false) ->
+  # * `options` (optional) {Object}
+  #   * `pending` (optional) {Boolean} indicating that the item should be added
+  #     in a pending state if it does not yet exist in the pane. Existing pending
+  #     items in a pane are replaced with new pending items when they are opened.
+  activateItem: (item, options={}) ->
     if item?
       if @getPendingItem() is @activeItem
         index = @getActiveItemIndex()
       else
         index = @getActiveItemIndex() + 1
-      @addItem(item, index, false, pending)
+      @addItem(item, extend({}, options, {index: index}))
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
   #
   # * `item` The item to add. It can be a model with an associated view or a
   #   view.
-  # * `index` (optional) {Number} indicating the index at which to add the item.
-  #   If omitted, the item is added after the current active item.
-  # * `pending` (optional) {Boolean} indicating that the item should be
-  #   added in a pending state. Existing pending items in a pane are replaced with
-  #   new pending items when they are opened.
+  # * `options` (optional) {Object}
+  #   * `index` (optional) {Number} indicating the index at which to add the item.
+  #     If omitted, the item is added after the current active item.
+  #   * `pending` (optional) {Boolean} indicating that the item should be
+  #     added in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1, moved=false, pending=false) ->
+  addItem: (item, options={}) ->
+    # Backward compat with old API:
+    #   addItem(item, index=@getActiveItemIndex() + 1)
+    if typeof options is "number"
+      Grim.deprecate("Pane::addItem(item, #{options}) is deprecated in favor of Pane::addItem(item, {index: #{options}})")
+      options = index: options
+
+    index = options.index ? @getActiveItemIndex() + 1
+    moved = options.moved ? false
+    pending = options.pending ? false
+
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
-
-    pendingItem = @getPendingItem()
-    @destroyItem(pendingItem) if pendingItem?
-    @setPendingItem(item) if pending
 
     if typeof item.onDidDestroy is 'function'
       itemSubscriptions = new CompositeDisposable
@@ -436,13 +446,19 @@ class Pane extends Model
       @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
+    lastPendingItem = @getPendingItem()
+    @setPendingItem(item) if pending
+
     @emitter.emit 'did-add-item', {item, index, moved}
+    @destroyItem(lastPendingItem) if lastPendingItem? and not moved
     @setActiveItem(item) unless @getActiveItem()?
     item
 
   setPendingItem: (item) =>
-    @pendingItem = item if @pendingItem isnt item
-    @emitter.emit 'did-terminate-pending-state' if not item
+    if @pendingItem isnt item
+      mostRecentPendingItem = @pendingItem
+      @pendingItem = item
+      @emitter.emit 'item-did-terminate-pending-state', mostRecentPendingItem
 
   getPendingItem: =>
     @pendingItem or null
@@ -450,8 +466,8 @@ class Pane extends Model
   clearPendingItem: =>
     @setPendingItem(null)
 
-  onDidTerminatePendingState: (callback) =>
-    @emitter.on 'did-terminate-pending-state', callback
+  onItemDidTerminatePendingState: (callback) =>
+    @emitter.on 'item-did-terminate-pending-state', callback
 
   # Public: Add the given items to the pane.
   #
@@ -464,7 +480,7 @@ class Pane extends Model
   # Returns an {Array} of added items.
   addItems: (items, index=@getActiveItemIndex() + 1) ->
     items = items.filter (item) => not (item in @items)
-    @addItem(item, index + i, false) for item, i in items
+    @addItem(item, {index: index + i}) for item, i in items
     items
 
   removeItem: (item, moved) ->
@@ -513,7 +529,7 @@ class Pane extends Model
   #   given pane.
   moveItemToPane: (item, pane, index) ->
     @removeItem(item, true)
-    pane.addItem(item, index, true)
+    pane.addItem(item, {index: index, moved: true})
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
