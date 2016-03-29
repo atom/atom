@@ -5,7 +5,10 @@ CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
-Grim = require 'grim'
+{
+  getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
+  pushKeyPath, splitKeyPath,
+} = require 'key-path-helpers'
 
 Color = require './color'
 ScopedPropertyStore = require 'scoped-property-store'
@@ -200,22 +203,6 @@ ScopeDescriptor = require './scope-descriptor'
 #       maximum: 11.5
 # ```
 #
-# #### object
-#
-# Value must be an object. This allows you to nest config options. Sub options
-# must be under a `properties key`
-#
-# ```coffee
-# config:
-#   someSetting:
-#     type: 'object'
-#     properties:
-#       myChildIntOption:
-#         type: 'integer'
-#         minimum: 1.5
-#         maximum: 11.5
-# ```
-#
 # #### color
 #
 # Values will be coerced into a {Color} with `red`, `green`, `blue`, and `alpha`
@@ -231,13 +218,34 @@ ScopeDescriptor = require './scope-descriptor'
 #     default: 'white'
 # ```
 #
+# #### object / Grouping other types
+#
+# A config setting with the type `object` allows grouping a set of config
+# settings. The group will be visualy separated and has its own group headline.
+# The sub options must be listed under a `properties` key.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'object'
+#     properties:
+#       myChildIntOption:
+#         type: 'integer'
+#         minimum: 1.5
+#         maximum: 11.5
+# ```
+#
 # ### Other Supported Keys
 #
 # #### enum
 #
-# All types support an `enum` key. The enum key lets you specify all values
-# that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type. Schema:
+# All types support an `enum` key, which lets you specify all the values the
+# setting can take. `enum` may be an array of allowed values (of the specified
+# type), or an array of objects with `value` and `description` properties, where
+# the `value` is an allowed value, and the `description` is a descriptive string
+# used in the settings view.
+#
+# In this example, the setting must be one of the 4 integers:
 #
 # ```coffee
 # config:
@@ -245,6 +253,20 @@ ScopeDescriptor = require './scope-descriptor'
 #     type: 'integer'
 #     default: 4
 #     enum: [2, 4, 6, 8]
+# ```
+#
+# In this example, the setting must be either 'foo' or 'bar', which are
+# presented using the provided descriptions in the settings pane:
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'string'
+#     default: 'foo'
+#     enum: [
+#       {value: 'foo', description: 'Foo mode. You want this.'}
+#       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+#     ]
 # ```
 #
 # Usage:
@@ -271,6 +293,9 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # Descriptions will be displayed below the title in the settings view.
 #
+# For a group of config settings the humanized key or the title and the
+# description are used for the group headline.
+#
 # ```coffee
 # config:
 #   someSetting:
@@ -282,6 +307,34 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # __Note__: You should strive to be so clear in your naming of the setting that
 # you do not need to specify a title or description!
+#
+# Descriptions allow a subset of
+# [Markdown formatting](https://help.github.com/articles/github-flavored-markdown/).
+# Specifically, you may use the following in configuration setting descriptions:
+#
+# * **bold** - `**bold**`
+# * *italics* - `*italics*`
+# * [links](https://atom.io) - `[links](https://atom.io)`
+# * `code spans` - `\`code spans\``
+# * line breaks - `line breaks<br/>`
+# * ~~strikethrough~~ - `~~strikethrough~~`
+#
+# #### order
+#
+# The settings view orders your settings alphabetically. You can override this
+# ordering with the order key.
+#
+# ```coffee
+# config:
+#   zSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 1
+#   aSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 2
+# ```
 #
 # ## Best practices
 #
@@ -320,7 +373,13 @@ class Config
     value
 
   # Created during initialization, available as `atom.config`
-  constructor: ({@configDirPath, @resourcePath}={}) ->
+  constructor: ({@configDirPath, @resourcePath, @notificationManager, @enablePersistence}={}) ->
+    if @enablePersistence?
+      @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
+      @configFilePath ?= path.join(@configDirPath, 'config.cson')
+    @clear()
+
+  clear: ->
     @emitter = new Emitter
     @schema =
       type: 'object'
@@ -329,11 +388,8 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @configFileHasErrors = false
-    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
     @savePending = false
-
     @requestLoad = _.debounce(@loadUserConfig, 100)
     @requestSave = =>
       @savePending = true
@@ -342,6 +398,8 @@ class Config
       @savePending = false
       @save()
     debouncedSave = _.debounce(save, 100)
+
+  shouldNotAccessFileSystem: -> not @enablePersistence
 
   ###
   Section: Config Subscription
@@ -362,8 +420,8 @@ class Config
   # ```
   #
   # * `keyPath` {String} name of the key to observe
-  # * `options` {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -376,21 +434,9 @@ class Config
   observe: ->
     if arguments.length is 2
       [keyPath, callback] = arguments
-    else if Grim.includeDeprecatedAPIs and arguments.length is 3 and (_.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor)
-      Grim.deprecate """
-        Passing a scope descriptor as the first argument to Config::observe is deprecated.
-        Pass a `scope` in an options hash as the third argument instead.
-      """
-      [scopeDescriptor, keyPath, callback] = arguments
     else if arguments.length is 3 and (_.isString(arguments[0]) and _.isObject(arguments[1]))
       [keyPath, options, callback] = arguments
       scopeDescriptor = options.scope
-      if Grim.includeDeprecatedAPIs and options.callNow?
-        Grim.deprecate """
-          Config::observe no longer takes a `callNow` option. Use ::onDidChange instead.
-          Note that ::onDidChange passes its callback different arguments.
-          See https://atom.io/docs/api/latest/Config
-        """
     else
       console.error 'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
       return
@@ -405,8 +451,8 @@ class Config
   #
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
-  # * `optional` (optional) {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -415,7 +461,6 @@ class Config
   #   * `event` {Object}
   #     * `newValue` the new value of the key
   #     * `oldValue` the prior value of the key.
-  #     * `keyPath` the keyPath of the changed key
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
@@ -424,12 +469,6 @@ class Config
       [callback] = arguments
     else if arguments.length is 2
       [keyPath, callback] = arguments
-    else if Grim.includeDeprecatedAPIs and _.isArray(arguments[0]) or arguments[0] instanceof ScopeDescriptor
-      Grim.deprecate """
-        Passing a scope descriptor as the first argument to Config::onDidChange is deprecated.
-        Pass a `scope` in an options hash as the third argument instead.
-      """
-      [scopeDescriptor, keyPath, callback] = arguments
     else
       [keyPath, options, callback] = arguments
       scopeDescriptor = options.scope
@@ -503,12 +542,6 @@ class Config
       if typeof arguments[0] is 'string' or not arguments[0]?
         [keyPath, options] = arguments
         {scope} = options
-      else if Grim.includeDeprecatedAPIs
-        Grim.deprecate """
-          Passing a scope descriptor as the first argument to Config::get is deprecated.
-          Pass a `scope` in an options hash as the final argument instead.
-        """
-        [scope, keyPath] = arguments
     else
       [keyPath] = arguments
 
@@ -561,7 +594,7 @@ class Config
   # atom.config.get('editor.tabLength', scope: ['source.js']) # => 4
   #
   # # Set ruby to 2
-  # atom.config.set('editor.tabLength', 2, scopeSelector: 'source.ruby') # => true
+  # atom.config.set('editor.tabLength', 2, scopeSelector: '.source.ruby') # => true
   #
   # # Notice it's only set to 2 in the case of ruby
   # atom.config.get('editor.tabLength') # => 4
@@ -583,18 +616,10 @@ class Config
   # * `true` if the value was set.
   # * `false` if the value was not able to be coerced to the type specified in the setting's schema.
   set: ->
-    if Grim.includeDeprecatedAPIs and arguments[0]?[0] is '.'
-      Grim.deprecate """
-        Passing a scope selector as the first argument to Config::set is deprecated.
-        Pass a `scopeSelector` in an options hash as the final argument instead.
-      """
-      [scopeSelector, keyPath, value] = arguments
-      shouldSave = true
-    else
-      [keyPath, value, options] = arguments
-      scopeSelector = options?.scopeSelector
-      source = options?.source
-      shouldSave = options?.save ? true
+    [keyPath, value, options] = arguments
+    scopeSelector = options?.scopeSelector
+    source = options?.source
+    shouldSave = options?.save ? true
 
     if source and not scopeSelector
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
@@ -622,24 +647,15 @@ class Config
   #   * `scopeSelector` (optional) {String}. See {::set}
   #   * `source` (optional) {String}. See {::set}
   unset: (keyPath, options) ->
-    if Grim.includeDeprecatedAPIs and typeof options is 'string'
-      Grim.deprecate """
-        Passing a scope selector as the first argument to Config::unset is deprecated.
-        Pass a `scopeSelector` in an options hash as the second argument instead.
-      """
-      scopeSelector = keyPath
-      keyPath = options
-    else
-      {scopeSelector, source} = options ? {}
-
+    {scopeSelector, source} = options ? {}
     source ?= @getUserConfigPath()
 
     if scopeSelector?
       if keyPath?
         settings = @scopedSettingsStore.propertiesForSourceAndSelector(source, scopeSelector)
-        if _.valueForKeyPath(settings, keyPath)?
+        if getValueAtKeyPath(settings, keyPath)?
           @scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
-          _.setValueForKeyPath(settings, keyPath, undefined)
+          setValueAtKeyPath(settings, keyPath, undefined)
           settings = withoutEmptyObjects(settings)
           @set(null, settings, {scopeSelector, source, priority: @priorityForSource(source)}) if settings?
           @requestSave()
@@ -650,7 +666,7 @@ class Config
       for scopeSelector of @scopedSettingsStore.propertiesForSource(source)
         @unset(keyPath, {scopeSelector, source})
       if keyPath? and source is @getUserConfigPath()
-        @set(keyPath, _.valueForKeyPath(@defaultSettings, keyPath))
+        @set(keyPath, getValueAtKeyPath(@defaultSettings, keyPath))
 
   # Extended: Get an {Array} of all of the `source` {String}s with which
   # settings have been added via {::set}.
@@ -664,13 +680,24 @@ class Config
   # * `keyPath` The {String} name of the key.
   #
   # Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
-  # Returns `null` when the keyPath has no schema specified.
+  # Returns `null` when the keyPath has no schema specified, but is accessible
+  # from the root schema.
   getSchema: (keyPath) ->
     keys = splitKeyPath(keyPath)
     schema = @schema
     for key in keys
-      break unless schema?
-      schema = schema.properties?[key]
+      if schema.type is 'object'
+        childSchema = schema.properties?[key]
+        unless childSchema?
+          if isPlainObject(schema.additionalProperties)
+            childSchema = schema.additionalProperties
+          else if schema.additionalProperties is false
+            return null
+          else
+            return {type: 'any'}
+      else
+        return null
+      schema = childSchema
     schema
 
   # Extended: Get the {String} path to the config file being used.
@@ -683,16 +710,46 @@ class Config
   #
   # * `callback` {Function} to execute while suppressing calls to handlers.
   transact: (callback) ->
-    @transactDepth++
+    @beginTransaction()
     try
       callback()
     finally
-      @transactDepth--
-      @emitChangeEvent()
+      @endTransaction()
 
   ###
   Section: Internal methods used by core
   ###
+
+  # Private: Suppress calls to handler functions registered with {::onDidChange}
+  # and {::observe} for the duration of the {Promise} returned by `callback`.
+  # After the {Promise} is either resolved or rejected, handlers will be called
+  # once if the value for their key-path has changed.
+  #
+  # * `callback` {Function} that returns a {Promise}, which will be executed
+  #   while suppressing calls to handlers.
+  #
+  # Returns a {Promise} that is either resolved or rejected according to the
+  # `{Promise}` returned by `callback`. If `callback` throws an error, a
+  # rejected {Promise} will be returned instead.
+  transactAsync: (callback) ->
+    @beginTransaction()
+    try
+      endTransaction = (fn) => (args...) =>
+        @endTransaction()
+        fn(args...)
+      result = callback()
+      new Promise (resolve, reject) ->
+        result.then(endTransaction(resolve)).catch(endTransaction(reject))
+    catch error
+      @endTransaction()
+      Promise.reject(error)
+
+  beginTransaction: ->
+    @transactDepth++
+
+  endTransaction: ->
+    @transactDepth--
+    @emitChangeEvent()
 
   pushAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
@@ -743,7 +800,7 @@ class Config
   ###
 
   initializeConfigDirectory: (done) ->
-    return if fs.existsSync(@configDirPath)
+    return if fs.existsSync(@configDirPath) or @shouldNotAccessFileSystem()
 
     fs.makeTreeSync(@configDirPath)
 
@@ -759,9 +816,16 @@ class Config
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
   loadUserConfig: ->
-    unless fs.existsSync(@configFilePath)
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {})
+    return if @shouldNotAccessFileSystem()
+
+    try
+      unless fs.existsSync(@configFilePath)
+        fs.makeTreeSync(path.dirname(@configFilePath))
+        CSON.writeFileSync(@configFilePath, {})
+    catch error
+      @configFileHasErrors = true
+      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+      return
 
     try
       unless @savePending
@@ -782,6 +846,8 @@ class Config
       @notifyFailure(message, detail)
 
   observeUserConfig: ->
+    return if @shouldNotAccessFileSystem()
+
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
         @requestLoad() if eventType is 'change' and @watchSubscription?
@@ -798,11 +864,14 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    atom.notifications.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
+    return if @shouldNotAccessFileSystem()
+
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
     catch error
@@ -837,26 +906,30 @@ class Config
 
   getRawValue: (keyPath, options) ->
     unless options?.excludeSources?.indexOf(@getUserConfigPath()) >= 0
-      value = _.valueForKeyPath(@settings, keyPath)
+      value = getValueAtKeyPath(@settings, keyPath)
     unless options?.sources?.length > 0
-      defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
+      defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
 
     if value?
       value = @deepClone(value)
-      _.defaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
+      @deepDefaults(value, defaultValue) if isPlainObject(value) and isPlainObject(defaultValue)
     else
       value = @deepClone(defaultValue)
 
     value
 
   setRawValue: (keyPath, value) ->
-    defaultValue = _.valueForKeyPath(@defaultSettings, keyPath)
-    value = undefined if _.isEqual(defaultValue, value)
-
-    if keyPath?
-      _.setValueForKeyPath(@settings, keyPath, value)
+    defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
+    if _.isEqual(defaultValue, value)
+      if keyPath?
+        deleteValueAtKeyPath(@settings, keyPath)
+      else
+        @settings = null
     else
-      @settings = value
+      if keyPath?
+        setValueAtKeyPath(@settings, keyPath, value)
+      else
+        @settings = value
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
@@ -879,7 +952,7 @@ class Config
     _.isEqual(pathTokens, pathSubTokens)
 
   setRawDefault: (keyPath, value) ->
-    _.setValueForKeyPath(@defaultSettings, keyPath, value)
+    setValueAtKeyPath(@defaultSettings, keyPath, value)
     @emitChangeEvent()
 
   setDefaults: (keyPath, defaults) ->
@@ -906,6 +979,19 @@ class Config
     else
       object
 
+  deepDefaults: (target) ->
+    result = target
+    i = 0
+    while ++i < arguments.length
+      object = arguments[i]
+      if isPlainObject(result) and isPlainObject(object)
+        for key in Object.keys(object)
+          result[key] = @deepDefaults(result[key], object[key])
+      else
+        if not result?
+          result = @deepClone(object)
+    result
+
   # `schema` will look something like this
   #
   # ```coffee
@@ -921,7 +1007,7 @@ class Config
       for scope, scopeSchema of schema.scopes
         continue unless scopeSchema.hasOwnProperty('default')
         scopedDefaults[scope] = {}
-        _.setValueForKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
+        setValueAtKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
       @scopedSettingsStore.addProperties('schema-default', scopedDefaults)
 
     if schema.type is 'object' and schema.properties? and isPlainObject(schema.properties)
@@ -948,8 +1034,9 @@ class Config
       catch e
         undefined
     else
-      value = @constructor.executeSchemaEnforcers(keyPath, value, schema) if schema = @getSchema(keyPath)
-      value
+      unless (schema = @getSchema(keyPath))?
+        throw new Error("Illegal key path #{keyPath}") if schema is false
+      @constructor.executeSchemaEnforcers(keyPath, value, schema)
 
   # When the schema is changed / added, there may be values set in the config
   # that do not conform to the schema. This will reset make them conform.
@@ -993,7 +1080,7 @@ class Config
   setRawScopedValue: (keyPath, value, source, selector, options) ->
     if keyPath?
       newValue = {}
-      _.setValueForKeyPath(newValue, keyPath, value)
+      setValueAtKeyPath(newValue, keyPath, value)
       value = newValue
 
     settingsBySelector = {}
@@ -1027,6 +1114,10 @@ class Config
 # order of specification. Then the `*` enforcers will be run, in order of
 # specification.
 Config.addSchemaEnforcers
+  'any':
+    coerce: (keyPath, value, schema) ->
+      value
+
   'integer':
     coerce: (keyPath, value, schema) ->
       value = parseInt(value)
@@ -1077,17 +1168,26 @@ Config.addSchemaEnforcers
       throw new Error("Validation failed at #{keyPath}, #{JSON.stringify(value)} must be an object") unless isPlainObject(value)
       return value unless schema.properties?
 
+      defaultChildSchema = null
+      allowsAdditionalProperties = true
+      if isPlainObject(schema.additionalProperties)
+        defaultChildSchema = schema.additionalProperties
+      if schema.additionalProperties is false
+        allowsAdditionalProperties = false
+
       newValue = {}
       for prop, propValue of value
-        childSchema = schema.properties[prop]
+        childSchema = schema.properties[prop] ? defaultChildSchema
         if childSchema?
           try
-            newValue[prop] = @executeSchemaEnforcers("#{keyPath}.#{prop}", propValue, childSchema)
+            newValue[prop] = @executeSchemaEnforcers(pushKeyPath(keyPath, prop), propValue, childSchema)
           catch error
             console.warn "Error setting item in object: #{error.message}"
-        else
+        else if allowsAdditionalProperties
           # Just pass through un-schema'd values
           newValue[prop] = propValue
+        else
+          console.warn "Illegal object key: #{keyPath}.#{prop}"
 
       newValue
 
@@ -1124,6 +1224,11 @@ Config.addSchemaEnforcers
 
     validateEnum: (keyPath, value, schema) ->
       possibleValues = schema.enum
+
+      if Array.isArray(possibleValues)
+        possibleValues = possibleValues.map (value) ->
+          if value.hasOwnProperty('value') then value.value else value
+
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
       for possibleValue in possibleValues
@@ -1135,16 +1240,12 @@ Config.addSchemaEnforcers
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
 
-splitKeyPath = (keyPath) ->
-  return [] unless keyPath?
-  startIndex = 0
-  keyPathArray = []
-  for char, i in keyPath
-    if char is '.' and (i is 0 or keyPath[i-1] isnt '\\')
-      keyPathArray.push keyPath.substring(startIndex, i)
-      startIndex = i + 1
-  keyPathArray.push keyPath.substr(startIndex, keyPath.length)
-  keyPathArray
+sortObject = (value) ->
+  return value unless isPlainObject(value)
+  result = {}
+  for key in Object.keys(value).sort()
+    result[key] = sortObject(value[key])
+  result
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined
@@ -1157,71 +1258,3 @@ withoutEmptyObjects = (object) ->
   else
     resultObject = object
   resultObject
-
-# TODO remove in 1.0 API
-Config::unobserve = (keyPath) ->
-  Grim.deprecate 'Config::unobserve no longer does anything. Call `.dispose()` on the object returned by Config::observe instead.'
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(Config)
-
-  Config::restoreDefault = (scopeSelector, keyPath) ->
-    Grim.deprecate("Use ::unset instead.")
-    @unset(scopeSelector, keyPath)
-    @get(keyPath)
-
-  Config::getDefault = ->
-    Grim.deprecate("Use `::get(keyPath, {scope, excludeSources: [atom.config.getUserConfigPath()]})` instead")
-    if arguments.length is 1
-      [keyPath] = arguments
-    else
-      [scopeSelector, keyPath] = arguments
-      scope = [scopeSelector]
-    @get(keyPath, {scope, excludeSources: [@getUserConfigPath()]})
-
-  Config::isDefault = ->
-    Grim.deprecate("Use `not ::get(keyPath, {scope, sources: [atom.config.getUserConfigPath()]})?` instead")
-    if arguments.length is 1
-      [keyPath] = arguments
-    else
-      [scopeSelector, keyPath] = arguments
-      scope = [scopeSelector]
-    not @get(keyPath, {scope, sources: [@getUserConfigPath()]})?
-
-  Config::getSettings = ->
-    Grim.deprecate "Use ::get(keyPath) instead"
-    _.deepExtend({}, @settings, @defaultSettings)
-
-  Config::getInt = (keyPath) ->
-    Grim.deprecate '''Config::getInt is no longer necessary. Use ::get instead.
-    Make sure the config option you are accessing has specified an `integer`
-    schema. See the schema section of
-    https://atom.io/docs/api/latest/Config for more info.'''
-    parseInt(@get(keyPath))
-
-  Config::getPositiveInt = (keyPath, defaultValue=0) ->
-    Grim.deprecate '''Config::getPositiveInt is no longer necessary. Use ::get instead.
-    Make sure the config option you are accessing has specified an `integer`
-    schema with `minimum: 1`. See the schema section of
-    https://atom.io/docs/api/latest/Config for more info.'''
-    Math.max(@getInt(keyPath), 0) or defaultValue
-
-  Config::toggle = (keyPath) ->
-    Grim.deprecate 'Config::toggle is no longer supported. Please remove from your code.'
-    @set(keyPath, not @get(keyPath))
-
-  Config::addScopedSettings = (source, selector, value, options) ->
-    Grim.deprecate("Use ::set instead")
-    settingsBySelector = {}
-    settingsBySelector[selector] = value
-    disposable = @scopedSettingsStore.addProperties(source, settingsBySelector, options)
-    @emitChangeEvent()
-    new Disposable =>
-      disposable.dispose()
-      @emitChangeEvent()
-
-  Config::settingsForScopeDescriptor = (scopeDescriptor, keyPath) ->
-    Grim.deprecate("Use Config::getAll instead")
-    entries = @getAll(null, scope: scopeDescriptor)
-    value for {value} in entries when _.valueForKeyPath(value, keyPath)?

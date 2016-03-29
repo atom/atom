@@ -15,7 +15,7 @@ describe "TextEditor", ->
   it "properly renders soft-wrapped lines when randomly mutated", ->
     times 10, (i) ->
       buffer = new TextBuffer
-      editor = new TextEditor({buffer})
+      editor = atom.workspace.buildTextEditor({buffer})
       editor.setEditorWidthInChars(80)
       tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
       steps = []
@@ -80,7 +80,7 @@ describe "TextEditor", ->
     text
 
   getReferenceScreenLines = ->
-    referenceEditor = new TextEditor({})
+    referenceEditor = atom.workspace.buildTextEditor()
     referenceEditor.setEditorWidthInChars(80)
     referenceEditor.setText(editor.getText())
     referenceEditor.setSoftWrapped(editor.isSoftWrapped())

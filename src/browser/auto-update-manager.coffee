@@ -1,5 +1,6 @@
 autoUpdater = null
 _ = require 'underscore-plus'
+Config = require '../config'
 {EventEmitter} = require 'events'
 path = require 'path'
 
@@ -15,45 +16,55 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: (@version, @testMode) ->
+  constructor: (@version, @testMode, resourcePath) ->
     @state = IdleState
-    if process.platform is 'win32'
-      # Squirrel for Windows can't handle query params
-      # https://github.com/Squirrel/Squirrel.Windows/issues/132
-      @feedUrl = 'https://atom.io/api/updates'
-    else
-      @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
-      @feedUrl = "https://atom.io/api/updates?version=#{@version}"
-
+    @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
+    @feedUrl = "https://atom.io/api/updates?version=#{@version}"
+    @config = new Config({configDirPath: process.env.ATOM_HOME, resourcePath, enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config.load()
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
     if process.platform is 'win32'
       autoUpdater = require './auto-updater-win32'
     else
-      autoUpdater = require 'auto-updater'
+      {autoUpdater} = require 'electron'
 
     autoUpdater.on 'error', (event, message) =>
       @setState(ErrorState)
       console.error "Error Downloading Update: #{message}"
 
-    autoUpdater.setFeedUrl @feedUrl
+    autoUpdater.setFeedURL @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
+      @emitWindowEvent('checking-for-update')
 
     autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
+      @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
+      # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
+      # once the update download is complete. This mismatch between the electron
+      # autoUpdater events is unfortunate but in the interest of not changing the
+      # one existing event handled by applicationDelegate
+      @emitWindowEvent('did-begin-downloading-update')
+      @emit('did-begin-download')
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
-      @emitUpdateAvailableEvent(@getWindows()...)
+      @emitUpdateAvailableEvent()
 
-    # Only released versions should check for updates.
-    @scheduleUpdateCheck() unless /\w{7}/.test(@version)
+    @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
+      if newValue
+        @scheduleUpdateCheck()
+      else
+        @cancelScheduledUpdateCheck()
+
+    @scheduleUpdateCheck() if @config.get 'core.automaticallyUpdate'
 
     switch process.platform
       when 'win32'
@@ -61,10 +72,14 @@ class AutoUpdateManager
       when 'linux'
         @setState(UnsupportedState)
 
-  emitUpdateAvailableEvent: (windows...) ->
+  emitUpdateAvailableEvent: ->
     return unless @releaseVersion?
-    for atomWindow in windows
-      atomWindow.sendMessage('update-available', {@releaseVersion})
+    @emitWindowEvent('update-available', {@releaseVersion})
+    return
+
+  emitWindowEvent: (eventName, payload) ->
+    for atomWindow in @getWindows()
+      atomWindow.sendMessage(eventName, payload)
     return
 
   setState: (state) ->
@@ -76,10 +91,18 @@ class AutoUpdateManager
     @state
 
   scheduleUpdateCheck: ->
-    checkForUpdates = => @check(hidePopups: true)
-    fourHours = 1000 * 60 * 60 * 4
-    setInterval(checkForUpdates, fourHours)
-    checkForUpdates()
+    # Only schedule update check periodically if running in release version and
+    # and there is no existing scheduled update check.
+    unless /\w{7}/.test(@version) or @checkForUpdatesIntervalID
+      checkForUpdates = => @check(hidePopups: true)
+      fourHours = 1000 * 60 * 60 * 4
+      @checkForUpdatesIntervalID = setInterval(checkForUpdates, fourHours)
+      checkForUpdates()
+
+  cancelScheduledUpdateCheck: ->
+    if @checkForUpdatesIntervalID
+      clearInterval(@checkForUpdatesIntervalID)
+      @checkForUpdatesIntervalID = null
 
   check: ({hidePopups}={}) ->
     unless hidePopups
@@ -93,7 +116,7 @@ class AutoUpdateManager
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
-    dialog = require 'dialog'
+    {dialog} = require 'electron'
     dialog.showMessageBox
       type: 'info'
       buttons: ['OK']
@@ -104,7 +127,7 @@ class AutoUpdateManager
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
-    dialog = require 'dialog'
+    {dialog} = require 'electron'
     dialog.showMessageBox
       type: 'warning'
       buttons: ['OK']

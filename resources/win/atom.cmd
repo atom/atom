@@ -1,6 +1,7 @@
 @echo off
 
 SET EXPECT_OUTPUT=
+SET WAIT=
 
 FOR %%a IN (%*) DO (
   IF /I "%%a"=="-f"           SET EXPECT_OUTPUT=YES
@@ -11,12 +12,23 @@ FOR %%a IN (%*) DO (
   IF /I "%%a"=="--test"       SET EXPECT_OUTPUT=YES
   IF /I "%%a"=="-v"           SET EXPECT_OUTPUT=YES
   IF /I "%%a"=="--version"    SET EXPECT_OUTPUT=YES
-  IF /I "%%a"=="-w"           SET EXPECT_OUTPUT=YES
-  IF /I "%%a"=="--wait"       SET EXPECT_OUTPUT=YES
+  IF /I "%%a"=="-w"           (
+    SET EXPECT_OUTPUT=YES
+    SET WAIT=YES
+  )
+  IF /I "%%a"=="--wait"       (
+    SET EXPECT_OUTPUT=YES
+    SET WAIT=YES
+  )
 )
 
 IF "%EXPECT_OUTPUT%"=="YES" (
-  "%~dp0\..\..\atom.exe" %*
+  SET ELECTRON_ENABLE_LOGGING=YES
+  IF "%WAIT%"=="YES" (
+    powershell -noexit "%~dp0\..\..\atom.exe" --pid=$pid %* ; wait-event
+  ) ELSE (
+    "%~dp0\..\..\atom.exe" %*
+  )
 ) ELSE (
   "%~dp0\..\app\apm\bin\node.exe" "%~dp0\atom.js" %*
 )

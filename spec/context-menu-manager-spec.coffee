@@ -1,5 +1,3 @@
-{$$} = require '../src/space-pen-extensions'
-
 ContextMenuManager = require '../src/context-menu-manager'
 
 describe "ContextMenuManager", ->
@@ -7,7 +5,7 @@ describe "ContextMenuManager", ->
 
   beforeEach ->
     {resourcePath} = atom.getLoadSettings()
-    contextMenu = new ContextMenuManager({resourcePath})
+    contextMenu = new ContextMenuManager({resourcePath, keymapManager: atom.keymaps})
 
     parent = document.createElement("div")
     child = document.createElement("div")
@@ -159,31 +157,27 @@ describe "ContextMenuManager", ->
         addError = error
       expect(addError.message).toContain('<>')
 
-    describe "when the menus are specified in a legacy format", ->
-      beforeEach ->
-        jasmine.snapshotDeprecations()
-
-      afterEach ->
-        jasmine.restoreDeprecationsSnapshot()
-
-      it "allows items to be specified in the legacy format for now", ->
-        contextMenu.add '.parent':
-          'A': 'a'
-          'Separator 1': '-'
-          'B':
-            'C': 'c'
-            'Separator 2': '-'
-            'D': 'd'
-
-        expect(contextMenu.templateForElement(parent)).toEqual [
-          {label: 'A', command: 'a'}
-          {type: 'separator'}
+    it "calls `created` hooks for submenu items", ->
+      item = {
+        label: 'A',
+        command: 'B',
+        submenu: [
           {
-            label: 'B'
-            submenu: [
-              {label: 'C', command: 'c'}
-              {type: 'separator'}
-              {label: 'D', command: 'd'}
-            ]
+            label: 'C',
+            created: (event) -> @label = 'D',
           }
         ]
+      }
+      contextMenu.add('.grandchild': [item])
+
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'A',
+          command: 'B',
+          submenu: [
+            {
+              label: 'D',
+            }
+          ]
+        ])

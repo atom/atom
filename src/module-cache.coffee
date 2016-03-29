@@ -208,7 +208,7 @@ registerBuiltins = (devMode) ->
     cache.builtins[builtin] = path.join(commonRoot, "#{builtin}.js")
 
   rendererRoot = path.join(atomShellRoot, 'renderer', 'api', 'lib')
-  rendererBuiltins = ['ipc', 'remote']
+  rendererBuiltins = ['ipc-renderer', 'remote']
   for builtin in rendererBuiltins
     cache.builtins[builtin] = path.join(rendererRoot, "#{builtin}.js")
 

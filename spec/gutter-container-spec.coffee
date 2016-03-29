@@ -50,3 +50,13 @@ describe 'GutterContainer', ->
       otherGutterContainer = new GutterContainer fakeOtherTextEditor
       gutter = new Gutter 'gutter-name', otherGutterContainer
       expect(gutterContainer.removeGutter.bind(null, gutter)).toThrow()
+
+  describe '::destroy', ->
+    it 'clears its array of gutters and destroys custom gutters', ->
+      newGutter = gutterContainer.addGutter {'test-gutter', priority: 1}
+      newGutterSpy = jasmine.createSpy()
+      newGutter.onDidDestroy(newGutterSpy)
+
+      gutterContainer.destroy()
+      expect(newGutterSpy).toHaveBeenCalled()
+      expect(gutterContainer.getGutters()).toEqual []

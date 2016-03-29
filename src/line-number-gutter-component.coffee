@@ -1,22 +1,27 @@
-_ = require 'underscore-plus'
-{setDimensionsAndBackground} = require './gutter-component-helpers'
-
+TiledComponent = require './tiled-component'
+LineNumbersTileComponent = require './line-numbers-tile-component'
 WrapperDiv = document.createElement('div')
+DOMElementPool = require './dom-element-pool'
 
 module.exports =
-class LineNumberGutterComponent
+class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter}) ->
-    @lineNumberNodesById = {}
+  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool, @views}) ->
     @visible = true
 
-    @domNode = atom.views.getView(@gutter)
+    @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
+
+    @domNode = @views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
     @lineNumbersNode.innerHTML = ''
 
     @domNode.addEventListener 'click', @onClick
     @domNode.addEventListener 'mousedown', @onMouseDown
+
+  destroy: ->
+    @domNode.removeEventListener 'click', @onClick
+    @domNode.removeEventListener 'mousedown', @onMouseDown
 
   getDomNode: ->
     @domNode
@@ -31,28 +36,36 @@ class LineNumberGutterComponent
       @domNode.style.removeProperty('display')
       @visible = true
 
-  # `state` is a subset of the TextEditorPresenter state that is specific
-  # to this line number gutter.
-  updateSync: (state) ->
-    @newState = state
-    @oldState ?=
-      lineNumbers: {}
+  buildEmptyState: ->
+    {
+      tiles: {}
       styles: {}
+    }
 
+  getNewState: (state) -> state
+
+  getTilesNode: -> @lineNumbersNode
+
+  beforeUpdateSync: (state) ->
     @appendDummyLineNumber() unless @dummyLineNumberNode?
 
-    setDimensionsAndBackground(@oldState.styles, @newState.styles, @lineNumbersNode)
+    if @newState.styles.maxHeight isnt @oldState.styles.maxHeight
+      @lineNumbersNode.style.height = @newState.styles.maxHeight + 'px'
+      @oldState.maxHeight = @newState.maxHeight
+
+    if @newState.styles.backgroundColor isnt @oldState.styles.backgroundColor
+      @lineNumbersNode.style.backgroundColor = @newState.styles.backgroundColor
+      @oldState.styles.backgroundColor = @newState.styles.backgroundColor
 
     if @newState.maxLineNumberDigits isnt @oldState.maxLineNumberDigits
       @updateDummyLineNumber()
-      node.remove() for id, node of @lineNumberNodesById
-      @oldState =
-        maxLineNumberDigits: @newState.maxLineNumberDigits
-        lineNumbers: {}
-        styles: {}
-      @lineNumberNodesById = {}
+      @oldState.styles = {}
+      @oldState.maxLineNumberDigits = @newState.maxLineNumberDigits
 
-    @updateLineNumbers()
+  buildComponentForTile: (id) -> new LineNumbersTileComponent({id, @domElementPool})
+
+  shouldRecreateAllTilesOnUpdate: ->
+    @newState.continuousReflow
 
   ###
   Section: Private Methods
@@ -61,94 +74,13 @@ class LineNumberGutterComponent
   # This dummy line number element holds the gutter to the appropriate width,
   # since the real line numbers are absolutely positioned for performance reasons.
   appendDummyLineNumber: ->
-    WrapperDiv.innerHTML = @buildLineNumberHTML({bufferRow: -1})
-    @dummyLineNumberNode = WrapperDiv.children[0]
+    @dummyLineNumberComponent.newState = @newState
+    @dummyLineNumberNode = @dummyLineNumberComponent.buildLineNumberNode({bufferRow: -1})
     @lineNumbersNode.appendChild(@dummyLineNumberNode)
 
   updateDummyLineNumber: ->
-    @dummyLineNumberNode.innerHTML = @buildLineNumberInnerHTML(0, false)
-
-  updateLineNumbers: ->
-    newLineNumberIds = null
-    newLineNumbersHTML = null
-
-    for id, lineNumberState of @newState.lineNumbers
-      if @oldState.lineNumbers.hasOwnProperty(id)
-        @updateLineNumberNode(id, lineNumberState)
-      else
-        newLineNumberIds ?= []
-        newLineNumbersHTML ?= ""
-        newLineNumberIds.push(id)
-        newLineNumbersHTML += @buildLineNumberHTML(lineNumberState)
-        @oldState.lineNumbers[id] = _.clone(lineNumberState)
-
-    if newLineNumberIds?
-      WrapperDiv.innerHTML = newLineNumbersHTML
-      newLineNumberNodes = _.toArray(WrapperDiv.children)
-
-      node = @lineNumbersNode
-      for id, i in newLineNumberIds
-        lineNumberNode = newLineNumberNodes[i]
-        @lineNumberNodesById[id] = lineNumberNode
-        node.appendChild(lineNumberNode)
-
-    for id, lineNumberState of @oldState.lineNumbers
-      unless @newState.lineNumbers.hasOwnProperty(id)
-        @lineNumberNodesById[id].remove()
-        delete @lineNumberNodesById[id]
-        delete @oldState.lineNumbers[id]
-
-    return
-
-  buildLineNumberHTML: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses} = lineNumberState
-    if screenRow?
-      style = "position: absolute; top: #{top}px;"
-    else
-      style = "visibility: hidden;"
-    className = @buildLineNumberClassName(lineNumberState)
-    innerHTML = @buildLineNumberInnerHTML(bufferRow, softWrapped)
-
-    "<div class=\"#{className}\" style=\"#{style}\" data-buffer-row=\"#{bufferRow}\" data-screen-row=\"#{screenRow}\">#{innerHTML}</div>"
-
-  buildLineNumberInnerHTML: (bufferRow, softWrapped) ->
-    {maxLineNumberDigits} = @newState
-
-    if softWrapped
-      lineNumber = "•"
-    else
-      lineNumber = (bufferRow + 1).toString()
-
-    padding = _.multiplyString('&nbsp;', maxLineNumberDigits - lineNumber.length)
-    iconHTML = '<div class="icon-right"></div>'
-    padding + lineNumber + iconHTML
-
-  updateLineNumberNode: (lineNumberId, newLineNumberState) ->
-    oldLineNumberState = @oldState.lineNumbers[lineNumberId]
-    node = @lineNumberNodesById[lineNumberId]
-
-    unless oldLineNumberState.foldable is newLineNumberState.foldable and _.isEqual(oldLineNumberState.decorationClasses, newLineNumberState.decorationClasses)
-      node.className = @buildLineNumberClassName(newLineNumberState)
-      oldLineNumberState.foldable = newLineNumberState.foldable
-      oldLineNumberState.decorationClasses = _.clone(newLineNumberState.decorationClasses)
-
-    unless oldLineNumberState.top is newLineNumberState.top
-      node.style.top = newLineNumberState.top + 'px'
-      node.dataset.screenRow = newLineNumberState.screenRow
-      oldLineNumberState.top = newLineNumberState.top
-      oldLineNumberState.screenRow = newLineNumberState.screenRow
-
-  buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
-    className = "line-number line-number-#{bufferRow}"
-    className += " " + decorationClasses.join(' ') if decorationClasses?
-    className += " foldable" if foldable and not softWrapped
-    className
-
-  lineNumberNodeForScreenRow: (screenRow) ->
-    for id, lineNumberState of @oldState.lineNumbers
-      if lineNumberState.screenRow is screenRow
-        return @lineNumberNodesById[id]
-    null
+    @dummyLineNumberComponent.newState = @newState
+    @dummyLineNumberComponent.setLineNumberInnerNodes(0, false, @dummyLineNumberNode)
 
   onMouseDown: (event) =>
     {target} = event

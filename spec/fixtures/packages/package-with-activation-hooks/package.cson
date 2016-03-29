@@ -1,0 +1,5 @@
+{
+  "name": "package-with-activation-hooks",
+  "version": "0.1.0",
+  "activationHooks": ['language-fictitious:grammar-used']
+}

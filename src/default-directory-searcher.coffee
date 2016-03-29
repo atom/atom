@@ -1,8 +1,7 @@
 Task = require './task'
 
-# Public: Searches local files for lines matching a specified regex.
-#
-# Implements thenable so it can be used with `Promise.all()`.
+# Searches local files for lines matching a specified regex. Implements `.then()`
+# so that it can be used with `Promise.all()`.
 class DirectorySearch
   constructor: (rootPaths, regex, options) ->
     scanHandlerOptions =
@@ -10,7 +9,7 @@ class DirectorySearch
       inclusions: options.inclusions
       includeHidden: options.includeHidden
       excludeVcsIgnores: options.excludeVcsIgnores
-      exclusions: options.exclusions
+      globalExclusions: options.exclusions
       follow: options.follow
     @task = new Task(require.resolve('./scan-handler'))
     @task.on 'scan:result-found', options.didMatch
@@ -18,33 +17,29 @@ class DirectorySearch
     @task.on 'scan:paths-searched', options.didSearchPaths
     @promise = new Promise (resolve, reject) =>
       @task.on('task:cancelled', reject)
-      @task.start(rootPaths, regex.source, scanHandlerOptions, resolve)
+      @task.start rootPaths, regex.source, scanHandlerOptions, =>
+        @task.terminate()
+        resolve()
 
-  # Public: Implementation of `then()` to satisfy the *thenable* contract.
-  # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
-  #
-  # Returns `Promise`.
   then: (args...) ->
     @promise.then.apply(@promise, args)
 
-  # Public: Cancels the search.
   cancel: ->
     # This will cause @promise to reject.
     @task.cancel()
     null
 
-
 # Default provider for the `atom.directory-searcher` service.
 module.exports =
 class DefaultDirectorySearcher
-  # Public: Determines whether this object supports search for a `Directory`.
+  # Determines whether this object supports search for a `Directory`.
   #
   # * `directory` {Directory} whose search needs might be supported by this object.
   #
   # Returns a `boolean` indicating whether this object can search this `Directory`.
   canSearchDirectory: (directory) -> true
 
-  # Public: Performs a text search for files in the specified `Directory`, subject to the
+  # Performs a text search for files in the specified `Directory`, subject to the
   # specified parameters.
   #
   # Results are streamed back to the caller by invoking methods on the specified `options`,
@@ -89,6 +84,7 @@ class DefaultDirectorySearcher
           reject()
     return {
       then: promise.then.bind(promise)
+      catch: promise.catch.bind(promise)
       cancel: ->
         isCancelled = true
         directorySearch.cancel()

@@ -5,12 +5,11 @@ module.exports =
 class HighlightsComponent
   oldState: null
 
-  constructor: ->
+  constructor: (@domElementPool) ->
     @highlightNodesById = {}
     @regionNodesByHighlightId = {}
 
-    @domNode = document.createElement('div')
-    @domNode.classList.add('highlights')
+    @domNode = @domElementPool.buildElement("div", "highlights")
 
   getDomNode: ->
     @domNode
@@ -22,7 +21,7 @@ class HighlightsComponent
     # remove highlights
     for id of @oldState
       unless newState[id]?
-        @highlightNodesById[id].remove()
+        @domElementPool.freeElementAndDescendants(@highlightNodesById[id])
         delete @highlightNodesById[id]
         delete @regionNodesByHighlightId[id]
         delete @oldState[id]
@@ -30,8 +29,7 @@ class HighlightsComponent
     # add or update highlights
     for id, highlightState of newState
       unless @oldState[id]?
-        highlightNode = document.createElement('div')
-        highlightNode.classList.add('highlight')
+        highlightNode = @domElementPool.buildElement("div", "highlight")
         @highlightNodesById[id] = highlightNode
         @regionNodesByHighlightId[id] = {}
         @domNode.appendChild(highlightNode)
@@ -68,15 +66,18 @@ class HighlightsComponent
     # remove regions
     while oldHighlightState.regions.length > newHighlightState.regions.length
       oldHighlightState.regions.pop()
-      @regionNodesByHighlightId[id][oldHighlightState.regions.length].remove()
+      @domElementPool.freeElementAndDescendants(@regionNodesByHighlightId[id][oldHighlightState.regions.length])
       delete @regionNodesByHighlightId[id][oldHighlightState.regions.length]
 
     # add or update regions
     for newRegionState, i in newHighlightState.regions
       unless oldHighlightState.regions[i]?
         oldHighlightState.regions[i] = {}
-        regionNode = document.createElement('div')
-        regionNode.classList.add('region')
+        regionNode = @domElementPool.buildElement("div", "region")
+        # This prevents highlights at the tiles boundaries to be hidden by the
+        # subsequent tile. When this happens, subpixel anti-aliasing gets
+        # disabled.
+        regionNode.style.boxSizing = "border-box"
         regionNode.classList.add(newHighlightState.deprecatedRegionClass) if newHighlightState.deprecatedRegionClass?
         @regionNodesByHighlightId[id][i] = regionNode
         highlightNode.appendChild(regionNode)

@@ -1,6 +1,9 @@
 {find} = require 'underscore-plus'
 Grim = require 'grim'
 {Disposable} = require 'event-kit'
+_ = require 'underscore-plus'
+
+AnyConstructor = Symbol('any-constructor')
 
 # Essential: `ViewRegistry` handles the association between model and view
 # types in Atom. We call this association a View Provider. As in, for a given
@@ -42,18 +45,21 @@ Grim = require 'grim'
 # ```
 module.exports =
 class ViewRegistry
-  documentPollingInterval: 200
-  documentUpdateRequested: false
+  animationFrameRequest: null
   documentReadInProgress: false
   performDocumentPollAfterUpdate: false
-  pollIntervalHandle: null
+  debouncedPerformDocumentPoll: null
+  minimumPollInterval: 200
 
-  constructor: ->
+  constructor: (@atomEnvironment) ->
+    @observer = new MutationObserver(@requestDocumentPoll)
+    @clear()
+
+  clear: ->
     @views = new WeakMap
     @providers = []
-    @documentWriters = []
-    @documentReaders = []
-    @documentPollers = []
+    @debouncedPerformDocumentPoll = _.throttle(@performDocumentPoll, @minimumPollInterval).bind(this)
+    @clearDocumentRequests()
 
   # Essential: Add a provider that will be used to construct views in the
   # workspace's view layer based on model objects in its model layer.
@@ -66,37 +72,42 @@ class ViewRegistry
   # workspace what view constructor it should use to represent them:
   #
   # ```coffee
-  # atom.views.addViewProvider
-  #   modelConstructor: TextEditor
-  #   viewConstructor: TextEditorElement
+  # atom.views.addViewProvider TextEditor, (textEditor) ->
+  #   textEditorElement = new TextEditorElement
+  #   textEditorElement.initialize(textEditor)
+  #   textEditorElement
   # ```
   #
-  # * `providerSpec` {Object} containing the following keys:
-  #   * `modelConstructor` Constructor {Function} for your model.
-  #   * `viewConstructor` (Optional) Constructor {Function} for your view. It
-  #     should be a subclass of `HTMLElement` (that is, your view should be a
-  #     DOM node) and have a `::setModel()` method which will be called
-  #     immediately after construction. If you don't supply this property, you
-  #     must supply the `createView` property with a function that never returns
-  #     `undefined`.
-  #   * `createView` (Optional) Factory {Function} that must return a subclass
-  #     of `HTMLElement` or `undefined`. If this property is not present or the
-  #     function returns `undefined`, the view provider will fall back to the
-  #     `viewConstructor` property. If you don't provide this property, you must
-  #     provider a `viewConstructor` property.
+  # * `modelConstructor` (optional) Constructor {Function} for your model. If
+  #   a constructor is given, the `createView` function will only be used
+  #   for model objects inheriting from that constructor. Otherwise, it will
+  #   will be called for any object.
+  # * `createView` Factory {Function} that is passed an instance of your model
+  #   and must return a subclass of `HTMLElement` or `undefined`. If it returns
+  #   `undefined`, then the registry will continue to search for other view
+  #   providers.
   #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added provider.
   addViewProvider: (modelConstructor, createView) ->
     if arguments.length is 1
-      Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.")
-      provider = modelConstructor
+      switch typeof modelConstructor
+        when 'function'
+          provider = {createView: modelConstructor, modelConstructor: AnyConstructor}
+        when 'object'
+          Grim.deprecate("atom.views.addViewProvider now takes 2 arguments: a model constructor and a createView function. See docs for details.")
+          provider = modelConstructor
+        else
+          throw new TypeError("Arguments to addViewProvider must be functions")
     else
       provider = {modelConstructor, createView}
 
     @providers.push(provider)
     new Disposable =>
       @providers = @providers.filter (p) -> p isnt provider
+
+  getViewProviderCount: ->
+    @providers.length
 
   # Essential: Get the view associated with an object in the workspace.
   #
@@ -129,6 +140,22 @@ class ViewRegistry
   # * `object` The object for which you want to retrieve a view. This can be a
   #   pane item, a pane, or the workspace itself.
   #
+  # ## View Resolution Algorithm
+  #
+  # The view associated with the object is resolved using the following
+  # sequence
+  #
+  #  1. Is the object an instance of `HTMLElement`? If true, return the object.
+  #  2. Does the object have a property named `element` with a value which is
+  #     an instance of `HTMLElement`? If true, return the property value.
+  #  3. Is the object a jQuery object, indicated by the presence of a `jquery`
+  #     property? If true, return the root DOM element (i.e. `object[0]`).
+  #  4. Has a view provider been registered for the object? If true, use the
+  #     provider to create a view associated with the object, and return the
+  #     view.
+  #
+  # If no associated view is returned by the sequence an error is thrown.
+  #
   # Returns a DOM element.
   getView: (object) ->
     return unless object?
@@ -142,23 +169,39 @@ class ViewRegistry
 
   createView: (object) ->
     if object instanceof HTMLElement
-      object
-    else if object?.jquery
-      object[0]
-    else if provider = @findProvider(object)
-      element = provider.createView?(object)
-      unless element?
-        element = new provider.viewConstructor
-        element.initialize?(object) ? element.setModel?(object)
-      element
-    else if viewConstructor = object?.getViewClass?()
-      view = new viewConstructor(object)
-      view[0]
-    else
-      throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
+      return object
 
-  findProvider: (object) ->
-    find @providers, ({modelConstructor}) -> object instanceof modelConstructor
+    if typeof object?.getElement is 'function'
+      element = object.getElement()
+      if element instanceof HTMLElement
+        return element
+
+    if object?.element instanceof HTMLElement
+      return object.element
+
+    if object?.jquery
+      return object[0]
+
+    for provider in @providers
+      if provider.modelConstructor is AnyConstructor
+        if element = provider.createView(object, @atomEnvironment)
+          return element
+        continue
+
+      if object instanceof provider.modelConstructor
+        if element = provider.createView?(object, @atomEnvironment)
+          return element
+
+        if viewConstructor = provider.viewConstructor
+          element = new viewConstructor
+          element.initialize?(object) ? element.setModel?(object)
+          return element
+
+    if viewConstructor = object?.getViewClass?()
+      view = new viewConstructor(object)
+      return view[0]
+
+    throw new Error("Can't create a view for #{object.constructor.name} instance. Please register a view provider.")
 
   updateDocument: (fn) ->
     @documentWriters.push(fn)
@@ -182,20 +225,30 @@ class ViewRegistry
   pollAfterNextUpdate: ->
     @performDocumentPollAfterUpdate = true
 
+  getNextUpdatePromise: ->
+    @nextUpdatePromise ?= new Promise (resolve) =>
+      @resolveNextUpdatePromise = resolve
+
   clearDocumentRequests: ->
     @documentReaders = []
     @documentWriters = []
     @documentPollers = []
-    @documentUpdateRequested = false
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise = null
+    if @animationFrameRequest?
+      cancelAnimationFrame(@animationFrameRequest)
+      @animationFrameRequest = null
     @stopPollingDocument()
 
   requestDocumentUpdate: ->
-    unless @documentUpdateRequested
-      @documentUpdateRequested = true
-      requestAnimationFrame(@performDocumentUpdate)
+    @animationFrameRequest ?= requestAnimationFrame(@performDocumentUpdate)
 
   performDocumentUpdate: =>
-    @documentUpdateRequested = false
+    resolveNextUpdatePromise = @resolveNextUpdatePromise
+    @animationFrameRequest = null
+    @nextUpdatePromise = null
+    @resolveNextUpdatePromise = null
+
     writer() while writer = @documentWriters.shift()
 
     @documentReadInProgress = true
@@ -207,15 +260,22 @@ class ViewRegistry
     # process updates requested as a result of reads
     writer() while writer = @documentWriters.shift()
 
+    resolveNextUpdatePromise?()
+
   startPollingDocument: ->
-    @pollIntervalHandle = window.setInterval(@performDocumentPoll, @documentPollingInterval)
+    window.addEventListener('resize', @requestDocumentPoll)
+    @observer.observe(document, {subtree: true, childList: true, attributes: true})
 
   stopPollingDocument: ->
-    window.clearInterval(@pollIntervalHandle)
+    window.removeEventListener('resize', @requestDocumentPoll)
+    @observer.disconnect()
 
-  performDocumentPoll: =>
-    if @documentUpdateRequested
+  requestDocumentPoll: =>
+    if @animationFrameRequest?
       @performDocumentPollAfterUpdate = true
     else
-      poller() for poller in @documentPollers
-      return
+      @debouncedPerformDocumentPoll()
+
+  performDocumentPoll: ->
+    poller() for poller in @documentPollers
+    return

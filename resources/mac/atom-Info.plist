@@ -217,12 +217,41 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+				<string>COMMIT_EDITMSG</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Commit message</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
 				<string>cfdg</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>file.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Context Free Design Grammar</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>clj</string>
+				<string>cljs</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Clojure source</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -417,6 +446,20 @@
 			<string>file.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>C++ header</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>go</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Go source</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -627,6 +670,20 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
+				<string>less</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Less source</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
 				<string>lisp</string>
 				<string>cl</string>
 				<string>l</string>
@@ -697,6 +754,20 @@
 			<string>file.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Markdown document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>mk</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Makefile source</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -804,6 +875,21 @@
 			<string>file.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>OCaml source</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>mustache</string>
+				<string>hbs</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Mustache document</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -998,6 +1084,7 @@
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>rhtml</string>
+				<string>erb</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>file.icns</string>
@@ -1034,6 +1121,21 @@
 			<string>file.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Ruby source</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>sass</string>
+				<string>scss</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Sass source</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -1238,6 +1340,20 @@
 			<string>file.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Textile document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>toml</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>TOML file</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>

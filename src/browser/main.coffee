@@ -1,90 +1,100 @@
 global.shellStartTime = Date.now()
 
-crashReporter = require 'crash-reporter'
-app = require 'app'
+process.on 'uncaughtException', (error={}) ->
+  console.log(error.message) if error.message?
+  console.log(error.stack) if error.stack?
+
+{crashReporter, app} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
+temp = require 'temp'
 yargs = require 'yargs'
-url = require 'url'
-nslog = require 'nslog'
-
-console.log = nslog
-
-process.on 'uncaughtException', (error={}) ->
-  nslog(error.message) if error.message?
-  nslog(error.stack) if error.stack?
+console.log = require 'nslog'
 
 start = ->
-  setupAtomHome()
-  setupCoffeeCache()
-
-  if process.platform is 'win32'
-    SquirrelUpdate = require './squirrel-update'
-    squirrelCommand = process.argv[1]
-    return if SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
-
   args = parseCommandLine()
+  args.env = process.env
+  setupAtomHome(args)
+  setupCompileCache()
+  return if handleStartupEventWithSquirrel()
+
+  # NB: This prevents Win10 from showing dupe items in the taskbar
+  app.setAppUserModelId('com.squirrel.atom.atom')
 
   addPathToOpen = (event, pathToOpen) ->
     event.preventDefault()
     args.pathsToOpen.push(pathToOpen)
 
-  args.urlsToOpen = []
   addUrlToOpen = (event, urlToOpen) ->
     event.preventDefault()
     args.urlsToOpen.push(urlToOpen)
 
   app.on 'open-file', addPathToOpen
   app.on 'open-url', addUrlToOpen
+  app.on 'will-finish-launching', setupCrashReporter
 
-  app.on 'will-finish-launching', ->
-    setupCrashReporter()
+  if args.userDataDir?
+    app.setPath('userData', args.userDataDir)
+  else if args.test
+    app.setPath('userData', temp.mkdirSync('atom-test-data'))
 
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
-    cwd = args.executedFrom?.toString() or process.cwd()
-    args.pathsToOpen = args.pathsToOpen.map (pathToOpen) ->
-      normalizedPath = fs.normalize(pathToOpen)
-      if url.parse(pathToOpen).protocol?
-        pathToOpen
-      else if cwd
-        path.resolve(cwd, normalizedPath)
-      else
-        path.resolve(pathToOpen)
-
-    if args.devMode
-      AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
-    else
-      AtomApplication = require './atom-application'
-
+    AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
     AtomApplication.open(args)
+
     console.log("App load time: #{Date.now() - global.shellStartTime}ms") unless args.test
 
-global.devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
-# Normalize to make sure drive letter case is consistent on Windows
-global.devResourcePath = path.normalize(global.devResourcePath) if global.devResourcePath
+normalizeDriveLetterName = (filePath) ->
+  if process.platform is 'win32'
+    filePath.replace /^([a-z]):/, ([driveLetter]) -> driveLetter.toUpperCase() + ":"
+  else
+    filePath
+
+handleStartupEventWithSquirrel = ->
+  return false unless process.platform is 'win32'
+  SquirrelUpdate = require './squirrel-update'
+  squirrelCommand = process.argv[1]
+  SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
 setupCrashReporter = ->
-  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
-setupAtomHome = ->
+setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
 
-  atomHome = path.join(app.getHomeDir(), '.atom')
+  atomHome = path.join(app.getPath('home'), '.atom')
+  AtomPortable = require './atom-portable'
+
+  if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+    try
+      AtomPortable.setPortable(atomHome)
+    catch error
+      console.log("Failed copying portable directory '#{atomHome}' to '#{AtomPortable.getPortableAtomHomePath()}'")
+      console.log("#{error.message} #{error.stack}")
+
+  if AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
+    atomHome = AtomPortable.getPortableAtomHomePath()
+
   try
     atomHome = fs.realpathSync(atomHome)
+
   process.env.ATOM_HOME = atomHome
 
-setupCoffeeCache = ->
-  CoffeeCache = require 'coffee-cash'
-  cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache')
-  # Use separate compile cache when sudo'ing as root to avoid permission issues
-  if process.env.USER is 'root' and process.env.SUDO_USER and process.env.SUDO_USER isnt process.env.USER
-    cacheDir = path.join(cacheDir, 'root')
-  CoffeeCache.setCacheDirectory(path.join(cacheDir, 'coffee'))
-  CoffeeCache.register()
+setupCompileCache = ->
+  compileCache = require('../compile-cache')
+  compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+
+writeFullVersion = ->
+  process.stdout.write """
+    Atom    : #{app.getVersion()}
+    Electron: #{process.versions.electron}
+    Chrome  : #{process.versions.chrome}
+    Node    : #{process.versions.node}
+
+  """
 
 parseCommandLine = ->
   version = app.getVersion()
@@ -108,8 +118,8 @@ parseCommandLine = ->
                               Defaults to `~/.atom`.
   """
   # Deprecated 1.0 API preview flag
-  options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported. Atom now defaults to launching with the 1.0 API. Use --include-deprecated-apis to run Atom with deprecated APIs.')
-  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'Include deprecated APIs.')
+  options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported.')
+  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'This option is not currently supported.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
   options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
@@ -117,12 +127,16 @@ parseCommandLine = ->
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
   options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
   options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
-  options.alias('s', 'spec-directory').string('s').describe('s', 'Set the directory from which to run package specs (default: Atom\'s spec directory).')
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
+  options.boolean('portable').describe('portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
-  options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
+  options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
+  options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
+  options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
+  options.string('user-data-dir')
+  options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
 
   args = options.argv
 
@@ -131,37 +145,33 @@ parseCommandLine = ->
     process.exit(0)
 
   if args.version
-    process.stdout.write("#{version}\n")
+    writeFullVersion()
     process.exit(0)
 
-  executedFrom = args['executed-from']
+  addToLastWindow = args['add']
+  executedFrom = args['executed-from']?.toString() ? process.cwd()
   devMode = args['dev']
   safeMode = args['safe']
-  includeDeprecatedAPIs = args['include-deprecated-apis']
   pathsToOpen = args._
   test = args['test']
-  specDirectory = args['spec-directory']
+  timeout = args['timeout']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
   socketPath = args['socket-path']
+  userDataDir = args['user-data-dir']
   profileStartup = args['profile-startup']
+  clearWindowState = args['clear-window-state']
+  urlsToOpen = []
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getPath('home'), 'github', 'atom')
+  setPortable = args.portable
 
   if args['resource-path']
     devMode = true
     resourcePath = args['resource-path']
-  else
-    # Set resourcePath based on the specDirectory if running specs on atom core
-    if specDirectory?
-      packageDirectoryPath = path.join(specDirectory, '..')
-      packageManifestPath = path.join(packageDirectoryPath, 'package.json')
-      if fs.statSyncNoException(packageManifestPath)
-        try
-          packageManifest = JSON.parse(fs.readFileSync(packageManifestPath))
-          resourcePath = packageDirectoryPath if packageManifest.name is 'atom'
 
-    if devMode
-      resourcePath ?= global.devResourcePath
+  devMode = true if test
+  resourcePath ?= devResourcePath if devMode
 
   unless fs.statSyncNoException(resourcePath)
     resourcePath = path.dirname(path.dirname(__dirname))
@@ -170,8 +180,12 @@ parseCommandLine = ->
   # explicitly pass it by command line, see http://git.io/YC8_Ew.
   process.env.PATH = args['path-environment'] if args['path-environment']
 
-  {resourcePath, pathsToOpen, executedFrom, test, version, pidToKillWhenClosed,
-   devMode, includeDeprecatedAPIs, safeMode, newWindow, specDirectory, logFile,
-   socketPath, profileStartup}
+  resourcePath = normalizeDriveLetterName(resourcePath)
+  devResourcePath = normalizeDriveLetterName(devResourcePath)
+
+  {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
+   version, pidToKillWhenClosed, devMode, safeMode, newWindow,
+   logFile, socketPath, userDataDir, profileStartup, timeout, setPortable,
+   clearWindowState, addToLastWindow}
 
 start()

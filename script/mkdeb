@@ -1,5 +1,5 @@
 #!/bin/bash
-# mkdeb version control-file-path deb-file-path
+# mkdeb name version channel arch control-file-path desktop-file-path icon-path deb-file-path
 
 set -e
 
@@ -7,20 +7,22 @@ SCRIPT=`readlink -f "$0"`
 ROOT=`readlink -f $(dirname $SCRIPT)/..`
 cd $ROOT
 
-VERSION="$1"
-ARCH="$2"
-CONTROL_FILE="$3"
-DESKTOP_FILE="$4"
-ICON_FILE="$5"
-DEB_PATH="$6"
+NAME="$1"
+VERSION="$2"
+CHANNEL="$3"
+ARCH="$4"
+CONTROL_FILE="$5"
+DESKTOP_FILE="$6"
+ICON_FILE="$7"
+DEB_PATH="$8"
 FILE_MODE=755
 
 TARGET_ROOT="`mktemp -d`"
 chmod $FILE_MODE "$TARGET_ROOT"
-TARGET="$TARGET_ROOT/atom-$VERSION-$ARCH"
+TARGET="$TARGET_ROOT/$NAME-$VERSION-$ARCH"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr"
-env INSTALL_PREFIX="$TARGET/usr" script/grunt install
+env INSTALL_PREFIX="$TARGET/usr" script/grunt install --channel $CHANNEL
 
 mkdir -m $FILE_MODE -p "$TARGET/DEBIAN"
 cp "$CONTROL_FILE" "$TARGET/DEBIAN/control"
@@ -29,19 +31,19 @@ mkdir -m $FILE_MODE -p "$TARGET/usr/share/applications"
 cp "$DESKTOP_FILE" "$TARGET/usr/share/applications"
 
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/pixmaps"
-cp "$ICON_FILE" "$TARGET/usr/share/pixmaps"
+cp "$ICON_FILE" "$TARGET/usr/share/pixmaps/$NAME.png"
 
 # Copy generated LICENSE.md to /usr/share/doc/atom/copyright
-mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/atom"
-cp "$TARGET/usr/share/atom/resources/LICENSE.md" "$TARGET/usr/share/doc/atom/copyright"
+mkdir -m $FILE_MODE -p "$TARGET/usr/share/doc/$NAME"
+cp "$TARGET/usr/share/$NAME/resources/LICENSE.md" "$TARGET/usr/share/doc/$NAME/copyright"
 
 # Add lintian overrides
 mkdir -m $FILE_MODE -p "$TARGET/usr/share/lintian/overrides"
-cp "$ROOT/resources/linux/debian/lintian-overrides" "$TARGET/usr/share/lintian/overrides/atom"
+cp "$ROOT/resources/linux/debian/lintian-overrides" "$TARGET/usr/share/lintian/overrides/$NAME"
 
 # Remove executable bit from .node files
 find "$TARGET" -type f -name "*.node" -exec chmod a-x {} \;
 
 fakeroot dpkg-deb -b "$TARGET"
-mv "$TARGET_ROOT/atom-$VERSION-$ARCH.deb" "$DEB_PATH"
+mv "$TARGET_ROOT/$NAME-$VERSION-$ARCH.deb" "$DEB_PATH"
 rm -rf "$TARGET_ROOT"

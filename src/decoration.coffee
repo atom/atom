@@ -1,6 +1,5 @@
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
-Grim = require 'grim'
 
 idCounter = 0
 nextId = -> idCounter++
@@ -12,7 +11,7 @@ translateDecorationParamsOldToNew = (decorationParams) ->
     decorationParams.gutterName = 'line-number'
   decorationParams
 
-# Essential: Represents a decoration that follows a {Marker}. A decoration is
+# Essential: Represents a decoration that follows a {TextEditorMarker}. A decoration is
 # basically a visual representation of a marker. It allows you to add CSS
 # classes to line numbers in the gutter, lines, and add selection-line regions
 # around marked ranges of text.
@@ -26,7 +25,7 @@ translateDecorationParamsOldToNew = (decorationParams) ->
 # decoration = editor.decorateMarker(marker, {type: 'line', class: 'my-line-class'})
 # ```
 #
-# Best practice for destroying the decoration is by destroying the {Marker}.
+# Best practice for destroying the decoration is by destroying the {TextEditorMarker}.
 #
 # ```coffee
 # marker.destroy()
@@ -36,7 +35,6 @@ translateDecorationParamsOldToNew = (decorationParams) ->
 # the marker.
 module.exports =
 class Decoration
-
   # Private: Check if the `decorationProperties.type` matches `type`
   #
   # * `decorationProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
@@ -68,21 +66,19 @@ class Decoration
     @emitter = new Emitter
     @id = nextId()
     @setProperties properties
-    @properties.id = @id
-    @flashQueue = null
     @destroyed = false
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
   # Essential: Destroy this marker.
   #
-  # If you own the marker, you should use {Marker::destroy} which will destroy
+  # If you own the marker, you should use {TextEditorMarker::destroy} which will destroy
   # this decoration.
   destroy: ->
     return if @destroyed
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @emit 'destroyed' if Grim.includeDeprecatedAPIs
+    @displayBuffer.didDestroyDecoration(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -152,11 +148,17 @@ class Decoration
     return if @destroyed
     oldProperties = @properties
     @properties = translateDecorationParamsOldToNew(newProperties)
-    @properties.id = @id
     if newProperties.type?
       @displayBuffer.decorationDidChangeType(this)
-    @emit 'updated', {oldParams: oldProperties, newParams: newProperties} if Grim.includeDeprecatedAPIs
+    @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
+
+  ###
+  Section: Utility
+  ###
+
+  inspect: ->
+    "<Decoration #{@id}>"
 
   ###
   Section: Private methods
@@ -168,41 +170,10 @@ class Decoration
       return false if @properties[key] isnt value
     true
 
-  onDidFlash: (callback) ->
-    @emitter.on 'did-flash', callback
-
   flash: (klass, duration=500) ->
-    flashObject = {class: klass, duration}
-    @flashQueue ?= []
-    @flashQueue.push(flashObject)
-    @emit 'flash' if Grim.includeDeprecatedAPIs
+    @properties.flashCount ?= 0
+    @properties.flashCount++
+    @properties.flashClass = klass
+    @properties.flashDuration = duration
+    @displayBuffer.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-flash'
-
-  consumeNextFlash: ->
-    return @flashQueue.shift() if @flashQueue?.length > 0
-    null
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(Decoration)
-
-  Decoration::on = (eventName) ->
-    switch eventName
-      when 'updated'
-        Grim.deprecate 'Use Decoration::onDidChangeProperties instead'
-      when 'destroyed'
-        Grim.deprecate 'Use Decoration::onDidDestroy instead'
-      when 'flash'
-        Grim.deprecate 'Use Decoration::onDidFlash instead'
-      else
-        Grim.deprecate 'Decoration::on is deprecated. Use event subscription methods instead.'
-
-    EmitterMixin::on.apply(this, arguments)
-
-  Decoration::getParams = ->
-    Grim.deprecate 'Use Decoration::getProperties instead'
-    @getProperties()
-
-  Decoration::update = (newProperties) ->
-    Grim.deprecate 'Use Decoration::setProperties instead'
-    @setProperties(newProperties)

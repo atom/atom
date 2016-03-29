@@ -1,0 +1,12 @@
+{
+  "name": "package-with-ignored-incompatible-native-module",
+  "version": "1.0.0",
+  "main": "./main.js",
+  "_atomModuleCache": {
+    "extensions": {
+      ".node": [
+        "node_modules/compatible-native-module/build/Release/native.node"
+      ]
+    }
+  }
+}

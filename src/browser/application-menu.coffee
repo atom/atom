@@ -1,6 +1,4 @@
-app = require 'app'
-ipc = require 'ipc'
-Menu = require 'menu'
+{app, Menu} = require 'electron'
 _ = require 'underscore-plus'
 
 # Used to manage the global application menu.

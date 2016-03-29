@@ -1,7 +1,4 @@
 {CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
-{callAttachHooks} = require './space-pen-extensions'
-PaneContainerView = null
 _ = require 'underscore-plus'
 
 module.exports =
@@ -10,22 +7,18 @@ class PaneContainerElement extends HTMLElement
     @subscriptions = new CompositeDisposable
     @classList.add 'panes'
 
-    if Grim.includeDeprecatedAPIs
-      PaneContainerView ?= require './pane-container-view'
-      @__spacePenView = new PaneContainerView(this)
+  initialize: (@model, {@views}) ->
+    throw new Error("Must pass a views parameter when initializing PaneContainerElements") unless @views?
 
-  initialize: (@model) ->
     @subscriptions.add @model.observeRoot(@rootChanged.bind(this))
-    @__spacePenView.setModel(@model) if Grim.includeDeprecatedAPIs
     this
 
   rootChanged: (root) ->
     focusedElement = document.activeElement if @hasFocus()
     @firstChild?.remove()
     if root?
-      view = atom.views.getView(root)
+      view = @views.getView(root)
       @appendChild(view)
-      callAttachHooks(view)
       focusedElement?.focus()
 
   hasFocus: ->
@@ -43,13 +36,34 @@ class PaneContainerElement extends HTMLElement
   focusPaneViewOnRight: ->
     @nearestPaneInDirection('right')?.focus()
 
+  moveActiveItemToPaneAbove: (params) ->
+    @moveActiveItemToNearestPaneInDirection('above', params)
+
+  moveActiveItemToPaneBelow: (params) ->
+    @moveActiveItemToNearestPaneInDirection('below', params)
+
+  moveActiveItemToPaneOnLeft: (params) ->
+    @moveActiveItemToNearestPaneInDirection('left', params)
+
+  moveActiveItemToPaneOnRight: (params) ->
+    @moveActiveItemToNearestPaneInDirection('right', params)
+
+  moveActiveItemToNearestPaneInDirection: (direction, params) ->
+    destPane = @nearestPaneInDirection(direction)?.getModel()
+    return unless destPane?
+    if params?.keepOriginal
+      @model.copyActiveItemToPane(destPane)
+    else
+      @model.moveActiveItemToPane(destPane)
+    destPane.focus()
+
   nearestPaneInDirection: (direction) ->
     distance = (pointA, pointB) ->
       x = pointB.x - pointA.x
       y = pointB.y - pointA.y
       Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
 
-    paneView = atom.views.getView(@model.getActivePane())
+    paneView = @views.getView(@model.getActivePane())
     box = @boundingBoxForPaneView(paneView)
 
     paneViews = _.toArray(@querySelectorAll('atom-pane'))

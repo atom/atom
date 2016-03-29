@@ -71,6 +71,18 @@ describe "Task", ->
     expect(stdout.listeners('data').length).toBe 0
     expect(stderr.listeners('data').length).toBe 0
 
+  it "does not throw an error for forked processes missing stdout/stderr", ->
+    spyOn(require('child_process'), 'fork').andCallFake ->
+      Events = require 'events'
+      fakeProcess = new Events()
+      fakeProcess.send = ->
+      fakeProcess.kill = ->
+      fakeProcess
+
+    task = new Task(require.resolve('./fixtures/task-spec-handler'))
+    expect(-> task.start()).not.toThrow()
+    expect(-> task.terminate()).not.toThrow()
+
   describe "::cancel()", ->
     it "dispatches 'task:cancelled' when invoked on an active task", ->
       task = new Task(require.resolve('./fixtures/task-spec-handler'))

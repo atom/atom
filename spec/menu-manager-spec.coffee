@@ -5,7 +5,11 @@ describe "MenuManager", ->
   menu = null
 
   beforeEach ->
-    menu = new MenuManager(resourcePath: atom.getLoadSettings().resourcePath)
+    menu = new MenuManager(
+      resourcePath: atom.getLoadSettings().resourcePath
+      keymapManager: atom.keymaps
+      packageManager: atom.packages
+    )
 
   describe "::add(items)", ->
     it "can add new menus that can be removed with the returned disposable", ->
@@ -52,7 +56,7 @@ describe "MenuManager", ->
     it "sends the current menu template and associated key bindings to the browser process", ->
       spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
-      atom.keymap.add 'test', 'atom-workspace': 'ctrl-b': 'b'
+      atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       menu.update()
 
       waits 1
@@ -64,10 +68,10 @@ describe "MenuManager", ->
       # more dynamic interaction between the currently focused element and the menu
       spyOn(menu, 'sendToBrowserProcess')
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
-      atom.keymap.add 'test', 'atom-workspace': 'ctrl-b': 'b'
-      atom.keymap.add 'test', 'atom-text-editor': 'ctrl-b': 'unset!'
+      atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
+      atom.keymaps.add 'test', 'atom-text-editor': 'ctrl-b': 'unset!'
 
-      waits 1
+      waits 50
 
       runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
 

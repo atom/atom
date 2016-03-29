@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
-{fork} = require 'child_process'
-{Emitter} = require 'emissary'
+ChildProcess = require 'child_process'
+{Emitter} = require 'event-kit'
 Grim = require 'grim'
 
 # Extended: Run a node script in a separate process.
@@ -38,8 +38,6 @@ Grim = require 'grim'
 # ```
 module.exports =
 class Task
-  Emitter.includeInto(this)
-
   # Public: A helper method to easily launch and run a task once.
   #
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file which
@@ -66,15 +64,13 @@ class Task
   # * `taskPath` The {String} path to the CoffeeScript/JavaScript file that
   #   exports a single {Function} to execute.
   constructor: (taskPath) ->
-    coffeeCacheRequire = "require('#{require.resolve('coffee-cash')}')"
-    coffeeCachePath = require('coffee-cash').getCacheDirectory()
-    coffeeStackRequire = "require('#{require.resolve('coffeestack')}')"
-    stackCachePath = require('coffeestack').getCacheDirectory()
+    @emitter = new Emitter
+
+    compileCacheRequire = "require('#{require.resolve('./compile-cache')}')"
+    compileCachePath = require('./compile-cache').getCacheDirectory()
     taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
     bootstrap = """
-      #{coffeeCacheRequire}.setCacheDirectory('#{coffeeCachePath}');
-      #{coffeeCacheRequire}.register();
-      #{coffeeStackRequire}.setCacheDirectory('#{stackCachePath}');
+      #{compileCacheRequire}.setCacheDirectory('#{compileCachePath}');
       #{taskBootstrapRequire}
     """
     bootstrap = bootstrap.replace(/\\/g, "\\\\")
@@ -83,7 +79,7 @@ class Task
     taskPath = taskPath.replace(/\\/g, "\\\\")
 
     env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = fork '--eval', [bootstrap], {env, silent: true}
+    @childProcess = ChildProcess.fork '--eval', [bootstrap], {env, silent: true}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
@@ -99,13 +95,16 @@ class Task
   handleEvents: ->
     @childProcess.removeAllListeners()
     @childProcess.on 'message', ({event, args}) =>
-      @emit(event, args...) if @childProcess?
+      @emitter.emit(event, args) if @childProcess?
 
     # Catch the errors that happened before task-bootstrap.
-    @childProcess.stdout.removeAllListeners()
-    @childProcess.stdout.on 'data', (data) -> console.log data.toString()
-    @childProcess.stderr.removeAllListeners()
-    @childProcess.stderr.on 'data', (data) -> console.error data.toString()
+    if @childProcess.stdout?
+      @childProcess.stdout.removeAllListeners()
+      @childProcess.stdout.on 'data', (data) -> console.log data.toString()
+
+    if @childProcess.stderr?
+      @childProcess.stderr.removeAllListeners()
+      @childProcess.stderr.on 'data', (data) -> console.error data.toString()
 
   # Public: Starts the task.
   #
@@ -144,7 +143,12 @@ class Task
   # * `callback` The {Function} to call when the event is emitted.
   #
   # Returns a {Disposable} that can be used to stop listening for the event.
-  on: (eventName, callback) -> Emitter::on.call(this, eventName, callback)
+  on: (eventName, callback) -> @emitter.on eventName, (args) -> callback(args...)
+
+  once: (eventName, callback) ->
+    disposable = @on eventName, (args...) ->
+      disposable.dispose()
+      callback(args...)
 
   # Public: Forcefully stop the running task.
   #
@@ -153,8 +157,8 @@ class Task
     return false unless @childProcess?
 
     @childProcess.removeAllListeners()
-    @childProcess.stdout.removeAllListeners()
-    @childProcess.stderr.removeAllListeners()
+    @childProcess.stdout?.removeAllListeners()
+    @childProcess.stderr?.removeAllListeners()
     @childProcess.kill()
     @childProcess = null
 
@@ -163,5 +167,5 @@ class Task
   cancel: ->
     didForcefullyTerminate = @terminate()
     if didForcefullyTerminate
-      @emit('task:cancelled')
+      @emitter.emit('task:cancelled')
     didForcefullyTerminate

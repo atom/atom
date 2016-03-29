@@ -18,11 +18,12 @@
   'ctrl-d': 'core:delete'
 
   # Atom Specific
-  'cmd-alt-ctrl-s': 'application:run-all-specs'
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'up': 'core:move-up'
   'down': 'core:move-down'
+  'ctrl-up': 'core:move-up'
+  'ctrl-down': 'core:move-down'
   'left': 'core:move-left'
   'right': 'core:move-right'
   'ctrl-alt-cmd-l': 'window:reload'
@@ -72,18 +73,20 @@
   'cmd-alt-right': 'pane:show-next-item'
   'ctrl-pageup': 'pane:show-previous-item'
   'ctrl-pagedown': 'pane:show-next-item'
-  'ctrl-tab': 'pane:show-next-item'
-  'ctrl-shift-tab': 'pane:show-previous-item'
+  'ctrl-tab': 'pane:show-next-recently-used-item'
+  'ctrl-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
+  'ctrl-shift-tab': 'pane:show-previous-recently-used-item'
+  'ctrl-shift-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
   'cmd-=': 'window:increase-font-size'
   'cmd-+': 'window:increase-font-size'
   'cmd--': 'window:decrease-font-size'
   'cmd-_': 'window:decrease-font-size'
   'cmd-0': 'window:reset-font-size'
 
-  'cmd-k up': 'pane:split-up' # Atom Specific
-  'cmd-k down': 'pane:split-down' # Atom Specific
-  'cmd-k left': 'pane:split-left' # Atom Specific
-  'cmd-k right': 'pane:split-right' # Atom Specific
+  'cmd-k up': 'pane:split-up-and-copy-active-item' # Atom Specific
+  'cmd-k down': 'pane:split-down-and-copy-active-item' # Atom Specific
+  'cmd-k left': 'pane:split-left-and-copy-active-item' # Atom Specific
+  'cmd-k right': 'pane:split-right-and-copy-active-item' # Atom Specific
   'cmd-k cmd-w': 'pane:close' # Atom Specific
   'cmd-k alt-cmd-w': 'pane:close-other-items' # Atom Specific
   'cmd-k cmd-p': 'window:focus-previous-pane'
@@ -137,6 +140,12 @@
   'cmd-k cmd-l': 'editor:lower-case'
   'cmd-l': 'editor:select-line'
   'ctrl-t': 'editor:transpose'
+  'ctrl-alt-left': 'editor:move-to-previous-subword-boundary'
+  'ctrl-alt-right': 'editor:move-to-next-subword-boundary'
+  'ctrl-alt-shift-left': 'editor:select-to-previous-subword-boundary'
+  'ctrl-alt-shift-right': 'editor:select-to-next-subword-boundary'
+  'ctrl-alt-backspace': 'editor:delete-to-beginning-of-subword'
+  'ctrl-alt-delete': 'editor:delete-to-end-of-subword'
 
 'atom-workspace atom-text-editor:not([mini])':
   # Atom specific
@@ -174,6 +183,10 @@
   'cmd-k cmd-7': 'editor:fold-at-indent-level-7'
   'cmd-k cmd-8': 'editor:fold-at-indent-level-8'
   'cmd-k cmd-9': 'editor:fold-at-indent-level-9'
+
+'atom-workspace atom-pane':
+  'cmd-alt-=': 'pane:increase-size'
+  'cmd-alt--': 'pane:decrease-size'
 
 # allow standard input fields to work correctly
 'body .native-key-bindings':

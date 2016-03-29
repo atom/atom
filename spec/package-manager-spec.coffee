@@ -1,13 +1,35 @@
 path = require 'path'
-{$, $$} = require '../src/space-pen-extensions'
 Package = require '../src/package'
+temp = require 'temp'
+fs = require 'fs-plus'
 {Disposable} = require 'atom'
+{buildKeydownEvent} = require '../src/keymap-extensions'
+{mockLocalStorage} = require './spec-helper'
 
 describe "PackageManager", ->
   workspaceElement = null
 
+  createTestElement = (className) ->
+    element = document.createElement('div')
+    element.className = className
+    element
+
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
+
+  describe "::getApmPath()", ->
+    it "returns the path to the apm command", ->
+      apmPath = path.join(process.resourcesPath, "app", "apm", "bin", "apm")
+      if process.platform is 'win32'
+        apmPath += ".cmd"
+      expect(atom.packages.getApmPath()).toBe apmPath
+
+      describe "when the core.apmPath setting is set", ->
+        beforeEach ->
+          atom.config.set("core.apmPath", "/path/to/apm")
+
+        it "returns the value of the core.apmPath config setting", ->
+          expect(atom.packages.getApmPath()).toBe "/path/to/apm"
 
   describe "::loadPackage(name)", ->
     beforeEach ->
@@ -34,6 +56,7 @@ describe "PackageManager", ->
       expect(-> pack.reloadStylesheets()).not.toThrow()
       expect(addErrorHandler.callCount).toBe 2
       expect(addErrorHandler.argsForCall[1][0].message).toContain("Failed to reload the package-with-invalid-styles package stylesheets")
+      expect(addErrorHandler.argsForCall[1][0].options.packageName).toEqual "package-with-invalid-styles"
 
     it "returns null if the package has an invalid package.json", ->
       addErrorHandler = jasmine.createSpy()
@@ -41,15 +64,21 @@ describe "PackageManager", ->
       expect(atom.packages.loadPackage("package-with-broken-package-json")).toBeNull()
       expect(addErrorHandler.callCount).toBe 1
       expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
+      expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-broken-package-json"
 
     it "normalizes short repository urls in package.json", ->
       {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
       expect(metadata.repository.type).toBe "git"
-      expect(metadata.repository.url).toBe "https://github.com/example/repo.git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo"
 
       {metadata} = atom.packages.loadPackage("package-with-invalid-url-package-json")
       expect(metadata.repository.type).toBe "git"
       expect(metadata.repository.url).toBe "foo"
+
+    it "trims git+ from the beginning and .git from the end of repository URLs, even if npm already normalized them ", ->
+      {metadata} = atom.packages.loadPackage("package-with-prefixed-and-suffixed-repo-url")
+      expect(metadata.repository.type).toBe "git"
+      expect(metadata.repository.url).toBe "https://github.com/example/repo"
 
     it "returns null if the package is not found in any package directory", ->
       spyOn(console, 'warn')
@@ -58,17 +87,7 @@ describe "PackageManager", ->
       expect(console.warn.argsForCall[0][0]).toContain("Could not resolve")
 
     describe "when the package is deprecated", ->
-      grim = require 'grim'
-      includeDeprecatedAPIs = null
-
-      beforeEach ->
-        {includeDeprecatedAPIs} = grim
-
-      afterEach ->
-        grim.includeDeprecatedAPIs = includeDeprecatedAPIs
-
       it "returns null", ->
-        grim.includeDeprecatedAPIs = false
         expect(atom.packages.loadPackage(path.join(__dirname, 'fixtures', 'packages', 'wordcount'))).toBeNull()
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.1.9')).toBe true
         expect(atom.packages.isDeprecatedPackage('wordcount', '2.2.0')).toBe true
@@ -82,6 +101,119 @@ describe "PackageManager", ->
       atom.packages.loadPackage("package-with-main")
 
       expect(loadedPackage.name).toBe "package-with-main"
+
+    it "registers any deserializers specified in the package's package.json", ->
+      pack = atom.packages.loadPackage("package-with-deserializers")
+
+      state1 = {deserializer: 'Deserializer1', a: 'b'}
+      expect(atom.deserializers.deserialize(state1)).toEqual {
+        wasDeserializedBy: 'deserializeMethod1'
+        state: state1
+      }
+
+      state2 = {deserializer: 'Deserializer2', c: 'd'}
+      expect(atom.deserializers.deserialize(state2)).toEqual {
+        wasDeserializedBy: 'deserializeMethod2'
+        state: state2
+      }
+
+    describe "when there are view providers specified in the package's package.json", ->
+      model1 = {worksWithViewProvider1: true}
+      model2 = {worksWithViewProvider2: true}
+
+      afterEach ->
+        atom.packages.deactivatePackage('package-with-view-providers')
+        atom.packages.unloadPackage('package-with-view-providers')
+
+      it "does not load the view providers immediately", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+        expect(pack.mainModule).toBeNull()
+
+        expect(-> atom.views.getView(model1)).toThrow()
+        expect(-> atom.views.getView(model2)).toThrow()
+
+      it "registers the view providers when the package is activated", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+
+        waitsForPromise ->
+          atom.packages.activatePackage("package-with-view-providers").then ->
+            element1 = atom.views.getView(model1)
+            expect(element1 instanceof HTMLDivElement).toBe true
+            expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+            element2 = atom.views.getView(model2)
+            expect(element2 instanceof HTMLDivElement).toBe true
+            expect(element2.dataset.createdBy).toBe 'view-provider-2'
+
+      it "registers the view providers when any of the package's deserializers are used", ->
+        pack = atom.packages.loadPackage("package-with-view-providers")
+
+        spyOn(atom.views, 'addViewProvider').andCallThrough()
+        atom.deserializers.deserialize({
+          deserializer: 'DeserializerFromPackageWithViewProviders',
+          a: 'b'
+        })
+        expect(atom.views.addViewProvider.callCount).toBe 2
+
+        atom.deserializers.deserialize({
+          deserializer: 'DeserializerFromPackageWithViewProviders',
+          a: 'b'
+        })
+        expect(atom.views.addViewProvider.callCount).toBe 2
+
+        element1 = atom.views.getView(model1)
+        expect(element1 instanceof HTMLDivElement).toBe true
+        expect(element1.dataset.createdBy).toBe 'view-provider-1'
+
+        element2 = atom.views.getView(model2)
+        expect(element2 instanceof HTMLDivElement).toBe true
+        expect(element2.dataset.createdBy).toBe 'view-provider-2'
+
+    it "registers the config schema in the package's metadata, if present", ->
+      pack = atom.packages.loadPackage("package-with-json-config-schema")
+      expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
+        type: 'object'
+        properties: {
+          a: {type: 'number', default: 5}
+          b: {type: 'string', default: 'five'}
+        }
+      }
+
+      expect(pack.mainModule).toBeNull()
+
+      atom.packages.unloadPackage('package-with-json-config-schema')
+      atom.config.clear()
+
+      pack = atom.packages.loadPackage("package-with-json-config-schema")
+      expect(atom.config.getSchema('package-with-json-config-schema')).toEqual {
+        type: 'object'
+        properties: {
+          a: {type: 'number', default: 5}
+          b: {type: 'string', default: 'five'}
+        }
+      }
+
+    describe "when a package does not have deserializers, view providers or a config schema in its package.json", ->
+      beforeEach ->
+        mockLocalStorage()
+
+      it "defers loading the package's main module if the package previously used no Atom APIs when its main module was required", ->
+        pack1 = atom.packages.loadPackage('package-with-main')
+        expect(pack1.mainModule).toBeDefined()
+
+        atom.packages.unloadPackage('package-with-main')
+
+        pack2 = atom.packages.loadPackage('package-with-main')
+        expect(pack2.mainModule).toBeNull()
+
+      it "does not defer loading the package's main module if the package previously used Atom APIs when its main module was required", ->
+        pack1 = atom.packages.loadPackage('package-with-eval-time-api-calls')
+        expect(pack1.mainModule).toBeDefined()
+
+        atom.packages.unloadPackage('package-with-eval-time-api-calls')
+
+        pack2 = atom.packages.loadPackage('package-with-eval-time-api-calls')
+        expect(pack2.mainModule).not.toBeNull()
 
   describe "::unloadPackage(name)", ->
     describe "when the package is active", ->
@@ -170,26 +302,8 @@ describe "PackageManager", ->
           expect(atom.config.set('package-with-config-schema.numbers.one', '10')).toBe true
           expect(atom.config.get('package-with-config-schema.numbers.one')).toBe 10
 
-      describe "when a package has configDefaults", ->
-        beforeEach ->
-          jasmine.snapshotDeprecations()
-
-        afterEach ->
-          jasmine.restoreDeprecationsSnapshot()
-
-        it "still assigns configDefaults from the module though deprecated", ->
-
-          expect(atom.config.get('package-with-config-defaults.numbers.one')).toBeUndefined()
-
-          waitsForPromise ->
-            atom.packages.activatePackage('package-with-config-defaults')
-
-          runs ->
-            expect(atom.config.get('package-with-config-defaults.numbers.one')).toBe 1
-            expect(atom.config.get('package-with-config-defaults.numbers.two')).toBe 2
-
       describe "when the package metadata includes `activationCommands`", ->
-        [mainModule, promise, workspaceCommandListener] = []
+        [mainModule, promise, workspaceCommandListener, registration] = []
 
         beforeEach ->
           jasmine.attachToDOM(workspaceElement)
@@ -200,38 +314,40 @@ describe "PackageManager", ->
           spyOn(Package.prototype, 'requireMainModule').andCallThrough()
 
           workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
-          atom.commands.add '.workspace', 'activation-command', workspaceCommandListener
+          registration = atom.commands.add '.workspace', 'activation-command', workspaceCommandListener
 
           promise = atom.packages.activatePackage('package-with-activation-commands')
 
+        afterEach ->
+          registration?.dispose()
+          mainModule = null
+
         it "defers requiring/activating the main module until an activation event bubbles to the root view", ->
-          expect(promise.isFulfilled()).not.toBeTruthy()
+          expect(Package.prototype.requireMainModule.callCount).toBe 0
+
           workspaceElement.dispatchEvent(new CustomEvent('activation-command', bubbles: true))
 
           waitsForPromise ->
             promise
+
+          runs ->
+            expect(Package.prototype.requireMainModule.callCount).toBe 1
 
         it "triggers the activation event on all handlers registered during activation", ->
           waitsForPromise ->
             atom.workspace.open()
 
           runs ->
-            editorView = atom.views.getView(atom.workspace.getActiveTextEditor()).__spacePenView
-            legacyCommandListener = jasmine.createSpy("legacyCommandListener")
-            editorView.command 'activation-command', legacyCommandListener
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
             editorCommandListener = jasmine.createSpy("editorCommandListener")
             atom.commands.add 'atom-text-editor', 'activation-command', editorCommandListener
-            atom.commands.dispatch(editorView[0], 'activation-command')
+            atom.commands.dispatch(editorElement, 'activation-command')
             expect(mainModule.activate.callCount).toBe 1
-            expect(mainModule.legacyActivationCommandCallCount).toBe 1
             expect(mainModule.activationCommandCallCount).toBe 1
-            expect(legacyCommandListener.callCount).toBe 1
             expect(editorCommandListener.callCount).toBe 1
             expect(workspaceCommandListener.callCount).toBe 1
-            atom.commands.dispatch(editorView[0], 'activation-command')
-            expect(mainModule.legacyActivationCommandCallCount).toBe 2
+            atom.commands.dispatch(editorElement, 'activation-command')
             expect(mainModule.activationCommandCallCount).toBe 2
-            expect(legacyCommandListener.callCount).toBe 2
             expect(editorCommandListener.callCount).toBe 2
             expect(workspaceCommandListener.callCount).toBe 2
             expect(mainModule.activate.callCount).toBe 1
@@ -252,6 +368,7 @@ describe "PackageManager", ->
           expect(-> atom.packages.activatePackage('package-with-invalid-activation-commands')).not.toThrow()
           expect(addErrorHandler.callCount).toBe 1
           expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-activation-commands package")
+          expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-activation-commands"
 
         it "adds a notification when the context menu is invalid", ->
           addErrorHandler = jasmine.createSpy()
@@ -259,6 +376,7 @@ describe "PackageManager", ->
           expect(-> atom.packages.activatePackage('package-with-invalid-context-menu')).not.toThrow()
           expect(addErrorHandler.callCount).toBe 1
           expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to activate the package-with-invalid-context-menu package")
+          expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-context-menu"
 
         it "adds a notification when the grammar is invalid", ->
           addErrorHandler = jasmine.createSpy()
@@ -272,6 +390,7 @@ describe "PackageManager", ->
           runs ->
             expect(addErrorHandler.callCount).toBe 1
             expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load a package-with-invalid-grammar package grammar")
+            expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-grammar"
 
         it "adds a notification when the settings are invalid", ->
           addErrorHandler = jasmine.createSpy()
@@ -285,6 +404,43 @@ describe "PackageManager", ->
           runs ->
             expect(addErrorHandler.callCount).toBe 1
             expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-invalid-settings package settings")
+            expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-invalid-settings"
+
+    describe "when the package metadata includes `activationHooks`", ->
+      [mainModule, promise] = []
+
+      beforeEach ->
+        mainModule = require './fixtures/packages/package-with-activation-hooks/index'
+        spyOn(mainModule, 'activate').andCallThrough()
+        spyOn(Package.prototype, 'requireMainModule').andCallThrough()
+
+        promise = atom.packages.activatePackage('package-with-activation-hooks')
+
+      it "defers requiring/activating the main module until an triggering of an activation hook occurs", ->
+        expect(Package.prototype.requireMainModule.callCount).toBe 0
+
+        atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
+
+        waitsForPromise ->
+          promise
+
+        runs ->
+          expect(Package.prototype.requireMainModule.callCount).toBe 1
+
+      it "activates the package immediately when activationHooks is empty", ->
+        mainModule = require './fixtures/packages/package-with-empty-activation-hooks/index'
+        spyOn(mainModule, 'activate').andCallThrough()
+
+        runs ->
+          expect(Package.prototype.requireMainModule.callCount).toBe 0
+
+        waitsForPromise ->
+          atom.packages.activatePackage('package-with-empty-activation-hooks')
+
+        runs ->
+          expect(mainModule.activate.callCount).toBe 1
+          expect(Package.prototype.requireMainModule.callCount).toBe 1
 
     describe "when the package has no main module", ->
       it "does not throw an exception", ->
@@ -309,16 +465,15 @@ describe "PackageManager", ->
       pack = null
       waitsForPromise ->
         atom.packages.activatePackage("package-with-serialization").then (p) -> pack = p
-
       runs ->
         expect(pack.mainModule.someNumber).not.toBe 77
         pack.mainModule.someNumber = 77
         atom.packages.deactivatePackage("package-with-serialization")
         spyOn(pack.mainModule, 'activate').andCallThrough()
-        waitsForPromise ->
-          atom.packages.activatePackage("package-with-serialization")
-        runs ->
-          expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
+      waitsForPromise ->
+        atom.packages.activatePackage("package-with-serialization")
+      runs ->
+        expect(pack.mainModule.activate).toHaveBeenCalledWith({someNumber: 77})
 
     it "invokes ::onDidActivatePackage listeners with the activated package", ->
       activatedPackage = null
@@ -338,6 +493,7 @@ describe "PackageManager", ->
         expect(-> atom.packages.activatePackage("package-that-throws-an-exception")).not.toThrow()
         expect(addErrorHandler.callCount).toBe 1
         expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-that-throws-an-exception package")
+        expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-that-throws-an-exception"
 
     describe "when the package is not found", ->
       it "rejects the promise", ->
@@ -360,36 +516,36 @@ describe "PackageManager", ->
     describe "keymap loading", ->
       describe "when the metadata does not contain a 'keymaps' manifest", ->
         it "loads all the .cson/.json files in the keymaps directory", ->
-          element1 = $$ -> @div class: 'test-1'
-          element2 = $$ -> @div class: 'test-2'
-          element3 = $$ -> @div class: 'test-3'
+          element1 = createTestElement('test-1')
+          element2 = createTestElement('test-2')
+          element3 = createTestElement('test-3')
 
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])).toHaveLength 0
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2)).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3)).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe "test-1"
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2[0])[0].command).toBe "test-2"
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe "test-1"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element2)[0].command).toBe "test-2"
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element3)).toHaveLength 0
 
       describe "when the metadata contains a 'keymaps' manifest", ->
         it "loads only the keymaps specified by the manifest, in the specified order", ->
-          element1 = $$ -> @div class: 'test-1'
-          element3 = $$ -> @div class: 'test-3'
+          element1 = createTestElement('test-1')
+          element3 = createTestElement('test-3')
 
-          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])).toHaveLength 0
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
 
           waitsForPromise ->
             atom.packages.activatePackage("package-with-keymaps-manifest")
 
           runs ->
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1[0])[0].command).toBe 'keymap-1'
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1[0])[0].command).toBe 'keymap-2'
-            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3[0])).toHaveLength 0
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe 'keymap-1'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-n', target: element1)[0].command).toBe 'keymap-2'
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-y', target: element3)).toHaveLength 0
 
       describe "when the keymap file is empty", ->
         it "does not throw an error on activation", ->
@@ -399,6 +555,90 @@ describe "PackageManager", ->
           runs ->
             expect(atom.packages.isPackageActive("package-with-empty-keymap")).toBe true
 
+      describe "when the package's keymaps have been disabled", ->
+        it "does not add the keymaps", ->
+          element1 = createTestElement('test-1')
+
+          expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
+
+          atom.config.set("core.packagesWithKeymapsDisabled", ["package-with-keymaps-manifest"])
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps-manifest")
+
+          runs ->
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
+
+      describe "when setting core.packagesWithKeymapsDisabled", ->
+        it "ignores package names in the array that aren't loaded", ->
+          atom.packages.observePackagesWithKeymapsDisabled()
+
+          expect(-> atom.config.set("core.packagesWithKeymapsDisabled", ["package-does-not-exist"])).not.toThrow()
+          expect(-> atom.config.set("core.packagesWithKeymapsDisabled", [])).not.toThrow()
+
+      describe "when the package's keymaps are disabled and re-enabled after it is activated", ->
+        it "removes and re-adds the keymaps", ->
+          element1 = createTestElement('test-1')
+          atom.packages.observePackagesWithKeymapsDisabled()
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps-manifest")
+
+          runs ->
+            atom.config.set("core.packagesWithKeymapsDisabled", ['package-with-keymaps-manifest'])
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)).toHaveLength 0
+
+            atom.config.set("core.packagesWithKeymapsDisabled", [])
+            expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: element1)[0].command).toBe 'keymap-1'
+
+      describe "when the package is de-activated and re-activated", ->
+        [element, events, userKeymapPath] = []
+
+        beforeEach ->
+          userKeymapPath = path.join(temp.path(), "user-keymaps.cson")
+          spyOn(atom.keymaps, "getUserKeymapPath").andReturn(userKeymapPath)
+
+          element = createTestElement('test-1')
+          jasmine.attachToDOM(element)
+
+          events = []
+          element.addEventListener 'user-command', (e) -> events.push(e)
+          element.addEventListener 'test-1', (e) -> events.push(e)
+
+        afterEach ->
+          element.remove()
+
+          # Avoid leaking user keymap subscription
+          atom.keymaps.watchSubscriptions[userKeymapPath].dispose()
+          delete atom.keymaps.watchSubscriptions[userKeymapPath]
+
+        it "doesn't override user-defined keymaps", ->
+          fs.writeFileSync userKeymapPath, """
+          ".test-1":
+            "ctrl-z": "user-command"
+          """
+          atom.keymaps.loadUserKeymap()
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            atom.keymaps.handleKeyboardEvent(buildKeydownEvent("z", ctrl: true, target: element))
+
+            expect(events.length).toBe(1)
+            expect(events[0].type).toBe("user-command")
+
+            atom.packages.deactivatePackage("package-with-keymaps")
+
+          waitsForPromise ->
+            atom.packages.activatePackage("package-with-keymaps")
+
+          runs ->
+            atom.keymaps.handleKeyboardEvent(buildKeydownEvent("z", ctrl: true, target: element))
+
+            expect(events.length).toBe(2)
+            expect(events[1].type).toBe("user-command")
+
     describe "menu loading", ->
       beforeEach ->
         atom.contextMenu.definitions = []
@@ -406,7 +646,7 @@ describe "PackageManager", ->
 
       describe "when the metadata does not contain a 'menus' manifest", ->
         it "loads all the .cson/.json files in the menus directory", ->
-          element = ($$ -> @div class: 'test-1')[0]
+          element = createTestElement('test-1')
 
           expect(atom.contextMenu.templateForElement(element)).toEqual []
 
@@ -423,7 +663,7 @@ describe "PackageManager", ->
 
       describe "when the metadata contains a 'menus' manifest", ->
         it "loads only the menus specified by the manifest, in the specified order", ->
-          element = ($$ -> @div class: 'test-1')[0]
+          element = createTestElement('test-1')
 
           expect(atom.contextMenu.templateForElement(element)).toEqual []
 
@@ -467,7 +707,8 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(one)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).toBeNull()
-            expect($('#jasmine-content').css('font-size')).toBe '1px'
+
+            expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe '1px'
 
       describe "when the metadata does not contain a 'styleSheets' manifest", ->
         it "loads all style sheets from the styles directory", ->
@@ -494,7 +735,7 @@ describe "PackageManager", ->
             expect(atom.themes.stylesheetElementForId(two)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(three)).not.toBeNull()
             expect(atom.themes.stylesheetElementForId(four)).not.toBeNull()
-            expect($('#jasmine-content').css('font-size')).toBe '3px'
+            expect(getComputedStyle(document.querySelector('#jasmine-content')).fontSize).toBe '3px'
 
       it "assigns the stylesheet's context based on the filename", ->
         waitsForPromise ->
@@ -596,6 +837,34 @@ describe "PackageManager", ->
           expect(atom.packages.isPackageActive("package-with-missing-provided-services")).toBe true
           expect(addErrorHandler.callCount).toBe 0
 
+  describe "::serialize", ->
+    it "does not serialize packages that threw an error during activation", ->
+      spyOn(console, 'warn')
+      badPack = null
+      waitsForPromise ->
+        atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
+
+      runs ->
+        spyOn(badPack.mainModule, 'serialize').andCallThrough()
+
+        atom.packages.serialize()
+        expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
+
+    it "absorbs exceptions that are thrown by the package module's serialize method", ->
+      spyOn(console, 'error')
+
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-serialize-error')
+
+      waitsForPromise ->
+        atom.packages.activatePackage('package-with-serialization')
+
+      runs ->
+        atom.packages.serialize()
+        expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
+        expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
+        expect(console.error).toHaveBeenCalled()
+
   describe "::deactivatePackage(id)", ->
     afterEach ->
       atom.packages.unloadPackages()
@@ -627,33 +896,6 @@ describe "PackageManager", ->
         expect(badPack.mainModule.deactivate).not.toHaveBeenCalled()
         expect(atom.packages.isPackageActive("package-that-throws-on-activate")).toBeFalsy()
 
-    it "does not serialize packages that have not been activated called on their main module", ->
-      spyOn(console, 'warn')
-      badPack = null
-      waitsForPromise ->
-        atom.packages.activatePackage("package-that-throws-on-activate").then (p) -> badPack = p
-
-      runs ->
-        spyOn(badPack.mainModule, 'serialize').andCallThrough()
-
-        atom.packages.deactivatePackage("package-that-throws-on-activate")
-        expect(badPack.mainModule.serialize).not.toHaveBeenCalled()
-
-    it "absorbs exceptions that are thrown by the package module's serialize method", ->
-      spyOn(console, 'error')
-
-      waitsForPromise ->
-        atom.packages.activatePackage('package-with-serialize-error')
-
-      waitsForPromise ->
-        atom.packages.activatePackage('package-with-serialization')
-
-      runs ->
-        atom.packages.deactivatePackages()
-        expect(atom.packages.packageStates['package-with-serialize-error']).toBeUndefined()
-        expect(atom.packages.packageStates['package-with-serialization']).toEqual someNumber: 1
-        expect(console.error).toHaveBeenCalled()
-
     it "absorbs exceptions that are thrown by the package module's deactivate method", ->
       spyOn(console, 'error')
 
@@ -679,8 +921,8 @@ describe "PackageManager", ->
 
       runs ->
         atom.packages.deactivatePackage('package-with-keymaps')
-        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-1')[0])).toHaveLength 0
-        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: ($$ -> @div class: 'test-2')[0])).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: createTestElement('test-1'))).toHaveLength 0
+        expect(atom.keymaps.findKeyBindings(keystrokes: 'ctrl-z', target: createTestElement('test-2'))).toHaveLength 0
 
     it "removes the package's stylesheets", ->
       waitsForPromise ->
@@ -727,8 +969,6 @@ describe "PackageManager", ->
       atom.packages.deactivatePackages()
       atom.packages.unloadPackages()
 
-      GrammarRegistry = require '../src/grammar-registry'
-      atom.grammars = window.syntax = new GrammarRegistry()
       jasmine.restoreDeprecationsSnapshot()
 
     it "activates all the packages, and none of the themes", ->
@@ -750,8 +990,8 @@ describe "PackageManager", ->
       package1 = atom.packages.loadPackage('package-with-main')
       package2 = atom.packages.loadPackage('package-with-index')
       package3 = atom.packages.loadPackage('package-with-activation-commands')
-      spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2])
-
+      spyOn(atom.packages, 'getLoadedPackages').andReturn([package1, package2, package3])
+      spyOn(atom.themes, 'activatePackages')
       activateSpy = jasmine.createSpy('activateSpy')
       atom.packages.onDidActivateInitialPackages(activateSpy)
 
@@ -803,6 +1043,16 @@ describe "PackageManager", ->
         expect(atom.packages.enablePackage("this-doesnt-exist")).toBeNull()
         expect(console.warn.callCount).toBe 1
 
+      it "does not disable an already disabled package", ->
+        packageName = 'package-with-main'
+        atom.config.pushAtKeyPath('core.disabledPackages', packageName)
+        atom.packages.observeDisabledPackages()
+        expect(atom.config.get('core.disabledPackages')).toContain packageName
+
+        atom.packages.disablePackage(packageName)
+        packagesDisabled = atom.config.get('core.disabledPackages').filter((pack) -> pack is packageName)
+        expect(packagesDisabled.length).toEqual 1
+
     describe "with themes", ->
       didChangeActiveThemesHandler = null
 
@@ -822,7 +1072,7 @@ describe "PackageManager", ->
         # enabling of theme
         pack = atom.packages.enablePackage(packageName)
 
-        waitsFor ->
+        waitsFor 'theme to enable', 500, ->
           pack in atom.packages.getActivePackages()
 
         runs ->
@@ -835,7 +1085,7 @@ describe "PackageManager", ->
 
           pack = atom.packages.disablePackage(packageName)
 
-        waitsFor ->
+        waitsFor 'did-change-active-themes event to fire', 500, ->
           didChangeActiveThemesHandler.callCount is 1
 
         runs ->
@@ -843,66 +1093,3 @@ describe "PackageManager", ->
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.themes')).not.toContain packageName
           expect(atom.config.get('core.disabledPackages')).not.toContain packageName
-
-  describe "deleting non-bundled autocomplete packages", ->
-    [autocompleteCSSPath, autocompletePlusPath] = []
-    fs = require 'fs-plus'
-    path = require 'path'
-
-    beforeEach ->
-      fixturePath = path.resolve(__dirname, './fixtures/packages')
-      autocompleteCSSPath = path.join(fixturePath, 'autocomplete-css')
-      autocompletePlusPath = path.join(fixturePath, 'autocomplete-plus')
-
-      try
-        fs.mkdirSync(autocompleteCSSPath)
-        fs.writeFileSync(path.join(autocompleteCSSPath, 'package.json'), '{}')
-        fs.symlinkSync(path.join(fixturePath, 'package-with-main'), autocompletePlusPath, 'dir')
-
-      expect(fs.isDirectorySync(autocompleteCSSPath)).toBe true
-      expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
-
-      jasmine.unspy(atom.packages, 'uninstallAutocompletePlus')
-
-    afterEach ->
-      try
-        fs.unlink autocompletePlusPath, ->
-
-    it "removes the packages", ->
-      atom.packages.loadPackages()
-
-      waitsFor ->
-        not fs.isDirectorySync(autocompleteCSSPath)
-
-      runs ->
-        expect(fs.isDirectorySync(autocompleteCSSPath)).toBe false
-        expect(fs.isSymbolicLinkSync(autocompletePlusPath)).toBe true
-
-  describe "when the deprecated sublime-tabs package is installed", ->
-    grim = require 'grim'
-    includeDeprecatedAPIs = null
-
-    beforeEach ->
-      {includeDeprecatedAPIs} = grim
-      grim.includeDeprecatedAPIs = false
-
-    afterEach ->
-      grim.includeDeprecatedAPIs = includeDeprecatedAPIs
-
-    it "enables the tree-view and tabs package", ->
-      atom.config.pushAtKeyPath('core.disabledPackages', 'tree-view')
-      atom.config.pushAtKeyPath('core.disabledPackages', 'tabs')
-
-      spyOn(atom.packages, 'getAvailablePackagePaths').andReturn [
-        path.join(__dirname, 'fixtures', 'packages', 'sublime-tabs')
-        path.resolve(__dirname, '..', 'node_modules', 'tree-view')
-        path.resolve(__dirname, '..', 'node_modules', 'tabs')
-      ]
-      atom.packages.loadPackages()
-
-      waitsFor ->
-        not atom.packages.isPackageDisabled('tree-view') and not atom.packages.isPackageDisabled('tabs')
-
-      runs ->
-        expect(atom.packages.isPackageLoaded('tree-view')).toBe true
-        expect(atom.packages.isPackageLoaded('tabs')).toBe true

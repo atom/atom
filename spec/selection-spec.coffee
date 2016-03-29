@@ -5,7 +5,7 @@ describe "Selection", ->
 
   beforeEach ->
     buffer = atom.project.bufferForPathSync('sample.js')
-    editor = new TextEditor(buffer: buffer, tabLength: 2)
+    editor = atom.workspace.buildTextEditor(buffer: buffer, tabLength: 2)
     selection = editor.getLastSelection()
 
   afterEach ->
@@ -56,6 +56,19 @@ describe "Selection", ->
       selection.selectToScreenPosition([0, 25])
       expect(selection.isReversed()).toBeFalsy()
 
+  describe ".selectLine(row)", ->
+    describe "when passed a row", ->
+      it "selects the specified row", ->
+        selection.setBufferRange([[2, 4], [3, 4]])
+        selection.selectLine(5)
+        expect(selection.getBufferRange()).toEqual [[5, 0], [6, 0]]
+
+    describe "when not passed a row", ->
+      it "selects all rows spanned by the selection", ->
+        selection.setBufferRange([[2, 4], [3, 4]])
+        selection.selectLine()
+        expect(selection.getBufferRange()).toEqual [[2, 0], [4, 0]]
+
   describe "when only the selection's tail is moved (regression)", ->
     it "notifies ::onDidChangeRange observers", ->
       selection.setBufferRange([[2, 0], [2, 10]], reversed: true)
@@ -70,3 +83,11 @@ describe "Selection", ->
       selection.setBufferRange([[2, 0], [2, 10]])
       selection.destroy()
       expect(selection.marker.isDestroyed()).toBeTruthy()
+
+  describe ".insertText(text, options)", ->
+    it "allows pasting white space only lines when autoIndent is enabled", ->
+      selection.setBufferRange [[0, 0], [0, 0]]
+      selection.insertText("    \n    \n\n", autoIndent: true)
+      expect(buffer.lineForRow(0)).toBe "    "
+      expect(buffer.lineForRow(1)).toBe "    "
+      expect(buffer.lineForRow(2)).toBe ""

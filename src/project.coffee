@@ -3,12 +3,8 @@ url = require 'url'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
-Q = require 'q'
-{includeDeprecatedAPIs, deprecate} = require 'grim'
-{Emitter} = require 'event-kit'
-Serializable = require 'serializable'
+{Emitter, Disposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
-Grim = require 'grim'
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
@@ -21,60 +17,34 @@ GitRepositoryProvider = require './git-repository-provider'
 # An instance of this class is always available as the `atom.project` global.
 module.exports =
 class Project extends Model
-  atom.deserializers.add(this)
-  Serializable.includeInto(this)
-
   ###
   Section: Construction and Destruction
   ###
 
-  constructor: ({path, paths, @buffers}={}) ->
+  constructor: ({@notificationManager, packageManager, config}) ->
     @emitter = new Emitter
-    @buffers ?= []
+    @buffers = []
+    @paths = []
     @rootDirectories = []
     @repositories = []
-
-    @directoryProviders = [new DefaultDirectoryProvider()]
-    atom.packages.serviceHub.consume(
-      'atom.directory-provider',
-      '^0.1.0',
-      # New providers are added to the front of @directoryProviders because
-      # DefaultDirectoryProvider is a catch-all that will always provide a Directory.
-      (provider) => @directoryProviders.unshift(provider))
-
-    # Mapping from the real path of a {Directory} to a {Promise} that resolves
-    # to either a {Repository} or null. Ideally, the {Directory} would be used
-    # as the key; however, there can be multiple {Directory} objects created for
-    # the same real path, so it is not a good key.
+    @directoryProviders = []
+    @defaultDirectoryProvider = new DefaultDirectoryProvider()
     @repositoryPromisesByPath = new Map()
-
-    # Note that the GitRepositoryProvider is registered synchronously so that
-    # it is available immediately on startup.
-    @repositoryProviders = [new GitRepositoryProvider(this)]
-    atom.packages.serviceHub.consume(
-      'atom.repository-provider',
-      '^0.1.0',
-      (provider) =>
-        @repositoryProviders.push(provider)
-
-        # If a path in getPaths() does not have a corresponding Repository, try
-        # to assign one by running through setPaths() again now that
-        # @repositoryProviders has been updated.
-        if null in @repositories
-          @setPaths(@getPaths())
-      )
-
-    @subscribeToBuffer(buffer) for buffer in @buffers
-
-    if Grim.includeDeprecatedAPIs and path?
-      Grim.deprecate("Pass 'paths' array instead of 'path' to project constructor")
-
-    paths ?= _.compact([path])
-    @setPaths(paths)
+    @repositoryProviders = [new GitRepositoryProvider(this, config)]
+    @consumeServices(packageManager)
 
   destroyed: ->
-    buffer.destroy() for buffer in @getBuffers()
+    buffer.destroy() for buffer in @buffers
     @setPaths([])
+
+  reset: (packageManager) ->
+    @emitter.dispose()
+    @emitter = new Emitter
+
+    buffer?.destroy() for buffer in @buffers
+    @buffers = []
+    @setPaths([])
+    @consumeServices(packageManager)
 
   destroyUnretainedBuffers: ->
     buffer.destroy() for buffer in @getBuffers() when not buffer.isRetained()
@@ -84,12 +54,11 @@ class Project extends Model
   Section: Serialization
   ###
 
-  serializeParams: ->
-    paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+  deserialize: (state) ->
+    state.paths = [state.path] if state.path? # backward compatibility
+    state.paths = state.paths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
 
-  deserializeParams: (params) ->
-    params.buffers = _.compact params.buffers.map (bufferState) ->
+    @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
       return if fs.isDirectorySync(bufferState.filePath)
       if bufferState.filePath
@@ -97,9 +66,15 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
+      TextBuffer.deserialize(bufferState)
 
-      atom.deserializers.deserialize(bufferState)
-    params
+    @subscribeToBuffer(buffer) for buffer in @buffers
+    @setPaths(state.paths)
+
+  serialize: (options={}) ->
+    deserializer: 'Project'
+    paths: @getPaths()
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
 
   ###
   Section: Event Subscription
@@ -170,34 +145,28 @@ class Project extends Model
   #
   # * `projectPaths` {Array} of {String} paths.
   setPaths: (projectPaths) ->
-    if includeDeprecatedAPIs
-      rootDirectory.off() for rootDirectory in @rootDirectories
-
     repository?.destroy() for repository in @repositories
     @rootDirectories = []
     @repositories = []
 
     @addPath(projectPath, emitEvent: false) for projectPath in projectPaths
 
-    @emit "path-changed" if includeDeprecatedAPIs
     @emitter.emit 'did-change-paths', projectPaths
 
   # Public: Add a path to the project's list of root paths
   #
   # * `projectPath` {String} The path to the directory to add.
   addPath: (projectPath, options) ->
-    for directory in @getDirectories()
-      # Apparently a Directory does not believe it can contain itself, so we
-      # must also check whether the paths match.
-      return if directory.contains(projectPath) or directory.getPath() is projectPath
-
     directory = null
     for provider in @directoryProviders
       break if directory = provider.directoryForURISync?(projectPath)
-    if directory is null
-      # This should never happen because DefaultDirectoryProvider should always
-      # return a Directory.
-      throw new Error(projectPath + ' could not be resolved to a directory')
+    directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
+
+    directoryExists = directory.existsSync()
+    for rootDirectory in @getDirectories()
+      return if rootDirectory.getPath() is directory.getPath()
+      return if not directoryExists and rootDirectory.contains(directory.getPath())
+
     @rootDirectories.push(directory)
 
     repo = null
@@ -206,7 +175,6 @@ class Project extends Model
     @repositories.push(repo ? null)
 
     unless options?.emitEvent is false
-      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit 'did-change-paths', @getPaths()
 
   # Public: remove a path from the project's list of root paths.
@@ -226,9 +194,7 @@ class Project extends Model
     if indexToRemove?
       [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
-      removedDirectory.off() if includeDeprecatedAPIs
       removedRepository?.destroy() unless removedRepository in @repositories
-      @emit "path-changed" if includeDeprecatedAPIs
       @emitter.emit "did-change-paths", @getPaths()
       true
     else
@@ -267,10 +233,13 @@ class Project extends Model
   # * `relativePath` {String} The relative path from the project directory to
   #   the given path.
   relativizePath: (fullPath) ->
-    for rootDirectory in @rootDirectories
-      relativePath = rootDirectory.relativize(fullPath)
-      return [rootDirectory.getPath(), relativePath] unless relativePath is fullPath
-    [null, fullPath]
+    result = [null, fullPath]
+    if fullPath?
+      for rootDirectory in @rootDirectories
+        relativePath = rootDirectory.relativize(fullPath)
+        if relativePath?.length < result[1].length
+          result = [rootDirectory.getPath(), relativePath]
+    result
 
   # Public: Determines whether the given path (real or symbolic) is inside the
   # project's directory.
@@ -306,25 +275,25 @@ class Project extends Model
   Section: Private
   ###
 
-  # Given a path to a file, this constructs and associates a new
-  # {TextEditor}, showing the file.
-  #
-  # * `filePath` The {String} path of the file to associate with.
-  # * `options` Options that you can pass to the {TextEditor} constructor.
-  #
-  # Returns a promise that resolves to an {TextEditor}.
-  open: (filePath, options={}) ->
-    filePath = @resolvePath(filePath)
+  consumeServices: ({serviceHub}) ->
+    serviceHub.consume(
+      'atom.directory-provider',
+      '^0.1.0',
+      (provider) =>
+        @directoryProviders.unshift(provider)
+        new Disposable =>
+          @directoryProviders.splice(@directoryProviders.indexOf(provider), 1)
+    )
 
-    if filePath?
-      try
-        fs.closeSync(fs.openSync(filePath, 'r'))
-      catch error
-        # allow ENOENT errors to create an editor for paths that dont exist
-        throw error unless error.code is 'ENOENT'
-
-    @bufferForPath(filePath).then (buffer) =>
-      @buildEditorForBuffer(buffer, options)
+    serviceHub.consume(
+      'atom.repository-provider',
+      '^0.1.0',
+      (provider) =>
+        @repositoryProviders.unshift(provider)
+        @setPaths(@getPaths()) if null in @repositories
+        new Disposable =>
+          @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
+    )
 
   # Retrieves all the {TextBuffer}s in the project; that is, the
   # buffers for all open files.
@@ -340,11 +309,19 @@ class Project extends Model
   findBufferForPath: (filePath) ->
     _.find @buffers, (buffer) -> buffer.getPath() is filePath
 
+  findBufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.getId() is id
+
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
+
+  # Only to be used when deserializing
+  bufferForIdSync: (id) ->
+    existingBuffer = @findBufferForId(id) if id
+    existingBuffer ? @buildBufferSync()
 
   # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -353,14 +330,13 @@ class Project extends Model
   #
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
-  bufferForPath: (filePath) ->
-    absoluteFilePath = @resolvePath(filePath)
-    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath
-    Q(existingBuffer ? @buildBuffer(absoluteFilePath))
-
-  bufferForId: (id) ->
-    _.find @buffers, (buffer) -> buffer.id is id
+  # Returns a {Promise} that resolves to the {TextBuffer}.
+  bufferForPath: (absoluteFilePath) ->
+    existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
+    if existingBuffer
+      Promise.resolve(existingBuffer)
+    else
+      @buildBuffer(absoluteFilePath)
 
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
@@ -374,7 +350,7 @@ class Project extends Model
   # * `absoluteFilePath` A {String} representing a path.
   # * `text` The {String} text to use as a buffer.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
@@ -389,7 +365,6 @@ class Project extends Model
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
     @subscribeToBuffer(buffer)
-    @emit 'buffer-created', buffer if includeDeprecatedAPIs
     @emitter.emit 'did-add-buffer', buffer
     buffer
 
@@ -404,11 +379,6 @@ class Project extends Model
     [buffer] = @buffers.splice(index, 1)
     buffer?.destroy()
 
-  buildEditorForBuffer: (buffer, editorOptions) ->
-    largeFileMode = fs.getSizeSync(buffer.getPath()) >= 2 * 1048576 # 2MB
-    editor = new TextEditor(_.extend({buffer, largeFileMode, registerEditor: true}, editorOptions))
-    editor
-
   eachBuffer: (args...) ->
     subscriber = args.shift() if args.length > 1
     callback = args.shift()
@@ -421,74 +391,11 @@ class Project extends Model
 
   subscribeToBuffer: (buffer) ->
     buffer.onDidDestroy => @removeBuffer(buffer)
-    buffer.onWillThrowWatchError ({error, handle}) ->
+    buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
-      atom.notifications.addWarning """
+      @notificationManager.addWarning """
         Unable to read file after file `#{error.eventType}` event.
         Make sure you have permission to access `#{buffer.getPath()}`.
         """,
         detail: error.message
         dismissable: true
-
-if includeDeprecatedAPIs
-  Project.pathForRepositoryUrl = (repoUrl) ->
-    deprecate '::pathForRepositoryUrl will be removed. Please remove from your code.'
-    [repoName] = url.parse(repoUrl).path.split('/')[-1..]
-    repoName = repoName.replace(/\.git$/, '')
-    path.join(atom.config.get('core.projectHome'), repoName)
-
-  Project::registerOpener = (opener) ->
-    deprecate("Use Workspace::addOpener instead")
-    atom.workspace.addOpener(opener)
-
-  Project::unregisterOpener = (opener) ->
-    deprecate("Call .dispose() on the Disposable returned from ::addOpener instead")
-    atom.workspace.unregisterOpener(opener)
-
-  Project::eachEditor = (callback) ->
-    deprecate("Use Workspace::observeTextEditors instead")
-    atom.workspace.observeTextEditors(callback)
-
-  Project::getEditors = ->
-    deprecate("Use Workspace::getTextEditors instead")
-    atom.workspace.getTextEditors()
-
-  Project::on = (eventName) ->
-    if eventName is 'path-changed'
-      Grim.deprecate("Use Project::onDidChangePaths instead")
-    else
-      Grim.deprecate("Project::on is deprecated. Use documented event subscription methods instead.")
-    super
-
-  Project::getRepo = ->
-    Grim.deprecate("Use ::getRepositories instead")
-    @getRepositories()[0]
-
-  Project::getPath = ->
-    Grim.deprecate("Use ::getPaths instead")
-    @getPaths()[0]
-
-  Project::setPath = (path) ->
-    Grim.deprecate("Use ::setPaths instead")
-    @setPaths([path])
-
-  Project::getRootDirectory = ->
-    Grim.deprecate("Use ::getDirectories instead")
-    @getDirectories()[0]
-
-  Project::resolve = (uri) ->
-    Grim.deprecate("Use `Project::getDirectories()[0]?.resolve()` instead")
-    @resolvePath(uri)
-
-  Project::scan = (regex, options={}, iterator) ->
-    Grim.deprecate("Use atom.workspace.scan instead of atom.project.scan")
-    atom.workspace.scan(regex, options, iterator)
-
-  Project::replace = (regex, replacementText, filePaths, iterator) ->
-    Grim.deprecate("Use atom.workspace.replace instead of atom.project.replace")
-    atom.workspace.replace(regex, replacementText, filePaths, iterator)
-
-  Project::openSync = (filePath, options={}) ->
-    deprecate("Use Project::open instead")
-    filePath = @resolvePath(filePath)
-    @buildEditorForBuffer(@bufferForPathSync(filePath), options)

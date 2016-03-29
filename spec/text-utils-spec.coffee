@@ -44,3 +44,53 @@ describe 'text utilities', ->
       expect(textUtils.isPairedCharacter('ae\u0301c', 2)).toBe false
       expect(textUtils.isPairedCharacter('ae\u0301c', 3)).toBe false
       expect(textUtils.isPairedCharacter('ae\u0301c', 4)).toBe false
+
+  describe ".isDoubleWidthCharacter(character)", ->
+    it "returns true when the character is either japanese, chinese or a full width form", ->
+      expect(textUtils.isDoubleWidthCharacter("我")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("私")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("Ｂ")).toBe(true)
+      expect(textUtils.isDoubleWidthCharacter("，")).toBe(true)
+      expect(textUtils.isDoubleWidthCharacter("￠")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("a")).toBe(false)
+
+  describe ".isHalfWidthCharacter(character)", ->
+    it "returns true when the character is an half width form", ->
+      expect(textUtils.isHalfWidthCharacter("ﾊ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("ﾋ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("ﾬ")).toBe(true)
+      expect(textUtils.isHalfWidthCharacter("￭")).toBe(true)
+
+      expect(textUtils.isHalfWidthCharacter("B")).toBe(false)
+
+  describe ".isKoreanCharacter(character)", ->
+    it "returns true when the character is a korean character", ->
+      expect(textUtils.isKoreanCharacter("우")).toBe(true)
+      expect(textUtils.isKoreanCharacter("가")).toBe(true)
+      expect(textUtils.isKoreanCharacter("ㅢ")).toBe(true)
+      expect(textUtils.isKoreanCharacter("ㄼ")).toBe(true)
+
+      expect(textUtils.isKoreanCharacter("O")).toBe(false)
+
+  describe ".isCJKCharacter(character)", ->
+    it "returns true when the character is either a korean, half-width or double-width character", ->
+      expect(textUtils.isCJKCharacter("我")).toBe(true)
+      expect(textUtils.isCJKCharacter("私")).toBe(true)
+      expect(textUtils.isCJKCharacter("Ｂ")).toBe(true)
+      expect(textUtils.isCJKCharacter("，")).toBe(true)
+      expect(textUtils.isCJKCharacter("￠")).toBe(true)
+      expect(textUtils.isCJKCharacter("ﾊ")).toBe(true)
+      expect(textUtils.isCJKCharacter("ﾋ")).toBe(true)
+      expect(textUtils.isCJKCharacter("ﾬ")).toBe(true)
+      expect(textUtils.isCJKCharacter("￭")).toBe(true)
+      expect(textUtils.isCJKCharacter("우")).toBe(true)
+      expect(textUtils.isCJKCharacter("가")).toBe(true)
+      expect(textUtils.isCJKCharacter("ㅢ")).toBe(true)
+      expect(textUtils.isCJKCharacter("ㄼ")).toBe(true)
+
+      expect(textUtils.isDoubleWidthCharacter("a")).toBe(false)
+      expect(textUtils.isDoubleWidthCharacter("O")).toBe(false)
+      expect(textUtils.isDoubleWidthCharacter("z")).toBe(false)

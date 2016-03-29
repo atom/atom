@@ -7,8 +7,7 @@ LineNumberGutterComponent = require './line-number-gutter-component'
 
 module.exports =
 class GutterContainerComponent
-
-  constructor: ({@onLineNumberGutterMouseDown, @editor}) ->
+  constructor: ({@onLineNumberGutterMouseDown, @editor, @domElementPool, @views}) ->
     # An array of objects of the form: {name: {String}, component: {Object}}
     @gutterComponents = []
     @gutterComponentsByGutterName = {}
@@ -16,7 +15,12 @@ class GutterContainerComponent
 
     @domNode = document.createElement('div')
     @domNode.classList.add('gutter-container')
-    @domNode.style.display = 'flex';
+    @domNode.style.display = 'flex'
+
+  destroy: ->
+    for {name, component} in @gutterComponents
+      component.destroy?()
+    return
 
   getDomNode: ->
     @domNode
@@ -35,10 +39,10 @@ class GutterContainerComponent
       gutterComponent = @gutterComponentsByGutterName[gutter.name]
       if not gutterComponent
         if gutter.name is 'line-number'
-          gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, gutter})
+          gutterComponent = new LineNumberGutterComponent({onMouseDown: @onLineNumberGutterMouseDown, @editor, gutter, @domElementPool, @views})
           @lineNumberGutterComponent = gutterComponent
         else
-          gutterComponent = new CustomGutterComponent({gutter})
+          gutterComponent = new CustomGutterComponent({gutter, @views})
 
       if visible then gutterComponent.showNode() else gutterComponent.hideNode()
       # Pass the gutter only the state that it needs.
