@@ -1077,46 +1077,46 @@ class TextEditor extends Model
   # Move any active selections one column to the left.
   moveSelectionLeft: ->
     selections = @getSelectedBufferRanges()
+    noSelectionAtStartOfLine = selections.every((selection) ->
+      selection.start.column isnt 0
+    )
 
     translationDelta = [0, -1]
     translatedRanges = []
 
     @transact =>
-      for selection in selections
-        charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
-
-        if charToLeftOfSelection.start.column < 0
-          translatedRanges.push(selection)
-        else
+      if noSelectionAtStartOfLine
+        for selection in selections
+          charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
           charTextToLeftOfSelection = @buffer.getTextInRange(charToLeftOfSelection)
 
           @buffer.insert(selection.end, charTextToLeftOfSelection)
           @buffer.delete(charToLeftOfSelection)
           translatedRanges.push(selection.translate(translationDelta))
 
-      @setSelectedBufferRanges(translatedRanges)
+        @setSelectedBufferRanges(translatedRanges)
 
   # Move any active selections one column to the right.
   moveSelectionRight: ->
     selections = @getSelectedBufferRanges()
+    noSelectionAtEndOfLine = selections.every((selection) =>
+      selection.end.column isnt @buffer.lineLengthForRow(selection.end.row)
+    )
 
     translationDelta = [0, 1]
     translatedRanges = []
 
     @transact =>
-      for selection in selections
-        charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
-
-        if charToRightOfSelection.end.column > @buffer.lineLengthForRow(charToRightOfSelection.end.row)
-          translatedRanges.push(selection)
-        else
+      if noSelectionAtEndOfLine
+        for selection in selections
+          charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
           charTextToRightOfSelection = @buffer.getTextInRange(charToRightOfSelection)
 
           @buffer.delete(charToRightOfSelection)
           @buffer.insert(selection.start, charTextToRightOfSelection)
           translatedRanges.push(selection.translate(translationDelta))
 
-      @setSelectedBufferRanges(translatedRanges)
+        @setSelectedBufferRanges(translatedRanges)
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->

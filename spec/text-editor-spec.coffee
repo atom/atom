@@ -4565,7 +4565,9 @@ describe "TextEditor", ->
       it "moves one active selection on one line one column to the left", ->
         editor.setSelectedBufferRange [[0, 4], [0, 13]]
         expect(editor.getSelectedText()).toBe 'quicksort'
+
         editor.moveSelectionLeft()
+
         expect(editor.getSelectedText()).toBe 'quicksort'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 3], [0, 12]]
 
@@ -4575,7 +4577,9 @@ describe "TextEditor", ->
 
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'function'
+
         editor.moveSelectionLeft()
+
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'function'
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 3], [0, 12]], [[0, 15], [0, 23]]]
@@ -4586,7 +4590,9 @@ describe "TextEditor", ->
 
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'sort'
+
         editor.moveSelectionLeft()
+
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'sort'
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 3], [0, 12]], [[1, 5], [1, 9]]]
@@ -4598,17 +4604,35 @@ describe "TextEditor", ->
 
           expect(selections[0].getText()).toBe 'var'
           expect(selections[1].getText()).toBe '  v'
+
           editor.moveSelectionLeft()
           editor.moveSelectionLeft()
+
           expect(selections[0].getText()).toBe 'var'
           expect(selections[1].getText()).toBe '  v'
           expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]], [[1, 0], [1, 3]]]
+
+        describe "when multiple selections are active on one line", ->
+          it "does not change the selection", ->
+            editor.setSelectedBufferRanges([[[0, 0], [0, 3]], [[0, 4], [0, 13]]])
+            selections = editor.getSelections()
+
+            expect(selections[0].getText()).toBe 'var'
+            expect(selections[1].getText()).toBe 'quicksort'
+
+            editor.moveSelectionLeft()
+
+            expect(selections[0].getText()).toBe 'var'
+            expect(selections[1].getText()).toBe 'quicksort'
+            expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [0, 3]], [[0, 4], [0, 13]]]
 
     describe ".moveSelectionRight()", ->
       it "moves one active selection on one line one column to the right", ->
         editor.setSelectedBufferRange [[0, 4], [0, 13]]
         expect(editor.getSelectedText()).toBe 'quicksort'
+
         editor.moveSelectionRight()
+
         expect(editor.getSelectedText()).toBe 'quicksort'
         expect(editor.getSelectedBufferRange()).toEqual [[0, 5], [0, 14]]
 
@@ -4618,7 +4642,9 @@ describe "TextEditor", ->
 
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'function'
+
         editor.moveSelectionRight()
+
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'function'
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 5], [0, 14]], [[0, 17], [0, 25]]]
@@ -4629,7 +4655,9 @@ describe "TextEditor", ->
 
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'sort'
+
         editor.moveSelectionRight()
+
         expect(selections[0].getText()).toBe 'quicksort'
         expect(selections[1].getText()).toBe 'sort'
         expect(editor.getSelectedBufferRanges()).toEqual [[[0, 5], [0, 14]], [[1, 7], [1, 11]]]
@@ -4641,11 +4669,27 @@ describe "TextEditor", ->
 
           expect(selections[0].getText()).toBe 'items;'
           expect(selections[1].getText()).toBe 'shift();'
+
           editor.moveSelectionRight()
           editor.moveSelectionRight()
+
           expect(selections[0].getText()).toBe 'items;'
           expect(selections[1].getText()).toBe 'shift();'
           expect(editor.getSelectedBufferRanges()).toEqual [[[2, 34], [2, 40]], [[5, 22], [5, 30]]]
+
+        describe "when multiple selections are active on one line", ->
+          it "does not change the selection", ->
+            editor.setSelectedBufferRanges([[[2, 27], [2, 33]], [[2, 34], [2, 40]]])
+            selections = editor.getSelections()
+
+            expect(selections[0].getText()).toBe 'return'
+            expect(selections[1].getText()).toBe 'items;'
+
+            editor.moveSelectionRight()
+
+            expect(selections[0].getText()).toBe 'return'
+            expect(selections[1].getText()).toBe 'items;'
+            expect(editor.getSelectedBufferRanges()).toEqual [[[2, 27], [2, 33]], [[2, 34], [2, 40]]]
 
   describe 'reading text', ->
     it '.lineTextForScreenRow(row)', ->
