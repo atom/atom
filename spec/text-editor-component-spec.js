@@ -1269,7 +1269,6 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
       let cursorNodes = componentNode.querySelectorAll('.cursor')
       expect(cursorNodes.length).toBe(1)
-      expect(cursorNodes[0].style['opacity']).toBe('0')
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
     })
 
@@ -1279,8 +1278,7 @@ describe('TextEditorComponent', function () {
       editor.addCursorAtScreenPosition([6, 8])
       await nextViewUpdatePromise()
       let cursorNodes = componentNode.querySelectorAll('.cursor')
-      expect(cursorNodes.length).toBe(1)
-      expect(cursorNodes[0].style['opacity']).toBe('1')
+      expect(cursorNodes.length).toBe(2)
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
       atom.config.unset('editor.showCursorWhenSelecting')
     })
