@@ -43,7 +43,6 @@ export default class GitRepositoryAsync {
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
-    this.workdir = null
     this.path = null
 
     // NB: These needs to happen before the following .openRepository call.
@@ -157,11 +156,11 @@ export default class GitRepositoryAsync {
   // directory path of the repository.
   getWorkingDirectory (_path) {
     return this.getRepo(_path).then(repo => {
-      if (!this.workdir) {
-        this.workdir = repo.workdir()
+      if (!repo.cachedWorkdir) {
+        repo.cachedWorkdir = repo.workdir()
       }
 
-      return this.workdir
+      return repo.cachedWorkdir
     })
   }
 
