@@ -45,6 +45,8 @@ describe 'apm install', ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-test-module.json')
       app.get '/packages/test-module2', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-test-module2.json')
+      app.get '/packages/test-module-with-bin', (request, response) ->
+        response.sendfile path.join(__dirname, 'fixtures', 'install-test-module-with-bin.json')
       app.get '/packages/test-module-with-symlink', (request, response) ->
         response.sendfile path.join(__dirname, 'fixtures', 'install-test-module-with-symlink.json')
       app.get '/tarball/test-module-with-symlink-5.0.0.tgz', (request, response) ->
@@ -255,6 +257,21 @@ describe 'apm install', ->
             expect(fs.isFileSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBeTruthy()
           else
             expect(fs.realpathSync(path.join(testModuleDirectory, 'node_modules', '.bin', 'abin'))).toBe fs.realpathSync(path.join(testModuleDirectory, 'node_modules', 'test-module-with-bin', 'bin', 'abin.js'))
+
+    describe "when the package installs binaries", ->
+      # regression: caused by the existence of `.bin` in the install folder
+      it "correctly installs the package ignoring any binaries", ->
+        testModuleDirectory = path.join(atomHome, 'packages', 'test-module-with-bin')
+
+        callback = jasmine.createSpy('callback')
+        apm.run(['install', "test-module-with-bin"], callback)
+
+        waitsFor 'waiting for install to complete', 60000, ->
+          callback.callCount is 1
+
+        runs ->
+          expect(callback.argsForCall[0][0]).toBeFalsy()
+          expect(fs.isFileSync(path.join(testModuleDirectory, 'package.json'))).toBeTruthy()
 
     describe 'when a packages file is specified', ->
       it 'installs all the packages listed in the file', ->
