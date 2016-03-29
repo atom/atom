@@ -230,9 +230,7 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
-  // @joshaber: Disabling for now. There seems to be some race with path
-  // subscriptions leading to intermittent test failures, e.g.: https://travis-ci.org/atom/atom/jobs/102702554
-  xdescribe('.checkoutHeadForEditor(editor)', () => {
+  describe('.checkoutHeadForEditor(editor)', () => {
     let filePath
     let editor
 
