@@ -4,6 +4,7 @@ temp = require 'temp'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 AtomEnvironment = require '../src/atom-environment'
+StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
   describe 'window sizing methods', ->
@@ -172,12 +173,38 @@ describe "AtomEnvironment", ->
       waitsForPromise ->
         atom.saveState().then ->
           atom.loadState().then (state) ->
-            expect(state).toBeNull()
+            expect(state).toBeFalsy()
 
       waitsForPromise ->
         loadSettings.initialPaths = [dir2, dir1]
         atom.loadState().then (state) ->
           expect(state).toEqual({stuff: 'cool'})
+
+    it "loads state from the storage folder when it can't be found in atom.stateStore", ->
+      jasmine.useRealClock()
+
+      storageFolderState = {foo: 1, bar: 2}
+      serializedState = {someState: 42}
+      loadSettings = _.extend(atom.getLoadSettings(), {initialPaths: [temp.mkdirSync("project-directory")]})
+      spyOn(atom, 'getLoadSettings').andReturn(loadSettings)
+      spyOn(atom, 'serialize').andReturn(serializedState)
+      spyOn(atom, 'getStorageFolder').andReturn(new StorageFolder(temp.mkdirSync("config-directory")))
+      atom.project.setPaths(atom.getLoadSettings().initialPaths)
+
+      waitsForPromise ->
+        atom.stateStore.connect()
+
+      runs ->
+        atom.getStorageFolder().storeSync(atom.getStateKey(loadSettings.initialPaths), storageFolderState)
+
+      waitsForPromise ->
+        atom.loadState().then (state) -> expect(state).toEqual(storageFolderState)
+
+      waitsForPromise ->
+        atom.saveState()
+
+      waitsForPromise ->
+        atom.loadState().then (state) -> expect(state).toEqual(serializedState)
 
     it "saves state on keydown, mousedown, and when the editor window unloads", ->
       spyOn(atom, 'saveState')

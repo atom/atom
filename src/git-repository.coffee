@@ -83,10 +83,11 @@ class GitRepository
     asyncOptions.subscribeToBuffers = false
     @async = GitRepositoryAsync.open(path, asyncOptions)
 
-    @statuses = {}
     @upstream = {ahead: 0, behind: 0}
     for submodulePath, submoduleRepo of @repo.submodules
       submoduleRepo.upstream = {ahead: 0, behind: 0}
+
+    @statusesByPath = {}
 
     {@project, @config, refreshOnWindowFocus} = options
 
@@ -165,7 +166,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
-    @emitter.on 'did-change-statuses', callback
+    @async.onDidChangeStatuses callback
 
   ###
   Section: Repository Details
@@ -317,7 +318,7 @@ class GitRepository
   getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
-    for path, status of @statuses
+    for path, status of _.extend({}, @async.getCachedPathStatuses(), @statusesByPath)
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
@@ -328,18 +329,26 @@ class GitRepository
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
   getPathStatus: (path) ->
+    repo = @getRepo(path)
+    relativePath = @relativize(path)
+
+    # This is a bit particular. If a package calls `getPathStatus` like this:
+    #  - change the file
+    #  - getPathStatus
+    #  - change the file
+    #  - getPathStatus
+    # We need to preserve the guarantee that each call to `getPathStatus` will
+    # synchronously emit 'did-change-status'. So we need to keep a cache of the
+    # statuses found from this call.
+    currentPathStatus = @getCachedRelativePathStatus(relativePath) ? 0
+
     # Trigger events emitted on the async repo as well
     @async.refreshStatusForPath(path)
 
-    repo = @getRepo(path)
-    relativePath = @relativize(path)
-    currentPathStatus = @statuses[relativePath] ? 0
     pathStatus = repo.getStatus(repo.relativize(path)) ? 0
     pathStatus = 0 if repo.isStatusIgnored(pathStatus)
-    if pathStatus > 0
-      @statuses[relativePath] = pathStatus
-    else
-      delete @statuses[relativePath]
+    @statusesByPath[relativePath] = pathStatus
+
     if currentPathStatus isnt pathStatus
       @emitter.emit 'did-change-status', {path, pathStatus}
 
@@ -351,7 +360,11 @@ class GitRepository
   #
   # Returns a status {Number} or null if the path is not in the cache.
   getCachedPathStatus: (path) ->
-    @statuses[@relativize(path)]
+    relativePath = @relativize(path)
+    @getCachedRelativePathStatus(relativePath)
+
+  getCachedRelativePathStatus: (relativePath) ->
+    @statusesByPath[relativePath] ? @async.getCachedPathStatuses()[relativePath]
 
   # Public: Returns true if the given status indicates modification.
   #
@@ -478,32 +491,21 @@ class GitRepository
   #
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
-    asyncRefresh = @async.refreshStatus()
+    asyncRefresh = @async.refreshStatus().then =>
+      @statusesByPath = {}
+      @branch = @async?.branch
+
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
 
-      relativeProjectPaths = @project?.getPaths()
-        .map (path) => @relativize(path)
-        .map (path) -> if path.length > 0 then path + '/**' else '*'
-
       @statusTask?.terminate()
-      @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
-        statusesUnchanged = _.isEqual(statuses, @statuses) and
-                            _.isEqual(upstream, @upstream) and
-                            _.isEqual(branch, @branch) and
-                            _.isEqual(submodules, @submodules)
-
-        @statuses = statuses
+      @statusTask = Task.once @handlerPath, @getPath(), ({upstream, submodules}) =>
         @upstream = upstream
-        @branch = branch
         @submodules = submodules
 
         for submodulePath, submoduleRepo of @getRepo().submodules
           submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
         resolve()
-
-        unless statusesUnchanged
-          @emitter.emit 'did-change-statuses'
 
     return Promise.all([asyncRefresh, syncRefresh])
