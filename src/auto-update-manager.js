@@ -20,6 +20,9 @@ export default class AutoUpdateManager {
       }),
       applicationDelegate.onUpdateNotAvailable(() => {
         this.emitter.emit('update-not-available')
+      }),
+      applicationDelegate.onUpdateError((message) => {
+        this.emitter.emit('update-error', message)
       })
     )
   }
@@ -65,6 +68,10 @@ export default class AutoUpdateManager {
 
   onUpdateNotAvailable (callback) {
     return this.emitter.on('update-not-available', callback)
+  }
+
+  onUpdateError (callback) {
+    return this.emitter.on('update-error', callback)
   }
 
   getPlatform () {

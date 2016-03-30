@@ -33,6 +33,7 @@ class AutoUpdateManager
 
     autoUpdater.on 'error', (event, message) =>
       @setState(ErrorState)
+      @emitWindowEvent('update-error', message)
       console.error "Error Downloading Update: #{message}"
 
     autoUpdater.setFeedURL @feedUrl

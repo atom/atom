@@ -64,6 +64,16 @@ describe('AutoUpdateManager (renderer)', () => {
     })
   })
 
+  describe('::onUpdateError', () => {
+    it('subscribes to "update-error" event', () => {
+      const spy = jasmine.createSpy('spy')
+      autoUpdateManager.onUpdateError(spy)
+      electronAutoUpdater.emit('error', {}, 'an error')
+      waitsFor(() => spy.callCount === 1)
+      runs(() => expect(spy).toHaveBeenCalledWith('an error'))
+    })
+  })
+
   describe('::platformSupportsUpdates', () => {
     let state, releaseChannel
     it('returns true on OS X and Windows when in stable', () => {

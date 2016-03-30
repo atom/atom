@@ -211,6 +211,14 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('message', outerCallback)
 
+  onUpdateError: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'update-error'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
   onApplicationMenuCommand: (callback) ->
     outerCallback = (event, args...) ->
       callback(args...)
