@@ -738,9 +738,9 @@ export default class GitRepositoryAsync {
               checkoutOptions.checkoutStrategy = Git.Checkout.STRATEGY.FORCE | Git.Checkout.STRATEGY.DISABLE_PATHSPEC_MATCH
               return Git.Checkout.head(repo, checkoutOptions)
             })
-            .then(() => this.refreshStatusForPath(_path))
         })
       })
+      .then(() => this.refreshStatusForPath(_path))
   }
 
   // Public: Checks out a branch in your repository.
