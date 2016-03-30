@@ -1084,8 +1084,8 @@ class TextEditor extends Model
     translationDelta = [0, -1]
     translatedRanges = []
 
-    @transact =>
-      if noSelectionAtStartOfLine
+    if noSelectionAtStartOfLine
+      @transact =>
         for selection in selections
           charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
           charTextToLeftOfSelection = @buffer.getTextInRange(charToLeftOfSelection)
@@ -1106,8 +1106,8 @@ class TextEditor extends Model
     translationDelta = [0, 1]
     translatedRanges = []
 
-    @transact =>
-      if noSelectionAtEndOfLine
+    if noSelectionAtEndOfLine
+      @transact =>
         for selection in selections
           charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
           charTextToRightOfSelection = @buffer.getTextInRange(charToRightOfSelection)
