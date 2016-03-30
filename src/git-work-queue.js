@@ -2,9 +2,10 @@
 
 // A queue used to manage git work.
 export default class GitWorkQueue {
-  constructor () {
+  constructor (pool) {
+    this.pool = pool
+
     this.queue = []
-    this.working = false
   }
 
   // Enqueue the given function. The function must return a {Promise} when
@@ -19,41 +20,34 @@ export default class GitWorkQueue {
 
     this.queue.push(this.wrapFunction(fn, resolve, reject))
 
-    if (this.shouldStartNext()) {
-      this.startNext()
-    }
+    this.startNextIfAble()
 
     return wrapperPromise
   }
 
   wrapFunction (fn, resolve, reject) {
     return () => {
-      const promise = fn()
+      const repo = this.pool.shift()
+      const promise = fn(repo)
       promise
         .then(result => {
           resolve(result)
-          this.taskDidComplete()
+          this.taskDidComplete(repo)
         }, error => {
           reject(error)
-          this.taskDidComplete()
+          this.taskDidComplete(repo)
         })
     }
   }
 
-  taskDidComplete () {
-    this.working = false
+  taskDidComplete (repo) {
+    this.pool.push(repo)
 
-    if (this.shouldStartNext()) {
-      this.startNext()
-    }
+    this.startNextIfAble()
   }
 
-  shouldStartNext () {
-    return !this.working && this.queue.length > 0
-  }
-
-  startNext () {
-    this.working = true
+  startNextIfAble () {
+    if (!this.pool.length || !this.queue.length) return
 
     const fn = this.queue.shift()
     fn()

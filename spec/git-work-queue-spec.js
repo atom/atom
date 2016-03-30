@@ -8,7 +8,7 @@ fdescribe('GitWorkQueue', () => {
   let queue
 
   beforeEach(() => {
-    queue = new GitWorkQueue()
+    queue = new GitWorkQueue([{}])
   })
 
   describe('.enqueue', () => {
