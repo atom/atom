@@ -3,6 +3,7 @@
 import fs from 'fs-plus'
 import path from 'path'
 import Git from 'nodegit'
+import GitWorkQueue from './git-work-queue'
 import {Emitter, CompositeDisposable, Disposable} from 'event-kit'
 
 const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
@@ -38,8 +39,10 @@ export default class GitRepositoryAsync {
   }
 
   constructor (_path, options = {}) {
-    Git.enableThreadSafety()
+    // We'll serialize our access manually.
+    Git.disableThreadSafety()
 
+    this.workQueue = new GitWorkQueue()
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
@@ -81,6 +84,7 @@ export default class GitRepositoryAsync {
       this.emitter.dispose()
       this.emitter = null
     }
+
     if (this.subscriptions) {
       this.subscriptions.dispose()
       this.subscriptions = null
