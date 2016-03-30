@@ -3,7 +3,7 @@
 ## Requirements
 
 ### General
- * [Node.js](http://nodejs.org/en/download/) v4.x
+ * [Node.js](https://nodejs.org/en/download/) v4.x
  * [Python](https://www.python.org/downloads/) v2.7.x
     * The python.exe must be available at `%SystemDrive%\Python27\python.exe`.
       If it is installed elsewhere, you can create a symbolic link to the
@@ -14,8 +14,8 @@
 
 You can use either:
 
- * [Visual Studio 2013 Update 5](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express or better) on Windows 7, 8 or 10
- * [Visual Studio 2015](http://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Community or better) with Windows 8 or 10
+ * [Visual Studio 2013 Update 5](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express or better) on Windows 7, 8 or 10
+ * [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Community or better) with Windows 8 or 10
 
 Whichever version you use, ensure that:
 
