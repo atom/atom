@@ -154,6 +154,7 @@ class TokenizedBuffer extends Model
     @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
+    @tokenizeNextChunk()
     @tokenizeInBackground() if @visible
 
   getTabLength: ->
