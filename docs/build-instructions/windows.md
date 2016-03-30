@@ -67,6 +67,9 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
   * If you just installed Node.js, you'll need to restart your PowerShell/Command Prompt/Git Shell before the node
   command is available on your Path.
 
+* `msbuild.exe failed with exit code: 1`
+   * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
+
 * `script/build` outputs only the Node.js and Python versions before returning
 
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
