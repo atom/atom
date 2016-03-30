@@ -22,6 +22,7 @@ export default class AutoUpdateManager {
         this.emitter.emit('update-not-available')
       }),
       applicationDelegate.onUpdateError((message) => {
+        console.error(message)
         this.emitter.emit('update-error', message)
       })
     )
