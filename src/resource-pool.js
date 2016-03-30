@@ -1,7 +1,7 @@
 /** @babel */
 
-// A queue used to manage git work.
-export default class GitWorkQueue {
+// Manages a pool of some resource.
+export default class ResourcePool {
   constructor (pool) {
     this.pool = pool
 

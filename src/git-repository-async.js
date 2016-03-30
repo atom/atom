@@ -3,7 +3,7 @@
 import fs from 'fs-plus'
 import path from 'path'
 import Git from 'nodegit'
-import GitWorkQueue from './git-work-queue'
+import ResourcePool from './resource-pool'
 import {Emitter, CompositeDisposable, Disposable} from 'event-kit'
 
 const modifiedStatusFlags = Git.Status.STATUS.WT_MODIFIED | Git.Status.STATUS.INDEX_MODIFIED | Git.Status.STATUS.WT_DELETED | Git.Status.STATUS.INDEX_DELETED | Git.Status.STATUS.WT_TYPECHANGE | Git.Status.STATUS.INDEX_TYPECHANGE
@@ -42,7 +42,6 @@ export default class GitRepositoryAsync {
     // We'll serialize our access manually.
     Git.disableThreadSafety()
 
-    this.workQueue = new GitWorkQueue()
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
     this.pathStatusCache = {}
@@ -53,6 +52,8 @@ export default class GitRepositoryAsync {
     this._openExactPath = options.openExactPath || false
 
     this.repoPromise = this.openRepository()
+    this.repoPool = new ResourcePool([this.repoPromise])
+
     this.isCaseInsensitive = fs.isCaseInsensitive()
     this.upstream = {}
     this.submodules = {}
@@ -264,7 +265,7 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to whether the given branch
   // exists.
   hasBranch (branch) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo()
         .then(repo => repo.getBranch(branch))
         .then(branch => branch != null)
@@ -283,7 +284,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to a {String}.
   getShortHead (_path) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo(_path)
         .then(repo => repo.getCurrentBranch())
         .then(branch => branch.shorthand())
@@ -299,7 +300,7 @@ export default class GitRepositoryAsync {
   isSubmodule (_path) {
     return this.relativizeToWorkingDirectory(_path)
       .then(relativePath => {
-        return this.workQueue.enqueue(() => {
+        return this.repoPool.enqueue(() => {
           return this.getRepo()
             .then(repo => repo.openIndex())
             .then(index => {
@@ -323,7 +324,7 @@ export default class GitRepositoryAsync {
   //   * `ahead`  The {Number} of commits ahead.
   //   * `behind` The {Number} of commits behind.
   getAheadBehindCount (reference, _path) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo(_path)
         .then(repo => Promise.all([repo, repo.getBranch(reference)]))
         .then(([repo, local]) => {
@@ -366,7 +367,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the {String} git configuration value
   // specified by the key.
   getConfigValue (key, _path) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo(_path)
         .then(repo => repo.configSnapshot())
         .then(config => config.getStringBuf(key))
@@ -394,7 +395,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {String} branch name such as
   // `refs/remotes/origin/master`.
   getUpstreamBranch (_path) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo(_path)
         .then(repo => repo.getCurrentBranch())
         .then(branch => Git.Branch.upstream(branch))
@@ -411,7 +412,7 @@ export default class GitRepositoryAsync {
   //  * `remotes` An {Array} of remote reference names.
   //  * `tags`    An {Array} of tag reference names.
   getReferences (_path) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo(_path)
         .then(repo => repo.getReferences(Git.Reference.TYPE.LISTALL))
         .then(refs => {
@@ -441,7 +442,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the current {String} SHA for the
   // given reference.
   getReferenceTarget (reference, _path) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo(_path)
         .then(repo => Git.Reference.nameToId(repo, reference))
         .then(oid => oid.tostrS())
@@ -484,7 +485,7 @@ export default class GitRepositoryAsync {
   isPathIgnored (_path) {
     return this.getWorkingDirectory()
       .then(wd => {
-        return this.workQueue.enqueue(() => {
+        return this.repoPool.enqueue(() => {
           return this.getRepo()
             .then(repo => {
               const relativePath = this.relativize(_path, wd)
@@ -638,7 +639,7 @@ export default class GitRepositoryAsync {
   getDiffStats (_path) {
     return this.getWorkingDirectory(_path)
       .then(wd => {
-        return this.workQueue.enqueue(() => {
+        return this.repoPool.enqueue(() => {
           return this.getRepo(_path)
             .then(repo => Promise.all([repo, repo.getHeadCommit()]))
             .then(([repo, headCommit]) => Promise.all([repo, headCommit.getTree()]))
@@ -687,7 +688,7 @@ export default class GitRepositoryAsync {
     return this.getWorkingDirectory(_path)
       .then(wd => {
         let relativePath = null
-        return this.workQueue.enqueue(() => {
+        return this.repoPool.enqueue(() => {
           return this.getRepo(_path)
             .then(repo => {
               relativePath = this.relativize(_path, wd)
@@ -730,7 +731,7 @@ export default class GitRepositoryAsync {
   checkoutHead (_path) {
     return this.getWorkingDirectory(_path)
       .then(wd => {
-        return this.workQueue.enqueue(() => {
+        return this.repoPool.enqueue(() => {
           return this.getRepo(_path)
             .then(repo => {
               const checkoutOptions = new Git.CheckoutOptions()
@@ -751,7 +752,7 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} that resolves if the method was successful.
   checkoutReference (reference, create) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo()
         .then(repo => repo.checkoutBranch(reference))
     })
@@ -789,7 +790,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {NodeGit.Ref} reference to the
   // created branch.
   _createBranch (name) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo()
         .then(repo => Promise.all([repo, repo.getHeadCommit()]))
         .then(([repo, commit]) => repo.createBranch(name, commit))
@@ -850,7 +851,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {boolean} indicating whether the
   // branch name changed.
   _refreshBranch () {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo()
         .then(repo => repo.getCurrentBranch())
         .then(ref => ref.name())
@@ -1126,7 +1127,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
   // statuses for the paths.
   _getStatus (paths) {
-    return this.workQueue.enqueue(() => {
+    return this.repoPool.enqueue(() => {
       return this.getRepo()
         .then(repo => {
           const opts = {

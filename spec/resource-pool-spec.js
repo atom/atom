@@ -1,14 +1,14 @@
 /** @babel */
 
-import GitWorkQueue from '../src/git-work-queue'
+import ResourcePool from '../src/resource-pool'
 
 import {it} from './async-spec-helpers'
 
-fdescribe('GitWorkQueue', () => {
+fdescribe('ResourcePool', () => {
   let queue
 
   beforeEach(() => {
-    queue = new GitWorkQueue([{}])
+    queue = new ResourcePool([{}])
   })
 
   describe('.enqueue', () => {
