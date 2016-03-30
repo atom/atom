@@ -52,6 +52,9 @@ export default class GitRepositoryAsync {
     this._openExactPath = options.openExactPath || false
 
     this.repoPromise = this.openRepository()
+    // NB: We don't currently _use_ the pooled object. But by giving it one
+    // thing, we're really just serializing all the work. Down the road, we
+    // could open multiple connections to the repository.
     this.repoPool = new ResourcePool([this.repoPromise])
 
     this.isCaseInsensitive = fs.isCaseInsensitive()
