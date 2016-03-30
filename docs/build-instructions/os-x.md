@@ -3,7 +3,7 @@
 ## Requirements
 
   * OS X 10.8 or later
-  * [Node.js](http://nodejs.org/download/) (0.10.x or above)
+  * [Node.js](https://nodejs.org/download/) (0.10.x or above)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
 ## Instructions
