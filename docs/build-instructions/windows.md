@@ -21,8 +21,8 @@ Whichever version you use, ensure that:
 
  * The default installation folder is chosen so the build tools can find it
  * Visual C++ support is installed
- * You set the `GYP_MSVS_VERSION` environment variable to the Visual Studio version (`2013` or `2015`), e.g. , e.g. ``[Environment]::SetEnvironmentVariable("GYP_MSVS_VERSION", "2015", "User")`` in PowerShell or set it in Windows advanced system settings control panel.
- * The git command is in your path
+ * A `git` command is in your path
+ * If you have both VS2013 and VS2015 installed set the `GYP_MSVS_VERSION` environment variable to the Visual Studio version (`2013` or `2015`) you wish to use, e.g. ``[Environment]::SetEnvironmentVariable("GYP_MSVS_VERSION", "2015", "User")`` in PowerShell or set it in Windows advanced system settings control panel.
 
 ## Instructions
 
@@ -63,7 +63,6 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 
 ### Common Errors
 * `node is not recognized`
-
   * If you just installed Node.js, you'll need to restart your PowerShell/Command Prompt/Git Shell before the node
   command is available on your Path.
 
@@ -71,33 +70,25 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
    * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
 
 * `script/build` outputs only the Node.js and Python versions before returning
-
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
     See [issue #2200](https://github.com/atom/atom/issues/2200).
 
 * `error MSB4025: The project file could not be loaded. Invalid character in the given encoding.`
-
   * This can occur because your home directory (`%USERPROFILE%`) has non-ASCII
     characters in it. This is a bug in [gyp](https://code.google.com/p/gyp/)
     which is used to build native Node.js modules and there is no known workaround.
     * https://github.com/TooTallNate/node-gyp/issues/297
     * https://code.google.com/p/gyp/issues/detail?id=393
 
-* `script/build` stops at installing runas with `Failed at the runas@x.y.z install script.`
+* `'node_modules\.bin\npm' is not recognized as an internal or external command, operable program or batch file.`
+   * This occurs if the previous build left things in a bad state. Run `script\clean` and then `script\build` again.
 
+* `script/build` stops at installing runas with `Failed at the runas@x.y.z install script.`
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-
-  * If you're building Atom with Visual Studio 2013 or above make sure the `GYP_MSVS_VERSION` environment variable is set, and then re-run `script/build` after a clean:
-
-    ```bash
-    $env:GYP_MSVS_VERSION='2013' # '2015' if using Visual Studio 2015, and so on
-    script/clean
-    script/build
-    ```
-  * If you are using Visual Studio 2013 or above and the build fails with some other error message this environment variable might still be required and ensure you have Visual C++ language support installed.
-
+  * If you're building Atom with Visual Studio 2013 try setting the `GYP_MSVS_VERSION` environment variable to 2013 and then `script/clean` followed by `script/build` (re-open your command prompt or Powershell window if you set it using the GUI)
+  * 
 * Other `node-gyp` errors on first build attempt, even though the right Node.js and Python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
 
