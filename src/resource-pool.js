@@ -8,8 +8,8 @@ export default class ResourcePool {
     this.queue = []
   }
 
-  // Enqueue the given function. The function must return a {Promise} when
-  // called.
+  // Enqueue the given function. The function will be given an object from the
+  // pool. The function must return a {Promise}.
   enqueue (fn) {
     let resolve = null
     let reject = null
@@ -20,37 +20,37 @@ export default class ResourcePool {
 
     this.queue.push(this.wrapFunction(fn, resolve, reject))
 
-    this.startNextIfAble()
+    this.dequeueIfAble()
 
     return wrapperPromise
   }
 
   wrapFunction (fn, resolve, reject) {
-    return () => {
-      const repo = this.pool.shift()
-      const promise = fn(repo)
+    return (resource) => {
+      const promise = fn(resource)
       promise
         .then(result => {
           resolve(result)
-          this.taskDidComplete(repo)
+          this.taskDidComplete(resource)
         }, error => {
           reject(error)
-          this.taskDidComplete(repo)
+          this.taskDidComplete(resource)
         })
     }
   }
 
-  taskDidComplete (repo) {
-    this.pool.push(repo)
+  taskDidComplete (resource) {
+    this.pool.push(resource)
 
-    this.startNextIfAble()
+    this.dequeueIfAble()
   }
 
-  startNextIfAble () {
+  dequeueIfAble () {
     if (!this.pool.length || !this.queue.length) return
 
     const fn = this.queue.shift()
-    fn()
+    const resource = this.pool.shift()
+    fn(resource)
   }
 
   getQueueDepth () { return this.queue.length }
