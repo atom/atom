@@ -291,6 +291,7 @@ module.exports = (grunt) ->
   ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.CI
   ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.CI
   ciTasks.push('publish-build') unless process.env.CI
+  ciTasks.push('finalize-release') if process.env.APPVEYOR and channel in ['beta', 'stable']
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
