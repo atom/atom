@@ -25,4 +25,4 @@ For more information on how to write a good [bug report](https://github.com/atom
 
 ### Versions
 
-You can get this information from executing `atom --version` and `apm --version` at the command line.
+You can get this information from executing `atom --version` and `apm --version` at the command line. Also, please include the OS and what version of the OS you're running.
