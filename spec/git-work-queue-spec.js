@@ -55,9 +55,7 @@ fdescribe('GitWorkQueue', () => {
 
       expect(queue.getQueueDepth()).toBe(0)
 
-      queue.enqueue(() => {
-        return new Promise((resolve, reject) => {})
-      })
+      queue.enqueue(() => new Promise((resolve, reject) => {}))
 
       expect(queue.getQueueDepth()).toBe(1)
       resolve()

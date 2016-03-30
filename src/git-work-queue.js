@@ -19,7 +19,9 @@ export default class GitWorkQueue {
 
     this.queue.push(this.wrapFunction(fn, resolve, reject))
 
-    this.startNext()
+    if (this.shouldStartNext()) {
+      this.startNext()
+    }
 
     return wrapperPromise
   }
@@ -41,7 +43,9 @@ export default class GitWorkQueue {
   taskDidComplete () {
     this.working = false
 
-    this.startNext()
+    if (this.shouldStartNext()) {
+      this.startNext()
+    }
   }
 
   shouldStartNext () {
@@ -49,8 +53,6 @@ export default class GitWorkQueue {
   }
 
   startNext () {
-    if (!this.shouldStartNext()) return
-
     this.working = true
 
     const fn = this.queue.shift()

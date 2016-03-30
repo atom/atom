@@ -264,10 +264,12 @@ export default class GitRepositoryAsync {
   // Public: Returns a {Promise} which resolves to whether the given branch
   // exists.
   hasBranch (branch) {
-    return this.getRepo()
-      .then(repo => repo.getBranch(branch))
-      .then(branch => branch != null)
-      .catch(_ => false)
+    return this.workQueue.enqueue(() => {
+      return this.getRepo()
+        .then(repo => repo.getBranch(branch))
+        .then(branch => branch != null)
+        .catch(_ => false)
+    })
   }
 
   // Public: Retrieves a shortened version of the HEAD reference value.
@@ -281,9 +283,11 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to a {String}.
   getShortHead (_path) {
-    return this.getRepo(_path)
-      .then(repo => repo.getCurrentBranch())
-      .then(branch => branch.shorthand())
+    return this.workQueue.enqueue(() => {
+      return this.getRepo(_path)
+        .then(repo => repo.getCurrentBranch())
+        .then(branch => branch.shorthand())
+    })
   }
 
   // Public: Is the given path a submodule in the repository?
@@ -315,16 +319,18 @@ export default class GitRepositoryAsync {
   //   * `ahead`  The {Number} of commits ahead.
   //   * `behind` The {Number} of commits behind.
   getAheadBehindCount (reference, _path) {
-    return this.getRepo(_path)
-      .then(repo => Promise.all([repo, repo.getBranch(reference)]))
-      .then(([repo, local]) => {
-        const upstream = Git.Branch.upstream(local)
-        return Promise.all([repo, local, upstream])
-      })
-      .then(([repo, local, upstream]) => {
-        return Git.Graph.aheadBehind(repo, local.target(), upstream.target())
-      })
-      .catch(_ => ({ahead: 0, behind: 0}))
+    return this.workQueue.enqueue(() => {
+      return this.getRepo(_path)
+        .then(repo => Promise.all([repo, repo.getBranch(reference)]))
+        .then(([repo, local]) => {
+          const upstream = Git.Branch.upstream(local)
+          return Promise.all([repo, local, upstream])
+        })
+        .then(([repo, local, upstream]) => {
+          return Git.Graph.aheadBehind(repo, local.target(), upstream.target())
+        })
+        .catch(_ => ({ahead: 0, behind: 0}))
+    })
   }
 
   // Public: Get the cached ahead/behind commit counts for the current branch's
@@ -356,10 +362,12 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the {String} git configuration value
   // specified by the key.
   getConfigValue (key, _path) {
-    return this.getRepo(_path)
-      .then(repo => repo.configSnapshot())
-      .then(config => config.getStringBuf(key))
-      .catch(_ => null)
+    return this.workQueue.enqueue(() => {
+      return this.getRepo(_path)
+        .then(repo => repo.configSnapshot())
+        .then(config => config.getStringBuf(key))
+        .catch(_ => null)
+    })
   }
 
   // Public: Get the URL for the 'origin' remote.
@@ -382,9 +390,11 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to a {String} branch name such as
   // `refs/remotes/origin/master`.
   getUpstreamBranch (_path) {
-    return this.getRepo(_path)
-      .then(repo => repo.getCurrentBranch())
-      .then(branch => Git.Branch.upstream(branch))
+    return this.workQueue.enqueue(() => {
+      return this.getRepo(_path)
+        .then(repo => repo.getCurrentBranch())
+        .then(branch => Git.Branch.upstream(branch))
+    })
   }
 
   // Public: Gets all the local and remote references.
@@ -397,23 +407,25 @@ export default class GitRepositoryAsync {
   //  * `remotes` An {Array} of remote reference names.
   //  * `tags`    An {Array} of tag reference names.
   getReferences (_path) {
-    return this.getRepo(_path)
-      .then(repo => repo.getReferences(Git.Reference.TYPE.LISTALL))
-      .then(refs => {
-        const heads = []
-        const remotes = []
-        const tags = []
-        for (const ref of refs) {
-          if (ref.isTag()) {
-            tags.push(ref.name())
-          } else if (ref.isRemote()) {
-            remotes.push(ref.name())
-          } else if (ref.isBranch()) {
-            heads.push(ref.name())
+    return this.workQueue.enqueue(() => {
+      return this.getRepo(_path)
+        .then(repo => repo.getReferences(Git.Reference.TYPE.LISTALL))
+        .then(refs => {
+          const heads = []
+          const remotes = []
+          const tags = []
+          for (const ref of refs) {
+            if (ref.isTag()) {
+              tags.push(ref.name())
+            } else if (ref.isRemote()) {
+              remotes.push(ref.name())
+            } else if (ref.isBranch()) {
+              heads.push(ref.name())
+            }
           }
-        }
-        return {heads, remotes, tags}
-      })
+          return {heads, remotes, tags}
+        })
+    })
   }
 
   // Public: Get the SHA for the given reference.
@@ -425,9 +437,11 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the current {String} SHA for the
   // given reference.
   getReferenceTarget (reference, _path) {
-    return this.getRepo(_path)
-      .then(repo => Git.Reference.nameToId(repo, reference))
-      .then(oid => oid.tostrS())
+    return this.workQueue.enqueue(() => {
+      return this.getRepo(_path)
+        .then(repo => Git.Reference.nameToId(repo, reference))
+        .then(oid => oid.tostrS())
+    })
   }
 
   // Reading Status
@@ -505,8 +519,8 @@ export default class GitRepositoryAsync {
   // status bit for the path.
   refreshStatusForPath (_path) {
     let relativePath
-    return Promise.all([this.getRepo(), this.getWorkingDirectory()])
-      .then(([repo, wd]) => {
+    return this.getWorkingDirectory()
+      .then(wd => {
         relativePath = this.relativize(_path, wd)
         return this._getStatus([relativePath])
       })
@@ -1081,18 +1095,20 @@ export default class GitRepositoryAsync {
   //
   // Returns a {Promise} which resolves to an {Array} of {NodeGit.StatusFile}
   // statuses for the paths.
-  _getStatus (paths, repo) {
-    return this.getRepo()
-      .then(repo => {
-        const opts = {
-          flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS
-        }
+  _getStatus (paths) {
+    return this.workQueue.enqueue(() => {
+      return this.getRepo()
+        .then(repo => {
+          const opts = {
+            flags: Git.Status.OPT.INCLUDE_UNTRACKED | Git.Status.OPT.RECURSE_UNTRACKED_DIRS
+          }
 
-        if (paths) {
-          opts.pathspec = paths
-        }
+          if (paths) {
+            opts.pathspec = paths
+          }
 
-        return repo.getStatusExt(opts)
-      })
+          return repo.getStatusExt(opts)
+        })
+    })
   }
 }
