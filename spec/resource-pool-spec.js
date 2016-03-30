@@ -4,7 +4,7 @@ import ResourcePool from '../src/resource-pool'
 
 import {it} from './async-spec-helpers'
 
-fdescribe('ResourcePool', () => {
+describe('ResourcePool', () => {
   let queue
 
   beforeEach(() => {
