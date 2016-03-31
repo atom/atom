@@ -234,7 +234,7 @@ class ApplicationDelegate
     shell.openExternal(url)
 
   disablePinchToZoom: ->
-    webFrame.setZoomLevelLimits(1, 1)
+    webFrame.setZoomLevelLimits(1, 1.0000000001)
 
   checkForUpdate: ->
     ipcRenderer.send('check-for-update')
