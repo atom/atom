@@ -44,10 +44,15 @@ class WorkspaceElement extends HTMLElement
     @subscriptions.add @config.onDidChange 'editor.lineHeight', @updateGlobalTextEditorStyleSheet.bind(this)
 
   updateGlobalTextEditorStyleSheet: ->
+    fontFamily = @config.get('editor.fontFamily')
+    # TODO: There is a bug in how some emojis (e.g. ❤️) are rendered on OSX.
+    # This workaround should be removed once we update to Chromium 51, where the
+    # problem was fixed.
+    fontFamily += ', "Apple Color Emoji"' if process.platform is 'darwin'
     styleSheetSource = """
       atom-text-editor {
         font-size: #{@config.get('editor.fontSize')}px;
-        font-family: #{@config.get('editor.fontFamily')};
+        font-family: #{fontFamily};
         line-height: #{@config.get('editor.lineHeight')};
       }
     """
