@@ -70,7 +70,6 @@ describe('AutoUpdateManager (renderer)', () => {
       autoUpdateManager.onUpdateError(spy)
       electronAutoUpdater.emit('error', {}, 'an error')
       waitsFor(() => spy.callCount === 1)
-      runs(() => expect(spy).toHaveBeenCalledWith('an error'))
     })
   })
 

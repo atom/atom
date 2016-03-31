@@ -252,3 +252,6 @@ class ApplicationDelegate
 
   getAutoUpdateManagerState: ->
     ipcRenderer.sendSync('get-auto-update-manager-state')
+
+  getAutoUpdateManagerErrorMessage: ->
+    ipcRenderer.sendSync('get-auto-update-manager-error')

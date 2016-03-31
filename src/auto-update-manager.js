@@ -21,9 +21,8 @@ export default class AutoUpdateManager {
       applicationDelegate.onUpdateNotAvailable(() => {
         this.emitter.emit('update-not-available')
       }),
-      applicationDelegate.onUpdateError((message) => {
-        console.error(message)
-        this.emitter.emit('update-error', message)
+      applicationDelegate.onUpdateError(() => {
+        this.emitter.emit('update-error')
       })
     )
   }
@@ -43,6 +42,10 @@ export default class AutoUpdateManager {
 
   getState () {
     return this.applicationDelegate.getAutoUpdateManagerState()
+  }
+
+  getErrorMessage () {
+    return this.applicationDelegate.getAutoUpdateManagerErrorMessage()
   }
 
   platformSupportsUpdates () {
