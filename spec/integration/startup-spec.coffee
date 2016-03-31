@@ -269,11 +269,6 @@ describe "Starting Atom", ->
               ].sort()
 
     it "doesn't reopen any previously opened windows if restorePreviousWindowsOnStart is disabled", ->
-      configPath = path.join(atomHome, 'config.cson')
-      config = CSON.readFileSync(configPath)
-      config['*'].core = {restorePreviousWindowsOnStart: false}
-      CSON.writeFileSync(configPath, config)
-
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
           .waitForExist("atom-workspace")
@@ -281,6 +276,11 @@ describe "Starting Atom", ->
             @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
           , 5000)
           .waitForExist("atom-workspace")
+
+      configPath = path.join(atomHome, 'config.cson')
+      config = CSON.readFileSync(configPath)
+      config['*'].core = {restorePreviousWindowsOnStart: false}
+      CSON.writeFileSync(configPath, config)
 
       runAtom [], {ATOM_HOME: atomHome}, (client) ->
         windowProjectPaths = []
