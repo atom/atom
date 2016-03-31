@@ -1074,6 +1074,50 @@ class TextEditor extends Model
       @autoIndentSelectedRows() if @shouldAutoIndent()
       @scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0])
 
+  # Move any active selections one column to the left.
+  moveSelectionLeft: ->
+    selections = @getSelectedBufferRanges()
+    noSelectionAtStartOfLine = selections.every((selection) ->
+      selection.start.column isnt 0
+    )
+
+    translationDelta = [0, -1]
+    translatedRanges = []
+
+    if noSelectionAtStartOfLine
+      @transact =>
+        for selection in selections
+          charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
+          charTextToLeftOfSelection = @buffer.getTextInRange(charToLeftOfSelection)
+
+          @buffer.insert(selection.end, charTextToLeftOfSelection)
+          @buffer.delete(charToLeftOfSelection)
+          translatedRanges.push(selection.translate(translationDelta))
+
+        @setSelectedBufferRanges(translatedRanges)
+
+  # Move any active selections one column to the right.
+  moveSelectionRight: ->
+    selections = @getSelectedBufferRanges()
+    noSelectionAtEndOfLine = selections.every((selection) =>
+      selection.end.column isnt @buffer.lineLengthForRow(selection.end.row)
+    )
+
+    translationDelta = [0, 1]
+    translatedRanges = []
+
+    if noSelectionAtEndOfLine
+      @transact =>
+        for selection in selections
+          charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
+          charTextToRightOfSelection = @buffer.getTextInRange(charToRightOfSelection)
+
+          @buffer.delete(charToRightOfSelection)
+          @buffer.insert(selection.start, charTextToRightOfSelection)
+          translatedRanges.push(selection.translate(translationDelta))
+
+        @setSelectedBufferRanges(translatedRanges)
+
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
     @transact =>

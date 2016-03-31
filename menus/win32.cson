@@ -57,6 +57,13 @@
         ]
       }
       {
+        label: 'Columns',
+        submenu: [
+          { label: 'Move Selection &Left', command: 'editor:move-selection-left' }
+          { label: 'Move Selection &Right', command: 'editor:move-selection-right' }
+        ]
+      }
+      {
         label: 'Text',
         submenu: [
           { label: '&Upper Case', command: 'editor:upper-case' }
