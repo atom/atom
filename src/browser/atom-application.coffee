@@ -516,7 +516,7 @@ class AtomApplication
 
   loadState: (options) ->
     restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
-    if (states = @storageFolder.load('application.json'))?.length > 0 and restorePreviousState
+    if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(_.extend(options, {
           initialPaths: state.initialPaths
