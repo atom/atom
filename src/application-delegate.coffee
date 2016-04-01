@@ -245,10 +245,10 @@ class ApplicationDelegate
     webFrame.setZoomLevelLimits(1, 1)
 
   checkForUpdate: ->
-    ipcRenderer.send('check-for-update')
+    ipcRenderer.send('command', 'application:check-for-update')
 
   restartAndInstallUpdate: ->
-    ipcRenderer.send('install-update')
+    ipcRenderer.send('command', 'application:install-update')
 
   getAutoUpdateManagerState: ->
     ipcRenderer.sendSync('get-auto-update-manager-state')
