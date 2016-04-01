@@ -208,7 +208,7 @@ class AtomEnvironment extends Model
     @stylesElement = @styles.buildStylesElement()
     @document.head.appendChild(@stylesElement)
 
-    @applicationDelegate.disablePinchToZoom()
+    @disposables.add(@applicationDelegate.disableZoom())
 
     @keymaps.subscribeToFileReadFailure()
     @keymaps.loadBundledKeymaps()
