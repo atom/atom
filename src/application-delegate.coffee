@@ -242,7 +242,10 @@ class ApplicationDelegate
     shell.openExternal(url)
 
   disablePinchToZoom: ->
-    webFrame.setZoomLevelLimits(1, 1)
+    # Setting the same min/max zoom level limit, prevents Chrome to constrain
+    # the zoom level. As a workaround, we use a slightly larger max limit so
+    # that the content cannot be zoomed and the limit is enforced.
+    webFrame.setZoomLevelLimits(1, 1.0000000001)
 
   checkForUpdate: ->
     ipcRenderer.send('command', 'application:check-for-update')
