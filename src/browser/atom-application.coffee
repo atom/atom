@@ -520,7 +520,10 @@ class AtomApplication
         if loadSettings = window.getLoadSettings()
           env = window.getEnvironment()
           env = process.env unless env?
-          states.push({initialPaths: loadSettings.initialPaths, env: env})
+          if loadSettings.initialPaths.length > 0
+            states.push({initialPaths: loadSettings.initialPaths, env: env})
+          else
+            states.push({initialPaths: loadSettings.initialPaths})
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 
