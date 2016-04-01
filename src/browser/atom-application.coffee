@@ -316,6 +316,9 @@ class AtomApplication
     ipcMain.on 'get-auto-update-manager-state', (event) =>
       event.returnValue = @autoUpdateManager.getState()
 
+    ipcMain.on 'get-auto-update-manager-error', (event) =>
+      event.returnValue = @autoUpdateManager.getErrorMessage()
+
     ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
 
