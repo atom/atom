@@ -68,8 +68,9 @@ describe('AutoUpdateManager (renderer)', () => {
     it('subscribes to "update-error" event', () => {
       const spy = jasmine.createSpy('spy')
       autoUpdateManager.onUpdateError(spy)
-      electronAutoUpdater.emit('error', {}, 'an error')
+      electronAutoUpdater.emit('error', {}, 'an error message')
       waitsFor(() => spy.callCount === 1)
+      runs(() => expect(autoUpdateManager.getErrorMessage()).toBe('an error message'))
     })
   })
 
