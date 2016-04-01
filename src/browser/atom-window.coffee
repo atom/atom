@@ -87,6 +87,13 @@ class AtomWindow
       hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
+  setEnvironment: (@env) =>
+
+  getEnvironment: =>
+    return @env if @env?.PATH?
+    return @browserWindow.loadSettings.env if @browserWindow?.loadSettings?.env?.PATH?
+    return
+
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
 
   setupContextMenu: ->

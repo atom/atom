@@ -187,6 +187,7 @@ class AtomApplication
     @on 'application:search-issues', -> shell.openExternal('https://github.com/issues?q=+is%3Aissue+user%3Aatom')
 
     @on 'application:install-update', =>
+      @saveState(true)
       @quitting = true
       @autoUpdateManager.install()
 
@@ -213,6 +214,7 @@ class AtomApplication
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     app.on 'before-quit', =>
+      @saveState(true)
       @quitting = true
 
     app.on 'will-quit', =>
@@ -318,6 +320,11 @@ class AtomApplication
 
     ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
+
+    ipcMain.on 'environment-updated', (event, env) =>
+      window = @windowForEvent(event)
+      window.setEnvironment(env) if window? and env?.PATH?
+      @env = env if env?.PATH?
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -511,7 +518,9 @@ class AtomApplication
     for window in @windows
       unless window.isSpec
         if loadSettings = window.getLoadSettings()
-          states.push({initialPaths: loadSettings.initialPaths, env: process.env})
+          env = window.getEnvironment()
+          env = process.env unless env?
+          states.push({initialPaths: loadSettings.initialPaths, env: env})
     if states.length > 0 or allowEmpty
       @storageFolder.storeSync('application.json', states)
 

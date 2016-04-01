@@ -2,6 +2,7 @@
 
 import {spawnSync} from 'child_process'
 import os from 'os'
+import {ipcRenderer} from 'electron'
 
 // Gets a dump of the user's configured shell environment.
 //
@@ -70,6 +71,7 @@ function needsPatching (options = { platform: process.platform, env: process.env
 function normalize (options = {}) {
   if (options && options.env) {
     process.env = options.env
+    notify()
   }
 
   if (!options.env) {
@@ -87,8 +89,13 @@ function normalize (options = {}) {
     if (shellEnv && shellEnv.PATH) {
       process._originalEnv = process.env
       process.env = shellEnv
+      notify()
     }
   }
+}
+
+function notify () {
+  ipcRenderer.send('environment-updated', process.env)
 }
 
 function replace (env) {
@@ -97,6 +104,7 @@ function replace (env) {
   }
 
   process.env = env
+  notify()
 }
 
 export default { getFromShell, needsPatching, normalize, replace }
