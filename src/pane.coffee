@@ -446,10 +446,12 @@ class Pane extends Model
 
     @items.splice(index, 0, item)
     lastPendingItem = @getPendingItem()
+    replacingPendingItem = lastPendingItem? and not moved
+    @pendingItem = null if replacingPendingItem
+    @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
-    @destroyItem(lastPendingItem) if lastPendingItem? and not moved
-    @setPendingItem(item) if pending
+    @destroyItem(lastPendingItem) if replacingPendingItem
     @setActiveItem(item) unless @getActiveItem()?
     item
 
