@@ -442,15 +442,14 @@ class Pane extends Model
       if typeof item.onDidTerminatePendingState is "function"
         itemSubscriptions.add item.onDidTerminatePendingState =>
           @clearPendingItem() if @getPendingItem() is item
-      itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
       @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
     lastPendingItem = @getPendingItem()
-    @setPendingItem(item) if pending
 
     @emitter.emit 'did-add-item', {item, index, moved}
     @destroyItem(lastPendingItem) if lastPendingItem? and not moved
+    @setPendingItem(item) if pending
     @setActiveItem(item) unless @getActiveItem()?
     item
 
@@ -458,7 +457,8 @@ class Pane extends Model
     if @pendingItem isnt item
       mostRecentPendingItem = @pendingItem
       @pendingItem = item
-      @emitter.emit 'item-did-terminate-pending-state', mostRecentPendingItem
+      if mostRecentPendingItem?
+        @emitter.emit 'item-did-terminate-pending-state', mostRecentPendingItem
 
   getPendingItem: =>
     @pendingItem or null
@@ -549,6 +549,7 @@ class Pane extends Model
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
+        @pendingItem = null if item is @getPendingItem()
         @removeItem(item, false)
         item.destroy?()
         true

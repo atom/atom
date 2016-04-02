@@ -265,7 +265,7 @@ describe "Pane", ->
     it "isn't called when a pending item is replaced with a new one", ->
       pane = null
       pendingSpy = jasmine.createSpy("onItemDidTerminatePendingState")
-      removedSpy = jasmine.createSpy("onDidRemoveItem")
+      destroySpy = jasmine.createSpy("onWillDestroyItem")
 
       waitsForPromise ->
         atom.workspace.open('sample.txt', pending: true).then ->
@@ -273,13 +273,13 @@ describe "Pane", ->
 
       runs ->
         pane.onItemDidTerminatePendingState pendingSpy
-        pane.onDidRemoveItem removedSpy
+        pane.onWillDestroyItem destroySpy
 
       waitsForPromise ->
         atom.workspace.open('sample.js', pending: true)
 
       runs ->
-        expect(removedSpy).toHaveBeenCalled()
+        expect(destroySpy).toHaveBeenCalled()
         expect(pendingSpy).not.toHaveBeenCalled()
 
   describe "::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()", ->
