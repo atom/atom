@@ -551,7 +551,6 @@ class Pane extends Model
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
       if @promptToSaveItem(item)
-        @pendingItem = null if item is @getPendingItem()
         @removeItem(item, false)
         item.destroy?()
         true
