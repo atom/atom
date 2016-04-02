@@ -262,6 +262,26 @@ describe "Pane", ->
       pane.setPendingItem("fake item two")
       expect(callbackCalled).toBeTruthy()
 
+    it "isn't called when a pending item is replaced with a new one", ->
+      pane = null
+      pendingSpy = jasmine.createSpy("onItemDidTerminatePendingState")
+      removedSpy = jasmine.createSpy("onDidRemoveItem")
+
+      waitsForPromise ->
+        atom.workspace.open('sample.txt', pending: true).then ->
+          pane = atom.workspace.getActivePane()
+
+      runs ->
+        pane.onItemDidTerminatePendingState pendingSpy
+        pane.onDidRemoveItem removedSpy
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', pending: true)
+
+      runs ->
+        expect(removedSpy).toHaveBeenCalled()
+        expect(pendingSpy).not.toHaveBeenCalled()
+
   describe "::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()", ->
     it "sets the active item to the next/previous item in the itemStack, looping around at either end", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B"), new Item("C"), new Item("D"), new Item("E")]))
