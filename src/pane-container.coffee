@@ -1,68 +1,42 @@
 {find, flatten} = require 'underscore-plus'
-Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
-Serializable = require 'serializable'
-{createGutterView} = require './gutter-component-helpers'
 Gutter = require './gutter'
 Model = require './model'
 Pane = require './pane'
-PaneElement = require './pane-element'
-PaneContainerElement = require './pane-container-element'
-PaneAxisElement = require './pane-axis-element'
-PaneAxis = require './pane-axis'
-TextEditor = require './text-editor'
-TextEditorElement = require './text-editor-element'
 ItemRegistry = require './item-registry'
 
 module.exports =
 class PaneContainer extends Model
-  atom.deserializers.add(this)
-  Serializable.includeInto(this)
-
-  @version: 1
-
+  serializationVersion: 1
   root: null
+  stoppedChangingActivePaneItemDelay: 100
+  stoppedChangingActivePaneItemTimeout: null
 
   constructor: (params) ->
     super
 
-    unless Grim.includeDeprecatedAPIs
-      @activePane = params?.activePane
-
+    {@config, applicationDelegate, notificationManager, deserializerManager} = params
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
-
     @itemRegistry = new ItemRegistry
-    @registerViewProviders()
 
-    @setRoot(params?.root ? new Pane)
-    @setActivePane(@getPanes()[0]) unless @getActivePane()
-
-    @destroyEmptyPanes() if params?.destroyEmptyPanes
-
+    @setRoot(new Pane({container: this, @config, applicationDelegate, notificationManager, deserializerManager}))
+    @setActivePane(@getRoot())
     @monitorActivePaneItem()
     @monitorPaneItems()
 
-  deserializeParams: (params) ->
-    params.root = atom.deserializers.deserialize(params.root, container: this)
-    params.destroyEmptyPanes = atom.config.get('core.destroyEmptyPanes')
-    params.activePane = find params.root.getPanes(), (pane) -> pane.id is params.activePaneId
-    params
-
-  serializeParams: (params) ->
+  serialize: (params) ->
+    deserializer: 'PaneContainer'
+    version: @serializationVersion
     root: @root?.serialize()
     activePaneId: @activePane.id
 
-  registerViewProviders: ->
-    atom.views.addViewProvider PaneContainer, (model) ->
-      new PaneContainerElement().initialize(model)
-    atom.views.addViewProvider PaneAxis, (model) ->
-      new PaneAxisElement().initialize(model)
-    atom.views.addViewProvider Pane, (model) ->
-      new PaneElement().initialize(model)
-    atom.views.addViewProvider TextEditor, (model) ->
-      new TextEditorElement().initialize(model)
-    atom.views.addViewProvider(Gutter, createGutterView)
+  deserialize: (state, deserializerManager) ->
+    return unless state.version is @serializationVersion
+    @setRoot(deserializerManager.deserialize(state.root))
+    activePane = find @getRoot().getPanes(), (pane) -> pane.id is state.activePaneId
+    @setActivePane(activePane ? @getPanes()[0])
+    @destroyEmptyPanes() if @config.get('core.destroyEmptyPanes')
 
   onDidChangeRoot: (fn) ->
     @emitter.on 'did-change-root', fn
@@ -81,6 +55,9 @@ class PaneContainer extends Model
   onDidDestroyPane: (fn) ->
     @emitter.on 'did-destroy-pane', fn
 
+  onWillDestroyPane: (fn) ->
+    @emitter.on 'will-destroy-pane', fn
+
   onDidChangeActivePane: (fn) ->
     @emitter.on 'did-change-active-pane', fn
 
@@ -97,6 +74,9 @@ class PaneContainer extends Model
 
   onDidChangeActivePaneItem: (fn) ->
     @emitter.on 'did-change-active-pane-item', fn
+
+  onDidStopChangingActivePaneItem: (fn) ->
+    @emitter.on 'did-stop-changing-active-pane-item', fn
 
   observeActivePaneItem: (fn) ->
     fn(@getActivePaneItem())
@@ -184,6 +164,15 @@ class PaneContainer extends Model
     else
       false
 
+  moveActiveItemToPane: (destPane) ->
+    item = @activePane.getActiveItem()
+    @activePane.moveItemToPane(item, destPane)
+    destPane.setActiveItem(item)
+
+  copyActiveItemToPane: (destPane) ->
+    item = @activePane.copyActiveItem()
+    destPane.activateItem(item)
+
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
     return
@@ -197,17 +186,26 @@ class PaneContainer extends Model
   didAddPane: (event) ->
     @emitter.emit 'did-add-pane', event
 
+  willDestroyPane: (event) ->
+    @emitter.emit 'will-destroy-pane', event
+
   didDestroyPane: (event) ->
     @emitter.emit 'did-destroy-pane', event
 
   # Called by Model superclass when destroyed
   destroyed: ->
+    @cancelStoppedChangingActivePaneItemTimeout()
     pane.destroy() for pane in @getPanes()
     @subscriptions.dispose()
     @emitter.dispose()
 
+  cancelStoppedChangingActivePaneItemTimeout: ->
+    if @stoppedChangingActivePaneItemTimeout?
+      clearTimeout(@stoppedChangingActivePaneItemTimeout)
+
   monitorActivePaneItem: ->
     childSubscription = null
+
     @subscriptions.add @observeActivePane (activePane) =>
       if childSubscription?
         @subscriptions.remove(childSubscription)
@@ -215,6 +213,14 @@ class PaneContainer extends Model
 
       childSubscription = activePane.observeActiveItem (activeItem) =>
         @emitter.emit 'did-change-active-pane-item', activeItem
+        @cancelStoppedChangingActivePaneItemTimeout()
+        stoppedChangingActivePaneItemCallback = =>
+          @stoppedChangingActivePaneItemTimeout = null
+          @emitter.emit 'did-stop-changing-active-pane-item', activeItem
+        @stoppedChangingActivePaneItemTimeout =
+          setTimeout(
+            stoppedChangingActivePaneItemCallback,
+            @stoppedChangingActivePaneItemDelay)
 
       @subscriptions.add(childSubscription)
 
@@ -223,11 +229,11 @@ class PaneContainer extends Model
       for item, index in pane.getItems()
         @addedPaneItem(item, pane, index)
 
-      pane.onDidAddItem ({item, index}) =>
-        @addedPaneItem(item, pane, index)
+      pane.onDidAddItem ({item, index, moved}) =>
+        @addedPaneItem(item, pane, index) unless moved
 
-      pane.onDidRemoveItem ({item}) =>
-        @removedPaneItem(item)
+      pane.onDidRemoveItem ({item, moved}) =>
+        @removedPaneItem(item) unless moved
 
   addedPaneItem: (item, pane, index) ->
     @itemRegistry.addItem(item)
@@ -235,12 +241,3 @@ class PaneContainer extends Model
 
   removedPaneItem: (item) ->
     @itemRegistry.removeItem(item)
-
-if Grim.includeDeprecatedAPIs
-  PaneContainer.properties
-    activePane: null
-
-  PaneContainer.behavior 'activePaneItem', ->
-    @$activePane
-      .switch((activePane) -> activePane?.$activeItem)
-      .distinctUntilChanged()

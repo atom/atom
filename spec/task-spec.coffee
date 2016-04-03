@@ -57,3 +57,54 @@ describe "Task", ->
       expect(deprecations.length).toBe 1
       expect(deprecations[0].getStacks()[0][1].fileName).toBe handlerPath
       jasmine.restoreDeprecationsSnapshot()
+
+  it "adds data listeners to standard out and error to report output", ->
+    task = new Task(require.resolve('./fixtures/task-spec-handler'))
+    {stdout, stderr} = task.childProcess
+
+    task.start()
+    task.start()
+    expect(stdout.listeners('data').length).toBe 1
+    expect(stderr.listeners('data').length).toBe 1
+
+    task.terminate()
+    expect(stdout.listeners('data').length).toBe 0
+    expect(stderr.listeners('data').length).toBe 0
+
+  it "does not throw an error for forked processes missing stdout/stderr", ->
+    spyOn(require('child_process'), 'fork').andCallFake ->
+      Events = require 'events'
+      fakeProcess = new Events()
+      fakeProcess.send = ->
+      fakeProcess.kill = ->
+      fakeProcess
+
+    task = new Task(require.resolve('./fixtures/task-spec-handler'))
+    expect(-> task.start()).not.toThrow()
+    expect(-> task.terminate()).not.toThrow()
+
+  describe "::cancel()", ->
+    it "dispatches 'task:cancelled' when invoked on an active task", ->
+      task = new Task(require.resolve('./fixtures/task-spec-handler'))
+      cancelledEventSpy = jasmine.createSpy('eventSpy')
+      task.on('task:cancelled', cancelledEventSpy)
+      completedEventSpy = jasmine.createSpy('eventSpy')
+      task.on('task:completed', completedEventSpy)
+
+      expect(task.cancel()).toBe(true)
+      expect(cancelledEventSpy).toHaveBeenCalled()
+      expect(completedEventSpy).not.toHaveBeenCalled()
+
+    it "does not dispatch 'task:cancelled' when invoked on an inactive task", ->
+      handlerResult = null
+      task = Task.once require.resolve('./fixtures/task-spec-handler'), (result) ->
+        handlerResult = result
+
+      waitsFor ->
+        handlerResult?
+
+      runs ->
+        cancelledEventSpy = jasmine.createSpy('eventSpy')
+        task.on('task:cancelled', cancelledEventSpy)
+        expect(task.cancel()).toBe(false)
+        expect(cancelledEventSpy).not.toHaveBeenCalled()

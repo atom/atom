@@ -5,25 +5,25 @@ path = require 'path'
 temp = require 'temp'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 
-describe "Windows squirrel updates", ->
+describe "Windows Squirrel Update", ->
   tempHomeDirectory = null
+  originalSpawn = ChildProcess.spawn
+  
+  harmlessSpawn = ->
+    # Just spawn something that won't actually modify the host
+    if process.platform is 'win32'
+      originalSpawn('dir')
+    else
+      originalSpawn('ls')
 
   beforeEach ->
-    # Prevent the actually home directory from being manipulated
+    # Prevent the actual home directory from being manipulated
     tempHomeDirectory = temp.mkdirSync('atom-temp-home-')
     spyOn(fs, 'getHomeDirectory').andReturn(tempHomeDirectory)
 
     # Prevent any commands from actually running and affecting the host
-    originalSpawn = ChildProcess.spawn
     spyOn(ChildProcess, 'spawn').andCallFake (command, args) ->
-      if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
-        fs.writeFileSync(path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk'), '')
-
-      # Just spawn something that won't actually modify the host
-      if process.platform is 'win32'
-        originalSpawn('dir')
-      else
-        originalSpawn('ls')
+      harmlessSpawn()
 
   it "ignores errors spawning Squirrel", ->
     jasmine.unspy(ChildProcess, 'spawn')
@@ -67,28 +67,55 @@ describe "Windows squirrel updates", ->
     runs ->
       expect(SquirrelUpdate.handleStartupEvent(app, '--not-squirrel')).toBe false
 
-  it "keeps the desktop shortcut deleted on updates if it was previously deleted after install", ->
-    desktopShortcutPath = path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk')
-    expect(fs.existsSync(desktopShortcutPath)).toBe false
-
-    app = quit: jasmine.createSpy('quit')
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
-
-    waitsFor ->
-      app.quit.callCount is 1
-
-    runs ->
-      app.quit.reset()
-      expect(fs.existsSync(desktopShortcutPath)).toBe true
-      fs.removeSync(desktopShortcutPath)
+  describe "Desktop shortcut", ->
+    desktopShortcutPath = '/non/existing/path'
+    
+    beforeEach ->
+      desktopShortcutPath = path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk')
+      
+      jasmine.unspy(ChildProcess, 'spawn')
+      spyOn(ChildProcess, 'spawn').andCallFake (command, args) ->
+        if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
+          fs.writeFileSync(path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk'), '')
+          harmlessSpawn()
+        else
+          throw new Error("API not mocked")
+      
+    it "does not exist before install", ->
       expect(fs.existsSync(desktopShortcutPath)).toBe false
-      expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')).toBe true
-
-    waitsFor ->
-      app.quit.callCount is 1
-
-    runs ->
-      expect(fs.existsSync(desktopShortcutPath)).toBe false
+    
+    describe "on install", ->
+      beforeEach ->
+        app = quit: jasmine.createSpy('quit')
+        SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')
+        waitsFor ->
+          app.quit.callCount is 1
+        
+      it "creates desktop shortcut", ->
+        expect(fs.existsSync(desktopShortcutPath)).toBe true
+      
+      describe "when shortcut is deleted and then app is updated", ->
+        beforeEach ->
+          fs.removeSync(desktopShortcutPath)
+          expect(fs.existsSync(desktopShortcutPath)).toBe false
+          
+          app = quit: jasmine.createSpy('quit')
+          SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+          waitsFor ->
+            app.quit.callCount is 1
+            
+        it "does not recreate shortcut", ->
+          expect(fs.existsSync(desktopShortcutPath)).toBe false
+      
+      describe "when shortcut is kept and app is updated", ->
+        beforeEach ->
+          app = quit: jasmine.createSpy('quit')
+          SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+          waitsFor ->
+            app.quit.callCount is 1
+            
+        it "still has desktop shortcut", ->
+          expect(fs.existsSync(desktopShortcutPath)).toBe true
 
   describe ".restartAtom", ->
     it "quits the app and spawns a new one", ->

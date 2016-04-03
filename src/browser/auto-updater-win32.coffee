@@ -5,13 +5,13 @@ SquirrelUpdate = require './squirrel-update'
 class AutoUpdater
   _.extend @prototype, EventEmitter.prototype
 
-  setFeedUrl: (@updateUrl) ->
+  setFeedURL: (@updateUrl) ->
 
   quitAndInstall: ->
     if SquirrelUpdate.existsSync()
-      SquirrelUpdate.restartAtom(require('app'))
+      SquirrelUpdate.restartAtom(require('electron').app)
     else
-      require('auto-updater').quitAndInstall()
+      require('electron').autoUpdater.quitAndInstall()
 
   downloadUpdate: (callback) ->
     SquirrelUpdate.spawn ['--download', @updateUrl], (error, stdout) ->
@@ -51,12 +51,13 @@ class AutoUpdater
         @emit 'update-not-available'
         return
 
+      @emit 'update-available'
+
       @installUpdate (error) =>
         if error?
           @emit 'update-not-available'
           return
 
-        @emit 'update-available'
         @emit 'update-downloaded', {}, update.releaseNotes, update.version, new Date(), 'https://atom.io', => @quitAndInstall()
 
 module.exports = new AutoUpdater()

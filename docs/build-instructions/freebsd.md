@@ -19,4 +19,18 @@ FreeBSD -RELEASE 64-bit is the recommended platform.
   sudo script/grunt install # Installs command to /usr/local/bin/atom
   ```
 
+## Advanced Options
+
+### Custom install directory
+
+```sh
+sudo script/grunt install --install-dir /install/atom/here
+```
+
+### Custom build directory
+
+```sh
+script/build --build-dir /build/atom/here
+```
+
 ## Troubleshooting

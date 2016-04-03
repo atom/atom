@@ -13,7 +13,6 @@ class Fold
   constructor: (@displayBuffer, @marker) ->
     @id = @marker.id
     @displayBuffer.foldsByMarkerId[@marker.id] = this
-    @updateDisplayBuffer()
     @marker.onDidDestroy => @destroyed()
     @marker.onDidChange ({isValid}) => @destroy() unless isValid
 

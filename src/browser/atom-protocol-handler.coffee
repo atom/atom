@@ -1,7 +1,6 @@
-app = require 'app'
+{app, protocol} = require 'electron'
 fs = require 'fs'
 path = require 'path'
-protocol = require 'protocol'
 
 # Handles requests with 'atom' protocol.
 #
@@ -29,7 +28,7 @@ class AtomProtocolHandler
 
   # Creates the 'atom' custom protocol handler.
   registerAtomProtocol: ->
-    protocol.registerProtocol 'atom', (request) =>
+    protocol.registerFileProtocol 'atom', (request, callback) =>
       relativePath = path.normalize(request.url.substr(7))
 
       if relativePath.indexOf('assets/') is 0
@@ -41,4 +40,4 @@ class AtomProtocolHandler
           filePath = path.join(loadPath, relativePath)
           break if fs.statSyncNoException(filePath).isFile?()
 
-      new protocol.RequestFileJob(filePath)
+      callback(filePath)

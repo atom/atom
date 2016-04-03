@@ -1,12 +1,13 @@
 {CompositeDisposable} = require 'event-kit'
-{callAttachHooks} = require './space-pen-extensions'
 Panel = require './panel'
 
 class PanelElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
-  initialize: (@model) ->
+  initialize: (@model, {@views}) ->
+    throw new Error("Must pass a views parameter when initializing PanelElements") unless @views?
+
     @appendChild(@getItemView())
 
     @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
@@ -18,10 +19,9 @@ class PanelElement extends HTMLElement
     @model ?= new Panel
 
   getItemView: ->
-    atom.views.getView(@getModel().getItem())
+    @views.getView(@getModel().getItem())
 
   attachedCallback: ->
-    callAttachHooks(@getItemView()) # for backward compatibility with SpacePen views
     @visibleChanged(@getModel().isVisible())
 
   visibleChanged: (visible) ->
@@ -32,6 +32,6 @@ class PanelElement extends HTMLElement
 
   destroyed: ->
     @subscriptions.dispose()
-    @parentNode?.removeChild(this)
+    @remove()
 
 module.exports = PanelElement = document.registerElement 'atom-panel', prototype: PanelElement.prototype

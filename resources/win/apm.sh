@@ -1,3 +1,4 @@
 #!/bin/sh
 
-"$0/../../app/apm/bin/node.exe" "$0/../../app/apm/lib/cli.js" "$@"
+directory=$(dirname "$0")
+"$directory/../app/apm/bin/node.exe" "$directory/../app/apm/lib/cli.js" "$@"

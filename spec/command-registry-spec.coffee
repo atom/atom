@@ -16,6 +16,7 @@ describe "CommandRegistry", ->
     document.querySelector('#jasmine-content').appendChild(parent)
 
     registry = new CommandRegistry
+    registry.attach(parent)
 
   afterEach ->
     registry.destroy()
@@ -115,6 +116,15 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(dispatchedEvent)
       expect(dispatchedEvent.abortKeyBinding).toHaveBeenCalled()
 
+    it "copies non-standard properties from the original event to the synthetic event", ->
+      syntheticEvent = null
+      registry.add '.child', 'command', (event) -> syntheticEvent = event
+
+      dispatchedEvent = new CustomEvent('command', bubbles: true)
+      dispatchedEvent.nonStandardProperty = 'testing'
+      grandchild.dispatchEvent(dispatchedEvent)
+      expect(syntheticEvent.nonStandardProperty).toBe 'testing'
+
     it "allows listeners to be removed via a disposable returned by ::add", ->
       calls = []
 
@@ -148,6 +158,28 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command-2', bubbles: true))
       expect(calls).toEqual []
 
+    it "invokes callbacks registered with ::onWillDispatch and ::onDidDispatch", ->
+      sequence = []
+
+      registry.onDidDispatch (event) ->
+        sequence.push ['onDidDispatch', event]
+
+      registry.add '.grandchild', 'command', (event) ->
+        sequence.push ['listener', event]
+
+      registry.onWillDispatch (event) ->
+        sequence.push ['onWillDispatch', event]
+
+      grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
+
+      expect(sequence[0][0]).toBe 'onWillDispatch'
+      expect(sequence[1][0]).toBe 'listener'
+      expect(sequence[2][0]).toBe 'onDidDispatch'
+
+      expect(sequence[0][1] is sequence[1][1] is sequence[2][1]).toBe true
+      expect(sequence[0][1].constructor).toBe CustomEvent
+      expect(sequence[0][1].target).toBe grandchild
+
   describe "::add(selector, commandName, callback)", ->
     it "throws an error when called with an invalid selector", ->
       badSelector = '<>'
@@ -157,6 +189,26 @@ describe "CommandRegistry", ->
       catch error
         addError = error
       expect(addError.message).toContain(badSelector)
+
+    it "throws an error when called with a non-function callback and selector target", ->
+      badCallback = null
+      addError = null
+
+      try
+        registry.add '.selector', 'foo:bar', badCallback
+      catch error
+        addError = error
+      expect(addError.message).toContain("Can't register a command with non-function callback.")
+
+    it "throws an error when called with an non-function callback and object target", ->
+      badCallback = null
+      addError = null
+
+      try
+        registry.add document.body, 'foo:bar', badCallback
+      catch error
+        addError = error
+      expect(addError.message).toContain("Can't register a command with non-function callback.")
 
   describe "::findCommands({target})", ->
     it "returns commands that can be invoked on the target or its ancestors", ->
@@ -226,3 +278,18 @@ describe "CommandRegistry", ->
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
+
+  describe "::attach(rootNode)", ->
+    it "adds event listeners for any previously-added commands", ->
+      registry2 = new CommandRegistry
+
+      commandSpy = jasmine.createSpy('command-callback')
+      registry2.add '.grandchild', 'command-1', commandSpy
+
+      grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+      expect(commandSpy).not.toHaveBeenCalled()
+
+      registry2.attach(parent)
+
+      grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+      expect(commandSpy).toHaveBeenCalled()

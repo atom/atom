@@ -8,8 +8,9 @@ class LanguageMode
   # Sets up a `LanguageMode` for the given {TextEditor}.
   #
   # editor - The {TextEditor} to associate with
-  constructor: (@editor) ->
+  constructor: (@editor, @config) ->
     {@buffer} = @editor
+    @regexesByPattern = {}
 
   destroy: ->
 
@@ -56,7 +57,7 @@ class LanguageMode
       allBlank = true
       allBlankOrCommented = true
 
-      for row in [start..end]
+      for row in [start..end] by 1
         line = buffer.lineForRow(row)
         blank = line?.match(/^\s*$/)
 
@@ -66,7 +67,7 @@ class LanguageMode
       shouldUncomment = allBlankOrCommented and not allBlank
 
       if shouldUncomment
-        for row in [start..end]
+        for row in [start..end] by 1
           if match = commentStartRegex.searchSync(buffer.lineForRow(row))
             columnStart = match[1].length
             columnEnd = columnStart + match[2].length
@@ -79,7 +80,7 @@ class LanguageMode
         indentString = @editor.buildIndentString(indent)
         tabLength = @editor.getTabLength()
         indentRegex = new RegExp("(\t|[ ]{#{tabLength}}){#{Math.floor(indent)}}")
-        for row in [start..end]
+        for row in [start..end] by 1
           line = buffer.lineForRow(row)
           if indentLength = line.match(indentRegex)?[0].length
             buffer.insert([row, indentLength], commentStartString)
@@ -89,7 +90,7 @@ class LanguageMode
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->
-    for currentRow in [0..@buffer.getLastRow()]
+    for currentRow in [0..@buffer.getLastRow()] by 1
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
       @editor.createFold(startRow, endRow)
@@ -97,8 +98,8 @@ class LanguageMode
 
   # Unfolds all the foldable lines in the buffer.
   unfoldAll: ->
-    for row in [@buffer.getLastRow()..0]
-      fold.destroy() for fold in @editor.displayBuffer.foldsStartingAtBufferRow(row)
+    for fold in @editor.displayBuffer.foldsIntersectingBufferRowRange(0, @buffer.getLastRow()) by -1
+      fold.destroy()
     return
 
   # Fold all comment and code blocks at a given indentLevel
@@ -106,7 +107,7 @@ class LanguageMode
   # indentLevel - A {Number} indicating indentLevel; 0 based.
   foldAllAtIndentLevel: (indentLevel) ->
     @unfoldAll()
-    for currentRow in [0..@buffer.getLastRow()]
+    for currentRow in [0..@buffer.getLastRow()] by 1
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
@@ -121,7 +122,7 @@ class LanguageMode
   #
   # Returns the new {Fold}.
   foldBufferRow: (bufferRow) ->
-    for currentRow in [bufferRow..0]
+    for currentRow in [bufferRow..0] by -1
       [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
       fold = @editor.displayBuffer.largestFoldStartingAtBufferRow(startRow)
@@ -145,14 +146,12 @@ class LanguageMode
     endRow = bufferRow
 
     if bufferRow > 0
-      for currentRow in [bufferRow-1..0]
-        break if @buffer.isRowBlank(currentRow)
+      for currentRow in [bufferRow-1..0] by -1
         break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
         startRow = currentRow
 
     if bufferRow < @buffer.getLastRow()
-      for currentRow in [bufferRow+1..@buffer.getLastRow()]
-        break if @buffer.isRowBlank(currentRow)
+      for currentRow in [bufferRow+1..@buffer.getLastRow()] by 1
         break unless @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(currentRow).isComment()
         endRow = currentRow
 
@@ -163,7 +162,7 @@ class LanguageMode
 
     startIndentLevel = @editor.indentationForBufferRow(bufferRow)
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    for row in [(bufferRow + 1)..@editor.getLastBufferRow()]
+    for row in [(bufferRow + 1)..@editor.getLastBufferRow()] by 1
       continue if @editor.isBufferRowBlank(row)
       indentation = @editor.indentationForBufferRow(row)
       if indentation <= startIndentLevel
@@ -234,33 +233,40 @@ class LanguageMode
   #
   # Returns a {Number}.
   suggestedIndentForBufferRow: (bufferRow, options) ->
+    line = @buffer.lineForRow(bufferRow)
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)
-    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
     tokenizedLine = @editor.displayBuffer.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
-    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, tokenizedLine, options)
+    @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
-  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, tokenizedLine, options) ->
-    scopes = tokenizedLine.tokens[0].scopes
-    scopeDescriptor = new ScopeDescriptor({scopes})
+  suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->
+    iterator = tokenizedLine.getTokenIterator()
+    iterator.next()
+    scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
-    currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
-    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
 
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
       return 0 unless precedingRow?
     else
       precedingRow = bufferRow - 1
-      return currentIndentLevel if precedingRow < 0
+      return 0 if precedingRow < 0
 
-    precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentRegex.testSync(precedingLine) and not @editor.isBufferRowCommented(precedingRow)
+    return desiredIndentLevel unless increaseIndentRegex
 
-    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    desiredIndentLevel -= 1 if decreaseIndentRegex.testSync(tokenizedLine.text)
+    unless @editor.isBufferRowCommented(precedingRow)
+      precedingLine = @buffer.lineForRow(precedingRow)
+      desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
+      desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
+
+    unless @buffer.isRowBlank(precedingRow)
+      desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
 
     Math.max(desiredIndentLevel, 0)
 
@@ -271,7 +277,7 @@ class LanguageMode
   #
   # Returns a {Number} of the indent level of the block of lines.
   minIndentLevelForRowRange: (startRow, endRow) ->
-    indents = (@editor.indentationForBufferRow(row) for row in [startRow..endRow] when not @editor.isBufferRowBlank(row))
+    indents = (@editor.indentationForBufferRow(row) for row in [startRow..endRow] by 1 when not @editor.isBufferRowBlank(row))
     indents = [0] unless indents.length
     Math.min(indents...)
 
@@ -280,7 +286,7 @@ class LanguageMode
   # startRow - The row {Number} to start at
   # endRow - The row {Number} to end at
   autoIndentBufferRows: (startRow, endRow) ->
-    @autoIndentBufferRow(row) for row in [startRow..endRow]
+    @autoIndentBufferRow(row) for row in [startRow..endRow] by 1
     return
 
   # Given a buffer row, this indents it.
@@ -296,27 +302,33 @@ class LanguageMode
   # bufferRow - The row {Number}
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopeDescriptor = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
-    return unless increaseIndentRegex and decreaseIndentRegex
+    return unless decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
 
     line = @buffer.lineForRow(bufferRow)
     return unless decreaseIndentRegex.testSync(line)
 
     currentIndentLevel = @editor.indentationForBufferRow(bufferRow)
     return if currentIndentLevel is 0
+
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
     return unless precedingRow?
-    precedingLine = @buffer.lineForRow(precedingRow)
 
+    precedingLine = @buffer.lineForRow(precedingRow)
     desiredIndentLevel = @editor.indentationForBufferRow(precedingRow)
-    desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
+
+    if increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+      desiredIndentLevel -= 1 unless increaseIndentRegex.testSync(precedingLine)
+
+    if decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+      desiredIndentLevel -= 1 if decreaseNextIndentRegex.testSync(precedingLine)
+
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   getRegexForProperty: (scopeDescriptor, property) ->
-    if pattern = atom.config.get(property, scope: scopeDescriptor)
-      new OnigRegExp(pattern)
+    if pattern = @config.get(property, scope: scopeDescriptor)
+      @regexesByPattern[pattern] ?= new OnigRegExp(pattern)
+      @regexesByPattern[pattern]
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
@@ -324,12 +336,15 @@ class LanguageMode
   decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
 
+  decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
+
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
 
   commentStartAndEndStringsForScope: (scope) ->
-    commentStartEntry = atom.config.getAll('editor.commentStart', {scope})[0]
-    commentEndEntry = _.find atom.config.getAll('editor.commentEnd', {scope}), (entry) ->
+    commentStartEntry = @config.getAll('editor.commentStart', {scope})[0]
+    commentEndEntry = _.find @config.getAll('editor.commentEnd', {scope}), (entry) ->
       entry.scopeSelector is commentStartEntry.scopeSelector
     commentStartString = commentStartEntry?.value
     commentEndString = commentEndEntry?.value

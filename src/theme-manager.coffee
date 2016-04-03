@@ -3,49 +3,20 @@ _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
-Q = require 'q'
-Grim = require 'grim'
 
 # Extended: Handles loading and activating available themes.
 #
 # An instance of this class is always available as the `atom.themes` global.
 module.exports =
 class ThemeManager
-  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
+  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode, @config, @styleManager, @notificationManager, @viewRegistry}) ->
     @emitter = new Emitter
     @styleSheetDisposablesBySourcePath = {}
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
-    @sheetsByStyleElement = new WeakMap
-
-    stylesElement = document.head.querySelector('atom-styles')
-    stylesElement.onDidAddStyleElement @styleElementAdded.bind(this)
-    stylesElement.onDidRemoveStyleElement @styleElementRemoved.bind(this)
-    stylesElement.onDidUpdateStyleElement @styleElementUpdated.bind(this)
-
-  styleElementAdded: (styleElement) ->
-    {sheet} = styleElement
-    @sheetsByStyleElement.set(styleElement, sheet)
-    @emit 'stylesheet-added', sheet if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-add-stylesheet', sheet
-    @emit 'stylesheets-changed' if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-stylesheets'
-
-  styleElementRemoved: (styleElement) ->
-    sheet = @sheetsByStyleElement.get(styleElement)
-    @emit 'stylesheet-removed', sheet if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-remove-stylesheet', sheet
-    @emit 'stylesheets-changed' if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-stylesheets'
-
-  styleElementUpdated: ({sheet}) ->
-    @emit 'stylesheet-removed', sheet if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-remove-stylesheet', sheet
-    @emit 'stylesheet-added', sheet if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-add-stylesheet', sheet
-    @emit 'stylesheets-changed' if Grim.includeDeprecatedAPIs
-    @emitter.emit 'did-change-stylesheets'
+    @packageManager.onDidActivateInitialPackages =>
+      @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
 
   ###
   Section: Event Subscription
@@ -57,7 +28,6 @@ class ThemeManager
   # * `callback` {Function}
   onDidChangeActiveThemes: (callback) ->
     @emitter.on 'did-change-active-themes', callback
-    @emitter.on 'did-reload-all', callback # TODO: Remove once deprecated pre-1.0 APIs are gone
 
   ###
   Section: Accessing Available Themes
@@ -71,11 +41,11 @@ class ThemeManager
   Section: Accessing Loaded Themes
   ###
 
-  # Public: Get an array of all the loaded theme names.
+  # Public: Returns an {Array} of {String}s of all the loaded theme names.
   getLoadedThemeNames: ->
     theme.name for theme in @getLoadedThemes()
 
-  # Public: Get an array of all the loaded themes.
+  # Public: Returns an {Array} of all the loaded themes.
   getLoadedThemes: ->
     pack for pack in @packageManager.getLoadedPackages() when pack.isTheme()
 
@@ -83,11 +53,11 @@ class ThemeManager
   Section: Accessing Active Themes
   ###
 
-  # Public: Get an array of all the active theme names.
+  # Public: Returns an {Array} of {String}s all the active theme names.
   getActiveThemeNames: ->
     theme.name for theme in @getActiveThemes()
 
-  # Public: Get an array of all the active themes.
+  # Public: Returns an {Array} of all the active themes.
   getActiveThemes: ->
     pack for pack in @packageManager.getActivePackages() when pack.isTheme()
 
@@ -97,16 +67,22 @@ class ThemeManager
   Section: Managing Enabled Themes
   ###
 
+  warnForNonExistentThemes: ->
+    themeNames = @config.get('core.themes') ? []
+    themeNames = [themeNames] unless _.isArray(themeNames)
+    for themeName in themeNames
+      unless themeName and typeof themeName is 'string' and @packageManager.resolvePackagePath(themeName)
+        console.warn("Enabled theme '#{themeName}' is not installed.")
+
   # Public: Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
-    themeNames = atom.config.get('core.themes') ? []
+    themeNames = @config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
-    themeNames = themeNames.filter (themeName) ->
+    themeNames = themeNames.filter (themeName) =>
       if themeName and typeof themeName is 'string'
-        return true if atom.packages.resolvePackagePath(themeName)
-        console.warn("Enabled theme '#{themeName}' is not installed.")
+        return true if @packageManager.resolvePackagePath(themeName)
       false
 
     # Use a built-in syntax and UI theme any time the configured themes are not
@@ -165,7 +141,7 @@ class ThemeManager
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
 
-    userStylesheetPath = atom.styles.getUserStyleSheetPath()
+    userStylesheetPath = @styleManager.getUserStyleSheetPath()
     return unless fs.isFileSync(userStylesheetPath)
 
     try
@@ -184,14 +160,14 @@ class ThemeManager
         [this document][watches] for more info.
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
       """
-      atom.notifications.addError(message, dismissable: true)
+      @notificationManager.addError(message, dismissable: true)
 
     try
       userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
     catch
       return
 
-    @userStyleSheetDisposable = atom.styles.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
+    @userStyleSheetDisposable = @styleManager.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
     @requireStylesheet('../static/bootstrap')
@@ -247,45 +223,43 @@ class ThemeManager
         message = "Error loading Less stylesheet: `#{lessStylesheetPath}`"
         detail = error.message
 
-      atom.notifications.addError(message, {detail, dismissable: true})
+      @notificationManager.addError(message, {detail, dismissable: true})
       throw error
 
   removeStylesheet: (stylesheetPath) ->
     @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
   applyStylesheet: (path, text) ->
-    @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path)
+    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(text, sourcePath: path)
 
   stringToId: (string) ->
     string.replace(/\\/g, '/')
 
   activateThemes: ->
-    deferred = Q.defer()
+    new Promise (resolve) =>
+      # @config.observe runs the callback once, then on subsequent changes.
+      @config.observe 'core.themes', =>
+        @deactivateThemes()
 
-    # atom.config.observe runs the callback once, then on subsequent changes.
-    atom.config.observe 'core.themes', =>
-      @deactivateThemes()
+        @warnForNonExistentThemes()
 
-      @refreshLessCache() # Update cache for packages in core.themes config
+        @refreshLessCache() # Update cache for packages in core.themes config
 
-      promises = []
-      for themeName in @getEnabledThemeNames()
-        if @packageManager.resolvePackagePath(themeName)
-          promises.push(@packageManager.activatePackage(themeName))
-        else
-          console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
+        promises = []
+        for themeName in @getEnabledThemeNames()
+          if @packageManager.resolvePackagePath(themeName)
+            promises.push(@packageManager.activatePackage(themeName))
+          else
+            console.warn("Failed to activate theme '#{themeName}' because it isn't installed.")
 
-      Q.all(promises).then =>
-        @addActiveThemeClasses()
-        @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
-        @loadUserStylesheet()
-        @reloadBaseStylesheets()
-        @initialLoadComplete = true
-        @emit 'reloaded' if Grim.includeDeprecatedAPIs
-        @emitter.emit 'did-change-active-themes'
-        deferred.resolve()
-
-    deferred.promise
+        Promise.all(promises).then =>
+          @addActiveThemeClasses()
+          @refreshLessCache() # Update cache again now that @getActiveThemes() is populated
+          @loadUserStylesheet()
+          @reloadBaseStylesheets()
+          @initialLoadComplete = true
+          @emitter.emit 'did-change-active-themes'
+          resolve()
 
   deactivateThemes: ->
     @removeActiveThemeClasses()
@@ -296,13 +270,13 @@ class ThemeManager
   isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
-    workspaceElement = atom.views.getView(atom.workspace)
-    for pack in @getActiveThemes()
-      workspaceElement.classList.add("theme-#{pack.name}")
-    return
+    if workspaceElement = @viewRegistry.getView(@workspace)
+      for pack in @getActiveThemes()
+        workspaceElement.classList.add("theme-#{pack.name}")
+      return
 
   removeActiveThemeClasses: ->
-    workspaceElement = atom.views.getView(atom.workspace)
+    workspaceElement = @viewRegistry.getView(@workspace)
     for pack in @getActiveThemes()
       workspaceElement.classList.remove("theme-#{pack.name}")
     return
@@ -325,59 +299,3 @@ class ThemeManager
             themePaths.push(path.join(themePath, 'styles'))
 
     themePaths.filter (themePath) -> fs.isDirectorySync(themePath)
-
-if Grim.includeDeprecatedAPIs
-  EmitterMixin = require('emissary').Emitter
-  EmitterMixin.includeInto(ThemeManager)
-
-  ThemeManager::on = (eventName) ->
-    switch eventName
-      when 'reloaded'
-        Grim.deprecate 'Use ThemeManager::onDidChangeActiveThemes instead'
-      when 'stylesheet-added'
-        Grim.deprecate 'Use ThemeManager::onDidAddStylesheet instead'
-      when 'stylesheet-removed'
-        Grim.deprecate 'Use ThemeManager::onDidRemoveStylesheet instead'
-      when 'stylesheet-updated'
-        Grim.deprecate 'Use ThemeManager::onDidUpdateStylesheet instead'
-      when 'stylesheets-changed'
-        Grim.deprecate 'Use ThemeManager::onDidChangeStylesheets instead'
-      else
-        Grim.deprecate 'ThemeManager::on is deprecated. Use event subscription methods instead.'
-    EmitterMixin::on.apply(this, arguments)
-
-  ThemeManager::onDidReloadAll = (callback) ->
-    Grim.deprecate("Use `::onDidChangeActiveThemes` instead.")
-    @onDidChangeActiveThemes(callback)
-
-  ThemeManager::onDidAddStylesheet = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidAddStyleElement instead")
-    @emitter.on 'did-add-stylesheet', callback
-
-  ThemeManager::onDidRemoveStylesheet = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidRemoveStyleElement instead")
-    @emitter.on 'did-remove-stylesheet', callback
-
-  ThemeManager::onDidUpdateStylesheet = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidUpdateStyleElement instead")
-    @emitter.on 'did-update-stylesheet', callback
-
-  ThemeManager::onDidChangeStylesheets = (callback) ->
-    Grim.deprecate("Use atom.styles.onDidAdd/RemoveStyleElement instead")
-    @emitter.on 'did-change-stylesheets', callback
-
-  ThemeManager::getUserStylesheetPath = ->
-    Grim.deprecate("Call atom.styles.getUserStyleSheetPath() instead")
-    atom.styles.getUserStyleSheetPath()
-
-  ThemeManager::getLoadedNames = ->
-    Grim.deprecate("Use `::getLoadedThemeNames` instead.")
-    @getLoadedThemeNames()
-
-  ThemeManager::getActiveNames = ->
-    Grim.deprecate("Use `::getActiveThemeNames` instead.")
-    @getActiveThemeNames()
-
-  ThemeManager::setEnabledThemes = (enabledThemeNames) ->
-    Grim.deprecate("Use `atom.config.set('core.themes', arrayOfThemeNames)` instead")
-    atom.config.set('core.themes', enabledThemeNames)

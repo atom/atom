@@ -1,0 +1,5 @@
+{
+  "name": "package-with-eval-time-api-calls",
+  "version": "1.2.3",
+  "main": "./index"
+}

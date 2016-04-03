@@ -16,21 +16,23 @@ body {
 }
 
 atom-workspace {
-  display: block;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow: hidden;
   position: relative;
+  color: @text-color;
   background-color: @app-background-color;
   font-family: @font-family;
 
   atom-workspace-axis.horizontal {
-    display: -webkit-flex;
-    height: 100%;
+    display: flex;
+    flex: 1;
   }
 
   atom-workspace-axis.vertical {
-    display: -webkit-flex;
-    -webkit-flex: 1;
-    -webkit-flex-flow: column;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
   }
 }
