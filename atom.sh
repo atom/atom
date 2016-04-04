@@ -4,8 +4,6 @@ if [ "$(uname)" == 'Darwin' ]; then
   OS='Mac'
 elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
   OS='Linux'
-elif [ "$(expr substr $(uname -s) 1 10)" == 'MINGW32_NT' ]; then
-  OS='Cygwin'
 else
   echo "Your platform ($(uname -a)) is not supported."
   exit 1
@@ -48,6 +46,10 @@ done
 
 if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
+fi
+
+if [ $EXPECT_OUTPUT ]; then
+  export ELECTRON_ENABLE_LOGGING=1
 fi
 
 if [ $OS == 'Mac' ]; then

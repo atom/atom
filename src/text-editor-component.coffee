@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
@@ -13,6 +13,8 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
+BlockDecorationsComponent = require './block-decorations-component'
+LineTopIndex = require 'line-top-index'
 
 module.exports =
 class TextEditorComponent
@@ -41,29 +43,29 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars, scrollPastEnd}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
     @observeConfig()
     @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
+    lineTopIndex = new LineTopIndex({
+      defaultLineHeight: @editor.getLineHeightInPixels()
+    })
     @presenter = new TextEditorPresenter
       model: @editor
-      scrollTop: 0
-      scrollLeft: 0
-      scrollRow: @editor.getScrollRow()
-      scrollColumn: @editor.getScrollColumn()
       tileSize: tileSize
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
       config: @config
+      lineTopIndex: lineTopIndex
+      scrollPastEnd: scrollPastEnd
 
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
-
     @domNode = document.createElement('div')
     if @useShadowDOM
       @domNode.classList.add('editor-contents--private')
@@ -72,6 +74,7 @@ class TextEditorComponent
       insertionPoint.setAttribute('select', 'atom-overlay')
       @domNode.appendChild(insertionPoint)
       @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+      @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
     else
       @domNode.classList.add('editor-contents')
       @overlayManager = new OverlayManager(@presenter, @domNode, @views)
@@ -86,7 +89,10 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @presenter, @linesComponent, @grammars)
+    if @blockDecorationsComponent?
+      @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
+
+    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex, @grammars)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -131,8 +137,10 @@ class TextEditorComponent
     @domNode
 
   updateSync: ->
+    @updateSyncPreMeasurement()
+
     @oldState ?= {}
-    @newState = @presenter.getState()
+    @newState = @presenter.getPostMeasurementState()
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
       @domNode.classList.add('has-selection')
@@ -160,6 +168,7 @@ class TextEditorComponent
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
+    @blockDecorationsComponent?.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -174,8 +183,12 @@ class TextEditorComponent
       @updateParentViewFocusedClassIfNeeded()
       @updateParentViewMiniClass()
 
+  updateSyncPreMeasurement: ->
+    @linesComponent.updateSync(@presenter.getPreMeasurementState())
+
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
+    @blockDecorationsComponent?.measureBlockDecorations() if @isVisible()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
@@ -220,7 +233,7 @@ class TextEditorComponent
       @updatesPaused = false
       if @updateRequestedWhilePaused and @canUpdate()
         @updateRequestedWhilePaused = false
-        @updateSync()
+        @requestUpdate()
 
   getTopmostDOMNode: ->
     @hostElement
@@ -267,10 +280,10 @@ class TextEditorComponent
     writeSelectedTextToSelectionClipboard = =>
       return if @editor.isDestroyed()
       if selectedText = @editor.getSelectedText()
-        # This uses ipc.send instead of clipboard.writeText because
-        # clipboard.writeText is a sync ipc call on Linux and that
+        # This uses ipcRenderer.send instead of clipboard.writeText because
+        # clipboard.writeText is a sync ipcRenderer call on Linux and that
         # will slow down selections.
-        ipc.send('write-text-to-selection-clipboard', selectedText)
+        ipcRenderer.send('write-text-to-selection-clipboard', selectedText)
     @disposables.add @editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
@@ -278,13 +291,13 @@ class TextEditorComponent
   observeConfig: ->
     @disposables.add @config.onDidChange 'editor.fontSize', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
     @disposables.add @config.onDidChange 'editor.fontFamily', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
     @disposables.add @config.onDidChange 'editor.lineHeight', =>
       @sampleFontStyling()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
@@ -433,14 +446,47 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForScreenPosition: ->
-    @linesYardstick.pixelPositionForScreenPosition(arguments...)
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
 
-  screenPositionForPixelPosition: ->
-    @linesYardstick.screenPositionForPixelPosition(arguments...)
+    unless @presenter.isRowVisible(screenPosition.row)
+      @presenter.setScreenRowsToMeasure([screenPosition.row])
 
-  pixelRectForScreenRange: ->
-    @linesYardstick.pixelRectForScreenRange(arguments...)
+    unless @linesComponent.lineNodeForLineIdAndScreenRow(@presenter.lineIdForScreenRow(screenPosition.row), screenPosition.row)?
+      @updateSyncPreMeasurement()
+
+    pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
+    @presenter.clearScreenRowsToMeasure()
+    pixelPosition
+
+  screenPositionForPixelPosition: (pixelPosition) ->
+    row = @linesYardstick.measuredRowForPixelPosition(pixelPosition)
+    if row? and not @presenter.isRowVisible(row)
+      @presenter.setScreenRowsToMeasure([row])
+      @updateSyncPreMeasurement()
+
+    position = @linesYardstick.screenPositionForPixelPosition(pixelPosition)
+    @presenter.clearScreenRowsToMeasure()
+    position
+
+  pixelRectForScreenRange: (screenRange) ->
+    rowsToMeasure = []
+    unless @presenter.isRowVisible(screenRange.start.row)
+      rowsToMeasure.push(screenRange.start.row)
+    unless @presenter.isRowVisible(screenRange.end.row)
+      rowsToMeasure.push(screenRange.end.row)
+
+    if rowsToMeasure.length > 0
+      @presenter.setScreenRowsToMeasure(rowsToMeasure)
+      @updateSyncPreMeasurement()
+
+    rect = @presenter.absolutePixelRectForScreenRange(screenRange)
+
+    if rowsToMeasure.length > 0
+      @presenter.clearScreenRowsToMeasure()
+
+    rect
 
   pixelRangeForScreenRange: (screenRange, clip=true) ->
     {start, end} = Range.fromObject(screenRange)
@@ -450,6 +496,9 @@ class TextEditorComponent
     @pixelPositionForScreenPosition(
       @editor.screenPositionForBufferPosition(bufferPosition)
     )
+
+  invalidateBlockDecorationDimensions: ->
+    @presenter.invalidateBlockDecorationDimensions(arguments...)
 
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
@@ -568,7 +617,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
@@ -722,7 +771,7 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
@@ -832,7 +881,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -840,16 +889,16 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
-  invalidateCharacterWidths: ->
+  invalidateMeasurements: ->
     @linesYardstick.invalidateCache()
-    @presenter.characterWidthsChanged()
+    @presenter.measurementsChanged()
 
   setShowIndentGuide: (showIndentGuide) ->
     @config.set("editor.showIndentGuide", showIndentGuide)

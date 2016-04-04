@@ -203,22 +203,6 @@ ScopeDescriptor = require './scope-descriptor'
 #       maximum: 11.5
 # ```
 #
-# #### object
-#
-# Value must be an object. This allows you to nest config options. Sub options
-# must be under a `properties key`
-#
-# ```coffee
-# config:
-#   someSetting:
-#     type: 'object'
-#     properties:
-#       myChildIntOption:
-#         type: 'integer'
-#         minimum: 1.5
-#         maximum: 11.5
-# ```
-#
 # #### color
 #
 # Values will be coerced into a {Color} with `red`, `green`, `blue`, and `alpha`
@@ -234,13 +218,34 @@ ScopeDescriptor = require './scope-descriptor'
 #     default: 'white'
 # ```
 #
+# #### object / Grouping other types
+#
+# A config setting with the type `object` allows grouping a set of config
+# settings. The group will be visualy separated and has its own group headline.
+# The sub options must be listed under a `properties` key.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'object'
+#     properties:
+#       myChildIntOption:
+#         type: 'integer'
+#         minimum: 1.5
+#         maximum: 11.5
+# ```
+#
 # ### Other Supported Keys
 #
 # #### enum
 #
-# All types support an `enum` key. The enum key lets you specify all values
-# that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type. Schema:
+# All types support an `enum` key, which lets you specify all the values the
+# setting can take. `enum` may be an array of allowed values (of the specified
+# type), or an array of objects with `value` and `description` properties, where
+# the `value` is an allowed value, and the `description` is a descriptive string
+# used in the settings view.
+#
+# In this example, the setting must be one of the 4 integers:
 #
 # ```coffee
 # config:
@@ -248,6 +253,20 @@ ScopeDescriptor = require './scope-descriptor'
 #     type: 'integer'
 #     default: 4
 #     enum: [2, 4, 6, 8]
+# ```
+#
+# In this example, the setting must be either 'foo' or 'bar', which are
+# presented using the provided descriptions in the settings pane:
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'string'
+#     default: 'foo'
+#     enum: [
+#       {value: 'foo', description: 'Foo mode. You want this.'}
+#       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+#     ]
 # ```
 #
 # Usage:
@@ -274,6 +293,9 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # Descriptions will be displayed below the title in the settings view.
 #
+# For a group of config settings the humanized key or the title and the
+# description are used for the group headline.
+#
 # ```coffee
 # config:
 #   someSetting:
@@ -296,6 +318,23 @@ ScopeDescriptor = require './scope-descriptor'
 # * `code spans` - `\`code spans\``
 # * line breaks - `line breaks<br/>`
 # * ~~strikethrough~~ - `~~strikethrough~~`
+#
+# #### order
+#
+# The settings view orders your settings alphabetically. You can override this
+# ordering with the order key.
+#
+# ```coffee
+# config:
+#   zSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 1
+#   aSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 2
+# ```
 #
 # ## Best practices
 #
@@ -381,8 +420,8 @@ class Config
   # ```
   #
   # * `keyPath` {String} name of the key to observe
-  # * `options` {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -412,8 +451,8 @@ class Config
   #
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
-  # * `optional` (optional) {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
   #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
@@ -671,16 +710,46 @@ class Config
   #
   # * `callback` {Function} to execute while suppressing calls to handlers.
   transact: (callback) ->
-    @transactDepth++
+    @beginTransaction()
     try
       callback()
     finally
-      @transactDepth--
-      @emitChangeEvent()
+      @endTransaction()
 
   ###
   Section: Internal methods used by core
   ###
+
+  # Private: Suppress calls to handler functions registered with {::onDidChange}
+  # and {::observe} for the duration of the {Promise} returned by `callback`.
+  # After the {Promise} is either resolved or rejected, handlers will be called
+  # once if the value for their key-path has changed.
+  #
+  # * `callback` {Function} that returns a {Promise}, which will be executed
+  #   while suppressing calls to handlers.
+  #
+  # Returns a {Promise} that is either resolved or rejected according to the
+  # `{Promise}` returned by `callback`. If `callback` throws an error, a
+  # rejected {Promise} will be returned instead.
+  transactAsync: (callback) ->
+    @beginTransaction()
+    try
+      endTransaction = (fn) => (args...) =>
+        @endTransaction()
+        fn(args...)
+      result = callback()
+      new Promise (resolve, reject) ->
+        result.then(endTransaction(resolve)).catch(endTransaction(reject))
+    catch error
+      @endTransaction()
+      Promise.reject(error)
+
+  beginTransaction: ->
+    @transactDepth++
+
+  endTransaction: ->
+    @transactDepth--
+    @emitChangeEvent()
 
   pushAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
@@ -749,9 +818,14 @@ class Config
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
 
-    unless fs.existsSync(@configFilePath)
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {})
+    try
+      unless fs.existsSync(@configFilePath)
+        fs.makeTreeSync(path.dirname(@configFilePath))
+        CSON.writeFileSync(@configFilePath, {})
+    catch error
+      @configFileHasErrors = true
+      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+      return
 
     try
       unless @savePending
@@ -790,13 +864,14 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    @notificationManager.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
     return if @shouldNotAccessFileSystem()
 
     allSettings = {'*': @settings}
     allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
     catch error
@@ -1149,6 +1224,11 @@ Config.addSchemaEnforcers
 
     validateEnum: (keyPath, value, schema) ->
       possibleValues = schema.enum
+
+      if Array.isArray(possibleValues)
+        possibleValues = possibleValues.map (value) ->
+          if value.hasOwnProperty('value') then value.value else value
+
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
       for possibleValue in possibleValues
@@ -1159,6 +1239,13 @@ Config.addSchemaEnforcers
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
+
+sortObject = (value) ->
+  return value unless isPlainObject(value)
+  result = {}
+  for key in Object.keys(value).sort()
+    result[key] = sortObject(value[key])
+  result
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined

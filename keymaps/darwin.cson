@@ -73,18 +73,20 @@
   'cmd-alt-right': 'pane:show-next-item'
   'ctrl-pageup': 'pane:show-previous-item'
   'ctrl-pagedown': 'pane:show-next-item'
-  'ctrl-tab': 'pane:show-next-item'
-  'ctrl-shift-tab': 'pane:show-previous-item'
+  'ctrl-tab': 'pane:show-next-recently-used-item'
+  'ctrl-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
+  'ctrl-shift-tab': 'pane:show-previous-recently-used-item'
+  'ctrl-shift-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
   'cmd-=': 'window:increase-font-size'
   'cmd-+': 'window:increase-font-size'
   'cmd--': 'window:decrease-font-size'
   'cmd-_': 'window:decrease-font-size'
   'cmd-0': 'window:reset-font-size'
 
-  'cmd-k up': 'pane:split-up' # Atom Specific
-  'cmd-k down': 'pane:split-down' # Atom Specific
-  'cmd-k left': 'pane:split-left' # Atom Specific
-  'cmd-k right': 'pane:split-right' # Atom Specific
+  'cmd-k up': 'pane:split-up-and-copy-active-item' # Atom Specific
+  'cmd-k down': 'pane:split-down-and-copy-active-item' # Atom Specific
+  'cmd-k left': 'pane:split-left-and-copy-active-item' # Atom Specific
+  'cmd-k right': 'pane:split-right-and-copy-active-item' # Atom Specific
   'cmd-k cmd-w': 'pane:close' # Atom Specific
   'cmd-k alt-cmd-w': 'pane:close-other-items' # Atom Specific
   'cmd-k cmd-p': 'window:focus-previous-pane'
@@ -128,6 +130,8 @@
 
   # Atom Specific
   'ctrl-W': 'editor:select-word'
+  'cmd-ctrl-left': 'editor:move-selection-left'
+  'cmd-ctrl-right': 'editor:move-selection-right'
 
   # Sublime Parity
   'cmd-a': 'core:select-all'

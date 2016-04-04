@@ -22,11 +22,11 @@ describe "Workspace", ->
   describe "serialization", ->
     simulateReload = ->
       workspaceState = atom.workspace.serialize()
-      projectState = atom.project.serialize()
+      projectState = atom.project.serialize({isUnloading: true})
       atom.workspace.destroy()
       atom.project.destroy()
       atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom)})
-      atom.project.deserialize(projectState, atom.deserializers)
+      atom.project.deserialize(projectState)
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, deserializerManager: atom.deserializers,
@@ -42,6 +42,9 @@ describe "Workspace", ->
         pane2 = pane1.splitRight(copyActiveItem: true)
         pane3 = pane2.splitRight(copyActiveItem: true)
         pane4 = null
+
+        waitsForPromise ->
+          atom.workspace.open(null).then (editor) -> editor.setText("An untitled editor.")
 
         waitsForPromise ->
           atom.workspace.open('b').then (editor) ->
@@ -65,18 +68,19 @@ describe "Workspace", ->
 
           simulateReload()
 
-          expect(atom.workspace.getTextEditors().length).toBe 4
-          [editor1, editor2, editor3, editor4] = atom.workspace.getTextEditors()
-
+          expect(atom.workspace.getTextEditors().length).toBe 5
+          [editor1, editor2, untitledEditor, editor3, editor4] = atom.workspace.getTextEditors()
           expect(editor1.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
           expect(editor2.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.txt')
           expect(editor2.getCursorScreenPosition()).toEqual [0, 2]
           expect(editor3.getPath()).toBe atom.project.getDirectories()[0]?.resolve('b')
           expect(editor4.getPath()).toBe atom.project.getDirectories()[0]?.resolve('../sample.js')
           expect(editor4.getCursorScreenPosition()).toEqual [2, 4]
+          expect(untitledEditor.getPath()).toBeUndefined()
+          expect(untitledEditor.getText()).toBe("An untitled editor.")
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
-          expect(document.title).toBe "#{path.basename(editor3.getPath())} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{path.basename(editor3.getLongTitle())}\ \u2014\ #{atom.project.getPaths()[0]}///
 
     describe "where there are no open panes or editors", ->
       it "constructs the view with no open editors", ->
@@ -467,6 +471,27 @@ describe "Workspace", ->
           workspace.open("bar://baz").then (item) ->
             expect(item).toEqual {bar: "bar://baz"}
 
+    it "adds the file to the application's recent documents list", ->
+      spyOn(atom.applicationDelegate, 'addRecentDocument')
+
+      waitsForPromise ->
+        workspace.open()
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).not.toHaveBeenCalled()
+
+      waitsForPromise ->
+        workspace.open('something://a/url')
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).not.toHaveBeenCalled()
+
+      waitsForPromise ->
+        workspace.open(__filename)
+
+      runs ->
+        expect(atom.applicationDelegate.addRecentDocument).toHaveBeenCalledWith(__filename)
+
     it "notifies ::onDidAddTextEditor observers", ->
       absolutePath = require.resolve('./fixtures/dir/a')
       newEditorHandler = jasmine.createSpy('newEditorHandler')
@@ -559,6 +584,72 @@ describe "Workspace", ->
         it "creates a notification", ->
           open = -> workspace.open('file1', workspace.getActivePane())
           expect(open).toThrow()
+
+    describe "when the file is already open in pending state", ->
+      it "should terminate the pending state", ->
+        editor = null
+        pane = null
+
+        waitsForPromise ->
+          atom.workspace.open('sample.js', pending: true).then (o) ->
+            editor = o
+            pane = atom.workspace.getActivePane()
+
+        runs ->
+          expect(pane.getPendingItem()).toEqual editor
+
+        waitsForPromise ->
+          atom.workspace.open('sample.js')
+
+        runs ->
+          expect(pane.getPendingItem()).toBeNull()
+
+    describe "when opening will switch from a pending tab to a permanent tab", ->
+      it "keeps the pending tab open", ->
+        editor1 = null
+        editor2 = null
+
+        waitsForPromise ->
+          atom.workspace.open('sample.txt').then (o) ->
+            editor1 = o
+
+        waitsForPromise ->
+          atom.workspace.open('sample2.txt', pending: true).then (o) ->
+            editor2 = o
+
+        runs ->
+          pane = atom.workspace.getActivePane()
+          pane.activateItem(editor1)
+          expect(pane.getItems().length).toBe 2
+          expect(pane.getItems()).toEqual [editor1, editor2]
+
+    describe "when replacing a pending item which is the last item in a second pane", ->
+      it "does not destroy the pane even if core.destroyEmptyPanes is on", ->
+        atom.config.set('core.destroyEmptyPanes', true)
+        editor1 = null
+        editor2 = null
+        leftPane = atom.workspace.getActivePane()
+        rightPane = null
+
+        waitsForPromise ->
+          atom.workspace.open('sample.js', pending: true, split: 'right').then (o) ->
+            editor1 = o
+            rightPane = atom.workspace.getActivePane()
+            spyOn rightPane, "destroyed"
+
+        runs ->
+          expect(leftPane).not.toBe rightPane
+          expect(atom.workspace.getActivePane()).toBe rightPane
+          expect(atom.workspace.getActivePane().getItems().length).toBe 1
+          expect(rightPane.getPendingItem()).toBe editor1
+
+        waitsForPromise ->
+          atom.workspace.open('sample.txt', pending: true).then (o) ->
+            editor2 = o
+
+        runs ->
+          expect(rightPane.getPendingItem()).toBe editor2
+          expect(rightPane.destroyed.callCount).toBe 0
 
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
@@ -658,6 +749,13 @@ describe "Workspace", ->
       waitsForPromise -> workspace.openLicense()
       runs -> expect(workspace.getActivePaneItem().getText()).toMatch /Copyright/
 
+  describe "::isTextEditor(obj)", ->
+    it "returns true when the passed object is an instance of `TextEditor`", ->
+      expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
+      expect(workspace.isTextEditor({getText: -> null})).toBe(false)
+      expect(workspace.isTextEditor(null)).toBe(false)
+      expect(workspace.isTextEditor(undefined)).toBe(false)
+
   describe "::observeTextEditors()", ->
     it "invokes the observer with current and future text editors", ->
       observed = []
@@ -725,7 +823,7 @@ describe "Workspace", ->
     describe "when the project has no path", ->
       it "sets the title to 'untitled'", ->
         atom.project.setPaths([])
-        expect(document.title).toBe 'untitled - Atom'
+        expect(document.title).toMatch ///^untitled///
 
     describe "when the project has a path", ->
       beforeEach ->
@@ -735,25 +833,25 @@ describe "Workspace", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          expect(document.title).toBe "#{editor.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{editor.getTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspace.getActivePane().activateNextItem()
           item = atom.workspace.getActivePaneItem()
-          expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          expect(document.title).toBe "#{atom.project.getPaths()[0]} - Atom"
+          expect(document.title).toMatch ///^#{atom.project.getPaths()[0]}///
 
       describe "when an inactive pane's item changes", ->
         it "does not update the title", ->
@@ -776,8 +874,8 @@ describe "Workspace", ->
           applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
-        item = atom.workspace.getActivePaneItem()
-        expect(document.title).toBe "#{item.getTitle()} - #{atom.project.getPaths()[0]} - Atom"
+        item = workspace2.getActivePaneItem()
+        expect(document.title).toMatch ///^#{item.getLongTitle()}\ \u2014\ #{atom.project.getPaths()[0]}///
         workspace2.destroy()
 
   describe "document edited status", ->
@@ -880,6 +978,36 @@ describe "Workspace", ->
         expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
 
         itemView = atom.views.getView(atom.workspace.getBottomPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe '::addHeaderPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getHeaderPanels().length).toBe(0)
+        atom.workspace.panelContainers.header.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addHeaderPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getHeaderPanels()[0].getItem())
+        expect(itemView instanceof TestItemElement).toBe(true)
+        expect(itemView.getModel()).toBe(model)
+
+    describe '::addFooterPanel(model)', ->
+      it 'adds a panel to the correct panel container', ->
+        expect(atom.workspace.getFooterPanels().length).toBe(0)
+        atom.workspace.panelContainers.footer.onDidAddPanel addPanelSpy = jasmine.createSpy()
+
+        model = new TestItem
+        panel = atom.workspace.addFooterPanel(item: model)
+
+        expect(panel).toBeDefined()
+        expect(addPanelSpy).toHaveBeenCalledWith({panel, index: 0})
+
+        itemView = atom.views.getView(atom.workspace.getFooterPanels()[0].getItem())
         expect(itemView instanceof TestItemElement).toBe(true)
         expect(itemView.getModel()).toBe(model)
 
@@ -1438,11 +1566,12 @@ describe "Workspace", ->
         save = -> atom.workspace.saveActivePaneItem()
         expect(save).toThrow()
 
-  describe "::destroyActivePaneItemOrEmptyPane", ->
+  describe "::closeActivePaneItemOrEmptyPaneOrWindow", ->
     beforeEach ->
+      spyOn(atom, 'close')
       waitsForPromise -> atom.workspace.open()
 
-    it "closes the active pane item until all that remains is a single empty pane", ->
+    it "closes the active pane item, or the active pane if it is empty, or the current window if there is only the empty root pane", ->
       atom.config.set('core.destroyEmptyPanes', false)
 
       pane1 = atom.workspace.getActivePane()
@@ -1450,19 +1579,34 @@ describe "Workspace", ->
 
       expect(atom.workspace.getPanes().length).toBe 2
       expect(pane2.getItems().length).toBe 1
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
       expect(atom.workspace.getPanes().length).toBe 2
       expect(pane2.getItems().length).toBe 0
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
 
       expect(atom.workspace.getPanes().length).toBe 1
       expect(pane1.getItems().length).toBe 1
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
       expect(pane1.getItems().length).toBe 0
 
-      atom.workspace.destroyActivePaneItemOrEmptyPane()
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
       expect(atom.workspace.getPanes().length).toBe 1
+
+      atom.workspace.closeActivePaneItemOrEmptyPaneOrWindow()
+      expect(atom.close).toHaveBeenCalled()
+
+  describe "when the core.allowPendingPaneItems option is falsey", ->
+    it "does not open item with `pending: true` option as pending", ->
+      pane = null
+      atom.config.set('core.allowPendingPaneItems', false)
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', pending: true).then ->
+          pane = atom.workspace.getActivePane()
+
+      runs ->
+        expect(pane.getPendingItem()).toBeFalsy()

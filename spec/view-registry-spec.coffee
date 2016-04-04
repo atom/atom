@@ -23,6 +23,15 @@ describe "ViewRegistry", ->
         component = new TestComponent
         expect(registry.getView(component)).toBe component.element
 
+    describe "when passed an object with a getElement function", ->
+      it "returns the return value of getElement if it's an instance of HTMLElement", ->
+        class TestComponent
+          getElement: ->
+            @myElement ?= document.createElement('div')
+
+        component = new TestComponent
+        expect(registry.getView(component)).toBe component.myElement
+
     describe "when passed a model object", ->
       describe "when a view provider is registered matching the object's constructor", ->
         it "constructs a view element and assigns the model on it", ->
@@ -46,6 +55,21 @@ describe "ViewRegistry", ->
           view2 = registry.getView(subclassModel)
           expect(view2 instanceof TestView).toBe true
           expect(view2.model).toBe subclassModel
+
+      describe "when a view provider is registered generically, and works with the object", ->
+        it "constructs a view element and assigns the model on it", ->
+          model = {a: 'b'}
+
+          registry.addViewProvider (model) ->
+            if model.a is 'b'
+              element = document.createElement('div')
+              element.className = 'test-element'
+              element
+
+          view = registry.getView({a: 'b'})
+          expect(view.className).toBe 'test-element'
+
+          expect(-> registry.getView({a: 'c'})).toThrow()
 
       describe "when no view provider is registered for the object's constructor", ->
         it "throws an exception", ->
@@ -209,3 +233,21 @@ describe "ViewRegistry", ->
       window.dispatchEvent(new UIEvent('resize'))
 
       expect(events).toEqual ['poll 1', 'poll 2']
+
+  describe "::getNextUpdatePromise()", ->
+    it "returns a promise that resolves at the end of the next update cycle", ->
+      updateCalled = false
+      readCalled = false
+      pollCalled = false
+
+      waitsFor 'getNextUpdatePromise to resolve', (done) ->
+        registry.getNextUpdatePromise().then ->
+          expect(updateCalled).toBe true
+          expect(readCalled).toBe true
+          expect(pollCalled).toBe true
+          done()
+
+        registry.updateDocument -> updateCalled = true
+        registry.readDocument -> readCalled = true
+        registry.pollDocument -> pollCalled = true
+        registry.pollAfterNextUpdate()

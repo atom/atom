@@ -17,6 +17,8 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
+  scrollPastEnd: true
+  autoHeight: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
@@ -38,6 +40,9 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
+    unless @autoHeight
+      @style.height = "100%"
+
     if @config.get('editor.useShadowDOM')
       @useShadowDOM = true
 
@@ -86,8 +91,8 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}) ->
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
@@ -103,6 +108,7 @@ class TextEditorElement extends HTMLElement
     return if model.isDestroyed()
 
     @model = model
+    @model.setUpdatedSynchronously(@isUpdatedSynchronously())
     @initializeContent()
     @mountComponent()
     @addGrammarScopeAttribute()
@@ -142,6 +148,7 @@ class TextEditorElement extends HTMLElement
       workspace: @workspace
       assert: @assert
       grammars: @grammars
+      scrollPastEnd: @scrollPastEnd
     )
     @rootElement.appendChild(@component.getDomNode())
 
@@ -194,7 +201,9 @@ class TextEditorElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-  setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
+  setUpdatedSynchronously: (@updatedSynchronously) ->
+    @model?.setUpdatedSynchronously(@updatedSynchronously)
+    @updatedSynchronously
 
   isUpdatedSynchronously: -> @updatedSynchronously
 
@@ -343,5 +352,14 @@ class TextEditorElement extends HTMLElement
 
   getHeight: ->
     @offsetHeight
+
+  # Experimental: Invalidate the passed block {Decoration} dimensions, forcing
+  # them to be recalculated and the surrounding content to be adjusted on the
+  # next animation frame.
+  #
+  # * {blockDecoration} A {Decoration} representing the block decoration you
+  # want to update the dimensions of.
+  invalidateBlockDecorationDimensions: ->
+    @component.invalidateBlockDecorationDimensions(arguments...)
 
 module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype

@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 
 describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
@@ -53,7 +53,7 @@ describe "WindowEventHandler", ->
   describe "beforeunload event", ->
     beforeEach ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
-      spyOn(ipc, 'send')
+      spyOn(ipcRenderer, 'send')
 
     describe "when pane items are modified", ->
       editor = null
@@ -65,13 +65,13 @@ describe "WindowEventHandler", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(true)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipc.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
 
       it "cancels the unload if the user selects cancel", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(false)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipc.send).toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
@@ -200,3 +200,34 @@ describe "WindowEventHandler", ->
 
       expect(dispatchedCommands.length).toBe 1
       expect(dispatchedCommands[0].type).toBe 'foo-command'
+
+  describe "native key bindings", ->
+    it "correctly dispatches them to active elements with the '.native-key-bindings' class", ->
+      webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
+      spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
+        webContents: webContentsSpy
+      })
+
+      nativeKeyBindingsInput = document.createElement("input")
+      nativeKeyBindingsInput.classList.add("native-key-bindings")
+      jasmine.attachToDOM(nativeKeyBindingsInput)
+      nativeKeyBindingsInput.focus()
+
+      atom.dispatchApplicationMenuCommand("core:copy")
+      atom.dispatchApplicationMenuCommand("core:paste")
+
+      expect(webContentsSpy.copy).toHaveBeenCalled()
+      expect(webContentsSpy.paste).toHaveBeenCalled()
+
+      webContentsSpy.copy.reset()
+      webContentsSpy.paste.reset()
+
+      normalInput = document.createElement("input")
+      jasmine.attachToDOM(normalInput)
+      normalInput.focus()
+
+      atom.dispatchApplicationMenuCommand("core:copy")
+      atom.dispatchApplicationMenuCommand("core:paste")
+
+      expect(webContentsSpy.copy).not.toHaveBeenCalled()
+      expect(webContentsSpy.paste).not.toHaveBeenCalled()

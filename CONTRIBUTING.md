@@ -12,7 +12,8 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
   * [Atom and Packages](#atom-and-packages)
 
 [How Can I Contribute?](#how-can-i-contribute)
-  * [Submitting Issues](#submitting-issues)
+  * [Reporting Bugs](#reporting-bugs)
+  * [Suggesting Enhancements](#suggesting-enhancements)
   * [Your First Code Contribution](#your-first-code-contribution)
   * [Pull Requests](#pull-requests)
 
@@ -29,7 +30,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 
 ### Code of Conduct
 
-This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
+This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
 Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
 
@@ -71,30 +72,145 @@ For more information on how to work with Atom's official packages, see [Contribu
 Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering aren't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed.
 Each community package has its own repository too, and you should be able to find it in Settings > Packages for the packages you installed and contribute there.
 
-## How can I contribute?
+## How Can I Contribute?
 
-### Submitting Issues
+### Reporting Bugs
 
-* You can create an issue [here](https://github.com/atom/atom/issues/new), but
-  before doing that please read the notes below on debugging and submitting issues,
-  and include as many details as possible with your report.
-* Check the [debugging guide](https://atom.io/docs/latest/hacking-atom-debugging) for tips
-  on debugging. You might be able to find the cause of the problem and fix
-  things yourself.
-* Include the version of Atom you are using and the OS.
-* Include screenshots and animated GIFs whenever possible; they are immensely
-  helpful.
-* Include the behavior you expected and other places you've seen that behavior
-  such as Emacs, vi, Xcode, etc.
-* Check the dev tools (`alt-cmd-i`) for errors to include. If the dev tools
-  are open _before_ the error is triggered, a full stack trace for the error
-  will be logged. If you can reproduce the error, use this approach to get the
-  full stack trace and include it in the issue.
-* On Mac, check Console.app for stack traces to include if reporting a crash.
-* Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)
-  to see if a similar issue has already been submitted.
-* Please setup a [profile picture](https://help.github.com/articles/how-do-i-set-up-my-profile-picture)
-  to make yourself recognizable and so we can all get to know each other better.
+This section guides you through submitting a bug report for Atom. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
+
+Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find out that you don't need to create one. When you are creating a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report). If you'd like, you can use [this template](#template-for-submitting-bug-reports) to structure the information.
+
+#### Before Submitting A Bug Report
+
+* **Check the [debugging guide](https://atom.io/docs/latest/hacking-atom-debugging).** You might be able to find the cause of the problem and fix things yourself. Most importantly, check if you can reproduce the problem [in the latest version of Atom](https://atom.io/docs/latest/hacking-atom-debugging#update-to-the-latest-version), if the problem happens when you run Atom in [safe mode](https://atom.io/docs/latest/hacking-atom-debugging#check-if-the-problem-shows-up-in-safe-mode), and if you can get the desired behavior by changing [Atom's or packages' config settings](https://atom.io/docs/latest/hacking-atom-debugging#check-atom-and-package-settings).
+* **Check the [FAQs on the forum](https://discuss.atom.io/c/faq)** for a list of common questions and problems.
+* **Determine [which repository the problem should be reported in](#atom-and-packages)**.
+* **Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)** to see if the problem has already been reported. If it has, add a comment to the existing issue instead of opening a new one.
+
+#### How Do I Submit A (Good) Bug Report?
+
+Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you've determined [which repository](#atom-and-packages) your bug is related to, create an issue on that repository and provide the following information.
+
+Explain the problem and include additional details to help maintainers reproduce the problem:
+
+* **Use a clear and descriptive title** for the issue to identify the problem.
+* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Atom, e.g. which command exactly you used in the terminal, or how you started Atom otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Atom command, and if so which one?
+* **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
+* **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
+* **Explain which behavior you expected to see instead and why.**
+* **Include screenshots and animated GIFs** which show you following the described steps and clearly demonstrate the problem. If you use the keyboard while following the steps, **record the GIF with the [Keybinding Resolver](https://github.com/atom/keybinding-resolver) shown**. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on OSX and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **If you're reporting that Atom crashed**, include a crash report with a stack trace from the operating system. On OSX, the crash report will be available in `Console.app` under "Diagnostic and usage information" > "User diagnostic reports". Include the crash report in the issue in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines), a [file attachment](https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/), or put it in a [gist](https://gist.github.com/) and provide link to that gist.
+* **If the problem is related to performance**, include a [CPU profile capture and a screenshot](https://atom.io/docs/latest/hacking-atom-debugging#diagnose-performance-problems-with-the-dev-tools-cpu-profiler) with your report.
+* **If the Chrome's developer tools pane is shown without you triggering it**, that normally means that an exception was thrown. The Console tab will include an entry for the exception. Expand the exception so that the stack trace is visible, and provide the full exception and stack trace in a [code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines) and as a screenshot.
+* **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
+
+Provide more context by answering these questions:
+
+* **Can you reproduce the problem in [safe mode](https://atom.io/docs/latest/hacking-atom-debugging#check-if-the-problem-shows-up-in-safe-mode)?**
+* **Did the problem start happening recently** (e.g. after updating to a new version of Atom) or was this always a problem?
+* If the problem started happening recently, **can you reproduce the problem in an older version of Atom?** What's the most recent version in which the problem doesn't happen? You can download older versions of Atom from [the releases page](https://github.com/atom/atom/releases).
+* **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
+* If the problem is related to working with files (e.g. opening and editing files), **does the problem happen for all files and projects or only some?** Does the problem happen only when working with local or remote files (e.g. on network drives), with files of a specific type (e.g. only JavaScript or Python files), with large files or files with very long lines, or with files in a specific encoding? Is there anything else special about the files you are using?
+
+Include details about your configuration and environment:
+
+* **Which version of Atom are you using?** You can get the exact version by running `atom -v` in your terminal, or by starting Atom and running the `Application: About` command from the [Command Palette](https://github.com/atom/command-palette).
+* **What's the name and version of the OS you're using**?
+* **Are you running Atom in a virtual machine?** If so, which VM software are you using and which operating systems and versions are used for the host and the guest?
+* **Which [packages](#atom-and-packages) do you have installed?** You can get that list by running `apm list --installed`.
+* **Are you using [local configuration files](https://atom.io/docs/latest/using-atom-basic-customization)** `config.cson`, `keymap.cson`, `snippets.cson`, `styles.less` and `init.coffee` to customize Atom? If so, provide the contents of those files, preferably in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) or with a link to a [gist](https://gist.github.com/).
+* **Are you using Atom with multiple monitors?** If so, can you reproduce the problem when you use a single monitor?
+* **Which keyboard layout are you using?** Are you using a US layout or some other layout?
+
+#### Template For Submitting Bug Reports
+
+    [Short description of problem here]
+
+    **Reproduction Steps:**
+
+    1. [First Step]
+    2. [Second Step]
+    3. [Other Steps...]
+
+    **Expected behavior:**
+
+    [Describe expected behavior here]
+
+    **Observed behavior:**
+
+    [Describe observed behavior here]
+
+    **Screenshots and GIFs**
+
+    ![Screenshots and GIFs which follow reproduction steps to demonstrate the problem](url)
+
+    **Atom version:** [Enter Atom version here]
+    **OS and version:** [Enter OS name and version here]
+
+    **Installed packages:**
+
+    [List of installed packages here]
+
+    **Additional information:**
+
+    * Problem can be reproduced in safe mode: [Yes/No]
+    * Problem started happening recently, didn't happen in an older version of Atom: [Yes/No]
+    * Problem can be reliably reproduced, doesn't happen randomly: [Yes/No]
+    * Problem happens with all files and projects, not only some files or projects: [Yes/No]
+
+### Suggesting Enhancements
+
+This section guides you through submitting an enhancement suggestion for Atom, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
+
+Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion) as you might find out that you don't need to create one. When you are creating an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion). If you'd like, you can use [this template](#template-for-submitting-enhancement-suggestions) to structure the information.
+
+#### Before Submitting An Enhancement Suggestion
+
+* **Check the [debugging guide](https://atom.io/docs/latest/hacking-atom-debugging)** for tips — you might discover that the enhancement is already available. Most importantly, check if you're using [the latest version of Atom](https://atom.io/docs/latest/hacking-atom-debugging#update-to-the-latest-version) and if you can get the desired behavior by changing [Atom's or packages' config settings](https://atom.io/docs/latest/hacking-atom-debugging#check-atom-and-package-settings).
+* **Check if there's already [a package](https://atom.io/packages) which provides that enhancement.**
+* **Determine [which repository the enhancement should be suggested in](#atom-and-packages).**
+* **Perform a [cursory search](https://github.com/issues?q=+is%3Aissue+user%3Aatom)** to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
+
+#### How Do I Submit A (Good) Enhancement Suggestion?
+
+Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/). After you've determined [which repository](#atom-and-packages) your enhancement suggestions is related to, create an issue on that repository and provide the following information:
+
+* **Use a clear and descriptive title** for the issue to identify the suggestion.
+* **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
+* **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
+* **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
+* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Atom which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on OSX and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Explain why this enhancement would be useful** to most Atom users and isn't something that can or should be implemented as a [community package](#atom-and-packages).
+* **List some other text editors or applications where this enhancement exists.**
+* **Specify which version of Atom you're using.** You can get the exact version by running `atom -v` in your terminal, or by starting Atom and running the `Application: About` command from the [Command Palette](https://github.com/atom/command-palette).
+* **Specify the name and version of the OS you're using.**
+
+#### Template For Submitting Enhancement Suggestions
+
+    [Short description of suggestion]
+
+    **Steps which explain the enhancement**
+
+    1. [First Step]
+    2. [Second Step]
+    3. [Other Steps...]
+
+    **Current and suggested behavior**
+
+    [Describe current and suggested behavior here]
+
+    **Why would the enhancement be useful to most users**
+
+    [Explain why the enhancement would be useful to most users]
+
+    [List some other text editors or applications where this enhancement exists]
+
+    **Screenshots and GIFs**
+
+    ![Screenshots and GIFs which demonstrate the steps or part of Atom the enhancement suggestion is related to](url)
+
+    **Atom Version:** [Enter Atom version here]
+    **OS and Version:** [Enter OS name and version here]
 
 ### Your First Code Contribution
 
@@ -139,6 +255,7 @@ Both issue lists are sorted by total number of comments. While not perfect, numb
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
 * Limit the first line to 72 characters or less
 * Reference issues and pull requests liberally
+* When only changing documentation, include `[ci skip]` in the commit description
 * Consider starting the commit message with an applicable emoji:
     * :art: `:art:` when improving the format/structure of the code
     * :racehorse: `:racehorse:` when improving performance
@@ -248,7 +365,7 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 | `blocked` | [search][search-atom-repo-label-blocked] | [search][search-atom-org-label-blocked] | Issues blocked on other issues. |
 | `duplicate` | [search][search-atom-repo-label-duplicate] | [search][search-atom-org-label-duplicate] | Issues which are duplicates of other issues, i.e. they have been reported before. |
 | `wontfix` | [search][search-atom-repo-label-wontfix] | [search][search-atom-org-label-wontfix] | The Atom core team has decided not to fix these issues for now, either because they're working as intended or for some other reason. |
-| `invalid` | [search][search-atom-repo-label-invalid] | [search][search-atom-org-label-invalid] | Issues which are't valid (e.g. user errors). |
+| `invalid` | [search][search-atom-repo-label-invalid] | [search][search-atom-org-label-invalid] | Issues which aren't valid (e.g. user errors). |
 | `package-idea` | [search][search-atom-repo-label-package-idea] | [search][search-atom-org-label-package-idea] | Feature request which might be good candidates for new packages, instead of extending Atom or core Atom packages. |
 | `wrong-repo` | [search][search-atom-repo-label-wrong-repo] | [search][search-atom-org-label-wrong-repo] | Issues reported on the wrong repository (e.g. a bug related to the [Settings View package](https://github.com/atom/settings-view) was reported on [Atom core](https://github.com/atom/atom)). |
 
@@ -289,10 +406,6 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 
 | Label name | `atom/atom` :mag_right: | `atom`‑org :mag_right: | Description |
 | --- | --- | --- | --- |
-| `in-progress` | [search][search-atom-repo-label-in-progress] | [search][search-atom-org-label-in-progress] | Tasks which the Atom core team is working on currently. |
-| `on-deck` | [search][search-atom-repo-label-on-deck] | [search][search-atom-org-label-on-deck] | Tasks which the Atom core team plans to work on next. |
-| `shipping` | [search][search-atom-repo-label-shipping] | [search][search-atom-org-label-shipping] | Tasks which the Atom core team completed and will be released in one of the next releases. |
-| `post-1.0-roadmap` | [search][search-atom-repo-label-post-1.0-roadmap] | [search][search-atom-org-label-post-1.0-roadmap] | The Atom core team's roadmap post version 1.0.0. |
 | `atom` | [search][search-atom-repo-label-atom] | [search][search-atom-org-label-atom] | Topics discussed for prioritization at the next meeting of Atom core team members. |
 
 #### Pull Request Labels
@@ -381,14 +494,6 @@ Please open an issue on `atom/atom` if you have suggestions for new labels, and 
 [search-atom-org-label-deprecation-help]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Adeprecation-help
 [search-atom-repo-label-electron]: https://github.com/issues?q=is%3Aissue+repo%3Aatom%2Fatom+is%3Aopen+label%3Aelectron
 [search-atom-org-label-electron]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aelectron
-[search-atom-repo-label-on-deck]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Aon-deck
-[search-atom-org-label-on-deck]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aon-deck
-[search-atom-repo-label-in-progress]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Ain-progress
-[search-atom-org-label-in-progress]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Ain-progress
-[search-atom-repo-label-shipping]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Ashipping
-[search-atom-org-label-shipping]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Ashipping
-[search-atom-repo-label-post-1.0-roadmap]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Apost-1.0-roadmap
-[search-atom-org-label-post-1.0-roadmap]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Apost-1.0-roadmap
 [search-atom-repo-label-atom]: https://github.com/issues?q=is%3Aopen+is%3Aissue+repo%3Aatom%2Fatom+label%3Aatom
 [search-atom-org-label-atom]: https://github.com/issues?q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Aatom
 [search-atom-repo-label-work-in-progress]: https://github.com/pulls?q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+label%3Awork-in-progress

@@ -83,3 +83,11 @@ describe "Selection", ->
       selection.setBufferRange([[2, 0], [2, 10]])
       selection.destroy()
       expect(selection.marker.isDestroyed()).toBeTruthy()
+
+  describe ".insertText(text, options)", ->
+    it "allows pasting white space only lines when autoIndent is enabled", ->
+      selection.setBufferRange [[0, 0], [0, 0]]
+      selection.insertText("    \n    \n\n", autoIndent: true)
+      expect(buffer.lineForRow(0)).toBe "    "
+      expect(buffer.lineForRow(1)).toBe "    "
+      expect(buffer.lineForRow(2)).toBe ""

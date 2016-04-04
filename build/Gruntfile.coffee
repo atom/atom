@@ -14,6 +14,8 @@ _ = require 'underscore-plus'
 packageJson = require '../package.json'
 
 module.exports = (grunt) ->
+  require('time-grunt')(grunt)
+
   grunt.loadNpmTasks('grunt-babel')
   grunt.loadNpmTasks('grunt-coffeelint')
   grunt.loadNpmTasks('grunt-lesslint')
@@ -32,15 +34,10 @@ module.exports = (grunt) ->
   grunt.file.setBase(path.resolve('..'))
 
   # Options
+  [defaultChannel, releaseBranch] = getDefaultChannelAndReleaseBranch(packageJson.version)
   installDir = grunt.option('install-dir')
-  buildDir = grunt.option('build-dir')
-  buildDir ?= path.join(os.tmpdir(), 'atom-build')
-  buildDir = path.resolve(buildDir)
-  disableAutoUpdate = grunt.option('no-auto-update') ? false
-
-  channel = grunt.option('channel')
-  channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in ['stable', 'beta']
-  channel ?= 'dev'
+  buildDir = path.resolve(grunt.option('build-dir') ? 'out')
+  channel = grunt.option('channel') ? defaultChannel
 
   metadata = packageJson
   appName = packageJson.productName
@@ -111,6 +108,8 @@ module.exports = (grunt) ->
       ext: '.css'
 
   prebuildLessConfig =
+    options:
+      cachePath: path.join(homeDir, '.atom', 'compile-cache', 'prebuild-less', require('less-cache/package.json').version)
     src: [
       'static/**/*.less'
     ]
@@ -136,6 +135,13 @@ module.exports = (grunt) ->
       src: ['src/**/*.pegjs']
       dest: appDir
       ext: '.js'
+
+  for jsFile in glob.sync("src/**/*.js")
+    if usesBabel(jsFile)
+      babelConfig.dist.files.push({
+        src: [jsFile]
+        dest: path.join(appDir, jsFile)
+      })
 
   for child in fs.readdirSync('node_modules') when child isnt '.bin'
     directory = path.join('node_modules', child)
@@ -170,7 +176,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata, disableAutoUpdate,
+      appName, channel, metadata, releaseBranch,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
@@ -246,7 +252,7 @@ module.exports = (grunt) ->
       outputDir: 'electron'
       downloadDir: electronDownloadDir
       rebuild: true  # rebuild native modules after electron is updated
-      token: process.env.ATOM_ACCESS_TOKEN
+      token: process.env.ATOM_ACCESS_TOKEN ? 'da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4'
 
     'create-windows-installer':
       installer:
@@ -270,19 +276,41 @@ module.exports = (grunt) ->
   grunt.registerTask('lint', ['standard', 'coffeelint', 'csslint', 'lesslint'])
   grunt.registerTask('test', ['shell:kill-atom', 'run-specs'])
 
-  ciTasks = ['output-disk-space', 'download-electron', 'download-electron-chromedriver', 'build']
-  ciTasks.push('dump-symbols') if process.platform isnt 'win32'
+  ciTasks = []
+  ciTasks.push('output-disk-space') unless process.env.CI
+  ciTasks.push('download-electron')
+  ciTasks.push('download-electron-chromedriver')
+  ciTasks.push('build')
+  ciTasks.push('fingerprint')
+  ciTasks.push('dump-symbols') if process.platform is 'darwin'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
-  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.TRAVIS
+  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI
   ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
-  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.TRAVIS
-  ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.TRAVIS
-  ciTasks.push('publish-build') unless process.env.TRAVIS
+  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.CI
+  ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.CI
+  ciTasks.push('publish-build') unless process.env.CI
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
   unless process.platform is 'linux' or grunt.option('no-install')
     defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)
+
+getDefaultChannelAndReleaseBranch = (version) ->
+  if version.match(/dev/) or isBuildingPR()
+    channel = 'dev'
+    releaseBranch = null
+  else
+    if version.match(/beta/)
+      channel = 'beta'
+    else
+      channel = 'stable'
+
+    minorVersion = version.match(/^\d\.\d/)[0]
+    releaseBranch = "#{minorVersion}-releases"
+  [channel, releaseBranch]
+
+isBuildingPR = ->
+  process.env.APPVEYOR_PULL_REQUEST_NUMBER? or process.env.TRAVIS_PULL_REQUEST?

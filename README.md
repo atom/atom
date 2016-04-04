@@ -1,6 +1,6 @@
 ![Atom](https://cloud.githubusercontent.com/assets/72919/2874231/3af1db48-d3dd-11e3-98dc-6066f8bc766f.png)
 
-[![Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom)
+[![Build Status](https://travis-ci.org/atom/atom.svg?branch=master)](https://travis-ci.org/atom/atom) [![Build status](https://ci.appveyor.com/api/projects/status/1tkktwh654w07eim?svg=true)](https://ci.appveyor.com/project/Atom/atom)
 [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 [![Join the Atom Community on Slack](http://atom-slack.herokuapp.com/badge.svg)](http://atom-slack.herokuapp.com/)
 
@@ -11,7 +11,7 @@ Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https:/
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
 
-This project adheres to the [Contributor Covenant 1.2](http://contributor-covenant.org/version/1/2/0).
+This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior to atom@github.com.
 
 ## Documentation
@@ -21,6 +21,9 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
 ## Installing
+
+### Prerequisites
+- [Git](https://git-scm.com/)
 
 ### OS X
 
@@ -67,7 +70,7 @@ repeat these steps to upgrade to future releases.
 Currently only a 64-bit version is available.
 
 1. Download `atom.x86_64.rpm` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
-2. Run `sudo dnf install atom.x86_64.rpm` on the downloaded package.
+2. Run `sudo dnf install ./atom.x86_64.rpm` on the downloaded package.
 3. Launch Atom using the installed `atom` command.
 
 The Linux version does not currently automatically update so you will need to

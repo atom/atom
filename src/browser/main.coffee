@@ -4,15 +4,16 @@ process.on 'uncaughtException', (error={}) ->
   console.log(error.message) if error.message?
   console.log(error.stack) if error.stack?
 
-crashReporter = require 'crash-reporter'
-app = require 'app'
+{crashReporter, app} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
+temp = require 'temp'
 yargs = require 'yargs'
 console.log = require 'nslog'
 
 start = ->
   args = parseCommandLine()
+  args.env = process.env
   setupAtomHome(args)
   setupCompileCache()
   return if handleStartupEventWithSquirrel()
@@ -31,6 +32,11 @@ start = ->
   app.on 'open-file', addPathToOpen
   app.on 'open-url', addUrlToOpen
   app.on 'will-finish-launching', setupCrashReporter
+
+  if args.userDataDir?
+    app.setPath('userData', args.userDataDir)
+  else if args.test
+    app.setPath('userData', temp.mkdirSync('atom-test-data'))
 
   app.on 'ready', ->
     app.removeListener 'open-file', addPathToOpen
@@ -54,12 +60,12 @@ handleStartupEventWithSquirrel = ->
   SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 
 setupCrashReporter = ->
-  crashReporter.start(productName: 'Atom', companyName: 'GitHub')
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
 setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
 
-  atomHome = path.join(app.getHomeDir(), '.atom')
+  atomHome = path.join(app.getPath('home'), '.atom')
   AtomPortable = require './atom-portable'
 
   if setPortable and not AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)
@@ -80,6 +86,15 @@ setupAtomHome = ({setPortable}) ->
 setupCompileCache = ->
   compileCache = require('../compile-cache')
   compileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+
+writeFullVersion = ->
+  process.stdout.write """
+    Atom    : #{app.getVersion()}
+    Electron: #{process.versions.electron}
+    Chrome  : #{process.versions.chrome}
+    Node    : #{process.versions.node}
+
+  """
 
 parseCommandLine = ->
   version = app.getVersion()
@@ -116,9 +131,12 @@ parseCommandLine = ->
   options.boolean('portable').describe('portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
-  options.alias('v', 'version').boolean('v').describe('v', 'Print the version.')
+  options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
+  options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
   options.string('socket-path')
+  options.string('user-data-dir')
+  options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
 
   args = options.argv
 
@@ -127,9 +145,10 @@ parseCommandLine = ->
     process.exit(0)
 
   if args.version
-    process.stdout.write("#{version}\n")
+    writeFullVersion()
     process.exit(0)
 
+  addToLastWindow = args['add']
   executedFrom = args['executed-from']?.toString() ? process.cwd()
   devMode = args['dev']
   safeMode = args['safe']
@@ -140,9 +159,11 @@ parseCommandLine = ->
   pidToKillWhenClosed = args['pid'] if args['wait']
   logFile = args['log-file']
   socketPath = args['socket-path']
+  userDataDir = args['user-data-dir']
   profileStartup = args['profile-startup']
+  clearWindowState = args['clear-window-state']
   urlsToOpen = []
-  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getHomeDir(), 'github', 'atom')
+  devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH ? path.join(app.getPath('home'), 'github', 'atom')
   setPortable = args.portable
 
   if args['resource-path']
@@ -164,6 +185,7 @@ parseCommandLine = ->
 
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
    version, pidToKillWhenClosed, devMode, safeMode, newWindow,
-   logFile, socketPath, profileStartup, timeout, setPortable}
+   logFile, socketPath, userDataDir, profileStartup, timeout, setPortable,
+   clearWindowState, addToLastWindow}
 
 start()

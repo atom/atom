@@ -88,13 +88,13 @@ describe "DisplayBuffer", ->
       describe "when there are korean characters", ->
         it "takes them into account when finding the soft wrap column", ->
           displayBuffer.setDefaultCharWidth(1, 0, 0, 10)
-          buffer.setText("1234세계를 향한 대화, 유니코 제10회유니코드국제")
+          buffer.setText("1234세계를향한대화,유니코제10회유니코드국제")
 
-          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("1234세계를 ")
-          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("향한 대화, ")
-          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("유니코 ")
-          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("제10회유니")
-          expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe("코드국제")
+          expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe("1234세계를향")
+          expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe("한대화,유")
+          expect(displayBuffer.tokenizedLineForScreenRow(2).text).toBe("니코제10회")
+          expect(displayBuffer.tokenizedLineForScreenRow(3).text).toBe("유니코드국")
+          expect(displayBuffer.tokenizedLineForScreenRow(4).text).toBe("제")
 
       describe "when editor.softWrapAtPreferredLineLength is set", ->
         it "uses the preferred line length as the soft wrap column when it is less than the configured soft wrap column", ->
@@ -130,8 +130,25 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.tokenizedLineForScreenRow(10).text).toBe '    return '
             expect(displayBuffer.tokenizedLineForScreenRow(11).text).toBe '    sort(left).concat(pivot).concat(sort(right));'
 
+          it "wraps the line at the first CJK character before the boundary", ->
+            displayBuffer.setEditorWidthInChars(10)
+
+            buffer.setTextInRange([[0, 0], [1, 0]], 'abcd efg유私ﾌ业余爱\n')
+            expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcd efg유私'
+            expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'ﾌ业余爱'
+
+            buffer.setTextInRange([[0, 0], [1, 0]], 'abcd ef유gef业余爱\n')
+            expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcd ef유'
+            expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'gef业余爱'
+
         describe "when there is no whitespace before the boundary", ->
-          it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
+          it "wraps the line at the first CJK character before the boundary", ->
+            buffer.setTextInRange([[0, 0], [1, 0]], '私たちのabcdefghij\n')
+            displayBuffer.setEditorWidthInChars(10)
+            expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe '私たちの'
+            expect(displayBuffer.tokenizedLineForScreenRow(1).text).toBe 'abcdefghij'
+
+          it "wraps the line exactly at the boundary when no CJK character is found, since there's no more graceful place to wrap it", ->
             buffer.setTextInRange([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
             displayBuffer.setEditorWidthInChars(10)
             expect(displayBuffer.tokenizedLineForScreenRow(0).text).toBe 'abcdefghij'
@@ -418,11 +435,11 @@ describe "DisplayBuffer", ->
       describe "when creating a fold where one already exists", ->
         it "returns existing fold and does't create new fold", ->
           fold = displayBuffer.createFold(0, 10)
-          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
+          expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
           newFold = displayBuffer.createFold(0, 10)
           expect(newFold).toBe fold
-          expect(displayBuffer.findMarkers(class: 'fold').length).toBe 1
+          expect(displayBuffer.foldsMarkerLayer.getMarkers().length).toBe 1
 
       describe "when a fold is created inside an existing folded region", ->
         it "creates/destroys the fold, but does not trigger change event", ->
@@ -829,7 +846,6 @@ describe "DisplayBuffer", ->
     it "unsubscribes all display buffer markers from their underlying buffer marker (regression)", ->
       marker = displayBuffer.markBufferPosition([12, 2])
       displayBuffer.destroy()
-      expect(marker.bufferMarker.getSubscriptionCount()).toBe 0
       expect( -> buffer.insert([12, 2], '\n')).not.toThrow()
 
   describe "markers", ->
@@ -879,7 +895,7 @@ describe "DisplayBuffer", ->
       [markerChangedHandler, marker] = []
 
       beforeEach ->
-        marker = displayBuffer.markScreenRange([[5, 4], [5, 10]], maintainHistory: true)
+        marker = displayBuffer.addMarkerLayer(maintainHistory: true).markScreenRange([[5, 4], [5, 10]])
         marker.onDidChange markerChangedHandler = jasmine.createSpy("markerChangedHandler")
 
       it "triggers the 'changed' event whenever the markers head's screen position changes in the buffer or on screen", ->
@@ -1016,7 +1032,7 @@ describe "DisplayBuffer", ->
         expect(markerChangedHandler).not.toHaveBeenCalled()
 
       it "updates markers before emitting buffer change events, but does not notify their observers until the change event", ->
-        marker2 = displayBuffer.markBufferRange([[8, 1], [8, 1]], maintainHistory: true)
+        marker2 = displayBuffer.addMarkerLayer(maintainHistory: true).markBufferRange([[8, 1], [8, 1]])
         marker2.onDidChange marker2ChangedHandler = jasmine.createSpy("marker2ChangedHandler")
         displayBuffer.onDidChange changeHandler = jasmine.createSpy("changeHandler").andCallFake -> onDisplayBufferChange()
 
@@ -1237,10 +1253,12 @@ describe "DisplayBuffer", ->
       decoration.destroy()
       expect(displayBuffer.decorationForId(decoration.id)).not.toBeDefined()
 
-    it "does not leak disposables", ->
-      disposablesSize = displayBuffer.disposables.disposables.size
-      decoration.destroy()
-      expect(displayBuffer.disposables.disposables.size).toBe(disposablesSize - 1)
+    it "does not allow destroyed markers to be decorated", ->
+      marker.destroy()
+      expect(->
+        displayBuffer.decorateMarker(marker, {type: 'overlay', item: document.createElement('div')})
+      ).toThrow("Cannot decorate a destroyed marker")
+      expect(displayBuffer.getOverlayDecorations()).toEqual []
 
     describe "when a decoration is updated via Decoration::update()", ->
       it "emits an 'updated' event containing the new and old params", ->
@@ -1249,7 +1267,7 @@ describe "DisplayBuffer", ->
 
         {oldProperties, newProperties} = updatedSpy.mostRecentCall.args[0]
         expect(oldProperties).toEqual decorationProperties
-        expect(newProperties).toEqual type: 'line-number', gutterName: 'line-number', class: 'two', id: decoration.id
+        expect(newProperties).toEqual {type: 'line-number', gutterName: 'line-number', class: 'two'}
 
     describe "::getDecorations(properties)", ->
       it "returns decorations matching the given optional properties", ->

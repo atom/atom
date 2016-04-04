@@ -11,6 +11,7 @@ Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
+TextEditorElement = require './text-editor-element'
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -54,15 +55,17 @@ GutterContainer = require './gutter-container'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
-  callDisplayBufferCreatedHook: false
   buffer: null
   languageMode: null
   cursors: null
   selections: null
   suppressSelectionMerging: false
-  updateBatchDepth: 0
   selectionFlashDuration: 500
   gutterContainer: null
+  editorElement: null
+
+  Object.defineProperty @prototype, "element",
+    get: -> @getElement()
 
   @deserialize: (state, atomEnvironment) ->
     try
@@ -74,6 +77,7 @@ class TextEditor extends Model
         throw error
 
     state.displayBuffer = displayBuffer
+    state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
     state.packageManager = atomEnvironment.packages
@@ -83,16 +87,21 @@ class TextEditor extends Model
     state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     state.applicationDelegate = atomEnvironment.applicationDelegate
-    new this(state)
+    editor = new this(state)
+    if state.registered
+      disposable = atomEnvironment.textEditors.add(editor)
+      editor.onDidDestroy -> disposable.dispose()
+    editor
 
   constructor: (params={}) ->
     super
 
     {
-      @softTabs, @scrollRow, @scrollColumn, initialLine, initialColumn, tabLength,
-      softWrapped, @displayBuffer, buffer, suppressCursorCreation, @mini, @placeholderText,
-      lineNumberGutterVisible, largeFileMode, @config, @notificationManager, @packageManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
+      softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
+      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
+      @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
+      @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -104,19 +113,28 @@ class TextEditor extends Model
     throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
+    @firstVisibleScreenRow ?= 0
+    @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
+    @cursorsByMarkerId = new Map
     @selections = []
+    @autoHeight ?= true
+    @scrollPastEnd ?= true
+    @hasTerminatedPendingState = false
+
+    showInvisibles ?= true
 
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini, largeFileMode,
+      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or not showInvisibles, largeFileMode,
       @config, @assert, @grammarRegistry, @packageManager
     })
     @buffer = @displayBuffer.buffer
+    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
 
-    for marker in @findMarkers(@getSelectionMarkerAttributes())
+    for marker in @selectionsMarkerLayer.getMarkers()
       marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
@@ -139,13 +157,18 @@ class TextEditor extends Model
       priority: 0
       visible: lineNumberGutterVisible
 
+    if grammar?
+      @setGrammar(grammar)
+
   serialize: ->
     deserializer: 'TextEditor'
     id: @id
     softTabs: @softTabs
-    scrollRow: @getScrollRow()
-    scrollColumn: @getScrollColumn()
+    firstVisibleScreenRow: @getFirstVisibleScreenRow()
+    firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
+    selectionsMarkerLayerId: @selectionsMarkerLayer.id
+    registered: atom.textEditors.editors.has this
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -157,13 +180,22 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeEncoding =>
       @emitter.emit 'did-change-encoding', @getEncoding()
     @disposables.add @buffer.onDidDestroy => @destroy()
+    @disposables.add @buffer.onDidChangeModified =>
+      @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
 
     @preserveCursorPositionOnBufferReload()
 
+  terminatePendingState: ->
+    @emitter.emit 'did-terminate-pending-state' if not @hasTerminatedPendingState
+    @hasTerminatedPendingState = true
+
+  onDidTerminatePendingState: (callback) ->
+    @emitter.on 'did-terminate-pending-state', callback
+
   subscribeToDisplayBuffer: ->
-    @disposables.add @displayBuffer.onDidCreateMarker @handleMarkerCreated
-    @disposables.add @displayBuffer.onDidChangeGrammar => @handleGrammarChange()
-    @disposables.add @displayBuffer.onDidTokenize => @handleTokenization()
+    @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
+    @disposables.add @displayBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
+    @disposables.add @displayBuffer.onDidTokenize @handleTokenization.bind(this)
     @disposables.add @displayBuffer.onDidChange (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
@@ -177,6 +209,7 @@ class TextEditor extends Model
     @disposables.dispose()
     @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
+    @selectionsMarkerLayer.destroy()
     @buffer.release()
     @displayBuffer.destroy()
     @languageMode.destroy()
@@ -448,6 +481,9 @@ class TextEditor extends Model
   onDidChangeCharacterWidths: (callback) ->
     @displayBuffer.onDidChangeCharacterWidths(callback)
 
+  onDidChangeFirstVisibleScreenRow: (callback, fromView) ->
+    @emitter.on 'did-change-first-visible-screen-row', callback
+
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
@@ -468,6 +504,9 @@ class TextEditor extends Model
   onDidUpdateMarkers: (callback) ->
     @displayBuffer.onDidUpdateMarkers(callback)
 
+  onDidUpdateDecorations: (callback) ->
+    @displayBuffer.onDidUpdateDecorations(callback)
+
   # Essential: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
 
@@ -477,14 +516,14 @@ class TextEditor extends Model
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
     displayBuffer = @displayBuffer.copy()
+    selectionsMarkerLayer = displayBuffer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
-      @buffer, displayBuffer, @tabLength, softTabs, suppressCursorCreation: true,
-      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert, @applicationDelegate
+      @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
+      suppressCursorCreation: true, @config, @notificationManager, @packageManager,
+      @firstVisibleScreenRow, @firstVisibleScreenColumn,
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
-    for marker in @findMarkers(editorId: @id)
-      marker.copy(editorId: newEditor.id, preserveFolds: true)
     newEditor
 
   # Controls visibility based on the given {Boolean}.
@@ -498,6 +537,9 @@ class TextEditor extends Model
     @mini
 
   isMini: -> @mini
+
+  setUpdatedSynchronously: (updatedSynchronously) ->
+    @displayBuffer.setUpdatedSynchronously(updatedSynchronously)
 
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
@@ -556,6 +598,7 @@ class TextEditor extends Model
   getEditorWidthInChars: ->
     @displayBuffer.getEditorWidthInChars()
 
+
   ###
   Section: File Details
   ###
@@ -568,68 +611,60 @@ class TextEditor extends Model
   #
   # Returns a {String}.
   getTitle: ->
-    if sessionPath = @getPath()
-      path.basename(sessionPath)
-    else
-      'untitled'
+    @getFileName() ? 'untitled'
 
-  # Essential: Get unique title for display in other parts of the UI
-  # such as the window title.
+  # Essential: Get unique title for display in other parts of the UI, such as
+  # the window title.
   #
   # If the editor's buffer is unsaved, its title is "untitled"
   # If the editor's buffer is saved, its unique title is formatted as one
   # of the following,
   # * "<filename>" when it is the only editing buffer with this file name.
-  # * "<unique-dir-prefix>/.../<filename>", where the "..." may be omitted
-  # if the the direct parent directory is already different.
+  # * "<filename> — <unique-dir-prefix>" when other buffers have this file name.
   #
   # Returns a {String}
-  getUniqueTitle: ->
-    if sessionPath = @getPath()
-      title = @getTitle()
-
-      # find text editors with identical file name.
-      paths = []
-      for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
-        if textEditor.getTitle() is title
-          paths.push(textEditor.getPath())
-      if paths.length is 0
-        return title
-      fileName = path.basename(sessionPath)
-
-      # find the first directory in all these paths that is unique
-      nLevel = 0
-      while (_.some(paths, (apath) -> path.basename(apath) is path.basename(sessionPath)))
-        sessionPath = path.dirname(sessionPath)
-        paths = _.map(paths, (apath) -> path.dirname(apath))
-        nLevel += 1
-
-      directory = path.basename sessionPath
-      if nLevel > 1
-        path.join(directory, "...", fileName)
-      else
-        path.join(directory, fileName)
-    else
-      'untitled'
-
-  # Essential: Get the editor's long title for display in other parts of the UI
-  # such as the window title.
-  #
-  # If the editor's buffer is saved, its long title is formatted as
-  # "<filename> - <directory>". If it is unsaved, its title is "untitled"
-  #
-  # Returns a {String}.
   getLongTitle: ->
-    if sessionPath = @getPath()
-      fileName = path.basename(sessionPath)
-      directory = @project.relativize(path.dirname(sessionPath))
-      directory = if directory.length > 0 then directory else path.basename(path.dirname(sessionPath))
-      "#{fileName} - #{directory}"
+    if @getPath()
+      fileName = @getFileName()
+
+      allPathSegments = []
+      for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
+        if textEditor.getFileName() is fileName
+          allPathSegments.push(textEditor.getDirectoryPath().split(path.sep))
+
+      if allPathSegments.length is 0
+        return fileName
+
+      ourPathSegments = @getDirectoryPath().split(path.sep)
+      allPathSegments.push ourPathSegments
+
+      loop
+        firstSegment = ourPathSegments[0]
+
+        commonBase = _.all(allPathSegments, (pathSegments) -> pathSegments.length > 1 and pathSegments[0] is firstSegment)
+        if commonBase
+          pathSegments.shift() for pathSegments in allPathSegments
+        else
+          break
+
+      "#{fileName} \u2014 #{path.join(pathSegments...)}"
     else
       'untitled'
 
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
+
+  getFileName: ->
+    if fullPath = @getPath()
+      path.basename(fullPath)
+    else
+      null
+
+  getDirectoryPath: ->
+    if fullPath = @getPath()
+      path.dirname(fullPath)
+    else
+      null
 
   # Extended: Returns the {String} character set encoding of this editor's text
   # buffer.
@@ -648,8 +683,9 @@ class TextEditor extends Model
   isEmpty: -> @buffer.isEmpty()
 
   # Copies the current file path to the native clipboard.
-  copyPathToClipboard: ->
+  copyPathToClipboard: (relative = false) ->
     if filePath = @getPath()
+      filePath = atom.project.relativize(filePath) if relative
       @clipboard.write(filePath)
 
   ###
@@ -672,7 +708,7 @@ class TextEditor extends Model
   # this editor.
   shouldPromptToSave: ({windowCloseRequested}={}) ->
     if windowCloseRequested
-      @isModified()
+      false
     else
       @isModified() and not @buffer.hasMultipleEditors()
 
@@ -681,16 +717,16 @@ class TextEditor extends Model
   getSaveDialogOptions: -> {}
 
   checkoutHeadRevision: ->
-    if filePath = this.getPath()
+    if @getPath()
       checkoutHead = =>
-        @project.repositoryForDirectory(new Directory(path.dirname(filePath)))
+        @project.repositoryForDirectory(new Directory(@getDirectoryPath()))
           .then (repository) =>
-            repository?.checkoutHeadForEditor(this)
+            repository?.async.checkoutHeadForEditor(this)
 
       if @config.get('editor.confirmCheckoutHeadRevision')
         @applicationDelegate.confirm
           message: 'Confirm Checkout HEAD Revision'
-          detailedMessage: "Are you sure you want to discard all changes to \"#{path.basename(filePath)}\" since the last Git commit?"
+          detailedMessage: "Are you sure you want to discard all changes to \"#{@getFileName()}\" since the last Git commit?"
           buttons:
             OK: checkoutHead
             Cancel: null
@@ -866,116 +902,221 @@ class TextEditor extends Model
       @transact groupingInterval, =>
         fn(selection, index) for selection, index in @getSelectionsOrderedByBufferPosition()
 
-  # Move lines intersection the most recent selection up by one row in screen
-  # coordinates.
+  # Move lines intersecting the most recent selection or multiple selections
+  # up by one row in screen coordinates.
   moveLineUp: ->
-    selection = @getSelectedBufferRange()
-    return if selection.start.row is 0
-    lastRow = @buffer.getLastRow()
-    return if selection.isEmpty() and selection.start.row is lastRow and @buffer.getLastLine() is ''
+    selections = @getSelectedBufferRanges()
+    selections.sort (a, b) -> a.compare(b)
+
+    if selections[0].start.row is 0
+      return
+
+    if selections[selections.length - 1].start.row is @getLastBufferRow() and @buffer.getLastLine() is ''
+      return
 
     @transact =>
-      foldedRows = []
-      rows = [selection.start.row..selection.end.row]
-      if selection.start.row isnt selection.end.row and selection.end.column is 0
-        rows.pop() unless @isFoldedAtBufferRow(selection.end.row)
+      newSelectionRanges = []
 
-      # Move line around the fold that is directly above the selection
-      precedingScreenRow = @screenPositionForBufferPosition([selection.start.row]).translate([-1])
-      precedingBufferRow = @bufferPositionForScreenPosition(precedingScreenRow).row
-      if fold = @largestFoldContainingBufferRow(precedingBufferRow)
-        insertDelta = fold.getBufferRange().getRowCount()
-      else
-        insertDelta = 1
+      while selections.length > 0
+        # Find selections spanning a contiguous set of lines
+        selection = selections.shift()
+        selectionsToMove = [selection]
 
-      for row in rows
-        if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
-          bufferRange = fold.getBufferRange()
-          startRow = bufferRange.start.row
-          endRow = bufferRange.end.row
-          foldedRows.push(startRow - insertDelta)
+        while selection.end.row is selections[0]?.start.row
+          selectionsToMove.push(selections[0])
+          selection.end.row = selections[0].end.row
+          selections.shift()
+
+        # Compute the range spanned by all these selections...
+        linesRangeStart = [selection.start.row, 0]
+        if selection.end.row > selection.start.row and selection.end.column is 0
+          # Don't move the last line of a multi-line selection if the selection ends at column 0
+          linesRange = new Range(linesRangeStart, selection.end)
         else
-          startRow = row
-          endRow = row
+          linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
-        insertPosition = Point.fromObject([startRow - insertDelta])
-        endPosition = Point.min([endRow + 1], @buffer.getEndPosition())
-        lines = @buffer.getTextInRange([[startRow], endPosition])
-        if endPosition.row is lastRow and endPosition.column > 0 and not @buffer.lineEndingForRow(endPosition.row)
-          lines = "#{lines}\n"
+        # If there's a fold containing either the starting row or the end row
+        # of the selection then the whole fold needs to be moved and restored.
+        # The initial fold range is stored and will be translated once the
+        # insert delta is know.
+        selectionFoldRanges = []
+        foldAtSelectionStart =
+          @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+        foldAtSelectionEnd =
+          @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+        if fold = foldAtSelectionStart ? foldAtSelectionEnd
+          selectionFoldRanges.push range = fold.getBufferRange()
+          newEndRow = range.end.row + 1
+          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
+          fold.destroy()
 
-        @buffer.deleteRows(startRow, endRow)
+        # If selected line range is preceded by a fold, one line above on screen
+        # could be multiple lines in the buffer.
+        precedingScreenRow = @screenRowForBufferRow(linesRange.start.row) - 1
+        precedingBufferRow = @bufferRowForScreenRow(precedingScreenRow)
+        insertDelta = linesRange.start.row - precedingBufferRow
+
+        # Any folds in the text that is moved will need to be re-created.
+        # It includes the folds that were intersecting with the selection.
+        rangesToRefold = selectionFoldRanges.concat(
+          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
+            range = fold.getBufferRange()
+            fold.destroy()
+            range
+        ).map (range) -> range.translate([-insertDelta, 0])
 
         # Make sure the inserted text doesn't go into an existing fold
-        if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
-          @unfoldBufferRow(insertPosition.row)
-          foldedRows.push(insertPosition.row + endRow - startRow + fold.getBufferRange().getRowCount())
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(precedingBufferRow)
+          rangesToRefold.push(fold.getBufferRange().translate([linesRange.getRowCount() - 1, 0]))
+          fold.destroy()
 
-        @buffer.insert(insertPosition, lines)
+        # Delete lines spanned by selection and insert them on the preceding buffer row
+        lines = @buffer.getTextInRange(linesRange)
+        lines += @buffer.lineEndingForRow(linesRange.end.row - 1) unless lines[lines.length - 1] is '\n'
+        @buffer.delete(linesRange)
+        @buffer.insert([precedingBufferRow, 0], lines)
 
-      # Restore folds that existed before the lines were moved
-      for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
-        @foldBufferRow(foldedRow)
+        # Restore folds that existed before the lines were moved
+        for rangeToRefold in rangesToRefold
+          @displayBuffer.createFold(rangeToRefold.start.row, rangeToRefold.end.row)
 
-      @setSelectedBufferRange(selection.translate([-insertDelta]), preserveFolds: true, autoscroll: true)
+        for selection in selectionsToMove
+          newSelectionRanges.push(selection.translate([-insertDelta, 0]))
+
+      @setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
       @autoIndentSelectedRows() if @shouldAutoIndent()
+      @scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
 
-  # Move lines intersecting the most recent selection down by one row in screen
-  # coordinates.
+  # Move lines intersecting the most recent selection or muiltiple selections
+  # down by one row in screen coordinates.
   moveLineDown: ->
-    selection = @getSelectedBufferRange()
-    lastRow = @buffer.getLastRow()
-    return if selection.end.row is lastRow
-    return if selection.end.row is lastRow - 1 and @buffer.getLastLine() is ''
+    selections = @getSelectedBufferRanges()
+    selections.sort (a, b) -> a.compare(b)
+    selections = selections.reverse()
 
     @transact =>
-      foldedRows = []
-      rows = [selection.end.row..selection.start.row]
-      if selection.start.row isnt selection.end.row and selection.end.column is 0
-        rows.shift() unless @isFoldedAtBufferRow(selection.end.row)
+      @consolidateSelections()
+      newSelectionRanges = []
 
-      # Move line around the fold that is directly below the selection
-      followingScreenRow = @screenPositionForBufferPosition([selection.end.row]).translate([1])
-      followingBufferRow = @bufferPositionForScreenPosition(followingScreenRow).row
-      if fold = @largestFoldContainingBufferRow(followingBufferRow)
-        insertDelta = fold.getBufferRange().getRowCount()
-      else
-        insertDelta = 1
+      while selections.length > 0
+        # Find selections spanning a contiguous set of lines
+        selection = selections.shift()
+        selectionsToMove = [selection]
 
-      for row in rows
-        if fold = @displayBuffer.largestFoldStartingAtBufferRow(row)
-          bufferRange = fold.getBufferRange()
-          startRow = bufferRange.start.row
-          endRow = bufferRange.end.row
-          foldedRows.push(endRow + insertDelta)
+        # if the current selection start row matches the next selections' end row - make them one selection
+        while selection.start.row is selections[0]?.end.row
+          selectionsToMove.push(selections[0])
+          selection.start.row = selections[0].start.row
+          selections.shift()
+
+        # Compute the range spanned by all these selections...
+        linesRangeStart = [selection.start.row, 0]
+        if selection.end.row > selection.start.row and selection.end.column is 0
+          # Don't move the last line of a multi-line selection if the selection ends at column 0
+          linesRange = new Range(linesRangeStart, selection.end)
         else
-          startRow = row
-          endRow = row
+          linesRange = new Range(linesRangeStart, [selection.end.row + 1, 0])
 
-        if endRow + 1 is lastRow
-          endPosition = [endRow, @buffer.lineLengthForRow(endRow)]
-        else
-          endPosition = [endRow + 1]
-        lines = @buffer.getTextInRange([[startRow], endPosition])
-        @buffer.deleteRows(startRow, endRow)
+        # If there's a fold containing either the starting row or the end row
+        # of the selection then the whole fold needs to be moved and restored.
+        # The initial fold range is stored and will be translated once the
+        # insert delta is know.
+        selectionFoldRanges = []
+        foldAtSelectionStart =
+          @displayBuffer.largestFoldContainingBufferRow(selection.start.row)
+        foldAtSelectionEnd =
+          @displayBuffer.largestFoldContainingBufferRow(selection.end.row)
+        if fold = foldAtSelectionStart ? foldAtSelectionEnd
+          selectionFoldRanges.push range = fold.getBufferRange()
+          newEndRow = range.end.row + 1
+          linesRange.end.row = newEndRow if newEndRow > linesRange.end.row
+          fold.destroy()
 
-        insertPosition = Point.min([startRow + insertDelta], @buffer.getEndPosition())
-        if insertPosition.row is @buffer.getLastRow() and insertPosition.column > 0
+        # If selected line range is followed by a fold, one line below on screen
+        # could be multiple lines in the buffer. But at the same time, if the
+        # next buffer row is wrapped, one line in the buffer can represent many
+        # screen rows.
+        followingScreenRow = @displayBuffer.lastScreenRowForBufferRow(linesRange.end.row) + 1
+        followingBufferRow = @bufferRowForScreenRow(followingScreenRow)
+        insertDelta = followingBufferRow - linesRange.end.row
+
+        # Any folds in the text that is moved will need to be re-created.
+        # It includes the folds that were intersecting with the selection.
+        rangesToRefold = selectionFoldRanges.concat(
+          @outermostFoldsInBufferRowRange(linesRange.start.row, linesRange.end.row).map (fold) ->
+            range = fold.getBufferRange()
+            fold.destroy()
+            range
+        ).map (range) -> range.translate([insertDelta, 0])
+
+        # Make sure the inserted text doesn't go into an existing fold
+        if fold = @displayBuffer.largestFoldStartingAtBufferRow(followingBufferRow)
+          rangesToRefold.push(fold.getBufferRange().translate([insertDelta - 1, 0]))
+          fold.destroy()
+
+        # Delete lines spanned by selection and insert them on the following correct buffer row
+        insertPosition = new Point(selection.translate([insertDelta, 0]).start.row, 0)
+        lines = @buffer.getTextInRange(linesRange)
+        if linesRange.end.row is @buffer.getLastRow()
           lines = "\n#{lines}"
 
-        # Make sure the inserted text doesn't go into an existing fold
-        if fold = @displayBuffer.largestFoldStartingAtBufferRow(insertPosition.row)
-          @unfoldBufferRow(insertPosition.row)
-          foldedRows.push(insertPosition.row + fold.getBufferRange().getRowCount())
-
+        @buffer.delete(linesRange)
         @buffer.insert(insertPosition, lines)
 
-      # Restore folds that existed before the lines were moved
-      for foldedRow in foldedRows when 0 <= foldedRow <= @getLastBufferRow()
-        @foldBufferRow(foldedRow)
+        # Restore folds that existed before the lines were moved
+        for rangeToRefold in rangesToRefold
+          @displayBuffer.createFold(rangeToRefold.start.row, rangeToRefold.end.row)
 
-      @setSelectedBufferRange(selection.translate([insertDelta]), preserveFolds: true, autoscroll: true)
+        for selection in selectionsToMove
+          newSelectionRanges.push(selection.translate([insertDelta, 0]))
+
+      @setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
       @autoIndentSelectedRows() if @shouldAutoIndent()
+      @scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0])
+
+  # Move any active selections one column to the left.
+  moveSelectionLeft: ->
+    selections = @getSelectedBufferRanges()
+    noSelectionAtStartOfLine = selections.every((selection) ->
+      selection.start.column isnt 0
+    )
+
+    translationDelta = [0, -1]
+    translatedRanges = []
+
+    if noSelectionAtStartOfLine
+      @transact =>
+        for selection in selections
+          charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
+          charTextToLeftOfSelection = @buffer.getTextInRange(charToLeftOfSelection)
+
+          @buffer.insert(selection.end, charTextToLeftOfSelection)
+          @buffer.delete(charToLeftOfSelection)
+          translatedRanges.push(selection.translate(translationDelta))
+
+        @setSelectedBufferRanges(translatedRanges)
+
+  # Move any active selections one column to the right.
+  moveSelectionRight: ->
+    selections = @getSelectedBufferRanges()
+    noSelectionAtEndOfLine = selections.every((selection) =>
+      selection.end.column isnt @buffer.lineLengthForRow(selection.end.row)
+    )
+
+    translationDelta = [0, 1]
+    translatedRanges = []
+
+    if noSelectionAtEndOfLine
+      @transact =>
+        for selection in selections
+          charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
+          charTextToRightOfSelection = @buffer.getTextInRange(charToRightOfSelection)
+
+          @buffer.delete(charToRightOfSelection)
+          @buffer.insert(selection.start, charTextToRightOfSelection)
+          translatedRanges.push(selection.translate(translationDelta))
+
+        @setSelectedBufferRanges(translatedRanges)
 
   # Duplicate the most recent cursor's current line.
   duplicateLines: ->
@@ -1332,9 +1473,9 @@ class TextEditor extends Model
   Section: Decorations
   ###
 
-  # Essential: Adds a decoration that tracks a {Marker}. When the marker moves,
-  # is invalidated, or is destroyed, the decoration will be updated to reflect
-  # the marker's state.
+  # Essential: Add a decoration that tracks a {TextEditorMarker}. When the
+  # marker moves, is invalidated, or is destroyed, the decoration will be
+  # updated to reflect the marker's state.
   #
   # The following are the supported decorations types:
   #
@@ -1353,63 +1494,87 @@ class TextEditor extends Model
   #     </div>
   #     ```
   # * __overlay__: Positions the view associated with the given item at the head
-  #     or tail of the given `Marker`.
-  # * __gutter__: A decoration that tracks a {Marker} in a {Gutter}. Gutter
+  #     or tail of the given `TextEditorMarker`.
+  # * __gutter__: A decoration that tracks a {TextEditorMarker} in a {Gutter}. Gutter
   #     decorations are created by calling {Gutter::decorateMarker} on the
   #     desired `Gutter` instance.
+  # * __block__: Positions the view associated with the given item before or
+  #     after the row of the given `TextEditorMarker`.
   #
   # ## Arguments
   #
-  # * `marker` A {Marker} you want this decoration to follow.
+  # * `marker` A {TextEditorMarker} you want this decoration to follow.
   # * `decorationParams` An {Object} representing the decoration e.g.
   #   `{type: 'line-number', class: 'linter-error'}`
   #   * `type` There are several supported decoration types. The behavior of the
   #     types are as follows:
   #     * `line` Adds the given `class` to the lines overlapping the rows
-  #        spanned by the `Marker`.
+  #        spanned by the `TextEditorMarker`.
   #     * `line-number` Adds the given `class` to the line numbers overlapping
-  #       the rows spanned by the `Marker`.
+  #       the rows spanned by the `TextEditorMarker`.
   #     * `highlight` Creates a `.highlight` div with the nested class with up
-  #       to 3 nested regions that fill the area spanned by the `Marker`.
+  #       to 3 nested regions that fill the area spanned by the `TextEditorMarker`.
   #     * `overlay` Positions the view associated with the given item at the
-  #       head or tail of the given `Marker`, depending on the `position`
+  #       head or tail of the given `TextEditorMarker`, depending on the `position`
   #       property.
-  #     * `gutter` Tracks a {Marker} in a {Gutter}. Created by calling
+  #     * `gutter` Tracks a {TextEditorMarker} in a {Gutter}. Created by calling
   #       {Gutter::decorateMarker} on the desired `Gutter` instance.
+  #     * `block` Positions the view associated with the given item before or
+  #       after the row of the given `TextEditorMarker`, depending on the `position`
+  #       property.
   #   * `class` This CSS class will be applied to the decorated line number,
   #     line, highlight, or overlay.
   #   * `item` (optional) An {HTMLElement} or a model {Object} with a
-  #     corresponding view registered. Only applicable to the `gutter` and
-  #     `overlay` types.
+  #     corresponding view registered. Only applicable to the `gutter`,
+  #     `overlay` and `block` types.
   #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
-  #     the head of the `Marker`. Only applicable to the `line` and
+  #     the head of the `TextEditorMarker`. Only applicable to the `line` and
   #     `line-number` types.
   #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
-  #     the associated `Marker` is empty. Only applicable to the `gutter`,
+  #     the associated `TextEditorMarker` is empty. Only applicable to the `gutter`,
   #     `line`, and `line-number` types.
   #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
-  #     if the associated `Marker` is non-empty. Only applicable to the
+  #     if the associated `TextEditorMarker` is non-empty. Only applicable to the
   #     `gutter`, `line`, and `line-number` types.
-  #   * `position` (optional) Only applicable to decorations of type `overlay`,
-  #     controls where the overlay view is positioned relative to the `Marker`.
-  #     Values can be `'head'` (the default), or `'tail'`.
+  #   * `position` (optional) Only applicable to decorations of type `overlay` and `block`,
+  #     controls where the view is positioned relative to the `TextEditorMarker`.
+  #     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
+  #     `'before'` (the default) or `'after'` for block decorations.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
     @displayBuffer.decorateMarker(marker, decorationParams)
 
-  # Essential: Get all the decorations within a screen row range.
+  # Essential: *Experimental:* Add a decoration to every marker in the given
+  # marker layer. Can be used to decorate a large number of markers without
+  # having to create and manage many individual decorations.
+  #
+  # * `markerLayer` A {TextEditorMarkerLayer} or {MarkerLayer} to decorate.
+  # * `decorationParams` The same parameters that are passed to
+  #   {decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {LayerDecoration}.
+  decorateMarkerLayer: (markerLayer, decorationParams) ->
+    @displayBuffer.decorateMarkerLayer(markerLayer, decorationParams)
+
+  # Deprecated: Get all the decorations within a screen row range on the default
+  # layer.
   #
   # * `startScreenRow` the {Number} beginning screen row
   # * `endScreenRow` the {Number} end screen row (inclusive)
   #
   # Returns an {Object} of decorations in the form
   #  `{1: [{id: 10, type: 'line-number', class: 'someclass'}], 2: ...}`
-  #   where the keys are {Marker} IDs, and the values are an array of decoration
+  #   where the keys are {TextEditorMarker} IDs, and the values are an array of decoration
   #   params objects attached to the marker.
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
     @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
+
+  decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
+    @displayBuffer.decorationsStateForScreenRowRange(startScreenRow, endScreenRow)
 
   # Extended: Get all decorations.
   #
@@ -1466,10 +1631,10 @@ class TextEditor extends Model
   Section: Markers
   ###
 
-  # Essential: Create a marker with the given range in buffer coordinates. This
-  # marker will maintain its logical location as the buffer is changed, so if
-  # you mark a particular word, the marker will remain over that word even if
-  # the word's location in the buffer changes.
+  # Essential: Create a marker on the default marker layer with the given range
+  # in buffer coordinates. This marker will maintain its logical location as the
+  # buffer is changed, so if you mark a particular word, the marker will remain
+  # over that word even if the word's location in the buffer changes.
   #
   # * `range` A {Range} or range-compatible {Array}
   # * `properties` A hash of key-value pairs to associate with the marker. There
@@ -1497,14 +1662,14 @@ class TextEditor extends Model
   #       region in any way, including changes that end at the marker's
   #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markBufferRange: (args...) ->
     @displayBuffer.markBufferRange(args...)
 
-  # Essential: Create a marker with the given range in screen coordinates. This
-  # marker will maintain its logical location as the buffer is changed, so if
-  # you mark a particular word, the marker will remain over that word even if
-  # the word's location in the buffer changes.
+  # Essential: Create a marker on the default marker layer with the given range
+  # in screen coordinates. This marker will maintain its logical location as the
+  # buffer is changed, so if you mark a particular word, the marker will remain
+  # over that word even if the word's location in the buffer changes.
   #
   # * `range` A {Range} or range-compatible {Array}
   # * `properties` A hash of key-value pairs to associate with the marker. There
@@ -1532,29 +1697,32 @@ class TextEditor extends Model
   #       region in any way, including changes that end at the marker's
   #       start or start at the marker's end. This is the most fragile strategy.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markScreenRange: (args...) ->
     @displayBuffer.markScreenRange(args...)
 
-  # Essential: Mark the given position in buffer coordinates.
+  # Essential: Mark the given position in buffer coordinates on the default
+  # marker layer.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markBufferPosition: (args...) ->
     @displayBuffer.markBufferPosition(args...)
 
-  # Essential: Mark the given position in screen coordinates.
+  # Essential: Mark the given position in screen coordinates on the default
+  # marker layer.
   #
   # * `position` A {Point} or {Array} of `[row, column]`.
   # * `options` (optional) See {TextBuffer::markRange}.
   #
-  # Returns a {Marker}.
+  # Returns a {TextEditorMarker}.
   markScreenPosition: (args...) ->
     @displayBuffer.markScreenPosition(args...)
 
-  # Essential: Find all {Marker}s that match the given properties.
+  # Essential: Find all {TextEditorMarker}s on the default marker layer that
+  # match the given properties.
   #
   # This method finds markers based on the given properties. Markers can be
   # associated with custom properties that will be compared with basic equality.
@@ -1576,44 +1744,60 @@ class TextEditor extends Model
   findMarkers: (properties) ->
     @displayBuffer.findMarkers(properties)
 
-  # Extended: Observe changes in the set of markers that intersect a particular
-  # region of the editor.
-  #
-  # * `callback` A {Function} to call whenever one or more {Marker}s appears,
-  #    disappears, or moves within the given region.
-  #   * `event` An {Object} with the following keys:
-  #     * `insert` A {Set} containing the ids of all markers that appeared
-  #        in the range.
-  #     * `update` A {Set} containing the ids of all markers that moved within
-  #        the region.
-  #     * `remove` A {Set} containing the ids of all markers that disappeared
-  #        from the region.
-  #
-  # Returns a {MarkerObservationWindow}, which allows you to specify the region
-  # of interest by calling {MarkerObservationWindow::setBufferRange} or
-  # {MarkerObservationWindow::setScreenRange}.
-  observeMarkers: (callback) ->
-    @displayBuffer.observeMarkers(callback)
-
-  # Extended: Get the {Marker} for the given marker id.
+  # Extended: Get the {TextEditorMarker} on the default layer for the given
+  # marker id.
   #
   # * `id` {Number} id of the marker
   getMarker: (id) ->
     @displayBuffer.getMarker(id)
 
-  # Extended: Get all {Marker}s. Consider using {::findMarkers}
+  # Extended: Get all {TextEditorMarker}s on the default marker layer. Consider
+  # using {::findMarkers}
   getMarkers: ->
     @displayBuffer.getMarkers()
 
-  # Extended: Get the number of markers in this editor's buffer.
+  # Extended: Get the number of markers in the default marker layer.
   #
   # Returns a {Number}.
   getMarkerCount: ->
     @buffer.getMarkerCount()
 
-  # {Delegates to: DisplayBuffer.destroyMarker}
-  destroyMarker: (args...) ->
-    @displayBuffer.destroyMarker(args...)
+  destroyMarker: (id) ->
+    @getMarker(id)?.destroy()
+
+  # Extended: *Experimental:* Create a marker layer to group related markers.
+  #
+  # * `options` An {Object} containing the following keys:
+  #   * `maintainHistory` A {Boolean} indicating whether marker state should be
+  #     restored on undo/redo. Defaults to `false`.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {TextEditorMarkerLayer}.
+  addMarkerLayer: (options) ->
+    @displayBuffer.addMarkerLayer(options)
+
+  # Public: *Experimental:* Get a {TextEditorMarkerLayer} by id.
+  #
+  # * `id` The id of the marker layer to retrieve.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {MarkerLayer} or `undefined` if no layer exists with the given
+  # id.
+  getMarkerLayer: (id) ->
+    @displayBuffer.getMarkerLayer(id)
+
+  # Public: *Experimental:* Get the default {TextEditorMarkerLayer}.
+  #
+  # All marker APIs not tied to an explicit layer interact with this default
+  # layer.
+  #
+  # This API is experimental and subject to change on any release.
+  #
+  # Returns a {TextEditorMarkerLayer}.
+  getDefaultMarkerLayer: ->
+    @displayBuffer.getDefaultMarkerLayer()
 
   ###
   Section: Cursors
@@ -1683,7 +1867,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition, options) ->
-    @markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -1693,7 +1877,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtScreenPosition: (screenPosition, options) ->
-    @markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -1818,10 +2002,18 @@ class TextEditor extends Model
   getCursorsOrderedByBufferPosition: ->
     @getCursors().sort (a, b) -> a.compare(b)
 
-  # Add a cursor based on the given {Marker}.
+  cursorsForScreenRowRange: (startScreenRow, endScreenRow) ->
+    cursors = []
+    for marker in @selectionsMarkerLayer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow])
+      if cursor = @cursorsByMarkerId.get(marker.id)
+        cursors.push(cursor)
+    cursors
+
+  # Add a cursor based on the given {TextEditorMarker}.
   addCursor: (marker) ->
     cursor = new Cursor(editor: this, marker: marker, config: @config)
     @cursors.push(cursor)
+    @cursorsByMarkerId.set(marker.id, cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true)
     @decorateMarker(marker, type: 'line', class: 'cursor-line', onlyEmpty: true)
@@ -1971,7 +2163,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    @markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -1984,7 +2176,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
-    @markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -2167,7 +2359,7 @@ class TextEditor extends Model
 
   # Extended: Select the range of the given marker if it is valid.
   #
-  # * `marker` A {Marker}
+  # * `marker` A {TextEditorMarker}
   #
   # Returns the selected {Range} or `undefined` if the marker is invalid.
   selectMarker: (marker) ->
@@ -2293,9 +2485,9 @@ class TextEditor extends Model
     _.reduce(tail, reducer, [head])
     return result if fn?
 
-  # Add a {Selection} based on the given {Marker}.
+  # Add a {Selection} based on the given {TextEditorMarker}.
   #
-  # * `marker` The {Marker} to highlight
+  # * `marker` The {TextEditorMarker} to highlight
   # * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   #
   # Returns the new {Selection}.
@@ -2320,6 +2512,7 @@ class TextEditor extends Model
   removeSelection: (selection) ->
     _.remove(@cursors, selection.cursor)
     _.remove(@selections, selection)
+    @cursorsByMarkerId.delete(selection.cursor.marker.id)
     @emitter.emit 'did-remove-cursor', selection.cursor
     @emitter.emit 'did-remove-selection', selection
 
@@ -2334,6 +2527,7 @@ class TextEditor extends Model
     selections = @getSelections()
     if selections.length > 1
       selection.destroy() for selection in selections[1...(selections.length)]
+      selections[0].autoscroll(center: true)
       true
     else
       false
@@ -2788,6 +2982,7 @@ class TextEditor extends Model
   # Extended: Unfold all existing folds.
   unfoldAll: ->
     @languageMode.unfoldAll()
+    @scrollToCursorPosition()
 
   # Extended: Fold all foldable lines at the given indent level.
   #
@@ -2803,8 +2998,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
-    # @languageMode.isFoldableAtBufferRow(bufferRow)
-    @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow)?.foldable ? false
+    @displayBuffer.isFoldableAtBufferRow(bufferRow)
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
   #
@@ -2934,7 +3128,7 @@ class TextEditor extends Model
 
   # Essential: Scrolls the editor to the given screen position.
   #
-  # * `screenPosition` An object that represents a buffer position. It can be either
+  # * `screenPosition` An object that represents a screen position. It can be either
   #    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   # * `options` (optional) {Object}
   #   * `center` Center the editor around the position if possible. (default: false)
@@ -3003,13 +3197,13 @@ class TextEditor extends Model
     @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
-  handleMarkerCreated: (marker) =>
-    if marker.matchesProperties(@getSelectionMarkerAttributes())
-      @addSelection(marker)
-
   ###
   Section: TextEditor Rendering
   ###
+
+  # Get the Element for the editor.
+  getElement: ->
+    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
@@ -3026,14 +3220,6 @@ class TextEditor extends Model
     @placeholderText = placeholderText
     @emitter.emit 'did-change-placeholder-text', @placeholderText
 
-  getFirstVisibleScreenRow: ->
-    deprecate("This is now a view method. Call TextEditorElement::getFirstVisibleScreenRow instead.")
-    @viewRegistry.getView(this).getVisibleRowRange()[0]
-
-  getLastVisibleScreenRow: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getLastVisibleScreenRow instead.")
-    @viewRegistry.getView(this).getVisibleRowRange()[1]
-
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
     @viewRegistry.getView(this).pixelPositionForBufferPosition(bufferPosition)
@@ -3043,7 +3229,7 @@ class TextEditor extends Model
     @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
-    {type: 'selection', editorId: @id, invalidate: 'never', maintainHistory: true}
+    {type: 'selection', invalidate: 'never'}
 
   getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
   setVerticalScrollMargin: (verticalScrollMargin) -> @displayBuffer.setVerticalScrollMargin(verticalScrollMargin)
@@ -3088,11 +3274,40 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @displayBuffer.getWidth()
 
-  getScrollRow: -> @scrollRow
-  setScrollRow: (@scrollRow) ->
+  # Experimental: Scroll the editor such that the given screen row is at the
+  # top of the visible area.
+  setFirstVisibleScreenRow: (screenRow, fromView) ->
+    unless fromView
+      maxScreenRow = @getScreenLineCount() - 1
+      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
+        height = @displayBuffer.getHeight()
+        lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
+        if height? and lineHeightInPixels?
+          maxScreenRow -= Math.floor(height / lineHeightInPixels)
+      screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)
 
-  getScrollColumn: -> @scrollColumn
-  setScrollColumn: (@scrollColumn) ->
+    unless screenRow is @firstVisibleScreenRow
+      @firstVisibleScreenRow = screenRow
+      @emitter.emit 'did-change-first-visible-screen-row', screenRow unless fromView
+
+  getFirstVisibleScreenRow: -> @firstVisibleScreenRow
+
+  getLastVisibleScreenRow: ->
+    height = @displayBuffer.getHeight()
+    lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
+    if height? and lineHeightInPixels?
+      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getScreenLineCount() - 1)
+    else
+      null
+
+  getVisibleRowRange: ->
+    if lastVisibleScreenRow = @getLastVisibleScreenRow()
+      [@firstVisibleScreenRow, lastVisibleScreenRow]
+    else
+      null
+
+  setFirstVisibleScreenColumn: (@firstVisibleScreenColumn) ->
+  getFirstVisibleScreenColumn: -> @firstVisibleScreenColumn
 
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
@@ -3148,11 +3363,6 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getMaxScrollTop instead.")
 
     @viewRegistry.getView(this).getMaxScrollTop()
-
-  getVisibleRowRange: ->
-    Grim.deprecate("This is now a view method. Call TextEditorElement::getVisibleRowRange instead.")
-
-    @viewRegistry.getView(this).getVisibleRowRange()
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")

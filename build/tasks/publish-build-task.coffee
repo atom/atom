@@ -6,10 +6,10 @@ async = require 'async'
 fs = require 'fs-plus'
 GitHub = require 'github-releases'
 request = require 'request'
+AWS = require 'aws-sdk'
 
 grunt = null
 
-commitSha = process.env.JANKY_SHA1
 token = process.env.ATOM_ACCESS_TOKEN
 defaultHeaders =
   Authorization: "token #{token}"
@@ -31,14 +31,9 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
-    branchName = process.env.JANKY_BRANCH
-    switch branchName
-      when 'stable'
-        isPrerelease = false
-      when 'beta'
-        isPrerelease = true
-      else
-        return
+    releaseBranch = grunt.config.get('atom.releaseBranch')
+    isPrerelease = grunt.config.get('atom.channel') is 'beta'
+    return unless releaseBranch?
 
     doneCallback = @async()
     startTime = Date.now()
@@ -55,7 +50,7 @@ module.exports = (gruntObject) ->
 
     zipAssets buildDir, assets, (error) ->
       return done(error) if error?
-      getAtomDraftRelease isPrerelease, branchName, (error, release) ->
+      getAtomDraftRelease isPrerelease, releaseBranch, (error, release) ->
         return done(error) if error?
         assetNames = (asset.assetName for asset in assets)
         deleteExistingAssets release, assetNames, (error) ->
@@ -211,7 +206,7 @@ deleteExistingAssets = (release, assetNames, callback) ->
   async.parallel(tasks, callback)
 
 uploadAssets = (release, buildDir, assets, callback) ->
-  upload = (release, assetName, assetPath, callback) ->
+  uploadToReleases = (release, assetName, assetPath, callback) ->
     options =
       uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
       method: 'POST'
@@ -222,15 +217,43 @@ uploadAssets = (release, buildDir, assets, callback) ->
 
     assetRequest = request options, (error, response, body='') ->
       if error? or response.statusCode >= 400
-        logError("Upload release asset #{assetName} failed", error, body)
+        logError("Upload release asset #{assetName} to Releases failed", error, body)
         callback(error ? new Error(response.statusCode))
       else
         callback(null, release)
 
     fs.createReadStream(assetPath).pipe(assetRequest)
 
+  uploadToS3 = (release, assetName, assetPath, callback) ->
+    s3Key = process.env.BUILD_ATOM_RELEASES_S3_KEY
+    s3Secret = process.env.BUILD_ATOM_RELEASES_S3_SECRET
+    s3Bucket = process.env.BUILD_ATOM_RELEASES_S3_BUCKET
+
+    unless s3Key and s3Secret and s3Bucket
+      callback(new Error('BUILD_ATOM_RELEASES_S3_KEY, BUILD_ATOM_RELEASES_S3_SECRET, and BUILD_ATOM_RELEASES_S3_BUCKET environment variables must be set.'))
+      return
+
+    s3Info =
+      accessKeyId: s3Key
+      secretAccessKey: s3Secret
+    s3 = new AWS.S3 s3Info
+
+    key = "releases/#{release.tag_name}/#{assetName}"
+    uploadParams =
+      Bucket: s3Bucket
+      ACL: 'public-read'
+      Key: key
+      Body: fs.createReadStream(assetPath)
+    s3.upload uploadParams, (error, data) ->
+      if error?
+        logError("Upload release asset #{assetName} to S3 failed", error)
+        callback(error)
+      else
+        callback(null, release)
+
   tasks = []
   for {assetName} in assets
     assetPath = path.join(buildDir, assetName)
-    tasks.push(upload.bind(this, release, assetName, assetPath))
+    tasks.push(uploadToReleases.bind(this, release, assetName, assetPath))
+    tasks.push(uploadToS3.bind(this, release, assetName, assetPath))
   async.parallel(tasks, callback)

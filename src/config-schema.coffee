@@ -21,7 +21,6 @@ module.exports =
       followSymlinks:
         type: 'boolean'
         default: true
-        title: 'Follow symlinks'
         description: 'Follow symbolic links when searching files and when opening files with the fuzzy finder.'
       disabledPackages:
         type: 'array'
@@ -54,7 +53,12 @@ module.exports =
       destroyEmptyPanes:
         type: 'boolean'
         default: true
-        description: 'When the last item of a pane is removed, remove that pane as well.'
+        title: 'Remove Empty Panes'
+        description: 'When the last tab of a pane is closed, remove that pane as well.'
+      closeEmptyWindows:
+        type: 'boolean'
+        default: true
+        description: 'When a window with no open tabs or panes is given the \'Close Tab\' command, close that window.'
       fileEncoding:
         description: 'Default character set encoding to use when reading and writing files.'
         type: 'string'
@@ -98,6 +102,14 @@ module.exports =
         ]
       openEmptyEditorOnStart:
         description: 'Automatically open an empty editor on startup.'
+        type: 'boolean'
+        default: true
+      automaticallyUpdate:
+        description: 'Automatically update Atom when a new release is available.'
+        type: 'boolean'
+        default: true
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
         type: 'boolean'
         default: true
 
@@ -163,7 +175,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        enum: [1, 2, 3, 4, 6, 8]
+        minimum: 1
         description: 'Number of spaces used to represent a tab.'
       softWrap:
         type: 'boolean'

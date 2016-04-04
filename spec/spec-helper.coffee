@@ -112,14 +112,14 @@ afterEach ->
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  ensureNoPathSubscriptions()
+  warnIfLeakingPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
-ensureNoPathSubscriptions = ->
+warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
-  pathwatcher.closeAllWatchers()
   if watchedPaths.length > 0
-    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+    console.error("WARNING: Leaking subscriptions for paths: " + watchedPaths.join(", "))
+  pathwatcher.closeAllWatchers()
 
 ensureNoDeprecatedFunctionsCalled = ->
   deprecations = Grim.getDeprecations()
@@ -208,13 +208,15 @@ addCustomMatchers = (spec) ->
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
 window.waitsForPromise = (args...) ->
+  label = null
   if args.length > 1
-    {shouldReject, timeout} = args[0]
+    {shouldReject, timeout, label} = args[0]
   else
     shouldReject = false
+  label ?= 'promise to be resolved or rejected'
   fn = _.last(args)
 
-  window.waitsFor timeout, (moveOn) ->
+  window.waitsFor label, timeout, (moveOn) ->
     promise = fn()
     if shouldReject
       promise.catch.call(promise, moveOn)
@@ -265,3 +267,9 @@ window.advanceClock = (delta=1) ->
       true
 
   callback() for callback in callbacks
+
+exports.mockLocalStorage = ->
+  items = {}
+  spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item.toString(); undefined
+  spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
+  spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined

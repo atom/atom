@@ -54,8 +54,9 @@ class Project extends Model
   Section: Serialization
   ###
 
-  deserialize: (state, deserializerManager) ->
-    states.paths = [state.path] if state.path? # backward compatibility
+  deserialize: (state) ->
+    state.paths = [state.path] if state.path? # backward compatibility
+    state.paths = state.paths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
 
     @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
@@ -65,15 +66,15 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
-      deserializerManager.deserialize(bufferState)
+      TextBuffer.deserialize(bufferState)
 
     @subscribeToBuffer(buffer) for buffer in @buffers
     @setPaths(state.paths)
 
-  serialize: ->
+  serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
 
   ###
   Section: Event Subscription
@@ -288,7 +289,7 @@ class Project extends Model
       'atom.repository-provider',
       '^0.1.0',
       (provider) =>
-        @repositoryProviders.push(provider)
+        @repositoryProviders.unshift(provider)
         @setPaths(@getPaths()) if null in @repositories
         new Disposable =>
           @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
@@ -308,11 +309,19 @@ class Project extends Model
   findBufferForPath: (filePath) ->
     _.find @buffers, (buffer) -> buffer.getPath() is filePath
 
+  findBufferForId: (id) ->
+    _.find @buffers, (buffer) -> buffer.getId() is id
+
   # Only to be used in specs
   bufferForPathSync: (filePath) ->
     absoluteFilePath = @resolvePath(filePath)
     existingBuffer = @findBufferForPath(absoluteFilePath) if filePath
     existingBuffer ? @buildBufferSync(absoluteFilePath)
+
+  # Only to be used when deserializing
+  bufferForIdSync: (id) ->
+    existingBuffer = @findBufferForId(id) if id
+    existingBuffer ? @buildBufferSync()
 
   # Given a file path, this retrieves or creates a new {TextBuffer}.
   #
@@ -321,16 +330,13 @@ class Project extends Model
   #
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   bufferForPath: (absoluteFilePath) ->
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
     if existingBuffer
       Promise.resolve(existingBuffer)
     else
       @buildBuffer(absoluteFilePath)
-
-  bufferForId: (id) ->
-    _.find @buffers, (buffer) -> buffer.id is id
 
   # Still needed when deserializing a tokenized buffer
   buildBufferSync: (absoluteFilePath) ->
@@ -344,7 +350,7 @@ class Project extends Model
   # * `absoluteFilePath` A {String} representing a path.
   # * `text` The {String} text to use as a buffer.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)

@@ -4,33 +4,24 @@ cloneObject = (object) ->
   clone
 
 module.exports = ({blobStore}) ->
+  {crashReporter, remote} = require 'electron'
   # Start the crash reporter before anything else.
-  require('crash-reporter').start(productName: 'Atom', companyName: 'GitHub')
-  remote = require 'remote'
+  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
   exitWithStatusCode = (status) ->
-    remote.require('app').emit('will-quit')
+    remote.app.emit('will-quit')
     remote.process.exit(status)
 
   try
     path = require 'path'
-    ipc = require 'ipc'
+    {ipcRenderer} = require 'electron'
     {getWindowLoadSettings} = require './window-load-settings-helpers'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'
 
     {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
 
-    if headless
-      # Override logging in headless mode so it goes to the console, regardless
-      # of the --enable-logging flag to Electron.
-      console.log = (args...) ->
-        ipc.send 'write-to-stdout', args.join(' ') + '\n'
-      console.warn = (args...) ->
-        ipc.send 'write-to-stderr', args.join(' ') + '\n'
-      console.error = (args...) ->
-        ipc.send 'write-to-stderr', args.join(' ') + '\n'
-    else
+    unless headless
       # Show window synchronously so a focusout doesn't fire on input elements
       # that are focused in the very first spec run.
       remote.getCurrentWindow().show()
@@ -38,15 +29,15 @@ module.exports = ({blobStore}) ->
     handleKeydown = (event) ->
       # Reload: cmd-r / ctrl-r
       if (event.metaKey or event.ctrlKey) and event.keyCode is 82
-        ipc.send('call-window-method', 'restart')
+        ipcRenderer.send('call-window-method', 'reload')
 
       # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
       if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
-        ipc.send('call-window-method', 'toggleDevTools')
+        ipcRenderer.send('call-window-method', 'toggleDevTools')
 
       # Reload: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
-        ipc.send('call-window-method', 'close')
+        ipcRenderer.send('call-window-method', 'close')
 
     window.addEventListener('keydown', handleKeydown, true)
 
@@ -57,19 +48,28 @@ module.exports = ({blobStore}) ->
 
     document.title = "Spec Suite"
 
+    # Avoid throttling of test window by playing silence
+    # See related discussion in https://github.com/atom/atom/pull/9485
+    context = new AudioContext()
+    source = context.createBufferSource()
+    source.connect(context.destination)
+    source.start(0)
+
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)
     buildDefaultApplicationDelegate = -> new ApplicationDelegate()
     buildAtomEnvironment = (params) ->
       params = cloneObject(params)
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
+      params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       new AtomEnvironment(params)
 
     promise = testRunner({
       logFile, headless, testPaths, buildAtomEnvironment, buildDefaultApplicationDelegate, legacyTestRunner
     })
 
-    promise.then(exitWithStatusCode) if getWindowLoadSettings().headless
+    promise.then (statusCode) ->
+      exitWithStatusCode(statusCode) if getWindowLoadSettings().headless
   catch error
     if getWindowLoadSettings().headless
       console.error(error.stack ? error)

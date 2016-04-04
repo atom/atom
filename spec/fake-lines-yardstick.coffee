@@ -2,11 +2,8 @@
 
 module.exports =
 class FakeLinesYardstick
-  constructor: (@model, @presenter) ->
+  constructor: (@model, @lineTopIndex) ->
     @characterWidthsByScope = {}
-
-  prepareScreenRowsForMeasurement: ->
-    @presenter.getPreMeasurementState()
 
   getScopedCharacterWidth: (scopeNames, char) ->
     @getScopedCharacterWidths(scopeNames)[char]
@@ -22,15 +19,14 @@ class FakeLinesYardstick
   setScopedCharacterWidth: (scopeNames, character, width) ->
     @getScopedCharacterWidths(scopeNames)[character] = width
 
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+  pixelPositionForScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @model.clipScreenPosition(screenPosition) if clip
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
     baseCharacterWidth = @model.getDefaultCharWidth()
 
-    top = targetRow * @model.getLineHeightInPixels()
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = 0
     column = 0
 
@@ -56,18 +52,3 @@ class FakeLinesYardstick
         column += charLength
 
     {top, left}
-
-  pixelRectForScreenRange: (screenRange) ->
-    lineHeight = @model.getLineHeightInPixels()
-
-    if screenRange.end.row > screenRange.start.row
-      top = @pixelPositionForScreenPosition(screenRange.start).top
-      left = 0
-      height = (screenRange.end.row - screenRange.start.row + 1) * lineHeight
-      width = @presenter.getScrollWidth()
-    else
-      {top, left} = @pixelPositionForScreenPosition(screenRange.start, false)
-      height = lineHeight
-      width = @pixelPositionForScreenPosition(screenRange.end, false).left - left
-
-    {top, left, width, height}

@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{isPairedCharacter} = require './text-utils'
+{isPairedCharacter, isCJKCharacter} = require './text-utils'
 Token = require './token'
 {SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
 
@@ -33,7 +33,6 @@ class TokenizedLine
   endOfLineInvisibles: null
   lineIsWhitespaceOnly: false
   firstNonWhitespaceIndex: 0
-  foldable: false
 
   constructor: (properties) ->
     @id = idCounter++
@@ -322,15 +321,18 @@ class TokenizedLine
     return unless @text.length > maxColumn
 
     if /\s/.test(@text[maxColumn])
-       # search forward for the start of a word past the boundary
+      # search forward for the start of a word past the boundary
       for column in [maxColumn..@text.length]
         return column if /\S/.test(@text[column])
 
       return @text.length
+    else if isCJKCharacter(@text[maxColumn])
+      maxColumn
     else
       # search backward for the start of the word on the boundary
       for column in [maxColumn..@firstNonWhitespaceIndex]
-        return column + 1 if /\s/.test(@text[column])
+        if /\s/.test(@text[column]) or isCJKCharacter(@text[column])
+          return column + 1
 
       return maxColumn
 
@@ -489,15 +491,19 @@ class TokenizedLine
         @endOfLineInvisibles.push(eol) if eol
 
   isComment: ->
+    return @isCommentLine if @isCommentLine?
+
+    @isCommentLine = false
     iterator = @getTokenIterator()
     while iterator.next()
       scopes = iterator.getScopes()
       continue if scopes.length is 1
-      continue unless NonWhitespaceRegex.test(iterator.getText())
       for scope in scopes
-        return true if CommentScopeRegex.test(scope)
+        if CommentScopeRegex.test(scope)
+          @isCommentLine = true
+          break
       break
-    false
+    @isCommentLine
 
   isOnlyWhitespace: ->
     @lineIsWhitespaceOnly
