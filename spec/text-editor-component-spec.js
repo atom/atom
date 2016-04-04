@@ -72,7 +72,7 @@ describe('TextEditorComponent', function () {
       let text = editor.lineTextForScreenRow(screenRow)
       expect(lineNode.offsetTop).toBe(top)
       if (text === '') {
-        expect(lineNode.innerHTML).toBe('&nbsp;')
+        expect(lineNode.textContent).toBe(' ')
       } else {
         expect(lineNode.textContent).toBe(text)
       }
@@ -360,9 +360,9 @@ describe('TextEditorComponent', function () {
       }
     })
 
-    it('renders an nbsp on empty lines when no line-ending character is defined', function () {
+    it('renders an placeholder space on empty lines when no line-ending character is defined', function () {
       atom.config.set('editor.showInvisibles', false)
-      expect(component.lineNodeForScreenRow(10).textContent).toBe(NBSP)
+      expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
     })
 
     it('gives the lines and tiles divs the same background color as the editor to improve GPU performance', async function () {
@@ -428,13 +428,14 @@ describe('TextEditorComponent', function () {
       expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(false)
     })
 
-    it('keeps rebuilding lines when continuous reflow is on', function () {
+    it('keeps rebuilding lines when continuous reflow is on', async function () {
       wrapperNode.setContinuousReflow(true)
-      let oldLineNode = componentNode.querySelector('.line')
+      let oldLineNode = componentNode.querySelectorAll('.line')[1]
 
-      waitsFor(function () {
-        return componentNode.querySelector('.line') !== oldLineNode
-      })
+      while (true) {
+        await nextViewUpdatePromise()
+        if (componentNode.querySelectorAll('.line')[1] !== oldLineNode) break
+      }
     })
 
     describe('when showInvisibles is enabled', function () {
@@ -496,20 +497,20 @@ describe('TextEditorComponent', function () {
         expect(component.lineNodeForScreenRow(10).textContent).toBe(invisibles.eol)
       })
 
-      it('renders an nbsp on empty lines when the line-ending character is an empty string', async function () {
+      it('renders a placeholder space on empty lines when the line-ending character is an empty string', async function () {
         atom.config.set('editor.invisibles', {
           eol: ''
         })
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).textContent).toBe(NBSP)
+        expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
-      it('renders an nbsp on empty lines when the line-ending character is false', async function () {
+      it('renders an placeholder space on empty lines when the line-ending character is false', async function () {
         atom.config.set('editor.invisibles', {
           eol: false
         })
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).textContent).toBe(NBSP)
+        expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
       it('interleaves invisible line-ending characters with indent guides on empty lines', async function () {
@@ -517,24 +518,25 @@ describe('TextEditorComponent', function () {
 
         await nextViewUpdatePromise()
 
+        editor.setTabLength(2)
         editor.setTextInBufferRange([[10, 0], [11, 0]], '\r\n', {
           normalizeLineEndings: false
         })
         await nextViewUpdatePromise()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol indent-guide">CE</span><span class="indent-guide">  </span>')
         editor.setTabLength(3)
         await nextViewUpdatePromise()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol indent-guide">CE</span><span class="indent-guide">  </span>')
         editor.setTabLength(1)
         await nextViewUpdatePromise()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol indent-guide">CE</span><span class="indent-guide">  </span>')
         editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="invisible-character eol">CE</span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
       })
 
       describe('when soft wrapping is enabled', function () {
@@ -985,13 +987,14 @@ describe('TextEditorComponent', function () {
       expect(component.lineNumberNodeForScreenRow(3) != null).toBe(true)
     })
 
-    it('keeps rebuilding line numbers when continuous reflow is on', function () {
+    it('keeps rebuilding line numbers when continuous reflow is on', async function () {
       wrapperNode.setContinuousReflow(true)
       let oldLineNode = componentNode.querySelectorAll('.line-number')[1]
 
-      waitsFor(function () {
-        return componentNode.querySelectorAll('.line-number')[1] !== oldLineNode
-      })
+      while (true) {
+        await nextViewUpdatePromise()
+        if (componentNode.querySelectorAll('.line-number')[1] !== oldLineNode) break
+      }
     })
 
     describe('fold decorations', function () {
@@ -1198,10 +1201,10 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[0]
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
       let range = document.createRange(cursorLocationTextNode)
-      range.setStart(cursorLocationTextNode, 3)
-      range.setEnd(cursorLocationTextNode, 4)
+      range.setStart(cursorLocationTextNode, 0)
+      range.setEnd(cursorLocationTextNode, 1)
       let rangeRect = range.getBoundingClientRect()
       expect(cursorRect.left).toBeCloseTo(rangeRect.left, 0)
       expect(cursorRect.width).toBeCloseTo(rangeRect.width, 0)

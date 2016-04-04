@@ -132,6 +132,8 @@ class TextEditor extends Model
       @config, @assert, @grammarRegistry, @packageManager
     })
     {@buffer, @displayLayer} = @displayBuffer
+    @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
+
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
 
     for marker in @selectionsMarkerLayer.getMarkers()
