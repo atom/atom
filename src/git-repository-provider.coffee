@@ -65,6 +65,14 @@ class GitRepositoryProvider
   # * {GitRepository} if the given directory has a Git repository.
   # * `null` if the given directory does not have a Git repository.
   repositoryForDirectorySync: (directory) ->
+    # Ignore repositories under our configured paths-to-skip, allowing us to
+    # skip the high-I/O git commands on slow network file-systems.
+    skipVcsPaths = @config.get('core.skipVcsPaths')
+    for skipPath in skipVcsPaths
+      skipDirectory = new Directory(skipPath)
+      if skipDirectory.contains(directory.getPath())
+        return null
+
     # Only one GitRepository should be created for each .git folder. Therefore,
     # we must check directory and its parent directories to find the nearest
     # .git folder.
