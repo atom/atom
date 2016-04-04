@@ -244,12 +244,27 @@ class TextEditorComponent
   listenForDOMEvents: ->
     @domNode.addEventListener 'mousewheel', @onMouseWheel
     @domNode.addEventListener 'textInput', @onTextInput
-    @domNode.addEventListener 'keypress', @onKeyPress
     @scrollViewNode.addEventListener 'mousedown', @onMouseDown
     @scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
 
+    @detectAccentedCharacterMenu()
     @listenForIMEEvents()
     @trackSelectionClipboard() if process.platform is 'linux'
+
+  detectAccentedCharacterMenu: ->
+    # We need to get clever to detect when the accented character menu is
+    # opened on OS X. Usually, every keydown event that could cause input is
+    # paired with a corresponding keypress. However, when pressing and holding
+    # long enough to open the accented character menu causes additional keydown
+    # events to fire that aren't followed by their own keypress and textInput
+    # events. We exploit this by assuming the accented character menu is open
+    # until a subsequent keypress event proves otherwise.
+    @domNode.addEventListener 'keydown', (event) =>
+      unless event.keyCode is 229 # Skip keydown events associated with IME compositionupdate events
+        @openedAccentedCharacterMenu = true
+
+    @domNode.addEventListener 'keypress', =>
+      @openedAccentedCharacterMenu = false
 
   listenForIMEEvents: ->
     # The IME composition events work like this:
@@ -267,7 +282,9 @@ class TextEditorComponent
 
     checkpoint = null
     @domNode.addEventListener 'compositionstart', =>
-      @imeMode = true
+      if @openedAccentedCharacterMenu
+        @editor.selectLeft()
+        @openedAccentedCharacterMenu = false
       checkpoint = @editor.createCheckpoint()
     @domNode.addEventListener 'compositionupdate', (event) =>
       @editor.insertText(event.data, select: true)
@@ -321,9 +338,6 @@ class TextEditorComponent
     if @mounted
       @presenter.setFocused(false)
 
-  onKeyPress: (event) =>
-    @detectedKeyPress = true
-
   onTextInput: (event) =>
     event.stopPropagation()
     event.preventDefault()
@@ -336,12 +350,11 @@ class TextEditorComponent
     # will occur twice, once for the initial character, and once for the
     # modified character. However, only a single keypress will have fired. If
     # this is the case, select backward to replace the original character.
-    if not @imeMode and not @detectedKeyPress
+    if @openedAccentedCharacterMenu
       @editor.selectLeft()
+      @openedAccentedCharacterMenu = false
 
     @editor.insertText(event.data, groupUndo: true)
-    @detectedKeyPress = false
-    @imeMode = false
 
   onVerticalScroll: (scrollTop) =>
     return if @updateRequested or scrollTop is @presenter.getScrollTop()

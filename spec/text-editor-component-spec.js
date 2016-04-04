@@ -3767,11 +3767,12 @@ describe('TextEditorComponent', function () {
       expect(editor.lineTextForBufferRow(0)).toBe('xyvar quicksort = function () {')
     })
 
-    it('replaces the last character if the length of the input\'s value does not increase, as occurs with the accented character menu', async function () {
+    it('replaces the last character if the textInput event is followed by one or more additional keydown events, which occurs when the accented character menu is shown', async function () {
       componentNode.dispatchEvent(buildTextInputEvent({
         data: 'u',
         target: inputNode
       }))
+      componentNode.dispatchEvent(new KeyboardEvent('keydown'))
       await nextViewUpdatePromise()
 
       expect(editor.lineTextForBufferRow(0)).toBe('uvar quicksort = function () {')
