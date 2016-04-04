@@ -130,6 +130,8 @@
 
   # Atom Specific
   'ctrl-W': 'editor:select-word'
+  'cmd-ctrl-left': 'editor:move-selection-left'
+  'cmd-ctrl-right': 'editor:move-selection-right'
 
   # Sublime Parity
   'cmd-a': 'core:select-all'

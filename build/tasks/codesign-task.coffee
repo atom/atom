@@ -3,7 +3,7 @@ path = require 'path'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
-  grunt.registerTask 'codesign:exe', 'Codesign atom.exe and Update.exe', ->
+  grunt.registerTask 'codesign:exe', 'CodeSign Atom.exe and Update.exe', ->
     done = @async()
     spawn {cmd: 'taskkill', args: ['/F', '/IM', 'atom.exe']}, ->
       cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
@@ -14,13 +14,13 @@ module.exports = (grunt) ->
         updateExePath = path.resolve(__dirname, '..', 'node_modules', 'grunt-electron-installer', 'vendor', 'Update.exe')
         spawn {cmd, args: [updateExePath]}, (error) -> done(error)
 
-  grunt.registerTask 'codesign:installer', 'Codesign AtomSetup.exe', ->
+  grunt.registerTask 'codesign:installer', 'CodeSign AtomSetup.exe', ->
     done = @async()
     cmd = process.env.JANKY_SIGNTOOL ? 'signtool'
     atomSetupExePath = path.resolve(grunt.config.get('atom.buildDir'), 'installer', 'AtomSetup.exe')
     spawn {cmd, args: [atomSetupExePath]}, (error) -> done(error)
 
-  grunt.registerTask 'codesign:app', 'Codesign Atom.app', ->
+  grunt.registerTask 'codesign:app', 'CodeSign Atom.app', ->
     done = @async()
 
     unlockKeychain (error) ->

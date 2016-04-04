@@ -112,14 +112,14 @@ afterEach ->
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  ensureNoPathSubscriptions()
+  warnIfLeakingPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
-ensureNoPathSubscriptions = ->
+warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
-  pathwatcher.closeAllWatchers()
   if watchedPaths.length > 0
-    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+    console.error("WARNING: Leaking subscriptions for paths: " + watchedPaths.join(", "))
+  pathwatcher.closeAllWatchers()
 
 ensureNoDeprecatedFunctionsCalled = ->
   deprecations = Grim.getDeprecations()

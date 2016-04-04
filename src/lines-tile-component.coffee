@@ -149,7 +149,7 @@ class LinesTileComponent
     if newLineState.screenRow isnt oldLineState.screenRow
       insertionPoint.dataset.screenRow = newLineState.screenRow
 
-    precedingBlockDecorationsSelector = newLineState.precedingBlockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
+    precedingBlockDecorationsSelector = newLineState.precedingBlockDecorations.map((d) -> ".atom--block-decoration-#{d.id}").join(',')
 
     if precedingBlockDecorationsSelector isnt oldLineState.precedingBlockDecorationsSelector
       insertionPoint.setAttribute("select", precedingBlockDecorationsSelector)
@@ -180,7 +180,7 @@ class LinesTileComponent
     if newLineState.screenRow isnt oldLineState.screenRow
       insertionPoint.dataset.screenRow = newLineState.screenRow
 
-    followingBlockDecorationsSelector = newLineState.followingBlockDecorations.map((d) -> "#atom--block-decoration-#{d.id}").join(',')
+    followingBlockDecorationsSelector = newLineState.followingBlockDecorations.map((d) -> ".atom--block-decoration-#{d.id}").join(',')
 
     if followingBlockDecorationsSelector isnt oldLineState.followingBlockDecorationsSelector
       insertionPoint.setAttribute("select", followingBlockDecorationsSelector)
