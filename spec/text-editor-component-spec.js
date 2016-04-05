@@ -3747,6 +3747,21 @@ describe('TextEditorComponent', function () {
       return event
     }
 
+    function buildKeydownEvent ({keyCode, target}) {
+      let event = new KeyboardEvent('keydown')
+      Object.defineProperty(event, 'keyCode', {
+        get: function () {
+          return keyCode
+        }
+      })
+      Object.defineProperty(event, 'target', {
+        get: function () {
+          return target
+        }
+      })
+      return event
+    }
+
     let inputNode
 
     beforeEach(function () {
@@ -3769,11 +3784,12 @@ describe('TextEditorComponent', function () {
       expect(editor.lineTextForBufferRow(0)).toBe('xyvar quicksort = function () {')
     })
 
-    it('replaces the last character if the length of the input\'s value does not increase, as occurs with the accented character menu', async function () {
-      componentNode.dispatchEvent(buildTextInputEvent({
-        data: 'u',
-        target: inputNode
-      }))
+    it('replaces the last character if a keypress event is bracketed by keydown events with matching keyCodes, which occurs when the accented character menu is shown', async function () {
+      componentNode.dispatchEvent(buildKeydownEvent({keyCode: 85, target: inputNode}))
+      componentNode.dispatchEvent(buildTextInputEvent({data: 'u', target: inputNode}))
+      componentNode.dispatchEvent(new KeyboardEvent('keypress'))
+      componentNode.dispatchEvent(buildKeydownEvent({keyCode: 85, target: inputNode}))
+      componentNode.dispatchEvent(new KeyboardEvent('keyup'))
       await nextViewUpdatePromise()
 
       expect(editor.lineTextForBufferRow(0)).toBe('uvar quicksort = function () {')
