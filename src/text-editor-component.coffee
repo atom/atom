@@ -254,17 +254,42 @@ class TextEditorComponent
   detectAccentedCharacterMenu: ->
     # We need to get clever to detect when the accented character menu is
     # opened on OS X. Usually, every keydown event that could cause input is
-    # paired with a corresponding keypress. However, when pressing and holding
+    # followed by a corresponding keypress. However, pressing and holding
     # long enough to open the accented character menu causes additional keydown
     # events to fire that aren't followed by their own keypress and textInput
-    # events. We exploit this by assuming the accented character menu is open
-    # until a subsequent keypress event proves otherwise.
+    # events.
+    #
+    # Therefore, we assume the accented character menu has been deployed if,
+    # before observing any keyup event, we observe events in the following
+    # sequence:
+    #
+    # keydown(keyCode: X), keypress, keydown(codeCode: X)
+    #
+    # The keyCode X must be the same in the keydown events that bracket the
+    # keypress, meaning we're *holding* the _same_ key we intially pressed.
+    # Got that?
+    lastKeydown = null
+    lastKeydownBeforeKeypress = null
+
     @domNode.addEventListener 'keydown', (event) =>
-      unless event.keyCode is 229 # Skip keydown events associated with IME compositionupdate events
-        @openedAccentedCharacterMenu = true
+      if lastKeydownBeforeKeypress
+        if lastKeydownBeforeKeypress.keyCode is event.keyCode
+          @openedAccentedCharacterMenu = true
+        lastKeydownBeforeKeypress = null
+      else
+        lastKeydown = event
 
     @domNode.addEventListener 'keypress', =>
+      lastKeydownBeforeKeypress = lastKeydown
+      lastKeydown = null
+
+      # This cancels the accented character behavior if we type a key normally
+      # with the menu open.
       @openedAccentedCharacterMenu = false
+
+    @domNode.addEventListener 'keyup', =>
+      lastKeydownBeforeKeypress = null
+      lastKeydown = null
 
   listenForIMEEvents: ->
     # The IME composition events work like this:
