@@ -90,10 +90,15 @@ class LanguageMode
 
   # Folds all the foldable lines in the buffer.
   foldAll: ->
+    @unfoldAll()
+    foldedRowRanges = {}
     for currentRow in [0..@buffer.getLastRow()] by 1
-      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
+      rowRange = [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
+      continue if foldedRowRanges[rowRange]
+
       @editor.foldBufferRowRange(startRow, endRow)
+      foldedRowRanges[rowRange] = true
     return
 
   # Unfolds all the foldable lines in the buffer.
@@ -105,13 +110,16 @@ class LanguageMode
   # indentLevel - A {Number} indicating indentLevel; 0 based.
   foldAllAtIndentLevel: (indentLevel) ->
     @unfoldAll()
+    foldedRowRanges = {}
     for currentRow in [0..@buffer.getLastRow()] by 1
-      [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
+      rowRange = [startRow, endRow] = @rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
+      continue if foldedRowRanges[rowRange]
 
       # assumption: startRow will always be the min indent level for the entire range
       if @editor.indentationForBufferRow(startRow) is indentLevel
         @editor.foldBufferRowRange(startRow, endRow)
+        foldedRowRanges[rowRange] = true
     return
 
   # Given a buffer row, creates a fold at it.
