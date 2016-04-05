@@ -263,7 +263,7 @@ class TextEditorComponent
     # before observing any keyup event, we observe events in the following
     # sequence:
     #
-    # keydown(keyCode: X), keypress, keydown(codeCode: X)
+    # keydown(keyCode: X), keypress, keydown(keyCode: X)
     #
     # The keyCode X must be the same in the keydown events that bracket the
     # keypress, meaning we're *holding* the _same_ key we intially pressed.
