@@ -1064,22 +1064,13 @@ describe "TokenizedBuffer", ->
         iterator = tokenizedBuffer.buildIterator()
         iterator.seek(Point(0, 0))
 
-        boundaries = []
-        loop
-          boundaries.push({
-            position: iterator.getPosition(),
-            closeTags: iterator.getCloseTags(),
-            openTags: iterator.getOpenTags()
-          })
-          break unless iterator.moveToSuccessor()
-
-        expect(boundaries).toEqual([
+        expectedBoundaries = [
           {position: Point(0, 0), closeTags: [], openTags: ["source.js", "storage.type.var.js"]}
           {position: Point(0, 3), closeTags: ["storage.type.var.js"], openTags: []}
           {position: Point(0, 8), closeTags: [], openTags: ["keyword.operator.assignment.js"]}
           {position: Point(0, 9), closeTags: ["keyword.operator.assignment.js"], openTags: []}
-          {position: Point(0, 10), closeTags: [], openTags: ["constant.numeric.js"]}
-          {position: Point(0, 11), closeTags: ["constant.numeric.js"], openTags: []}
+          {position: Point(0, 10), closeTags: [], openTags: ["constant.numeric.decimal.js"]}
+          {position: Point(0, 11), closeTags: ["constant.numeric.decimal.js"], openTags: []}
           {position: Point(0, 12), closeTags: [], openTags: ["comment.block.js", "punctuation.definition.comment.js"]}
           {position: Point(0, 14), closeTags: ["punctuation.definition.comment.js"], openTags: []}
           {position: Point(1, 5), closeTags: [], openTags: ["punctuation.definition.comment.js"]}
@@ -1087,9 +1078,19 @@ describe "TokenizedBuffer", ->
           {position: Point(1, 10), closeTags: ["storage.type.var.js"], openTags: []}
           {position: Point(1, 15), closeTags: [], openTags: ["keyword.operator.assignment.js"]}
           {position: Point(1, 16), closeTags: ["keyword.operator.assignment.js"], openTags: []}
-          {position: Point(1, 17), closeTags: [], openTags: ["constant.numeric.js"]}
-          {position: Point(1, 18), closeTags: ["constant.numeric.js"], openTags: []}
-        ])
+          {position: Point(1, 17), closeTags: [], openTags: ["constant.numeric.decimal.js"]}
+          {position: Point(1, 18), closeTags: ["constant.numeric.decimal.js"], openTags: []}
+        ]
+
+        loop
+          boundary = {
+            position: iterator.getPosition(),
+            closeTags: iterator.getCloseTags(),
+            openTags: iterator.getOpenTags()
+          }
+
+          expect(boundary).toEqual(expectedBoundaries.shift())
+          break unless iterator.moveToSuccessor()
 
         expect(iterator.seek(Point(0, 1))).toEqual(["source.js", "storage.type.var.js"])
         expect(iterator.getPosition()).toEqual(Point(0, 3))
@@ -1097,7 +1098,7 @@ describe "TokenizedBuffer", ->
         expect(iterator.getPosition()).toEqual(Point(0, 8))
         expect(iterator.seek(Point(1, 0))).toEqual(["source.js", "comment.block.js"])
         expect(iterator.getPosition()).toEqual(Point(1, 5))
-        expect(iterator.seek(Point(1, 18))).toEqual(["source.js", "constant.numeric.js"])
+        expect(iterator.seek(Point(1, 18))).toEqual(["source.js", "constant.numeric.decimal.js"])
         expect(iterator.getPosition()).toEqual(Point(1, 18))
 
         expect(iterator.seek(Point(2, 0))).toEqual(["source.js"])
