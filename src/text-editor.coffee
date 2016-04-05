@@ -3331,7 +3331,7 @@ class TextEditor extends Model
     {type: 'selection', invalidate: 'never'}
 
   getVerticalScrollMargin: ->
-    maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
+    maxScrollMargin = Math.floor(((@height / @getLineHeightInPixels()) - 1) / 2)
     Math.min(@verticalScrollMargin, maxScrollMargin)
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
