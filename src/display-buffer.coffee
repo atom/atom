@@ -67,10 +67,7 @@ class DisplayBuffer extends Model
     @layerUpdateDisposablesByLayerId = {}
 
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
-    @disposables.add @tokenizedBuffer.onDidChange @handleTokenizedBufferChange
     @disposables.add @buffer.onDidCreateMarker @didCreateDefaultLayerMarker
-
-    @updateAllScreenLines()
 
   subscribeToScopedConfigSettings: =>
     @scopedConfigSubscriptions?.dispose()
@@ -130,13 +127,6 @@ class DisplayBuffer extends Model
       foldCharacter: ZERO_WIDTH_NBSP
     })
 
-  updateAllScreenLines: ->
-    return # TODO: After DisplayLayer is finished, delete these code paths
-    @maxLineLength = 0
-    @screenLines = []
-    @rowMap = new RowMap
-    @updateScreenLines(0, @buffer.getLineCount(), null, suppressChangeEvent: true)
-
   onDidChangeSoftWrapped: (callback) ->
     @emitter.on 'did-change-soft-wrapped', callback
 
@@ -173,20 +163,6 @@ class DisplayBuffer extends Model
 
   onDidUpdateDecorations: (callback) ->
     @emitter.on 'did-update-decorations', callback
-
-  emitDidChange: (eventProperties, refreshMarkers=true) ->
-    @emitter.emit 'did-change', eventProperties
-    if refreshMarkers
-      @refreshMarkerScreenPositions()
-    @emitter.emit 'did-update-markers'
-
-  updateWrappedScreenLines: ->
-    start = 0
-    end = @getLastRow()
-    @updateAllScreenLines()
-    screenDelta = @getLastRow() - end
-    bufferDelta = 0
-    @emitDidChange({start, end, screenDelta, bufferDelta})
 
   # Sets the visibility of the tokenized buffer.
   #
@@ -324,82 +300,6 @@ class DisplayBuffer extends Model
     else
       @editorWidthInChars
 
-  getSoftWrapColumn: ->
-    if @configSettings.softWrapAtPreferredLineLength
-      Math.min(@getEditorWidthInChars(), @configSettings.preferredLineLength)
-    else
-      @getEditorWidthInChars()
-
-  getSoftWrapColumnForTokenizedLine: (tokenizedLine) ->
-    lineMaxWidth = @getSoftWrapColumn() * @getDefaultCharWidth()
-
-    return if Number.isNaN(lineMaxWidth)
-    return 0 if lineMaxWidth is 0
-
-    iterator = tokenizedLine.getTokenIterator(false)
-    column = 0
-    currentWidth = 0
-    while iterator.next()
-      textIndex = 0
-      text = iterator.getText()
-      while textIndex < text.length
-        if iterator.isPairedCharacter()
-          charLength = 2
-        else
-          charLength = 1
-
-        if iterator.hasDoubleWidthCharacterAt(textIndex)
-          charWidth = @getDoubleWidthCharWidth()
-        else if iterator.hasHalfWidthCharacterAt(textIndex)
-          charWidth = @getHalfWidthCharWidth()
-        else if iterator.hasKoreanCharacterAt(textIndex)
-          charWidth = @getKoreanCharWidth()
-        else
-          charWidth = @getDefaultCharWidth()
-
-        return column if currentWidth + charWidth > lineMaxWidth
-
-        currentWidth += charWidth
-        column += charLength
-        textIndex += charLength
-    column
-
-  # Gets the screen line for the given screen row.
-  #
-  # * `screenRow` - A {Number} indicating the screen row.
-  #
-  # Returns {TokenizedLine}
-  tokenizedLineForScreenRow: (screenRow) ->
-    if @largeFileMode
-      if line = @tokenizedBuffer.tokenizedLineForRow(screenRow)
-        if line.text.length > @maxLineLength
-          @maxLineLength = line.text.length
-          @longestScreenRow = screenRow
-        line
-    else
-      @screenLines[screenRow]
-
-  # Gets the screen lines for the given screen row range.
-  #
-  # startRow - A {Number} indicating the beginning screen row.
-  # endRow - A {Number} indicating the ending screen row.
-  #
-  # Returns an {Array} of {TokenizedLine}s.
-  tokenizedLinesForScreenRows: (startRow, endRow) ->
-    if @largeFileMode
-      @tokenizedBuffer.tokenizedLinesForRows(startRow, endRow)
-    else
-      @screenLines[startRow..endRow]
-
-  # Gets all the screen lines.
-  #
-  # Returns an {Array} of {TokenizedLine}s.
-  getTokenizedLines: ->
-    if @largeFileMode
-      @tokenizedBuffer.tokenizedLinesForRows(0, @getLastRow())
-    else
-      new Array(@screenLines...)
-
   indentLevelForLine: (line) ->
     @tokenizedBuffer.indentLevelForLine(line)
 
@@ -437,21 +337,6 @@ class DisplayBuffer extends Model
   # bufferRow - The buffer row {Number} to check against
   unfoldBufferRow: (bufferRow) ->
     @displayLayer.destroyFoldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity)))
-
-  # Returns the folds in the given row range (exclusive of end row) that are
-  # not contained by any other folds.
-  outermostFoldsInBufferRowRange: (startRow, endRow) ->
-    folds = []
-    lastFoldEndRow = -1
-
-    for marker in @findFoldMarkers(intersectsRowRange: [startRow, endRow])
-      range = marker.getRange()
-      if range.start.row > lastFoldEndRow
-        lastFoldEndRow = range.end.row
-        if startRow <= range.start.row <= range.end.row < endRow
-          folds.push(@foldForMarker(marker))
-
-    folds
 
   # Given a buffer row, this converts it into a screen row.
   #
@@ -512,18 +397,6 @@ class DisplayBuffer extends Model
   getLastRow: ->
     @getLineCount() - 1
 
-  # Gets the length of the longest screen line.
-  #
-  # Returns a {Number}.
-  getMaxLineLength: ->
-    @maxLineLength
-
-  # Gets the row number of the longest screen line.
-  #
-  # Return a {}
-  getLongestScreenRow: ->
-    @longestScreenRow
-
   # Given a buffer position, this converts it into a screen position.
   #
   # bufferPosition - An object that represents a buffer position. It can be either
@@ -536,35 +409,7 @@ class DisplayBuffer extends Model
   screenPositionForBufferPosition: (bufferPosition, options) ->
     throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
-    return @displayLayer.translateBufferPosition(bufferPosition, options)
-    # TODO: should DisplayLayer deal with options.wrapBeyondNewlines / options.wrapAtSoftNewlines?
-    # {row, column} = @buffer.clipPosition(bufferPosition)
-    # [startScreenRow, endScreenRow] = @rowMap.screenRowRangeForBufferRow(row)
-    # for screenRow in [startScreenRow...endScreenRow]
-    #   screenLine = @tokenizedLineForScreenRow(screenRow)
-    #
-    #   unless screenLine?
-    #     throw new BufferToScreenConversionError "No screen line exists when converting buffer row to screen row",
-    #       softWrapEnabled: @isSoftWrapped()
-    #       lastBufferRow: @buffer.getLastRow()
-    #       lastScreenRow: @getLastRow()
-    #       bufferRow: row
-    #       screenRow: screenRow
-    #       displayBufferChangeCount: @changeCount
-    #       tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
-    #       bufferChangeCount: @buffer.changeCount
-    #
-    #   maxBufferColumn = screenLine.getMaxBufferColumn()
-    #   if screenLine.isSoftWrapped() and column > maxBufferColumn
-    #     continue
-    #   else
-    #     if column <= maxBufferColumn
-    #       screenColumn = screenLine.screenColumnForBufferColumn(column)
-    #     else
-    #       screenColumn = Infinity
-    #     break
-    #
-    # @clipScreenPosition([screenRow, screenColumn], options)
+    @displayLayer.translateBufferPosition(bufferPosition, options)
 
   # Given a buffer position, this converts it into a screen position.
   #
@@ -577,10 +422,6 @@ class DisplayBuffer extends Model
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
     return @displayLayer.translateScreenPosition(screenPosition, options)
-    # TODO: should DisplayLayer deal with options.wrapBeyondNewlines / options.wrapAtSoftNewlines?
-    # {row, column} = @clipScreenPosition(Point.fromObject(screenPosition), options)
-    # [bufferRow] = @rowMap.bufferRowRangeForScreenRow(row)
-    # new Point(bufferRow, @tokenizedLineForScreenRow(row).bufferColumnForScreenColumn(column))
 
   # Retrieves the grammar's token scopeDescriptor for a buffer position.
   #
@@ -632,55 +473,7 @@ class DisplayBuffer extends Model
   #
   # Returns the new, clipped {Point}. Note that this could be the same as `position` if no clipping was performed.
   clipScreenPosition: (screenPosition, options={}) ->
-    return @displayLayer.clipScreenPosition(screenPosition, options)
-    # TODO: should DisplayLayer deal with options.wrapBeyondNewlines / options.wrapAtSoftNewlines?
-    # {wrapBeyondNewlines, wrapAtSoftNewlines, skipSoftWrapIndentation} = options
-    # {row, column} = Point.fromObject(screenPosition)
-    #
-    # if row < 0
-    #   row = 0
-    #   column = 0
-    # else if row > @getLastRow()
-    #   row = @getLastRow()
-    #   column = Infinity
-    # else if column < 0
-    #   column = 0
-    #
-    # screenLine = @tokenizedLineForScreenRow(row)
-    # unless screenLine?
-    #   error = new Error("Undefined screen line when clipping screen position")
-    #   Error.captureStackTrace(error)
-    #   error.metadata = {
-    #     screenRow: row
-    #     screenColumn: column
-    #     maxScreenRow: @getLastRow()
-    #     screenLinesDefined: @screenLines.map (sl) -> sl?
-    #     displayBufferChangeCount: @changeCount
-    #     tokenizedBufferChangeCount: @tokenizedBuffer.changeCount
-    #     bufferChangeCount: @buffer.changeCount
-    #   }
-    #   throw error
-    #
-    # maxScreenColumn = screenLine.getMaxScreenColumn()
-    #
-    # if screenLine.isSoftWrapped() and column >= maxScreenColumn
-    #   if wrapAtSoftNewlines
-    #     row++
-    #     column = @tokenizedLineForScreenRow(row).clipScreenColumn(0)
-    #   else
-    #     column = screenLine.clipScreenColumn(maxScreenColumn - 1)
-    # else if screenLine.isColumnInsideSoftWrapIndentation(column)
-    #   if skipSoftWrapIndentation
-    #     column = screenLine.clipScreenColumn(0)
-    #   else
-    #     row--
-    #     column = @tokenizedLineForScreenRow(row).getMaxScreenColumn() - 1
-    # else if wrapBeyondNewlines and column > maxScreenColumn and row < @getLastRow()
-    #   row++
-    #   column = 0
-    # else
-    #   column = screenLine.clipScreenColumn(column, options)
-    # new Point(row, column)
+    @displayLayer.clipScreenPosition(screenPosition, options)
 
   # Clip the start and end of the given range to valid positions on screen.
   # See {::clipScreenPosition} for more information.
@@ -894,124 +687,8 @@ class DisplayBuffer extends Model
     @disposables.dispose()
     @tokenizedBuffer.destroy()
 
-  logLines: (start=0, end=@getLastRow()) ->
-    for row in [start..end]
-      line = @tokenizedLineForScreenRow(row).text
-      console.log row, @bufferRowForScreenRow(row), line, line.length
-    return
-
   getRootScopeDescriptor: ->
     @tokenizedBuffer.rootScopeDescriptor
-
-  handleTokenizedBufferChange: (tokenizedBufferChange) =>
-    @changeCount = @tokenizedBuffer.changeCount
-    {start, end, delta, bufferChange} = tokenizedBufferChange
-    @updateScreenLines(start, end + 1, delta, refreshMarkers: false)
-
-  updateScreenLines: (startBufferRow, endBufferRow, bufferDelta=0, options={}) ->
-    return # TODO: After DisplayLayer is finished, delete these code paths
-
-    return if @largeFileMode
-    return if @isDestroyed()
-
-    startBufferRow = @rowMap.bufferRowRangeForBufferRow(startBufferRow)[0]
-    endBufferRow = @rowMap.bufferRowRangeForBufferRow(endBufferRow - 1)[1]
-    startScreenRow = @rowMap.screenRowRangeForBufferRow(startBufferRow)[0]
-    endScreenRow = @rowMap.screenRowRangeForBufferRow(endBufferRow - 1)[1]
-    {screenLines, regions} = @buildScreenLines(startBufferRow, endBufferRow + bufferDelta)
-    screenDelta = screenLines.length - (endScreenRow - startScreenRow)
-
-    _.spliceWithArray(@screenLines, startScreenRow, endScreenRow - startScreenRow, screenLines, 10000)
-
-    @checkScreenLinesInvariant()
-
-    @rowMap.spliceRegions(startBufferRow, endBufferRow - startBufferRow, regions)
-    @findMaxLineLength(startScreenRow, endScreenRow, screenLines, screenDelta)
-
-    return if options.suppressChangeEvent
-
-    changeEvent =
-      start: startScreenRow
-      end: endScreenRow - 1
-      screenDelta: screenDelta
-      bufferDelta: bufferDelta
-
-    @emitDidChange(changeEvent, options.refreshMarkers)
-
-  buildScreenLines: (startBufferRow, endBufferRow) ->
-    screenLines = []
-    regions = []
-    rectangularRegion = null
-
-    foldsByStartRow = {}
-    # for fold in @outermostFoldsInBufferRowRange(startBufferRow, endBufferRow)
-    #   foldsByStartRow[fold.getStartRow()] = fold
-
-    bufferRow = startBufferRow
-    while bufferRow < endBufferRow
-      tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(bufferRow)
-
-      # if fold = foldsByStartRow[bufferRow]
-      #   foldLine = tokenizedLine.copy()
-      #   foldLine.fold = fold
-      #   screenLines.push(foldLine)
-      #
-      #   if rectangularRegion?
-      #     regions.push(rectangularRegion)
-      #     rectangularRegion = null
-      #
-      #   foldedRowCount = fold.getBufferRowCount()
-      #   regions.push(bufferRows: foldedRowCount, screenRows: 1)
-      #   bufferRow += foldedRowCount
-      # else
-      softWraps = 0
-      if @isSoftWrapped()
-        while wrapScreenColumn = tokenizedLine.findWrapColumn(@getSoftWrapColumnForTokenizedLine(tokenizedLine))
-          [wrappedLine, tokenizedLine] = tokenizedLine.softWrapAt(
-            wrapScreenColumn,
-            @configSettings.softWrapHangingIndent
-          )
-          break if wrappedLine.hasOnlySoftWrapIndentation()
-          screenLines.push(wrappedLine)
-          softWraps++
-      screenLines.push(tokenizedLine)
-
-      if softWraps > 0
-        if rectangularRegion?
-          regions.push(rectangularRegion)
-          rectangularRegion = null
-        regions.push(bufferRows: 1, screenRows: softWraps + 1)
-      else
-        rectangularRegion ?= {bufferRows: 0, screenRows: 0}
-        rectangularRegion.bufferRows++
-        rectangularRegion.screenRows++
-
-      bufferRow++
-
-    if rectangularRegion?
-      regions.push(rectangularRegion)
-
-    {screenLines, regions}
-
-  findMaxLineLength: (startScreenRow, endScreenRow, newScreenLines, screenDelta) ->
-    oldMaxLineLength = @maxLineLength
-
-    if startScreenRow <= @longestScreenRow < endScreenRow
-      @longestScreenRow = 0
-      @maxLineLength = 0
-      maxLengthCandidatesStartRow = 0
-      maxLengthCandidates = @screenLines
-    else
-      @longestScreenRow += screenDelta if endScreenRow <= @longestScreenRow
-      maxLengthCandidatesStartRow = startScreenRow
-      maxLengthCandidates = newScreenLines
-
-    for screenLine, i in maxLengthCandidates
-      screenRow = maxLengthCandidatesStartRow + i
-      length = screenLine.text.length
-      if length > @maxLineLength
-        @longestScreenRow = screenRow
-        @maxLineLength = length
 
   didCreateDefaultLayerMarker: (textBufferMarker) =>
     if marker = @getMarker(textBufferMarker.id)
@@ -1071,16 +748,3 @@ class DisplayBuffer extends Model
       @layerUpdateDisposablesByLayerId[layer.id].dispose()
       delete @decorationCountsByLayerId[layer.id]
       delete @layerUpdateDisposablesByLayerId[layer.id]
-
-  checkScreenLinesInvariant: ->
-    return if @isSoftWrapped()
-
-    screenLinesCount = @screenLines.length
-    tokenizedLinesCount = @tokenizedBuffer.getLineCount()
-    bufferLinesCount = @buffer.getLineCount()
-
-    @assert screenLinesCount is tokenizedLinesCount, "Display buffer line count out of sync with tokenized buffer", (error) ->
-      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
-
-    @assert screenLinesCount is bufferLinesCount, "Display buffer line count out of sync with buffer", (error) ->
-      error.metadata = {screenLinesCount, tokenizedLinesCount, bufferLinesCount}
