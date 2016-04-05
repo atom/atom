@@ -453,7 +453,7 @@ class TextEditorComponent
     unless @presenter.isRowVisible(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
 
-    unless @linesComponent.lineNodeForLineIdAndScreenRow(@presenter.lineIdForScreenRow(screenPosition.row), screenPosition.row)?
+    unless @linesComponent.lineNodeForScreenRow(screenPosition.row)?
       @updateSyncPreMeasurement()
 
     pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
@@ -849,10 +849,7 @@ class TextEditorComponent
     e.abortKeyBinding() unless @editor.consolidateSelections()
 
   lineNodeForScreenRow: (screenRow) ->
-    tileRow = @presenter.tileForRow(screenRow)
-    tileComponent = @linesComponent.getComponentForTile(tileRow)
-
-    tileComponent?.lineNodeForScreenRow(screenRow)
+    @linesComponent.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)

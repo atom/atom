@@ -97,14 +97,6 @@ class LinesComponent extends TiledComponent
     @presenter.setLineHeight(lineHeightInPixels)
     @presenter.setBaseCharacterWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
 
-  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
-    tile = @presenter.tileForRow(screenRow)
-    @getComponentForTile(tile)?.lineNodeForLineId(lineId)
-
-  textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
-    tile = @presenter.tileForRow(screenRow)
-    @getComponentForTile(tile)?.textNodesForLineId(lineId)
-
   lineIdForScreenRow: (screenRow) ->
     tile = @presenter.tileForRow(screenRow)
     @getComponentForTile(tile)?.lineIdForScreenRow(screenRow)

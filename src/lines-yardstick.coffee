@@ -5,7 +5,6 @@ TokenIterator = require './token-iterator'
 module.exports =
 class LinesYardstick
   constructor: (@model, @lineNodesProvider, @lineTopIndex, grammarRegistry) ->
-    @tokenIterator = new TokenIterator({grammarRegistry})
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
 
