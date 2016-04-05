@@ -9,6 +9,8 @@ Decoration = require './decoration'
 LayerDecoration = require './layer-decoration'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
 
+ZERO_WIDTH_NBSP = '\ufeff'
+
 class BufferToScreenConversionError extends Error
   constructor: (@message, @metadata) ->
     super
@@ -123,8 +125,9 @@ class DisplayBuffer extends Model
       softWrapColumn: softWrapColumn
       showIndentGuides: @config.get('editor.showIndentGuide', scope: scopeDescriptor)
       tabLength: @getTabLength(),
-      ratioForCharacter: @ratioForCharacter.bind(this)
-      isWrapBoundary: isWrapBoundary
+      ratioForCharacter: @ratioForCharacter.bind(this),
+      isWrapBoundary: isWrapBoundary,
+      foldCharacter: ZERO_WIDTH_NBSP
     })
 
   updateAllScreenLines: ->

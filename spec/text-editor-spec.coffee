@@ -5352,7 +5352,7 @@ describe "TextEditor", ->
       # folds are also duplicated
       expect(editor.isFoldedAtScreenRow(5)).toBe(true)
       expect(editor.isFoldedAtScreenRow(7)).toBe(true)
-      expect(editor.lineTextForScreenRow(7)).toBe "    while(items.length > 0) {⋯"
+      expect(editor.lineTextForScreenRow(7)).toBe "    while(items.length > 0) {" + editor.displayLayer.foldCharacter
       expect(editor.lineTextForScreenRow(8)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
     it "duplicates all folded lines for empty selections on folded lines", ->
