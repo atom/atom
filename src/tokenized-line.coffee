@@ -7,10 +7,6 @@ idCounter = 1
 
 module.exports =
 class TokenizedLine
-  endOfLineInvisibles: null
-  lineIsWhitespaceOnly: false
-  firstNonWhitespaceIndex: 0
-
   constructor: (properties) ->
     @id = idCounter++
 
@@ -36,10 +32,10 @@ class TokenizedLine
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
 
   tokenIndexAtBufferColumn: (bufferColumn) ->
-    delta = 0
+    column = 0
     for token, index in @tokens
-      delta += token.bufferDelta
-      return index if delta > bufferColumn
+      column += token.value.length
+      return index if column > bufferColumn
     index - 1
 
   tokenStartColumnForBufferColumn: (bufferColumn) ->
@@ -64,9 +60,6 @@ class TokenizedLine
           break
       break
     @isCommentLine
-
-  isOnlyWhitespace: ->
-    @lineIsWhitespaceOnly
 
   tokenAtIndex: (index) ->
     @tokens[index]
