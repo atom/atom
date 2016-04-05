@@ -81,6 +81,16 @@ class TextEditor extends Model
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
 
+  Object.defineProperty(@prototype, 'displayBuffer', get: ->
+    Grim.deprecate("""
+      `TextEditor.prototype.displayBuffer` has always been private, but now
+      it is gone. Reading the `displayBuffer` property now returns a reference
+      to the containing `TextEditor`, which now provides *some* of the API of
+      the defunct `DisplayBuffer` class.
+    """)
+    this
+  )
+
   @deserialize: (state, atomEnvironment) ->
     # TODO: Return null on version mismatch when 1.8.0 has been out for a while
     if state.version isnt @prototype.serializationVersion and state.displayBuffer?
@@ -2886,6 +2896,10 @@ class TextEditor extends Model
   reloadGrammar: ->
     @tokenizedBuffer.reloadGrammar()
 
+  # Experimental: Get a notification when async tokenization is completed.
+  onDidTokenize: (callback) ->
+    @tokenizedBuffer.onDidTokenize(callback)
+
   ###
   Section: Managing Syntax Scopes
   ###
@@ -2919,7 +2933,10 @@ class TextEditor extends Model
   #
   # Returns a {Range}.
   bufferRangeForScopeAtCursor: (scopeSelector) ->
-    @tokenizedBuffer.bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
+    @bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
+
+  bufferRangeForScopeAtPosition: (scopeSelector, position) ->
+    @tokenizedBuffer.bufferRangeForScopeAtPosition(scopeSelector, position)
 
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
