@@ -676,9 +676,8 @@ class TextEditor extends Model
 
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
-    width = @getWidth()
-    if width? and @defaultCharWidth > 0
-      Math.max(0, Math.floor(width / @defaultCharWidth))
+    if @width? and @defaultCharWidth > 0
+      Math.max(0, Math.floor(@width / @defaultCharWidth))
     else
       @editorWidthInChars
 
@@ -3337,7 +3336,7 @@ class TextEditor extends Model
 
   setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
+  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@width / @getDefaultCharWidth()) - 1) / 2))
   setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
   getLineHeightInPixels: -> @lineHeightInPixels
