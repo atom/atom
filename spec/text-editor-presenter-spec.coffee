@@ -1233,12 +1233,15 @@ describe "TextEditorPresenter", ->
           lineId = presenter.linesByScreenRow.get(row)?.id
           tilesState[presenter.tileForRow(row)]?.lines[lineId]
 
-        tokensIncludeTag = (tokens, tag) ->
-          includeTag = false
-          for {openTags, closeTags} in tokens
-            includeTag = true for openTag in openTags when openTag.indexOf(tag) isnt -1
-            includeTag = true for closeTag in closeTags when closeTag.indexOf(tag) isnt -1
-          includeTag
+        tagsForCodes = (presenter, tagCodes) ->
+          openTags = []
+          closeTags = []
+          for tagCode in tagCodes when tagCode < 0 # skip text codes
+            if presenter.isOpenTagCode(tagCode)
+              openTags.push(presenter.tagForCode(tagCode))
+            else
+              closeTags.push(presenter.tagForCode(tagCode))
+          {openTags, closeTags}
 
         tiledContentContract (presenter) -> getState(presenter).content
 
@@ -1248,56 +1251,12 @@ describe "TextEditorPresenter", ->
             presenter.setExplicitHeight(3)
 
             expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
-            expectValues lineStateForScreenRow(presenter, 3), {
-              screenRow: 3, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: 'var pivot = items.shift(), current, left = [], right = [];'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 4), {
-              screenRow: 4, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: 'while(items.length > 0) {'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 5), {
-              screenRow: 5, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: 'current = items.shift();'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 6), {
-              screenRow: 6, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: 'current < pivot ? left.push(current) : right.push(current);'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 7), {
-              screenRow: 7, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: '}'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 8), {
-              screenRow: 8, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: ['leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: 'return sort(left).concat(pivot).concat(sort(right));'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
+            expectValues lineStateForScreenRow(presenter, 3), {screenRow: 3, tagCodes: editor.screenLineForScreenRow(3).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 4), {screenRow: 4, tagCodes: editor.screenLineForScreenRow(4).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 5), {screenRow: 5, tagCodes: editor.screenLineForScreenRow(5).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 6), {screenRow: 6, tagCodes: editor.screenLineForScreenRow(6).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 7), {screenRow: 7, tagCodes: editor.screenLineForScreenRow(7).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 8), {screenRow: 8, tagCodes: editor.screenLineForScreenRow(8).tagCodes}
             expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()
 
           it "updates when the editor's content changes", ->
@@ -1305,36 +1264,20 @@ describe "TextEditorPresenter", ->
 
             expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
-            expectValues lineStateForScreenRow(presenter, 1), {
-              screenRow: 1, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar', 'leading-whitespace'], text: '  '},
-                {closeTags: ['leading-whitespace'], openTags: [], text: 'var sort = function(items) {'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text : ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 2), {
-              screenRow: 2, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar'], text: 'hello'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
-            expectValues lineStateForScreenRow(presenter, 3), {
-              screenRow: 3, tokens: [
-                {closeTags: [], openTags: ['text.plain.null-grammar'], text: 'world'},
-                {closeTags: ['text.plain.null-grammar'], openTags: [], text: ''}
-              ]
-            }
+            expectValues lineStateForScreenRow(presenter, 1), {screenRow: 1, tagCodes: editor.screenLineForScreenRow(1).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 2), {screenRow: 2, tagCodes: editor.screenLineForScreenRow(2).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 3), {screenRow: 3, tagCodes: editor.screenLineForScreenRow(3).tagCodes}
 
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
-            expect(tokensIncludeTag(lineStateForScreenRow(presenter, 0).tokens, 'eol')).toBe(false)
-            expect(tokensIncludeTag(lineStateForScreenRow(presenter, 1).tokens, 'eol')).toBe(false)
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).not.toContain('invisible-character eol')
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).not.toContain('invisible-character eol')
 
             atom.config.set('editor.showInvisibles', true)
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
-            expect(tokensIncludeTag(lineStateForScreenRow(presenter, 0).tokens, 'eol')).toBe(true)
-            expect(tokensIncludeTag(lineStateForScreenRow(presenter, 1).tokens, 'eol')).toBe(true)
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).toContain('invisible-character eol')
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).toContain('invisible-character eol')
 
           describe ".blockDecorations", ->
             it "contains all block decorations that are present before/after a line, both initially and when decorations change", ->
