@@ -419,7 +419,7 @@ describe "TokenizedBuffer", ->
         atom.workspace.open('sample.js').then (o) -> editor = o
 
       runs ->
-        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        tokenizedBuffer = editor.tokenizedBuffer
         tokenizedBuffer.onDidTokenize tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         expect(tokenizedHandler.callCount).toBe(1)
@@ -432,7 +432,7 @@ describe "TokenizedBuffer", ->
         atom.workspace.open('sample.js').then (o) -> editor = o
 
       runs ->
-        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        tokenizedBuffer = editor.tokenizedBuffer
         fullyTokenize(tokenizedBuffer)
 
         tokenizedBuffer.onDidTokenize tokenizedHandler
@@ -450,7 +450,7 @@ describe "TokenizedBuffer", ->
         atom.workspace.open('coffee.coffee').then (o) -> editor = o
 
       runs ->
-        tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+        tokenizedBuffer = editor.tokenizedBuffer
         tokenizedBuffer.onDidTokenize tokenizedHandler
         fullyTokenize(tokenizedBuffer)
         tokenizedHandler.reset()

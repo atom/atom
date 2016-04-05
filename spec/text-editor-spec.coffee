@@ -5710,6 +5710,19 @@ describe "TextEditor", ->
           expect(editor.getFirstVisibleScreenRow()).toEqual 89
           expect(editor.getVisibleRowRange()).toEqual [89, 99]
 
+  describe "::scrollToScreenPosition(position, [options])", ->
+    it "triggers ::onDidRequestAutoscroll with the logical coordinates along with the options", ->
+      scrollSpy = jasmine.createSpy("::onDidRequestAutoscroll")
+      editor.onDidRequestAutoscroll(scrollSpy)
+
+      editor.scrollToScreenPosition([8, 20])
+      editor.scrollToScreenPosition([8, 20], center: true)
+      editor.scrollToScreenPosition([8, 20], center: false, reversed: true)
+
+      expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {})
+      expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: true})
+      expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true})
+
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
       newEditor = atom.workspace.buildTextEditor(

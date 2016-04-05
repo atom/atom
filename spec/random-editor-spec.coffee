@@ -17,7 +17,7 @@ describe "TextEditor", ->
       buffer = new TextBuffer
       editor = atom.workspace.buildTextEditor({buffer})
       editor.setEditorWidthInChars(80)
-      tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+      tokenizedBuffer = editor.tokenizedBuffer
       steps = []
 
       times 30, ->

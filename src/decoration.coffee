@@ -62,7 +62,7 @@ class Decoration
   Section: Construction and Destruction
   ###
 
-  constructor: (@marker, @displayBuffer, properties) ->
+  constructor: (@marker, @decorationManager, properties) ->
     @emitter = new Emitter
     @id = nextId()
     @setProperties properties
@@ -78,7 +78,7 @@ class Decoration
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @displayBuffer.didDestroyDecoration(this)
+    @decorationManager.didDestroyDecoration(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -149,8 +149,8 @@ class Decoration
     oldProperties = @properties
     @properties = translateDecorationParamsOldToNew(newProperties)
     if newProperties.type?
-      @displayBuffer.decorationDidChangeType(this)
-    @displayBuffer.scheduleUpdateDecorationsEvent()
+      @decorationManager.decorationDidChangeType(this)
+    @decorationManager.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
 
   ###
@@ -175,5 +175,5 @@ class Decoration
     @properties.flashCount++
     @properties.flashClass = klass
     @properties.flashDuration = duration
-    @displayBuffer.scheduleUpdateDecorationsEvent()
+    @decorationManager.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-flash'

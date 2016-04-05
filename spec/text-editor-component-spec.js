@@ -1477,7 +1477,7 @@ describe('TextEditorComponent', function () {
       component.measureDimensions()
       await nextViewUpdatePromise()
 
-      let marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
+      let marker2 = editor.markBufferRange([[9, 0], [9, 0]])
       editor.decorateMarker(marker2, {
         type: ['line-number', 'line'],
         'class': 'b'
@@ -1889,7 +1889,7 @@ describe('TextEditorComponent', function () {
       component.measureDimensions()
       await nextViewUpdatePromise()
 
-      marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], {
+      marker = editor.markBufferRange([[9, 2], [9, 4]], {
         invalidate: 'inside'
       })
       editor.decorateMarker(marker, {
@@ -2084,7 +2084,7 @@ describe('TextEditorComponent', function () {
 
     describe('when the marker is empty', function () {
       it('renders an overlay decoration when added and removes the overlay when the decoration is destroyed', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], {
+        let marker = editor.markBufferRange([[2, 13], [2, 13]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -2106,7 +2106,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders the overlay element with the CSS class specified by the decoration', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], {
+        let marker = editor.markBufferRange([[2, 13], [2, 13]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -2127,7 +2127,7 @@ describe('TextEditorComponent', function () {
 
     describe('when the marker is not empty', function () {
       it('renders at the head of the marker by default', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], {
+        let marker = editor.markBufferRange([[2, 5], [2, 10]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -2173,7 +2173,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('slides horizontally left when near the right edge on #win32 and #darwin', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], {
+        let marker = editor.markBufferRange([[0, 26], [0, 26]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -4934,7 +4934,7 @@ describe('TextEditorComponent', function () {
 
   function lineNumberForBufferRowHasClass (bufferRow, klass) {
     let screenRow
-    screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
+    screenRow = editor.screenRowForBufferRow(bufferRow)
     return component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
   }
 

@@ -4,7 +4,8 @@ Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
-DisplayBuffer = require './display-buffer'
+DecorationManager = require './decoration-manager'
+TokenizedBuffer = require './tokenized-buffer'
 Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
@@ -12,6 +13,9 @@ TextMateScopeSelector = require('first-mate').ScopeSelector
 {Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
 TextEditorElement = require './text-editor-element'
+{isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
+
+ZERO_WIDTH_NBSP = '\ufeff'
 
 # Essential: This class represents all essential editing state for a single
 # {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -63,21 +67,30 @@ class TextEditor extends Model
   selectionFlashDuration: 500
   gutterContainer: null
   editorElement: null
+  verticalScrollMargin: 2
+  horizontalScrollMargin: 6
+  softWrapped: null
+  editorWidthInChars: null
+  lineHeightInPixels: null
+  defaultCharWidth: null
+  height: null
+  width: null
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
 
   @deserialize: (state, atomEnvironment) ->
     try
-      displayBuffer = DisplayBuffer.deserialize(state.displayBuffer, atomEnvironment)
+      state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
     catch error
       if error.syscall is 'read'
         return # Error reading the file, don't deserialize an editor for it
       else
         throw error
 
-    state.displayBuffer = displayBuffer
-    state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
+    state.buffer = state.tokenizedBuffer.buffer
+    state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId)
+    state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
     state.packageManager = atomEnvironment.packages
@@ -97,12 +110,18 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
-      softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
+      @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
+      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config,
       @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
+      @project, @assert, @applicationDelegate, grammar, @showInvisibles, @autoHeight, @scrollPastEnd
     } = params
+
+    {
+      tabLength, @editorWidthInChars, @tokenizedBuffer, buffer, @ignoreInvisibles,
+      @largeFileMode, @config, @assert, @grammarRegistry, @packageManager, @displayLayer
+    } = params
+
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a notificationManager parameter when constructing TextEditors") unless @notificationManager?
@@ -124,17 +143,23 @@ class TextEditor extends Model
     @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
 
-    showInvisibles ?= true
+    @showInvisibles ?= true
 
-    buffer ?= new TextBuffer
-    @displayBuffer ?= new DisplayBuffer({
-      buffer, tabLength, softWrapped, ignoreInvisibles: @mini or not showInvisibles, largeFileMode,
-      @config, @assert, @grammarRegistry, @packageManager
+    @buffer ?= new TextBuffer
+    @tokenizedBuffer ?= new TokenizedBuffer({
+      tabLength, @buffer, @largeFileMode, @config,
+      @grammarRegistry, @packageManager, @assert
     })
-    {@buffer, @displayLayer} = @displayBuffer
+    @displayLayer ?= @buffer.addDisplayLayer()
+    @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
+    @defaultMarkerLayer = @displayLayer.addMarkerLayer()
+    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
+
+    @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
+
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
-    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
+    @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
 
     for marker in @selectionsMarkerLayer.getMarkers()
       marker.setProperties(preserveFolds: true)
@@ -142,7 +167,7 @@ class TextEditor extends Model
 
     @subscribeToTabTypeConfig()
     @subscribeToBuffer()
-    @subscribeToDisplayBuffer()
+    @subscribeToDisplayLayer()
 
     if @cursors.length is 0 and not suppressCursorCreation
       initialLine = Math.max(parseInt(initialLine) or 0, 0)
@@ -168,8 +193,12 @@ class TextEditor extends Model
     softTabs: @softTabs
     firstVisibleScreenRow: @getFirstVisibleScreenRow()
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
-    displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
+    softWrapped: @isSoftWrapped()
+    editorWidthInChars: @editorWidthInChars
+    tokenizedBuffer: @tokenizedBuffer.serialize()
+    largeFileMode: @largeFileMode
+    displayLayerId: @displayLayer.id
     registered: atom.textEditors.editors.has this
 
   subscribeToBuffer: ->
@@ -194,10 +223,26 @@ class TextEditor extends Model
   onDidTerminatePendingState: (callback) ->
     @emitter.on 'did-terminate-pending-state', callback
 
-  subscribeToDisplayBuffer: ->
+  subscribeToScopedConfigSettings: =>
+    @scopedConfigSubscriptions?.dispose()
+    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
+
+    scopeDescriptor = @getRootScopeDescriptor()
+    subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.invisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.showIndentGuide', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+
+    @resetDisplayLayer()
+
+  subscribeToDisplayLayer: ->
     @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
-    @disposables.add @displayBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
-    @disposables.add @displayBuffer.onDidTokenize @handleTokenization.bind(this)
+    @disposables.add @tokenizedBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
+    @disposables.add @tokenizedBuffer.onDidTokenize @handleTokenization.bind(this)
     @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
@@ -207,13 +252,27 @@ class TextEditor extends Model
     @tabTypeSubscription = @config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
       @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
+  resetDisplayLayer: ->
+    @displayLayer.reset({
+      invisibles: @getInvisibles(),
+      softWrapColumn: @getSoftWrapColumn(),
+      showIndentGuides: @config.get('editor.showIndentGuide', scope: @getRootScopeDescriptor()),
+      tabLength: @getTabLength(),
+      ratioForCharacter: @ratioForCharacter.bind(this),
+      isWrapBoundary: isWrapBoundary,
+      foldCharacter: ZERO_WIDTH_NBSP
+    })
+
   destroyed: ->
     @disposables.dispose()
+    @displayLayer.destroy()
+    @scopedConfigSubscriptions.dispose()
+    @disposables.dispose()
+    @tokenizedBuffer.destroy()
     @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
     @selectionsMarkerLayer.destroy()
     @buffer.release()
-    @displayBuffer.destroy()
     @languageMode.destroy()
     @gutterContainer.destroy()
     @emitter.emit 'did-destroy'
@@ -297,7 +356,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeSoftWrapped: (callback) ->
-    @displayBuffer.onDidChangeSoftWrapped(callback)
+    @emitter.on 'did-change-soft-wrapped', callback
 
   # Extended: Calls your `callback` when the buffer's encoding has changed.
   #
@@ -451,7 +510,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observeDecorations: (callback) ->
-    @displayBuffer.observeDecorations(callback)
+    @decorationManager.observeDecorations(callback)
 
   # Extended: Calls your `callback` when a {Decoration} is added to the editor.
   #
@@ -460,7 +519,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddDecoration: (callback) ->
-    @displayBuffer.onDidAddDecoration(callback)
+    @decorationManager.onDidAddDecoration(callback)
 
   # Extended: Calls your `callback` when a {Decoration} is removed from the editor.
   #
@@ -469,7 +528,7 @@ class TextEditor extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidRemoveDecoration: (callback) ->
-    @displayBuffer.onDidRemoveDecoration(callback)
+    @decorationManager.onDidRemoveDecoration(callback)
 
   # Extended: Calls your `callback` when the placeholder text is changed.
   #
@@ -479,9 +538,6 @@ class TextEditor extends Model
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangePlaceholderText: (callback) ->
     @emitter.on 'did-change-placeholder-text', callback
-
-  onDidChangeCharacterWidths: (callback) ->
-    @displayBuffer.onDidChangeCharacterWidths(callback)
 
   onDidChangeFirstVisibleScreenRow: (callback, fromView) ->
     @emitter.on 'did-change-first-visible-screen-row', callback
@@ -497,17 +553,14 @@ class TextEditor extends Model
     @viewRegistry.getView(this).onDidChangeScrollLeft(callback)
 
   onDidRequestAutoscroll: (callback) ->
-    @displayBuffer.onDidRequestAutoscroll(callback)
+    @emitter.on 'did-request-autoscroll', callback
 
   # TODO Remove once the tabs package no longer uses .on subscriptions
   onDidChangeIcon: (callback) ->
     @emitter.on 'did-change-icon', callback
 
-  onDidUpdateMarkers: (callback) ->
-    @displayBuffer.onDidUpdateMarkers(callback)
-
   onDidUpdateDecorations: (callback) ->
-    @displayBuffer.onDidUpdateDecorations(callback)
+    @decorationManager.onDidUpdateDecorations(callback)
 
   # Essential: Retrieves the current {TextBuffer}.
   getBuffer: -> @buffer
@@ -517,31 +570,31 @@ class TextEditor extends Model
 
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
-    displayBuffer = @displayBuffer.copy()
-    selectionsMarkerLayer = displayBuffer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
+    selectionsMarkerLayer = @getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
-      @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
+      @buffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config, @notificationManager, @packageManager,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
+      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate,
+      displayLayer: @buffer.copyDisplayLayer(@displayLayer.id)
     })
     newEditor
 
   # Controls visibility based on the given {Boolean}.
-  setVisible: (visible) -> @displayBuffer.setVisible(visible)
+  setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
   setMini: (mini) ->
     if mini isnt @mini
       @mini = mini
-      @displayBuffer.setIgnoreInvisibles(@mini)
+      @setIgnoreInvisibles(@mini)
       @emitter.emit 'did-change-mini', @mini
     @mini
 
   isMini: -> @mini
 
   setUpdatedSynchronously: (updatedSynchronously) ->
-    @displayBuffer.setUpdatedSynchronously(updatedSynchronously)
+    @decorationManager.setUpdatedSynchronously(updatedSynchronously)
 
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
@@ -594,12 +647,19 @@ class TextEditor extends Model
   # * `editorWidthInChars` A {Number} representing the width of the
   # {TextEditorElement} in characters.
   setEditorWidthInChars: (editorWidthInChars) ->
-    @displayBuffer.setEditorWidthInChars(editorWidthInChars)
+    if editorWidthInChars > 0
+      previousWidthInChars = @editorWidthInChars
+      @editorWidthInChars = editorWidthInChars
+      if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
+        @resetDisplayLayer()
 
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
-    @displayBuffer.getEditorWidthInChars()
-
+    width = @getWidth()
+    if width? and @defaultCharWidth > 0
+      Math.max(0, Math.floor(width / @defaultCharWidth))
+    else
+      @editorWidthInChars
 
   ###
   Section: File Details
@@ -788,16 +848,21 @@ class TextEditor extends Model
     return if screenRow < 0 or screenRow > @getLastScreenRow()
     @displayLayer.getScreenLines(screenRow, screenRow + 1)[0]
 
-  bufferRowForScreenRow: (row) -> @displayLayer.translateScreenPosition(Point(row, 0)).row
+  bufferRowForScreenRow: (screenRow) ->
+    @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
 
-  # {Delegates to: DisplayBuffer.bufferRowsForScreenRows}
-  bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+  bufferRowsForScreenRows: (startScreenRow, endScreenRow) ->
+    for screenRow in [startScreenRow..endScreenRow]
+      @bufferRowForScreenRow(screenRow)
 
-  screenRowForBufferRow: (row) -> @displayLayer.translateBufferPosition(Point(row, 0)).row
+  screenRowForBufferRow: (row) ->
+    if @largeFileMode
+      bufferRow
+    else
+      @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
 
   getRightmostScreenPosition: -> @displayLayer.getRightmostScreenPosition()
 
-  # {Delegates to: DisplayBuffer.getMaxLineLength}
   getMaxScreenLineLength: -> @getRightmostScreenPosition().column
 
   getLongestScreenRow: -> @getRightmostScreenPosition().row
@@ -1342,7 +1407,10 @@ class TextEditor extends Model
   # * `options` (optional) An options hash for {::clipScreenPosition}.
   #
   # Returns a {Point}.
-  screenPositionForBufferPosition: (bufferPosition, options) -> @displayLayer.translateBufferPosition(bufferPosition, options)
+  screenPositionForBufferPosition: (bufferPosition, options) ->
+    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
+
+    @displayLayer.translateBufferPosition(bufferPosition, options)
 
   # Essential: Convert a position in screen-coordinates to buffer-coordinates.
   #
@@ -1352,21 +1420,30 @@ class TextEditor extends Model
   # * `options` (optional) An options hash for {::clipScreenPosition}.
   #
   # Returns a {Point}.
-  bufferPositionForScreenPosition: (screenPosition, options) -> @displayLayer.translateScreenPosition(screenPosition, options)
+  bufferPositionForScreenPosition: (screenPosition, options) ->
+    @displayLayer.translateScreenPosition(screenPosition, options)
 
   # Essential: Convert a range in buffer-coordinates to screen-coordinates.
   #
   # * `bufferRange` {Range} in buffer coordinates to translate into screen coordinates.
   #
   # Returns a {Range}.
-  screenRangeForBufferRange: (bufferRange) -> @displayLayer.translateBufferRange(bufferRange)
+  screenRangeForBufferRange: (bufferRange, options) ->
+    bufferRange = Range.fromObject(bufferRange)
+    start = @screenPositionForBufferPosition(bufferRange.start, options)
+    end = @screenPositionForBufferPosition(bufferRange.end, options)
+    new Range(start, end)
 
   # Essential: Convert a range in screen-coordinates to buffer-coordinates.
   #
   # * `screenRange` {Range} in screen coordinates to translate into buffer coordinates.
   #
   # Returns a {Range}.
-  bufferRangeForScreenRange: (screenRange) -> @displayLayer.translateScreenRange(screenRange)
+  bufferRangeForScreenRange: (screenRange) ->
+    screenRange = Range.fromObject(screenRange)
+    start = @bufferPositionForScreenPosition(screenRange.start)
+    end = @bufferPositionForScreenPosition(screenRange.end)
+    new Range(start, end)
 
   # Extended: Clip the given {Point} to a valid position in the buffer.
   #
@@ -1510,7 +1587,7 @@ class TextEditor extends Model
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, decorationParams) ->
-    @displayBuffer.decorateMarker(marker, decorationParams)
+    @decorationManager.decorateMarker(marker, decorationParams)
 
   # Essential: *Experimental:* Add a decoration to every marker in the given
   # marker layer. Can be used to decorate a large number of markers without
@@ -1524,7 +1601,7 @@ class TextEditor extends Model
   #
   # Returns a {LayerDecoration}.
   decorateMarkerLayer: (markerLayer, decorationParams) ->
-    @displayBuffer.decorateMarkerLayer(markerLayer, decorationParams)
+    @decorationManager.decorateMarkerLayer(markerLayer, decorationParams)
 
   # Deprecated: Get all the decorations within a screen row range on the default
   # layer.
@@ -1538,10 +1615,10 @@ class TextEditor extends Model
   #   params objects attached to the marker.
   # Returns an empty object when no decorations are found
   decorationsForScreenRowRange: (startScreenRow, endScreenRow) ->
-    @displayBuffer.decorationsForScreenRowRange(startScreenRow, endScreenRow)
+    @decorationManager.decorationsForScreenRowRange(startScreenRow, endScreenRow)
 
   decorationsStateForScreenRowRange: (startScreenRow, endScreenRow) ->
-    @displayBuffer.decorationsStateForScreenRowRange(startScreenRow, endScreenRow)
+    @decorationManager.decorationsStateForScreenRowRange(startScreenRow, endScreenRow)
 
   # Extended: Get all decorations.
   #
@@ -1550,7 +1627,7 @@ class TextEditor extends Model
   #
   # Returns an {Array} of {Decoration}s.
   getDecorations: (propertyFilter) ->
-    @displayBuffer.getDecorations(propertyFilter)
+    @decorationManager.getDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'line'.
   #
@@ -1559,7 +1636,7 @@ class TextEditor extends Model
   #
   # Returns an {Array} of {Decoration}s.
   getLineDecorations: (propertyFilter) ->
-    @displayBuffer.getLineDecorations(propertyFilter)
+    @decorationManager.getLineDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'line-number'.
   #
@@ -1568,7 +1645,7 @@ class TextEditor extends Model
   #
   # Returns an {Array} of {Decoration}s.
   getLineNumberDecorations: (propertyFilter) ->
-    @displayBuffer.getLineNumberDecorations(propertyFilter)
+    @decorationManager.getLineNumberDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'highlight'.
   #
@@ -1577,7 +1654,7 @@ class TextEditor extends Model
   #
   # Returns an {Array} of {Decoration}s.
   getHighlightDecorations: (propertyFilter) ->
-    @displayBuffer.getHighlightDecorations(propertyFilter)
+    @decorationManager.getHighlightDecorations(propertyFilter)
 
   # Extended: Get all decorations of type 'overlay'.
   #
@@ -1586,13 +1663,13 @@ class TextEditor extends Model
   #
   # Returns an {Array} of {Decoration}s.
   getOverlayDecorations: (propertyFilter) ->
-    @displayBuffer.getOverlayDecorations(propertyFilter)
+    @decorationManager.getOverlayDecorations(propertyFilter)
 
   decorationForId: (id) ->
-    @displayBuffer.decorationForId(id)
+    @decorationManager.decorationForId(id)
 
   decorationsForMarkerId: (id) ->
-    @displayBuffer.decorationsForMarkerId(id)
+    @decorationManager.decorationsForMarkerId(id)
 
   ###
   Section: Markers
@@ -1630,8 +1707,8 @@ class TextEditor extends Model
   #       start or start at the marker's end. This is the most fragile strategy.
   #
   # Returns a {DisplayMarker}.
-  markBufferRange: (args...) ->
-    @displayBuffer.markBufferRange(args...)
+  markBufferRange: (bufferRange, options) ->
+    @defaultMarkerLayer.markBufferRange(bufferRange, options)
 
   # Essential: Create a marker on the default marker layer with the given range
   # in screen coordinates. This marker will maintain its logical location as the
@@ -1665,8 +1742,8 @@ class TextEditor extends Model
   #       start or start at the marker's end. This is the most fragile strategy.
   #
   # Returns a {DisplayMarker}.
-  markScreenRange: (args...) ->
-    @displayBuffer.markScreenRange(args...)
+  markScreenRange: (screenRange, options) ->
+    @defaultMarkerLayer.markScreenRange(screenRange, options)
 
   # Essential: Mark the given position in buffer coordinates on the default
   # marker layer.
@@ -1675,8 +1752,8 @@ class TextEditor extends Model
   # * `options` (optional) See {TextBuffer::markRange}.
   #
   # Returns a {DisplayMarker}.
-  markBufferPosition: (args...) ->
-    @displayBuffer.markBufferPosition(args...)
+  markBufferPosition: (bufferPosition, options) ->
+    @defaultMarkerLayer.markBufferPosition(bufferPosition, options)
 
   # Essential: Mark the given position in screen coordinates on the default
   # marker layer.
@@ -1685,8 +1762,8 @@ class TextEditor extends Model
   # * `options` (optional) See {TextBuffer::markRange}.
   #
   # Returns a {DisplayMarker}.
-  markScreenPosition: (args...) ->
-    @displayBuffer.markScreenPosition(args...)
+  markScreenPosition: (screenPosition, options) ->
+    @defaultMarkerLayer.markScreenPosition(screenPosition, options)
 
   # Essential: Find all {DisplayMarker}s on the default marker layer that
   # match the given properties.
@@ -1708,20 +1785,22 @@ class TextEditor extends Model
   #       in range-compatible {Array} in buffer coordinates.
   #   * `containsBufferPosition` Only include markers containing this {Point}
   #       or {Array} of `[row, column]` in buffer coordinates.
-  findMarkers: (properties) ->
-    @displayBuffer.findMarkers(properties)
+  #
+  # Returns an {Array} of {DisplayMarker}s
+  findMarkers: (params) ->
+    @defaultMarkerLayer.findMarkers(params)
 
   # Extended: Get the {DisplayMarker} on the default layer for the given
   # marker id.
   #
   # * `id` {Number} id of the marker
   getMarker: (id) ->
-    @displayBuffer.getMarker(id)
+    @defaultMarkerLayer.getMarker(id)
 
   # Extended: Get all {DisplayMarker}s on the default marker layer. Consider
   # using {::findMarkers}
   getMarkers: ->
-    @displayBuffer.getMarkers()
+    @defaultMarkerLayer.getMarkers()
 
   # Extended: Get the number of markers in the default marker layer.
   #
@@ -1742,7 +1821,7 @@ class TextEditor extends Model
   #
   # Returns a {DisplayMarkerLayer}.
   addMarkerLayer: (options) ->
-    @displayBuffer.addMarkerLayer(options)
+    @displayLayer.addMarkerLayer(options)
 
   # Public: *Experimental:* Get a {DisplayMarkerLayer} by id.
   #
@@ -1753,7 +1832,7 @@ class TextEditor extends Model
   # Returns a {MarkerLayer} or `undefined` if no layer exists with the given
   # id.
   getMarkerLayer: (id) ->
-    @displayBuffer.getMarkerLayer(id)
+    @displayLayer.getMarkerLayer(id)
 
   # Public: *Experimental:* Get the default {DisplayMarkerLayer}.
   #
@@ -1764,7 +1843,7 @@ class TextEditor extends Model
   #
   # Returns a {DisplayMarkerLayer}.
   getDefaultMarkerLayer: ->
-    @displayBuffer.getDefaultMarkerLayer()
+    @defaultMarkerLayer
 
   ###
   Section: Cursors
@@ -2576,14 +2655,36 @@ class TextEditor extends Model
   # Essential: Get the on-screen length of tab characters.
   #
   # Returns a {Number}.
-  getTabLength: -> @displayBuffer.getTabLength()
+  getTabLength: ->
+    if @tabLength?
+      @tabLength
+    else
+      @config.get('editor.tabLength', scope: @getRootScopeDescriptor())
 
   # Essential: Set the on-screen length of tab characters. Setting this to a
   # {Number} This will override the `editor.tabLength` setting.
   #
   # * `tabLength` {Number} length of a single tab. Setting to `null` will
   #   fallback to using the `editor.tabLength` config setting
-  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
+  setTabLength: (tabLength) ->
+    return if tabLength is @tabLength
+
+    @tabLength = tabLength
+    @tokenizedBuffer.setTabLength(@tabLength)
+    @resetDisplayLayer()
+
+  setIgnoreInvisibles: (ignoreInvisibles) ->
+    return if ignoreInvisibles is @ignoreInvisibles
+
+    @ignoreInvisibles = ignoreInvisibles
+    @resetDisplayLayer()
+
+  getInvisibles: ->
+    scopeDescriptor = @getRootScopeDescriptor()
+    if @config.get('editor.showInvisibles', scope: scopeDescriptor) and not @ignoreInvisibles and @showInvisibles
+      @config.get('editor.invisibles', scope: scopeDescriptor)
+    else
+      {}
 
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
@@ -2594,7 +2695,7 @@ class TextEditor extends Model
   # whitespace.
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
-      continue if @displayBuffer.tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+      continue if @tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
 
       line = @buffer.lineForRow(bufferRow)
       return true  if line[0] is ' '
@@ -2637,14 +2738,27 @@ class TextEditor extends Model
   # Essential: Determine whether lines in this editor are soft-wrapped.
   #
   # Returns a {Boolean}.
-  isSoftWrapped: (softWrapped) -> @displayBuffer.isSoftWrapped()
+  isSoftWrapped: ->
+    if @largeFileMode
+      false
+    else
+      scopeDescriptor = @getRootScopeDescriptor()
+      @softWrapped ? @config.get('editor.softWrap', scope: scopeDescriptor) ? false
 
   # Essential: Enable or disable soft wrapping for this editor.
   #
   # * `softWrapped` A {Boolean}
   #
   # Returns a {Boolean}.
-  setSoftWrapped: (softWrapped) -> @displayBuffer.setSoftWrapped(softWrapped)
+  setSoftWrapped: (softWrapped) ->
+    if softWrapped isnt @softWrapped
+      @softWrapped = softWrapped
+      @resetDisplayLayer()
+      softWrapped = @isSoftWrapped()
+      @emitter.emit 'did-change-soft-wrapped', softWrapped
+      softWrapped
+    else
+      @isSoftWrapped()
 
   # Essential: Toggle soft wrapping for this editor
   #
@@ -2652,7 +2766,15 @@ class TextEditor extends Model
   toggleSoftWrapped: -> @setSoftWrapped(not @isSoftWrapped())
 
   # Essential: Gets the column at which column will soft wrap
-  getSoftWrapColumn: -> @displayBuffer.getSoftWrapColumn()
+  getSoftWrapColumn: ->
+    scopeDescriptor = @getRootScopeDescriptor()
+    if @isSoftWrapped()
+      if @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
+        @config.get('editor.preferredLineLength', scope: scopeDescriptor)
+      else
+        @getEditorWidthInChars()
+    else
+      Infinity
 
   ###
   Section: Indentation
@@ -2710,7 +2832,7 @@ class TextEditor extends Model
   #
   # Returns a {Number}.
   indentLevelForLine: (line) ->
-    @displayBuffer.indentLevelForLine(line)
+    @tokenizedBuffer.indentLevelForLine(line)
 
   # Extended: Indent rows intersecting selections based on the grammar's suggested
   # indent level.
@@ -2738,7 +2860,7 @@ class TextEditor extends Model
 
   # Essential: Get the current {Grammar} of this editor.
   getGrammar: ->
-    @displayBuffer.getGrammar()
+    @tokenizedBuffer.grammar
 
   # Essential: Set the current {Grammar} of this editor.
   #
@@ -2747,11 +2869,11 @@ class TextEditor extends Model
   #
   # * `grammar` {Grammar}
   setGrammar: (grammar) ->
-    @displayBuffer.setGrammar(grammar)
+    @tokenizedBuffer.setGrammar(grammar)
 
   # Reload the grammar based on the file name.
   reloadGrammar: ->
-    @displayBuffer.reloadGrammar()
+    @tokenizedBuffer.reloadGrammar()
 
   ###
   Section: Managing Syntax Scopes
@@ -2761,7 +2883,7 @@ class TextEditor extends Model
   # e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   # {Config::get} to get language specific config values.
   getRootScopeDescriptor: ->
-    @displayBuffer.getRootScopeDescriptor()
+    @tokenizedBuffer.rootScopeDescriptor
 
   # Essential: Get the syntactic scopeDescriptor for the given position in buffer
   # coordinates. Useful with {Config::get}.
@@ -2774,7 +2896,7 @@ class TextEditor extends Model
   #
   # Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition: (bufferPosition) ->
-    @displayBuffer.scopeDescriptorForBufferPosition(bufferPosition)
+    @tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
 
   # Extended: Get the range in buffer coordinates of all tokens surrounding the
   # cursor that match the given scope selector.
@@ -2786,7 +2908,7 @@ class TextEditor extends Model
   #
   # Returns a {Range}.
   bufferRangeForScopeAtCursor: (scopeSelector) ->
-    @displayBuffer.bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
+    @tokenizedBuffer.bufferRangeForScopeAtPosition(scopeSelector, @getCursorBufferPosition())
 
   # Extended: Determine if the given row is entirely a comment
   isBufferRowCommented: (bufferRow) ->
@@ -2802,8 +2924,8 @@ class TextEditor extends Model
 
     @notificationManager.addInfo(content, dismissable: true)
 
-  # {Delegates to: DisplayBuffer.tokenForBufferPosition}
-  tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
+  tokenForBufferPosition: (bufferPosition) ->
+    @tokenizedBuffer.tokenForPosition(bufferPosition)
 
   ###
   Section: Clipboard Operations
@@ -2935,7 +3057,7 @@ class TextEditor extends Model
   #
   # * `bufferRow` A {Number}
   unfoldBufferRow: (bufferRow) ->
-    @displayBuffer.unfoldBufferRow(bufferRow)
+    @displayLayer.destroyFoldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity)))
 
   # Extended: For each selection, fold the rows it intersects.
   foldSelectedLines: ->
@@ -2965,7 +3087,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldableAtBufferRow: (bufferRow) ->
-    @displayBuffer.isFoldableAtBufferRow(bufferRow)
+    @tokenizedBuffer.isFoldableAtRow(bufferRow)
 
   # Extended: Determine whether the given row in screen coordinates is foldable.
   #
@@ -2997,7 +3119,7 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldedAtBufferRow: (bufferRow) ->
-    @displayBuffer.isFoldedAtBufferRow(bufferRow)
+    @displayLayer.foldsIntersectingBufferRange(Range(Point(bufferRow, 0), Point(bufferRow, Infinity))).length > 0
 
   # Extended: Determine whether the given row in screen coordinates is folded.
   #
@@ -3005,10 +3127,16 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   isFoldedAtScreenRow: (screenRow) ->
-    @displayBuffer.isFoldedAtScreenRow(screenRow)
+    @isFoldedAtBufferRow(@bufferRowForScreenRow(screenRow))
 
+  # Creates a new fold between two row numbers.
+  #
+  # startRow - The row {Number} to start folding at
+  # endRow - The row {Number} to end the fold
+  #
+  # Returns the new {Fold}.
   foldBufferRowRange: (startRow, endRow) ->
-    @displayBuffer.foldBufferRowRange(startRow, endRow)
+    @foldBufferRange(Range(Point(startRow, Infinity), Point(endRow, Infinity)))
 
   foldBufferRange: (range) ->
     @displayLayer.foldBufferRange(range)
@@ -3066,7 +3194,7 @@ class TextEditor extends Model
   # * `options` (optional) {Object}
   #   * `center` Center the editor around the position if possible. (default: false)
   scrollToBufferPosition: (bufferPosition, options) ->
-    @displayBuffer.scrollToBufferPosition(bufferPosition, options)
+    @scrollToScreenPosition(@screenPositionForBufferPosition(bufferPosition), options)
 
   # Essential: Scrolls the editor to the given screen position.
   #
@@ -3075,7 +3203,7 @@ class TextEditor extends Model
   # * `options` (optional) {Object}
   #   * `center` Center the editor around the position if possible. (default: false)
   scrollToScreenPosition: (screenPosition, options) ->
-    @displayBuffer.scrollToScreenPosition(screenPosition, options)
+    @scrollToScreenRange(new Range(screenPosition, screenPosition), options)
 
   scrollToTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
@@ -3087,7 +3215,9 @@ class TextEditor extends Model
 
     @viewRegistry.getView(this).scrollToBottom()
 
-  scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
+  scrollToScreenRange: (screenRange, options = {}) ->
+    scrollEvent = {screenRange, options}
+    @emitter.emit "did-request-autoscroll", scrollEvent
 
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
@@ -3173,48 +3303,69 @@ class TextEditor extends Model
   getSelectionMarkerAttributes: ->
     {type: 'selection', invalidate: 'never'}
 
-  getVerticalScrollMargin: -> @displayBuffer.getVerticalScrollMargin()
-  setVerticalScrollMargin: (verticalScrollMargin) -> @displayBuffer.setVerticalScrollMargin(verticalScrollMargin)
+  getVerticalScrollMargin: ->
+    maxScrollMargin = Math.floor(((@getHeight() / @getLineHeightInPixels()) - 1) / 2)
+    Math.min(@verticalScrollMargin, maxScrollMargin)
 
-  getHorizontalScrollMargin: -> @displayBuffer.getHorizontalScrollMargin()
-  setHorizontalScrollMargin: (horizontalScrollMargin) -> @displayBuffer.setHorizontalScrollMargin(horizontalScrollMargin)
+  setVerticalScrollMargin: (@verticalScrollMargin) -> @verticalScrollMargin
 
-  getLineHeightInPixels: -> @displayBuffer.getLineHeightInPixels()
-  setLineHeightInPixels: (lineHeightInPixels) -> @displayBuffer.setLineHeightInPixels(lineHeightInPixels)
+  getHorizontalScrollMargin: -> Math.min(@horizontalScrollMargin, Math.floor(((@getWidth() / @getDefaultCharWidth()) - 1) / 2))
+  setHorizontalScrollMargin: (@horizontalScrollMargin) -> @horizontalScrollMargin
 
-  getKoreanCharWidth: -> @displayBuffer.getKoreanCharWidth()
+  getLineHeightInPixels: -> @lineHeightInPixels
+  setLineHeightInPixels: (@lineHeightInPixels) -> @lineHeightInPixels
 
-  getHalfWidthCharWidth: -> @displayBuffer.getHalfWidthCharWidth()
+  getKoreanCharWidth: -> @koreanCharWidth
+  getHalfWidthCharWidth: -> @halfWidthCharWidth
+  getDoubleWidthCharWidth: -> @doubleWidthCharWidth
+  getDefaultCharWidth: -> @defaultCharWidth
 
-  getDoubleWidthCharWidth: -> @displayBuffer.getDoubleWidthCharWidth()
+  ratioForCharacter: (character) ->
+    if isKoreanCharacter(character)
+      @getKoreanCharWidth() / @getDefaultCharWidth()
+    else if isHalfWidthCharacter(character)
+      @getHalfWidthCharWidth() / @getDefaultCharWidth()
+    else if isDoubleWidthCharacter(character)
+      @getDoubleWidthCharWidth() / @getDefaultCharWidth()
+    else
+      1
 
-  getDefaultCharWidth: -> @displayBuffer.getDefaultCharWidth()
   setDefaultCharWidth: (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) ->
-    @displayBuffer.setDefaultCharWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
+    doubleWidthCharWidth ?= defaultCharWidth
+    halfWidthCharWidth ?= defaultCharWidth
+    koreanCharWidth ?= defaultCharWidth
+    if defaultCharWidth isnt @defaultCharWidth or doubleWidthCharWidth isnt @doubleWidthCharWidth and halfWidthCharWidth isnt @halfWidthCharWidth and koreanCharWidth isnt @koreanCharWidth
+      @defaultCharWidth = defaultCharWidth
+      @doubleWidthCharWidth = doubleWidthCharWidth
+      @halfWidthCharWidth = halfWidthCharWidth
+      @koreanCharWidth = koreanCharWidth
+      @resetDisplayLayer() if @isSoftWrapped() and @getEditorWidthInChars()?
+    defaultCharWidth
 
   setHeight: (height, reentrant=false) ->
     if reentrant
-      @displayBuffer.setHeight(height)
+      @height = height
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
       @viewRegistry.getView(this).setHeight(height)
 
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
-    @displayBuffer.getHeight()
-
-  getClientHeight: -> @displayBuffer.getClientHeight()
+    @height
 
   setWidth: (width, reentrant=false) ->
     if reentrant
-      @displayBuffer.setWidth(width)
+      oldWidth = @width
+      @width = width
+      @resetDisplayLayer() if width isnt oldWidth and @isSoftWrapped()
+      @width
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
       @viewRegistry.getView(this).setWidth(width)
 
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
-    @displayBuffer.getWidth()
+    @width
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.
@@ -3222,10 +3373,8 @@ class TextEditor extends Model
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
       unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
-        height = @displayBuffer.getHeight()
-        lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
-        if height? and lineHeightInPixels?
-          maxScreenRow -= Math.floor(height / lineHeightInPixels)
+        if @height? and @lineHeightInPixels?
+          maxScreenRow -= Math.floor(@height / @lineHeightInPixels)
       screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)
 
     unless screenRow is @firstVisibleScreenRow
@@ -3235,10 +3384,8 @@ class TextEditor extends Model
   getFirstVisibleScreenRow: -> @firstVisibleScreenRow
 
   getLastVisibleScreenRow: ->
-    height = @displayBuffer.getHeight()
-    lineHeightInPixels = @displayBuffer.getLineHeightInPixels()
-    if height? and lineHeightInPixels?
-      Math.min(@firstVisibleScreenRow + Math.floor(height / lineHeightInPixels), @getScreenLineCount() - 1)
+    if @height? and @lineHeightInPixels?
+      Math.min(@firstVisibleScreenRow + Math.floor(@height / @lineHeightInPixels), @getScreenLineCount() - 1)
     else
       null
 
@@ -3332,8 +3479,6 @@ class TextEditor extends Model
 
   inspect: ->
     "<TextEditor #{@id}>"
-
-  logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   emitWillInsertTextEvent: (text) ->
     result = true
