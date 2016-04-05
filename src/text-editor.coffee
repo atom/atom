@@ -59,6 +59,8 @@ ZERO_WIDTH_NBSP = '\ufeff'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
+  serializationVersion: 1
+
   buffer: null
   languageMode: null
   cursors: null
@@ -80,6 +82,10 @@ class TextEditor extends Model
     get: -> @getElement()
 
   @deserialize: (state, atomEnvironment) ->
+    # TODO: Return null on version mismatch when 1.8.0 has been out for a while
+    if state.version isnt @prototype.serializationVersion and state.displayBuffer?
+      state.tokenizedBuffer = state.displayBuffer.tokenizedBuffer
+
     try
       state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
     catch error
@@ -89,7 +95,7 @@ class TextEditor extends Model
         throw error
 
     state.buffer = state.tokenizedBuffer.buffer
-    state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId)
+    state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId) ? state.buffer.addDisplayLayer()
     state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
     state.notificationManager = atomEnvironment.notifications
@@ -188,7 +194,10 @@ class TextEditor extends Model
       @setGrammar(grammar)
 
   serialize: ->
+    tokenizedBufferState = @tokenizedBuffer.serialize()
+
     deserializer: 'TextEditor'
+    version: @serializationVersion
     id: @id
     softTabs: @softTabs
     firstVisibleScreenRow: @getFirstVisibleScreenRow()
@@ -196,7 +205,9 @@ class TextEditor extends Model
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
     softWrapped: @isSoftWrapped()
     editorWidthInChars: @editorWidthInChars
-    tokenizedBuffer: @tokenizedBuffer.serialize()
+    # TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
+    displayBuffer: {tokenizedBuffer: tokenizedBufferState}
+    tokenizedBuffer: tokenizedBufferState
     largeFileMode: @largeFileMode
     displayLayerId: @displayLayer.id
     registered: atom.textEditors.editors.has this
