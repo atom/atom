@@ -1431,6 +1431,16 @@ class TextEditor extends Model
   screenPositionForBufferPosition: (bufferPosition, options) ->
     throw new Error("This TextEditor has been destroyed") if @isDestroyed()
 
+    if options?.clip?
+      Grim.deprecate("The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.")
+      options.clipDirection ?= options.clip
+    if options?.wrapAtSoftNewlines?
+      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapAtSoftNewlines then 'forward' else 'backward'
+    if options?.wrapBeyondNewlines?
+      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapBeyondNewlines then 'forward' else 'backward'
+
     @displayLayer.translateBufferPosition(bufferPosition, options)
 
   # Essential: Convert a position in screen-coordinates to buffer-coordinates.
@@ -1442,6 +1452,16 @@ class TextEditor extends Model
   #
   # Returns a {Point}.
   bufferPositionForScreenPosition: (screenPosition, options) ->
+    if options?.clip?
+      Grim.deprecate("The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.")
+      options.clipDirection ?= options.clip
+    if options?.wrapAtSoftNewlines?
+      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapAtSoftNewlines then 'forward' else 'backward'
+    if options?.wrapBeyondNewlines?
+      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapBeyondNewlines then 'forward' else 'backward'
+
     @displayLayer.translateScreenPosition(screenPosition, options)
 
   # Essential: Convert a range in buffer-coordinates to screen-coordinates.
@@ -1520,7 +1540,18 @@ class TextEditor extends Model
   #     Defaults to `'closest'`.
   #
   # Returns a {Point}.
-  clipScreenPosition: (screenPosition, options) -> @displayLayer.clipScreenPosition(screenPosition, options)
+  clipScreenPosition: (screenPosition, options) ->
+    if options?.clip?
+      Grim.deprecate("The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.")
+      options.clipDirection ?= options.clip
+    if options?.wrapAtSoftNewlines?
+      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapAtSoftNewlines then 'forward' else 'backward'
+    if options?.wrapBeyondNewlines?
+      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapBeyondNewlines then 'forward' else 'backward'
+
+    @displayLayer.clipScreenPosition(screenPosition, options)
 
   # Extended: Clip the start and end of the given range to valid positions on screen.
   # See {::clipScreenPosition} for more information.
@@ -1927,6 +1958,16 @@ class TextEditor extends Model
   #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   #     position. Defaults to true.
   setCursorScreenPosition: (position, options) ->
+    if options?.clip?
+      Grim.deprecate("The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.")
+      options.clipDirection ?= options.clip
+    if options?.wrapAtSoftNewlines?
+      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapAtSoftNewlines then 'forward' else 'backward'
+    if options?.wrapBeyondNewlines?
+      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
+      options.clipDirection ?= if options.wrapBeyondNewlines then 'forward' else 'backward'
+
     @moveCursors (cursor) -> cursor.setScreenPosition(position, options)
 
   # Essential: Add a cursor at the given position in buffer coordinates.
