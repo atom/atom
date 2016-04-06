@@ -285,6 +285,7 @@ module.exports = (grunt) ->
   ciTasks.push('dump-symbols') if process.platform is 'darwin'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
+  ciTasks.push('mktar') if process.platform is 'linux'
   ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI
   ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
