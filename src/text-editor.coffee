@@ -1429,8 +1429,6 @@ class TextEditor extends Model
   #
   # Returns a {Point}.
   screenPositionForBufferPosition: (bufferPosition, options) ->
-    throw new Error("This TextEditor has been destroyed") if @isDestroyed()
-
     if options?.clip?
       Grim.deprecate("The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.")
       options.clipDirection ?= options.clip
