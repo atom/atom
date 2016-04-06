@@ -392,7 +392,7 @@ class Selection extends Model
     if options.select
       @setBufferRange(newBufferRange, reversed: wasReversed)
     else
-      @cursor.setBufferPosition(newBufferRange.end, clip: 'forward') if wasReversed
+      @cursor.setBufferPosition(newBufferRange.end, clipDirection: 'forward') if wasReversed
 
     if autoIndentFirstLine
       @editor.setIndentationForBufferRow(oldBufferRange.start.row, desiredIndentLevel)
