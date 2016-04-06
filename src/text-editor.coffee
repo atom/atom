@@ -1515,8 +1515,9 @@ class TextEditor extends Model
   # * `options` (optional) {Object}
   #   * `clipDirection` {String} If `'backward'`, returns the first valid
   #     position preceding an invalid position. If `'forward'`, returns the
-  #     first valid position following a valid position. Defaults to
-  #     `'backward'`.
+  #     first valid position following an invalid position. If `'closest'`,
+  #     returns the first valid position closest to an invalid position.
+  #     Defaults to `'closest'`.
   #
   # Returns a {Point}.
   clipScreenPosition: (screenPosition, options) -> @displayLayer.clipScreenPosition(screenPosition, options)
