@@ -591,14 +591,15 @@ class TextEditor extends Model
 
   # Create an {TextEditor} with its initial state based on this object
   copy: ->
-    selectionsMarkerLayer = @getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
+    displayLayer = @displayLayer.copy()
+    selectionsMarkerLayer = displayLayer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config, @notificationManager, @packageManager,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate,
-      displayLayer: @buffer.copyDisplayLayer(@displayLayer.id)
+      displayLayer
     })
     newEditor
 
