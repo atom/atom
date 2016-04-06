@@ -1889,7 +1889,7 @@ class TextEditor extends Model
   # If there are multiple cursors, they will be consolidated to a single cursor.
   #
   # * `position` A {Point} or {Array} of `[row, column]`
-  # * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
+  # * `options` (optional) An {Object} containing the following keys:
   #   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   #     position. Defaults to true.
   setCursorBufferPosition: (position, options) ->
