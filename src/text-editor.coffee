@@ -1796,21 +1796,56 @@ class TextEditor extends Model
   markScreenRange: (screenRange, options) ->
     @defaultMarkerLayer.markScreenRange(screenRange, options)
 
-  # Essential: Mark the given position in buffer coordinates on the default
-  # marker layer.
+  # Essential: Create a marker on the default marker layer with the given buffer
+  # position and no tail. To group multiple markers together in their own
+  # private layer, see {::addMarkerLayer}.
   #
-  # * `position` A {Point} or {Array} of `[row, column]`.
-  # * `options` (optional) See {TextBuffer::markRange}.
+  # * `bufferPosition` A {Point} or point-compatible {Array}
+  # * `options` (optional) An {Object} with the following keys:
+  #   * `invalidate` (optional) {String} Determines the rules by which changes
+  #     to the buffer *invalidate* the marker. (default: 'overlap') It can be
+  #     any of the following strategies, in order of fragility:
+  #     * __never__: The marker is never marked as invalid. This is a good choice for
+  #       markers representing selections in an editor.
+  #     * __surround__: The marker is invalidated by changes that completely surround it.
+  #     * __overlap__: The marker is invalidated by changes that surround the
+  #       start or end of the marker. This is the default.
+  #     * __inside__: The marker is invalidated by changes that extend into the
+  #       inside of the marker. Changes that end at the marker's start or
+  #       start at the marker's end do not invalidate the marker.
+  #     * __touch__: The marker is invalidated by a change that touches the marked
+  #       region in any way, including changes that end at the marker's
+  #       start or start at the marker's end. This is the most fragile strategy.
   #
   # Returns a {DisplayMarker}.
   markBufferPosition: (bufferPosition, options) ->
     @defaultMarkerLayer.markBufferPosition(bufferPosition, options)
 
-  # Essential: Mark the given position in screen coordinates on the default
-  # marker layer.
+  # Essential: Create a marker on the default marker layer with the given screen
+  # position and no tail. To group multiple markers together in their own
+  # private layer, see {::addMarkerLayer}.
   #
-  # * `position` A {Point} or {Array} of `[row, column]`.
-  # * `options` (optional) See {TextBuffer::markRange}.
+  # * `screenPosition` A {Point} or point-compatible {Array}
+  # * `options` (optional) An {Object} with the following keys:
+  #   * `invalidate` (optional) {String} Determines the rules by which changes
+  #     to the buffer *invalidate* the marker. (default: 'overlap') It can be
+  #     any of the following strategies, in order of fragility:
+  #     * __never__: The marker is never marked as invalid. This is a good choice for
+  #       markers representing selections in an editor.
+  #     * __surround__: The marker is invalidated by changes that completely surround it.
+  #     * __overlap__: The marker is invalidated by changes that surround the
+  #       start or end of the marker. This is the default.
+  #     * __inside__: The marker is invalidated by changes that extend into the
+  #       inside of the marker. Changes that end at the marker's start or
+  #       start at the marker's end do not invalidate the marker.
+  #     * __touch__: The marker is invalidated by a change that touches the marked
+  #       region in any way, including changes that end at the marker's
+  #       start or start at the marker's end. This is the most fragile strategy.
+  #   * `clipDirection` {String} If `'backward'`, returns the first valid
+  #     position preceding an invalid position. If `'forward'`, returns the
+  #     first valid position following an invalid position. If `'closest'`,
+  #     returns the first valid position closest to an invalid position.
+  #     Defaults to `'closest'`.
   #
   # Returns a {DisplayMarker}.
   markScreenPosition: (screenPosition, options) ->
