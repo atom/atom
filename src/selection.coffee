@@ -174,7 +174,7 @@ class Selection extends Model
   #     range. Defaults to `true` if this is the most recently added selection,
   #     `false` otherwise.
   clear: (options) ->
-    @marker.setProperties(goalScreenRange: null)
+    @goalScreenRange = null
     @marker.clearTail() unless @retainSelection
     @autoscroll() if options?.autoscroll ? @isLastSelection()
     @finalize()
@@ -682,7 +682,7 @@ class Selection extends Model
 
   # Public: Moves the selection down one row.
   addSelectionBelow: ->
-    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
+    range = @getGoalScreenRange().copy()
     nextRow = range.end.row + 1
 
     for row in [nextRow..@editor.getLastScreenRow()]
@@ -695,14 +695,15 @@ class Selection extends Model
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
+      selection = @editor.addSelectionForScreenRange(clippedRange)
+      selection.setGoalScreenRange(range)
       break
 
     return
 
   # Public: Moves the selection up one row.
   addSelectionAbove: ->
-    range = (@getGoalScreenRange() ? @getScreenRange()).copy()
+    range = @getGoalScreenRange().copy()
     previousRow = range.end.row - 1
 
     for row in [previousRow..0]
@@ -715,7 +716,8 @@ class Selection extends Model
       else
         continue if clippedRange.isEmpty()
 
-      @editor.addSelectionForScreenRange(clippedRange, goalScreenRange: range)
+      selection = @editor.addSelectionForScreenRange(clippedRange)
+      selection.setGoalScreenRange(range)
       break
 
     return
@@ -753,6 +755,12 @@ class Selection extends Model
   ###
   Section: Private Utilities
   ###
+
+  setGoalScreenRange: (range) ->
+    @goalScreenRange = Range.fromObject(range)
+
+  getGoalScreenRange: ->
+    @goalScreenRange ? @getScreenRange()
 
   markerDidChange: (e) ->
     {oldHeadBufferPosition, oldTailBufferPosition, newHeadBufferPosition} = e
@@ -824,7 +832,3 @@ class Selection extends Model
   # Returns a {Point} representing the new tail position.
   plantTail: ->
     @marker.plantTail()
-
-  getGoalScreenRange: ->
-    if goalScreenRange = @marker.getProperties().goalScreenRange
-      Range.fromObject(goalScreenRange)

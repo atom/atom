@@ -2009,7 +2009,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtBufferPosition: (bufferPosition, options) ->
-    @selectionsMarkerLayer.markBufferPosition(bufferPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never'})
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -2019,7 +2019,7 @@ class TextEditor extends Model
   #
   # Returns a {Cursor}.
   addCursorAtScreenPosition: (screenPosition, options) ->
-    @selectionsMarkerLayer.markScreenPosition(screenPosition, @getSelectionMarkerAttributes())
+    @selectionsMarkerLayer.markScreenPosition(screenPosition, {invalidate: 'never'})
     @getLastSelection().cursor.autoscroll() unless options?.autoscroll is false
     @getLastSelection().cursor
 
@@ -2305,7 +2305,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    @selectionsMarkerLayer.markBufferRange(bufferRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markBufferRange(bufferRange, _.defaults({invalidate: 'never'}, options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -2318,7 +2318,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
-    @selectionsMarkerLayer.markScreenRange(screenRange, _.defaults(@getSelectionMarkerAttributes(), options))
+    @selectionsMarkerLayer.markScreenRange(screenRange, _.defaults({invalidate: 'never'}, options))
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -3402,9 +3402,6 @@ class TextEditor extends Model
   pixelPositionForScreenPosition: (screenPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
     @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
-
-  getSelectionMarkerAttributes: ->
-    {type: 'selection', invalidate: 'never'}
 
   getVerticalScrollMargin: ->
     maxScrollMargin = Math.floor(((@height / @getLineHeightInPixels()) - 1) / 2)
