@@ -166,7 +166,12 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
-    @async.onDidChangeStatuses callback
+    @async.onDidChangeStatuses ->
+      # Defer the callback to the next tick so that we've reset
+      # `@statusesByPath` by the time it's called. Otherwise reads from within
+      # the callback could be inconsistent.
+      # See https://github.com/atom/atom/issues/11396
+      process.nextTick callback
 
   ###
   Section: Repository Details
