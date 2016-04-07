@@ -22,6 +22,7 @@ Config = require './config'
 KeymapManager = require './keymap-extensions'
 TooltipManager = require './tooltip-manager'
 CommandRegistry = require './command-registry'
+MessageRegistry = require './message-registry'
 GrammarRegistry = require './grammar-registry'
 StyleManager = require './style-manager'
 PackageManager = require './package-manager'
@@ -159,6 +160,8 @@ class AtomEnvironment extends Model
 
     @commands = new CommandRegistry
     @commands.attach(@window)
+
+    @messages = new MessageRegistry
 
     @grammars = new GrammarRegistry({@config})
 
@@ -668,6 +671,7 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+        @disposables.add(@applicationDelegate.onUrlMessage(@dispatchUrlMessage.bind(this)))
         @listenForUpdates()
 
         @registerDefaultTargetForKeymaps()
@@ -937,6 +941,9 @@ class AtomEnvironment extends Model
 
   dispatchContextMenuCommand: (command, args...) ->
     @commands.dispatch(@contextMenu.activeElement, command, args)
+
+  dispatchUrlMessage: (uri) ->
+    @messages.dispatch(uri)
 
   openLocations: (locations) ->
     needsProjectPaths = @project?.getPaths().length is 0

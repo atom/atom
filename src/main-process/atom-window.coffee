@@ -194,6 +194,9 @@ class AtomWindow
       unless global.atomApplication.sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
 
+  sendUrlMessage: (url) ->
+    @browserWindow.webContents.send 'url-message', url
+
   sendCommandToBrowserWindow: (command, args...) ->
     action = if args[0]?.contextCommand then 'context-command' else 'command'
     @browserWindow.webContents.send action, command, args...

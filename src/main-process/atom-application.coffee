@@ -11,6 +11,7 @@ path = require 'path'
 os = require 'os'
 net = require 'net'
 url = require 'url'
+querystring = require 'querystring'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 FindParentDir = null
@@ -550,6 +551,29 @@ class AtomApplication
   #   :devMode - Boolean to control the opened window's dev mode.
   #   :safeMode - Boolean to control the opened window's safe mode.
   openUrl: ({urlToOpen, devMode, safeMode, env}) ->
+    parsedUrl = url.parse(urlToOpen)
+    if parsedUrl.host is "atom"
+      @openWithCommandFromUrl(urlToOpen, devMode, safeMode, env)
+    else
+      @openPackageUrlMain(parsedUrl.host, devMode, safeMode, env)
+
+  openWithCommandFromUrl: (url, devMode, safeMode, env) ->
+    resourcePath = @resourcePath
+    if devMode
+      try
+        windowInitializationScript = require.resolve(path.join(@devResourcePath, 'src', 'initialize-application-window'))
+        resourcePath = @devResourcePath
+
+    windowInitializationScript ?= require.resolve('../initialize-application-window')
+    if @lastFocusedWindow?
+      @lastFocusedWindow.sendUrlMessage url
+    else
+      windowDimensions = @getDimensionsForNewWindow()
+      @lastFocusedWindow = new AtomWindow({resourcePath, windowInitializationScript, devMode, safeMode, windowDimensions, env})
+      @lastFocusedWindow.on 'window:loaded', =>
+        @lastFocusedWindow.sendUrlMessage url
+
+  openPackageUrlMain: (packageName, devMode, safeMode, env) ->
     unless @packages?
       PackageManager = require '../package-manager'
       @packages = new PackageManager
@@ -557,7 +581,6 @@ class AtomApplication
         devMode: devMode
         resourcePath: @resourcePath
 
-    packageName = url.parse(urlToOpen).host
     pack = _.find @packages.getAvailablePackageMetadata(), ({name}) -> name is packageName
     if pack?
       if pack.urlMain
@@ -568,7 +591,7 @@ class AtomApplication
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
-      console.log "Opening unknown url: #{urlToOpen}"
+      console.log "Opening unknown url: #{urlToOpen}" # TODO: should this forward the URL to the workspace?
 
   # Opens up a new {AtomWindow} to run specs within.
   #

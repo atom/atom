@@ -235,6 +235,14 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('context-command', outerCallback)
 
+  onUrlMessage: (callback) ->
+    outerCallback = (event, args...) ->
+      callback(args...)
+
+    ipcRenderer.on('url-message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('url-message', outerCallback)
+
   didCancelWindowUnload: ->
     ipcRenderer.send('did-cancel-window-unload')
 
