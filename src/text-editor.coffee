@@ -861,6 +861,12 @@ class TextEditor extends Model
   lineTextForScreenRow: (screenRow) ->
     @screenLineForScreenRow(screenRow)?.lineText
 
+  logScreenLines: (start=0, end=@getLastScreenRow()) ->
+    for row in [start..end]
+      line = @lineTextForScreenRow(row)
+      console.log row, @bufferRowForScreenRow(row), line, line.length
+    return
+
   tokensForScreenRow: (screenRow) ->
     for tagCode in @screenLineForScreenRow(screenRow).tagCodes when @displayLayer.isOpenTagCode(tagCode)
       @displayLayer.tagForCode(tagCode)
