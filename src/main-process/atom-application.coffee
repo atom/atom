@@ -11,7 +11,6 @@ path = require 'path'
 os = require 'os'
 net = require 'net'
 url = require 'url'
-querystring = require 'querystring'
 {EventEmitter} = require 'events'
 _ = require 'underscore-plus'
 FindParentDir = null
