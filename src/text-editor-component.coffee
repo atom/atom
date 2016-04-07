@@ -287,7 +287,7 @@ class TextEditorComponent
       # with the menu open.
       @openedAccentedCharacterMenu = false
 
-    @domNode.addEventListener 'keyup', =>
+    @domNode.addEventListener 'keyup', ->
       lastKeydownBeforeKeypress = null
       lastKeydown = null
 
