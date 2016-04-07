@@ -1,4 +1,3 @@
-TokenIterator = require './token-iterator'
 {Point} = require 'text-buffer'
 {isPairedCharacter} = require './text-utils'
 

@@ -849,3 +849,27 @@ describe "TokenizedBuffer", ->
 
           iterator.seek(Point(0, 8))
           expect(iterator.getPosition().column).toBe(7)
+
+      it "correctly terminates scopes at the beginning of the line (regression)", ->
+        grammar = atom.grammars.createGrammar('test', {
+          'scopeName': 'text.broken'
+          'name': 'Broken grammar'
+          'patterns': [
+            {'begin': 'start', 'end': '(?=end)', 'name': 'blue.broken'},
+            {'match': '.', 'name': 'yellow.broken'}
+          ]
+        })
+
+        buffer = new TextBuffer(text: 'start x\nend x\nx')
+        tokenizedBuffer = new TokenizedBuffer({
+          buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
+        })
+        tokenizedBuffer.setGrammar(grammar)
+        fullyTokenize(tokenizedBuffer)
+
+        iterator = tokenizedBuffer.buildIterator()
+        iterator.seek(Point(1, 0))
+
+        expect(iterator.getPosition()).toEqual([1, 0])
+        expect(iterator.getCloseTags()).toEqual ['blue.broken']
+        expect(iterator.getOpenTags()).toEqual ['yellow.broken']

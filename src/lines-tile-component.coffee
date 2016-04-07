@@ -1,7 +1,6 @@
 _ = require 'underscore-plus'
 
 HighlightsComponent = require './highlights-component'
-TokenIterator = require './token-iterator'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 TokenTextEscapeRegex = /[&"'<>]/g
 MaxTokenLength = 20000
