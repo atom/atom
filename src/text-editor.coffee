@@ -278,6 +278,7 @@ class TextEditor extends Model
       invisibles: @getInvisibles(),
       softWrapColumn: @getSoftWrapColumn(),
       showIndentGuides: @config.get('editor.showIndentGuide', scope: @getRootScopeDescriptor()),
+      atomicSoftTabs: @config.get('editor.atomicSoftTabs', scope: @getRootScopeDescriptor()),
       tabLength: @getTabLength(),
       ratioForCharacter: @ratioForCharacter.bind(this),
       isWrapBoundary: isWrapBoundary,
