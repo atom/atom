@@ -28,15 +28,13 @@ Whichever version you use, ensure that:
 
 You can run these commands using Command Prompt, PowerShell or Git Shell via [GitHub Desktop](https://desktop.github.com/). These instructions will assume the use of Bash from Git Shell - if you are using Command Prompt use a backslash instead: i.e. `script\build`.
 
-**VS2015 + Git Shell users** should note that the default path supplied with Git Shell includes reference to an older version of msbuild that will fail. It is recommended you use a PowerShell window that has git in the path at this time.
-
 ```bash
 cd C:\
 git clone https://github.com/atom/atom/
 cd atom
 script/build
 ```
-This will create the Atom application in the `Program Files` folder.
+This will create the Atom application in the `out\Atom` folder as well as copy it to a folder named `Atom` within `Program Files`.
 
 ### `script/build` Options
   * `--install-dir` - Creates the final built application in this directory. Example (trailing slash is optional):
@@ -69,6 +67,9 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 * `msbuild.exe failed with exit code: 1`
    * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
 
+* `script/build` stops with no error or warning shortly after displaying the versions of node, npm and Python
+  * Make sure that the path where you have checked out Atom does not include a space. e.g. use `c:\atom` and not `c:\my stuff\atom`
+
 * `script/build` outputs only the Node.js and Python versions before returning
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
     See [issue #2200](https://github.com/atom/atom/issues/2200).
@@ -88,7 +89,7 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
   * If you're building Atom with Visual Studio 2013 try setting the `GYP_MSVS_VERSION` environment variable to 2013 and then `script/clean` followed by `script/build` (re-open your command prompt or Powershell window if you set it using the GUI)
-  * 
+
 * Other `node-gyp` errors on first build attempt, even though the right Node.js and Python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
 
