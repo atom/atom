@@ -1908,6 +1908,11 @@ class TextEditor extends Model
   # * `options` An {Object} containing the following keys:
   #   * `maintainHistory` A {Boolean} indicating whether marker state should be
   #     restored on undo/redo. Defaults to `false`.
+  #   * `persistent` A {Boolean} indicating whether or not this marker layer
+  #     should be serialized and deserialized along with the rest of the
+  #     buffer. Defaults to `false`. If `true`, the marker layer's id will be
+  #     maintained across the serialization boundary, allowing you to retrieve
+  #     it via {::getMarkerLayer}.
   #
   # This API is experimental and subject to change on any release.
   #
