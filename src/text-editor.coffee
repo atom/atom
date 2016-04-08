@@ -1646,15 +1646,13 @@ class TextEditor extends Model
   decorateMarker: (marker, decorationParams) ->
     @decorationManager.decorateMarker(marker, decorationParams)
 
-  # Essential: *Experimental:* Add a decoration to every marker in the given
-  # marker layer. Can be used to decorate a large number of markers without
-  # having to create and manage many individual decorations.
+  # Essential: Add a decoration to every marker in the given marker layer. Can
+  # be used to decorate a large number of markers without having to create and
+  # manage many individual decorations.
   #
   # * `markerLayer` A {DisplayMarkerLayer} or {MarkerLayer} to decorate.
   # * `decorationParams` The same parameters that are passed to
   #   {decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
-  #
-  # This API is experimental and subject to change on any release.
   #
   # Returns a {LayerDecoration}.
   decorateMarkerLayer: (markerLayer, decorationParams) ->
@@ -1903,7 +1901,7 @@ class TextEditor extends Model
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
 
-  # Extended: *Experimental:* Create a marker layer to group related markers.
+  # Essential: Create a marker layer to group related markers.
   #
   # * `options` An {Object} containing the following keys:
   #   * `maintainHistory` A {Boolean} indicating whether marker state should be
@@ -1914,29 +1912,23 @@ class TextEditor extends Model
   #     maintained across the serialization boundary, allowing you to retrieve
   #     it via {::getMarkerLayer}.
   #
-  # This API is experimental and subject to change on any release.
-  #
   # Returns a {DisplayMarkerLayer}.
   addMarkerLayer: (options) ->
     @displayLayer.addMarkerLayer(options)
 
-  # Public: *Experimental:* Get a {DisplayMarkerLayer} by id.
+  # Essential: Get a {DisplayMarkerLayer} by id.
   #
   # * `id` The id of the marker layer to retrieve.
-  #
-  # This API is experimental and subject to change on any release.
   #
   # Returns a {DisplayMarkerLayer} or `undefined` if no layer exists with the
   # given id.
   getMarkerLayer: (id) ->
     @displayLayer.getMarkerLayer(id)
 
-  # Public: *Experimental:* Get the default {DisplayMarkerLayer}.
+  # Essential: Get the default {DisplayMarkerLayer}.
   #
   # All marker APIs not tied to an explicit layer interact with this default
   # layer.
-  #
-  # This API is experimental and subject to change on any release.
   #
   # Returns a {DisplayMarkerLayer}.
   getDefaultMarkerLayer: ->
