@@ -1926,8 +1926,8 @@ class TextEditor extends Model
   #
   # This API is experimental and subject to change on any release.
   #
-  # Returns a {MarkerLayer} or `undefined` if no layer exists with the given
-  # id.
+  # Returns a {DisplayMarkerLayer} or `undefined` if no layer exists with the
+  # given id.
   getMarkerLayer: (id) ->
     @displayLayer.getMarkerLayer(id)
 
