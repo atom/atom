@@ -42,11 +42,12 @@ describe "LinesYardstick", ->
         lineNode
 
       mockLineNodesProvider =
+        lineNodesById: {}
         lineIdForScreenRow: (screenRow) ->
           editor.screenLineForScreenRow(screenRow).id
 
         lineNodeForScreenRow: (screenRow) ->
-          buildLineNode(screenRow)
+          @lineNodesById[@lineIdForScreenRow(screenRow)] ?= buildLineNode(screenRow)
 
         textNodesForScreenRow: (screenRow) ->
           lineNode = @lineNodeForScreenRow(screenRow)
