@@ -45,6 +45,7 @@ This will create the Atom application in the `out\Atom` folder as well as copy i
 ```bash
 ./script/build --build-dir Z:\Some\Temporary\Directory\
 ```
+  * `--no-install` - Skips the installation task after building.
   * `--verbose` - Verbose mode. A lot more information output.
 
 ## Do I have to use GitHub Desktop?
