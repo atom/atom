@@ -87,7 +87,7 @@ describe "Project", ->
 
       runs ->
         bufferA = atom.project.getBuffers()[0]
-        layerA = bufferA.addMarkerLayer(maintainHistory: true)
+        layerA = bufferA.addMarkerLayer(persistent: true)
         markerA = layerA.markPosition([0, 3])
 
         notQuittingProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
