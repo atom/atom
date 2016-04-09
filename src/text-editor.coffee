@@ -169,7 +169,7 @@ class TextEditor extends Model
     @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
-    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
+    @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
 
     @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
 
