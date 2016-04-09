@@ -1551,7 +1551,7 @@ class TextEditor extends Model
   #
   # * `markerLayer` A {TextEditorMarkerLayer} or {MarkerLayer} to decorate.
   # * `decorationParams` The same parameters that are passed to
-  #   {decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
+  #   {TextEditor::decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
   #
   # This API is experimental and subject to change on any release.
   #
