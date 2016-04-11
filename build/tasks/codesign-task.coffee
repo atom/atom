@@ -63,7 +63,8 @@ module.exports = (grunt) ->
       url: sourceUrl
       headers: {
         'User-Agent': 'Atom Signing Key build task',
-        'Accept': 'application/vnd.github.VERSION.raw' }
+        'Accept': 'application/vnd.github.VERSION.raw'
+      }
     }
     request(options)
       .pipe(fs.createWriteStream(targetPath))
