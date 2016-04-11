@@ -23,7 +23,7 @@ module.exports = (grunt) ->
     spawn {cmd: 'C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.1A\\bin\\signtool.exe', args: args}, callback
 
   signUsingJanky = (exeToSign, callback) ->
-    spawn {cmd: 'signtool', args: [exeToSign]}, callback
+    spawn {cmd: process.env.JANKY_SIGNTOOL, args: [exeToSign]}, callback
 
   signWindowsExecutable = if process.env.JANKY_SIGNTOOL then signUsingJanky else signUsingWindowsSDK
 
