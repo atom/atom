@@ -91,4 +91,12 @@ function normalize (options = {}) {
   }
 }
 
-export default { getFromShell, needsPatching, normalize }
+function replace (env) {
+  if (!env || !env.PATH) {
+    return
+  }
+
+  process.env = env
+}
+
+export default { getFromShell, needsPatching, normalize, replace }

@@ -40,7 +40,7 @@ export default class GitRepositoryAsync {
 
   constructor (_path, options = {}) {
     // We'll serialize our access manually.
-    Git.disableThreadSafety()
+    Git.setThreadSafetyStatus(Git.THREAD_SAFETY.DISABLED)
 
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()
@@ -305,7 +305,7 @@ export default class GitRepositoryAsync {
       .then(relativePath => {
         return this.repoPool.enqueue(() => {
           return this.getRepo()
-            .then(repo => repo.openIndex())
+            .then(repo => repo.index())
             .then(index => {
               const entry = index.getByPath(relativePath)
               if (!entry) return false

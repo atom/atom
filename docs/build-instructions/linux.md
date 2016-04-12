@@ -74,16 +74,22 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create an `.rpm` package run
+  To create a `.rpm` package run
 
   ```sh
   script/grunt mkrpm
+  ```
+
+  To create a `.tar.gz` archive run
+
+  ```sh
+  script/grunt mktar
   ```
 
 ## Advanced Options
