@@ -113,6 +113,7 @@
     "tabs": "0.92.1",
     "timecop": "0.33.1",
     "tree-view": "0.203.4",
+    "tree-view": "0.204.0",
     "update-package-dependencies": "0.10.0",
     "welcome": "0.34.0",
     "whitespace": "0.32.2",
