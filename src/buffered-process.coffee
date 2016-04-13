@@ -67,7 +67,7 @@ class BufferedProcess
         cmdArgs.unshift("\"#{command}\"")
       else
         cmdArgs.unshift(command)
-      cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
+      cmdArgs = ['/s', '/d', '/c', "\"#{cmdArgs.join(' ')}\""]
       cmdOptions = _.clone(options)
       cmdOptions.windowsVerbatimArguments = true
       @spawn(@getCmdPath(), cmdArgs, cmdOptions)

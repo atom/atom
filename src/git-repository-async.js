@@ -40,7 +40,7 @@ export default class GitRepositoryAsync {
 
   constructor (_path, options = {}) {
     // We'll serialize our access manually.
-    Git.disableThreadSafety()
+    Git.setThreadSafetyStatus(Git.THREAD_SAFETY.DISABLED)
 
     this.emitter = new Emitter()
     this.subscriptions = new CompositeDisposable()

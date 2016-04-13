@@ -466,6 +466,7 @@ class AtomApplication
         openedWindow.restore()
       else
         openedWindow.focus()
+      openedWindow.replaceEnvironment(env)
     else
       if devMode
         try
