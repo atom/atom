@@ -367,6 +367,8 @@ class PackageManager
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
+    return null if path.basename(nameOrPath)[0].match /^\./ # primarily to skip .git folder
+
     return pack if pack = @getLoadedPackage(nameOrPath)
 
     if packagePath = @resolvePackagePath(nameOrPath)
