@@ -2309,7 +2309,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
-    @selectionsMarkerLayer.markBufferRange(bufferRange, _.defaults({invalidate: 'never'}, options))
+    @selectionsMarkerLayer.markBufferRange(bufferRange, {invalidate: 'never', reversed: options.reversed ? false})
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 
@@ -2322,7 +2322,7 @@ class TextEditor extends Model
   #
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
-    @selectionsMarkerLayer.markScreenRange(screenRange, _.defaults({invalidate: 'never'}, options))
+    @selectionsMarkerLayer.markScreenRange(screenRange, {invalidate: 'never', reversed: options.reversed ? false})
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
 

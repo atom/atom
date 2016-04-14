@@ -607,7 +607,7 @@ class TextEditorComponent
     clickedScreenRow = @screenPositionForMouseEvent(event).row
     clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
     initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
-    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true, autoscroll: false)
+    @editor.addSelectionForScreenRange(initialScreenRange, autoscroll: false)
     @handleGutterDrag(initialScreenRange)
 
   onGutterShiftClick: (event) =>
