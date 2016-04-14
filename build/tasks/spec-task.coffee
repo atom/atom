@@ -18,7 +18,6 @@ module.exports = (grunt) ->
   packageSpecQueue = null
 
   logDeprecations = (label, {stderr}={}) ->
-    return unless process.env.JANKY_SHA1 or process.env.CI
     stderr ?= ''
     deprecatedStart = stderr.indexOf('Calls to deprecated functions')
     return if deprecatedStart is -1
