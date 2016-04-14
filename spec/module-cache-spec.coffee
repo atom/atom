@@ -14,7 +14,7 @@ describe 'ModuleCache', ->
 
     for builtinName, builtinPath of builtins
       expect(require.resolve(builtinName)).toBe builtinPath
-      expect(fs.isFileSync(require.resolve(builtinName)))
+      expect(fs.isFileSync(require.resolve(builtinName))).toBeTruthy()
 
     expect(Module._findPath.callCount).toBe 0
 
