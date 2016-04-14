@@ -24,11 +24,11 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      'web-preferences':
+      webPreferences:
         'direct-write': true
 
     if @isSpec
-      options['web-preferences']['page-visibility'] = true
+      options.webPreferences['page-visibility'] = true
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
