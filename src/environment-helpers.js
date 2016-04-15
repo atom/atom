@@ -68,18 +68,19 @@ function needsPatching (options = { platform: process.platform, env: process.env
 }
 
 // Fix for #11302 because `process.env` on Windows is a magic object that offers case-insensitive
-// environment variable matching.
-function cloneEnv (env) {
-  for (var key in process.env) {
-    delete process.env[key]
+// environment variable matching. By always cloning to `process.env` we prevent breaking the
+// underlying functionality.
+function clone (to, from) {
+  for (var key in to) {
+    delete to[key]
   }
 
-  Object.assign(process.env, env)
+  Object.assign(to, from)
 }
 
 function normalize (options = {}) {
   if (options && options.env) {
-    cloneEnv(options.env)
+    clone(process.env, options.env)
   }
 
   if (!options.env) {
@@ -96,7 +97,7 @@ function normalize (options = {}) {
     let shellEnv = getFromShell()
     if (shellEnv && shellEnv.PATH) {
       process._originalEnv = Object.assign({}, process.env)
-      cloneEnv(shellEnv)
+      clone(process.env, shellEnv)
     }
   }
 }
@@ -106,7 +107,7 @@ function replace (env) {
     return
   }
 
-  cloneEnv(env)
+  clone(process.env, env)
 }
 
 export default { getFromShell, needsPatching, normalize, replace }
