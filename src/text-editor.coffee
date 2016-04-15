@@ -178,7 +178,6 @@ class TextEditor extends Model
     @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
 
     for marker in @selectionsMarkerLayer.getMarkers()
-      marker.setProperties(preserveFolds: true)
       @addSelection(marker)
 
     @subscribeToTabTypeConfig()
@@ -2306,9 +2305,13 @@ class TextEditor extends Model
   # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
+  #   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
+  #     selection is set.
   #
   # Returns the added {Selection}.
   addSelectionForBufferRange: (bufferRange, options={}) ->
+    unless options.preserveFolds
+      @destroyFoldsIntersectingBufferRange(bufferRange)
     @selectionsMarkerLayer.markBufferRange(bufferRange, {invalidate: 'never', reversed: options.reversed ? false})
     @getLastSelection().autoscroll() unless options.autoscroll is false
     @getLastSelection()
@@ -2319,12 +2322,11 @@ class TextEditor extends Model
   # * `options` (optional) An options {Object}:
   #   * `reversed` A {Boolean} indicating whether to create the selection in a
   #     reversed orientation.
-  #
+  #   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
+  #     selection is set.
   # Returns the added {Selection}.
   addSelectionForScreenRange: (screenRange, options={}) ->
-    @selectionsMarkerLayer.markScreenRange(screenRange, {invalidate: 'never', reversed: options.reversed ? false})
-    @getLastSelection().autoscroll() unless options.autoscroll is false
-    @getLastSelection()
+    @addSelectionForBufferRange(@bufferRangeForScreenRange(screenRange), options)
 
   # Essential: Select from the current cursor position to the given position in
   # buffer coordinates.
@@ -2638,13 +2640,11 @@ class TextEditor extends Model
   #
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
-    unless marker.getProperties().preserveFolds
-      @destroyFoldsIntersectingBufferRange(marker.getBufferRange())
     cursor = @addCursor(marker)
     selection = new Selection(_.extend({editor: this, marker, cursor, @clipboard}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
-    @mergeIntersectingSelections(preserveFolds: marker.getProperties().preserveFolds)
+    @mergeIntersectingSelections(preserveFolds: options.preserveFolds)
 
     if selection.destroyed
       for selection in @getSelections()
