@@ -1,3 +1,4 @@
+Grim = require 'grim'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
@@ -96,13 +97,10 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
       log(str)
     onComplete: (runner) ->
       fs.closeSync(logStream) if logStream?
-      if process.env.JANKY_SHA1 or process.env.CI
-        grim = require 'grim'
-
-        if grim.getDeprecationsLength() > 0
-          grim.logDeprecations()
-          resolveWithExitCode(1)
-          return
+      if Grim.getDeprecationsLength() > 0
+        Grim.logDeprecations()
+        resolveWithExitCode(1)
+        return
 
       if runner.results().failedCount > 0
         resolveWithExitCode(1)
