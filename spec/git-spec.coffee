@@ -33,7 +33,7 @@ describe "GitRepository", ->
       waitsForPromise ->
         repo.async.getPath().then(onSuccess)
       runs ->
-        expect(onSuccess.mostRecentCall.args[0]).toBe(repoPath)
+        expect(onSuccess.mostRecentCall.args[0]).toBePath(repoPath)
 
   describe "new GitRepository(path)", ->
     it "throws an exception when no repository is found", ->

@@ -182,17 +182,19 @@ describe "TextEditor", ->
           expect(editor1.getLongTitle()).toBe "readme \u2014 sample-theme-1"
           expect(editor2.getLongTitle()).toBe "readme \u2014 sample-theme-2"
 
-      it "returns '<filename> — <parent-directories>' when opened files have identical file and dir names", ->
+      it "returns '<filename> — <parent-directories>' when opened files have identical file names in subdirectories", ->
         editor1 = null
         editor2 = null
+        path1 = path.join('sample-theme-1', 'src', 'js')
+        path2 = path.join('sample-theme-2', 'src', 'js')
         waitsForPromise ->
-          atom.workspace.open(path.join('sample-theme-1', 'src', 'js', 'main.js')).then (o) ->
+          atom.workspace.open(path.join(path1, 'main.js')).then (o) ->
             editor1 = o
-            atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
+            atom.workspace.open(path.join(path2, 'main.js')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe "main.js \u2014 sample-theme-1/src/js"
-          expect(editor2.getLongTitle()).toBe "main.js \u2014 sample-theme-2/src/js"
+          expect(editor1.getLongTitle()).toBe "main.js \u2014 #{path1}"
+          expect(editor2.getLongTitle()).toBe "main.js \u2014 #{path2}"
 
       it "returns '<filename> — <parent-directories>' when opened files have identical file and same parent dir name", ->
         editor1 = null
@@ -204,7 +206,7 @@ describe "TextEditor", ->
               editor2 = o
         runs ->
           expect(editor1.getLongTitle()).toBe "main.js \u2014 js"
-          expect(editor2.getLongTitle()).toBe "main.js \u2014 js/plugin"
+          expect(editor2.getLongTitle()).toBe "main.js \u2014 " + path.join('js', 'plugin')
 
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
       observed = []

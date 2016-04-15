@@ -4028,9 +4028,9 @@ describe('TextEditorComponent', function () {
       component.setFontSize(10)
       await nextViewUpdatePromise()
       expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
-      expect(editor.getKoreanCharWidth()).toBeCloseTo(9, 0)
+      expect(editor.getKoreanCharWidth()).toBeCloseTo(10, 0)
       expect(editor.getDoubleWidthCharWidth()).toBe(10)
-      expect(editor.getHalfWidthCharWidth()).toBe(5)
+      expect(editor.getHalfWidthCharWidth()).toBeCloseTo(6, 5)
     })
   })
 

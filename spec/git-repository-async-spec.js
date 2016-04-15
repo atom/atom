@@ -103,7 +103,7 @@ describe('GitRepositoryAsync', () => {
     it('returns the repository path for a repository path', async () => {
       repo = openFixture('master.git')
       const repoPath = await repo.getPath()
-      expect(repoPath).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      expect(repoPath).toBePath(path.join(__dirname, 'fixtures', 'git', 'master.git'))
     })
   })
 
