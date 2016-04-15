@@ -508,7 +508,7 @@ class Selection extends Model
     if selectedRange.isEmpty()
       return if selectedRange.start.row is @editor.buffer.getLastRow()
     else
-      joinMarker = @editor.markBufferRange(selectedRange, invalidationStrategy: 'never')
+      joinMarker = @editor.markBufferRange(selectedRange, invalidate: 'never')
 
     rowCount = Math.max(1, selectedRange.getRowCount() - 1)
     for row in [0...rowCount]
