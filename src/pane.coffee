@@ -577,28 +577,23 @@ class Pane extends Model
     else
       return true
 
+    saveDialog = (saveButtonText, saveFn, message) =>
+      chosen = @applicationDelegate.confirm
+        message: message
+        detailedMessage: "Your changes will be lost if you close this item without saving."
+        buttons: [saveButtonText, "Cancel", "Don't save"]
+      switch chosen
+        when 0 then saveFn(item, saveError)
+        when 1 then false
+        when 2 then true
+
     saveError = (error) =>
       if error
-        chosen = @applicationDelegate.confirm
-          message: @getMessageForErrorCode(error)
-          detailedMessage: "Your changes will be lost if you close this item without saving."
-          buttons: ["Save as", "Cancel", "Don't save"]
-        switch chosen
-          when 0 then @saveItemAs item, saveError
-          when 1 then false
-          when 2 then true
+        saveDialog("Save as", @saveItemAs, "'#{item.getTitle?() ? uri}' could not be saved.\nError: #{@getMessageForErrorCode(error.code)}")
       else
         true
 
-    chosen = @applicationDelegate.confirm
-      message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
-      detailedMessage: "Your changes will be lost if you close this item without saving."
-      buttons: ["Save", "Cancel", "Don't Save"]
-
-    switch chosen
-      when 0 then @saveItem(item, saveError)
-      when 1 then false
-      when 2 then true
+    saveDialog("Save", @saveItem, "'#{item.getTitle?() ? uri}' has changes, do you want to save them?")
 
   # Public: Save the active item.
   saveActiveItem: (nextAction) ->
@@ -619,7 +614,7 @@ class Pane extends Model
   #   after the item is successfully saved, or with the error if it failed.
   #   The return value will be that of `nextAction` or `undefined` if it was not
   #   provided
-  saveItem: (item, nextAction) ->
+  saveItem: (item, nextAction) =>
     if typeof item?.getURI is 'function'
       itemURI = item.getURI()
     else if typeof item?.getUri is 'function'
@@ -645,7 +640,7 @@ class Pane extends Model
   #   after the item is successfully saved, or with the error if it failed.
   #   The return value will be that of `nextAction` or `undefined` if it was not
   #   provided
-  saveItemAs: (item, nextAction) ->
+  saveItemAs: (item, nextAction) =>
     return unless item?.saveAs?
 
     saveOptions = item.getSaveDialogOptions?() ? {}
