@@ -25,10 +25,10 @@ class AtomWindow
       show: false
       title: 'Atom'
       webPreferences:
-        'direct-write': true
+        directWrite: true
 
     if @isSpec
-      options.webPreferences['page-visibility'] = true
+      options.webPreferences.backgroundThrottling = false
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
