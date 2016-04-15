@@ -579,8 +579,8 @@ class Pane extends Model
 
     saveError = (error) =>
       if error
-        chosen = atom.confirm
-          message: @getSaveErrorMessage(error)
+        chosen = @applicationDelegate.confirm
+          message: @getMessageForErrorCode(error)
           detailedMessage: "Your changes will be lost if you close this item without saving."
           buttons: ["Save as", "Cancel", "Don't save"]
         switch chosen
@@ -657,7 +657,7 @@ class Pane extends Model
         nextAction?()
       catch error
         if nextAction
-          nextAction()
+          nextAction(error)
         else
           @handleSaveError(error, item)
 
@@ -851,7 +851,6 @@ class Pane extends Model
       return false unless @promptToSaveItem(item)
     true
 
-# <<<<<<< HEAD
   handleSaveError: (error, item) ->
     itemPath = error.path ? item?.getPath?()
     addWarningWithPath = (message, options) =>
@@ -868,31 +867,6 @@ class Pane extends Model
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       @notificationManager.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
-# =======
-#   # Translate an error object to a human readable string
-#   getSaveErrorMessage: (error) ->
-#     if error.code is 'EISDIR' or error.message.endsWith('is a directory')
-#       "Unable to save file: #{error.message}."
-#     else if error.code is 'EACCES' and error.path?
-#       "Unable to save file: Permission denied '#{error.path}'."
-#     else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST'] and error.path?
-#       "Unable to save file '#{error.path}': #{error.message}."
-#     else if error.code is 'EROFS' and error.path?
-#       "Unable to save file: Read-only file system '#{error.path}'."
-#     else if error.code is 'ENOSPC' and error.path?
-#       "Unable to save file: No space left on device '#{error.path}'."
-#     else if error.code is 'ENXIO' and error.path?
-#       "Unable to save file: No such device or address '#{error.path}'."
-#     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
-#       fileName = errorMatch[1]
-#       "Unable to save file: A directory in the path '#{fileName}' could not be written to."
-#
-#   # Display a popup warning to the user
-#   handleSaveError: (error) ->
-#     errorMessage = Pane::getSaveErrorMessage(error)
-#     if errorMessage?
-#       atom.notifications.addWarning(errorMessage)
-# >>>>>>> b5c9a90ae00ec44e91782b0d6e30be7ca2fea11c
     else
       throw error
 

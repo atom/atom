@@ -917,103 +917,81 @@ describe "Pane", ->
       expect(item1.save).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe false
 
-    it "does not destroy the pane if save fails and user clicks cancel", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
-      [item1, item2] = pane.getItems()
+    describe "when item fails to save", ->
+      [pane, item1, item2] = []
 
-      item1.shouldPromptToSave = -> true
-      item1.getURI = -> "/test/path"
+      beforeEach ->
+        pane = new Pane({items: [new Item("A"), new Item("B")], applicationDelegate: atom.applicationDelegate, config: atom.config})
+        [item1, item2] = pane.getItems()
 
-      item1.save = jasmine.createSpy("save").andCallFake ->
-        error = new Error("EACCES, permission denied '/test/path'")
-        error.path = '/test/path'
-        error.code = 'EACCES'
-        throw error
+        item1.shouldPromptToSave = -> true
+        item1.getURI = -> "/test/path"
 
-      confirmations = 0
-      spyOn(atom, 'confirm').andCallFake ->
-        confirmations++
-        if confirmations is 1
-          return 0
-        else
-          return 1
+        item1.save = jasmine.createSpy("save").andCallFake ->
+          error = new Error("EACCES, permission denied '/test/path'")
+          error.path = '/test/path'
+          error.code = 'EACCES'
+          throw error
 
-      pane.close()
+      it "does not destroy the pane if save fails and user clicks cancel", ->
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          if confirmations is 1
+            return 0 # click save
+          else
+            return 1 # click cancel
 
-      expect(atom.confirm).toHaveBeenCalled()
-      expect(confirmations).toBe(2)
-      expect(item1.save).toHaveBeenCalled()
-      expect(pane.isDestroyed()).toBe false
+        pane.close()
 
-    it "does destroy the pane if the user saves the file under a new name", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
-      [item1, item2] = pane.getItems()
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(item1.save).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe false
 
-      item1.shouldPromptToSave = -> true
-      item1.getURI = -> "/test/path"
+      it "does destroy the pane if the user saves the file under a new name", ->
+        item1.saveAs = jasmine.createSpy("saveAs").andReturn(true)
 
-      item1.save = jasmine.createSpy("save").andCallFake ->
-        error = new Error("EACCES, permission denied '/test/path'")
-        error.path = '/test/path'
-        error.code = 'EACCES'
-        throw error
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          return 0 # save and then save as
 
-      item1.saveAs = jasmine.createSpy("saveAs").andReturn(true)
+        showSaveDialog.andReturn("new/path")
 
-      confirmations = 0
-      spyOn(atom, 'confirm').andCallFake ->
-        confirmations++
-        return 0
+        pane.close()
 
-      spyOn(atom, 'showSaveDialogSync').andReturn("new/path")
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
 
-      pane.close()
+      it "asks again if the saveAs also fails", ->
+        item1.saveAs = jasmine.createSpy("saveAs").andCallFake ->
+          error = new Error("EACCES, permission denied '/test/path'")
+          error.path = '/test/path'
+          error.code = 'EACCES'
+          throw error
 
-      expect(atom.confirm).toHaveBeenCalled()
-      expect(confirmations).toBe(2)
-      expect(atom.showSaveDialogSync).toHaveBeenCalled()
-      expect(item1.save).toHaveBeenCalled()
-      expect(item1.saveAs).toHaveBeenCalled()
-      expect(pane.isDestroyed()).toBe true
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          if confirmations < 3
+            return 0 # save, save as, save as
+          return 2 # don't save
 
-    it "asks again if the saveAs also fails", ->
-      pane = new Pane(items: [new Item("A"), new Item("B")])
-      [item1, item2] = pane.getItems()
+        showSaveDialog.andReturn("new/path")
 
-      item1.shouldPromptToSave = -> true
-      item1.getURI = -> "/test/path"
+        pane.close()
 
-      item1.save = jasmine.createSpy("save").andCallFake ->
-        error = new Error("EACCES, permission denied '/test/path'")
-        error.path = '/test/path'
-        error.code = 'EACCES'
-        throw error
-
-      item1.saveAs = jasmine.createSpy("saveAs").andCallFake ->
-        error = new Error("EACCES, permission denied '/test/path'")
-        error.path = '/test/path'
-        error.code = 'EACCES'
-        throw error
-
-
-      confirmations = 0
-      spyOn(atom, 'confirm').andCallFake ->
-        confirmations++
-        if confirmations < 3
-          return 0
-        return 2
-
-      spyOn(atom, 'showSaveDialogSync').andReturn("new/path")
-
-      pane.close()
-
-      expect(atom.confirm).toHaveBeenCalled()
-      expect(confirmations).toBe(3)
-      expect(atom.showSaveDialogSync).toHaveBeenCalled()
-      expect(item1.save).toHaveBeenCalled()
-      expect(item1.saveAs).toHaveBeenCalled()
-      expect(pane.isDestroyed()).toBe true
-
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(3)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
 
   describe "::destroy()", ->
     [container, pane1, pane2] = []
