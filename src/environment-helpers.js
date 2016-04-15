@@ -67,9 +67,19 @@ function needsPatching (options = { platform: process.platform, env: process.env
   return false
 }
 
+// Fix for #11302 because `process.env` on Windows is a magic object that offers case-insensitive
+// environment variable matching.
+function cloneEnv (env) {
+  for (var key in process.env) {
+    delete process.env[key]
+  }
+
+  Object.assign(process.env, env)
+}
+
 function normalize (options = {}) {
   if (options && options.env) {
-    process.env = options.env
+    cloneEnv(options.env)
   }
 
   if (!options.env) {
@@ -85,8 +95,8 @@ function normalize (options = {}) {
     // in #4126. Retain the original in case someone needs it.
     let shellEnv = getFromShell()
     if (shellEnv && shellEnv.PATH) {
-      process._originalEnv = process.env
-      process.env = shellEnv
+      process._originalEnv = Object.assign({}, process.env)
+      cloneEnv(shellEnv)
     }
   }
 }
@@ -96,7 +106,7 @@ function replace (env) {
     return
   }
 
-  process.env = env
+  cloneEnv(env)
 }
 
 export default { getFromShell, needsPatching, normalize, replace }
