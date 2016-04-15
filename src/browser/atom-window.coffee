@@ -24,8 +24,6 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      webPreferences:
-        directWrite: true
 
     if @isSpec
       options.webPreferences.backgroundThrottling = false
