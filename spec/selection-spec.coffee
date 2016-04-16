@@ -91,3 +91,8 @@ describe "Selection", ->
       expect(buffer.lineForRow(0)).toBe "    "
       expect(buffer.lineForRow(1)).toBe "    "
       expect(buffer.lineForRow(2)).toBe ""
+
+    it "auto-indents if only a newline is inserted", ->
+      selection.setBufferRange [[2, 0], [3, 0]]
+      selection.insertText("\n", autoIndent: true)
+      expect(buffer.lineForRow(2)).toBe "  "
