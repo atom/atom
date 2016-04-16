@@ -96,3 +96,8 @@ describe "Selection", ->
       selection.setBufferRange [[2, 0], [3, 0]]
       selection.insertText("\n", autoIndent: true)
       expect(buffer.lineForRow(2)).toBe "  "
+
+    it "auto-indents if only a carriage return + newline is inserted", ->
+      selection.setBufferRange [[2, 0], [3, 0]]
+      selection.insertText("\r\n", autoIndent: true)
+      expect(buffer.lineForRow(2)).toBe "  "
