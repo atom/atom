@@ -207,6 +207,8 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'editor:checkout-head-revision': -> @checkoutHeadRevision()
     'editor:move-line-up': -> @moveLineUp()
     'editor:move-line-down': -> @moveLineDown()
+    'editor:move-selection-left': -> @moveSelectionLeft()
+    'editor:move-selection-right': -> @moveSelectionRight()
     'editor:duplicate-lines': -> @duplicateLines()
     'editor:join-lines': -> @joinLines()
   )

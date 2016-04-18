@@ -58,7 +58,7 @@ function getFromShell () {
 function needsPatching (options = { platform: process.platform, env: process.env }) {
   if (options.platform === 'darwin' && !options.env.PWD) {
     let shell = getUserShell()
-    if (shell.endsWith('csh') || shell.endsWith('tcsh')) {
+    if (shell.endsWith('csh') || shell.endsWith('tcsh') || shell.endsWith('fish')) {
       return false
     }
     return true
@@ -67,9 +67,20 @@ function needsPatching (options = { platform: process.platform, env: process.env
   return false
 }
 
+// Fix for #11302 because `process.env` on Windows is a magic object that offers case-insensitive
+// environment variable matching. By always cloning to `process.env` we prevent breaking the
+// underlying functionality.
+function clone (to, from) {
+  for (var key in to) {
+    delete to[key]
+  }
+
+  Object.assign(to, from)
+}
+
 function normalize (options = {}) {
   if (options && options.env) {
-    process.env = options.env
+    clone(process.env, options.env)
   }
 
   if (!options.env) {
@@ -85,10 +96,18 @@ function normalize (options = {}) {
     // in #4126. Retain the original in case someone needs it.
     let shellEnv = getFromShell()
     if (shellEnv && shellEnv.PATH) {
-      process._originalEnv = process.env
-      process.env = shellEnv
+      process._originalEnv = Object.assign({}, process.env)
+      clone(process.env, shellEnv)
     }
   }
 }
 
-export default { getFromShell, needsPatching, normalize }
+function replace (env) {
+  if (!env || !env.PATH) {
+    return
+  }
+
+  clone(process.env, env)
+}
+
+export default { getFromShell, needsPatching, normalize, replace }

@@ -17,7 +17,7 @@ exports.safeExec = function(command, options, callback) {
   var child = childProcess.exec(command, options, function(error, stdout, stderr) {
     if (error)
       process.exit(error.code || 1);
-    else
+    else if (callback)
       callback(null);
   });
   child.stderr.pipe(process.stderr);

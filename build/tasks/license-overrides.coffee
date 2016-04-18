@@ -123,10 +123,10 @@ module.exports =
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     """
-  'tweetnacl@0.13.2':
+  'tweetnacl@0.14.3':
     repository: 'https://github.com/dchest/tweetnacl-js'
     license: 'Public Domain'
-    source: 'https://github.com/dchest/tweetnacl-js/blob/2f328394f74d83564634fb89ea2798caa3a4edb9/README.md says public domain.'
+    source: 'https://github.com/dchest/tweetnacl-js/blob/1042c9c65dc8f1dcb9e981d962d7dbbcf58f1fdc/COPYING.txt says public domain.'
   'json-schema@0.2.2':
     repository: 'https://github.com/kriszyp/json-schema'
     license: 'BSD'

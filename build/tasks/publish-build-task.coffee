@@ -85,13 +85,13 @@ getAssets = ->
         arch = 'amd64'
 
       # Check for a Debian build
-      sourcePath = "#{buildDir}/#{appFileName}-#{version}-#{arch}.deb"
+      sourcePath = path.join(buildDir, "#{appFileName}-#{version}-#{arch}.deb")
       assetName = "atom-#{arch}.deb"
 
       # Check for a Fedora build
       unless fs.isFileSync(sourcePath)
         rpmName = fs.readdirSync("#{buildDir}/rpm")[0]
-        sourcePath = "#{buildDir}/rpm/#{rpmName}"
+        sourcePath = path.join(buildDir, "rpm", rpmName)
         if process.arch is 'ia32'
           arch = 'i386'
         else
@@ -99,10 +99,17 @@ getAssets = ->
         assetName = "atom.#{arch}.rpm"
 
       cp sourcePath, path.join(buildDir, assetName)
+      assets = [{assetName, sourcePath}]
 
-      [
-        {assetName, sourcePath}
-      ]
+      # Check for an archive build on a debian build machine.
+      # We could provide a Fedora version if some libraries are not compatible
+      sourcePath = path.join(buildDir, "#{appFileName}-#{version}-#{arch}.tar.gz")
+      if fs.isFileSync(sourcePath)
+        assetName = "atom-#{arch}.tar.gz"
+        cp sourcePath, path.join(buildDir, assetName)
+        assets.push({assetName, sourcePath})
+
+      assets
 
 logError = (message, error, details) ->
   grunt.log.error(message)

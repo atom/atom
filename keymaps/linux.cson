@@ -14,6 +14,8 @@
   'ctrl-shift-pageup': 'pane:move-item-left'
   'ctrl-shift-pagedown': 'pane:move-item-right'
   'f11': 'window:toggle-full-screen'
+  'alt-shift-left': 'editor:move-selection-left'
+  'alt-shift-right': 'editor:move-selection-right'
 
   # Sublime Parity
   'ctrl-,': 'application:show-settings'
