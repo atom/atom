@@ -58,7 +58,7 @@ function getFromShell () {
 function needsPatching (options = { platform: process.platform, env: process.env }) {
   if (options.platform === 'darwin' && !options.env.PWD) {
     let shell = getUserShell()
-    if (shell.endsWith('csh') || shell.endsWith('tcsh')) {
+    if (shell.endsWith('csh') || shell.endsWith('tcsh') || shell.endsWith('fish')) {
       return false
     }
     return true
