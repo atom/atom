@@ -93,9 +93,22 @@ class Project extends Model
   onDidAddBuffer: (callback) ->
     @emitter.on 'did-add-buffer', callback
 
+  # Public: Invoke the given callback when a file is created via `createFile`.
+  #
+  # * `callback` {Function} to be called after a file is created.
+  #    * `file` The {File} that was created.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onDidCreateFile: (callback) ->
     @emitter.on 'did-create-file', callback
 
+  # Public: Invoke the given callback when a directory is created via
+  # `createDirectory`.
+  #
+  # * `callback` {Function} to be called after a directory is created.
+  #    * `directory` The {Directory} that was created.
+  #
+  # Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
   onDidCreateDirectory: (callback) ->
     @emitter.on 'did-create-directory', callback
 
@@ -207,6 +220,13 @@ class Project extends Model
     else
       false
 
+  # Public: create a new file.
+  #
+  # * `path` {String} The path to the file to create.
+  #
+  # Returns a {Promise} that resolves to a {File} object if the file is
+  # successfully created or rejects with an error object if the file cannot
+  # be created.
   createFile: (path) ->
     new Promise (resolve, reject) =>
       fs.exists path, (exists) =>
@@ -220,6 +240,13 @@ class Project extends Model
           @emitter.emit 'did-create-file', file
           resolve(file)
 
+  # Public: create a new directory.
+  #
+  # * `path` {String} The path to the directory to create.
+  #
+  # Returns a {Promise} that resolves to a {Directory} object if the directory
+  # is successfully created or rejects with an error object if the directory
+  # cannot be created.
   createDirectory: (path) ->
     new Promise (resolve, reject) =>
       fs.exists path, (exists) =>
