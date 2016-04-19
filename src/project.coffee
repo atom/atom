@@ -93,6 +93,12 @@ class Project extends Model
   onDidAddBuffer: (callback) ->
     @emitter.on 'did-add-buffer', callback
 
+  onDidCreateFile: (callback) ->
+    @emitter.on 'did-create-file', callback
+
+  onDidCreateDirectory: (callback) ->
+    @emitter.on 'did-create-directory', callback
+
   ###
   Section: Accessing the git repository
   ###

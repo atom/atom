@@ -498,6 +498,13 @@ describe "Project", ->
       runs ->
         expect(fs.readFileSync(filePath, 'utf8')).toBe ''
 
+    it "calls callbacks registered with ::onDidCreateFile", ->
+      waitsFor 'onDidCreateFile event', 100, (done) ->
+        atom.project.createFile(filePath)
+        atom.project.onDidCreateFile (file) ->
+          expect(file.getPath()).toBe filePath
+          done()
+
     describe "when the file already exists", ->
       it "rejects with an error", ->
         fs.writeFileSync(filePath, '')
@@ -542,6 +549,13 @@ describe "Project", ->
 
       runs ->
         expect(fs.existsSync(dirPath)).toBe true
+
+    it "calls callbacks registered with ::onDidCreateDirectory", ->
+      waitsFor 'onDidCreateDirectory event', 100, (done) ->
+        atom.project.createDirectory(dirPath)
+        atom.project.onDidCreateDirectory (dir) ->
+          expect(dir.getPath()).toBe dirPath
+          done()
 
     describe "when the directory already exists", ->
       it "rejects with an error", ->
