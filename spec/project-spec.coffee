@@ -478,6 +478,52 @@ describe "Project", ->
       atom.project.removePath(ftpURI)
       expect(atom.project.getPaths()).toEqual []
 
+  describe ".createFile(path)", ->
+    base = path.join(__dirname, 'fixtures', 'dir')
+    filePath = path.join(base, 'newfile.txt')
+
+    beforeEach ->
+      fs.removeSync(filePath) if fs.existsSync(filePath)
+
+    afterEach ->
+      fs.removeSync(filePath) if fs.existsSync(filePath)
+
+    it "creates and yields an empty file", ->
+      waitsForPromise ->
+        atom.project.createFile(filePath)
+          .then (file) ->
+            expect(file.getPath()).toBe filePath
+
+      runs ->
+        expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+        fs.removeSync(filePath)
+
+    describe "when the file already exists", ->
+      it "rejects with an error", ->
+        fs.writeFileSync(filePath, '')
+        waitsFor 'file creation to fail', 100, (done) ->
+          atom.project.createFile(filePath)
+            .catch (err) ->
+              expect(err.message).toMatch(/exists/)
+              done()
+
+    describe "when creating the file results in an error", ->
+      err = null
+
+      beforeEach ->
+        err = new Error()
+        fakeWriteFile = (filename, data, callback) ->
+          callback(err)
+        spyOn(fs, 'writeFile').andCallFake(fakeWriteFile)
+
+      it "rejects with that error", ->
+        waitsFor 'file creation to fail with the right error', 100, (done) ->
+          atom.project.createFile(filePath)
+            .catch (e) ->
+              expect(e).toBe(err)
+              done()
+
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       atom.project.addPath(temp.mkdirSync("another-path"))

@@ -4,6 +4,7 @@ url = require 'url'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 {Emitter, Disposable} = require 'event-kit'
+{File, Directory} = require 'pathwatcher'
 TextBuffer = require 'text-buffer'
 
 DefaultDirectoryProvider = require './default-directory-provider'
@@ -199,6 +200,20 @@ class Project extends Model
       true
     else
       false
+
+  createFile: (path) ->
+    new Promise (resolve, reject) =>
+      fs.exists path, (exists) =>
+        if exists
+          return reject(new Error("'#{path}' already exists."))
+
+        fs.writeFile path, '', (err) =>
+          if err
+            return reject(err)
+
+          file = new File(path)
+          @emitter.emit 'did-create-file', file
+          resolve(file)
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->
