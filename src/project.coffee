@@ -208,12 +208,24 @@ class Project extends Model
           return reject(new Error("'#{path}' already exists."))
 
         fs.writeFile path, '', (err) =>
-          if err
-            return reject(err)
+          return reject(err) if err?
 
           file = new File(path)
           @emitter.emit 'did-create-file', file
           resolve(file)
+
+  createDirectory: (path) ->
+    new Promise (resolve, reject) =>
+      fs.exists path, (exists) =>
+        if exists
+          return reject(new Error("'#{path}' already exists."))
+
+        fs.makeTree path, (err) =>
+          return reject(err) if err?
+
+          dir = new Directory(path)
+          @emitter.emit 'did-create-directory', dir
+          resolve(dir)
 
   # Public: Get an {Array} of {Directory}s associated with this project.
   getDirectories: ->

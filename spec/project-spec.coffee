@@ -492,11 +492,11 @@ describe "Project", ->
       waitsForPromise ->
         atom.project.createFile(filePath)
           .then (file) ->
+            expect(file.isFile()).toBe true
             expect(file.getPath()).toBe filePath
 
       runs ->
         expect(fs.readFileSync(filePath, 'utf8')).toBe ''
-        fs.removeSync(filePath)
 
     describe "when the file already exists", ->
       it "rejects with an error", ->
@@ -523,6 +523,50 @@ describe "Project", ->
               expect(e).toBe(err)
               done()
 
+  describe ".createDirectory(path)", ->
+    base = path.join(__dirname, 'fixtures', 'dir')
+    dirPath = path.join(base, 'subdir')
+
+    beforeEach ->
+      fs.removeSync(dirPath) if fs.existsSync(dirPath)
+
+    afterEach ->
+      fs.removeSync(dirPath) if fs.existsSync(dirPath)
+
+    it "creates and yields an empty directory", ->
+      waitsForPromise ->
+        atom.project.createDirectory(dirPath)
+          .then (directory) ->
+            expect(directory.isDirectory()).toBe true
+            expect(directory.getPath()).toBe dirPath
+
+      runs ->
+        expect(fs.existsSync(dirPath)).toBe true
+
+    describe "when the directory already exists", ->
+      it "rejects with an error", ->
+        fs.makeTreeSync(dirPath)
+        waitsFor 'directory creation to fail', 100, (done) ->
+          atom.project.createDirectory(dirPath)
+            .catch (err) ->
+              expect(err.message).toMatch(/exists/)
+              done()
+
+    describe "when creating the directory results in an error", ->
+      err = null
+
+      beforeEach ->
+        err = new Error()
+        fakeMakeTree = (filename, callback) ->
+          callback(err)
+        spyOn(fs, 'makeTree').andCallFake(fakeMakeTree)
+
+      it "rejects with that error", ->
+        waitsFor 'directory creation to fail with the right error', 100, (done) ->
+          atom.project.createDirectory(dirPath)
+            .catch (e) ->
+              expect(e).toBe(err)
+              done()
 
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
