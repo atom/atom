@@ -207,7 +207,7 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected element '#{element}' or its descendants #{toOrNotTo} show."
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
-    toBePath: (expected) ->
+    toEqualPath: (expected) ->
       actualPath = path.normalize(@actual)
       expectedPath = path.normalize(expected)
       @message = -> return "Expected path '#{actualPath}' to be equal to '#{expectedPath}'."
