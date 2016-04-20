@@ -1,6 +1,6 @@
-ChildProcess = require 'child_process'
 fs = require 'fs-plus'
 path = require 'path'
+Spawner = require './spawner'
 
 appFolder = path.resolve(process.execPath, '..')
 rootAtomFolder = path.resolve(appFolder, '..')
@@ -25,35 +25,9 @@ backgroundKeyPath = 'HKCU\\Software\\Classes\\directory\\background\\shell\\Atom
 applicationsKeyPath = 'HKCU\\Software\\Classes\\Applications\\atom.exe'
 environmentKeyPath = 'HKCU\\Environment'
 
-# Spawn a command and invoke the callback when it completes with an error
-# and the output from standard out.
-spawn = (command, args, callback) ->
-  stdout = ''
-
-  try
-    spawnedProcess = ChildProcess.spawn(command, args)
-  catch error
-    # Spawn can throw an error
-    process.nextTick -> callback?(error, stdout)
-    return
-
-  spawnedProcess.stdout.on 'data', (data) -> stdout += data
-
-  error = null
-  spawnedProcess.on 'error', (processError) -> error ?= processError
-  spawnedProcess.on 'close', (code, signal) ->
-    error ?= new Error("Command failed: #{signal ? code}") if code isnt 0
-    error?.code ?= code
-    error?.stdout ?= stdout
-    callback?(error, stdout)
-  # This is necessary if using Powershell 2 on Windows 7 to get the events to raise
-  # http://stackoverflow.com/questions/9155289/calling-powershell-from-nodejs
-  spawnedProcess.stdin.end()
-
-
 # Spawn reg.exe and callback when it completes
 spawnReg = (args, callback) ->
-  spawn(regPath, args, callback)
+  Spawner.spawn(regPath, args, callback)
 
 # Spawn powershell.exe and callback when it completes
 spawnPowershell = (args, callback) ->
@@ -69,16 +43,16 @@ spawnPowershell = (args, callback) ->
   args.unshift('RemoteSigned')
   args.unshift('-ExecutionPolicy')
   args.unshift('-noprofile')
-  spawn(powershellPath, args, callback)
+  Spawner.spawn(powershellPath, args, callback)
 
 # Spawn setx.exe and callback when it completes
 spawnSetx = (args, callback) ->
-  spawn(setxPath, args, callback)
+  Spawner.spawn(setxPath, args, callback)
 
 # Spawn the Update.exe with the given arguments and invoke the callback when
 # the command completes.
 spawnUpdate = (args, callback) ->
-  spawn(updateDotExe, args, callback)
+  Spawner.spawn(updateDotExe, args, callback)
 
 # Install the Open with Atom explorer context menu items via the registry.
 installContextMenu = (callback) ->
@@ -220,7 +194,7 @@ exports.existsSync = ->
 exports.restartAtom = (app) ->
   if projectPath = global.atomApplication?.lastFocusedWindow?.projectPath
     args = [projectPath]
-  app.once 'will-quit', -> spawn(path.join(binFolder, 'atom.cmd'), args)
+  app.once 'will-quit', -> Spawner.spawn(path.join(binFolder, 'atom.cmd'), args)
   app.quit()
 
 # Handle squirrel events denoted by --squirrel-* command line arguments.
