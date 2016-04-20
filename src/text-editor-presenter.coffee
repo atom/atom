@@ -474,19 +474,21 @@ class TextEditorPresenter
 
       pixelPosition = @pixelPositionForScreenPosition(screenPosition)
 
-      top = pixelPosition.top + @lineHeight
-      left = pixelPosition.left + @gutterWidth
+      # Fixed positioning.
+      top = @boundingClientRect.top + pixelPosition.top + @lineHeight
+      left = @boundingClientRect.left + pixelPosition.left + @gutterWidth
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
 
-        rightDiff = left + @boundingClientRect.left + itemWidth + contentMargin - @windowWidth
+        rightDiff = left + itemWidth + contentMargin - @windowWidth
         left -= rightDiff if rightDiff > 0
 
-        leftDiff = left + @boundingClientRect.left + contentMargin
+        leftDiff = left + contentMargin
         left -= leftDiff if leftDiff < 0
 
-        if top + @boundingClientRect.top + itemHeight > @windowHeight and top - (itemHeight + @lineHeight) >= 0
+        if top + itemHeight > @windowHeight and
+           top - (itemHeight + @lineHeight) >= 0
           top -= itemHeight + @lineHeight
 
       pixelPosition.top = top

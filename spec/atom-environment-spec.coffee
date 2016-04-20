@@ -28,8 +28,10 @@ describe "AtomEnvironment", ->
         atom.setSize(originalSize.width, originalSize.height)
 
       it 'sets the size of the window, and can retrieve the size just set', ->
-        atom.setSize(100, 400)
-        expect(atom.getSize()).toEqual width: 100, height: 400
+        newWidth = originalSize.width + 12
+        newHeight = originalSize.height + 23
+        atom.setSize(newWidth, newHeight)
+        expect(atom.getSize()).toEqual width: newWidth, height: newHeight
 
   describe ".isReleasedVersion()", ->
     it "returns false if the version is a SHA and true otherwise", ->

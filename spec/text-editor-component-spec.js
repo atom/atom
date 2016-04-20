@@ -4024,15 +4024,33 @@ describe('TextEditorComponent', function () {
     })
   })
 
-  describe('when changing the font', async function () {
-    it('measures the default char, the korean char, the double width char and the half width char widths', async function () {
-      expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
+  describe('when decreasing the fontSize', async function () {
+    it('decreases the widths of the korean char, the double width char and the half width char', async function () {
+      originalDefaultCharWidth = editor.getDefaultCharWidth()
+      koreanDefaultCharWidth = editor.getKoreanCharWidth()
+      doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
+      halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
       component.setFontSize(10)
       await nextViewUpdatePromise()
-      expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
-      expect(editor.getKoreanCharWidth()).toBeCloseTo(9, 0)
-      expect(editor.getDoubleWidthCharWidth()).toBe(10)
-      expect(editor.getHalfWidthCharWidth()).toBe(5)
+      expect(editor.getDefaultCharWidth()).toBeLessThan(originalDefaultCharWidth)
+      expect(editor.getKoreanCharWidth()).toBeLessThan(koreanDefaultCharWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeLessThan(doubleWidthDefaultCharWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeLessThan(halfWidthDefaultCharWidth)
+    })
+  })
+
+  describe('when increasing the fontSize', function() {
+    it('increases the widths of the korean char, the double width char and the half width char', async function () {
+      originalDefaultCharWidth = editor.getDefaultCharWidth()
+      koreanDefaultCharWidth = editor.getKoreanCharWidth()
+      doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
+      halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
+      component.setFontSize(25)
+      await nextViewUpdatePromise()
+      expect(editor.getDefaultCharWidth()).toBeGreaterThan(originalDefaultCharWidth)
+      expect(editor.getKoreanCharWidth()).toBeGreaterThan(koreanDefaultCharWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeGreaterThan(doubleWidthDefaultCharWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeGreaterThan(halfWidthDefaultCharWidth)
     })
   })
 

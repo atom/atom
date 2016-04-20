@@ -526,7 +526,7 @@ describe "Project", ->
         expect(atom.project.getDirectories()[1].contains(inputPath)).toBe true
         expect(atom.project.relativizePath(inputPath)).toEqual [
           atom.project.getPaths()[1],
-          'somewhere/something.txt'
+          path.join('somewhere', 'something.txt')
         ]
 
   describe ".contains(path)", ->
