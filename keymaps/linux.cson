@@ -27,6 +27,7 @@
   'ctrl-n': 'application:new-file'
   'ctrl-s': 'core:save'
   'ctrl-S': 'core:save-as'
+  'ctrl-f4': 'core:close'
   'ctrl-w': 'core:close'
   'ctrl-z': 'core:undo'
   'ctrl-y': 'core:redo'
