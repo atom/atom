@@ -45,6 +45,11 @@ export default class GitRepositoryAsync {
     }
   }
 
+  // This exists to provide backwards compatibility.
+  get _refreshingPromise () {
+    return this.repo._refreshingPromise
+  }
+
   // Public: Destroy this {GitRepositoryAsync} object.
   //
   // This destroys any tasks and subscriptions and releases the underlying
