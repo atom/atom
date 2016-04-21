@@ -4,8 +4,15 @@ path = require 'path'
 temp = require 'temp'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 Spawner = require '../src/browser/spawner'
+WinRegistry = require '../src/browser/win-registry'
 
-describe "Windows Squirrel Update", ->
+# Run passed callback as Spawner.spawn() would do
+invokeCallback = (callback) ->
+  error = null
+  stdout = ''
+  callback?(error, stdout)
+
+fdescribe "Windows Squirrel Update", ->
   tempHomeDirectory = null
 
   beforeEach ->
@@ -14,9 +21,16 @@ describe "Windows Squirrel Update", ->
     spyOn(fs, 'getHomeDirectory').andReturn(tempHomeDirectory)
 
     # Prevent any spawned command from actually running and affecting the host
-    spyOn(Spawner, 'spawn').andCallFake (command, args, callback) -> 
+    spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
       # do nothing on command, just run passed callback
       invokeCallback callback
+
+    # Prevent any actual change to Windows registry
+    for own method of WinRegistry
+      # all WinRegistry APIs share the same signature
+      spyOn(WinRegistry, method).andCallFake (callback) ->
+        # do nothing on registry, just run passed callback
+        invokeCallback callback
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
@@ -113,9 +127,3 @@ describe "Windows Squirrel Update", ->
       app.emit('will-quit')
       expect(Spawner.spawn.callCount).toBe 1
       expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'
-
-# Run passed callback as Spawner.spawn() would do
-invokeCallback = (callback) ->
-  error = null
-  stdout = ''
-  callback?(error, stdout)

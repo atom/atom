@@ -13,7 +13,7 @@ describe "Spawner", ->
       else
         originalSpawn('ls')
 
-    spyOn(ChildProcess, 'spawn').andCallFake (command, args, callback) -> 
+    spyOn(ChildProcess, 'spawn').andCallFake (command, args, callback) ->
       harmlessSpawn
 
   it "invokes passed callback", ->
