@@ -28,7 +28,11 @@ class TokenizedBufferIterator
       else
         scopeName = @grammarRegistry.scopeForId(tag)
         if tag % 2 is 0
-          @closeTags.push(scopeName)
+          if @openTags.length > 0
+            @tagIndex = index
+            break
+          else
+            @closeTags.push(scopeName)
         else
           @openTags.push(scopeName)
 
@@ -56,7 +60,10 @@ class TokenizedBufferIterator
         else
           scopeName = @grammarRegistry.scopeForId(tag)
           if tag % 2 is 0
-            @closeTags.push(scopeName)
+            if @openTags.length > 0
+              break
+            else
+              @closeTags.push(scopeName)
           else
             @openTags.push(scopeName)
         @tagIndex++
