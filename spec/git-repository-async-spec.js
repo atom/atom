@@ -3,7 +3,6 @@
 import fs from 'fs-plus'
 import path from 'path'
 import temp from 'temp'
-import Git from 'nodegit'
 
 import {it, beforeEach, afterEach} from './async-spec-helpers'
 
@@ -47,7 +46,7 @@ describe('GitRepositoryAsync', () => {
 
       let threw = false
       try {
-        await repo.repoPromise
+        await repo.getRepo()
       } catch (e) {
         threw = true
       }
@@ -64,19 +63,19 @@ describe('GitRepositoryAsync', () => {
     })
 
     it('returns the repository when not given a path', async () => {
-      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo1 = await repo.getRepo()
       const nodeGitRepo2 = await repo.getRepo()
       expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
     })
 
     it('returns the repository when given a non-submodule path', async () => {
-      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo1 = await repo.getRepo()
       const nodeGitRepo2 = await repo.getRepo('README')
       expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
     })
 
     it('returns the submodule repository when given a submodule path', async () => {
-      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo1 = await repo.getRepo()
       const nodeGitRepo2 = await repo.getRepo('jstips')
       expect(nodeGitRepo1.workdir()).not.toBe(nodeGitRepo2.workdir())
 
@@ -303,7 +302,7 @@ describe('GitRepositoryAsync', () => {
       await repo.getPathStatus(filePath)
 
       expect(statusHandler.callCount).toBe(1)
-      const status = Git.Status.STATUS.WT_MODIFIED
+      const status = GitRepositoryAsync.Git.Status.STATUS.WT_MODIFIED
       expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: status})
       fs.writeFileSync(filePath, 'abc')
 
