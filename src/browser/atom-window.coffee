@@ -125,12 +125,13 @@ class AtomWindow
     @browserWindow.on 'unresponsive', =>
       return if @isSpec
 
-      chosen = dialog.showMessageBox @browserWindow,
+      dialog.showMessageBox @browserWindow, {
         type: 'warning'
         buttons: ['Close', 'Keep Waiting']
         message: 'Editor is not responding'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
-      @browserWindow.destroy() if chosen is 0
+      },
+      callback(response) => @browserWindow.destroy() if response is 0
 
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @headless
