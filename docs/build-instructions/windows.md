@@ -38,14 +38,14 @@ To also install the newly built application, use `script\build --create-windows-
 
 ### Running tests
 
-In order to run tests from command line you need `apm`, available after you install Atom or after you build that from scratch. If you installed it, run the following commands (assuming `C:\atom` is the root path of your Atom sources):
+In order to run tests from command line you need `apm`, available after you install Atom or after you build from source. If you installed it, run the following commands (assuming `C:\atom` is the root of your Atom repository):
 
 ```bash
 cd C:\atom
 apm test
 ```
 
-When building Atom from scratch instead, the `apm` command is not added to the system path by default. In this case, you can either add it yourselves or you can explicitly list the complete path in previous commands. Anyway, its default location on a Win 64-bit installation is `"C:\Program Files (x86)\Atom\resources\cli\"`.
+When building Atom from source, the `apm` command is not added to the system path by default. In this case, you can either add it yourself or explicitly list the complete path in previous commands. Anyway, its default location on a Win 64-bit installation is `"C:\Program Files (x86)\Atom\resources\cli\"`.
 
 ## Troubleshooting
 
