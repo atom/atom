@@ -570,7 +570,7 @@ class Workspace extends Model
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
     params = _.extend({
-      @config, @clipboard, @viewRegistry, @grammarRegistry,
+      @config, @packageManager, @clipboard, @grammarRegistry,
       @project, @assert, @applicationDelegate
     }, params)
     new TextEditor(params)

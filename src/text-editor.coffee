@@ -80,7 +80,6 @@ class TextEditor extends Model
     state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
     state.clipboard = atomEnvironment.clipboard
-    state.viewRegistry = atomEnvironment.views
     state.grammarRegistry = atomEnvironment.grammars
     state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
@@ -97,14 +96,12 @@ class TextEditor extends Model
     {
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
-      @clipboard, @viewRegistry, @grammarRegistry,
+      @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config, @clipboard, @grammarRegistry,
       @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
-    throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
     throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
@@ -521,7 +518,7 @@ class TextEditor extends Model
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
+      @clipboard, @grammarRegistry, @project, @assert, @applicationDelegate
     })
     newEditor
 
