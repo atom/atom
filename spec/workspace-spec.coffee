@@ -1619,3 +1619,15 @@ describe "Workspace", ->
 
   escapeStringRegex = (str) ->
     str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+
+  describe "grammar activation", ->
+    it "activates grammars", ->
+      editor = null
+
+      atom.workspace.handleGrammarUsed = jasmine.createSpy()
+
+      waitsForPromise -> atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
+      runs ->
+        atom.grammars.setGrammarOverrideForPath(editor.getPath(), 'source.coffee')
+        editor.reloadGrammar()
+      waitsFor -> atom.workspace.handleGrammarUsed.callCount is 1
