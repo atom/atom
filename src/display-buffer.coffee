@@ -136,6 +136,9 @@ class DisplayBuffer extends Model
   onDidChangeGrammar: (callback) ->
     @tokenizedBuffer.onDidChangeGrammar(callback)
 
+  onDidUseGrammar: (callback) ->
+    @tokenizedBuffer.onDidUseGrammar(callback)
+
   onDidTokenize: (callback) ->
     @tokenizedBuffer.onDidTokenize(callback)
 
