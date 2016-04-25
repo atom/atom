@@ -234,7 +234,7 @@ export default class GitRepositoryAsync {
   // Returns a {Promise} which resolves to the {String} origin url of the
   // repository.
   getOriginURL (_path) {
-    return this.repo.getOriginalURL(_path)
+    return this.repo.getOriginURL(_path)
   }
 
   // Public: Returns the upstream branch for the current HEAD, or null if there
