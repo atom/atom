@@ -1189,14 +1189,10 @@ describe "TextEditor", ->
           cursor2 = editor.addCursorAtBufferPosition([1, 4])
           expect(cursor2.marker).toBe cursor1.marker
 
-    describe '.logCursorScope()', ->
-      beforeEach ->
-        spyOn(atom.notifications, 'addInfo')
-
-      it 'opens a notification', ->
-        editor.logCursorScope()
-
-        expect(atom.notifications.addInfo).toHaveBeenCalled()
+    describe '.getCursorScope()', ->
+      it 'returns the current scope', ->
+        descriptor = editor.getCursorScope()
+        expect(descriptor.scopes).toContain('source.js')
 
   describe "selection", ->
     selection = null

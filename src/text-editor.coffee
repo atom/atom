@@ -79,7 +79,6 @@ class TextEditor extends Model
     state.displayBuffer = displayBuffer
     state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
-    state.notificationManager = atomEnvironment.notifications
     state.packageManager = atomEnvironment.packages
     state.clipboard = atomEnvironment.clipboard
     state.viewRegistry = atomEnvironment.views
@@ -100,12 +99,11 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
-      @notificationManager, @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
+      @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
       @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
-    throw new Error("Must pass a notificationManager parameter when constructing TextEditors") unless @notificationManager?
     throw new Error("Must pass a packageManager parameter when constructing TextEditors") unless @packageManager?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
@@ -520,7 +518,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
-      suppressCursorCreation: true, @config, @notificationManager, @packageManager,
+      suppressCursorCreation: true, @config, @packageManager,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
@@ -2827,13 +2825,9 @@ class TextEditor extends Model
       @commentScopeSelector ?= new TextMateScopeSelector('comment.*')
       @commentScopeSelector.matches(@scopeDescriptorForBufferPosition([bufferRow, match.index]).scopes)
 
-  logCursorScope: ->
-    scopeDescriptor = @getLastCursor().getScopeDescriptor()
-    list = scopeDescriptor.scopes.toString().split(',')
-    list = list.map (item) -> "* #{item}"
-    content = "Scopes at Cursor\n#{list.join('\n')}"
-
-    @notificationManager.addInfo(content, dismissable: true)
+  # Get the scope descriptor at the cursor.
+  getCursorScope: ->
+    @getLastCursor().getScopeDescriptor()
 
   # {Delegates to: DisplayBuffer.tokenForBufferPosition}
   tokenForBufferPosition: (bufferPosition) -> @displayBuffer.tokenForBufferPosition(bufferPosition)
