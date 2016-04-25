@@ -1192,7 +1192,7 @@ describe "TextEditor", ->
     describe '.getCursorScope()', ->
       it 'returns the current scope', ->
         descriptor = editor.getCursorScope()
-        expect(descriptor.scopes).toContain ('source.js')
+        expect(descriptor.scopes).toContain('source.js')
 
   describe "selection", ->
     selection = null
