@@ -486,12 +486,12 @@ class TextEditor extends Model
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
-    @viewRegistry.getView(this).onDidChangeScrollTop(callback)
+    @getElement().onDidChangeScrollTop(callback)
 
   onDidChangeScrollLeft: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.")
 
-    @viewRegistry.getView(this).onDidChangeScrollLeft(callback)
+    @getElement().onDidChangeScrollLeft(callback)
 
   onDidRequestAutoscroll: (callback) ->
     @displayBuffer.onDidRequestAutoscroll(callback)
@@ -3133,24 +3133,24 @@ class TextEditor extends Model
   scrollToTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-    @viewRegistry.getView(this).scrollToTop()
+    @getElement().scrollToTop()
 
   scrollToBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-    @viewRegistry.getView(this).scrollToBottom()
+    @getElement().scrollToBottom()
 
   scrollToScreenRange: (screenRange, options) -> @displayBuffer.scrollToScreenRange(screenRange, options)
 
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
-    @viewRegistry.getView(this).getHorizontalScrollbarHeight()
+    @getElement().getHorizontalScrollbarHeight()
 
   getVerticalScrollbarWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.")
 
-    @viewRegistry.getView(this).getVerticalScrollbarWidth()
+    @getElement().getVerticalScrollbarWidth()
 
   pageUp: ->
     @moveUp(@getRowsPerPage())
@@ -3217,11 +3217,11 @@ class TextEditor extends Model
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
-    @viewRegistry.getView(this).pixelPositionForBufferPosition(bufferPosition)
+    @getElement().pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
-    @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
+    @getElement().pixelPositionForScreenPosition(screenPosition)
 
   getSelectionMarkerAttributes: ->
     {type: 'selection', invalidate: 'never'}
@@ -3250,7 +3250,7 @@ class TextEditor extends Model
       @displayBuffer.setHeight(height)
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
-      @viewRegistry.getView(this).setHeight(height)
+      @getElement().setHeight(height)
 
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
@@ -3263,7 +3263,7 @@ class TextEditor extends Model
       @displayBuffer.setWidth(width)
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
-      @viewRegistry.getView(this).setWidth(width)
+      @getElement().setWidth(width)
 
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
@@ -3307,77 +3307,77 @@ class TextEditor extends Model
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
 
-    @viewRegistry.getView(this).getScrollTop()
+    @getElement().getScrollTop()
 
   setScrollTop: (scrollTop) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollTop instead.")
 
-    @viewRegistry.getView(this).setScrollTop(scrollTop)
+    @getElement().setScrollTop(scrollTop)
 
   getScrollBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollBottom instead.")
 
-    @viewRegistry.getView(this).getScrollBottom()
+    @getElement().getScrollBottom()
 
   setScrollBottom: (scrollBottom) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollBottom instead.")
 
-    @viewRegistry.getView(this).setScrollBottom(scrollBottom)
+    @getElement().setScrollBottom(scrollBottom)
 
   getScrollLeft: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollLeft instead.")
 
-    @viewRegistry.getView(this).getScrollLeft()
+    @getElement().getScrollLeft()
 
   setScrollLeft: (scrollLeft) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollLeft instead.")
 
-    @viewRegistry.getView(this).setScrollLeft(scrollLeft)
+    @getElement().setScrollLeft(scrollLeft)
 
   getScrollRight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollRight instead.")
 
-    @viewRegistry.getView(this).getScrollRight()
+    @getElement().getScrollRight()
 
   setScrollRight: (scrollRight) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollRight instead.")
 
-    @viewRegistry.getView(this).setScrollRight(scrollRight)
+    @getElement().setScrollRight(scrollRight)
 
   getScrollHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollHeight instead.")
 
-    @viewRegistry.getView(this).getScrollHeight()
+    @getElement().getScrollHeight()
 
   getScrollWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollWidth instead.")
 
-    @viewRegistry.getView(this).getScrollWidth()
+    @getElement().getScrollWidth()
 
   getMaxScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getMaxScrollTop instead.")
 
-    @viewRegistry.getView(this).getMaxScrollTop()
+    @getElement().getMaxScrollTop()
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
 
-    @viewRegistry.getView(this).intersectsVisibleRowRange(startRow, endRow)
+    @getElement().intersectsVisibleRowRange(startRow, endRow)
 
   selectionIntersectsVisibleRowRange: (selection) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.")
 
-    @viewRegistry.getView(this).selectionIntersectsVisibleRowRange(selection)
+    @getElement().selectionIntersectsVisibleRowRange(selection)
 
   screenPositionForPixelPosition: (pixelPosition) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.")
 
-    @viewRegistry.getView(this).screenPositionForPixelPosition(pixelPosition)
+    @getElement().screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.")
 
-    @viewRegistry.getView(this).pixelRectForScreenRange(screenRange)
+    @getElement().pixelRectForScreenRange(screenRange)
 
   ###
   Section: Utility
