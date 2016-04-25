@@ -36,6 +36,10 @@ class LinesYardstick
     previousColumn = 0
     previousLeft = 0
 
+    if targetLeft is Infinity
+      column = textNodes.reduce(((lineLength, nodeLength) -> lineLength + nodeLength.textContent.length), 0)
+      return Point(row, column)
+
     @tokenIterator.reset(line, false)
     while @tokenIterator.next()
       text = @tokenIterator.getText()
