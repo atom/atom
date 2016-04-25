@@ -712,25 +712,6 @@ class TextEditor extends Model
   # via {Pane::saveItemAs}.
   getSaveDialogOptions: -> {}
 
-  checkoutHeadRevision: ->
-    if @getPath()
-      checkoutHead = =>
-        @project.repositoryForDirectory(new Directory(@getDirectoryPath()))
-          .then (repository) =>
-            repository?.async.checkoutHeadForEditor(this)
-
-      if @config.get('editor.confirmCheckoutHeadRevision')
-        @applicationDelegate.confirm
-          message: 'Confirm Checkout HEAD Revision'
-          detailedMessage: "Are you sure you want to discard all changes to \"#{@getFileName()}\" since the last Git commit?"
-          buttons:
-            OK: checkoutHead
-            Cancel: null
-      else
-        checkoutHead()
-    else
-      Promise.resolve(false)
-
   ###
   Section: Reading Text
   ###
