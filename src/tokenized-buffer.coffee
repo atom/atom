@@ -125,11 +125,7 @@ class TokenizedBuffer extends Model
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-    @emitter.emit 'did-use-grammar', grammar
     @emitter.emit 'did-change-grammar', grammar
-
-  onDidUseGrammar: (callback) ->
-    @emitter.on 'did-use-grammar', callback
 
   getGrammarSelectionContent: ->
     @buffer.getTextInRange([[0, 0], [10, 0]])

@@ -550,7 +550,7 @@ class Workspace extends Model
     @project.bufferForPath(filePath, options).then (buffer) =>
       editor = @buildTextEditor(_.extend({buffer, largeFileMode}, options))
       disposable = atom.textEditors.add(editor)
-      grammarSubscription = editor.onDidUseGrammar(@activateGrammar.bind(this))
+      grammarSubscription = editor.onDidChangeGrammar(@activateGrammar.bind(this))
       editor.onDidDestroy ->
         grammarSubscription.dispose()
         disposable.dispose()
