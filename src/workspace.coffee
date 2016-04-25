@@ -550,13 +550,13 @@ class Workspace extends Model
     @project.bufferForPath(filePath, options).then (buffer) =>
       editor = @buildTextEditor(_.extend({buffer, largeFileMode}, options))
       disposable = atom.textEditors.add(editor)
-      grammarSubscription = editor.onDidUseGrammar(@activateGrammar.bind(this))
+      grammarSubscription = editor.onDidUseGrammar(@handleGrammarUsed.bind(this))
       editor.onDidDestroy ->
         grammarSubscription.dispose()
         disposable.dispose()
       editor
 
-  activateGrammar: (grammar) ->
+  handleGrammarUsed: (grammar) ->
     @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
 
   # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
