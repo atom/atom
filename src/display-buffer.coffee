@@ -35,7 +35,6 @@ class DisplayBuffer extends Model
     state.config = atomEnvironment.config
     state.assert = atomEnvironment.assert
     state.grammarRegistry = atomEnvironment.grammars
-    state.packageManager = atomEnvironment.packages
     new this(state)
 
   constructor: (params={}) ->
@@ -43,7 +42,7 @@ class DisplayBuffer extends Model
 
     {
       tabLength, @editorWidthInChars, @tokenizedBuffer, @foldsMarkerLayer, buffer,
-      ignoreInvisibles, @largeFileMode, @config, @assert, @grammarRegistry, @packageManager
+      ignoreInvisibles, @largeFileMode, @config, @assert, @grammarRegistry
     } = params
 
     @emitter = new Emitter
@@ -51,7 +50,7 @@ class DisplayBuffer extends Model
 
     @tokenizedBuffer ?= new TokenizedBuffer({
       tabLength, buffer, ignoreInvisibles, @largeFileMode, @config,
-      @grammarRegistry, @packageManager, @assert
+      @grammarRegistry, @assert
     })
     @buffer = @tokenizedBuffer.buffer
     @charWidthsByScope = {}
@@ -122,7 +121,7 @@ class DisplayBuffer extends Model
     foldsMarkerLayer = @foldsMarkerLayer.copy()
     new DisplayBuffer({
       @buffer, tabLength: @getTabLength(), @largeFileMode, @config, @assert,
-      @grammarRegistry, @packageManager, foldsMarkerLayer
+      @grammarRegistry, foldsMarkerLayer
     })
 
   updateAllScreenLines: ->

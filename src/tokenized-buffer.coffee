@@ -29,14 +29,13 @@ class TokenizedBuffer extends Model
       state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
     state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
-    state.packageManager = atomEnvironment.packages
     state.assert = atomEnvironment.assert
     new this(state)
 
   constructor: (params) ->
     {
       @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
-      @grammarRegistry, @packageManager, @assert, grammarScopeName
+      @grammarRegistry, @assert, grammarScopeName
     } = params
 
     @emitter = new Emitter
