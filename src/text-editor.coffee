@@ -9,7 +9,6 @@ Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
-{Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
 TextEditorElement = require './text-editor-element'
 
@@ -81,7 +80,6 @@ class TextEditor extends Model
     state.config = atomEnvironment.config
     state.clipboard = atomEnvironment.clipboard
     state.grammarRegistry = atomEnvironment.grammars
-    state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     state.applicationDelegate = atomEnvironment.applicationDelegate
     editor = new this(state)
@@ -97,13 +95,12 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config, @clipboard, @grammarRegistry,
-      @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
+      @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
-    throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
     @firstVisibleScreenRow ?= 0
@@ -166,8 +163,6 @@ class TextEditor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @disposables.add @buffer.onDidChangePath =>
-      unless @project.getPaths().length > 0
-        @project.setPaths([path.dirname(@getPath())])
       @emitter.emit 'did-change-title', @getTitle()
       @emitter.emit 'did-change-path', @getPath()
     @disposables.add @buffer.onDidChangeEncoding =>
@@ -515,7 +510,7 @@ class TextEditor extends Model
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @grammarRegistry, @project, @assert, @applicationDelegate
+      @clipboard, @grammarRegistry, @assert, @applicationDelegate
     })
     newEditor
 
@@ -708,25 +703,6 @@ class TextEditor extends Model
   # Returns an {Object} to configure dialog shown when this editor is saved
   # via {Pane::saveItemAs}.
   getSaveDialogOptions: -> {}
-
-  checkoutHeadRevision: ->
-    if @getPath()
-      checkoutHead = =>
-        @project.repositoryForDirectory(new Directory(@getDirectoryPath()))
-          .then (repository) =>
-            repository?.async.checkoutHeadForEditor(this)
-
-      if @config.get('editor.confirmCheckoutHeadRevision')
-        @applicationDelegate.confirm
-          message: 'Confirm Checkout HEAD Revision'
-          detailedMessage: "Are you sure you want to discard all changes to \"#{@getFileName()}\" since the last Git commit?"
-          buttons:
-            OK: checkoutHead
-            Cancel: null
-      else
-        checkoutHead()
-    else
-      Promise.resolve(false)
 
   ###
   Section: Reading Text

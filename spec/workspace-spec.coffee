@@ -1633,5 +1633,31 @@ describe "Workspace", ->
       runs ->
         expect(grammarUsed.argsForCall[0][0].name).toBe 'JavaScript'
 
+  describe ".checkoutHeadRevision()", ->
+    editor = null
+    beforeEach ->
+      atom.config.set("editor.confirmCheckoutHeadRevision", false)
+
+      waitsForPromise -> atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
+
+    it "reverts to the version of its file checked into the project repository", ->
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertText("---\n")
+      expect(editor.lineTextForBufferRow(0)).toBe "---"
+
+      waitsForPromise ->
+        atom.workspace.checkoutHeadRevision(editor)
+
+      runs ->
+        expect(editor.lineTextForBufferRow(0)).toBe ""
+
+    describe "when there's no repository for the editor's file", ->
+      it "doesn't do anything", ->
+        editor = atom.workspace.buildTextEditor()
+        editor.setText("stuff")
+        atom.workspace.checkoutHeadRevision(editor)
+
+        waitsForPromise -> atom.workspace.checkoutHeadRevision(editor)
+
   escapeStringRegex = (str) ->
     str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
