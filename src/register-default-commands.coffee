@@ -1,6 +1,6 @@
 {ipcRenderer} = require 'electron'
 
-module.exports = ({commandRegistry, commandInstaller, config}) ->
+module.exports = ({commandRegistry, commandInstaller, config, notificationManager}) ->
   commandRegistry.add 'atom-workspace',
     'pane:show-next-recently-used-item': -> @getModel().getActivePane().activateNextRecentlyUsedItem()
     'pane:show-previous-recently-used-item': -> @getModel().getActivePane().activatePreviousRecentlyUsedItem()
@@ -187,7 +187,7 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'editor:fold-at-indent-level-7': -> @foldAllAtIndentLevel(6)
     'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
     'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
-    'editor:log-cursor-scope': -> @logCursorScope()
+    'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
     'editor:copy-path': -> @copyPathToClipboard(false)
     'editor:copy-project-path': -> @copyPathToClipboard(true)
     'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
@@ -232,3 +232,10 @@ stopEventPropagationAndGroupUndo = (config, commandListeners) ->
         model.transact config.get('editor.undoGroupingInterval'), ->
           commandListener.call(model, event)
   newCommandListeners
+
+showCursorScope = (descriptor, notificationManager) ->
+  list = descriptor.scopes.toString().split(',')
+  list = list.map (item) -> "* #{item}"
+  content = "Scopes at Cursor\n#{list.join('\n')}"
+
+  notificationManager.addInfo(content, dismissable: true)
