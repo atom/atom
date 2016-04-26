@@ -71,14 +71,14 @@ class Uninstall extends Command
             fs.removeSync(packageDirectory)
             if packageVersion
               uninstallsToRegister.push({packageName, packageVersion})
-          else
+          else if not options.argv.hard
             throw new Error("Does not exist")
 
         if options.argv.hard or options.argv.dev
           packageDirectory = path.join(devPackagesDirectory, packageName)
           if fs.existsSync(packageDirectory)
             fs.removeSync(packageDirectory)
-          else
+          else if not options.argv.hard
             throw new Error("Does not exist")
 
         @logSuccess()
