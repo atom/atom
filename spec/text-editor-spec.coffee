@@ -5888,6 +5888,7 @@ describe "TextEditor", ->
         expect(editor.decorationsStateForScreenRowRange(0, 5)[decoration.id]).toEqual {
           properties: {type: 'highlight', class: 'foo'}
           screenRange: marker.getScreenRange(),
+          bufferRange: marker.getBufferRange(),
           rangeIsReversed: false
         }
 
@@ -5908,26 +5909,31 @@ describe "TextEditor", ->
         expect(decorationState["#{layer1Decoration1.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'foo'},
           screenRange: marker1.getRange(),
+          bufferRange: marker1.getRange(),
           rangeIsReversed: false
         }
         expect(decorationState["#{layer1Decoration1.id}-#{marker2.id}"]).toEqual {
           properties: {type: 'highlight', class: 'foo'},
           screenRange: marker2.getRange(),
+          bufferRange: marker2.getRange(),
           rangeIsReversed: false
         }
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'bar'},
           screenRange: marker1.getRange(),
+          bufferRange: marker1.getRange(),
           rangeIsReversed: false
         }
         expect(decorationState["#{layer1Decoration2.id}-#{marker2.id}"]).toEqual {
           properties: {type: 'highlight', class: 'bar'},
           screenRange: marker2.getRange(),
+          bufferRange: marker2.getRange(),
           rangeIsReversed: false
         }
         expect(decorationState["#{layer2Decoration.id}-#{marker3.id}"]).toEqual {
           properties: {type: 'highlight', class: 'baz'},
           screenRange: marker3.getRange(),
+          bufferRange: marker3.getRange(),
           rangeIsReversed: false
         }
 
@@ -5939,16 +5945,19 @@ describe "TextEditor", ->
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'bar'},
           screenRange: marker1.getRange(),
+          bufferRange: marker1.getRange(),
           rangeIsReversed: false
         }
         expect(decorationState["#{layer1Decoration2.id}-#{marker2.id}"]).toEqual {
           properties: {type: 'highlight', class: 'bar'},
           screenRange: marker2.getRange(),
+          bufferRange: marker2.getRange(),
           rangeIsReversed: false
         }
         expect(decorationState["#{layer2Decoration.id}-#{marker3.id}"]).toEqual {
           properties: {type: 'highlight', class: 'baz'},
           screenRange: marker3.getRange(),
+          bufferRange: marker3.getRange(),
           rangeIsReversed: false
         }
 
@@ -5957,6 +5966,7 @@ describe "TextEditor", ->
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'quux'},
           screenRange: marker1.getRange(),
+          bufferRange: marker1.getRange(),
           rangeIsReversed: false
         }
 
@@ -5965,6 +5975,7 @@ describe "TextEditor", ->
         expect(decorationState["#{layer1Decoration2.id}-#{marker1.id}"]).toEqual {
           properties: {type: 'highlight', class: 'bar'},
           screenRange: marker1.getRange(),
+          bufferRange: marker1.getRange(),
           rangeIsReversed: false
         }
 

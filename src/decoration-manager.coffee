@@ -84,20 +84,21 @@ class DecorationManager extends Model
 
       for marker in layer.findMarkers(intersectsScreenRowRange: [startScreenRow, endScreenRow]) when marker.isValid()
         screenRange = marker.getScreenRange()
+        bufferRange = marker.getBufferRange()
         rangeIsReversed = marker.isReversed()
 
         if decorations = @decorationsByMarkerId[marker.id]
           for decoration in decorations
             decorationsState[decoration.id] = {
               properties: decoration.properties
-              screenRange, rangeIsReversed
+              screenRange, bufferRange, rangeIsReversed
             }
 
         if layerDecorations = @layerDecorationsByMarkerLayerId[layerId]
           for layerDecoration in layerDecorations
             decorationsState["#{layerDecoration.id}-#{marker.id}"] = {
               properties: layerDecoration.overridePropertiesByMarkerId[marker.id] ? layerDecoration.properties
-              screenRange, rangeIsReversed
+              screenRange, bufferRange, rangeIsReversed
             }
 
     decorationsState
