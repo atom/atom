@@ -877,9 +877,9 @@ class TextEditor extends Model
 
   screenRowForBufferRow: (row) ->
     if @largeFileMode
-      bufferRow
+      row
     else
-      @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
+      @displayLayer.translateBufferPosition(Point(row, 0)).row
 
   getRightmostScreenPosition: -> @displayLayer.getRightmostScreenPosition()
 
