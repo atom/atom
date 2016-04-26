@@ -392,7 +392,6 @@ class Project extends Model
   subscribeToBuffer: (buffer) ->
     buffer.onDidDestroy => @removeBuffer(buffer)
     buffer.onDidChangePath =>
-      console.log('did change path! ' + buffer.getPath())
       unless @getPaths().length > 0
         @setPaths([path.dirname(buffer.getPath())])
     buffer.onWillThrowWatchError ({error, handle}) =>
