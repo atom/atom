@@ -101,8 +101,8 @@ class TextEditor extends Model
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
-    throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
+    @assert ?= @defaultAssert.bind(this)
     @firstVisibleScreenRow ?= 0
     @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
@@ -3364,6 +3364,9 @@ class TextEditor extends Model
     willInsertEvent = {cancel, text}
     @emitter.emit 'will-insert-text', willInsertEvent
     result
+
+  defaultAssert: (condition, message, callback) ->
+    condition
 
   ###
   Section: Language Mode Delegated Methods
