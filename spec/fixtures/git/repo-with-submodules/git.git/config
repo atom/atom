@@ -5,6 +5,9 @@
 	logallrefupdates = true
 	ignorecase = true
 	precomposeunicode = true
+[remote "origin"]
+  url = git@github.com:atom/some-repo-i-guess.git
+  fetch = +refs/heads/*:refs/remotes/origin/*
 [submodule "jstips"]
 	url = https://github.com/loverajoel/jstips
 [submodule "You-Dont-Need-jQuery"]
