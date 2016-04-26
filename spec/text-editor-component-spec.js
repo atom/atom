@@ -2755,20 +2755,60 @@ describe('TextEditorComponent', function () {
       })
     })
 
-    describe('when a line is folded', function () {
-      beforeEach(async function () {
-        editor.foldBufferRow(4)
+    describe('when a fold marker is clicked', function () {
+      function clickElementAtPosition (marker, position) {
+        linesNode.dispatchEvent(
+          buildMouseEvent('mousedown', clientCoordinatesForScreenPosition(position), {target: marker})
+        )
+      }
+
+      it('unfolds only the selected fold when other folds are on the same line', async function () {
+        editor.foldBufferRange([[4, 6], [4, 10]])
+        editor.foldBufferRange([[4, 15], [4, 20]])
         await nextViewUpdatePromise()
+        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(2)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 6])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 15])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(0)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(false)
       })
 
-      describe('when the folded line\'s fold-marker is clicked', function () {
-        it('unfolds the buffer row', function () {
-          let target = component.lineNodeForScreenRow(4).querySelector('.fold-marker')
-          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {
-            target: target
-          }))
-          expect(editor.isFoldedAtBufferRow(4)).toBe(false)
-        })
+      it('unfolds only the selected fold when other folds are inside it', async function () {
+        editor.foldBufferRange([[4, 10], [4, 15]])
+        editor.foldBufferRange([[4, 4], [4, 5]])
+        editor.foldBufferRange([[4, 4], [4, 20]])
+        await nextViewUpdatePromise()
+        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 4])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 4])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 10])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(0)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(false)
       })
     })
 
