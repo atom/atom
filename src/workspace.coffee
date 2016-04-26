@@ -4,6 +4,7 @@ path = require 'path'
 {join} = path
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+{Directory} = require 'pathwatcher'
 DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
