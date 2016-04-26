@@ -81,7 +81,6 @@ class TextEditor extends Model
     state.clipboard = atomEnvironment.clipboard
     state.grammarRegistry = atomEnvironment.grammars
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
-    state.applicationDelegate = atomEnvironment.applicationDelegate
     editor = new this(state)
     if state.registered
       disposable = atomEnvironment.textEditors.add(editor)
@@ -95,7 +94,7 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config, @clipboard, @grammarRegistry,
-      @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
+      @assert, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
@@ -510,7 +509,7 @@ class TextEditor extends Model
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true, @config,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @grammarRegistry, @assert, @applicationDelegate
+      @clipboard, @grammarRegistry, @assert
     })
     newEditor
 
