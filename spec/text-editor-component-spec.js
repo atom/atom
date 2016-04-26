@@ -1092,7 +1092,7 @@ describe('TextEditorComponent', function () {
             component.destroy()
             lineNumber = component.lineNumberNodeForScreenRow(1)
             target = lineNumber.querySelector('.icon-right')
-            return target.dispatchEvent(buildClickEvent(target))
+            target.dispatchEvent(buildClickEvent(target))
           })
         })
 
