@@ -1116,6 +1116,37 @@ describe('TextEditorComponent', function () {
           expect(lineNumberHasClass(1, 'folded')).toBe(false)
         })
 
+        it('unfolds all the free-form folds intersecting the buffer row when clicked', async function () {
+          expect(lineNumberHasClass(3, 'foldable')).toBe(false)
+
+          editor.foldBufferRange([[3, 4], [5, 4]])
+          editor.foldBufferRange([[5, 5], [8, 10]])
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(3, 'folded')).toBe(true)
+          expect(lineNumberHasClass(5, 'folded')).toBe(false)
+
+          let lineNumber = component.lineNumberNodeForScreenRow(3)
+          let target = lineNumber.querySelector('.icon-right')
+          target.dispatchEvent(buildClickEvent(target))
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(3, 'folded')).toBe(false)
+          expect(lineNumberHasClass(5, 'folded')).toBe(true)
+
+          editor.setSoftWrapped(true)
+          componentNode.style.width = 20 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+          component.measureDimensions()
+          await nextViewUpdatePromise()
+          editor.foldBufferRange([[3, 19], [3, 21]]) // fold starting on a soft-wrapped portion of the line
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(11, 'folded')).toBe(true)
+
+          lineNumber = component.lineNumberNodeForScreenRow(11)
+          target = lineNumber.querySelector('.icon-right')
+          target.dispatchEvent(buildClickEvent(target))
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(11, 'folded')).toBe(false)
+        })
+
         it('does not fold when the line number componentNode is clicked', function () {
           let lineNumber = component.lineNumberNodeForScreenRow(1)
           lineNumber.dispatchEvent(buildClickEvent(lineNumber))
