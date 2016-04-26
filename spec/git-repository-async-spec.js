@@ -877,4 +877,16 @@ describe('GitRepositoryAsync', () => {
       })
     })
   })
+
+  describe('.getOriginURL()', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository('repo-with-submodules')
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns the origin URL', async () => {
+      const URL = await repo.getOriginURL()
+      expect(URL).toBe('git@github.com:atom/some-repo-i-guess.git')
+    })
+  })
 })
