@@ -885,8 +885,8 @@ describe('GitRepositoryAsync', () => {
     })
 
     it('returns the origin URL', async () => {
-      const URL = await repo.getOriginURL()
-      expect(URL).toBe('git@github.com:atom/some-repo-i-guess.git')
+      const url = await repo.getOriginURL()
+      expect(url).toBe('git@github.com:atom/some-repo-i-guess.git')
     })
   })
 })
