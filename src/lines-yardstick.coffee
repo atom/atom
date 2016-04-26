@@ -1,5 +1,6 @@
 {Point} = require 'text-buffer'
 {isPairedCharacter} = require './text-utils'
+binarySearch = require 'binary-search-with-index'
 
 module.exports =
 class LinesYardstick
@@ -19,8 +20,8 @@ class LinesYardstick
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
+    return Point(0, 0) if targetTop < 0
     row = @lineTopIndex.rowForPixelPosition(targetTop)
-    targetLeft = 0 if targetTop < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
@@ -32,32 +33,27 @@ class LinesYardstick
     lineOffset = lineNode.getBoundingClientRect().left
     targetLeft += lineOffset
 
-    textNodeStartColumn = 0
-    for textNode in textNodes
-      {length: textNodeLength, textContent: textNodeContent} = textNode
-      textNodeRight = @clientRectForRange(textNode, 0, textNodeLength).right
+    textNodeComparator = (textNode, position) =>
+      {length: textNodeLength} = textNode
+      rangeRect = @clientRectForRange(textNode, 0, textNodeLength)
+      return -1 if rangeRect.right < position
+      return 1 if rangeRect.left > position
+      return 0
 
-      if textNodeRight > targetLeft
-        characterIndex = 0
-        while characterIndex < textNodeLength
-          if isPairedCharacter(textNodeContent, characterIndex)
-            nextCharacterIndex = characterIndex + 2
-          else
-            nextCharacterIndex = characterIndex + 1
+    textNodeIndex = binarySearch(textNodes, targetLeft, textNodeComparator)
 
-          rangeRect = @clientRectForRange(textNode, characterIndex, nextCharacterIndex)
+    if textNodeIndex >= 0
+      textNodeStartColumn = textNodes
+        .slice(0, textNodeIndex)
+        .reduce(((totalLength, node) -> totalLength + node.length), 0)
+      charIndex = @charIndexForScreenPosition(textNodes[textNodeIndex], targetLeft)
 
-          if rangeRect.right > targetLeft
-            if targetLeft <= ((rangeRect.left + rangeRect.right) / 2)
-              return Point(row, textNodeStartColumn + characterIndex)
-            else
-              return Point(row, textNodeStartColumn + nextCharacterIndex)
-          else
-            characterIndex = nextCharacterIndex
+      return Point(row, textNodeStartColumn + charIndex)
 
-      textNodeStartColumn += textNodeLength
+    textNodeStartColumn = textNodes
+      .reduce(((totalLength, node) -> totalLength + node.length), 0)
 
-    Point(row, textNodeStartColumn)
+    return Point(row, textNodeStartColumn)
 
   pixelPositionForScreenPosition: (screenPosition) ->
     targetRow = screenPosition.row
@@ -107,3 +103,22 @@ class LinesYardstick
     @rangeForMeasurement.setStart(textNode, startIndex)
     @rangeForMeasurement.setEnd(textNode, endIndex)
     @rangeForMeasurement.getClientRects()[0] ? @rangeForMeasurement.getBoundingClientRect()
+
+  charIndexForScreenPosition: (textNode, targetLeft) ->
+    {textContent: textNodeContent} = textNode
+    rangeRect = null
+    nextCharIndex = -1
+    characterComparator = (char, position, charIndex) =>
+      if isPairedCharacter(textNodeContent, charIndex)
+        nextCharIndex = charIndex + 2
+      else
+        nextCharIndex = charIndex + 1
+      rangeRect = @clientRectForRange(textNode, charIndex, nextCharIndex)
+      return -1 if rangeRect.right < position
+      return 1 if rangeRect.left > position
+      return 0
+
+    characterIndex = binarySearch(textNodeContent, targetLeft, characterComparator)
+    if targetLeft <= ((rangeRect.left + rangeRect.right) / 2)
+      return characterIndex
+    return nextCharIndex
