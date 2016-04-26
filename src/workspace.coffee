@@ -573,7 +573,7 @@ class Workspace extends Model
   buildTextEditor: (params) ->
     params = _.extend({
       @config, @clipboard, @grammarRegistry,
-      @project, @assert, @applicationDelegate
+      @assert, @applicationDelegate
     }, params)
     new TextEditor(params)
 
@@ -1087,3 +1087,22 @@ class Workspace extends Model
 
       inProcessFinished = true
       checkFinished()
+
+  checkoutHeadRevision: (editor) ->
+    if editor.getPath()
+      checkoutHead = =>
+        @project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+          .then (repository) =>
+            repository?.async.checkoutHeadForEditor(editor)
+
+      if @config.get('editor.confirmCheckoutHeadRevision')
+        @applicationDelegate.confirm
+          message: 'Confirm Checkout HEAD Revision'
+          detailedMessage: "Are you sure you want to discard all changes to \"#{editor.getFileName()}\" since the last Git commit?"
+          buttons:
+            OK: checkoutHead
+            Cancel: null
+      else
+        checkoutHead()
+    else
+      Promise.resolve(false)

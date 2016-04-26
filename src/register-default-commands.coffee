@@ -204,7 +204,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:newline-below': -> @insertNewlineBelow()
     'editor:newline-above': -> @insertNewlineAbove()
     'editor:toggle-line-comments': -> @toggleLineCommentsInSelection()
-    'editor:checkout-head-revision': -> @checkoutHeadRevision()
+    'editor:checkout-head-revision': -> atom.workspace.checkoutHeadRevision(this)
     'editor:move-line-up': -> @moveLineUp()
     'editor:move-line-down': -> @moveLineDown()
     'editor:move-selection-left': -> @moveSelectionLeft()
