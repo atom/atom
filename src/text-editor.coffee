@@ -9,7 +9,6 @@ Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
-{Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
 TextEditorElement = require './text-editor-element'
 
