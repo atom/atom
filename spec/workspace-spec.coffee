@@ -1617,5 +1617,21 @@ describe "Workspace", ->
       runs ->
         expect(pane.getPendingItem()).toBeFalsy()
 
+  describe "grammar activation", ->
+    beforeEach ->
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+    it "notifies the workspace of which grammar is used", ->
+      editor = null
+
+      grammarUsed = jasmine.createSpy()
+      atom.workspace.handleGrammarUsed = grammarUsed
+
+      waitsForPromise -> atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
+      waitsFor -> grammarUsed.callCount is 1
+      runs ->
+        expect(grammarUsed.argsForCall[0][0].name).toBe 'JavaScript'
+
   escapeStringRegex = (str) ->
     str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')

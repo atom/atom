@@ -79,7 +79,6 @@ class TextEditor extends Model
     state.displayBuffer = displayBuffer
     state.selectionsMarkerLayer = displayBuffer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
-    state.packageManager = atomEnvironment.packages
     state.clipboard = atomEnvironment.clipboard
     state.viewRegistry = atomEnvironment.views
     state.grammarRegistry = atomEnvironment.grammars
@@ -99,12 +98,11 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       softWrapped, @displayBuffer, @selectionsMarkerLayer, buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, largeFileMode, @config,
-      @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
+      @clipboard, @viewRegistry, @grammarRegistry,
       @project, @assert, @applicationDelegate, grammar, showInvisibles, @autoHeight, @scrollPastEnd
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
-    throw new Error("Must pass a packageManager parameter when constructing TextEditors") unless @packageManager?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
@@ -127,7 +125,7 @@ class TextEditor extends Model
     buffer ?= new TextBuffer
     @displayBuffer ?= new DisplayBuffer({
       buffer, tabLength, softWrapped, ignoreInvisibles: @mini or not showInvisibles, largeFileMode,
-      @config, @assert, @grammarRegistry, @packageManager
+      @config, @assert, @grammarRegistry
     })
     @buffer = @displayBuffer.buffer
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true)
@@ -518,7 +516,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, displayBuffer, selectionsMarkerLayer, @tabLength, softTabs,
-      suppressCursorCreation: true, @config, @packageManager,
+      suppressCursorCreation: true, @config,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate
     })
