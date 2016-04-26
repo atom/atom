@@ -557,6 +557,8 @@ class Workspace extends Model
       editor
 
   handleGrammarUsed: (grammar) ->
+    return unless grammar?
+
     @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
 
   # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
