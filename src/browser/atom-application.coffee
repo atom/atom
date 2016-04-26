@@ -58,6 +58,7 @@ class AtomApplication
   resourcePath: null
   version: null
   quitting: false
+  lastFilePathOpened: null
 
   exit: (status) -> app.exit(status)
 
@@ -655,6 +656,7 @@ class AtomApplication
   #   :window - An {AtomWindow} to use for opening a selected file path.
   promptForPathToOpen: (type, {devMode, safeMode, window}) ->
     @promptForPath type, (pathsToOpen) =>
+      @lastFilePathOpened = pathsToOpen[0] if pathsToOpen.length > 0
       @openPaths({pathsToOpen, devMode, safeMode, window})
 
   promptForPath: (type, callback) ->
@@ -680,8 +682,8 @@ class AtomApplication
         when 'folder' then 'Open Folder'
         else 'Open'
 
-    if process.platform is 'linux'
-      if projectPath = @lastFocusedWindow?.projectPath
-        openOptions.defaultPath = projectPath
+    # If a file was previously opened, set default path to open there again.
+    if @lastFilePathOpened? and type is 'file'
+      openOptions.defaultPath = @lastFilePathOpened
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)
