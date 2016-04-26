@@ -27,6 +27,7 @@ IF "%EXPECT_OUTPUT%"=="YES" (
   SET ELECTRON_ENABLE_LOGGING=YES
   IF "%WAIT%"=="YES" (
     powershell -noexit "Start-Process -FilePath \"%~dp0\..\..\atom.exe\" -ArgumentList \"--pid=$pid $env:PSARGS\" ; wait-event"
+    exit 0
   ) ELSE (
     "%~dp0\..\..\atom.exe" %*
   )
