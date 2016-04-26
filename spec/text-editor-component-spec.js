@@ -1053,7 +1053,7 @@ describe('TextEditorComponent', function () {
           beforeEach(async function () {
             editor.setSoftWrapped(true)
             await nextViewUpdatePromise()
-            componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+            componentNode.style.width = 20 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
             component.measureDimensions()
             await nextViewUpdatePromise()
           })
@@ -1061,6 +1061,14 @@ describe('TextEditorComponent', function () {
           it('does not add the foldable class for soft-wrapped lines', function () {
             expect(lineNumberHasClass(0, 'foldable')).toBe(true)
             expect(lineNumberHasClass(1, 'foldable')).toBe(false)
+          })
+
+          it('does not add the folded class for soft-wrapped lines that contain a fold', async function () {
+            editor.foldBufferRange([[3, 19], [3, 21]])
+            await nextViewUpdatePromise()
+
+            expect(lineNumberHasClass(11, 'folded')).toBe(true)
+            expect(lineNumberHasClass(12, 'folded')).toBe(false)
           })
         })
       })

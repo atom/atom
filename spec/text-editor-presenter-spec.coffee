@@ -3116,6 +3116,16 @@ describe "TextEditorPresenter", ->
                   expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
                   expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
 
+              it "applies the 'folded' decoration only to the initial screen row of a soft-wrapped buffer row", ->
+                editor.setSoftWrapped(true)
+                editor.setDefaultCharWidth(1)
+                editor.setEditorWidthInChars(15)
+                editor.foldBufferRange([[0, 20], [0, 22]])
+                presenter = buildPresenter(explicitHeight: 35, scrollTop: 0, tileSize: 2)
+
+                expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'folded'
+                expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+
             describe ".foldable", ->
               it "marks line numbers at the start of a foldable region as foldable", ->
                 presenter = buildPresenter()
