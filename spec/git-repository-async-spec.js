@@ -889,4 +889,22 @@ describe('GitRepositoryAsync', () => {
       expect(url).toBe('git@github.com:atom/some-repo-i-guess.git')
     })
   })
+
+  describe('.getUpstreamBranch()', () => {
+    it('returns null when there is no upstream branch', async () => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+
+      const upstream = await repo.getUpstreamBranch()
+      expect(upstream).toBe(null)
+    })
+
+    it('returns the upstream branch', async () => {
+      const workingDirectory = copyRepository('repo-with-submodules')
+      repo = GitRepositoryAsync.open(workingDirectory)
+
+      const upstream = await repo.getUpstreamBranch()
+      expect(upstream).toBe('refs/remotes/origin/master')
+    })
+  })
 })
