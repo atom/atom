@@ -128,14 +128,6 @@ class TokenizedBuffer extends Model
 
     @emitter.emit 'did-change-grammar', grammar
 
-    # Delay this to the next tick to ensure whoever created the buffer has the
-    # chance to listen for this event before we send it.
-    process.nextTick =>
-      @emitter.emit 'did-use-grammar', grammar
-
-  onDidUseGrammar: (callback) ->
-    @emitter.on 'did-use-grammar', callback
-
   getGrammarSelectionContent: ->
     @buffer.getTextInRange([[0, 0], [10, 0]])
 

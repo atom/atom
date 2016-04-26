@@ -316,9 +316,6 @@ class TextEditor extends Model
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
-  onDidUseGrammar: (callback) ->
-    @displayBuffer.onDidUseGrammar(callback)
-
   # Extended: Calls your `callback` when the result of {::isModified} changes.
   #
   # * `callback` {Function}
