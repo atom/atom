@@ -1,10 +1,12 @@
 {Point} = require 'text-buffer'
+{isEqual} = require 'underscore-plus'
 
 module.exports =
 class TokenizedBufferIterator
   constructor: (@tokenizedBuffer, @grammarRegistry) ->
     @openTags = null
     @closeTags = null
+    @containingTags = null
 
   seek: (position) ->
     @openTags = []
@@ -12,9 +14,10 @@ class TokenizedBufferIterator
     @tagIndex = null
 
     currentLine = @tokenizedBuffer.tokenizedLineForRow(position.row)
-    containingTags = currentLine.openScopes.map (id) => @grammarRegistry.scopeForId(id)
     @currentTags = currentLine.tags
+    @currentLineOpenTags = currentLine.openScopes
     @currentLineLength = currentLine.text.length
+    @containingTags = @currentLineOpenTags.map (id) => @grammarRegistry.scopeForId(id)
     currentColumn = 0
     for tag, index in @currentTags
       if tag >= 0
@@ -23,8 +26,8 @@ class TokenizedBufferIterator
           break
         else
           currentColumn += tag
-          containingTags.pop() while @closeTags.shift()
-          containingTags.push(tag) while tag = @openTags.shift()
+          @containingTags.pop() while @closeTags.shift()
+          @containingTags.push(tag) while tag = @openTags.shift()
       else
         scopeName = @grammarRegistry.scopeForId(tag)
         if tag % 2 is 0
@@ -38,9 +41,11 @@ class TokenizedBufferIterator
 
     @tagIndex ?= @currentTags.length
     @position = Point(position.row, Math.min(@currentLineLength, currentColumn))
-    containingTags
+    @containingTags.slice()
 
   moveToSuccessor: ->
+    @containingTags.pop() for tag in @closeTags
+    @containingTags.push(tag) for tag in @openTags
     @openTags = []
     @closeTags = []
 
@@ -49,7 +54,16 @@ class TokenizedBufferIterator
         if @isAtTagBoundary()
           break
         else
-          return false unless @moveToNextLine()
+          if @shouldMoveToNextLine
+            @moveToNextLine()
+            @openTags = @currentLineOpenTags.map (id) => @grammarRegistry.scopeForId(id)
+            @shouldMoveToNextLine = false
+          else if @hasNextLine() and not isEqual(@containingTags, @nextLineOpeningScopes())
+            @closeTags = @containingTags.slice().reverse()
+            @containingTags = []
+            @shouldMoveToNextLine = true
+          else
+            return false unless @moveToNextLine()
       else
         tag = @currentTags[@tagIndex]
         if tag >= 0
@@ -70,16 +84,6 @@ class TokenizedBufferIterator
 
     true
 
-  # Private
-  moveToNextLine: ->
-    @position = Point(@position.row + 1, 0)
-    tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(@position.row)
-    return false unless tokenizedLine?
-    @currentTags = tokenizedLine.tags
-    @currentLineLength = tokenizedLine.text.length
-    @tagIndex = 0
-    true
-
   getPosition: ->
     @position
 
@@ -88,6 +92,28 @@ class TokenizedBufferIterator
 
   getOpenTags: ->
     @openTags.slice()
+
+  ###
+  Section: Private Methods
+  ###
+
+  hasNextLine: ->
+    @tokenizedBuffer.tokenizedLineForRow(@position.row + 1)?
+
+  nextLineOpeningScopes: ->
+    line = @tokenizedBuffer.tokenizedLineForRow(@position.row + 1)
+    line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
+
+  moveToNextLine: ->
+    @position = Point(@position.row + 1, 0)
+    if tokenizedLine = @tokenizedBuffer.tokenizedLineForRow(@position.row)
+      @currentTags = tokenizedLine.tags
+      @currentLineLength = tokenizedLine.text.length
+      @currentLineOpenTags = tokenizedLine.openScopes
+      @tagIndex = 0
+      true
+    else
+      false
 
   isAtTagBoundary: ->
     @closeTags.length > 0 or @openTags.length > 0
