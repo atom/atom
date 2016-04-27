@@ -166,12 +166,10 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
-    @async.onDidChangeStatuses ->
-      # Defer the callback to the next tick so that we've reset
-      # `@statusesByPath` by the time it's called. Otherwise reads from within
-      # the callback could be inconsistent.
-      # See https://github.com/atom/atom/issues/11396
-      process.nextTick callback
+    @async.onDidChangeStatuses =>
+      @branch = @async?.branch
+      @statusesByPath = {}
+      callback()
 
   ###
   Section: Repository Details
@@ -369,10 +367,7 @@ class GitRepository
     @getCachedRelativePathStatus(relativePath)
 
   getCachedRelativePathStatus: (relativePath) ->
-    cachedStatus = @statusesByPath[relativePath]
-    return cachedStatus if cachedStatus?
-
-    @async.getCachedPathStatuses()[relativePath]
+    @statusesByPath[relativePath] ? @async.getCachedPathStatuses()[relativePath]
 
   # Public: Returns true if the given status indicates modification.
   #
@@ -499,10 +494,7 @@ class GitRepository
   #
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
-    asyncRefresh = @async.refreshStatus().then =>
-      @statusesByPath = {}
-      @branch = @async?.branch
-
+    asyncRefresh = @async.refreshStatus()
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
 
