@@ -34,7 +34,7 @@ git clone https://github.com/atom/atom/
 cd atom
 script/build
 ```
-This will create the Atom application in the `out\Atom` folder as well as copy it to a folder named `Atom` within `Program Files`.
+This will create the Atom application in the `out\Atom` folder as well as copy it to a subfolder of your user profile (e.g. `c:\Users\Bob`) called `AppData\Local\atom\app-dev`.
 
 ### `script/build` Options
   * `--install-dir` - Creates the final built application in this directory. Example (trailing slash is optional):

@@ -16,10 +16,22 @@ module.exports = (grunt) ->
     {description} = grunt.config.get('atom.metadata')
 
     if process.platform is 'win32'
-      runas ?= require 'runas'
-      copyFolder = path.resolve 'script', 'copy-folder.cmd'
-      if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: true) isnt 0
-        grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
+      done = @async()
+      fs.access(installDir, fs.W_OK, (err) ->
+        adminRequired = true if err
+        if adminRequired
+          grunt.log.ok("User does not have write access to #{installDir}, elevating to admin")
+        runas ?= require 'runas'
+        copyFolder = path.resolve 'script', 'copy-folder.cmd'
+
+        if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: adminRequired) isnt 0
+          grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
+        else
+          grunt.log.ok("Installed into #{installDir}")
+
+        done()
+      )
+
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)
