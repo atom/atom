@@ -381,6 +381,7 @@ class TokenizedBuffer extends Model
                 filePath: @buffer.getPath()
                 fileContents: @buffer.getText()
               }
+            break
     scopes
 
   indentLevelForRow: (bufferRow) ->
