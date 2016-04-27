@@ -14,7 +14,7 @@
     "escope": "~3.3.0",
     "formidable": "~1.0.14",
     "fs-plus": "2.x",
-    "github-releases": "~0.3.1",
+    "github-releases": "~0.3.2",
     "glob": "^5.0.14",
     "grunt": "~0.4.1",
     "grunt-babel": "^5.0.1",
