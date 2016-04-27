@@ -31,11 +31,13 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'application:unhide-all-applications': -> ipcRenderer.send('command', 'application:unhide-all-applications')
     'application:new-window': -> ipcRenderer.send('command', 'application:new-window')
     'application:new-file': -> ipcRenderer.send('command', 'application:new-file')
-    'application:open': -> ipcRenderer.send('command', 'application:open')
-    'application:open-file': -> ipcRenderer.send('command', 'application:open-file')
-    'application:open-folder': -> ipcRenderer.send('command', 'application:open-folder')
-    'application:open-dev': -> ipcRenderer.send('command', 'application:open-dev')
-    'application:open-safe': -> ipcRenderer.send('command', 'application:open-safe')
+    'application:open': -> ipcRenderer.send('open-command', 'application:open')
+    'application:open-file': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open-file', defaultPath)
+    'application:open-folder': -> ipcRenderer.send('open-command', 'application:open-folder')
+    'application:open-dev': -> ipcRenderer.send('open-command', 'application:open-dev')
+    'application:open-safe': -> ipcRenderer.send('open-command', 'application:open-safe')
     'application:add-project-folder': -> atom.addProjectFolder()
     'application:minimize': -> ipcRenderer.send('command', 'application:minimize')
     'application:zoom': -> ipcRenderer.send('command', 'application:zoom')
