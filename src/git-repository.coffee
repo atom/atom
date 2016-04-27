@@ -166,10 +166,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
-    @async.onDidChangeStatuses =>
-      @branch = @async?.branch
-      @statusesByPath = {}
-      callback()
+    @emitter.on 'did-change-statuses', callback
 
   ###
   Section: Repository Details
@@ -494,7 +491,23 @@ class GitRepository
   #
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
-    asyncRefresh = @async.refreshStatus()
+    statusesChanged = false
+    subscription = @async.onDidChangeStatuses ->
+      subscription?.dispose()
+      subscription = null
+
+      statusesChanged = true
+
+    asyncRefresh = @async.refreshStatus().then =>
+      subscription?.dispose()
+      subscription = null
+
+      @branch = @async?.branch
+      @statusesByPath = {}
+
+      if statusesChanged
+        @emitter.emit 'did-change-statuses'
+
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
 
