@@ -10,7 +10,6 @@ Cursor = require './cursor'
 Model = require './model'
 Selection = require './selection'
 TextMateScopeSelector = require('first-mate').ScopeSelector
-{Directory} = require "pathwatcher"
 GutterContainer = require './gutter-container'
 TextEditorElement = require './text-editor-element'
 {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require './text-utils'
@@ -108,13 +107,9 @@ class TextEditor extends Model
     state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId) ? state.buffer.addDisplayLayer()
     state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.config = atomEnvironment.config
-    state.packageManager = atomEnvironment.packages
     state.clipboard = atomEnvironment.clipboard
-    state.viewRegistry = atomEnvironment.views
     state.grammarRegistry = atomEnvironment.grammars
-    state.project = atomEnvironment.project
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
-    state.applicationDelegate = atomEnvironment.applicationDelegate
     editor = new this(state)
     if state.registered
       disposable = atomEnvironment.textEditors.add(editor)
@@ -127,18 +122,14 @@ class TextEditor extends Model
     {
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config,
-      @packageManager, @clipboard, @viewRegistry, @grammarRegistry,
-      @project, @assert, @applicationDelegate, grammar, @showInvisibles, @autoHeight, @scrollPastEnd,
-      @editorWidthInChars, @tokenizedBuffer, @ignoreInvisibles, @displayLayer
+      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config, @clipboard, @grammarRegistry,
+      @assert, @applicationDelegate, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
+      @tokenizedBuffer, @ignoreInvisibles, @displayLayer
     } = params
 
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
-    throw new Error("Must pass a packageManager parameter when constructing TextEditors") unless @packageManager?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
-    throw new Error("Must pass a viewRegistry parameter when constructing TextEditors") unless @viewRegistry?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
-    throw new Error("Must pass a project parameter when constructing TextEditors") unless @project?
     throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
     @firstVisibleScreenRow ?= 0
@@ -156,8 +147,7 @@ class TextEditor extends Model
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
-      @tabLength, @buffer, @largeFileMode, @config,
-      @grammarRegistry, @packageManager, @assert
+      @tabLength, @buffer, @largeFileMode, @config, @grammarRegistry, @assert
     })
     @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
@@ -217,8 +207,6 @@ class TextEditor extends Model
   subscribeToBuffer: ->
     @buffer.retain()
     @disposables.add @buffer.onDidChangePath =>
-      unless @project.getPaths().length > 0
-        @project.setPaths([path.dirname(@getPath())])
       @emitter.emit 'did-change-title', @getTitle()
       @emitter.emit 'did-change-path', @getPath()
     @disposables.add @buffer.onDidChangeEncoding =>
@@ -559,12 +547,12 @@ class TextEditor extends Model
   onDidChangeScrollTop: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.")
 
-    @viewRegistry.getView(this).onDidChangeScrollTop(callback)
+    @getElement().onDidChangeScrollTop(callback)
 
   onDidChangeScrollLeft: (callback) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.")
 
-    @viewRegistry.getView(this).onDidChangeScrollLeft(callback)
+    @getElement().onDidChangeScrollLeft(callback)
 
   onDidRequestAutoscroll: (callback) ->
     @emitter.on 'did-request-autoscroll', callback
@@ -589,10 +577,9 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, selectionsMarkerLayer, @tabLength, softTabs,
-      suppressCursorCreation: true, @config, @packageManager,
+      suppressCursorCreation: true, @config,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @viewRegistry, @grammarRegistry, @project, @assert, @applicationDelegate,
-      displayLayer
+      @clipboard, @grammarRegistry, @assert, displayLayer
     })
     newEditor
 
@@ -791,25 +778,6 @@ class TextEditor extends Model
   # Returns an {Object} to configure dialog shown when this editor is saved
   # via {Pane::saveItemAs}.
   getSaveDialogOptions: -> {}
-
-  checkoutHeadRevision: ->
-    if @getPath()
-      checkoutHead = =>
-        @project.repositoryForDirectory(new Directory(@getDirectoryPath()))
-          .then (repository) =>
-            repository?.async.checkoutHeadForEditor(this)
-
-      if @config.get('editor.confirmCheckoutHeadRevision')
-        @applicationDelegate.confirm
-          message: 'Confirm Checkout HEAD Revision'
-          detailedMessage: "Are you sure you want to discard all changes to \"#{@getFileName()}\" since the last Git commit?"
-          buttons:
-            OK: checkoutHead
-            Cancel: null
-      else
-        checkoutHead()
-    else
-      Promise.resolve(false)
 
   ###
   Section: Reading Text
@@ -3304,12 +3272,12 @@ class TextEditor extends Model
   scrollToTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-    @viewRegistry.getView(this).scrollToTop()
+    @getElement().scrollToTop()
 
   scrollToBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::scrollToTop instead.")
 
-    @viewRegistry.getView(this).scrollToBottom()
+    @getElement().scrollToBottom()
 
   scrollToScreenRange: (screenRange, options = {}) ->
     scrollEvent = {screenRange, options}
@@ -3318,12 +3286,12 @@ class TextEditor extends Model
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
-    @viewRegistry.getView(this).getHorizontalScrollbarHeight()
+    @getElement().getHorizontalScrollbarHeight()
 
   getVerticalScrollbarWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.")
 
-    @viewRegistry.getView(this).getVerticalScrollbarWidth()
+    @getElement().getVerticalScrollbarWidth()
 
   pageUp: ->
     @moveUp(@getRowsPerPage())
@@ -3390,11 +3358,11 @@ class TextEditor extends Model
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
-    @viewRegistry.getView(this).pixelPositionForBufferPosition(bufferPosition)
+    @getElement().pixelPositionForBufferPosition(bufferPosition)
 
   pixelPositionForScreenPosition: (screenPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead")
-    @viewRegistry.getView(this).pixelPositionForScreenPosition(screenPosition)
+    @getElement().pixelPositionForScreenPosition(screenPosition)
 
   getVerticalScrollMargin: ->
     maxScrollMargin = Math.floor(((@height / @getLineHeightInPixels()) - 1) / 2)
@@ -3440,7 +3408,7 @@ class TextEditor extends Model
       @height = height
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setHeight instead.")
-      @viewRegistry.getView(this).setHeight(height)
+      @getElement().setHeight(height)
 
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
@@ -3454,7 +3422,7 @@ class TextEditor extends Model
       @width
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
-      @viewRegistry.getView(this).setWidth(width)
+      @getElement().setWidth(width)
 
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
@@ -3494,77 +3462,77 @@ class TextEditor extends Model
   getScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollTop instead.")
 
-    @viewRegistry.getView(this).getScrollTop()
+    @getElement().getScrollTop()
 
   setScrollTop: (scrollTop) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollTop instead.")
 
-    @viewRegistry.getView(this).setScrollTop(scrollTop)
+    @getElement().setScrollTop(scrollTop)
 
   getScrollBottom: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollBottom instead.")
 
-    @viewRegistry.getView(this).getScrollBottom()
+    @getElement().getScrollBottom()
 
   setScrollBottom: (scrollBottom) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollBottom instead.")
 
-    @viewRegistry.getView(this).setScrollBottom(scrollBottom)
+    @getElement().setScrollBottom(scrollBottom)
 
   getScrollLeft: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollLeft instead.")
 
-    @viewRegistry.getView(this).getScrollLeft()
+    @getElement().getScrollLeft()
 
   setScrollLeft: (scrollLeft) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollLeft instead.")
 
-    @viewRegistry.getView(this).setScrollLeft(scrollLeft)
+    @getElement().setScrollLeft(scrollLeft)
 
   getScrollRight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollRight instead.")
 
-    @viewRegistry.getView(this).getScrollRight()
+    @getElement().getScrollRight()
 
   setScrollRight: (scrollRight) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::setScrollRight instead.")
 
-    @viewRegistry.getView(this).setScrollRight(scrollRight)
+    @getElement().setScrollRight(scrollRight)
 
   getScrollHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollHeight instead.")
 
-    @viewRegistry.getView(this).getScrollHeight()
+    @getElement().getScrollHeight()
 
   getScrollWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getScrollWidth instead.")
 
-    @viewRegistry.getView(this).getScrollWidth()
+    @getElement().getScrollWidth()
 
   getMaxScrollTop: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getMaxScrollTop instead.")
 
-    @viewRegistry.getView(this).getMaxScrollTop()
+    @getElement().getMaxScrollTop()
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.")
 
-    @viewRegistry.getView(this).intersectsVisibleRowRange(startRow, endRow)
+    @getElement().intersectsVisibleRowRange(startRow, endRow)
 
   selectionIntersectsVisibleRowRange: (selection) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.")
 
-    @viewRegistry.getView(this).selectionIntersectsVisibleRowRange(selection)
+    @getElement().selectionIntersectsVisibleRowRange(selection)
 
   screenPositionForPixelPosition: (pixelPosition) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.")
 
-    @viewRegistry.getView(this).screenPositionForPixelPosition(pixelPosition)
+    @getElement().screenPositionForPixelPosition(pixelPosition)
 
   pixelRectForScreenRange: (screenRange) ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.")
 
-    @viewRegistry.getView(this).pixelRectForScreenRange(screenRange)
+    @getElement().pixelRectForScreenRange(screenRange)
 
   ###
   Section: Utility
