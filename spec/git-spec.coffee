@@ -295,7 +295,12 @@ describe "GitRepository", ->
       repo.getPathStatus('file.txt')
 
       fs.writeFileSync(modifiedPath, originalContent)
-      waitsForPromise -> repo.refreshStatus()
+
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses statusHandler
+      repo.refreshStatus()
+
+      waitsFor -> statusHandler.callCount > 0
       runs ->
         expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeFalsy()
 
