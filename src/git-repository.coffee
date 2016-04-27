@@ -369,7 +369,10 @@ class GitRepository
     @getCachedRelativePathStatus(relativePath)
 
   getCachedRelativePathStatus: (relativePath) ->
-    @statusesByPath[relativePath] ? @async.getCachedPathStatuses()[relativePath]
+    cachedStatus = @statusesByPath[relativePath]
+    return cachedStatus if cachedStatus?
+
+    @async.getCachedPathStatuses()[relativePath]
 
   # Public: Returns true if the given status indicates modification.
   #
