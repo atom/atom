@@ -55,6 +55,14 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
+  describe('openedPath', () => {
+    it('is the path passed to .open', () => {
+      const workingDirPath = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirPath)
+      expect(repo.openedPath).toBe(workingDirPath)
+    })
+  })
+
   describe('.getRepo()', () => {
     beforeEach(() => {
       const workingDirectory = copySubmoduleRepository()
