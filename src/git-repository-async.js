@@ -50,6 +50,10 @@ export default class GitRepositoryAsync {
     return this.repo._refreshingPromise
   }
 
+  get openedPath () {
+    return this.repo.openedPath
+  }
+
   // Public: Destroy this {GitRepositoryAsync} object.
   //
   // This destroys any tasks and subscriptions and releases the underlying
