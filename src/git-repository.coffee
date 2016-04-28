@@ -492,6 +492,11 @@ class GitRepository
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
     statusesChanged = false
+
+    # Listen for `did-change-statuses` so we know if something changed. But we
+    # need to wait to propagate it until after we've set the branch and cleared
+    # the `statusesByPath` cache. So just set a flag, and we'll emit the event
+    # after refresh is done.
     subscription = @async.onDidChangeStatuses ->
       subscription?.dispose()
       subscription = null
