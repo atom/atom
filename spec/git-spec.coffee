@@ -289,6 +289,16 @@ describe "GitRepository", ->
         expect(repo.isStatusModified(status)).toBe true
         expect(repo.isStatusNew(status)).toBe false
 
+    it 'caches statuses that were looked up synchronously', ->
+      originalContent = 'undefined'
+      fs.writeFileSync(modifiedPath, 'making this path modified')
+      repo.getPathStatus('file.txt')
+
+      fs.writeFileSync(modifiedPath, originalContent)
+      waitsForPromise -> repo.refreshStatus()
+      runs ->
+        expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeFalsy()
+
   describe "buffer events", ->
     [editor] = []
 
