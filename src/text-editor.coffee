@@ -669,12 +669,6 @@ class TextEditor extends Model
   # Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty: -> @buffer.isEmpty()
 
-  # Copies the current file path to the native clipboard.
-  copyPathToClipboard: (relative = false) ->
-    if filePath = @getPath()
-      filePath = atom.project.relativize(filePath) if relative
-      @clipboard.write(filePath)
-
   ###
   Section: File Operations
   ###
