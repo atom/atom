@@ -1249,6 +1249,17 @@ describe('TextEditorComponent', function () {
       expect(cursorRect.width).toBeCloseTo(rangeRect.width, 0)
     })
 
+    it('positions cursors after the fold-marker when a fold ends the line', async function () {
+      editor.foldBufferRow(0)
+      await nextViewUpdatePromise()
+      editor.setCursorScreenPosition([0, 30])
+      await nextViewUpdatePromise()
+
+      let cursorRect = componentNode.querySelector('.cursor').getBoundingClientRect()
+      let foldMarkerRect = componentNode.querySelector('.fold-marker').getBoundingClientRect()
+      expect(cursorRect.left).toBeCloseTo(foldMarkerRect.right, 0)
+    })
+
     it('positions cursors correctly after character widths are changed via a stylesheet change', async function () {
       atom.config.set('editor.fontFamily', 'sans-serif')
       editor.setCursorScreenPosition([0, 16])

@@ -4,6 +4,7 @@ HighlightsComponent = require './highlights-component'
 AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
 TokenTextEscapeRegex = /[&"'<>]/g
 MaxTokenLength = 20000
+ZERO_WIDTH_NBSP = '\ufeff'
 
 cloneObject = (object) ->
   clone = {}
@@ -222,6 +223,15 @@ class LinesTileComponent
 
     if startIndex is 0
       textNode = @domElementPool.buildText(' ')
+      lineNode.appendChild(textNode)
+      textNodes.push(textNode)
+
+    if lineText.endsWith(@presenter.displayLayer.foldCharacter)
+      # Insert a zero-width non-breaking whitespace, so that
+      # LinesYardstick can take the fold-marker::after pseudo-element
+      # into account during measurements when such marker is the last
+      # character on the line.
+      textNode = @domElementPool.buildText(ZERO_WIDTH_NBSP)
       lineNode.appendChild(textNode)
       textNodes.push(textNode)
 
