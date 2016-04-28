@@ -16,9 +16,9 @@ describe "BufferedProcess", ->
       describe "when an error event is emitted by the process", ->
         it "calls the error handler and does not throw an exception", ->
           process = new BufferedProcess
-            command: 'bad-command-nope'
+            command: 'bad-command-nope1'
             args: ['nothing']
-            options: {}
+            options: {shell: false}
 
           errorSpy = jasmine.createSpy().andCallFake (error) -> error.handle()
           process.onWillThrowError(errorSpy)
@@ -28,7 +28,7 @@ describe "BufferedProcess", ->
           runs ->
             expect(window.onerror).not.toHaveBeenCalled()
             expect(errorSpy).toHaveBeenCalled()
-            expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'spawn bad-command-nope ENOENT'
+            expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'spawn bad-command-nope1 ENOENT'
 
       describe "when an error is thrown spawning the process", ->
         it "calls the error handler and does not throw an exception", ->
@@ -53,17 +53,17 @@ describe "BufferedProcess", ->
             expect(errorSpy.mostRecentCall.args[0].error.message).toContain 'Something is really wrong'
 
     describe "when there is not an error handler specified", ->
-      it "calls the error handler and does not throw an exception", ->
+      it "does throw an exception", ->
         process = new BufferedProcess
-          command: 'bad-command-nope'
+          command: 'bad-command-nope2'
           args: ['nothing']
-          options: {}
+          options: {shell: false}
 
         waitsFor -> window.onerror.callCount > 0
 
         runs ->
           expect(window.onerror).toHaveBeenCalled()
-          expect(window.onerror.mostRecentCall.args[0]).toContain 'Failed to spawn command `bad-command-nope`'
+          expect(window.onerror.mostRecentCall.args[0]).toContain 'Failed to spawn command `bad-command-nope2`'
           expect(window.onerror.mostRecentCall.args[4].name).toBe 'BufferedProcessError'
 
   describe "on Windows", ->
@@ -72,13 +72,7 @@ describe "BufferedProcess", ->
     beforeEach ->
       # Prevent any commands from actually running and affecting the host
       originalSpawn = ChildProcess.spawn
-      spyOn(ChildProcess, 'spawn').andCallFake ->
-        # Just spawn something that won't actually modify the host
-        if originalPlatform is 'win32'
-          originalSpawn('dir')
-        else
-          originalSpawn('ls')
-
+      spyOn(ChildProcess, 'spawn')
       originalPlatform = process.platform
       Object.defineProperty process, 'platform', value: 'win32'
 
@@ -117,6 +111,7 @@ describe "BufferedProcess", ->
       expect(stdout).toEqual ''
 
   it "calls the specified stdout callback only with whole lines", ->
+    # WINSPEC: Fails because command is too long, /bin/echo is *nix only, odd newlining and quoting
     exitCallback = jasmine.createSpy('exit callback')
     baseContent = "There are dozens of us! Dozens! It's as Ann as the nose on Plain's face. Can you believe that the only reason the club is going under is because it's in a terrifying neighborhood? She calls it a Mayonegg. Waiting for the Emmys. BTW did you know won 6 Emmys and was still canceled early by Fox? COME ON. I'll buy you a hundred George Michaels that you can teach to drive! Never once touched my per diem. I'd go to Craft Service, get some raw veggies, bacon, Cup-A-Soup…baby, I got a stew goin'"
     content = (baseContent for _ in [1..200]).join('\n')
