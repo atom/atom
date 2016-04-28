@@ -881,7 +881,7 @@ describe "Workspace", ->
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = workspace2.getActivePaneItem()
         pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
-        expect(document.title).toMatch ///^#{item.getLongTitle(atom.workspace.getTextEditors())}\ \u2014\ #{pathEscaped}///
+        expect(document.title).toMatch ///^#{item.getLongTitle(workspace2.getTextEditors())}\ \u2014\ #{pathEscaped}///
         workspace2.destroy()
 
   describe "document edited status", ->
