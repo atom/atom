@@ -4,6 +4,7 @@ path = require 'path'
 temp = require 'temp'
 SquirrelUpdate = require '../src/browser/squirrel-update'
 Spawner = require '../src/browser/spawner'
+WinPowerShell = require '../src/browser/win-powershell'
 WinRegistry = require '../src/browser/win-registry'
 
 # Run passed callback as Spawner.spawn() would do
@@ -12,7 +13,7 @@ invokeCallback = (callback) ->
   stdout = ''
   callback?(error, stdout)
 
-fdescribe "Windows Squirrel Update", ->
+describe "Windows Squirrel Update", ->
   tempHomeDirectory = null
 
   beforeEach ->
