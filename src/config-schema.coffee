@@ -22,7 +22,7 @@ module.exports =
         type: 'boolean'
         default: false
         title: 'Disable VCS Integration'
-        description: 'Disable all aspects of the VCS integration.'
+        description: 'Disable the VCS integration (tree-view highlighting, line highlighting, branch display in the status bar, file watching, etc.).'
       followSymlinks:
         type: 'boolean'
         default: true
