@@ -100,8 +100,8 @@ class TextEditor extends Model
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
-    throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
+    @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
     @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
