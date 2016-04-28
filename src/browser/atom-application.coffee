@@ -170,6 +170,8 @@ class AtomApplication
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(getLoadSettings())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
+    @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
+    @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
     @on 'application:inspect', ({x, y, atomWindow}) ->
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
@@ -251,12 +253,11 @@ class AtomApplication
       @emit(command)
 
     ipcMain.on 'open-command', (event, command, args...) =>
+      defaultPath = args[0] if args.length > 0
       switch command
         when 'application:open' then @promptForPathToOpen('all', getLoadSettings())
-        when 'application:open-file' then @promptForPathToOpen('file', getLoadSettings(), args[0])
+        when 'application:open-file' then @promptForPathToOpen('file', getLoadSettings(), defaultPath)
         when 'application:open-folder' then @promptForPathToOpen('folder', getLoadSettings())
-        when 'application:open-dev' then @promptForPathToOpen('all', devMode: true)
-        when 'application:open-safe' then @promptForPathToOpen('all', safeMode: true)
         else console.log "Invalid open-command received: " + command
 
     ipcMain.on 'window-command', (event, command, args...) ->
