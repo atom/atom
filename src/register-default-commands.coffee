@@ -1,6 +1,6 @@
 {ipcRenderer} = require 'electron'
 
-module.exports = ({commandRegistry, commandInstaller, config, notificationManager}) ->
+module.exports = ({commandRegistry, commandInstaller, config, notificationManager, project, clipboard}) ->
   commandRegistry.add 'atom-workspace',
     'pane:show-next-recently-used-item': -> @getModel().getActivePane().activateNextRecentlyUsedItem()
     'pane:show-previous-recently-used-item': -> @getModel().getActivePane().activatePreviousRecentlyUsedItem()
@@ -188,8 +188,8 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
     'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
     'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
-    'editor:copy-path': -> @copyPathToClipboard(false)
-    'editor:copy-project-path': -> @copyPathToClipboard(true)
+    'editor:copy-path': -> copyPathToClipboard(this, project, clipboard, false)
+    'editor:copy-project-path': -> copyPathToClipboard(this, project, clipboard, true)
     'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
     'editor:toggle-line-numbers': -> config.set('editor.showLineNumbers', not config.get('editor.showLineNumbers'))
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
@@ -239,3 +239,8 @@ showCursorScope = (descriptor, notificationManager) ->
   content = "Scopes at Cursor\n#{list.join('\n')}"
 
   notificationManager.addInfo(content, dismissable: true)
+
+copyPathToClipboard = (editor, project, clipboard, relative) ->
+  if filePath = editor.getPath()
+    filePath = project.relativize(filePath) if relative
+    clipboard.write(filePath)
