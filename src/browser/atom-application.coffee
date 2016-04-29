@@ -680,8 +680,8 @@ class AtomApplication
         when 'folder' then 'Open Folder'
         else 'Open'
 
-    if process.platform is 'linux'
-      if projectPath = @lastFocusedWindow?.projectPath
-        openOptions.defaultPath = projectPath
+    # Attempt to set the default path on all platforms.
+    if projectPath = @getModel().getActivePane().getActiveItem().path
+      openOptions.defaultPath = projectPath
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)
