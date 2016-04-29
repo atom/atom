@@ -170,3 +170,7 @@ describe "LinesYardstick", ->
         expect(linesYardstick.screenPositionForPixelPosition(top: Infinity, left: Infinity)).toEqual [12, 2]
         expect(linesYardstick.screenPositionForPixelPosition(top: (editor.getLastScreenRow() + 1) * 14, left: 0)).toEqual [12, 2]
         expect(linesYardstick.screenPositionForPixelPosition(top: editor.getLastScreenRow() * 14, left: 0)).toEqual [12, 0]
+
+      it "clips negative horizontal pixel positions", ->
+        expect(linesYardstick.screenPositionForPixelPosition(top: 0, left: -10)).toEqual [0, 0]
+        expect(linesYardstick.screenPositionForPixelPosition(top: 1 * 14, left: -10)).toEqual [1, 0]
