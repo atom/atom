@@ -234,13 +234,14 @@ class AtomEnvironment extends Model
     checkPortableHomeWritable()
 
   attachSaveStateListeners: ->
-    saveState = => @saveState({isUnloading: false}) unless @unloaded
-    debouncedSaveState = _.debounce(saveState, @saveStateDebounceInterval)
-    @document.addEventListener('mousedown', debouncedSaveState, true)
-    @document.addEventListener('keydown', debouncedSaveState, true)
+    saveState = _.debounce((=>
+      window.requestIdleCallback => @saveState({isUnloading: false}) unless @unloaded
+    ), @saveStateDebounceInterval)
+    @document.addEventListener('mousedown', saveState, true)
+    @document.addEventListener('keydown', saveState, true)
     @disposables.add new Disposable =>
-      @document.removeEventListener('mousedown', debouncedSaveState, true)
-      @document.removeEventListener('keydown', debouncedSaveState, true)
+      @document.removeEventListener('mousedown', saveState, true)
+      @document.removeEventListener('keydown', saveState, true)
 
   setConfigSchema: ->
     @config.setSchema null, {type: 'object', properties: _.clone(require('./config-schema'))}
@@ -655,6 +656,7 @@ class AtomEnvironment extends Model
 
   # Call this method when establishing a real application window.
   startEditorWindow: ->
+    @unloaded = false
     @loadState().then (state) =>
       @windowDimensions = state?.windowDimensions
       @displayWindow().then =>
@@ -842,16 +844,15 @@ class AtomEnvironment extends Model
     return Promise.resolve() unless @enablePersistence
 
     new Promise (resolve, reject) =>
-      window.requestIdleCallback =>
-        return if not @project
+      return if not @project
 
-        state = @serialize(options)
-        savePromise =
-          if storageKey = @getStateKey(@project?.getPaths())
-            @stateStore.save(storageKey, state)
-          else
-            @applicationDelegate.setTemporaryWindowState(state)
-        savePromise.catch(reject).then(resolve)
+      state = @serialize(options)
+      savePromise =
+        if storageKey = @getStateKey(@project?.getPaths())
+          @stateStore.save(storageKey, state)
+        else
+          @applicationDelegate.setTemporaryWindowState(state)
+      savePromise.catch(reject).then(resolve)
 
   loadState: ->
     if @enablePersistence
