@@ -138,7 +138,11 @@ class AtomApplication
     return unless @socketPath?
     @deleteSocketFile()
     server = net.createServer (connection) =>
-      connection.on 'data', (data) =>
+      data = ''
+      connection.on 'data', (chunk) ->
+        data = data + chunk
+
+      connection.on 'end', =>
         options = JSON.parse(data)
         @openWithOptions(options)
 
