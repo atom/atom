@@ -2,6 +2,7 @@
 
 SET EXPECT_OUTPUT=
 SET WAIT=
+SET PSARGS=%*
 
 FOR %%a IN (%*) DO (
   IF /I "%%a"=="-f"           SET EXPECT_OUTPUT=YES
@@ -25,7 +26,8 @@ FOR %%a IN (%*) DO (
 IF "%EXPECT_OUTPUT%"=="YES" (
   SET ELECTRON_ENABLE_LOGGING=YES
   IF "%WAIT%"=="YES" (
-    powershell -noexit "%~dp0\..\..\atom.exe" --pid=$pid %* ; wait-event
+    powershell -noexit "Start-Process -FilePath \"%~dp0\..\..\atom.exe\" -ArgumentList \"--pid=$pid $env:PSARGS\" ; wait-event"
+    exit 0
   ) ELSE (
     "%~dp0\..\..\atom.exe" %*
   )

@@ -445,13 +445,12 @@ describe "TokenizedBuffer", ->
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         {tokens} = screenLine0
 
-        expect(tokens.length).toBe 4
+        expect(tokens.length).toBe 3
         expect(tokens[0].value).toBe "#"
         expect(tokens[1].value).toBe " Econ 101"
         expect(tokens[2].value).toBe tabAsSpaces
         expect(tokens[2].scopes).toEqual tokens[1].scopes
         expect(tokens[2].isAtomic).toBeTruthy()
-        expect(tokens[3].value).toBe ""
 
         expect(tokenizedBuffer.tokenizedLineForRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 

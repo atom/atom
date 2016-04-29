@@ -182,17 +182,19 @@ describe "TextEditor", ->
           expect(editor1.getLongTitle()).toBe "readme \u2014 sample-theme-1"
           expect(editor2.getLongTitle()).toBe "readme \u2014 sample-theme-2"
 
-      it "returns '<filename> — <parent-directories>' when opened files have identical file and dir names", ->
+      it "returns '<filename> — <parent-directories>' when opened files have identical file names in subdirectories", ->
         editor1 = null
         editor2 = null
+        path1 = path.join('sample-theme-1', 'src', 'js')
+        path2 = path.join('sample-theme-2', 'src', 'js')
         waitsForPromise ->
-          atom.workspace.open(path.join('sample-theme-1', 'src', 'js', 'main.js')).then (o) ->
+          atom.workspace.open(path.join(path1, 'main.js')).then (o) ->
             editor1 = o
-            atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js')).then (o) ->
+            atom.workspace.open(path.join(path2, 'main.js')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe "main.js \u2014 sample-theme-1/src/js"
-          expect(editor2.getLongTitle()).toBe "main.js \u2014 sample-theme-2/src/js"
+          expect(editor1.getLongTitle()).toBe "main.js \u2014 #{path1}"
+          expect(editor2.getLongTitle()).toBe "main.js \u2014 #{path2}"
 
       it "returns '<filename> — <parent-directories>' when opened files have identical file and same parent dir name", ->
         editor1 = null
@@ -204,7 +206,7 @@ describe "TextEditor", ->
               editor2 = o
         runs ->
           expect(editor1.getLongTitle()).toBe "main.js \u2014 js"
-          expect(editor2.getLongTitle()).toBe "main.js \u2014 js/plugin"
+          expect(editor2.getLongTitle()).toBe "main.js \u2014 " + path.join('js', 'plugin')
 
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
       observed = []
@@ -1187,14 +1189,10 @@ describe "TextEditor", ->
           cursor2 = editor.addCursorAtBufferPosition([1, 4])
           expect(cursor2.marker).toBe cursor1.marker
 
-    describe '.logCursorScope()', ->
-      beforeEach ->
-        spyOn(atom.notifications, 'addInfo')
-
-      it 'opens a notification', ->
-        editor.logCursorScope()
-
-        expect(atom.notifications.addInfo).toHaveBeenCalled()
+    describe '.getCursorScope()', ->
+      it 'returns the current scope', ->
+        descriptor = editor.getCursorScope()
+        expect(descriptor.scopes).toContain('source.js')
 
   describe "selection", ->
     selection = null
@@ -5728,28 +5726,6 @@ describe "TextEditor", ->
       editor.setPlaceholderText('OK')
       expect(handler).toHaveBeenCalledWith 'OK'
       expect(editor.getPlaceholderText()).toBe 'OK'
-
-  describe ".checkoutHeadRevision()", ->
-    it "reverts to the version of its file checked into the project repository", ->
-      atom.config.set("editor.confirmCheckoutHeadRevision", false)
-
-      editor.setCursorBufferPosition([0, 0])
-      editor.insertText("---\n")
-      expect(editor.lineTextForBufferRow(0)).toBe "---"
-
-      waitsForPromise ->
-        editor.checkoutHeadRevision()
-
-      runs ->
-        expect(editor.lineTextForBufferRow(0)).toBe "var quicksort = function () {"
-
-    describe "when there's no repository for the editor's file", ->
-      it "doesn't do anything", ->
-        editor = atom.workspace.buildTextEditor()
-        editor.setText("stuff")
-        editor.checkoutHeadRevision()
-
-        waitsForPromise -> editor.checkoutHeadRevision()
 
   describe 'gutters', ->
     describe 'the TextEditor constructor', ->

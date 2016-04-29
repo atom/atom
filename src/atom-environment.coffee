@@ -255,7 +255,7 @@ class AtomEnvironment extends Model
     @deserializers.add(TextBuffer)
 
   registerDefaultCommands: ->
-    registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller})
+    registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
   registerDefaultViewProviders: ->
     @views.addViewProvider Workspace, (model, env) ->
