@@ -255,9 +255,9 @@ class AtomApplication
     ipcMain.on 'open-command', (event, command, args...) =>
       defaultPath = args[0] if args.length > 0
       switch command
-        when 'application:open' then @promptForPathToOpen('all', getLoadSettings())
+        when 'application:open' then @promptForPathToOpen('all', getLoadSettings(), defaultPath)
         when 'application:open-file' then @promptForPathToOpen('file', getLoadSettings(), defaultPath)
-        when 'application:open-folder' then @promptForPathToOpen('folder', getLoadSettings())
+        when 'application:open-folder' then @promptForPathToOpen('folder', getLoadSettings(), defaultPath)
         else console.log "Invalid open-command received: " + command
 
     ipcMain.on 'window-command', (event, command, args...) ->
@@ -688,7 +688,7 @@ class AtomApplication
         else 'Open'
 
     # File dialog defaults to project directory of currently active editor
-    if path? and type is 'file'
+    if path?
       openOptions.defaultPath = path
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)
