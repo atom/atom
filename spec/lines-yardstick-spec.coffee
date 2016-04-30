@@ -155,9 +155,10 @@ describe "LinesYardstick", ->
         expect(linesYardstick.screenPositionForPixelPosition({top: 28, left: 100})).toEqual([2, 14])
         expect(linesYardstick.screenPositionForPixelPosition({top: 32, left: 24.3})).toEqual([2, 3])
         expect(linesYardstick.screenPositionForPixelPosition({top: 46, left: 66.5})).toEqual([3, 9])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 99.9})).toEqual([5, 14])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 224.2365234375})).toEqual([5, 29])
-        expect(linesYardstick.screenPositionForPixelPosition({top: 80, left: 225})).toEqual([5, 30])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 99.9})).toEqual([5, 14])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 224.2365234375})).toEqual([5, 29])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 70, left: 225})).toEqual([5, 30])
+        expect(linesYardstick.screenPositionForPixelPosition({top: 84, left: 247.1})).toEqual([6, 33])
 
       it "clips pixel positions above buffer start", ->
         expect(linesYardstick.screenPositionForPixelPosition(top: -Infinity, left: -Infinity)).toEqual [0, 0]

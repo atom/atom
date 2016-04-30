@@ -75,6 +75,7 @@ class LinesYardstick
             characterIndex = nextCharIndex
           break
 
+      characterIndex = textNode.textContent.length if characterIndex is -1
       textNodeStartColumn = 0
       textNodeStartColumn += textNodes[i].length for i in [0...textNodeIndex] by 1
       Point(row, textNodeStartColumn + characterIndex)
