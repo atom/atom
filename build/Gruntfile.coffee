@@ -57,7 +57,7 @@ module.exports = (grunt) ->
     homeDir = process.env.USERPROFILE
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
-    installDir ?= path.join(process.env.ProgramFiles, appName)
+    installDir ?= path.join(process.env.LOCALAPPDATA, appName, 'app-dev')
     killCommand = 'taskkill /F /IM atom.exe'
   else if process.platform is 'darwin'
     homeDir = process.env.HOME

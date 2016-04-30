@@ -130,8 +130,8 @@ class TextEditor extends Model
     throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
-    throw new Error("Must pass an assert parameter when constructing TextEditors") unless @assert?
 
+    @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
     @firstVisibleScreenColumn ?= 0
     @emitter = new Emitter
@@ -744,12 +744,6 @@ class TextEditor extends Model
 
   # Essential: Returns {Boolean} `true` if this editor has no content.
   isEmpty: -> @buffer.isEmpty()
-
-  # Copies the current file path to the native clipboard.
-  copyPathToClipboard: (relative = false) ->
-    if filePath = @getPath()
-      filePath = atom.project.relativize(filePath) if relative
-      @clipboard.write(filePath)
 
   ###
   Section: File Operations
