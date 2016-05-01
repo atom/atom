@@ -257,7 +257,7 @@ class TextEditor extends Model
     @displayLayer.reset({
       invisibles: @getInvisibles(),
       softWrapColumn: @getSoftWrapColumn(),
-      showIndentGuides: @config.get('editor.showIndentGuide', scope: @getRootScopeDescriptor()),
+      showIndentGuides: not @isMini() and @config.get('editor.showIndentGuide', scope: @getRootScopeDescriptor()),
       atomicSoftTabs: @config.get('editor.atomicSoftTabs', scope: @getRootScopeDescriptor()),
       tabLength: @getTabLength(),
       ratioForCharacter: @ratioForCharacter.bind(this),
@@ -589,7 +589,8 @@ class TextEditor extends Model
   setMini: (mini) ->
     if mini isnt @mini
       @mini = mini
-      @setIgnoreInvisibles(@mini)
+      @ignoreInvisibles = @mini
+      @resetDisplayLayer()
       @emitter.emit 'did-change-mini', @mini
     @mini
 

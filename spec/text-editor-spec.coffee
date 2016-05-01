@@ -5967,6 +5967,20 @@ describe "TextEditor", ->
       atom.config.set('editor.showInvisibles', true)
       expect(editor.lineTextForScreenRow(0).indexOf(atom.config.get('editor.invisibles.eol'))).toBe(-1)
 
+  describe "indent guides", ->
+    it "shows indent guides when `editor.showIndentGuide` is set to true and the editor is not mini", ->
+      editor.setText("  foo")
+      atom.config.set('editor.tabLength', 2)
+
+      atom.config.set('editor.showIndentGuide', false)
+      expect(editor.tokensForScreenRow(0)).toEqual ['source.js', 'leading-whitespace']
+
+      atom.config.set('editor.showIndentGuide', true)
+      expect(editor.tokensForScreenRow(0)).toEqual ['source.js', 'leading-whitespace indent-guide']
+
+      editor.setMini(true)
+      expect(editor.tokensForScreenRow(0)).toEqual ['source.js', 'leading-whitespace']
+
   describe "when the editor is constructed with the grammar option set", ->
     beforeEach ->
       atom.workspace.destroyActivePane()
