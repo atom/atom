@@ -68,12 +68,9 @@ class LinesTileComponent
       @oldTileState.top = @newTileState.top
       @oldTileState.left = @newTileState.left
 
-    @removeLineNodes() unless @oldState.indentGuidesVisible is @newState.indentGuidesVisible
     @updateLineNodes()
 
     @highlightsComponent.updateSync(@newTileState)
-
-    @oldState.indentGuidesVisible = @newState.indentGuidesVisible
 
   removeLineNodes: ->
     @removeLineNode(id) for id of @oldTileState.lines

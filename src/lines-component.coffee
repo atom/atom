@@ -43,7 +43,7 @@ class LinesComponent extends TiledComponent
     @domNode
 
   shouldRecreateAllTilesOnUpdate: ->
-    @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible or @newState.continuousReflow
+    @newState.continuousReflow
 
   beforeUpdateSync: (state) ->
     if @newState.maxHeight isnt @oldState.maxHeight
@@ -69,8 +69,6 @@ class LinesComponent extends TiledComponent
       @oldState.width = @newState.width
 
     @cursorsComponent.updateSync(state)
-
-    @oldState.indentGuidesVisible = @newState.indentGuidesVisible
 
   buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool, @assert, @grammars})
 

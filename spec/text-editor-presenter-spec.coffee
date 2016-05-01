@@ -1143,53 +1143,6 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
           expect(getState(presenter).content.scrollLeft).toBe 0
 
-      describe ".indentGuidesVisible", ->
-        it "is initialized based on the editor.showIndentGuide config setting", ->
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-          atom.config.set('editor.showIndentGuide', true)
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe true
-
-        it "updates when the editor.showIndentGuide config setting changes", ->
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-          expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', true)
-          expect(getState(presenter).content.indentGuidesVisible).toBe true
-
-          expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', false)
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-        it "updates when the editor's grammar changes", ->
-          atom.config.set('editor.showIndentGuide', true, scopeSelector: ".source.js")
-
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-          stateUpdated = false
-          presenter.onDidUpdateState -> stateUpdated = true
-
-          waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-          runs ->
-            expect(stateUpdated).toBe true
-            expect(getState(presenter).content.indentGuidesVisible).toBe true
-
-            expectStateUpdate presenter, -> editor.setGrammar(atom.grammars.selectGrammar('.txt'))
-            expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-        it "is always false when the editor is mini", ->
-          atom.config.set('editor.showIndentGuide', true)
-          editor.setMini(true)
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-          editor.setMini(false)
-          expect(getState(presenter).content.indentGuidesVisible).toBe true
-          editor.setMini(true)
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
       describe ".backgroundColor", ->
         it "is assigned to ::backgroundColor unless the editor is mini", ->
           presenter = buildPresenter()

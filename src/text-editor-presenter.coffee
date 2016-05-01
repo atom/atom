@@ -175,7 +175,6 @@ class TextEditorPresenter
 
     @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
     @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
-    @showIndentGuide = @config.get('editor.showIndentGuide', configParams)
 
     if @configDisposables?
       @configDisposables?.dispose()
@@ -184,10 +183,6 @@ class TextEditorPresenter
     @configDisposables = new CompositeDisposable
     @disposables.add(@configDisposables)
 
-    @configDisposables.add @config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
-      @showIndentGuide = newValue
-
-      @emitDidUpdateState()
     @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
       @scrollPastEnd = newValue
       @updateScrollHeight()
@@ -295,7 +290,6 @@ class TextEditorPresenter
     @state.content.width = Math.max(@contentWidth + @verticalScrollbarWidth, @contentFrameWidth)
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
-    @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
