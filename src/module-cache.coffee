@@ -202,13 +202,13 @@ registerBuiltins = (devMode) ->
 
   atomShellRoot = path.join(process.resourcesPath, 'atom.asar')
 
-  commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
-  commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'screen', 'shell']
+  commonRoot = path.join(atomShellRoot, 'common', 'api')
+  commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'shell']
   for builtin in commonBuiltins
     cache.builtins[builtin] = path.join(commonRoot, "#{builtin}.js")
 
-  rendererRoot = path.join(atomShellRoot, 'renderer', 'api', 'lib')
-  rendererBuiltins = ['ipc-renderer', 'remote']
+  rendererRoot = path.join(atomShellRoot, 'renderer', 'api')
+  rendererBuiltins = ['ipc-renderer', 'remote', 'screen']
   for builtin in rendererBuiltins
     cache.builtins[builtin] = path.join(rendererRoot, "#{builtin}.js")
 
