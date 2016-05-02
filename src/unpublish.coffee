@@ -61,16 +61,29 @@ class Unpublish extends Command
           callback()
 
   promptForConfirmation: (packageName, packageVersion, callback) ->
-    prompt = readline.createInterface(process.stdin, process.stdout)
-
     packageLabel = packageName
     packageLabel += "@#{packageVersion}" if packageVersion
 
-    prompt.question "Are you sure you want to unpublish #{packageLabel}? (yes) ", (answer) =>
-      prompt.close()
-      answer = if answer then answer.trim().toLowerCase() else 'yes'
+    if packageVersion
+      question = "Are you sure you want to unpublish '#{packageLabel}'? (no) "
+    else
+      question = "Are you sure you want to unpublish ALL VERSIONS of '#{packageLabel}'? " +
+                 "This will remove it from the apm registry, including " +
+                 "download counts and stars, and this action is irreversible. (no)"
+
+    @prompt question, (answer) =>
+      answer = if answer then answer.trim().toLowerCase() else 'no'
       if answer in ['y', 'yes']
         @unpublishPackage(packageName, packageVersion, callback)
+      else
+        callback("Cancelled unpublishing #{packageLabel}")
+
+  prompt: (question, callback) ->
+    prompt = readline.createInterface(process.stdin, process.stdout)
+
+    prompt.question question, (answer) ->
+      prompt.close()
+      callback(answer)
 
   run: (options) ->
     {callback} = options
