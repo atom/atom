@@ -1,5 +1,7 @@
 ChildProcess = require 'child_process'
 path = require 'path'
+fs = require 'fs-plus'
+platform = require './spec-helper-platform'
 BufferedProcess  = require '../src/buffered-process'
 
 describe "BufferedProcess", ->
@@ -110,30 +112,25 @@ describe "BufferedProcess", ->
       expect(stderr).toContain 'apm - Atom Package Manager'
       expect(stdout).toEqual ''
 
-  it "calls the specified stdout callback only with whole lines", ->
-    # WINSPEC: Fails because command is too long, /bin/echo is *nix only, odd newlining and quoting
+  it "calls the specified stdout callback with whole lines", ->
     exitCallback = jasmine.createSpy('exit callback')
-    baseContent = "There are dozens of us! Dozens! It's as Ann as the nose on Plain's face. Can you believe that the only reason the club is going under is because it's in a terrifying neighborhood? She calls it a Mayonegg. Waiting for the Emmys. BTW did you know won 6 Emmys and was still canceled early by Fox? COME ON. I'll buy you a hundred George Michaels that you can teach to drive! Never once touched my per diem. I'd go to Craft Service, get some raw veggies, bacon, Cup-A-Soup…baby, I got a stew goin'"
-    content = (baseContent for _ in [1..200]).join('\n')
+    loremPath = require.resolve("./fixtures/lorem.txt")
+    content = fs.readFileSync(loremPath).toString()
+    baseContent = content.split('\n')
     stdout = ''
-    endLength = 10
-    outputAlwaysEndsWithStew = true
+    allLinesEndWithNewline = true
     process = new BufferedProcess
-      command: '/bin/echo'
-      args: [content]
+      command: if platform.isWindows() then 'type' else 'cat'
+      args: [loremPath]
       options: {}
       stdout: (lines) ->
+        endsWithNewline = (lines.charAt lines.length - 1) is '\n'
+        if not endsWithNewline then allLinesEndWithNewline = false
         stdout += lines
-
-        end = baseContent.substr(baseContent.length - endLength, endLength)
-        lineEndsWithStew = lines.substr(lines.length - endLength, endLength) is end
-        expect(lineEndsWithStew).toBeTrue
-
-        outputAlwaysEndsWithStew = outputAlwaysEndsWithStew and lineEndsWithStew
       exit: exitCallback
 
     waitsFor -> exitCallback.callCount is 1
 
     runs ->
-      expect(outputAlwaysEndsWithStew).toBeTrue
-      expect(stdout).toBe content += '\n'
+      expect(allLinesEndWithNewline).toBeTrue
+      expect(stdout).toBe content
