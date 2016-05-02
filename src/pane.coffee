@@ -545,21 +545,26 @@ class Pane extends Model
   # setting is `true`.
   #
   # * `item` Item to destroy
-  destroyItem: (item) ->
+  destroyItem: (item, promptToSave=true) ->
     index = @items.indexOf(item)
     if index isnt -1
       @emitter.emit 'will-destroy-item', {item, index}
       @container?.willDestroyPaneItem({item, index, pane: this})
-      if @promptToSaveItem(item)
+      if promptToSave
+        if @promptToSaveItem(item) is promptToSaveReturns.Single
+          @removeItem(item, false)
+          item.destroy?()
+          true
+        else
+          false
+      else
         @removeItem(item, false)
         item.destroy?()
         true
-      else
-        false
 
   # Public: Destroy all items.
   destroyItems: ->
-    @destroyItem(item) for item in @getItems()
+    @destroyItem(item, false) for item in @getItems()
     return
 
   # Public: Destroy all items except for the active item.
@@ -567,25 +572,33 @@ class Pane extends Model
     @destroyItem(item) for item in @getItems() when item isnt @activeItem
     return
 
-  promptToSaveItem: (item, options={}) ->
-    return true unless item.shouldPromptToSave?(options)
+  promptToSaveReturns =
+    Single: 0
+    Cancel: 1
+    NoForAll: 2
+    YesForAll: 3
+
+  promptToSaveItem: (item, options={}, multiple=false) ->
+    return promptToSaveReturns.Single unless item.shouldPromptToSave?(options)
 
     if typeof item.getURI is 'function'
       uri = item.getURI()
     else if typeof item.getUri is 'function'
       uri = item.getUri()
     else
-      return true
+      return promptToSaveReturns.Single
 
     chosen = @applicationDelegate.confirm
       message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
       detailedMessage: "Your changes will be lost if you close this item without saving."
-      buttons: ["Save", "Cancel", "Don't Save"]
+      buttons: if multiple then ["Save", "Cancel", "Don't Save", "No For All", "Yes For All"] else ["Save", "Cancel", "Don't Save"]
 
     switch chosen
-      when 0 then @saveItem(item, -> true)
-      when 1 then false
-      when 2 then true
+      when 0 then (if @saveItem(item, -> true) then return promptToSaveReturns.Single else return promptToSaveReturns.Cancel)
+      when 1 then return promptToSaveReturns.Cancel
+      when 2 then return promptToSaveReturns.Single
+      when 3 then return promptToSaveReturns.NoForAll
+      when 4 then return promptToSaveReturns.YesForAll
 
   # Public: Save the active item.
   saveActiveItem: (nextAction) ->
@@ -824,8 +837,19 @@ class Pane extends Model
     @destroy() if @confirmClose()
 
   confirmClose: ->
-    for item in @getItems()
-      return false unless @promptToSaveItem(item)
+    items = @getItems()
+    promptToSave = promptToSaveReturns.Single
+    for item in items
+      if promptToSave is promptToSaveReturns.Single
+        promptToSave = @promptToSaveItem(item, {}, (items.length > 1))
+        if promptToSave is promptToSaveReturns.YesForAll
+          @saveItem(item)
+      else if promptToSave is promptToSaveReturns.Cancel
+        return false
+      else if promptToSave is promptToSaveReturns.NoForAll
+        break
+      else if promptToSave is promptToSaveReturns.YesForAll
+        @saveItem(item) if item.shouldPromptToSave?()
     true
 
   handleSaveError: (error, item) ->
