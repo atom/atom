@@ -160,9 +160,9 @@ describe "TextEditor", ->
   describe "title", ->
     describe ".getTitle()", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
-        expect(editor.getTitle(atom.workspace.getTextEditors())).toBe 'sample.js'
+        expect(editor.getTitle()).toBe 'sample.js'
         buffer.setPath(undefined)
-        expect(editor.getTitle(atom.workspace.getTextEditors())).toBe 'untitled'
+        expect(editor.getTitle()).toBe 'untitled'
 
     describe ".getLongTitle()", ->
       it "returns file name when there is no opened file with identical name", ->
