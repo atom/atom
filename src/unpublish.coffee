@@ -65,16 +65,18 @@ class Unpublish extends Command
     packageLabel += "@#{packageVersion}" if packageVersion
 
     if packageVersion
-      question = "Are you sure you want to unpublish '#{packageLabel}'? (yes) "
+      question = "Are you sure you want to unpublish '#{packageLabel}'? (no) "
     else
       question = "Are you sure you want to unpublish ALL VERSIONS of '#{packageLabel}'? " +
                  "This will remove it from the apm registry, including " +
-                 "download counts and stars, and this action is irreversible. (yes)"
+                 "download counts and stars, and this action is irreversible. (no)"
 
     @prompt question, (answer) =>
-      answer = if answer then answer.trim().toLowerCase() else 'yes'
+      answer = if answer then answer.trim().toLowerCase() else 'no'
       if answer in ['y', 'yes']
         @unpublishPackage(packageName, packageVersion, callback)
+      else
+        callback("Cancelled unpublishing #{packageLabel}")
 
   prompt: (question, callback) ->
     prompt = readline.createInterface(process.stdin, process.stdout)

@@ -55,6 +55,20 @@ describe 'apm unpublish', ->
         waitsFor 'waiting for prompt to be called', ->
           return Unpublish::prompt.argsForCall[0][0].match /unpublish ALL VERSIONS of 'test-package'.*irreversible/
 
+      describe 'when the user accepts the default answer', ->
+        it 'does not unpublish the package', ->
+          callback = jasmine.createSpy('callback')
+          spyOn(Unpublish.prototype, 'prompt').andCallFake (q, cb) -> cb('')
+          spyOn(Unpublish.prototype, 'unpublishPackage').andCallFake -> callback()
+          apm.run(['unpublish', 'test-package'], callback)
+
+          waitsFor 'waiting for unpublish command to complete', ->
+            callback.callCount > 0
+
+          runs ->
+            expect(Unpublish::unpublishPackage).not.toHaveBeenCalled()
+            expect(callback.argsForCall[0][0]).toMatch /Cancelled/
+
     describe "when the package does not exist", ->
       it "calls back with an error", ->
         callback = jasmine.createSpy('callback')
@@ -89,6 +103,20 @@ describe 'apm unpublish', ->
 
         waitsFor 'waiting for prompt to be called', ->
           return Unpublish::prompt.argsForCall[0][0].match /unpublish 'test-package@1.0.0'/
+
+      describe 'when the user accepts the default answer', ->
+        it 'does not unpublish the package', ->
+          callback = jasmine.createSpy('callback')
+          spyOn(Unpublish.prototype, 'prompt').andCallFake (q, cb) -> cb('')
+          spyOn(Unpublish.prototype, 'unpublishPackage').andCallFake -> callback()
+          apm.run(['unpublish', 'test-package'], callback)
+
+          waitsFor 'waiting for unpublish command to complete', ->
+            callback.callCount > 0
+
+          runs ->
+            expect(Unpublish::unpublishPackage).not.toHaveBeenCalled()
+            expect(callback.argsForCall[0][0]).toMatch /Cancelled/
 
     describe "when the version does not exist", ->
       it "calls back with an error", ->
