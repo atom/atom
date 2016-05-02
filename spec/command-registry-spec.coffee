@@ -74,6 +74,13 @@ describe "CommandRegistry", ->
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
 
+    it "orders inline listeners by reverse registration order", ->
+      calls = []
+      registry.add child, 'command', -> calls.push('child1')
+      registry.add child, 'command', -> calls.push('child2')
+      child.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['child2', 'child1']
+
     it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
       calls = []
 
