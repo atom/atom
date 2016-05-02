@@ -58,8 +58,8 @@ describe 'apm unpublish', ->
       describe 'when the user accepts the default answer', ->
         it 'does not unpublish the package', ->
           callback = jasmine.createSpy('callback')
-          spyOn(Unpublish.prototype, 'prompt').andCallFake (q, cb) -> cb('')
-          spyOn(Unpublish.prototype, 'unpublishPackage').andCallFake -> callback()
+          spyOn(Unpublish.prototype, 'prompt').andCallFake (args..., cb) -> cb('')
+          spyOn(Unpublish.prototype, 'unpublishPackage')
           apm.run(['unpublish', 'test-package'], callback)
 
           waitsFor 'waiting for unpublish command to complete', ->
@@ -107,8 +107,8 @@ describe 'apm unpublish', ->
       describe 'when the user accepts the default answer', ->
         it 'does not unpublish the package', ->
           callback = jasmine.createSpy('callback')
-          spyOn(Unpublish.prototype, 'prompt').andCallFake (q, cb) -> cb('')
-          spyOn(Unpublish.prototype, 'unpublishPackage').andCallFake -> callback()
+          spyOn(Unpublish.prototype, 'prompt').andCallFake (args..., cb) -> cb('')
+          spyOn(Unpublish.prototype, 'unpublishPackage')
           apm.run(['unpublish', 'test-package'], callback)
 
           waitsFor 'waiting for unpublish command to complete', ->
