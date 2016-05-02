@@ -24,9 +24,8 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-
-    if @isSpec
-      options.webPreferences = {backgroundThrottling: false}
+      webPreferences:
+        backgroundThrottling: not @isSpec
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
