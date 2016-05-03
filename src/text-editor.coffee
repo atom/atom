@@ -62,6 +62,7 @@ class TextEditor extends Model
   selectionFlashDuration: 500
   gutterContainer: null
   editorElement: null
+  registered: false
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -157,7 +158,7 @@ class TextEditor extends Model
     firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
     displayBuffer: @displayBuffer.serialize()
     selectionsMarkerLayerId: @selectionsMarkerLayer.id
-    registered: atom.textEditors.editors.has this
+    registered: @registered
 
   subscribeToBuffer: ->
     @buffer.retain()
