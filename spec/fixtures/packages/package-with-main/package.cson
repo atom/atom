@@ -1,2 +1,3 @@
 'main': 'main-module.coffee'
 'version': '2.3.4'
+'activateImmediately': true
