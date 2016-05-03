@@ -1,5 +1,4 @@
 {Point} = require 'text-buffer'
-{isEqual} = require 'underscore-plus'
 
 module.exports =
 class TokenizedBufferIterator
@@ -58,7 +57,7 @@ class TokenizedBufferIterator
             @moveToNextLine()
             @openTags = @currentLineOpenTags.map (id) => @grammarRegistry.scopeForId(id)
             @shouldMoveToNextLine = false
-          else if @hasNextLine() and not isEqual(@containingTags, @nextLineOpeningScopes())
+          else if @nextLineHasMismatchedContainingTags()
             @closeTags = @containingTags.slice().reverse()
             @containingTags = []
             @shouldMoveToNextLine = true
@@ -97,12 +96,16 @@ class TokenizedBufferIterator
   Section: Private Methods
   ###
 
-  hasNextLine: ->
-    @tokenizedBuffer.tokenizedLineForRow(@position.row + 1)?
+  nextLineHasMismatchedContainingTags: ->
+    if line = @tokenizedBuffer.tokenizedLineForRow(@position.row + 1)
+      return true if line.openScopes.length isnt @containingTags.length
 
-  nextLineOpeningScopes: ->
-    line = @tokenizedBuffer.tokenizedLineForRow(@position.row + 1)
-    line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
+      for i in [0...@containingTags.length] by 1
+        if @containingTags[i] isnt @grammarRegistry.scopeForId(line.openScopes[i])
+          return true
+      false
+    else
+      false
 
   moveToNextLine: ->
     @position = Point(@position.row + 1, 0)
