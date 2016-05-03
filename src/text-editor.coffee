@@ -1068,7 +1068,7 @@ class TextEditor extends Model
 
         # Delete lines spanned by selection and insert them on the following correct buffer row
         lines = @buffer.getTextInRange(linesRange)
-        if linesRange.end.row is @buffer.getLastRow()
+        if followingRow - 1 is @buffer.getLastRow()
           lines = "\n#{lines}"
 
         @buffer.insert([followingRow, 0], lines)

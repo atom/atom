@@ -2875,6 +2875,13 @@ describe "TextEditor", ->
             expect(editor.lineTextForBufferRow(1)).toBe "1"
             expect(editor.lineTextForBufferRow(2)).toBe "2"
 
+      describe "when the line is the last buffer row", ->
+        it "doesn't move it", ->
+          editor.setText("abc\ndef")
+          editor.setCursorBufferPosition([1, 0])
+          editor.moveLineDown()
+          expect(editor.getText()).toBe("abc\ndef")
+
     describe ".insertText(text)", ->
       describe "when there is a single selection", ->
         beforeEach ->
