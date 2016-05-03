@@ -351,7 +351,7 @@ class LanguageMode
     @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
 
   doubleDecreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
+    @getRegexForProperty(scopeDescriptor, 'editor.doubleDecreaseNextIndentPattern')
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
