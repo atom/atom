@@ -6,8 +6,8 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
   * OS with 64-bit or 32-bit architecture
   * C++ toolchain
-  * [Git](https://git-scm.com/)
-  * [Node.js](https://nodejs.org/en/download/) (0.10.x or above)
+  * [Git](http://git-scm.com/)
+  * [Node.js](http://nodejs.org/download/) (0.10.x or above)
   * [npm](https://www.npmjs.com/) v1.4.x or above (automatically bundled with Node.js)
     * `npm -v` to check the version.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
@@ -64,7 +64,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   script/build
   ```
 
-  This will create the atom application at `out/Atom`.
+  This will create the atom application at `$TMPDIR/atom-build/Atom`.
 
 4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
 
@@ -74,44 +74,30 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create a `.rpm` package run
+  To create an `.rpm` package run
 
   ```sh
   script/grunt mkrpm
   ```
 
-  To create a `.tar.gz` archive run
-
-  ```sh
-  script/grunt mktar
-  ```
-
 ## Advanced Options
 
-### Custom build directory
-
-```sh
-script/build --build-dir /build/atom/here
-```
-
 ### Custom install directory
-
-To install to a custom location from the standard build directory:
 
 ```sh
 sudo script/grunt install --install-dir /install/atom/here
 ```
 
-If you customized your build directory as described above:
+### Custom build directory
 
 ```sh
-sudo script/grunt install --build-dir /build/atom/here --install-dir /install/atom/here
+script/build --build-dir /build/atom/here
 ```
 
 ## Troubleshooting
@@ -157,7 +143,7 @@ sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave 
 
 ### AttributeError: 'module' object has no attribute 'script_main'
 
-If you get following error with a big traceback while building Atom:
+If you get the following error with a bug traceback while building Atom:
 
   ```
   sys.exit(gyp.script_main()) AttributeError: 'module' object has no attribute 'script_main' gyp ERR!
@@ -170,6 +156,42 @@ On Fedora you would do the following:
   ```sh
   sudo yum remove gyp
   ```
+###Error: EACCES, permission denied
+
+If you get the following error with a bug traceback while opening Atom:
+
+  ```
+  Error: EACCES, permission denied '/home/mrtemp/.atom/compile-cache/less/3e6243fd266b04c3edffe341f452e2cfb2f555af/imports.json'
+   at Error (native)
+  ```
+
+You need to change the ownership by running the following:
+
+  ```sh
+  sudo chown -R `whoami` ~/.atom
+  ```
+
+## Uninstall Atom
+
+These are the instructions you need to run in order to uninstall atom.
+
+  ```sh
+  sudo rm /usr/local/bin/atom
+  sudo rm /usr/local/bin/apm
+  sudo rm -rf ~/atom
+  sudo rm -rf ~/.atom
+  sudo rm -rf ~/.config/Atom-Shell
+  sudo rm -rf /usr/local/share/atom/
+  sudo rm /usr/local/share/applications/atom.desktop
+  ```
+
+If you named your directory something other than "atom" the only thing you need to change is:
+
+  ```sh
+  sudo rm -rf ~/atom
+  ```
+
+Change the "~/atom" to what you named your directory on your computer.
 
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
