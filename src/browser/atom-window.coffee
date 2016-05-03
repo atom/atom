@@ -131,7 +131,7 @@ class AtomWindow
         message: 'Editor is not responding'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
       },
-      callback(response) => @browserWindow.destroy() if response is 0
+      (response) => @browserWindow.destroy() if response is 0
 
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @headless
