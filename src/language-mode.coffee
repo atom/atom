@@ -247,8 +247,10 @@ class LanguageMode
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
     increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
+    doubleIncreaseIndentRegex = @doubleIncreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
+    doubleDecreaseNextIndentRegex = @doubleDecreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
 
     if options?.skipBlankLines ? true
       precedingRow = @buffer.previousNonBlankRow(bufferRow)
@@ -262,8 +264,14 @@ class LanguageMode
 
     unless @editor.isBufferRowCommented(precedingRow)
       precedingLine = @buffer.lineForRow(precedingRow)
-      desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
-      desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
+      if doubleIncreaseIndentRegex?.testSync(precedingLine)
+        desiredIndentLevel += 2
+      else
+        desiredIndentLevel += 1 if increaseIndentRegex?.testSync(precedingLine)
+      if doubleDecreaseNextIndentRegex?.testSync(precedingLine)
+        desiredIndentLevel -= 2
+      else
+        desiredIndentLevel -= 1 if decreaseNextIndentRegex?.testSync(precedingLine)
 
     unless @buffer.isRowBlank(precedingRow)
       desiredIndentLevel -= 1 if decreaseIndentRegex?.testSync(line)
@@ -332,11 +340,17 @@ class LanguageMode
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
+  
+  doubleIncreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.doubleIncreaseIndentPattern')
 
   decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
 
   decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
+    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
+
+  doubleDecreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
     @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
