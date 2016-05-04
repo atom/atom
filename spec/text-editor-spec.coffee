@@ -3174,7 +3174,7 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(0)).toBe 1
             expect(editor.indentationForBufferRow(1)).toBe 1
 
-        it "indents the new line to the correct level when editor.autoIndent is true and using a off-side rule language", ->
+        it "indents the new line to the correct level when editor.autoIndent is true and using an off-side rule language", ->
           waitsForPromise ->
             atom.packages.activatePackage('language-coffee-script')
 
@@ -5153,7 +5153,7 @@ describe "TextEditor", ->
             expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
 
         describe "when the line preceding the newline does't add a level of indentation", ->
-          it "indents the new line to the same level a as the preceding line", ->
+          it "indents the new line to the same level as the preceding line", ->
             editor.setCursorBufferPosition([5, 14])
             editor.insertText('\n')
             expect(editor.indentationForBufferRow(6)).toBe editor.indentationForBufferRow(5)
