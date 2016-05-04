@@ -171,7 +171,6 @@ On Fedora you would do the following:
   sudo yum remove gyp
   ```
 
-  ```
 
 ###Error: EACCES, permission denied
 
