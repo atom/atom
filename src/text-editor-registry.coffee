@@ -26,8 +26,20 @@ class TextEditorRegistry
   # editor is destroyed.
   add: (editor) ->
     @editors.add(editor)
+    editor.registered = true
+
     @emitter.emit 'did-add-editor', editor
-    new Disposable => @editors.delete(editor)
+    new Disposable => @remove(editor)
+
+  # Remove a `TextEditor`.
+  #
+  # * `editor` The editor to remove.
+  #
+  # Returns a {Boolean} indicating whether the editor was successfully removed.
+  remove: (editor) ->
+    removed = @editors.delete(editor)
+    editor.registered = false
+    removed
 
   # Invoke the given callback with all the current and future registered
   # `TextEditors`.

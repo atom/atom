@@ -494,7 +494,7 @@ class TextEditorComponent
     unless @presenter.isRowVisible(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
 
-    unless @linesComponent.lineNodeForLineIdAndScreenRow(@presenter.lineIdForScreenRow(screenPosition.row), screenPosition.row)?
+    unless @linesComponent.lineNodeForScreenRow(screenPosition.row)?
       @updateSyncPreMeasurement()
 
     pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
@@ -560,8 +560,8 @@ class TextEditorComponent
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
-      bufferRow = @editor.bufferRowForScreenRow(screenPosition.row)
-      @editor.unfoldBufferRow(bufferRow)
+      bufferPosition = @editor.bufferPositionForScreenPosition(screenPosition)
+      @editor.destroyFoldsIntersectingBufferRange([bufferPosition, bufferPosition])
       return
 
     switch detail
@@ -607,7 +607,7 @@ class TextEditorComponent
     clickedScreenRow = @screenPositionForMouseEvent(event).row
     clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
     initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
-    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true, autoscroll: false)
+    @editor.addSelectionForScreenRange(initialScreenRange, autoscroll: false)
     @handleGutterDrag(initialScreenRange)
 
   onGutterShiftClick: (event) =>
@@ -890,10 +890,7 @@ class TextEditorComponent
     e.abortKeyBinding() unless @editor.consolidateSelections()
 
   lineNodeForScreenRow: (screenRow) ->
-    tileRow = @presenter.tileForRow(screenRow)
-    tileComponent = @linesComponent.getComponentForTile(tileRow)
-
-    tileComponent?.lineNodeForScreenRow(screenRow)
+    @linesComponent.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)
@@ -950,7 +947,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @screenPositionForPixelPosition(pixelPosition, true)
+    @screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event

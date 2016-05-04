@@ -50,7 +50,7 @@ class BufferedProcess
     options ?= {}
     @command = command
     # Related to joyent/node#2318
-    if process.platform is 'win32'
+    if process.platform is 'win32' and not options.shell?
       # Quote all arguments and escapes inner quotes
       if args?
         cmdArgs = args.filter (arg) -> arg?

@@ -57,7 +57,7 @@ module.exports = (grunt) ->
     homeDir = process.env.USERPROFILE
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
-    installDir ?= path.join(process.env.ProgramFiles, appName)
+    installDir ?= path.join(process.env.LOCALAPPDATA, appName, 'app-dev')
     killCommand = 'taskkill /F /IM atom.exe'
   else if process.platform is 'darwin'
     homeDir = process.env.HOME
@@ -298,6 +298,7 @@ module.exports = (grunt) ->
   unless process.platform is 'linux' or grunt.option('no-install')
     defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)
+  grunt.registerTask('build-and-sign', ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar', 'codesign:app', 'install'])
 
 getDefaultChannelAndReleaseBranch = (version) ->
   if version.match(/dev/) or isBuildingPR()

@@ -96,7 +96,7 @@ class TextEditorElement extends HTMLElement
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
-    throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
+    throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
     throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
     throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
 

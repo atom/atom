@@ -391,6 +391,9 @@ class Project extends Model
 
   subscribeToBuffer: (buffer) ->
     buffer.onDidDestroy => @removeBuffer(buffer)
+    buffer.onDidChangePath =>
+      unless @getPaths().length > 0
+        @setPaths([path.dirname(buffer.getPath())])
     buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
       @notificationManager.addWarning """

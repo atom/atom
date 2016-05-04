@@ -28,8 +28,10 @@ describe "AtomEnvironment", ->
         atom.setSize(originalSize.width, originalSize.height)
 
       it 'sets the size of the window, and can retrieve the size just set', ->
-        atom.setSize(100, 400)
-        expect(atom.getSize()).toEqual width: 100, height: 400
+        newWidth = originalSize.width + 12
+        newHeight = originalSize.height + 23
+        atom.setSize(newWidth, newHeight)
+        expect(atom.getSize()).toEqual width: newWidth, height: newHeight
 
   describe ".isReleasedVersion()", ->
     it "returns false if the version is a SHA and true otherwise", ->
@@ -206,12 +208,15 @@ describe "AtomEnvironment", ->
       waitsForPromise ->
         atom.loadState().then (state) -> expect(state).toEqual(serializedState)
 
-    it "saves state on keydown, mousedown, and when the editor window unloads", ->
+    it "saves state when the CPU is idle after a keydown or mousedown event", ->
       spyOn(atom, 'saveState')
+      idleCallbacks = []
+      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
 
       keydown = new KeyboardEvent('keydown')
       atom.document.dispatchEvent(keydown)
       advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
       expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
@@ -219,16 +224,32 @@ describe "AtomEnvironment", ->
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
       expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
-      atom.saveState.reset()
+    it "saves state immediately when unloading the editor window, ignoring pending and successive mousedown/keydown events", ->
+      spyOn(atom, 'saveState')
+      idleCallbacks = []
+      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
       atom.unloadEditorWindow()
-      mousedown = new MouseEvent('mousedown')
-      atom.document.dispatchEvent(mousedown)
-      advanceClock atom.saveStateDebounceInterval
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
       expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
+
+      atom.saveState.reset()
+      advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
+      expect(atom.saveState).not.toHaveBeenCalled()
+
+      atom.saveState.reset()
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
+      expect(atom.saveState).not.toHaveBeenCalled()
 
     it "serializes the project state with all the options supplied in saveState", ->
       spyOn(atom.project, 'serialize').andReturn({foo: 42})
@@ -365,7 +386,7 @@ describe "AtomEnvironment", ->
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
       subscription = atom.onUpdateAvailable updateAvailableHandler
 
-      autoUpdater = require('remote').require('auto-updater')
+      autoUpdater = require('electron').remote.require('auto-updater')
       autoUpdater.emit 'update-downloaded', null, "notes", "version"
 
       waitsFor ->

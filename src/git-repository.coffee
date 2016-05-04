@@ -166,12 +166,7 @@ class GitRepository
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeStatuses: (callback) ->
-    @async.onDidChangeStatuses ->
-      # Defer the callback to the next tick so that we've reset
-      # `@statusesByPath` by the time it's called. Otherwise reads from within
-      # the callback could be inconsistent.
-      # See https://github.com/atom/atom/issues/11396
-      process.nextTick callback
+    @emitter.on 'did-change-statuses', callback
 
   ###
   Section: Repository Details
@@ -496,9 +491,27 @@ class GitRepository
   #
   # Returns a promise that resolves when the repository has been refreshed.
   refreshStatus: ->
+    statusesChanged = false
+
+    # Listen for `did-change-statuses` so we know if something changed. But we
+    # need to wait to propagate it until after we've set the branch and cleared
+    # the `statusesByPath` cache. So just set a flag, and we'll emit the event
+    # after refresh is done.
+    subscription = @async.onDidChangeStatuses ->
+      subscription?.dispose()
+      subscription = null
+
+      statusesChanged = true
+
     asyncRefresh = @async.refreshStatus().then =>
-      @statusesByPath = {}
+      subscription?.dispose()
+      subscription = null
+
       @branch = @async?.branch
+      @statusesByPath = {}
+
+      if statusesChanged
+        @emitter.emit 'did-change-statuses'
 
     syncRefresh = new Promise (resolve, reject) =>
       @handlerPath ?= require.resolve('./repository-status-handler')
