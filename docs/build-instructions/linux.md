@@ -157,7 +157,7 @@ sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 1 --slave 
 
 ### AttributeError: 'module' object has no attribute 'script_main'
 
-If you get following error with a big traceback while building Atom:
+If you get the following error with a bug traceback while building Atom:
 
   ```
   sys.exit(gyp.script_main()) AttributeError: 'module' object has no attribute 'script_main' gyp ERR!
@@ -170,6 +170,45 @@ On Fedora you would do the following:
   ```sh
   sudo yum remove gyp
   ```
+
+  ```
+
+###Error: EACCES, permission denied
+
+If you get the following error with a bug traceback while opening Atom:
+
+  ```
+  Error: EACCES, permission denied '/home/mrtemp/.atom/compile-cache/less/3e6243fd266b04c3edffe341f452e2cfb2f555af/imports.json'
+   at Error (native)
+  ```
+
+You need to change the ownership by running the following:
+
+  ```sh
+  sudo chown -R `whoami` ~/.atom
+  ```
+
+## Uninstall Atom
+
+These are the instructions you need to run in order to uninstall atom.
+
+  ```sh
+  sudo rm /usr/local/bin/atom
+  sudo rm /usr/local/bin/apm
+  sudo rm -rf ~/atom
+  sudo rm -rf ~/.atom
+  sudo rm -rf ~/.config/Atom-Shell
+  sudo rm -rf /usr/local/share/atom/
+  sudo rm /usr/local/share/applications/atom.desktop
+  ```
+
+If you named your directory something other than "atom" the only thing you need to change is:
+
+  ```sh
+  sudo rm -rf ~/atom
+  ```
+
+Change the "~/atom" to what you named your directory on your computer.
 
 ### Linux build error reports in atom/atom
 * Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Alinux&type=Issues)
