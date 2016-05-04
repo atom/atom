@@ -1,8 +1,10 @@
 {Point} = require 'text-buffer'
+{isPairedCharacter} = require '../src/text-utils'
 
 module.exports =
 class FakeLinesYardstick
   constructor: (@model, @lineTopIndex) ->
+    {@displayLayer} = @model
     @characterWidthsByScope = {}
 
   getScopedCharacterWidth: (scopeNames, char) ->
@@ -24,31 +26,38 @@ class FakeLinesYardstick
 
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
-    baseCharacterWidth = @model.getDefaultCharWidth()
 
     top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = 0
     column = 0
 
-    iterator = @model.tokenizedLineForScreenRow(targetRow).getTokenIterator()
-    while iterator.next()
-      characterWidths = @getScopedCharacterWidths(iterator.getScopes())
+    scopes = []
+    startIndex = 0
+    {tagCodes, lineText} = @model.screenLineForScreenRow(targetRow)
+    for tagCode in tagCodes
+      if @displayLayer.isOpenTagCode(tagCode)
+        scopes.push(@displayLayer.tagForCode(tagCode))
+      else if @displayLayer.isCloseTagCode(tagCode)
+        scopes.splice(scopes.lastIndexOf(@displayLayer.tagForCode(tagCode)), 1)
+      else
+        text = lineText.substr(startIndex, tagCode)
+        startIndex += tagCode
+        characterWidths = @getScopedCharacterWidths(scopes)
 
-      valueIndex = 0
-      text = iterator.getText()
-      while valueIndex < text.length
-        if iterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          valueIndex += 2
-        else
-          char = text[valueIndex]
-          charLength = 1
-          valueIndex++
+        valueIndex = 0
+        while valueIndex < text.length
+          if isPairedCharacter(text, valueIndex)
+            char = text[valueIndex...valueIndex + 2]
+            charLength = 2
+            valueIndex += 2
+          else
+            char = text[valueIndex]
+            charLength = 1
+            valueIndex++
 
-        break if column is targetColumn
+          break if column is targetColumn
 
-        left += characterWidths[char] ? baseCharacterWidth unless char is '\0'
-        column += charLength
+          left += characterWidths[char] ? @model.getDefaultCharWidth() unless char is '\0'
+          column += charLength
 
     {top, left}

@@ -429,7 +429,7 @@ describe "Workspace", ->
           workspace.open('sample.js').then (e) -> editor = e
 
         runs ->
-          expect(editor.displayBuffer.largeFileMode).toBe true
+          expect(editor.largeFileMode).toBe true
 
     describe "when the file is over 20MB", ->
       it "prompts the user to make sure they want to open a file this big", ->
@@ -454,7 +454,7 @@ describe "Workspace", ->
 
         runs ->
           expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-          expect(editor.displayBuffer.largeFileMode).toBe true
+          expect(editor.largeFileMode).toBe true
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
