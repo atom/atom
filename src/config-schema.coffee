@@ -101,7 +101,11 @@ module.exports =
           'windows866'
         ]
       openEmptyEditorOnStart:
-        description: 'Automatically open an empty editor on startup.'
+        description: 'Automatically open a new empty editor on startup, if there are no files open at startup.'
+        type: 'boolean'
+        default: true
+      reopenTabsOnStart:
+        description: 'Automatically reopen files that were open at the time of last closing.'
         type: 'boolean'
         default: true
       automaticallyUpdate:

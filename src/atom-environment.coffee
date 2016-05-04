@@ -689,6 +689,7 @@ class AtomEnvironment extends Model
 
         @menu.update()
 
+        @reopenTabsOnStart()
         @openInitialEmptyEditorIfNecessary()
 
   serialize: (options) ->
@@ -709,9 +710,16 @@ class AtomEnvironment extends Model
     @saveBlobStoreSync()
     @unloaded = true
 
+  #closes all open tabs at startup if the menu option is false
+  #will prompt user to save any unsaved files that are being closed
+  reopenTabsOnStart: ->
+    return unless !@config.get('core.reopenTabsOnStart')
+    panesToRemove.destroyItems() for panesToRemove in @workspace.getPanes()
+
+  #opens a new empty editor on startup if there are no other files open at startup
   openInitialEmptyEditorIfNecessary: ->
     return unless @config.get('core.openEmptyEditorOnStart')
-    if @getLoadSettings().initialPaths?.length is 0 and @workspace.getPaneItems().length is 0
+    if @workspace.getPaneItems().length is 0
       @workspace.open(null)
 
   installUncaughtErrorHandler: ->
