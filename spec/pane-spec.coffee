@@ -917,6 +917,82 @@ describe "Pane", ->
       expect(item1.save).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe false
 
+    describe "when item fails to save", ->
+      [pane, item1, item2] = []
+
+      beforeEach ->
+        pane = new Pane({items: [new Item("A"), new Item("B")], applicationDelegate: atom.applicationDelegate, config: atom.config})
+        [item1, item2] = pane.getItems()
+
+        item1.shouldPromptToSave = -> true
+        item1.getURI = -> "/test/path"
+
+        item1.save = jasmine.createSpy("save").andCallFake ->
+          error = new Error("EACCES, permission denied '/test/path'")
+          error.path = '/test/path'
+          error.code = 'EACCES'
+          throw error
+
+      it "does not destroy the pane if save fails and user clicks cancel", ->
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          if confirmations is 1
+            return 0 # click save
+          else
+            return 1 # click cancel
+
+        pane.close()
+
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(item1.save).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe false
+
+      it "does destroy the pane if the user saves the file under a new name", ->
+        item1.saveAs = jasmine.createSpy("saveAs").andReturn(true)
+
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          return 0 # save and then save as
+
+        showSaveDialog.andReturn("new/path")
+
+        pane.close()
+
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
+
+      it "asks again if the saveAs also fails", ->
+        item1.saveAs = jasmine.createSpy("saveAs").andCallFake ->
+          error = new Error("EACCES, permission denied '/test/path'")
+          error.path = '/test/path'
+          error.code = 'EACCES'
+          throw error
+
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          if confirmations < 3
+            return 0 # save, save as, save as
+          return 2 # don't save
+
+        showSaveDialog.andReturn("new/path")
+
+        pane.close()
+
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(3)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
+
   describe "::destroy()", ->
     [container, pane1, pane2] = []
 
