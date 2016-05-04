@@ -10,6 +10,7 @@ describe "TextEditorRegistry", ->
     it "gets added to the list of registered editors", ->
       editor = {}
       registry.add(editor)
+      expect(editor.registered).toBe true
       expect(registry.editors.size).toBe 1
       expect(registry.editors.has(editor)).toBe(true)
 
@@ -19,6 +20,16 @@ describe "TextEditorRegistry", ->
       expect(registry.editors.size).toBe 1
       disposable.dispose()
       expect(registry.editors.size).toBe 0
+      expect(editor.registered).toBe false
+
+    it "can be removed", ->
+      editor = {}
+      registry.add(editor)
+      expect(registry.editors.size).toBe 1
+      success = registry.remove(editor)
+      expect(success).toBe true
+      expect(registry.editors.size).toBe 0
+      expect(editor.registered).toBe false
 
   describe "when the registry is observed", ->
     it "calls the callback for current and future editors until unsubscribed", ->

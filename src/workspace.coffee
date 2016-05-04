@@ -1092,7 +1092,7 @@ class Workspace extends Model
     if editor.getPath()
       checkoutHead = =>
         @project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
-          .then (repository) =>
+          .then (repository) ->
             repository?.async.checkoutHeadForEditor(editor)
 
       if @config.get('editor.confirmCheckoutHeadRevision')

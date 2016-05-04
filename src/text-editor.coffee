@@ -76,6 +76,7 @@ class TextEditor extends Model
   defaultCharWidth: null
   height: null
   width: null
+  registered: false
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -202,7 +203,7 @@ class TextEditor extends Model
     tokenizedBuffer: tokenizedBufferState
     largeFileMode: @largeFileMode
     displayLayerId: @displayLayer.id
-    registered: atom.textEditors.editors.has this
+    registered: @registered
 
   subscribeToBuffer: ->
     @buffer.retain()
