@@ -230,6 +230,7 @@ class TextEditor extends Model
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getRootScopeDescriptor()
+    subscriptions.add @config.onDidChange 'editor.atomicSoftTabs', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.invisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
