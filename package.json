@@ -41,7 +41,7 @@
     "nslog": "^3",
     "ohnogit": "0.0.11",
     "oniguruma": "^5",
-    "pathwatcher": "~6.2",
+    "pathwatcher": "~6.5",
     "property-accessors": "^1.1.3",
     "random-words": "0.0.1",
     "resolve": "^1.1.6",
