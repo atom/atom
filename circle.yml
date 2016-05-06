@@ -1,4 +1,0 @@
-general:
-  branches:
-    only:
-      - io-circle-ci
