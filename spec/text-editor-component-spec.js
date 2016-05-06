@@ -5118,7 +5118,7 @@ describe('TextEditorComponent', function () {
       let timeout = window.setTimeout(function () {
         timeoutError.message += ' Frame pending? ' + atom.views.animationFrameRequest + ' Same next update promise pending? ' + (nextUpdatePromise === atom.views.nextUpdatePromise)
         reject(timeoutError)
-      }, 5000)
+      }, 30000)
     })
   }
 

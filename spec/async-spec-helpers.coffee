@@ -19,7 +19,7 @@ exports.afterEach = (fn) ->
 
 waitsForPromise = (fn) ->
   promise = fn()
-  waitsFor 'spec promise to resolve', 10000, (done) ->
+  waitsFor 'spec promise to resolve', 30000, (done) ->
     promise.then(
       done,
       (error) ->
