@@ -5,7 +5,9 @@ module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
   getVersion = (callback) ->
-    shouldUseCommitHash = grunt.config.get('atom.channel') is 'dev'
+    releasableBranches = ['stable', 'beta']
+    channel = grunt.config.get('atom.channel')
+    shouldUseCommitHash = if channel in releasableBranches then false else true
     inRepository = fs.existsSync(path.resolve(__dirname, '..', '..', '.git'))
     {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
     if shouldUseCommitHash and inRepository

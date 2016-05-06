@@ -1,7 +1,0 @@
-atom: arch-dependent-file-in-usr-share
-atom: changelog-file-missing-in-native-package
-atom: copyright-file-contains-full-apache-2-license
-atom: copyright-should-refer-to-common-license-file-for-apache-2
-atom: embedded-library
-atom: package-installs-python-bytecode
-atom: unstripped-binary-or-object
