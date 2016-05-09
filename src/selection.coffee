@@ -602,19 +602,23 @@ class Selection extends Model
     {start, end} = @getBufferRange()
     selectionText = @editor.getTextInRange([start, end])
     precedingText = @editor.getTextInRange([[start.row, 0], start])
-    if selectionText.length > 0
-      if selectionText.charAt(0) is '\n'
-        newLineChars = true
-        myCounter = 1
-        while newLineChars and selectionText.length > myCounter
-          if selectionText.charAt(myCounter) is '\n'
-            myCounter++
-          else
-            newLineChars = false
-        startLevel = @editor.indentLevelForLine(@editor.lineTextForBufferRow(start.row + myCounter))
-      else
-        startLevel = @editor.indentLevelForLine(precedingText)
-    else startLevel = 0
+
+    countInitialNewLines = (string) ->
+      newLines = 0
+      counter = 0
+      while counter < string.length
+        if string.charAt(counter) is '\n'
+          counter++
+          newLines++
+        else if counter+1 < string.length and string.substring(counter, counter+2) is "\r\n"
+          counter+=2
+          newLines++
+        else
+          break
+      newLines
+
+    initialNewLines = countInitialNewLines(selectionText)
+    startLevel = @editor.indentLevelForLine(@editor.lineTextForBufferRow(start.row + initialNewLines))
 
     if maintainClipboard
       {text: clipboardText, metadata} = @clipboard.readWithMetadata()
