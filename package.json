@@ -89,7 +89,7 @@
     "dev-live-reload": "0.47.0",
     "encoding-selector": "0.22.0",
     "exception-reporting": "0.38.1",
-    "fuzzy-finder": "1.1.0",
+    "fuzzy-finder": "1.2.0",
     "git-diff": "1.0.1",
     "find-and-replace": "0.198.0",
     "go-to-line": "0.30.0",
