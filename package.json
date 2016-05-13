@@ -22,6 +22,7 @@
     "clear-cut": "^2.0.1",
     "coffee-script": "1.8.0",
     "color": "^0.7.3",
+    "devtron": "1.1.0",
     "event-kit": "^1.5.0",
     "find-parent-dir": "^0.3.0",
     "first-mate": "^5.1.1",
