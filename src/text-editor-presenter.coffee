@@ -1550,8 +1550,8 @@ class TextEditorPresenter
   getVisibleRowRange: ->
     [@startRow, @endRow]
 
-  isRowVisible: (row) ->
-    @startRow <= row < @endRow
+  isRowRendered: (row) ->
+    @getStartTileRow() <= row < @constrainRow(@getEndTileRow() + @tileSize)
 
   isOpenTagCode: (tagCode) ->
     @displayLayer.isOpenTagCode(tagCode)
