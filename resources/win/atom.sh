@@ -1,9 +1,9 @@
 #!/bin/sh
-pushd "$(dirname "$0")" > /dev/null
 if command -v "cygpath" > /dev/null; then
-  ATOMCMD=""$(cygpath . -a -w)atom.cmd""
+  ATOMCMD=""$(cygpath "$(dirname "$0")" -a -w)\\atom.cmd""
 else
+  pushd "$(dirname "$0")" > /dev/null
   ATOMCMD=""$(pwd -W)/atom.cmd""
+  popd > /dev/null
 fi
-popd > /dev/null
-cmd.exe //c "$ATOMCMD" "$@"
+cmd.exe /C "$ATOMCMD" "$@"
