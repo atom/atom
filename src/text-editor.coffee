@@ -3007,7 +3007,7 @@ class TextEditor extends Model
     maintainClipboard = false
     for selection in @getSelectionsOrderedByBufferPosition()
       if not selection.isEmpty()
-        selection.copy(maintainClipboard, true)
+        selection.copy(maintainClipboard, false)
         maintainClipboard = true
     return
 
