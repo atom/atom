@@ -24,6 +24,7 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
+      backgroundColor: "#fff"
       webPreferences:
         backgroundThrottling: not @isSpec
 
