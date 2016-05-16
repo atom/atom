@@ -1153,13 +1153,11 @@ class TextEditorPresenter
 
     if rangeIsReversed
       headScreenPosition = screenRange.start
-      headBufferPosition = bufferRange.start
     else
       headScreenPosition = screenRange.end
-      headBufferPosition = bufferRange.end
 
     if properties.class is 'folded' and Decoration.isType(properties, 'line-number')
-      screenRow = @model.screenRowForBufferRow(headBufferPosition.row)
+      screenRow = @model.screenRowForBufferRow(bufferRange.start.row)
       @lineNumberDecorationsByScreenRow[screenRow] ?= {}
       @lineNumberDecorationsByScreenRow[screenRow][decorationId] = properties
     else
