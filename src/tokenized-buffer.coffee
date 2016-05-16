@@ -420,7 +420,7 @@ class TokenizedBuffer extends Model
 
       indentLength / @getTabLength()
     else
-      0
+      indentLength = 0
 
   scopeDescriptorForPosition: (position) ->
     {row, column} = @buffer.clipPosition(Point.fromObject(position))
