@@ -30,6 +30,10 @@ class AtomWindow
       # thus we should remove this as soon as a fix gets released.
       backgroundColor: "#fff"
       webPreferences:
+        # Prevent specs from throttling when the window is in the background:
+        # this should result in faster CI builds, and an improvement in the
+        # local development experience when running specs through the UI (which
+        # now won't pause when e.g. minimizing the window).
         backgroundThrottling: not @isSpec
 
     # Don't set icon on Windows so the exe's ico will be used as window and
