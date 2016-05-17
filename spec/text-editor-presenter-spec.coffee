@@ -2805,16 +2805,20 @@ describe "TextEditorPresenter", ->
               editor.setSoftWrapped(true)
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(51)
-              presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 2)
+              presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 3)
+              presenter.setScreenRowsToMeasure([9, 11])
 
-              expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-              expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false}
+              expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
               expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true}
               expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false}
-              expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+              expectValues lineNumberStateForScreenRow(presenter, 8), {screenRow: 8, bufferRow: 8, softWrapped: true}
+              expect(lineNumberStateForScreenRow(presenter, 9)).toBeUndefined()
+              expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
+              expect(lineNumberStateForScreenRow(presenter, 11)).toBeUndefined()
+              expect(lineNumberStateForScreenRow(presenter, 12)).toBeUndefined()
 
             it "updates when the editor's content changes", ->
               editor.foldBufferRow(4)
@@ -3069,15 +3073,28 @@ describe "TextEditorPresenter", ->
                   expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
                   expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
 
-              it "applies the 'folded' decoration only to the initial screen row of a soft-wrapped buffer row", ->
-                editor.setSoftWrapped(true)
-                editor.setDefaultCharWidth(1)
-                editor.setEditorWidthInChars(15)
-                editor.foldBufferRange([[0, 20], [0, 22]])
-                presenter = buildPresenter(explicitHeight: 35, scrollTop: 0, tileSize: 2)
+              describe "when a fold spans a single soft-wrapped buffer row", ->
+                it "applies the 'folded' decoration only to its initial screen row", ->
+                  editor.setSoftWrapped(true)
+                  editor.setDefaultCharWidth(1)
+                  editor.setEditorWidthInChars(20)
+                  editor.foldBufferRange([[0, 20], [0, 22]])
+                  editor.foldBufferRange([[0, 10], [0, 14]])
+                  presenter = buildPresenter(explicitHeight: 35, scrollTop: 0, tileSize: 2)
 
-                expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'folded'
-                expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+                  expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain('folded')
+                  expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+
+              describe "when a fold is at the end of a soft-wrapped buffer row", ->
+                it "applies the 'folded' decoration only to its initial screen row", ->
+                  editor.setSoftWrapped(true)
+                  editor.setDefaultCharWidth(1)
+                  editor.setEditorWidthInChars(25)
+                  editor.foldBufferRow(1)
+                  presenter = buildPresenter(explicitHeight: 35, scrollTop: 0, tileSize: 2)
+
+                  expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toContain('folded')
+                  expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
 
             describe ".foldable", ->
               it "marks line numbers at the start of a foldable region as foldable", ->
