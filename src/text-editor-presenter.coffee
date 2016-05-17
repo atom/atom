@@ -1190,6 +1190,7 @@ class TextEditorPresenter
       highlightState.flashClass = properties.flashClass
       highlightState.flashDuration = properties.flashDuration
       highlightState.class = properties.class
+      highlightState.includeText = properties.includeText
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
       highlightState.regions = @buildHighlightRegions(rangeWithinTile)
 
@@ -1235,6 +1236,7 @@ class TextEditorPresenter
         top: startPixelPosition.top
         height: lineHeightInPixels
         left: startPixelPosition.left
+        text: @model.getTextInRange(@displayLayer.translateScreenRange(screenRange))
 
       if screenRange.end.column is Infinity
         region.right = 0
@@ -1249,6 +1251,7 @@ class TextEditorPresenter
         left: startPixelPosition.left
         height: lineHeightInPixels
         right: 0
+        text: @model.getTextInRange(@displayLayer.translateScreenRange(screenRange))
       )
 
       # Middle rows, extending from left side to right side of screen
@@ -1258,6 +1261,7 @@ class TextEditorPresenter
           height: endPixelPosition.top - startPixelPosition.top - lineHeightInPixels
           left: 0
           right: 0
+          text: @model.getTextInRange(@displayLayer.translateScreenRange(screenRange))
         )
 
       # Last row, extending from left side of screen to selection end
@@ -1266,6 +1270,7 @@ class TextEditorPresenter
           top: endPixelPosition.top
           height: lineHeightInPixels
           left: 0
+          text: @model.getTextInRange(@displayLayer.translateScreenRange(screenRange))
 
         if screenRange.end.column is Infinity
           region.right = 0
