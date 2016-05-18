@@ -31,6 +31,7 @@ ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
 Clipboard = require './clipboard'
 Project = require './project'
+TitleBar = require './title-bar'
 Workspace = require './workspace'
 PanelContainer = require './panel-container'
 Panel = require './panel'
@@ -44,6 +45,7 @@ Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
 
+TitleBarElement = require './title-bar-element'
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
 PanelElement = require './panel-element'
@@ -193,6 +195,8 @@ class AtomEnvironment extends Model
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
+
+    @titleBar = new TitleBar() if process.platform is 'darwin'
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
@@ -259,6 +263,8 @@ class AtomEnvironment extends Model
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
   registerDefaultViewProviders: ->
+    @views.addViewProvider TitleBar, (model, env) ->
+      new TitleBarElement().initialize(model, env)
     @views.addViewProvider Workspace, (model, env) ->
       new WorkspaceElement().initialize(model, env)
     @views.addViewProvider PanelContainer, (model, env) ->
@@ -678,6 +684,7 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
+        @document.body.appendChild(@views.getView(@titleBar)) if @titleBar
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
 

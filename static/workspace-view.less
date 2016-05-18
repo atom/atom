@@ -1,9 +1,26 @@
 @import "ui-variables";
+@import "octicon-mixins";
+
+@font-face { .octicon-font(); }
+
+html {
+  font-family: @font-family;
+  font-size: @font-size;
+}
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
 atom-workspace {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex-grow: 1;
   overflow: hidden;
   position: relative;
   color: @text-color;
