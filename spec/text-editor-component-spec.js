@@ -2040,6 +2040,20 @@ describe('TextEditorComponent', function () {
       expect(regions.length).toBe(2)
     })
 
+    it('renders the marker text in the highlight', async function () {
+      decoration = editor.decorateMarker(marker, {
+        type: 'highlight',
+        'class': 'test-highlight-with-text',
+        includeMarkerText: true
+      })
+      await decorationsUpdatedPromise(editor)
+      await nextViewUpdatePromise()
+      let regions = componentNode.querySelectorAll('.test-highlight-with-text .region')
+      expect(regions.length).toBe(2)
+      expect(regions[0].textContent).toBe('.length <= 1) return items;')
+      expect(regions[1].textContent).toBe('    var pivot =')
+    })
+
     describe('when flashing a decoration via Decoration::flash()', function () {
       let highlightNode
 
