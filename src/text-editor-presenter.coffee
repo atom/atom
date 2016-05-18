@@ -1190,7 +1190,7 @@ class TextEditorPresenter
       highlightState.flashClass = properties.flashClass
       highlightState.flashDuration = properties.flashDuration
       highlightState.class = properties.class
-      highlightState.includeText = properties.includeText
+      highlightState.includeMarkerText = properties.includeMarkerText
       highlightState.deprecatedRegionClass = properties.deprecatedRegionClass
       highlightState.regions = @buildHighlightRegions(rangeWithinTile)
 

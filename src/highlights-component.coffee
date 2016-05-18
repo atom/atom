@@ -93,7 +93,8 @@ class HighlightsComponent
           else
             regionNode.style[property] = ''
 
-      regionNode.textContent = newRegionState.text if newHighlightState.includeText
+      if newHighlightState.includeMarkerText
+        regionNode.textContent = newRegionState.text 
 
     return
 
