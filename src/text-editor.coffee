@@ -231,6 +231,7 @@ class TextEditor extends Model
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getRootScopeDescriptor()
+    subscriptions.add @config.onDidChange 'editor.atomicSoftTabs', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.invisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
@@ -1702,8 +1703,6 @@ class TextEditor extends Model
   #     operations, but uses more time and memory. (default: false)
   #   * `reversed` (optional) {Boolean} Creates the marker in a reversed
   #     orientation. (default: false)
-  #   * `persistent` (optional) {Boolean} Whether to include this marker when
-  #     serializing the buffer. (default: true)
   #   * `invalidate` (optional) {String} Determines the rules by which changes
   #     to the buffer *invalidate* the marker. (default: 'overlap') It can be
   #     any of the following strategies, in order of fragility:
@@ -1737,8 +1736,6 @@ class TextEditor extends Model
   #     operations, but uses more time and memory. (default: false)
   #   * `reversed` (optional) {Boolean} Creates the marker in a reversed
   #     orientation. (default: false)
-  #   * `persistent` (optional) {Boolean} Whether to include this marker when
-  #     serializing the buffer. (default: true)
   #   * `invalidate` (optional) {String} Determines the rules by which changes
   #     to the buffer *invalidate* the marker. (default: 'overlap') It can be
   #     any of the following strategies, in order of fragility:
@@ -3011,7 +3008,7 @@ class TextEditor extends Model
     maintainClipboard = false
     for selection in @getSelectionsOrderedByBufferPosition()
       if not selection.isEmpty()
-        selection.copy(maintainClipboard, true)
+        selection.copy(maintainClipboard, false)
         maintainClipboard = true
     return
 

@@ -491,7 +491,7 @@ class TextEditorComponent
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @editor.clipScreenPosition(screenPosition) if clip
 
-    unless @presenter.isRowVisible(screenPosition.row)
+    unless @presenter.isRowRendered(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
 
     unless @linesComponent.lineNodeForScreenRow(screenPosition.row)?
@@ -503,7 +503,7 @@ class TextEditorComponent
 
   screenPositionForPixelPosition: (pixelPosition) ->
     row = @linesYardstick.measuredRowForPixelPosition(pixelPosition)
-    if row? and not @presenter.isRowVisible(row)
+    if row? and not @presenter.isRowRendered(row)
       @presenter.setScreenRowsToMeasure([row])
       @updateSyncPreMeasurement()
 
@@ -513,9 +513,9 @@ class TextEditorComponent
 
   pixelRectForScreenRange: (screenRange) ->
     rowsToMeasure = []
-    unless @presenter.isRowVisible(screenRange.start.row)
+    unless @presenter.isRowRendered(screenRange.start.row)
       rowsToMeasure.push(screenRange.start.row)
-    unless @presenter.isRowVisible(screenRange.end.row)
+    unless @presenter.isRowRendered(screenRange.end.row)
       rowsToMeasure.push(screenRange.end.row)
 
     if rowsToMeasure.length > 0

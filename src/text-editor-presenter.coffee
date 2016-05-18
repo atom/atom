@@ -601,42 +601,19 @@ class TextEditorPresenter
     tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
-    startRow = screenRows[screenRows.length - 1]
-    endRow = Math.min(screenRows[0] + 1, @model.getScreenLineCount())
+    for screenRow in screenRows when @isRowRendered(screenRow)
+      lineId = @linesByScreenRow.get(screenRow).id
+      {bufferRow, softWrappedAtStart: softWrapped} = @displayLayer.softWrapDescriptorForScreenRow(screenRow)
+      foldable = not softWrapped and @model.isFoldableAtBufferRow(bufferRow)
+      decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+      blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
+      blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
+      if screenRow % @tileSize isnt 0
+        blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow - 1)
+        blockDecorationsHeight += blockDecorationsAfterPreviousScreenRowHeight
 
-    if startRow > 0
-      rowBeforeStartRow = startRow - 1
-      lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
-    else
-      lastBufferRow = null
-
-    if endRow > startRow
-      bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
-      previousBufferRow = -1
-      foldable = false
-      for bufferRow, i in bufferRows
-         # don't compute foldability more than once per buffer row
-        if previousBufferRow isnt bufferRow
-          foldable = @model.isFoldableAtBufferRow(bufferRow)
-          previousBufferRow = bufferRow
-
-        if bufferRow is lastBufferRow
-          softWrapped = true
-        else
-          lastBufferRow = bufferRow
-          softWrapped = false
-
-        screenRow = startRow + i
-        lineId = @linesByScreenRow.get(screenRow).id
-        decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-        blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
-        blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
-        if screenRow % @tileSize isnt 0
-          blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow - 1)
-          blockDecorationsHeight += blockDecorationsAfterPreviousScreenRowHeight
-
-        tileState.lineNumbers[lineId] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
-        visibleLineNumberIds[lineId] = true
+      tileState.lineNumbers[lineId] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
+      visibleLineNumberIds[lineId] = true
 
     for id of tileState.lineNumbers
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
@@ -1153,13 +1130,11 @@ class TextEditorPresenter
 
     if rangeIsReversed
       headScreenPosition = screenRange.start
-      headBufferPosition = bufferRange.start
     else
       headScreenPosition = screenRange.end
-      headBufferPosition = bufferRange.end
 
     if properties.class is 'folded' and Decoration.isType(properties, 'line-number')
-      screenRow = @model.screenRowForBufferRow(headBufferPosition.row)
+      screenRow = @model.screenRowForBufferRow(bufferRange.start.row)
       @lineNumberDecorationsByScreenRow[screenRow] ?= {}
       @lineNumberDecorationsByScreenRow[screenRow][decorationId] = properties
     else
@@ -1550,8 +1525,8 @@ class TextEditorPresenter
   getVisibleRowRange: ->
     [@startRow, @endRow]
 
-  isRowVisible: (row) ->
-    @startRow <= row < @endRow
+  isRowRendered: (row) ->
+    @getStartTileRow() <= row < @constrainRow(@getEndTileRow() + @tileSize)
 
   isOpenTagCode: (tagCode) ->
     @displayLayer.isOpenTagCode(tagCode)
