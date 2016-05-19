@@ -1,9 +1,8 @@
 {EventEmitter} = require 'events'
-_ = require 'underscore-plus'
 SquirrelUpdate = require './squirrel-update'
 
 class AutoUpdater
-  _.extend @prototype, EventEmitter.prototype
+  Object.assign @prototype, EventEmitter.prototype
 
   setFeedURL: (@updateUrl) ->
 
