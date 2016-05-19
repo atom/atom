@@ -172,6 +172,8 @@ module.exports = (grunt) ->
             dest: path.join(appDir, jsFile)
           })
 
+  windowsInstallerConfig =
+
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
@@ -286,12 +288,16 @@ module.exports = (grunt) ->
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('mktar') if process.platform is 'linux'
-  ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI
-  ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
-  ciTasks.push('codesign:installer') if process.platform is 'win32' and not process.env.CI
   ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.CI
+  if process.platform is 'win32'
+    ciTasks.push('codesign:exe') if process.env.JANKY_SIGNTOOL
+    ciTasks.push('codesign:installer-deferred') if not process.env.JANKY_SIGNTOOL
+    ciTasks.push('create-windows-installer:installer')
+    ciTasks.push('codesign:installer') if process.env.JANKY_SIGNTOOL
+    ciTasks.push('codesign:cleanup')
   ciTasks.push('publish-build') unless process.env.CI
+
   grunt.registerTask('ci', ciTasks)
 
   defaultTasks = ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar']
