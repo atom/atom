@@ -4,6 +4,7 @@ path = require 'path'
 {join} = path
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+{Directory} = require 'pathwatcher'
 DefaultDirectorySearcher = require './default-directory-searcher'
 Model = require './model'
 TextEditor = require './text-editor'
@@ -42,6 +43,12 @@ class Workspace extends Model
 
     @defaultDirectorySearcher = new DefaultDirectorySearcher()
     @consumeServices(@packageManager)
+
+    # One cannot simply .bind here since it could be used as a component with
+    # Etch, in which case it'd be `new`d. And when it's `new`d, `this` is always
+    # the newly created object.
+    realThis = this
+    @buildTextEditor = -> Workspace.prototype.buildTextEditor.apply(realThis, arguments)
 
     @panelContainers =
       top: new PanelContainer({location: 'top'})
@@ -503,7 +510,7 @@ class Workspace extends Model
         return item if pane.isDestroyed()
 
         @itemOpened(item)
-        pane.activateItem(item, options.pending) if activateItem
+        pane.activateItem(item, {pending: options.pending}) if activateItem
         pane.activate() if activatePane
 
         initialLine = initialColumn = 0
@@ -542,7 +549,18 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      editor = @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      disposable = atom.textEditors.add(editor)
+      grammarSubscription = editor.observeGrammar(@handleGrammarUsed.bind(this))
+      editor.onDidDestroy ->
+        grammarSubscription.dispose()
+        disposable.dispose()
+      editor
+
+  handleGrammarUsed: (grammar) ->
+    return unless grammar?
+
+    @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
 
   # Public: Returns a {Boolean} that is `true` if `object` is a `TextEditor`.
   #
@@ -555,13 +573,9 @@ class Workspace extends Model
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
     params = _.extend({
-      @config, @notificationManager, @packageManager, @clipboard, @viewRegistry,
-      @grammarRegistry, @project, @assert, @applicationDelegate
+      @config, @clipboard, @grammarRegistry, @assert
     }, params)
-    editor = new TextEditor(params)
-    disposable = atom.textEditors.add(editor)
-    editor.onDidDestroy -> disposable.dispose()
-    editor
+    new TextEditor(params)
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.
@@ -1073,3 +1087,22 @@ class Workspace extends Model
 
       inProcessFinished = true
       checkFinished()
+
+  checkoutHeadRevision: (editor) ->
+    if editor.getPath()
+      checkoutHead = =>
+        @project.repositoryForDirectory(new Directory(editor.getDirectoryPath()))
+          .then (repository) ->
+            repository?.async.checkoutHeadForEditor(editor)
+
+      if @config.get('editor.confirmCheckoutHeadRevision')
+        @applicationDelegate.confirm
+          message: 'Confirm Checkout HEAD Revision'
+          detailedMessage: "Are you sure you want to discard all changes to \"#{editor.getFileName()}\" since the last Git commit?"
+          buttons:
+            OK: checkoutHead
+            Cancel: null
+      else
+        checkoutHead()
+    else
+      Promise.resolve(false)

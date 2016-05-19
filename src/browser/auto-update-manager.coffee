@@ -1,6 +1,5 @@
 autoUpdater = null
 _ = require 'underscore-plus'
-Config = require '../config'
 {EventEmitter} = require 'events'
 path = require 'path'
 
@@ -16,13 +15,10 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: (@version, @testMode, resourcePath) ->
+  constructor: (@version, @testMode, resourcePath, @config) ->
     @state = IdleState
     @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
-    @config = new Config({configDirPath: process.env.ATOM_HOME, resourcePath, enablePersistence: true})
-    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
-    @config.load()
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
@@ -32,7 +28,8 @@ class AutoUpdateManager
       {autoUpdater} = require 'electron'
 
     autoUpdater.on 'error', (event, message) =>
-      @setState(ErrorState)
+      @setState(ErrorState, message)
+      @emitWindowEvent('update-error')
       console.error "Error Downloading Update: #{message}"
 
     autoUpdater.setFeedURL @feedUrl
@@ -82,13 +79,17 @@ class AutoUpdateManager
       atomWindow.sendMessage(eventName, payload)
     return
 
-  setState: (state) ->
+  setState: (state, errorMessage) ->
     return if @state is state
     @state = state
+    @errorMessage = errorMessage
     @emit 'state-changed', @state
 
   getState: ->
     @state
+
+  getErrorMessage: ->
+    @errorMessage
 
   scheduleUpdateCheck: ->
     # Only schedule update check periodically if running in release version and

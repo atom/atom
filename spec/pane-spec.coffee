@@ -1,5 +1,6 @@
 {extend} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
+Grim = require 'grim'
 Pane = require '../src/pane'
 PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
@@ -92,7 +93,7 @@ describe "Pane", ->
       pane = new Pane(paneParams(items: [new Item("A"), new Item("B")]))
       [item1, item2] = pane.getItems()
       item3 = new Item("C")
-      pane.addItem(item3, 1)
+      pane.addItem(item3, index: 1)
       expect(pane.getItems()).toEqual [item1, item3, item2]
 
     it "adds the item after the active item if no index is provided", ->
@@ -115,7 +116,7 @@ describe "Pane", ->
       pane.onDidAddItem (event) -> events.push(event)
 
       item = new Item("C")
-      pane.addItem(item, 1)
+      pane.addItem(item, index: 1)
       expect(events).toEqual [{item, index: 1, moved: false}]
 
     it "throws an exception if the item is already present on a pane", ->
@@ -132,13 +133,56 @@ describe "Pane", ->
       expect(-> pane.addItem('foo')).toThrow()
       expect(-> pane.addItem(1)).toThrow()
 
-    it "destroys any existing pending item if the new item is pending", ->
+    it "destroys any existing pending item", ->
       pane = new Pane(paneParams(items: []))
       itemA = new Item("A")
       itemB = new Item("B")
-      pane.addItem(itemA, undefined, false, true)
-      pane.addItem(itemB, undefined, false, true)
-      expect(itemA.isDestroyed()).toBe true
+      itemC = new Item("C")
+      pane.addItem(itemA, pending: false)
+      pane.addItem(itemB, pending: true)
+      pane.addItem(itemC, pending: false)
+      expect(itemB.isDestroyed()).toBe true
+
+    it "adds the new item before destroying any existing pending item", ->
+      eventOrder = []
+
+      pane = new Pane(paneParams(items: []))
+      itemA = new Item("A")
+      itemB = new Item("B")
+      pane.addItem(itemA, pending: true)
+
+      pane.onDidAddItem ({item}) ->
+        eventOrder.push("add") if item is itemB
+
+      pane.onDidRemoveItem ({item}) ->
+        eventOrder.push("remove") if item is itemA
+
+      pane.addItem(itemB)
+
+      waitsFor ->
+        eventOrder.length is 2
+
+      runs ->
+        expect(eventOrder).toEqual ["add", "remove"]
+
+    describe "when using the old API of ::addItem(item, index)", ->
+      beforeEach ->
+        spyOn Grim, "deprecate"
+
+      it "supports the older public API", ->
+        pane = new Pane(paneParams(items: []))
+        itemA = new Item("A")
+        itemB = new Item("B")
+        itemC = new Item("C")
+        pane.addItem(itemA, 0)
+        pane.addItem(itemB, 0)
+        pane.addItem(itemC, 0)
+        expect(pane.getItems()).toEqual [itemC, itemB, itemA]
+
+      it "shows a deprecation warning", ->
+        pane = new Pane(paneParams(items: []))
+        pane.addItem(new Item(), 2)
+        expect(Grim.deprecate).toHaveBeenCalledWith "Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})"
 
   describe "::activateItem(item)", ->
     pane = null
@@ -172,15 +216,15 @@ describe "Pane", ->
         itemD = new Item("D")
 
       it "replaces the active item if it is pending", ->
-        pane.activateItem(itemC, true)
+        pane.activateItem(itemC, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'C', 'B']
-        pane.activateItem(itemD, true)
+        pane.activateItem(itemD, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'D', 'B']
 
       it "adds the item after the active item if it is not pending", ->
-        pane.activateItem(itemC, true)
+        pane.activateItem(itemC, pending: true)
         pane.activateItemAtIndex(2)
-        pane.activateItem(itemD, true)
+        pane.activateItem(itemD, pending: true)
         expect(pane.getItems().map (item) -> item.name).toEqual ['A', 'B', 'D']
 
   describe "::setPendingItem", ->
@@ -217,6 +261,26 @@ describe "Pane", ->
         expect(pane.getPendingItem()).toEqual "fake item two"
       pane.setPendingItem("fake item two")
       expect(callbackCalled).toBeTruthy()
+
+    it "isn't called when a pending item is replaced with a new one", ->
+      pane = null
+      pendingSpy = jasmine.createSpy("onItemDidTerminatePendingState")
+      destroySpy = jasmine.createSpy("onWillDestroyItem")
+
+      waitsForPromise ->
+        atom.workspace.open('sample.txt', pending: true).then ->
+          pane = atom.workspace.getActivePane()
+
+      runs ->
+        pane.onItemDidTerminatePendingState pendingSpy
+        pane.onWillDestroyItem destroySpy
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', pending: true)
+
+      runs ->
+        expect(destroySpy).toHaveBeenCalled()
+        expect(pendingSpy).not.toHaveBeenCalled()
 
   describe "::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()", ->
     it "sets the active item to the next/previous item in the itemStack, looping around at either end", ->
@@ -682,6 +746,23 @@ describe "Pane", ->
           expect(pane2.isDestroyed()).toBe true
           expect(item4.isDestroyed()).toBe false
 
+    describe "when the item being moved is pending", ->
+      it "is made permanent in the new pane", ->
+        item6 = new Item("F")
+        pane1.addItem(item6, pending: true)
+        expect(pane1.getPendingItem()).toEqual item6
+        pane1.moveItemToPane(item6, pane2, 0)
+        expect(pane2.getPendingItem()).not.toEqual item6
+
+    describe "when the target pane has a pending item", ->
+      it "does not destroy the pending item", ->
+        item6 = new Item("F")
+        pane1.addItem(item6, pending: true)
+        expect(pane1.getPendingItem()).toEqual item6
+        pane2.moveItemToPane(item5, pane1, 0)
+        expect(pane1.getPendingItem()).toEqual item6
+
+
   describe "split methods", ->
     [pane1, item1, container] = []
 
@@ -835,6 +916,82 @@ describe "Pane", ->
       expect(confirm).toHaveBeenCalled()
       expect(item1.save).not.toHaveBeenCalled()
       expect(pane.isDestroyed()).toBe false
+
+    describe "when item fails to save", ->
+      [pane, item1, item2] = []
+
+      beforeEach ->
+        pane = new Pane({items: [new Item("A"), new Item("B")], applicationDelegate: atom.applicationDelegate, config: atom.config})
+        [item1, item2] = pane.getItems()
+
+        item1.shouldPromptToSave = -> true
+        item1.getURI = -> "/test/path"
+
+        item1.save = jasmine.createSpy("save").andCallFake ->
+          error = new Error("EACCES, permission denied '/test/path'")
+          error.path = '/test/path'
+          error.code = 'EACCES'
+          throw error
+
+      it "does not destroy the pane if save fails and user clicks cancel", ->
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          if confirmations is 1
+            return 0 # click save
+          else
+            return 1 # click cancel
+
+        pane.close()
+
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(item1.save).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe false
+
+      it "does destroy the pane if the user saves the file under a new name", ->
+        item1.saveAs = jasmine.createSpy("saveAs").andReturn(true)
+
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          return 0 # save and then save as
+
+        showSaveDialog.andReturn("new/path")
+
+        pane.close()
+
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(2)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
+
+      it "asks again if the saveAs also fails", ->
+        item1.saveAs = jasmine.createSpy("saveAs").andCallFake ->
+          error = new Error("EACCES, permission denied '/test/path'")
+          error.path = '/test/path'
+          error.code = 'EACCES'
+          throw error
+
+        confirmations = 0
+        confirm.andCallFake ->
+          confirmations++
+          if confirmations < 3
+            return 0 # save, save as, save as
+          return 2 # don't save
+
+        showSaveDialog.andReturn("new/path")
+
+        pane.close()
+
+        expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+        expect(confirmations).toBe(3)
+        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalled()
+        expect(item1.save).toHaveBeenCalled()
+        expect(item1.saveAs).toHaveBeenCalled()
+        expect(pane.isDestroyed()).toBe true
 
   describe "::destroy()", ->
     [container, pane1, pane2] = []

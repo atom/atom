@@ -33,7 +33,7 @@ describe "GitRepository", ->
       waitsForPromise ->
         repo.async.getPath().then(onSuccess)
       runs ->
-        expect(onSuccess.mostRecentCall.args[0]).toBe(repoPath)
+        expect(onSuccess.mostRecentCall.args[0]).toEqualPath(repoPath)
 
   describe "new GitRepository(path)", ->
     it "throws an exception when no repository is found", ->
@@ -289,6 +289,16 @@ describe "GitRepository", ->
         expect(repo.isStatusModified(status)).toBe true
         expect(repo.isStatusNew(status)).toBe false
 
+    it 'caches statuses that were looked up synchronously', ->
+      originalContent = 'undefined'
+      fs.writeFileSync(modifiedPath, 'making this path modified')
+      repo.getPathStatus('file.txt')
+
+      fs.writeFileSync(modifiedPath, originalContent)
+      waitsForPromise -> repo.refreshStatus()
+      runs ->
+        expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeFalsy()
+
   describe "buffer events", ->
     [editor] = []
 
@@ -347,7 +357,7 @@ describe "GitRepository", ->
 
       runs ->
         project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
-        project2.deserialize(atom.project.serialize(), atom.deserializers)
+        project2.deserialize(atom.project.serialize({isUnloading: false}))
         buffer = project2.getBuffers()[0]
 
       waitsFor ->

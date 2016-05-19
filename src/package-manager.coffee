@@ -128,8 +128,12 @@ class PackageManager
 
   # Public: Get the path to the apm command.
   #
+  # Uses the value of the `core.apmPath` config setting if it exists.
+  #
   # Return a {String} file path to apm.
   getApmPath: ->
+    configPath = atom.config.get('core.apmPath')
+    return configPath if configPath
     return @apmPath if @apmPath?
 
     commandName = 'apm'
@@ -363,6 +367,8 @@ class PackageManager
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
+    return null if path.basename(nameOrPath)[0].match /^\./ # primarily to skip .git folder
+
     return pack if pack = @getLoadedPackage(nameOrPath)
 
     if packagePath = @resolvePackagePath(nameOrPath)

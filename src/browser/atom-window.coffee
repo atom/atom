@@ -17,7 +17,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -47,13 +47,7 @@ class AtomWindow
     loadSettings.safeMode ?= false
     loadSettings.atomHome = process.env.ATOM_HOME
     loadSettings.clearWindowState ?= false
-
-    # Only send to the first non-spec window created
-    if @constructor.includeShellLoadTime and not @isSpec
-      @constructor.includeShellLoadTime = false
-      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
-
-    loadSettings.initialPaths =
+    loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
         if fs.statSyncNoException(pathToOpen).isFile?()
           path.dirname(pathToOpen)
@@ -62,11 +56,19 @@ class AtomWindow
 
     loadSettings.initialPaths.sort()
 
+    # Only send to the first non-spec window created
+    if @constructor.includeShellLoadTime and not @isSpec
+      @constructor.includeShellLoadTime = false
+      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+
+    @browserWindow.loadSettings = loadSettings
+
     @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
 
     @setLoadSettings(loadSettings)
+    @env = loadSettings.env if loadSettings.env?
     @browserWindow.focusOnWebView() if @isSpec
     @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
@@ -167,6 +169,9 @@ class AtomWindow
       @sendMessage 'open-locations', locationsToOpen
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+
+  replaceEnvironment: (env) ->
+    @browserWindow.webContents.send 'environment', env
 
   sendMessage: (message, detail) ->
     @browserWindow.webContents.send 'message', message, detail

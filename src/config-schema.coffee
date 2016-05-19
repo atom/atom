@@ -155,6 +155,10 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Show line numbers in the editor\'s gutter.'
+      atomicSoftTabs:
+        type: 'boolean'
+        default: true
+        description: 'Skip over tab-length runs of leading whitespace when moving the cursor.'
       autoIndent:
         type: 'boolean'
         default: true
