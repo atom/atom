@@ -341,3 +341,18 @@ module.exports =
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     """
+  'tweetnacl@0.14.3':
+    license: 'Public Domain'
+    repository: 'https://github.com/dchest/tweetnacl'
+    source: 'COPYING.txt'
+    sourceText: """
+    Public Domain
+
+    The person who associated a work with this deed has dedicated the work to the
+    public domain by waiving all of his or her rights to the work worldwide under
+    copyright law, including all related and neighboring rights, to the extent
+    allowed by law.
+
+    You can copy, modify, distribute and perform the work, even for commercial
+    purposes, all without asking permission.
+    """
