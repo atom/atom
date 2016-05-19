@@ -3,6 +3,7 @@ ApplicationMenu = require './application-menu'
 AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
 StorageFolder = require '../storage-folder'
+Config = require '../config'
 ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
 fs = require 'fs-plus'
@@ -70,7 +71,11 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
-    @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath)
+    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config.load()
+
+    @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
@@ -133,7 +138,11 @@ class AtomApplication
     return unless @socketPath?
     @deleteSocketFile()
     server = net.createServer (connection) =>
-      connection.on 'data', (data) =>
+      data = ''
+      connection.on 'data', (chunk) ->
+        data = data + chunk
+
+      connection.on 'end', =>
         options = JSON.parse(data)
         @openWithOptions(options)
 
@@ -165,9 +174,6 @@ class AtomApplication
     @on 'application:quit', -> app.quit()
     @on 'application:new-window', -> @openPath(getLoadSettings())
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
-    @on 'application:open', -> @promptForPathToOpen('all', getLoadSettings())
-    @on 'application:open-file', -> @promptForPathToOpen('file', getLoadSettings())
-    @on 'application:open-folder', -> @promptForPathToOpen('folder', getLoadSettings())
     @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
     @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
     @on 'application:inspect', ({x, y, atomWindow}) ->
@@ -250,6 +256,14 @@ class AtomApplication
     ipcMain.on 'command', (event, command) =>
       @emit(command)
 
+    ipcMain.on 'open-command', (event, command, args...) =>
+      defaultPath = args[0] if args.length > 0
+      switch command
+        when 'application:open' then @promptForPathToOpen('all', getLoadSettings(), defaultPath)
+        when 'application:open-file' then @promptForPathToOpen('file', getLoadSettings(), defaultPath)
+        when 'application:open-folder' then @promptForPathToOpen('folder', getLoadSettings(), defaultPath)
+        else console.log "Invalid open-command received: " + command
+
     ipcMain.on 'window-command', (event, command, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win.emit(command, args...)
@@ -305,11 +319,11 @@ class AtomApplication
     ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
 
-    ipcMain.on 'check-for-update', =>
-      @autoUpdateManager.check()
-
     ipcMain.on 'get-auto-update-manager-state', (event) =>
       event.returnValue = @autoUpdateManager.getState()
+
+    ipcMain.on 'get-auto-update-manager-error', (event) =>
+      event.returnValue = @autoUpdateManager.getErrorMessage()
 
     ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
@@ -461,6 +475,7 @@ class AtomApplication
         openedWindow.restore()
       else
         openedWindow.focus()
+      openedWindow.replaceEnvironment(env)
     else
       if devMode
         try
@@ -510,7 +525,8 @@ class AtomApplication
       @storageFolder.storeSync('application.json', states)
 
   loadState: (options) ->
-    if (states = @storageFolder.load('application.json'))?.length > 0
+    restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
+    if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
         @openWithOptions(_.extend(options, {
           initialPaths: state.initialPaths
@@ -646,11 +662,13 @@ class AtomApplication
   #   :safeMode - A Boolean which controls whether any newly opened windows
   #               should be in safe mode or not.
   #   :window - An {AtomWindow} to use for opening a selected file path.
-  promptForPathToOpen: (type, {devMode, safeMode, window}) ->
-    @promptForPath type, (pathsToOpen) =>
-      @openPaths({pathsToOpen, devMode, safeMode, window})
+  #   :path - An optional String which controls the default path to which the
+  #           file dialog opens.
+  promptForPathToOpen: (type, {devMode, safeMode, window}, path=null) ->
+    @promptForPath type, ((pathsToOpen) =>
+      @openPaths({pathsToOpen, devMode, safeMode, window})), path
 
-  promptForPath: (type, callback) ->
+  promptForPath: (type, callback, path) ->
     properties =
       switch type
         when 'file' then ['openFile']
@@ -673,8 +691,8 @@ class AtomApplication
         when 'folder' then 'Open Folder'
         else 'Open'
 
-    if process.platform is 'linux'
-      if projectPath = @lastFocusedWindow?.projectPath
-        openOptions.defaultPath = projectPath
+    # File dialog defaults to project directory of currently active editor
+    if path?
+      openOptions.defaultPath = path
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)

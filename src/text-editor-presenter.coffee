@@ -16,6 +16,7 @@ class TextEditorPresenter
     {@model, @config, @lineTopIndex, scrollPastEnd} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
+    {@displayLayer} = @model
 
     @gutterWidth = 0
     @tileSize ?= 6
@@ -23,6 +24,7 @@ class TextEditorPresenter
     @realScrollLeft = @scrollLeft
     @disposables = new CompositeDisposable
     @emitter = new Emitter
+    @linesByScreenRow = new Map
     @visibleHighlights = {}
     @characterWidthsByScope = {}
     @lineDecorationsByScreenRow = {}
@@ -87,6 +89,8 @@ class TextEditorPresenter
     @updateCommonGutterState()
     @updateReflowState()
 
+    @updateLines()
+
     if @shouldUpdateDecorations
       @fetchDecorations()
       @updateLineDecorations()
@@ -105,6 +109,8 @@ class TextEditorPresenter
     @commitPendingScrollLeftPosition()
     @clearPendingScrollPosition()
     @updateRowsPerPage()
+
+    @updateLines()
 
     @updateFocusedState()
     @updateHeightState()
@@ -132,8 +138,11 @@ class TextEditorPresenter
     @shouldUpdateDecorations = true
 
   observeModel: ->
-    @disposables.add @model.onDidChange ({start, end, screenDelta}) =>
-      @spliceBlockDecorationsInRange(start, end, screenDelta)
+    @disposables.add @model.displayLayer.onDidChangeSync (changes) =>
+      for change in changes
+        startRow = change.start.row
+        endRow = startRow + change.oldExtent.row
+        @spliceBlockDecorationsInRange(startRow, endRow, change.newExtent.row - change.oldExtent.row)
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
 
@@ -166,7 +175,6 @@ class TextEditorPresenter
 
     @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
     @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
-    @showIndentGuide = @config.get('editor.showIndentGuide', configParams)
 
     if @configDisposables?
       @configDisposables?.dispose()
@@ -175,10 +183,6 @@ class TextEditorPresenter
     @configDisposables = new CompositeDisposable
     @disposables.add(@configDisposables)
 
-    @configDisposables.add @config.onDidChange 'editor.showIndentGuide', configParams, ({newValue}) =>
-      @showIndentGuide = newValue
-
-      @emitDidUpdateState()
     @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
       @scrollPastEnd = newValue
       @updateScrollHeight()
@@ -286,7 +290,6 @@ class TextEditorPresenter
     @state.content.width = Math.max(@contentWidth + @verticalScrollbarWidth, @contentFrameWidth)
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
-    @state.content.indentGuidesVisible = not @model.isMini() and @showIndentGuide
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
     @state.content.placeholderText = if @model.isEmpty() then @model.getPlaceholderText() else null
 
@@ -297,15 +300,15 @@ class TextEditorPresenter
     Math.max(0, Math.min(row, @model.getScreenLineCount()))
 
   getStartTileRow: ->
-    @constrainRow(@tileForRow(@startRow))
+    @constrainRow(@tileForRow(@startRow ? 0))
 
   getEndTileRow: ->
-    @constrainRow(@tileForRow(@endRow))
+    @constrainRow(@tileForRow(@endRow ? 0))
 
   isValidScreenRow: (screenRow) ->
     screenRow >= 0 and screenRow < @model.getScreenLineCount()
 
-  getScreenRows: ->
+  getScreenRowsToRender: ->
     startRow = @getStartTileRow()
     endRow = @constrainRow(@getEndTileRow() + @tileSize)
 
@@ -320,6 +323,22 @@ class TextEditorPresenter
     screenRows.sort (a, b) -> a - b
     _.uniq(screenRows, true)
 
+  getScreenRangesToRender: ->
+    screenRows = @getScreenRowsToRender()
+    screenRows.push(Infinity) # makes the loop below inclusive
+
+    startRow = screenRows[0]
+    endRow = startRow - 1
+    screenRanges = []
+    for row in screenRows
+      if row is endRow + 1
+        endRow++
+      else
+        screenRanges.push([startRow, endRow])
+        startRow = endRow = row
+
+    screenRanges
+
   setScreenRowsToMeasure: (screenRows) ->
     return if not screenRows? or screenRows.length is 0
 
@@ -332,7 +351,7 @@ class TextEditorPresenter
   updateTilesState: ->
     return unless @startRow? and @endRow? and @lineHeight?
 
-    screenRows = @getScreenRows()
+    screenRows = @getScreenRowsToRender()
     visibleTiles = {}
     startRow = screenRows[0]
     endRow = screenRows[screenRows.length - 1]
@@ -375,7 +394,7 @@ class TextEditorPresenter
       visibleTiles[tileStartRow] = true
       zIndex++
 
-    if @mouseWheelScreenRow? and @model.tokenizedLineForScreenRow(@mouseWheelScreenRow)?
+    if @mouseWheelScreenRow? and 0 <= @mouseWheelScreenRow < @model.getScreenLineCount()
       mouseWheelTile = @tileForRow(@mouseWheelScreenRow)
 
       unless visibleTiles[mouseWheelTile]?
@@ -393,7 +412,7 @@ class TextEditorPresenter
     tileState.lines ?= {}
     visibleLineIds = {}
     for screenRow in screenRows
-      line = @model.tokenizedLineForScreenRow(screenRow)
+      line = @linesByScreenRow.get(screenRow)
       unless line?
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
@@ -411,18 +430,8 @@ class TextEditorPresenter
       else
         tileState.lines[line.id] =
           screenRow: screenRow
-          text: line.text
-          openScopes: line.openScopes
-          tags: line.tags
-          specialTokens: line.specialTokens
-          firstNonWhitespaceIndex: line.firstNonWhitespaceIndex
-          firstTrailingWhitespaceIndex: line.firstTrailingWhitespaceIndex
-          invisibles: line.invisibles
-          endOfLineInvisibles: line.endOfLineInvisibles
-          isOnlyWhitespace: line.isOnlyWhitespace()
-          indentLevel: line.indentLevel
-          tabLength: line.tabLength
-          fold: line.fold
+          lineText: line.lineText
+          tagCodes: line.tagCodes
           decorationClasses: @lineDecorationClassesForRow(screenRow)
           precedingBlockDecorations: precedingBlockDecorations
           followingBlockDecorations: followingBlockDecorations
@@ -459,19 +468,21 @@ class TextEditorPresenter
 
       pixelPosition = @pixelPositionForScreenPosition(screenPosition)
 
-      top = pixelPosition.top + @lineHeight
-      left = pixelPosition.left + @gutterWidth
+      # Fixed positioning.
+      top = @boundingClientRect.top + pixelPosition.top + @lineHeight
+      left = @boundingClientRect.left + pixelPosition.left + @gutterWidth
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
 
-        rightDiff = left + @boundingClientRect.left + itemWidth + contentMargin - @windowWidth
+        rightDiff = left + itemWidth + contentMargin - @windowWidth
         left -= rightDiff if rightDiff > 0
 
-        leftDiff = left + @boundingClientRect.left + contentMargin
+        leftDiff = left + contentMargin
         left -= leftDiff if leftDiff < 0
 
-        if top + @boundingClientRect.top + itemHeight > @windowHeight and top - (itemHeight + @lineHeight) >= 0
+        if top + itemHeight > @windowHeight and
+           top - (itemHeight + @lineHeight) >= 0
           top -= itemHeight + @lineHeight
 
       pixelPosition.top = top
@@ -590,42 +601,19 @@ class TextEditorPresenter
     tileState.lineNumbers ?= {}
     visibleLineNumberIds = {}
 
-    startRow = screenRows[screenRows.length - 1]
-    endRow = Math.min(screenRows[0] + 1, @model.getScreenLineCount())
+    for screenRow in screenRows when @isRowRendered(screenRow)
+      lineId = @linesByScreenRow.get(screenRow).id
+      {bufferRow, softWrappedAtStart: softWrapped} = @displayLayer.softWrapDescriptorForScreenRow(screenRow)
+      foldable = not softWrapped and @model.isFoldableAtBufferRow(bufferRow)
+      decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
+      blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
+      blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
+      if screenRow % @tileSize isnt 0
+        blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow - 1)
+        blockDecorationsHeight += blockDecorationsAfterPreviousScreenRowHeight
 
-    if startRow > 0
-      rowBeforeStartRow = startRow - 1
-      lastBufferRow = @model.bufferRowForScreenRow(rowBeforeStartRow)
-    else
-      lastBufferRow = null
-
-    if endRow > startRow
-      bufferRows = @model.bufferRowsForScreenRows(startRow, endRow - 1)
-      previousBufferRow = -1
-      foldable = false
-      for bufferRow, i in bufferRows
-         # don't compute foldability more than once per buffer row
-        if previousBufferRow isnt bufferRow
-          foldable = @model.isFoldableAtBufferRow(bufferRow)
-          previousBufferRow = bufferRow
-
-        if bufferRow is lastBufferRow
-          softWrapped = true
-        else
-          lastBufferRow = bufferRow
-          softWrapped = false
-
-        screenRow = startRow + i
-        line = @model.tokenizedLineForScreenRow(screenRow)
-        decorationClasses = @lineNumberDecorationClassesForRow(screenRow)
-        blockDecorationsBeforeCurrentScreenRowHeight = @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow) - @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow)
-        blockDecorationsHeight = blockDecorationsBeforeCurrentScreenRowHeight
-        if screenRow % @tileSize isnt 0
-          blockDecorationsAfterPreviousScreenRowHeight = @lineTopIndex.pixelPositionBeforeBlocksForRow(screenRow) - @lineHeight - @lineTopIndex.pixelPositionAfterBlocksForRow(screenRow - 1)
-          blockDecorationsHeight += blockDecorationsAfterPreviousScreenRowHeight
-
-        tileState.lineNumbers[line.id] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
-        visibleLineNumberIds[line.id] = true
+      tileState.lineNumbers[lineId] = {screenRow, bufferRow, softWrapped, decorationClasses, foldable, blockDecorationsHeight}
+      visibleLineNumberIds[lineId] = true
 
     for id of tileState.lineNumbers
       delete tileState.lineNumbers[id] unless visibleLineNumberIds[id]
@@ -685,9 +673,7 @@ class TextEditorPresenter
   updateHorizontalDimensions: ->
     if @baseCharacterWidth?
       oldContentWidth = @contentWidth
-      rightmostPosition = Point(@model.getLongestScreenRow(), @model.getMaxScreenLineLength())
-      if @model.tokenizedLineForScreenRow(rightmostPosition.row)?.isSoftWrapped()
-        rightmostPosition = @model.clipScreenPosition(rightmostPosition)
+      rightmostPosition = @model.getRightmostScreenPosition()
       @contentWidth = @pixelPositionForScreenPosition(rightmostPosition).left
       @contentWidth += @scrollLeft
       @contentWidth += 1 unless @model.isSoftWrapped() # account for cursor width
@@ -1055,6 +1041,16 @@ class TextEditorPresenter
     rect.height = Math.round(rect.height)
     rect
 
+  updateLines: ->
+    @linesByScreenRow.clear()
+
+    for [startRow, endRow] in @getScreenRangesToRender()
+      for line, index in @displayLayer.getScreenLines(startRow, endRow + 1)
+        @linesByScreenRow.set(startRow + index, line)
+
+  lineIdForScreenRow: (screenRow) ->
+    @linesByScreenRow.get(screenRow)?.id
+
   fetchDecorations: ->
     return unless 0 <= @startRow <= @endRow <= Infinity
     @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
@@ -1102,9 +1098,9 @@ class TextEditorPresenter
     @customGutterDecorationsByGutterName = {}
 
     for decorationId, decorationState of @decorations
-      {properties, screenRange, rangeIsReversed} = decorationState
+      {properties, bufferRange, screenRange, rangeIsReversed} = decorationState
       if Decoration.isType(properties, 'line') or Decoration.isType(properties, 'line-number')
-        @addToLineDecorationCaches(decorationId, properties, screenRange, rangeIsReversed)
+        @addToLineDecorationCaches(decorationId, properties, bufferRange, screenRange, rangeIsReversed)
 
       else if Decoration.isType(properties, 'gutter') and properties.gutterName?
         @customGutterDecorationsByGutterName[properties.gutterName] ?= {}
@@ -1125,7 +1121,7 @@ class TextEditorPresenter
 
     return
 
-  addToLineDecorationCaches: (decorationId, properties, screenRange, rangeIsReversed) ->
+  addToLineDecorationCaches: (decorationId, properties, bufferRange, screenRange, rangeIsReversed) ->
     if screenRange.isEmpty()
       return if properties.onlyNonEmpty
     else
@@ -1133,21 +1129,26 @@ class TextEditorPresenter
       omitLastRow = screenRange.end.column is 0
 
     if rangeIsReversed
-      headPosition = screenRange.start
+      headScreenPosition = screenRange.start
     else
-      headPosition = screenRange.end
+      headScreenPosition = screenRange.end
 
-    for row in [screenRange.start.row..screenRange.end.row] by 1
-      continue if properties.onlyHead and row isnt headPosition.row
-      continue if omitLastRow and row is screenRange.end.row
+    if properties.class is 'folded' and Decoration.isType(properties, 'line-number')
+      screenRow = @model.screenRowForBufferRow(bufferRange.start.row)
+      @lineNumberDecorationsByScreenRow[screenRow] ?= {}
+      @lineNumberDecorationsByScreenRow[screenRow][decorationId] = properties
+    else
+      for row in [screenRange.start.row..screenRange.end.row] by 1
+        continue if properties.onlyHead and row isnt headScreenPosition.row
+        continue if omitLastRow and row is screenRange.end.row
 
-      if Decoration.isType(properties, 'line')
-        @lineDecorationsByScreenRow[row] ?= {}
-        @lineDecorationsByScreenRow[row][decorationId] = properties
+        if Decoration.isType(properties, 'line')
+          @lineDecorationsByScreenRow[row] ?= {}
+          @lineDecorationsByScreenRow[row][decorationId] = properties
 
-      if Decoration.isType(properties, 'line-number')
-        @lineNumberDecorationsByScreenRow[row] ?= {}
-        @lineNumberDecorationsByScreenRow[row][decorationId] = properties
+        if Decoration.isType(properties, 'line-number')
+          @lineNumberDecorationsByScreenRow[row] ?= {}
+          @lineNumberDecorationsByScreenRow[row][decorationId] = properties
 
     return
 
@@ -1524,8 +1525,14 @@ class TextEditorPresenter
   getVisibleRowRange: ->
     [@startRow, @endRow]
 
-  isRowVisible: (row) ->
-    @startRow <= row < @endRow
+  isRowRendered: (row) ->
+    @getStartTileRow() <= row < @constrainRow(@getEndTileRow() + @tileSize)
 
-  lineIdForScreenRow: (screenRow) ->
-    @model.tokenizedLineForScreenRow(screenRow)?.id
+  isOpenTagCode: (tagCode) ->
+    @displayLayer.isOpenTagCode(tagCode)
+
+  isCloseTagCode: (tagCode) ->
+    @displayLayer.isCloseTagCode(tagCode)
+
+  tagForCode: (tagCode) ->
+    @displayLayer.tagForCode(tagCode)

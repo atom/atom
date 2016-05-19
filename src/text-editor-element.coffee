@@ -92,11 +92,11 @@ class TextEditorElement extends HTMLElement
       @emitter.emit("did-change-scroll-left", arguments...)
 
   initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
-    throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
+    throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
     throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
     throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
 

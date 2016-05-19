@@ -47,9 +47,14 @@ describe "WorkspaceElement", ->
 
     it "updates the font-family based on the 'editor.fontFamily' config value", ->
       initialCharWidth = editor.getDefaultCharWidth()
-      expect(getComputedStyle(editorElement).fontFamily).toBe atom.config.get('editor.fontFamily')
+      fontFamily = atom.config.get('editor.fontFamily')
+      fontFamily += ", 'Apple Color Emoji'" if process.platform is 'darwin'
+      expect(getComputedStyle(editorElement).fontFamily).toBe fontFamily
+
       atom.config.set('editor.fontFamily', 'sans-serif')
-      expect(getComputedStyle(editorElement).fontFamily).toBe atom.config.get('editor.fontFamily')
+      fontFamily = atom.config.get('editor.fontFamily')
+      fontFamily += ", 'Apple Color Emoji'" if process.platform is 'darwin'
+      expect(getComputedStyle(editorElement).fontFamily).toBe fontFamily
       expect(editor.getDefaultCharWidth()).not.toBe initialCharWidth
 
     it "updates the line-height based on the 'editor.lineHeight' config value", ->

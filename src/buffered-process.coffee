@@ -50,7 +50,7 @@ class BufferedProcess
     options ?= {}
     @command = command
     # Related to joyent/node#2318
-    if process.platform is 'win32'
+    if process.platform is 'win32' and not options.shell?
       # Quote all arguments and escapes inner quotes
       if args?
         cmdArgs = args.filter (arg) -> arg?
@@ -67,7 +67,7 @@ class BufferedProcess
         cmdArgs.unshift("\"#{command}\"")
       else
         cmdArgs.unshift(command)
-      cmdArgs = ['/s', '/c', "\"#{cmdArgs.join(' ')}\""]
+      cmdArgs = ['/s', '/d', '/c', "\"#{cmdArgs.join(' ')}\""]
       cmdOptions = _.clone(options)
       cmdOptions.windowsVerbatimArguments = true
       @spawn(@getCmdPath(), cmdArgs, cmdOptions)

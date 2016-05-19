@@ -247,8 +247,49 @@ class TextEditorComponent
     @scrollViewNode.addEventListener 'mousedown', @onMouseDown
     @scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
 
+    @detectAccentedCharacterMenu()
     @listenForIMEEvents()
     @trackSelectionClipboard() if process.platform is 'linux'
+
+  detectAccentedCharacterMenu: ->
+    # We need to get clever to detect when the accented character menu is
+    # opened on OS X. Usually, every keydown event that could cause input is
+    # followed by a corresponding keypress. However, pressing and holding
+    # long enough to open the accented character menu causes additional keydown
+    # events to fire that aren't followed by their own keypress and textInput
+    # events.
+    #
+    # Therefore, we assume the accented character menu has been deployed if,
+    # before observing any keyup event, we observe events in the following
+    # sequence:
+    #
+    # keydown(keyCode: X), keypress, keydown(keyCode: X)
+    #
+    # The keyCode X must be the same in the keydown events that bracket the
+    # keypress, meaning we're *holding* the _same_ key we intially pressed.
+    # Got that?
+    lastKeydown = null
+    lastKeydownBeforeKeypress = null
+
+    @domNode.addEventListener 'keydown', (event) =>
+      if lastKeydownBeforeKeypress
+        if lastKeydownBeforeKeypress.keyCode is event.keyCode
+          @openedAccentedCharacterMenu = true
+        lastKeydownBeforeKeypress = null
+      else
+        lastKeydown = event
+
+    @domNode.addEventListener 'keypress', =>
+      lastKeydownBeforeKeypress = lastKeydown
+      lastKeydown = null
+
+      # This cancels the accented character behavior if we type a key normally
+      # with the menu open.
+      @openedAccentedCharacterMenu = false
+
+    @domNode.addEventListener 'keyup', ->
+      lastKeydownBeforeKeypress = null
+      lastKeydown = null
 
   listenForIMEEvents: ->
     # The IME composition events work like this:
@@ -266,6 +307,9 @@ class TextEditorComponent
 
     checkpoint = null
     @domNode.addEventListener 'compositionstart', =>
+      if @openedAccentedCharacterMenu
+        @editor.selectLeft()
+        @openedAccentedCharacterMenu = false
       checkpoint = @editor.createCheckpoint()
     @domNode.addEventListener 'compositionupdate', (event) =>
       @editor.insertText(event.data, select: true)
@@ -321,24 +365,21 @@ class TextEditorComponent
 
   onTextInput: (event) =>
     event.stopPropagation()
-
-    # If we prevent the insertion of a space character, then the browser
-    # interprets the spacebar keypress as a page-down command.
-    event.preventDefault() unless event.data is ' '
+    event.preventDefault()
 
     return unless @isInputEnabled()
 
-    inputNode = event.target
+    # Workaround of the accented character suggestion feature in OS X.
+    # This will only occur when the user is not composing in IME mode.
+    # When the user selects a modified character from the OSX menu, `textInput`
+    # will occur twice, once for the initial character, and once for the
+    # modified character. However, only a single keypress will have fired. If
+    # this is the case, select backward to replace the original character.
+    if @openedAccentedCharacterMenu
+      @editor.selectLeft()
+      @openedAccentedCharacterMenu = false
 
-    # Work around of the accented character suggestion feature in OS X.
-    # Text input fires before a character is inserted, and if the browser is
-    # replacing the previous un-accented character with an accented variant, it
-    # will select backward over it.
-    selectedLength = inputNode.selectionEnd - inputNode.selectionStart
-    @editor.selectLeft() if selectedLength is 1
-
-    insertedRange = @editor.insertText(event.data, groupUndo: true)
-    inputNode.value = event.data if insertedRange
+    @editor.insertText(event.data, groupUndo: true)
 
   onVerticalScroll: (scrollTop) =>
     return if @updateRequested or scrollTop is @presenter.getScrollTop()
@@ -450,10 +491,10 @@ class TextEditorComponent
     screenPosition = Point.fromObject(screenPosition)
     screenPosition = @editor.clipScreenPosition(screenPosition) if clip
 
-    unless @presenter.isRowVisible(screenPosition.row)
+    unless @presenter.isRowRendered(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
 
-    unless @linesComponent.lineNodeForLineIdAndScreenRow(@presenter.lineIdForScreenRow(screenPosition.row), screenPosition.row)?
+    unless @linesComponent.lineNodeForScreenRow(screenPosition.row)?
       @updateSyncPreMeasurement()
 
     pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
@@ -462,7 +503,7 @@ class TextEditorComponent
 
   screenPositionForPixelPosition: (pixelPosition) ->
     row = @linesYardstick.measuredRowForPixelPosition(pixelPosition)
-    if row? and not @presenter.isRowVisible(row)
+    if row? and not @presenter.isRowRendered(row)
       @presenter.setScreenRowsToMeasure([row])
       @updateSyncPreMeasurement()
 
@@ -472,9 +513,9 @@ class TextEditorComponent
 
   pixelRectForScreenRange: (screenRange) ->
     rowsToMeasure = []
-    unless @presenter.isRowVisible(screenRange.start.row)
+    unless @presenter.isRowRendered(screenRange.start.row)
       rowsToMeasure.push(screenRange.start.row)
-    unless @presenter.isRowVisible(screenRange.end.row)
+    unless @presenter.isRowRendered(screenRange.end.row)
       rowsToMeasure.push(screenRange.end.row)
 
     if rowsToMeasure.length > 0
@@ -519,8 +560,8 @@ class TextEditorComponent
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
-      bufferRow = @editor.bufferRowForScreenRow(screenPosition.row)
-      @editor.unfoldBufferRow(bufferRow)
+      bufferPosition = @editor.bufferPositionForScreenPosition(screenPosition)
+      @editor.destroyFoldsIntersectingBufferRange([bufferPosition, bufferPosition])
       return
 
     switch detail
@@ -566,7 +607,7 @@ class TextEditorComponent
     clickedScreenRow = @screenPositionForMouseEvent(event).row
     clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
     initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
-    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true, autoscroll: false)
+    @editor.addSelectionForScreenRange(initialScreenRange, autoscroll: false)
     @handleGutterDrag(initialScreenRange)
 
   onGutterShiftClick: (event) =>
@@ -849,10 +890,7 @@ class TextEditorComponent
     e.abortKeyBinding() unless @editor.consolidateSelections()
 
   lineNodeForScreenRow: (screenRow) ->
-    tileRow = @presenter.tileForRow(screenRow)
-    tileComponent = @linesComponent.getComponentForTile(tileRow)
-
-    tileComponent?.lineNodeForScreenRow(screenRow)
+    @linesComponent.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)
@@ -909,7 +947,7 @@ class TextEditorComponent
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @screenPositionForPixelPosition(pixelPosition, true)
+    @screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event

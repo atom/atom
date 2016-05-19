@@ -66,6 +66,9 @@ describe "PackageManager", ->
       expect(addErrorHandler.argsForCall[0][0].message).toContain("Failed to load the package-with-broken-package-json package")
       expect(addErrorHandler.argsForCall[0][0].options.packageName).toEqual "package-with-broken-package-json"
 
+    it "returns null if the package name or path starts with a dot", ->
+      expect(atom.packages.loadPackage("/Users/user/.atom/packages/.git")).toBeNull()
+
     it "normalizes short repository urls in package.json", ->
       {metadata} = atom.packages.loadPackage("package-with-short-url-package-json")
       expect(metadata.repository.type).toBe "git"

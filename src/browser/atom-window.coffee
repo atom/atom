@@ -68,6 +68,7 @@ class AtomWindow
       @loaded = true
 
     @setLoadSettings(loadSettings)
+    @env = loadSettings.env if loadSettings.env?
     @browserWindow.focusOnWebView() if @isSpec
     @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
@@ -168,6 +169,9 @@ class AtomWindow
       @sendMessage 'open-locations', locationsToOpen
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+
+  replaceEnvironment: (env) ->
+    @browserWindow.webContents.send 'environment', env
 
   sendMessage: (message, detail) ->
     @browserWindow.webContents.send 'message', message, detail

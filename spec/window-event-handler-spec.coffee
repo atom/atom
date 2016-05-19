@@ -75,7 +75,7 @@ describe "WindowEventHandler", ->
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
-      shell = require 'shell'
+      {shell} = require 'electron'
       spyOn(shell, 'openExternal')
 
       link = document.createElement('a')

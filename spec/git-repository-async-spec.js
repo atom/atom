@@ -3,7 +3,6 @@
 import fs from 'fs-plus'
 import path from 'path'
 import temp from 'temp'
-import Git from 'nodegit'
 
 import {it, beforeEach, afterEach} from './async-spec-helpers'
 
@@ -47,12 +46,20 @@ describe('GitRepositoryAsync', () => {
 
       let threw = false
       try {
-        await repo.repoPromise
+        await repo.getRepo()
       } catch (e) {
         threw = true
       }
 
       expect(threw).toBe(true)
+    })
+  })
+
+  describe('openedPath', () => {
+    it('is the path passed to .open', () => {
+      const workingDirPath = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirPath)
+      expect(repo.openedPath).toBe(workingDirPath)
     })
   })
 
@@ -64,19 +71,19 @@ describe('GitRepositoryAsync', () => {
     })
 
     it('returns the repository when not given a path', async () => {
-      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo1 = await repo.getRepo()
       const nodeGitRepo2 = await repo.getRepo()
       expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
     })
 
     it('returns the repository when given a non-submodule path', async () => {
-      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo1 = await repo.getRepo()
       const nodeGitRepo2 = await repo.getRepo('README')
       expect(nodeGitRepo1.workdir()).toBe(nodeGitRepo2.workdir())
     })
 
     it('returns the submodule repository when given a submodule path', async () => {
-      const nodeGitRepo1 = await repo.repoPromise
+      const nodeGitRepo1 = await repo.getRepo()
       const nodeGitRepo2 = await repo.getRepo('jstips')
       expect(nodeGitRepo1.workdir()).not.toBe(nodeGitRepo2.workdir())
 
@@ -103,7 +110,7 @@ describe('GitRepositoryAsync', () => {
     it('returns the repository path for a repository path', async () => {
       repo = openFixture('master.git')
       const repoPath = await repo.getPath()
-      expect(repoPath).toBe(path.join(__dirname, 'fixtures', 'git', 'master.git'))
+      expect(repoPath).toEqualPath(path.join(__dirname, 'fixtures', 'git', 'master.git'))
     })
   })
 
@@ -230,9 +237,7 @@ describe('GitRepositoryAsync', () => {
     })
   })
 
-  // @joshaber: Disabling for now. There seems to be some race with path
-  // subscriptions leading to intermittent test failures, e.g.: https://travis-ci.org/atom/atom/jobs/102702554
-  xdescribe('.checkoutHeadForEditor(editor)', () => {
+  describe('.checkoutHeadForEditor(editor)', () => {
     let filePath
     let editor
 
@@ -305,7 +310,7 @@ describe('GitRepositoryAsync', () => {
       await repo.getPathStatus(filePath)
 
       expect(statusHandler.callCount).toBe(1)
-      const status = Git.Status.STATUS.WT_MODIFIED
+      const status = GitRepositoryAsync.Git.Status.STATUS.WT_MODIFIED
       expect(statusHandler.argsForCall[0][0]).toEqual({path: filePath, pathStatus: status})
       fs.writeFileSync(filePath, 'abc')
 
@@ -878,6 +883,36 @@ describe('GitRepositoryAsync', () => {
         expect(await repo.relativizeToWorkingDirectory(path.join(workingDirectory.toUpperCase(), 'a.txt'))).toBe('a.txt')
         expect(await repo.relativizeToWorkingDirectory(path.join(workingDirectory.toUpperCase(), 'a/b/c.txt'))).toBe('a/b/c.txt')
       })
+    })
+  })
+
+  describe('.getOriginURL()', () => {
+    beforeEach(() => {
+      const workingDirectory = copyRepository('repo-with-submodules')
+      repo = GitRepositoryAsync.open(workingDirectory)
+    })
+
+    it('returns the origin URL', async () => {
+      const url = await repo.getOriginURL()
+      expect(url).toBe('git@github.com:atom/some-repo-i-guess.git')
+    })
+  })
+
+  describe('.getUpstreamBranch()', () => {
+    it('returns null when there is no upstream branch', async () => {
+      const workingDirectory = copyRepository()
+      repo = GitRepositoryAsync.open(workingDirectory)
+
+      const upstream = await repo.getUpstreamBranch()
+      expect(upstream).toBe(null)
+    })
+
+    it('returns the upstream branch', async () => {
+      const workingDirectory = copyRepository('repo-with-submodules')
+      repo = GitRepositoryAsync.open(workingDirectory)
+
+      const upstream = await repo.getUpstreamBranch()
+      expect(upstream).toBe('refs/remotes/origin/master')
     })
   })
 })

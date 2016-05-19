@@ -1,6 +1,6 @@
 {ipcRenderer} = require 'electron'
 
-module.exports = ({commandRegistry, commandInstaller, config}) ->
+module.exports = ({commandRegistry, commandInstaller, config, notificationManager, project, clipboard}) ->
   commandRegistry.add 'atom-workspace',
     'pane:show-next-recently-used-item': -> @getModel().getActivePane().activateNextRecentlyUsedItem()
     'pane:show-previous-recently-used-item': -> @getModel().getActivePane().activatePreviousRecentlyUsedItem()
@@ -31,9 +31,15 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'application:unhide-all-applications': -> ipcRenderer.send('command', 'application:unhide-all-applications')
     'application:new-window': -> ipcRenderer.send('command', 'application:new-window')
     'application:new-file': -> ipcRenderer.send('command', 'application:new-file')
-    'application:open': -> ipcRenderer.send('command', 'application:open')
-    'application:open-file': -> ipcRenderer.send('command', 'application:open-file')
-    'application:open-folder': -> ipcRenderer.send('command', 'application:open-folder')
+    'application:open': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open', defaultPath)
+    'application:open-file': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open-file', defaultPath)
+    'application:open-folder': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open-folder', defaultPath)
     'application:open-dev': -> ipcRenderer.send('command', 'application:open-dev')
     'application:open-safe': -> ipcRenderer.send('command', 'application:open-safe')
     'application:add-project-folder': -> atom.addProjectFolder()
@@ -187,9 +193,9 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'editor:fold-at-indent-level-7': -> @foldAllAtIndentLevel(6)
     'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
     'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
-    'editor:log-cursor-scope': -> @logCursorScope()
-    'editor:copy-path': -> @copyPathToClipboard(false)
-    'editor:copy-project-path': -> @copyPathToClipboard(true)
+    'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
+    'editor:copy-path': -> copyPathToClipboard(this, project, clipboard, false)
+    'editor:copy-project-path': -> copyPathToClipboard(this, project, clipboard, true)
     'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
     'editor:toggle-line-numbers': -> config.set('editor.showLineNumbers', not config.get('editor.showLineNumbers'))
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
@@ -204,9 +210,11 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'editor:newline-below': -> @insertNewlineBelow()
     'editor:newline-above': -> @insertNewlineAbove()
     'editor:toggle-line-comments': -> @toggleLineCommentsInSelection()
-    'editor:checkout-head-revision': -> @checkoutHeadRevision()
+    'editor:checkout-head-revision': -> atom.workspace.checkoutHeadRevision(this)
     'editor:move-line-up': -> @moveLineUp()
     'editor:move-line-down': -> @moveLineDown()
+    'editor:move-selection-left': -> @moveSelectionLeft()
+    'editor:move-selection-right': -> @moveSelectionRight()
     'editor:duplicate-lines': -> @duplicateLines()
     'editor:join-lines': -> @joinLines()
   )
@@ -230,3 +238,15 @@ stopEventPropagationAndGroupUndo = (config, commandListeners) ->
         model.transact config.get('editor.undoGroupingInterval'), ->
           commandListener.call(model, event)
   newCommandListeners
+
+showCursorScope = (descriptor, notificationManager) ->
+  list = descriptor.scopes.toString().split(',')
+  list = list.map (item) -> "* #{item}"
+  content = "Scopes at Cursor\n#{list.join('\n')}"
+
+  notificationManager.addInfo(content, dismissable: true)
+
+copyPathToClipboard = (editor, project, clipboard, relative) ->
+  if filePath = editor.getPath()
+    filePath = project.relativize(filePath) if relative
+    clipboard.write(filePath)

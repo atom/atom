@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{ipcRenderer, remote, shell, webFrame} = require 'electron'
+{screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
@@ -211,6 +211,14 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('message', outerCallback)
 
+  onUpdateError: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'update-error'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
   onApplicationMenuCommand: (callback) ->
     outerCallback = (event, args...) ->
       callback(args...)
@@ -233,14 +241,28 @@ class ApplicationDelegate
   openExternal: (url) ->
     shell.openExternal(url)
 
-  disablePinchToZoom: ->
-    webFrame.setZoomLevelLimits(1, 1)
+  disableZoom: ->
+    outerCallback = ->
+      webFrame.setZoomLevelLimits(1, 1)
+
+    outerCallback()
+    # Set the limits every time a display is added or removed, otherwise the
+    # configuration gets reset to the default, which allows zooming the
+    # webframe.
+    screen.on('display-added', outerCallback)
+    screen.on('display-removed', outerCallback)
+    new Disposable ->
+      screen.removeListener('display-added', outerCallback)
+      screen.removeListener('display-removed', outerCallback)
 
   checkForUpdate: ->
-    ipcRenderer.send('check-for-update')
+    ipcRenderer.send('command', 'application:check-for-update')
 
   restartAndInstallUpdate: ->
-    ipcRenderer.send('install-update')
+    ipcRenderer.send('command', 'application:install-update')
 
   getAutoUpdateManagerState: ->
     ipcRenderer.sendSync('get-auto-update-manager-state')
+
+  getAutoUpdateManagerErrorMessage: ->
+    ipcRenderer.sendSync('get-auto-update-manager-error')
