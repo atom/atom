@@ -17,6 +17,8 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
+  scrollPastEnd: true
+  autoHeight: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
@@ -38,6 +40,9 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
+    unless @autoHeight
+      @style.height = "100%"
+
     if @config.get('editor.useShadowDOM')
       @useShadowDOM = true
 
@@ -86,12 +91,12 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}) ->
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
-    throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
+    throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
     throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
     throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
 
@@ -143,6 +148,7 @@ class TextEditorElement extends HTMLElement
       workspace: @workspace
       assert: @assert
       grammars: @grammars
+      scrollPastEnd: @scrollPastEnd
     )
     @rootElement.appendChild(@component.getDomNode())
 

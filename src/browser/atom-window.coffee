@@ -1,6 +1,4 @@
-BrowserWindow = require 'browser-window'
-app = require 'app'
-dialog = require 'dialog'
+{BrowserWindow, app, dialog} = require 'electron'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -19,7 +17,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (settings={}) ->
-    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
@@ -43,20 +41,13 @@ class AtomWindow
     @handleEvents()
 
     loadSettings = _.extend({}, settings)
-    loadSettings.windowState ?= '{}'
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false
     loadSettings.safeMode ?= false
     loadSettings.atomHome = process.env.ATOM_HOME
-    loadSettings.firstLoad = true
-
-    # Only send to the first non-spec window created
-    if @constructor.includeShellLoadTime and not @isSpec
-      @constructor.includeShellLoadTime = false
-      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
-
-    loadSettings.initialPaths =
+    loadSettings.clearWindowState ?= false
+    loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
         if fs.statSyncNoException(pathToOpen).isFile?()
           path.dirname(pathToOpen)
@@ -65,24 +56,27 @@ class AtomWindow
 
     loadSettings.initialPaths.sort()
 
+    # Only send to the first non-spec window created
+    if @constructor.includeShellLoadTime and not @isSpec
+      @constructor.includeShellLoadTime = false
+      loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
+
     @browserWindow.loadSettings = loadSettings
+
     @browserWindow.once 'window:loaded', =>
       @emit 'window:loaded'
       @loaded = true
 
     @setLoadSettings(loadSettings)
+    @env = loadSettings.env if loadSettings.env?
     @browserWindow.focusOnWebView() if @isSpec
+    @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  setLoadSettings: (loadSettingsObj) ->
-    # Ignore the windowState when passing loadSettings via URL, since it could
-    # be quite large.
-    loadSettings = _.clone(loadSettingsObj)
-    delete loadSettings['windowState']
-
-    @browserWindow.loadUrl url.format
+  setLoadSettings: (loadSettings) ->
+    @browserWindow.loadURL url.format
       protocol: 'file'
       pathname: "#{@resourcePath}/static/index.html"
       slashes: true
@@ -90,7 +84,7 @@ class AtomWindow
 
   getLoadSettings: ->
     if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getUrl()).hash.substr(1)
+      hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
       JSON.parse(decodeURIComponent(hash))
 
   hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
@@ -122,6 +116,9 @@ class AtomWindow
         false
 
   handleEvents: ->
+    @browserWindow.on 'close', ->
+      global.atomApplication.saveState(false)
+
     @browserWindow.on 'closed', =>
       global.atomApplication.removeWindow(this)
 
@@ -145,10 +142,10 @@ class AtomWindow
         detail: 'Please report this issue to https://github.com/atom/atom'
       switch chosen
         when 0 then @browserWindow.destroy()
-        when 1 then @browserWindow.restart()
+        when 1 then @browserWindow.reload()
 
     @browserWindow.webContents.on 'will-navigate', (event, url) =>
-      unless url is @browserWindow.webContents.getUrl()
+      unless url is @browserWindow.webContents.getURL()
         event.preventDefault()
 
     @setupContextMenu()
@@ -172,6 +169,9 @@ class AtomWindow
       @sendMessage 'open-locations', locationsToOpen
     else
       @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+
+  replaceEnvironment: (env) ->
+    @browserWindow.webContents.send 'environment', env
 
   sendMessage: (message, detail) ->
     @browserWindow.webContents.send 'message', message, detail
@@ -221,6 +221,6 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.restart()
+  reload: -> @browserWindow.reload()
 
   toggleDevTools: -> @browserWindow.toggleDevTools()

@@ -91,11 +91,13 @@ describe "TextEditorPresenter", ->
     expectNoStateUpdate = (presenter, fn) -> expectStateUpdatedToBe(false, presenter, fn)
 
     waitsForStateToUpdate = (presenter, fn) ->
-      waitsFor "presenter state to update", 1000, (done) ->
-        fn?()
+      line = new Error().stack.split('\n')[2].split(':')[1]
+
+      waitsFor "presenter state to update at line #{line}", 1000, (done) ->
         disposable = presenter.onDidUpdateState ->
           disposable.dispose()
           process.nextTick(done)
+        fn?()
 
     tiledContentContract = (stateFn) ->
       it "contains states for tiles that are visible on screen", ->
@@ -633,16 +635,28 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
           expect(getState(presenter).verticalScrollbar.scrollHeight).toBe 500
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
-          presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
-          expectStateUpdate presenter, -> presenter.setScrollTop(300)
-          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+        describe "scrollPastEnd", ->
+          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-          expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+
+          it "doesn't add the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true but the presenter is created with scrollPastEnd as false", ->
+            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10, scrollPastEnd: false)
+            expectStateUpdate presenter, -> presenter.setScrollTop(300)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
+
+            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollTop", ->
         it "tracks the value of ::scrollTop", ->
@@ -1129,53 +1143,6 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollLeft(-300)
           expect(getState(presenter).content.scrollLeft).toBe 0
 
-      describe ".indentGuidesVisible", ->
-        it "is initialized based on the editor.showIndentGuide config setting", ->
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-          atom.config.set('editor.showIndentGuide', true)
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe true
-
-        it "updates when the editor.showIndentGuide config setting changes", ->
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-          expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', true)
-          expect(getState(presenter).content.indentGuidesVisible).toBe true
-
-          expectStateUpdate presenter, -> atom.config.set('editor.showIndentGuide', false)
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-        it "updates when the editor's grammar changes", ->
-          atom.config.set('editor.showIndentGuide', true, scopeSelector: ".source.js")
-
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-          stateUpdated = false
-          presenter.onDidUpdateState -> stateUpdated = true
-
-          waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-          runs ->
-            expect(stateUpdated).toBe true
-            expect(getState(presenter).content.indentGuidesVisible).toBe true
-
-            expectStateUpdate presenter, -> editor.setGrammar(atom.grammars.selectGrammar('.txt'))
-            expect(getState(presenter).content.indentGuidesVisible).toBe false
-
-        it "is always false when the editor is mini", ->
-          atom.config.set('editor.showIndentGuide', true)
-          editor.setMini(true)
-          presenter = buildPresenter()
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-          editor.setMini(false)
-          expect(getState(presenter).content.indentGuidesVisible).toBe true
-          editor.setMini(true)
-          expect(getState(presenter).content.indentGuidesVisible).toBe false
-
       describe ".backgroundColor", ->
         it "is assigned to ::backgroundColor unless the editor is mini", ->
           presenter = buildPresenter()
@@ -1215,9 +1182,19 @@ describe "TextEditorPresenter", ->
 
       describe ".tiles", ->
         lineStateForScreenRow = (presenter, row) ->
-          lineId  = presenter.model.tokenizedLineForScreenRow(row).id
-          tileRow = presenter.tileForRow(row)
-          getState(presenter).content.tiles[tileRow]?.lines[lineId]
+          tilesState = getState(presenter).content.tiles
+          lineId = presenter.linesByScreenRow.get(row)?.id
+          tilesState[presenter.tileForRow(row)]?.lines[lineId]
+
+        tagsForCodes = (presenter, tagCodes) ->
+          openTags = []
+          closeTags = []
+          for tagCode in tagCodes when tagCode < 0 # skip text codes
+            if presenter.isOpenTagCode(tagCode)
+              openTags.push(presenter.tagForCode(tagCode))
+            else
+              closeTags.push(presenter.tagForCode(tagCode))
+          {openTags, closeTags}
 
         tiledContentContract (presenter) -> getState(presenter).content
 
@@ -1227,73 +1204,12 @@ describe "TextEditorPresenter", ->
             presenter.setExplicitHeight(3)
 
             expect(lineStateForScreenRow(presenter, 2)).toBeUndefined()
-
-            line3 = editor.tokenizedLineForScreenRow(3)
-            expectValues lineStateForScreenRow(presenter, 3), {
-              screenRow: 3
-              text: line3.text
-              tags: line3.tags
-              specialTokens: line3.specialTokens
-              firstNonWhitespaceIndex: line3.firstNonWhitespaceIndex
-              firstTrailingWhitespaceIndex: line3.firstTrailingWhitespaceIndex
-              invisibles: line3.invisibles
-            }
-
-            line4 = editor.tokenizedLineForScreenRow(4)
-            expectValues lineStateForScreenRow(presenter, 4), {
-              screenRow: 4
-              text: line4.text
-              tags: line4.tags
-              specialTokens: line4.specialTokens
-              firstNonWhitespaceIndex: line4.firstNonWhitespaceIndex
-              firstTrailingWhitespaceIndex: line4.firstTrailingWhitespaceIndex
-              invisibles: line4.invisibles
-            }
-
-            line5 = editor.tokenizedLineForScreenRow(5)
-            expectValues lineStateForScreenRow(presenter, 5), {
-              screenRow: 5
-              text: line5.text
-              tags: line5.tags
-              specialTokens: line5.specialTokens
-              firstNonWhitespaceIndex: line5.firstNonWhitespaceIndex
-              firstTrailingWhitespaceIndex: line5.firstTrailingWhitespaceIndex
-              invisibles: line5.invisibles
-            }
-
-            line6 = editor.tokenizedLineForScreenRow(6)
-            expectValues lineStateForScreenRow(presenter, 6), {
-              screenRow: 6
-              text: line6.text
-              tags: line6.tags
-              specialTokens: line6.specialTokens
-              firstNonWhitespaceIndex: line6.firstNonWhitespaceIndex
-              firstTrailingWhitespaceIndex: line6.firstTrailingWhitespaceIndex
-              invisibles: line6.invisibles
-            }
-
-            line7 = editor.tokenizedLineForScreenRow(7)
-            expectValues lineStateForScreenRow(presenter, 7), {
-              screenRow: 7
-              text: line7.text
-              tags: line7.tags
-              specialTokens: line7.specialTokens
-              firstNonWhitespaceIndex: line7.firstNonWhitespaceIndex
-              firstTrailingWhitespaceIndex: line7.firstTrailingWhitespaceIndex
-              invisibles: line7.invisibles
-            }
-
-            line8 = editor.tokenizedLineForScreenRow(8)
-            expectValues lineStateForScreenRow(presenter, 8), {
-              screenRow: 8
-              text: line8.text
-              tags: line8.tags
-              specialTokens: line8.specialTokens
-              firstNonWhitespaceIndex: line8.firstNonWhitespaceIndex
-              firstTrailingWhitespaceIndex: line8.firstTrailingWhitespaceIndex
-              invisibles: line8.invisibles
-            }
-
+            expectValues lineStateForScreenRow(presenter, 3), {screenRow: 3, tagCodes: editor.screenLineForScreenRow(3).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 4), {screenRow: 4, tagCodes: editor.screenLineForScreenRow(4).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 5), {screenRow: 5, tagCodes: editor.screenLineForScreenRow(5).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 6), {screenRow: 6, tagCodes: editor.screenLineForScreenRow(6).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 7), {screenRow: 7, tagCodes: editor.screenLineForScreenRow(7).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 8), {screenRow: 8, tagCodes: editor.screenLineForScreenRow(8).tagCodes}
             expect(lineStateForScreenRow(presenter, 9)).toBeUndefined()
 
           it "updates when the editor's content changes", ->
@@ -1301,34 +1217,20 @@ describe "TextEditorPresenter", ->
 
             expectStateUpdate presenter, -> buffer.insert([2, 0], "hello\nworld\n")
 
-            line1 = editor.tokenizedLineForScreenRow(1)
-            expectValues lineStateForScreenRow(presenter, 1), {
-              text: line1.text
-              tags: line1.tags
-            }
-
-            line2 = editor.tokenizedLineForScreenRow(2)
-            expectValues lineStateForScreenRow(presenter, 2), {
-              text: line2.text
-              tags: line2.tags
-            }
-
-            line3 = editor.tokenizedLineForScreenRow(3)
-            expectValues lineStateForScreenRow(presenter, 3), {
-              text: line3.text
-              tags: line3.tags
-            }
+            expectValues lineStateForScreenRow(presenter, 1), {screenRow: 1, tagCodes: editor.screenLineForScreenRow(1).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 2), {screenRow: 2, tagCodes: editor.screenLineForScreenRow(2).tagCodes}
+            expectValues lineStateForScreenRow(presenter, 3), {screenRow: 3, tagCodes: editor.screenLineForScreenRow(3).tagCodes}
 
           it "includes the .endOfLineInvisibles if the editor.showInvisibles config option is true", ->
             editor.setText("hello\nworld\r\n")
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
-            expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toBeNull()
-            expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toBeNull()
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).not.toContain('invisible-character eol')
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).not.toContain('invisible-character eol')
 
             atom.config.set('editor.showInvisibles', true)
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
-            expect(lineStateForScreenRow(presenter, 0).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.eol')]
-            expect(lineStateForScreenRow(presenter, 1).endOfLineInvisibles).toEqual [atom.config.get('editor.invisibles.cr'), atom.config.get('editor.invisibles.eol')]
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).toContain('invisible-character eol')
+            expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).toContain('invisible-character eol')
 
           describe ".blockDecorations", ->
             it "contains all block decorations that are present before/after a line, both initially and when decorations change", ->
@@ -1336,9 +1238,11 @@ describe "TextEditorPresenter", ->
               presenter = buildPresenter()
               blockDecoration2 = addBlockDecorationBeforeScreenRow(3)
               blockDecoration3 = addBlockDecorationBeforeScreenRow(7)
-              blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+              blockDecoration4 = null
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, ->
+                blockDecoration4 = addBlockDecorationAfterScreenRow(7)
+
               runs ->
                 expect(lineStateForScreenRow(presenter, 0).precedingBlockDecorations).toEqual([blockDecoration1])
                 expect(lineStateForScreenRow(presenter, 0).followingBlockDecorations).toEqual([])
@@ -1472,9 +1376,9 @@ describe "TextEditorPresenter", ->
               decoration1 = editor.decorateMarker(marker1, type: 'line', class: 'a')
               presenter = buildPresenter()
               marker2 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
-              decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
+              decoration2 = null
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, -> decoration2 = editor.decorateMarker(marker2, type: 'line', class: 'b')
               runs ->
                 expect(lineStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
                 expect(lineStateForScreenRow(presenter, 4).decorationClasses).toEqual ['a', 'b']
@@ -2150,31 +2054,40 @@ describe "TextEditorPresenter", ->
             }
 
           # becoming empty
-          waitsForStateToUpdate presenter, -> editor.getSelections()[1].clear(autoscroll: false)
+          runs ->
+            editor.getSelections()[1].clear(autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectUndefinedStateForSelection(presenter, 1)
 
           # becoming non-empty
-          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
+          runs ->
+            editor.getSelections()[1].setBufferRange([[2, 4], [2, 6]], autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectValues stateForSelectionInTile(presenter, 1, 2), {
               regions: [{top: 0, left: 4 * 10, width: 2 * 10, height: 10}]
             }
 
           # moving out of view
-          waitsForStateToUpdate presenter, -> editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
+          runs ->
+            editor.getSelections()[1].setBufferRange([[3, 4], [3, 6]], autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectUndefinedStateForSelection(presenter, 1)
 
           # adding
-          waitsForStateToUpdate presenter, -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
+          runs -> editor.addSelectionForBufferRange([[1, 4], [1, 6]], autoscroll: false)
+          waitsForStateToUpdate presenter
           runs ->
             expectValues stateForSelectionInTile(presenter, 2, 0), {
               regions: [{top: 10, left: 4 * 10, width: 2 * 10, height: 10}]
             }
 
           # moving added selection
-          waitsForStateToUpdate presenter, -> editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
+          runs ->
+            editor.getSelections()[2].setBufferRange([[1, 4], [1, 8]], autoscroll: false)
+          waitsForStateToUpdate presenter
 
           destroyedSelection = null
           runs ->
@@ -2208,8 +2121,9 @@ describe "TextEditorPresenter", ->
           presenter = buildPresenter(explicitHeight: 30, scrollTop: 20, tileSize: 2)
 
           marker = editor.markBufferPosition([2, 2])
-          highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
+          highlight = null
           waitsForStateToUpdate presenter, ->
+            highlight = editor.decorateMarker(marker, type: 'highlight', class: 'a')
             marker.setBufferRange([[2, 2], [5, 2]])
             highlight.flash('b', 500)
           runs ->
@@ -2879,12 +2793,9 @@ describe "TextEditorPresenter", ->
 
         describe ".content.tiles", ->
           lineNumberStateForScreenRow = (presenter, screenRow) ->
-            editor = presenter.model
-            tileRow = presenter.tileForRow(screenRow)
-            line = editor.tokenizedLineForScreenRow(screenRow)
-
-            gutterState = getLineNumberGutterState(presenter)
-            gutterState.content.tiles[tileRow]?.lineNumbers[line?.id]
+            tilesState = getLineNumberGutterState(presenter).content.tiles
+            line = presenter.linesByScreenRow.get(screenRow)
+            tilesState[presenter.tileForRow(screenRow)]?.lineNumbers[line?.id]
 
           tiledContentContract (presenter) -> getLineNumberGutterState(presenter).content
 
@@ -2893,17 +2804,21 @@ describe "TextEditorPresenter", ->
               editor.foldBufferRow(4)
               editor.setSoftWrapped(true)
               editor.setDefaultCharWidth(1)
-              editor.setEditorWidthInChars(50)
-              presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 2)
+              editor.setEditorWidthInChars(51)
+              presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 3)
+              presenter.setScreenRowsToMeasure([9, 11])
 
-              expect(lineNumberStateForScreenRow(presenter, 1)).toBeUndefined()
-              expectValues lineNumberStateForScreenRow(presenter, 2), {screenRow: 2, bufferRow: 2, softWrapped: false}
+              expect(lineNumberStateForScreenRow(presenter, 2)).toBeUndefined()
               expectValues lineNumberStateForScreenRow(presenter, 3), {screenRow: 3, bufferRow: 3, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 4), {screenRow: 4, bufferRow: 3, softWrapped: true}
               expectValues lineNumberStateForScreenRow(presenter, 5), {screenRow: 5, bufferRow: 4, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 6), {screenRow: 6, bufferRow: 7, softWrapped: false}
               expectValues lineNumberStateForScreenRow(presenter, 7), {screenRow: 7, bufferRow: 8, softWrapped: false}
-              expect(lineNumberStateForScreenRow(presenter, 8)).toBeUndefined()
+              expectValues lineNumberStateForScreenRow(presenter, 8), {screenRow: 8, bufferRow: 8, softWrapped: true}
+              expect(lineNumberStateForScreenRow(presenter, 9)).toBeUndefined()
+              expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
+              expect(lineNumberStateForScreenRow(presenter, 11)).toBeUndefined()
+              expect(lineNumberStateForScreenRow(presenter, 12)).toBeUndefined()
 
             it "updates when the editor's content changes", ->
               editor.foldBufferRow(4)
@@ -2969,9 +2884,8 @@ describe "TextEditorPresenter", ->
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 35)
               presenter.setBlockDecorationDimensions(blockDecoration4, 0, 40)
               presenter.setBlockDecorationDimensions(blockDecoration5, 0, 50)
-              presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
 
-              waitsForStateToUpdate presenter
+              waitsForStateToUpdate presenter, -> presenter.setBlockDecorationDimensions(blockDecoration6, 0, 60)
               runs ->
                 expect(lineNumberStateForScreenRow(presenter, 0).blockDecorationsHeight).toBe(10)
                 expect(lineNumberStateForScreenRow(presenter, 1).blockDecorationsHeight).toBe(0)
@@ -3158,6 +3072,29 @@ describe "TextEditorPresenter", ->
                 runs ->
                   expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain 'a'
                   expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toContain 'a'
+
+              describe "when a fold spans a single soft-wrapped buffer row", ->
+                it "applies the 'folded' decoration only to its initial screen row", ->
+                  editor.setSoftWrapped(true)
+                  editor.setDefaultCharWidth(1)
+                  editor.setEditorWidthInChars(20)
+                  editor.foldBufferRange([[0, 20], [0, 22]])
+                  editor.foldBufferRange([[0, 10], [0, 14]])
+                  presenter = buildPresenter(explicitHeight: 35, scrollTop: 0, tileSize: 2)
+
+                  expect(lineNumberStateForScreenRow(presenter, 0).decorationClasses).toContain('folded')
+                  expect(lineNumberStateForScreenRow(presenter, 1).decorationClasses).toBeNull()
+
+              describe "when a fold is at the end of a soft-wrapped buffer row", ->
+                it "applies the 'folded' decoration only to its initial screen row", ->
+                  editor.setSoftWrapped(true)
+                  editor.setDefaultCharWidth(1)
+                  editor.setEditorWidthInChars(25)
+                  editor.foldBufferRow(1)
+                  presenter = buildPresenter(explicitHeight: 35, scrollTop: 0, tileSize: 2)
+
+                  expect(lineNumberStateForScreenRow(presenter, 2).decorationClasses).toContain('folded')
+                  expect(lineNumberStateForScreenRow(presenter, 3).decorationClasses).toBeNull()
 
             describe ".foldable", ->
               it "marks line numbers at the start of a foldable region as foldable", ->
@@ -3460,9 +3397,9 @@ describe "TextEditorPresenter", ->
               gutterName: 'test-gutter-2'
               class: 'test-class'
             marker4 = editor.markBufferRange([[0, 0], [1, 0]])
-            decoration4 = editor.decorateMarker(marker4, decorationParams)
+            decoration4 = null
 
-            waitsForStateToUpdate presenter
+            waitsForStateToUpdate presenter, -> decoration4 = editor.decorateMarker(marker4, decorationParams)
 
             runs ->
               expectStateUpdate presenter, -> editor.addGutter({name: 'test-gutter-2'})

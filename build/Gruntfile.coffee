@@ -34,23 +34,10 @@ module.exports = (grunt) ->
   grunt.file.setBase(path.resolve('..'))
 
   # Options
+  [defaultChannel, releaseBranch] = getDefaultChannelAndReleaseBranch(packageJson.version)
   installDir = grunt.option('install-dir')
-  buildDir = grunt.option('build-dir')
-  buildDir ?= 'out'
-  buildDir = path.resolve(buildDir)
-
-  channel = grunt.option('channel')
-  releasableBranches = ['stable', 'beta']
-  if process.env.APPVEYOR and not process.env.APPVEYOR_PULL_REQUEST_NUMBER
-    channel ?= process.env.APPVEYOR_REPO_BRANCH if process.env.APPVEYOR_REPO_BRANCH in releasableBranches
-
-  if process.env.TRAVIS and not process.env.TRAVIS_PULL_REQUEST
-    channel ?= process.env.TRAVIS_BRANCH if process.env.TRAVIS_BRANCH in releasableBranches
-
-  if process.env.JANKY_BRANCH
-    channel ?= process.env.JANKY_BRANCH if process.env.JANKY_BRANCH in releasableBranches
-
-  channel ?= 'dev'
+  buildDir = path.resolve(grunt.option('build-dir') ? 'out')
+  channel = grunt.option('channel') ? defaultChannel
 
   metadata = packageJson
   appName = packageJson.productName
@@ -70,7 +57,7 @@ module.exports = (grunt) ->
     homeDir = process.env.USERPROFILE
     contentsDir = shellAppDir
     appDir = path.join(shellAppDir, 'resources', 'app')
-    installDir ?= path.join(process.env.ProgramFiles, appName)
+    installDir ?= path.join(process.env.LOCALAPPDATA, appName, 'app-dev')
     killCommand = 'taskkill /F /IM atom.exe'
   else if process.platform is 'darwin'
     homeDir = process.env.HOME
@@ -189,7 +176,7 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     atom: {
-      appName, channel, metadata,
+      appName, channel, metadata, releaseBranch,
       appFileName, apmFileName,
       appDir, buildDir, contentsDir, installDir, shellAppDir, symbolsDir,
     }
@@ -298,6 +285,7 @@ module.exports = (grunt) ->
   ciTasks.push('dump-symbols') if process.platform is 'darwin'
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
+  ciTasks.push('mktar') if process.platform is 'linux'
   ciTasks.push('codesign:exe') if process.platform is 'win32' and not process.env.CI
   ciTasks.push('create-windows-installer:installer') if process.platform is 'win32'
   ciTasks.push('test') if process.platform is 'darwin'
@@ -310,3 +298,21 @@ module.exports = (grunt) ->
   unless process.platform is 'linux' or grunt.option('no-install')
     defaultTasks.push 'install'
   grunt.registerTask('default', defaultTasks)
+  grunt.registerTask('build-and-sign', ['download-electron', 'download-electron-chromedriver', 'build', 'set-version', 'generate-asar', 'codesign:app', 'install'])
+
+getDefaultChannelAndReleaseBranch = (version) ->
+  if version.match(/dev/) or isBuildingPR()
+    channel = 'dev'
+    releaseBranch = null
+  else
+    if version.match(/beta/)
+      channel = 'beta'
+    else
+      channel = 'stable'
+
+    minorVersion = version.match(/^\d\.\d/)[0]
+    releaseBranch = "#{minorVersion}-releases"
+  [channel, releaseBranch]
+
+isBuildingPR = ->
+  process.env.APPVEYOR_PULL_REQUEST_NUMBER? or process.env.TRAVIS_PULL_REQUEST?

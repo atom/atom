@@ -46,7 +46,8 @@ class BufferedNodeProcess extends BufferedProcess
 
     options ?= {}
     options.env ?= Object.create(process.env)
-    options.env['ATOM_SHELL_INTERNAL_RUN_AS_NODE'] = 1
+    options.env['ELECTRON_RUN_AS_NODE'] = 1
+    options.env['ELECTRON_NO_ATTACH_CONSOLE'] = 1
 
     args = args?.slice() ? []
     args.unshift(command)

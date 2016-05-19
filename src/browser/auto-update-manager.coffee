@@ -1,6 +1,5 @@
 autoUpdater = null
 _ = require 'underscore-plus'
-Config = require '../config'
 {EventEmitter} = require 'events'
 path = require 'path'
 
@@ -16,39 +15,45 @@ module.exports =
 class AutoUpdateManager
   _.extend @prototype, EventEmitter.prototype
 
-  constructor: (@version, @testMode, resourcePath) ->
+  constructor: (@version, @testMode, resourcePath, @config) ->
     @state = IdleState
     @iconPath = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
     @feedUrl = "https://atom.io/api/updates?version=#{@version}"
-    @config = new Config({configDirPath: process.env.ATOM_HOME, resourcePath, enablePersistence: true})
-    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
-    @config.load()
     process.nextTick => @setupAutoUpdater()
 
   setupAutoUpdater: ->
     if process.platform is 'win32'
       autoUpdater = require './auto-updater-win32'
     else
-      autoUpdater = require 'auto-updater'
+      {autoUpdater} = require 'electron'
 
     autoUpdater.on 'error', (event, message) =>
-      @setState(ErrorState)
+      @setState(ErrorState, message)
+      @emitWindowEvent('update-error')
       console.error "Error Downloading Update: #{message}"
 
-    autoUpdater.setFeedUrl @feedUrl
+    autoUpdater.setFeedURL @feedUrl
 
     autoUpdater.on 'checking-for-update', =>
       @setState(CheckingState)
+      @emitWindowEvent('checking-for-update')
 
     autoUpdater.on 'update-not-available', =>
       @setState(NoUpdateAvailableState)
+      @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
       @setState(DownladingState)
+      # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
+      # once the update download is complete. This mismatch between the electron
+      # autoUpdater events is unfortunate but in the interest of not changing the
+      # one existing event handled by applicationDelegate
+      @emitWindowEvent('did-begin-downloading-update')
+      @emit('did-begin-download')
 
     autoUpdater.on 'update-downloaded', (event, releaseNotes, @releaseVersion) =>
       @setState(UpdateAvailableState)
-      @emitUpdateAvailableEvent(@getWindows()...)
+      @emitUpdateAvailableEvent()
 
     @config.onDidChange 'core.automaticallyUpdate', ({newValue}) =>
       if newValue
@@ -64,19 +69,27 @@ class AutoUpdateManager
       when 'linux'
         @setState(UnsupportedState)
 
-  emitUpdateAvailableEvent: (windows...) ->
+  emitUpdateAvailableEvent: ->
     return unless @releaseVersion?
-    for atomWindow in windows
-      atomWindow.sendMessage('update-available', {@releaseVersion})
+    @emitWindowEvent('update-available', {@releaseVersion})
     return
 
-  setState: (state) ->
+  emitWindowEvent: (eventName, payload) ->
+    for atomWindow in @getWindows()
+      atomWindow.sendMessage(eventName, payload)
+    return
+
+  setState: (state, errorMessage) ->
     return if @state is state
     @state = state
+    @errorMessage = errorMessage
     @emit 'state-changed', @state
 
   getState: ->
     @state
+
+  getErrorMessage: ->
+    @errorMessage
 
   scheduleUpdateCheck: ->
     # Only schedule update check periodically if running in release version and
@@ -104,7 +117,7 @@ class AutoUpdateManager
 
   onUpdateNotAvailable: =>
     autoUpdater.removeListener 'error', @onUpdateError
-    dialog = require 'dialog'
+    {dialog} = require 'electron'
     dialog.showMessageBox
       type: 'info'
       buttons: ['OK']
@@ -115,7 +128,7 @@ class AutoUpdateManager
 
   onUpdateError: (event, message) =>
     autoUpdater.removeListener 'update-not-available', @onUpdateNotAvailable
-    dialog = require 'dialog'
+    {dialog} = require 'electron'
     dialog.showMessageBox
       type: 'warning'
       buttons: ['OK']

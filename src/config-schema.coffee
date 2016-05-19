@@ -108,6 +108,10 @@ module.exports =
         description: 'Automatically update Atom when a new release is available.'
         type: 'boolean'
         default: true
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
+        type: 'boolean'
+        default: true
 
   editor:
     type: 'object'
@@ -151,6 +155,10 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Show line numbers in the editor\'s gutter.'
+      atomicSoftTabs:
+        type: 'boolean'
+        default: true
+        description: 'Skip over tab-length runs of leading whitespace when moving the cursor.'
       autoIndent:
         type: 'boolean'
         default: true

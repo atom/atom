@@ -16,8 +16,8 @@ class DefaultDirectoryProvider
   # * `null` if the given URI is not compatibile with this provider.
   directoryForURISync: (uri) ->
     normalizedPath = path.normalize(uri)
-    {protocol} = url.parse(uri)
-    directoryPath = if protocol?
+    {host} = url.parse(uri)
+    directoryPath = if host
       uri
     else if not fs.isDirectorySync(normalizedPath) and fs.isDirectorySync(path.dirname(normalizedPath))
       path.dirname(normalizedPath)
@@ -26,7 +26,7 @@ class DefaultDirectoryProvider
 
     # TODO: Stop normalizing the path in pathwatcher's Directory.
     directory = new Directory(directoryPath)
-    if protocol?
+    if host
       directory.path = directoryPath
       if fs.isCaseInsensitive()
         directory.lowerCasePath = directoryPath.toLowerCase()

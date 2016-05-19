@@ -1,7 +1,6 @@
-app = require 'app'
+{app, protocol} = require 'electron'
 fs = require 'fs'
 path = require 'path'
-protocol = require 'protocol'
 
 # Handles requests with 'atom' protocol.
 #
