@@ -84,6 +84,15 @@ atom-panel.modal {
 
   padding: 10px;
 
+  // shrink modals when window gets narrow
+  @media (max-width: 500px) {
+    & {
+      width: 100%;
+      left: 0;
+      margin-left: 0;
+    }
+  }
+
   h1 {
     margin-top: 0;
     color: @text-color-highlight;
