@@ -1328,12 +1328,12 @@ class TextEditor extends Model
   replaceSelectedText: (options={}, fn) ->
     {selectWordIfEmpty} = options
     @mutateSelectedText (selection) ->
-      range = selection.getBufferRange()
+      selection.getBufferRange()
       if selectWordIfEmpty and selection.isEmpty()
         selection.selectWord()
       text = selection.getText()
       selection.deleteSelectedText()
-      selection.insertText(fn(text))
+      range = selection.insertText(fn(text))
       selection.setBufferRange(range)
 
   # Split multi-line selections into one selection per line.
