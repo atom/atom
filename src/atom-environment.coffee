@@ -790,7 +790,6 @@ class AtomEnvironment extends Model
   # Returns a {Promise} that resolves when the DevTools have been opened or
   # closed.
   toggleDevTools: ->
-    require("devtron").install()
     @applicationDelegate.toggleWindowDevTools()
 
   # Extended: Execute code in dev tools.
