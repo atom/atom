@@ -23,7 +23,6 @@
     text-overflow: ellipsis;
   }
 
-
   background-image: linear-gradient(@title-bar-gradient-focused);
   border-bottom: 1px solid @title-bar-border-color-focused;
 
@@ -31,24 +30,5 @@
     color: @title-bar-text-blurred;
     background-image: linear-gradient(@title-bar-gradient-blurred);
     border-bottom-color: @title-bar-border-color-blurred;
-  }
-
-  [title-bar-style="combined"] & {
-    display: none;
-    position: absolute;
-  }
-}
-
-[title-bar-style="combined"] .tab-bar {
-  height: 37px;
-  padding-left: 80px;
-  background-image: linear-gradient(@title-bar-gradient-focused);
-
-  .tab {
-    top: 7px;
-    border-radius: 3px 3px 0 0 !important;
-    &:after {
-      border-radius: 3px 3px 0 0 !important;
-  }
   }
 }
