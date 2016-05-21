@@ -82,14 +82,15 @@
 // TitleBar
 
 @title-bar-text-size: 13px;
+@title-bar-highlight: lighten(@base-background-color, 10%);
 
-@title-bar-gradient-focused: #ededed 0, #ededed 1px, #e7e7e7 2px, #d1d1d1 100%;
-@title-bar-text-focused: #4d4d4d;
-@title-bar-border-color-focused: #afafaf;
+@title-bar-gradient-focused: lighten(@base-background-color, 5%), @base-background-color;
+@title-bar-text-focused: @text-color;
+@title-bar-border-color-focused: @base-border-color;
 
-@title-bar-gradient-blurred: #fafafa 0px, #f6f6f6 2px, #f6f6f6 100%;
-@title-bar-text-blurred: #d3d3d3;
-@title-bar-border-color-blurred: #d1d1d1;
+@title-bar-gradient-blurred: @title-bar-gradient-focused;
+@title-bar-text-blurred: @title-bar-text-focused;
+@title-bar-border-color-blurred: @base-border-color;
 
 
 // Other
