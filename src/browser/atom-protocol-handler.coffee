@@ -31,6 +31,10 @@ class AtomProtocolHandler
     protocol.registerFileProtocol 'atom', (request, callback) =>
       relativePath = path.normalize(request.url.substr(7))
 
+      qMarkIdx = relativePath.indexOf('?')
+      if qMarkIdx isnt -1
+        relativePath = relativePath.substring(0, qMarkIdx)
+
       if relativePath.indexOf('assets/') is 0
         assetsPath = path.join(process.env.ATOM_HOME, relativePath)
         filePath = assetsPath if fs.statSyncNoException(assetsPath).isFile?()
