@@ -135,6 +135,7 @@ class TextEditor extends Model
     @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
     @firstVisibleScreenColumn ?= 0
+    @mini ?= false
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
