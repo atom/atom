@@ -4,6 +4,7 @@ AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
 StorageFolder = require '../storage-folder'
 Config = require '../config'
+FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
 fs = require 'fs-plus'
@@ -78,12 +79,14 @@ class AtomApplication
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
+    @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
     @handleEvents()
     @setupDockMenu()
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
+    @fileRecoveryService.start()
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
