@@ -537,8 +537,8 @@ class Cursor extends Model
   #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
   #     (default: {::wordRegExp}).
   getCurrentWordBufferRange: (options={}) ->
-    startOptions = _.extend(_.clone(options), allowPrevious: false)
-    endOptions = _.extend(_.clone(options), allowNext: false)
+    startOptions = Object.assign(_.clone(options), allowPrevious: false)
+    endOptions = Object.assign(_.clone(options), allowNext: false)
     new Range(@getBeginningOfCurrentWordBufferPosition(startOptions), @getEndOfCurrentWordBufferPosition(endOptions))
 
   # Public: Returns the buffer Range for the current line.

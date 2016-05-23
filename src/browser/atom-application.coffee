@@ -25,7 +25,7 @@ LocationSuffixRegExp = /(:\d+)(:\d+)?$/
 #
 module.exports =
 class AtomApplication
-  _.extend @prototype, EventEmitter.prototype
+  Object.assign @prototype, EventEmitter.prototype
 
   # Public: The entry point into the Atom application.
   @open: (options) ->
@@ -525,7 +525,7 @@ class AtomApplication
     restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
     if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
       for state in states
-        @openWithOptions(_.extend(options, {
+        @openWithOptions(Object.assign(options, {
           initialPaths: state.initialPaths
           pathsToOpen: state.initialPaths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
           urlsToOpen: []

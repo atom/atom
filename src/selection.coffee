@@ -1,5 +1,5 @@
 {Point, Range} = require 'text-buffer'
-{pick} = _ = require 'underscore-plus'
+{pick} = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 Model = require './model'
 
@@ -738,7 +738,7 @@ class Selection extends Model
     else
       options.goalScreenRange = myGoalScreenRange ? otherGoalScreenRange
 
-    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), _.extend(autoscroll: false, options))
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), Object.assign(autoscroll: false, options))
     otherSelection.destroy()
 
   ###

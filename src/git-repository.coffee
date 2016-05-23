@@ -318,7 +318,7 @@ class GitRepository
   getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
-    for path, status of _.extend({}, @async.getCachedPathStatuses(), @statusesByPath)
+    for path, status of Object.assign({}, @async.getCachedPathStatuses(), @statusesByPath)
       directoryStatus |= status if path.indexOf(directoryPath) is 0
     directoryStatus
 
