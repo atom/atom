@@ -185,7 +185,7 @@ class AtomEnvironment extends Model
 
     @clipboard = new Clipboard()
 
-    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config})
+    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 

@@ -112,6 +112,28 @@ describe "Project", ->
         editor.saveAs(tempFile)
         expect(atom.project.getPaths()[0]).toBe path.dirname(tempFile)
 
+  describe "before and after saving a buffer", ->
+    [buffer] = []
+    beforeEach ->
+      waitsForPromise ->
+        atom.project.bufferForPath(path.join(__dirname, 'fixtures', 'sample.js')).then (o) ->
+          buffer = o
+          buffer.retain()
+
+    afterEach ->
+      buffer.release()
+
+    it "emits save events on the main process", ->
+      spyOn(atom.project.applicationDelegate, 'emitDidSavePath')
+      spyOn(atom.project.applicationDelegate, 'emitWillSavePath')
+
+      buffer.save()
+
+      expect(atom.project.applicationDelegate.emitDidSavePath.calls.length).toBe(1)
+      expect(atom.project.applicationDelegate.emitDidSavePath).toHaveBeenCalledWith(buffer.getPath())
+      expect(atom.project.applicationDelegate.emitWillSavePath.calls.length).toBe(1)
+      expect(atom.project.applicationDelegate.emitWillSavePath).toHaveBeenCalledWith(buffer.getPath())
+
   describe "when a watch error is thrown from the TextBuffer", ->
     editor = null
     beforeEach ->
