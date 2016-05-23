@@ -24,7 +24,7 @@ export default class FileRecoveryService {
     }
 
     const window = event.sender
-    const recoveryFileName = crypto.createHash('sha1').update(path + Date.now().toString(), 'utf8').digest('hex').substring(0, 10)
+    const recoveryFileName = crypto.randomBytes(5).toString('hex')
     const recoveryPath = Path.join(this.recoveryDirectory, recoveryFileName)
     fs.writeFileSync(recoveryPath, fs.readFileSync(path))
 
@@ -42,7 +42,7 @@ export default class FileRecoveryService {
   didSavePath (event, path) {
     const window = event.sender
     const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
-    if (recoveryPathsByFilePath.has(path)) {
+    if (recoveryPathsByFilePath != null && recoveryPathsByFilePath.has(path)) {
       const recoveryPath = recoveryPathsByFilePath.get(path)
       fs.unlinkSync(recoveryPath)
       recoveryPathsByFilePath.delete(path)
