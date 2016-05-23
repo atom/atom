@@ -49,7 +49,6 @@ class CommandRegistry
     @clear()
 
   clear: ->
-    @urlWhitelistedCommands = {}
     @registeredCommands = {}
     @selectorBasedListenersByCommandName = {}
     @inlineListenersByCommandName = {}
@@ -108,9 +107,6 @@ class CommandRegistry
       @addSelectorBasedListener(target, commandName, callback)
     else
       @addInlineListener(target, commandName, callback)
-
-  whitelistUrlCommand: (commandName) ->
-    @urlWhitelistedCommands[commandName] = true
 
   addSelectorBasedListener: (selector, commandName, callback) ->
     @selectorBasedListenersByCommandName[commandName] ?= []
@@ -186,10 +182,6 @@ class CommandRegistry
     event = new CustomEvent(commandName, {bubbles: true, detail})
     Object.defineProperty(event, 'target', value: target)
     @handleCommandEvent(event)
-
-  dispatchFromUrl: (target, commandName, detail) ->
-    if @urlWhitelistedCommands[commandName]
-      @dispatch(target, commandName, detail)
 
   # Public: Invoke the given callback before dispatching a command event.
   #
