@@ -13,8 +13,8 @@ export default class FileRecoveryService {
   }
 
   start () {
-    this.willSavePathListener = ipcMain.on('will-save-path', this.willSavePath.bind(this))
-    this.didSavePathListener = ipcMain.on('did-save-path', this.didSavePath.bind(this))
+    ipcMain.on('will-save-path', this.willSavePath.bind(this))
+    ipcMain.on('did-save-path', this.didSavePath.bind(this))
   }
 
   willSavePath (event, path) {
