@@ -40,7 +40,8 @@ export default class FileRecoveryService {
   }
 
   didSavePath (event, path) {
-    const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(event.sender)
+    const window = event.sender
+    const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
     if (recoveryPathsByFilePath.has(path)) {
       const recoveryPath = recoveryPathsByFilePath.get(path)
       fs.unlinkSync(recoveryPath)
