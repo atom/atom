@@ -8,7 +8,7 @@
 
 ## Instructions
 
- **El Captain**: Install XCode from App Store and then open it before running build script.
+ **El Captain**: Install Xcode from App Store and then open it before running build script.
 
   ```sh
   git clone https://github.com/atom/atom.git
