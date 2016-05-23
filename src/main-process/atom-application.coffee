@@ -445,6 +445,9 @@ class AtomApplication
   #   :window - {AtomWindow} to open file paths in.
   #   :addToLastWindow - Boolean of whether this should be opened in last focused window.
   openPaths: ({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, windowDimensions, profileStartup, window, clearWindowState, addToLastWindow, env}={}) ->
+    if not pathsToOpen? or pathsToOpen.length == 0
+      return
+
     devMode = Boolean(devMode)
     safeMode = Boolean(safeMode)
     clearWindowState = Boolean(clearWindowState)
