@@ -20,6 +20,7 @@ export default class FileRecoveryService {
   willSavePath (event, path) {
     if (!fs.existsSync(path)) {
       // Unexisting files won't be truncated/overwritten, and so there's no data to be lost.
+      event.returnValue = false
       return
     }
 
@@ -37,16 +38,22 @@ export default class FileRecoveryService {
       window.on('crashed', () => this.recoverFilesForWindow(window))
       this.crashListeners.add(window)
     }
+
+    event.returnValue = true
   }
 
   didSavePath (event, path) {
     const window = event.sender
     const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
-    if (recoveryPathsByFilePath != null && recoveryPathsByFilePath.has(path)) {
-      const recoveryPath = recoveryPathsByFilePath.get(path)
-      fs.unlinkSync(recoveryPath)
-      recoveryPathsByFilePath.delete(path)
+    if (recoveryPathsByFilePath == null || !recoveryPathsByFilePath.has(path)) {
+      event.returnValue = false
+      return
     }
+
+    const recoveryPath = recoveryPathsByFilePath.get(path)
+    fs.unlinkSync(recoveryPath)
+    recoveryPathsByFilePath.delete(path)
+    event.returnValue = true
   }
 
   recoverFilesForWindow (window) {
