@@ -583,7 +583,7 @@ describe('GitRepositoryAsync', () => {
     it('subscribes to all the serialized buffers in the project', async () => {
       await atom.workspace.open('file.txt')
 
-      project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+      project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm, applicationDelegate: atom.applicationDelegate})
       project2.deserialize(atom.project.serialize({isUnloading: true}))
 
       const repo = project2.getRepositories()[0].async
