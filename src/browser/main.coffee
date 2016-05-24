@@ -21,8 +21,7 @@ start = ->
     return
   else if args.test and args.mainProcess
     console.log = previousConsoleLog
-    resourcePath = if fs.existsSync(args.devResourcePath) then args.devResourcePath else require.resolve('../..')
-    require(path.join(args.devResourcePath, 'spec/browser/mocha-test-runner'))(args.pathsToOpen)
+    require(path.join(args.resourcePath, 'spec/browser/mocha-test-runner'))(args.pathsToOpen)
     return
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
