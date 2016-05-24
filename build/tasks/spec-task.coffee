@@ -98,6 +98,9 @@ module.exports = (grunt) ->
       if process.platform is 'win32'
         process.stderr.write(fs.readFileSync('ci.log')) if error
         fs.unlinkSync('ci.log')
+      else
+        # TODO: Restore concurrency on Windows
+        packageSpecQueue?.concurrency = concurrency
 
       callback(null, error)
 
@@ -123,9 +126,6 @@ module.exports = (grunt) ->
 
     grunt.log.ok "Launching core specs (main process)."
     spawn options, (error, results, code) ->
-      if process.platform isnt 'windows'
-        packageSpecQueue?.concurrency = concurrency
-
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->

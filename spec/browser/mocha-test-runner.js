@@ -3,7 +3,6 @@
 import Mocha from 'mocha'
 import fs from 'fs-plus'
 import {assert} from 'chai'
-import util from 'util'
 
 export default function (testPaths) {
   global.assert = assert
