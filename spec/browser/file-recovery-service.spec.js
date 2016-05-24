@@ -65,7 +65,7 @@ describe("FileRecoveryService", () => {
       assert.equal(fs.readFileSync(filePath, 'utf8'), "some content")
     })
 
-    it("restores the created recovery files and deletes them in the order in which windows crash", () => {
+    it("restores the created recovery files and deletes them in the order in which windows crash when they attempt to save the same file", () => {
       const anotherMockWindow = new Emitter
       let filePath = temp.path()
 
