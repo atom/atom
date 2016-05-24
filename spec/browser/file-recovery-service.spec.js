@@ -3,9 +3,6 @@
 import FileRecoveryService from '../../src/browser/file-recovery-service'
 import temp from 'temp'
 import fs from 'fs-plus'
-import path from 'path'
-import os from 'os'
-import crypto from 'crypto'
 import {Emitter} from 'event-kit'
 
 describe("FileRecoveryService", () => {
