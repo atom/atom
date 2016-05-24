@@ -93,13 +93,37 @@ module.exports = (grunt) ->
           env: _.extend({}, process.env, {ELECTRON_ENABLE_LOGGING: true, ATOM_INTEGRATION_TESTS_ENABLED: true})
           stdio: 'inherit'
 
-    grunt.log.ok "Launching core specs."
+    grunt.log.ok "Launching core specs (renderer process)."
     spawn options, (error, results, code) ->
       if process.platform is 'win32'
         process.stderr.write(fs.readFileSync('ci.log')) if error
         fs.unlinkSync('ci.log')
-      else
-        # TODO: Restore concurrency on Windows
+
+      callback(null, error)
+
+  runMainProcessSpecs = (callback) ->
+    appPath = getAppPath()
+    resourcePath = process.cwd()
+    mainProcessSpecsPath = path.resolve('spec/browser')
+
+    if process.platform in ['darwin', 'linux']
+      options =
+        cmd: appPath
+        args: ["--test", "--main-process", "--resource-path=#{resourcePath}", mainProcessSpecsPath]
+        opts:
+          env: process.env
+          stdio: 'inherit'
+    else if process.platform is 'win32'
+      options =
+        cmd: process.env.comspec
+        args: ['/c', appPath, "--test", "--main-process", "--resource-path=#{resourcePath}", mainProcessSpecsPath]
+        opts:
+          env: process.env
+          stdio: 'inherit'
+
+    grunt.log.ok "Launching core specs (main process)."
+    spawn options, (error, results, code) ->
+      if process.platform isnt 'windows'
         packageSpecQueue?.concurrency = concurrency
 
       callback(null, error)
@@ -117,9 +141,9 @@ module.exports = (grunt) ->
       if process.env.ATOM_SPECS_TASK is 'packages'
         [runPackageSpecs]
       else if process.env.ATOM_SPECS_TASK is 'core'
-        [runCoreSpecs]
+        [runCoreSpecs, runMainProcessSpecs]
       else
-        [runCoreSpecs, runPackageSpecs]
+        [runCoreSpecs, runMainProcessSpecs, runPackageSpecs]
 
     method specs, (error, results) ->
       failedPackages = []
