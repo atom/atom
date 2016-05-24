@@ -85,6 +85,24 @@ describe("FileRecoveryService", () => {
       assert.equal(fs.readFileSync(filePath, 'utf8'), "window 2")
       assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
     })
+
+    it("emits a warning when a file can't be recovered", () => {
+      let filePath = temp.path()
+      fs.writeFileSync(filePath, "content")
+      fs.chmodSync(filePath, 0444)
+
+      const previousConsoleLog = console.log
+      let logs = []
+      console.log = (message) => logs.push(message)
+
+      recoveryService.willSavePath({sender: mockWindow}, filePath)
+      mockWindow.emit("crashed")
+      let recoveryFiles = fs.listTreeSync(recoveryDirectory)
+      assert.equal(recoveryFiles.length, 1)
+      assert.deepEqual(logs, [`Cannot recover ${filePath}. A recovery file has been saved here: ${recoveryFiles[0]}.`])
+
+      console.log = previousConsoleLog
+    })
   })
 
   it("doesn't create a recovery file when the file that's being saved doesn't exist yet", () => {

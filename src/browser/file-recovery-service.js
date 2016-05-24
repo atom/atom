@@ -52,8 +52,12 @@ export default class FileRecoveryService {
   recoverFilesForWindow (window) {
     const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
     for (let [filePath, recoveryPath] of recoveryPathsByFilePath) {
-      fs.writeFileSync(filePath, fs.readFileSync(recoveryPath))
-      fs.unlinkSync(recoveryPath)
+      try {
+        fs.writeFileSync(filePath, fs.readFileSync(recoveryPath))
+        fs.unlinkSync(recoveryPath)
+      } catch (error) {
+        console.log(`Cannot recover ${filePath}. A recovery file has been saved here: ${recoveryPath}.`)
+      }
     }
 
     recoveryPathsByFilePath.clear()
