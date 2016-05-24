@@ -8,8 +8,8 @@ import fs from 'fs-plus'
 export default class FileRecoveryService {
   constructor (recoveryDirectory) {
     this.recoveryDirectory = recoveryDirectory
-    this.recoveryPathsByWindowAndFilePath = new WeakMap
-    this.crashListeners = new WeakSet
+    this.recoveryPathsByWindowAndFilePath = new WeakMap()
+    this.crashListeners = new WeakSet()
   }
 
   start () {
@@ -29,7 +29,7 @@ export default class FileRecoveryService {
     fs.writeFileSync(recoveryPath, fs.readFileSync(path))
 
     if (!this.recoveryPathsByWindowAndFilePath.has(window)) {
-      this.recoveryPathsByWindowAndFilePath.set(window, new Map)
+      this.recoveryPathsByWindowAndFilePath.set(window, new Map())
     }
     this.recoveryPathsByWindowAndFilePath.get(window).set(path, recoveryPath)
 

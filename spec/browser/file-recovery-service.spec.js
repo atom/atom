@@ -12,7 +12,7 @@ describe("FileRecoveryService", () => {
   let mockWindow, recoveryService, recoveryDirectory
 
   beforeEach(() => {
-    mockWindow = new Emitter
+    mockWindow = new Emitter()
     recoveryDirectory = temp.mkdirSync()
     recoveryService = new FileRecoveryService(recoveryDirectory)
   })
@@ -32,7 +32,7 @@ describe("FileRecoveryService", () => {
     })
 
     it("creates many recovery files and deletes them when many windows attempt to save the same file", () => {
-      const anotherMockWindow = new Emitter
+      const anotherMockWindow = new Emitter()
       let filePath = temp.path()
 
       fs.writeFileSync(filePath, "some content")
