@@ -1370,6 +1370,13 @@ describe "TextEditorPresenter", ->
                 expect(lineStateForScreenRow(presenter, 12).precedingBlockDecorations).toEqual([])
                 expect(lineStateForScreenRow(presenter, 12).followingBlockDecorations).toEqual([])
 
+            it "inserts block decorations before the line if not specified otherwise", ->
+              blockDecoration = editor.decorateMarker(editor.markScreenPosition([4, 0]), {type: "block"})
+              presenter = buildPresenter()
+
+              expect(lineStateForScreenRow(presenter, 4).precedingBlockDecorations).toEqual [blockDecoration]
+              expect(lineStateForScreenRow(presenter, 4).followingBlockDecorations).toEqual []
+
           describe ".decorationClasses", ->
             it "adds decoration classes to the relevant line state objects, both initially and when decorations change", ->
               marker1 = editor.addMarkerLayer(maintainHistory: true).markBufferRange([[4, 0], [6, 2]], invalidate: 'touch')
@@ -1582,15 +1589,15 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10, left: 4 * 10, width: 10, height: 10}
 
           blockDecoration1 = addBlockDecorationBeforeScreenRow(0)
-          blockDecoration2 = addBlockDecorationBeforeScreenRow(1)
+          blockDecoration2 = addBlockDecorationAfterScreenRow(1)
 
           waitsForStateToUpdate presenter, ->
             presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
             presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
 
           runs ->
-            expect(stateForCursor(presenter, 0)).toEqual {top: 50, left: 2 * 10, width: 10, height: 10}
-            expect(stateForCursor(presenter, 1)).toEqual {top: 60, left: 4 * 10, width: 10, height: 10}
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10 + 30, left: 2 * 10, width: 10, height: 10}
+            expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10 + 30 + 10, left: 4 * 10, width: 10, height: 10}
             expect(stateForCursor(presenter, 2)).toBeUndefined()
             expect(stateForCursor(presenter, 3)).toBeUndefined()
             expect(stateForCursor(presenter, 4)).toBeUndefined()
@@ -1603,6 +1610,14 @@ describe "TextEditorPresenter", ->
 
           runs ->
             expect(stateForCursor(presenter, 0)).toEqual {top: 0, left: 0, width: 10, height: 10}
+
+        it "considers block decorations to be before a line by default", ->
+          editor.setCursorScreenPosition([4, 0])
+          blockDecoration = editor.decorateMarker(editor.markScreenPosition([4, 0]), {type: "block"})
+          presenter = buildPresenter()
+          presenter.setBlockDecorationDimensions(blockDecoration, 0, 6)
+
+          expect(stateForCursor(presenter, 0)).toEqual {top: 4 * 10 + 6, left: 0, width: 10, height: 10}
 
         it "updates when ::scrollTop changes", ->
           editor.setSelectedBufferRanges([
