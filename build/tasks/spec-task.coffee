@@ -72,7 +72,7 @@ module.exports = (grunt) ->
     packageSpecQueue.concurrency = Math.max(1, concurrency - 1)
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
-  runCoreSpecs = (callback) ->
+  runRendererProcessSpecs = (callback) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
@@ -141,9 +141,9 @@ module.exports = (grunt) ->
       if process.env.ATOM_SPECS_TASK is 'packages'
         [runPackageSpecs]
       else if process.env.ATOM_SPECS_TASK is 'core'
-        [runCoreSpecs, runMainProcessSpecs]
+        [runRendererProcessSpecs, runMainProcessSpecs]
       else
-        [runCoreSpecs, runMainProcessSpecs, runPackageSpecs]
+        [runRendererProcessSpecs, runMainProcessSpecs, runPackageSpecs]
 
     method specs, (error, results) ->
       failedPackages = []
