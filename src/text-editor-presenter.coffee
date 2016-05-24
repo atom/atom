@@ -1083,12 +1083,12 @@ class TextEditorPresenter
     return if @blockDecorationsToRenderById[decoration.getId()]
 
     screenRow = decoration.getMarker().getHeadScreenPosition().row
-    if decoration.getProperties().position is "before"
-      @precedingBlockDecorationsByScreenRow[screenRow] ?= []
-      @precedingBlockDecorationsByScreenRow[screenRow].push(decoration)
-    else
+    if decoration.getProperties().position is "after"
       @followingBlockDecorationsByScreenRow[screenRow] ?= []
       @followingBlockDecorationsByScreenRow[screenRow].push(decoration)
+    else
+      @precedingBlockDecorationsByScreenRow[screenRow] ?= []
+      @precedingBlockDecorationsByScreenRow[screenRow].push(decoration)
     @state.content.blockDecorations[decoration.getId()] = {decoration, screenRow, isVisible}
     @blockDecorationsToRenderById[decoration.getId()] = true
 
