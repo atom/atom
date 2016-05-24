@@ -2,113 +2,38 @@
 @import "ui-variables";
 @import "mixins/mixins";
 
-
 //
 // Buttons
 // --------------------------------------------------
 
 
-@btn-font-weight:                normal;
+// Button variables
+// --------------------------------------------------
 
-@btn-default-color:              #333;
-@btn-default-bg:                 #fff;
-@btn-default-border:             #ccc;
+@btn-default-color:              @text-color;
+@btn-default-bg:                 @button-background-color;
 
 @btn-primary-color:              #fff;
-@btn-primary-bg:                 @brand-primary;
-@btn-primary-border:             darken(@btn-primary-bg, 5%);
+@btn-primary-bg:                 @background-color-info;
 
 @btn-success-color:              #fff;
-@btn-success-bg:                 @brand-success;
-@btn-success-border:             darken(@btn-success-bg, 5%);
+@btn-success-bg:                 @background-color-success;
 
 @btn-info-color:                 #fff;
-@btn-info-bg:                    @brand-info;
-@btn-info-border:                darken(@btn-info-bg, 5%);
+@btn-info-bg:                    @background-color-info;
 
 @btn-warning-color:              #fff;
-@btn-warning-bg:                 @brand-warning;
-@btn-warning-border:             darken(@btn-warning-bg, 5%);
+@btn-warning-bg:                 @background-color-warning;
 
-@btn-danger-color:               #fff;
-@btn-danger-bg:                  @brand-danger;
-@btn-danger-border:              darken(@btn-danger-bg, 5%);
+@btn-error-color:               #fff;
+@btn-error-bg:                  @background-color-error;
 
-@btn-link-disabled-color:        @gray-light;
+@btn-link-disabled-color:        @text-color-subtle;
 
 // Allows for customizing button radius independently from global border radius
 @btn-border-radius-base:         @component-border-radius;
 @btn-border-radius-large:        @component-border-radius * 2;
 @btn-border-radius-small:        @component-border-radius / 2;
-
-
-
-// Button variants
-//
-// Easily pump out default styles, as well as :hover, :focus, :active,
-// and disabled options for all buttons
-
-.button-variant(@color; @background; @border) {
-  color: @color;
-  background-color: @background;
-  border-color: @border;
-
-  &:focus,
-  &.focus {
-    color: @color;
-    background-color: darken(@background, 10%);
-        border-color: darken(@border, 25%);
-  }
-  &:hover {
-    color: @color;
-    background-color: darken(@background, 10%);
-        border-color: darken(@border, 12%);
-  }
-  &:active,
-  &.active,
-  .open > .dropdown-toggle& {
-    color: @color;
-    background-color: darken(@background, 10%);
-        border-color: darken(@border, 12%);
-
-    &:hover,
-    &:focus,
-    &.focus {
-      color: @color;
-      background-color: darken(@background, 17%);
-          border-color: darken(@border, 25%);
-    }
-  }
-  &:active,
-  &.active,
-  .open > .dropdown-toggle& {
-    background-image: none;
-  }
-  &.disabled,
-  &[disabled],
-  fieldset[disabled] & {
-    &:hover,
-    &:focus,
-    &.focus {
-      background-color: @background;
-          border-color: @border;
-    }
-  }
-
-  .badge {
-    color: @background;
-    background-color: @color;
-  }
-}
-
-// Button sizes
-.button-size(@padding-vertical; @padding-horizontal; @font-size; @line-height; @border-radius) {
-  padding: @padding-vertical @padding-horizontal;
-  font-size: @font-size;
-  line-height: @line-height;
-  border-radius: @border-radius;
-}
-
 
 
 // Base styles
@@ -117,16 +42,20 @@
 .btn {
   display: inline-block;
   margin-bottom: 0; // For input.btn
-  font-weight: @btn-font-weight;
+  height: @component-line-height + 2px;
+  padding: 0 @component-padding;
+  font-size: @font-size;
+  font-weight: normal;
+  line-height: @component-line-height;
   text-align: center;
   vertical-align: middle;
-  touch-action: manipulation;
-  cursor: pointer;
-  background-image: none; // Reset unusual Firefox-on-Android default style; see https://github.com/necolas/normalize.css/issues/214
-  border: 1px solid transparent;
+  border: none;
+  border-radius: @component-border-radius;
+  background-color: @btn-default-bg;
   white-space: nowrap;
+  cursor: pointer;
+  z-index: 0;
   -webkit-user-select: none;
-  .button-size(@padding-base-vertical; @padding-base-horizontal; @font-size-base; @line-height-base; @btn-border-radius-base);
 
   &,
   &:active,
@@ -142,6 +71,7 @@
   &.focus {
     color: @btn-default-color;
     text-decoration: none;
+    background-color: @button-background-color-hover;
   }
 
   &:active,
@@ -149,6 +79,13 @@
     outline: 0;
     background-image: none;
     box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+  }
+
+  &.selected,
+  &.selected:hover {
+    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
+    z-index: 1;
+    background-color: @button-background-color-selected;
   }
 
   &.disabled,
@@ -168,143 +105,82 @@
 }
 
 
-// Alternate buttons
+// Button variants
 // --------------------------------------------------
 
-.btn-default {
-  .button-variant(@btn-default-color; @btn-default-bg; @btn-default-border);
-}
-.btn-primary {
-  .button-variant(@btn-primary-color; @btn-primary-bg; @btn-primary-border);
-}
-// Success appears as green
-.btn-success {
-  .button-variant(@btn-success-color; @btn-success-bg; @btn-success-border);
-}
-// Info appears as blue-green
-.btn-info {
-  .button-variant(@btn-info-color; @btn-info-bg; @btn-info-border);
-}
-// Warning appears as orange
-.btn-warning {
-  .button-variant(@btn-warning-color; @btn-warning-bg; @btn-warning-border);
-}
-// Danger and error appear as red
-.btn-danger {
-  .button-variant(@btn-danger-color; @btn-danger-bg; @btn-danger-border);
-}
+.button-variant(@color; @background;) {
+  color: @color;
+  background-color: @background;
 
-
-// Link buttons
-// -------------------------
-
-// Make a button look and behave like a link
-.btn-link {
-  color: @link-color;
-  font-weight: normal;
-  border-radius: 0;
-
-  &,
-  &:active,
-  &.active,
-  &[disabled],
-  fieldset[disabled] & {
-    background-color: transparent;
-    box-shadow: none;
-  }
-  &,
-  &:hover,
   &:focus,
-  &:active {
-    border-color: transparent;
+  &.focus {
+    color: @color;
+    background-color: darken(@background, 10%);
   }
-  &:hover,
-  &:focus {
-    color: @link-hover-color;
-    text-decoration: @link-hover-decoration;
-    background-color: transparent;
+  &:hover {
+    color: @color;
+    background-color: darken(@background, 10%);
   }
+  &:active,
+  &.active {
+    color: @color;
+    background-color: darken(@background, 10%);
+
+    &:hover,
+    &:focus,
+    &.focus {
+      color: @color;
+      background-color: darken(@background, 17%);
+    }
+  }
+  &.selected,
+  &.selected:hover {
+    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
+    z-index: 1;
+    background-color: darken(@background, 10%);
+  }
+
+  &.disabled,
   &[disabled],
   fieldset[disabled] & {
     &:hover,
-    &:focus {
-      color: @btn-link-disabled-color;
-      text-decoration: none;
+    &:focus,
+    &.focus {
+      background-color: @background;
     }
   }
+
+  .badge {
+    color: @background;
+    background-color: @color;
+  }
+}
+
+.btn-primary {
+  .button-variant(@btn-primary-color; @btn-primary-bg;);
+}
+// Success appears as green
+.btn-success {
+  .button-variant(@btn-success-color; @btn-success-bg;);
+}
+// Info appears as blue-green
+.btn-info {
+  .button-variant(@btn-info-color; @btn-info-bg;);
+}
+// Warning appears as orange
+.btn-warning {
+  .button-variant(@btn-warning-color; @btn-warning-bg;);
+}
+// Danger and error appear as red
+.btn-error {
+  .button-variant(@btn-error-color; @btn-error-bg;);
 }
 
 
 // Button Sizes
 // --------------------------------------------------
 
-.btn-lg {
-  // line-height: ensure even-numbered height of button next to large input
-  .button-size(@padding-large-vertical; @padding-large-horizontal; @font-size-large; @line-height-large; @btn-border-radius-large);
-}
-.btn-sm {
-  // line-height: ensure proper height of button next to small input
-  .button-size(@padding-small-vertical; @padding-small-horizontal; @font-size-small; @line-height-small; @btn-border-radius-small);
-}
-.btn-xs {
-  .button-size(@padding-xs-vertical; @padding-xs-horizontal; @font-size-small; @line-height-small; @btn-border-radius-small);
-}
-
-
-// Block button
-// --------------------------------------------------
-
-.btn-block {
-  display: block;
-  width: 100%;
-}
-
-// Vertically space out multiple block buttons
-.btn-block + .btn-block {
-  margin-top: 5px;
-}
-
-// Specificity overrides
-input[type="submit"],
-input[type="reset"],
-input[type="button"] {
-  &.btn-block {
-    width: 100%;
-  }
-}
-
-
-
-
-// Atom overrides --------------------------------------------------------------------
-// ------------------------------------------------------------------------------------
-
-.btn {
-  color: @text-color;
-  border-radius: @component-border-radius;
-  border: none;
-  text-shadow: none;
-
-  height: @component-line-height + 2px;
-  line-height: @component-line-height;
-
-  padding: 0 @component-padding;
-  font-size: @font-size;
-  z-index: 0;
-
-  background-color: @button-background-color;
-  &:hover {
-    background-color: @button-background-color-hover;
-  }
-  &.selected,
-  &.selected:hover {
-    // we want the selected button to behave like the :hover button; it's on top of the other buttons.
-    z-index: 1;
-    background-color: @button-background-color-selected;
-  }
-}
-
-.btn.btn-xs,
+.btn-xs,
 .btn-group-xs > .btn {
   padding: @component-padding/4 @component-padding/2;
   font-size: @font-size - 2px;
@@ -314,7 +190,7 @@ input[type="button"] {
     font-size: @font-size - 2px;
   }
 }
-.btn.btn-sm,
+.btn-sm,
 .btn-group-sm > .btn {
   padding: @component-padding/4 @component-padding/2;
   height: auto;
@@ -323,7 +199,7 @@ input[type="button"] {
     font-size: @font-size + 1px;
   }
 }
-.btn.btn-lg,
+.btn-lg,
 .btn-group-lg > .btn {
   font-size: @font-size + 2px;
   padding: @component-padding - 2px  @component-padding + 2px;
@@ -351,7 +227,66 @@ input[type="button"] {
   border-bottom-right-radius: @component-border-radius;
 }
 
+
+// Link button
+// -------------------------
+
+// Make a button look and behave like a link
+.btn-link {
+  color: @link-color;
+  font-weight: normal;
+  border-radius: 0;
+  &,
+  &:active,
+  &.active,
+  &[disabled],
+  fieldset[disabled] & {
+    background-color: transparent;
+    box-shadow: none;
+  }
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+    text-decoration: @link-hover-decoration;
+    background-color: transparent;
+  }
+  &[disabled],
+  fieldset[disabled] & {
+    &:hover,
+    &:focus {
+      color: @btn-link-disabled-color;
+      text-decoration: none;
+    }
+  }
+}
+
+
+// Block button
+// --------------------------------------------------
+
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+// Vertically space out multiple block buttons
+.btn-block + .btn-block {
+  margin-top: 5px;
+}
+
+// Specificity overrides
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  &.btn-block {
+    width: 100%;
+  }
+}
+
+
 // Icon buttons
+// --------------------------------------------------
+
 .btn.icon {
   &:before {
     width: initial;
@@ -363,8 +298,14 @@ input[type="button"] {
   }
 }
 
+
+// Button Toolbar
+// --------------------------------------------------
+
 .btn-toolbar {
-  > .btn-group + .btn-group, > .btn-group + .btn, > .btn + .btn {
+  > .btn-group + .btn-group,
+  > .btn-group + .btn,
+  > .btn + .btn {
     float: none;
     display: inline-block;
     margin-left: 0;
