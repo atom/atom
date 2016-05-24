@@ -5,46 +5,10 @@ request = require 'request'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
-  signUsingWindowsSDK = (exeToSign, callback) ->
-    {WIN_P12KEY_PASSWORD, WIN_P12KEY_URL} = process.env
-    if WIN_P12KEY_URL?
-      grunt.log.ok("Obtaining signing key")
-      downloadedKeyFile = path.resolve(__dirname, 'DownloadedSignKey.p12')
-      downloadFile WIN_P12KEY_URL, downloadedKeyFile, (done) ->
-        signUsingWindowsSDKTool exeToSign, downloadedKeyFile, WIN_P12KEY_PASSWORD, (done) ->
-          fs.unlinkSync(downloadedKeyFile)
-          callback()
-    else
-      signUsingWindowsSDKTool exeToSign, path.resolve(__dirname, '..', 'certs', 'AtomDevTestSignKey.p12'), 'password', callback
-
-  signUsingWindowsSDKTool = (exeToSign, keyFilePath, password, callback) ->
-    grunt.log.ok("Signing #{exeToSign}")
-    args = ['sign', '/v', '/p', password, '/f', keyFilePath, exeToSign]
-    spawn {cmd: 'C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.1A\\bin\\signtool.exe', args: args}, callback
-
-  signUsingJanky = (exeToSign, callback) ->
-    spawn {cmd: process.env.JANKY_SIGNTOOL, args: [exeToSign]}, callback
-
-  signWindowsExecutable = if process.env.JANKY_SIGNTOOL then signUsingJanky else signUsingWindowsSDK
-
-  grunt.registerTask 'codesign:exe', 'CodeSign Atom.exe and Update.exe', ->
-    done = @async()
-    spawn {cmd: 'taskkill', args: ['/F', '/IM', 'atom.exe']}, ->
-      atomExePath = path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')
-      signWindowsExecutable atomExePath, (error) ->
-        return done(error) if error?
-
-        updateExePath = path.resolve(__dirname, '..', 'node_modules', 'grunt-electron-installer', 'vendor', 'Update.exe')
-        signWindowsExecutable updateExePath, (error) -> done(error)
-
-  grunt.registerTask 'codesign:installer', 'CodeSign AtomSetup.exe', ->
-    done = @async()
-    atomSetupExePath = path.resolve(grunt.config.get('atom.buildDir'), 'installer', 'AtomSetup.exe')
-    signWindowsExecutable atomSetupExePath, (error) -> done(error)
+  # Mac OS X code signing
 
   grunt.registerTask 'codesign:app', 'CodeSign Atom.app', ->
     done = @async()
-
     unlockKeychain (error) ->
       return done(error) if error?
 
@@ -53,10 +17,64 @@ module.exports = (grunt) ->
 
   unlockKeychain = (callback) ->
     return callback() unless process.env.XCODE_KEYCHAIN
-
     {XCODE_KEYCHAIN_PASSWORD, XCODE_KEYCHAIN} = process.env
     args = ['unlock-keychain', '-p', XCODE_KEYCHAIN_PASSWORD, XCODE_KEYCHAIN]
     spawn {cmd: 'security', args: args}, (error) -> callback(error)
+
+  # Windows code signing
+
+  grunt.registerTask 'codesign:exe', 'CodeSign Windows binaries', ->
+    done = @async()
+    atomExePath = path.join(grunt.config.get('atom.shellAppDir'), 'atom.exe')
+    signWindowsExecutable atomExePath, (error) ->
+      return done(error) if error?
+      updateExePath = path.resolve(__dirname, '..', 'node_modules', 'grunt-electron-installer', 'vendor', 'Update.exe')
+      signWindowsExecutable updateExePath, (error) -> done(error)
+
+  grunt.registerTask 'codesign:installer', 'CodeSign Windows installer (AtomSetup.exe)', ->
+    done = @async()
+    atomSetupExePath = path.resolve(grunt.config.get('atom.buildDir'), 'installer', 'AtomSetup.exe')
+    signWindowsExecutable atomSetupExePath, (error) -> done(error)
+
+  grunt.registerTask 'codesign:installer-deferred', 'Obtain cert and configure installer to perform CodeSign', ->
+    done = @async()
+    getCertificate (file, password) ->
+      grunt.config('create-windows-installer.installer.certificateFile', file)
+      grunt.config('create-windows-installer.installer.certificatePassword', password)
+      grunt.log.ok('Certificate ready for create-windows-installer task')
+      done()
+
+  grunt.registerTask 'codesign:cleanup', 'Clean up any temporary or downloaded files used for CodeSign', ->
+    try fs.unlinkSync(downloadedCertificateFile) catch e then return
+
+  downloadedCertificateFile = path.resolve(__dirname, 'DownloadedCertFile.p12')
+
+  signWindowsExecutable = (exeToSign, callback) ->
+    if process.env.JANKY_SIGNTOOL
+      signUsingJanky exeToSign, callback
+    else
+      signUsingWindowsSDK exeToSign, callback
+
+  signUsingJanky = (exeToSign, callback) ->
+    grunt.log.ok("Signing #{exeToSign} using Janky SignTool")
+    spawn {cmd: process.env.JANKY_SIGNTOOL, args: [exeToSign]}, callback
+
+  signUsingWindowsSDK = (exeToSign, callback) ->
+    getCertificate (file, password) ->
+      signUsingWindowsSDKTool exeToSign, file, password, callback
+
+  signUsingWindowsSDKTool = (exeToSign, certificateFile, certificatePassword, callback) ->
+    grunt.log.ok("Signing '#{exeToSign}' using Windows SDK")
+    args = ['sign', '/v', '/p', certificatePassword, '/f', certificateFile, exeToSign]
+    spawn {cmd: 'C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.1A\\bin\\signtool.exe', args: args}, callback
+
+  getCertificate = (callback) ->
+    if process.env.WIN_P12KEY_URL?
+      grunt.log.ok("Obtaining certificate file")
+      downloadFile process.env.WIN_P12KEY_URL, downloadedCertificateFile, (done) ->
+        callback(downloadedCertificateFile, process.env.WIN_P12KEY_PASSWORD ? 'password')
+    else
+      callback(path.resolve(__dirname, '..', 'certs', 'AtomDevTestSignKey.p12'), process.env.WIN_P12KEY_PASSWORD ? 'password')
 
   downloadFile = (sourceUrl, targetPath, callback) ->
     options = {

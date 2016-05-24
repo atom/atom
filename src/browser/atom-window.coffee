@@ -2,12 +2,11 @@
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
-_ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 
 module.exports =
 class AtomWindow
-  _.extend @prototype, EventEmitter.prototype
+  Object.assign @prototype, EventEmitter.prototype
 
   @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
   @includeShellLoadTime: true
@@ -46,7 +45,7 @@ class AtomWindow
 
     @handleEvents()
 
-    loadSettings = _.extend({}, settings)
+    loadSettings = Object.assign({}, settings)
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false

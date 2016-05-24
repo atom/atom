@@ -40,7 +40,7 @@
     "marked": "^0.3.5",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
-    "ohnogit": "0.0.11",
+    "ohnogit": "0.0.12",
     "oniguruma": "^5",
     "pathwatcher": "~6.5",
     "property-accessors": "^1.1.3",

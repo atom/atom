@@ -2596,7 +2596,7 @@ class TextEditor extends Model
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
     cursor = @addCursor(marker)
-    selection = new Selection(_.extend({editor: this, marker, cursor, @clipboard}, options))
+    selection = new Selection(Object.assign({editor: this, marker, cursor, @clipboard}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections(preserveFolds: options.preserveFolds)
