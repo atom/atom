@@ -152,18 +152,19 @@ module.exports = (grunt) ->
       if process.env.ATOM_SPECS_TASK is 'packages'
         [failedPackages] = results
       else if process.env.ATOM_SPECS_TASK is 'core'
-        [coreSpecFailed] = results
+        [rendererProcessSpecsFailed, mainProcessSpecsFailed] = results
       else
-        [coreSpecFailed, failedPackages] = results
+        [rendererProcessSpecsFailed, mainProcessSpecsFailed, failedPackages] = results
 
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
       failures = failedPackages
-      failures.push "atom core" if coreSpecFailed
+      failures.push "atom core (renderer process)" if rendererProcessSpecsFailed
+      failures.push "atom core (main process)" if mainProcessSpecsFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
       if process.platform is 'win32' and process.env.JANKY_SHA1
         done()
       else
-        done(not coreSpecFailed and failedPackages.length is 0)
+        done(failures.length is 0)
