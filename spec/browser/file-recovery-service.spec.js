@@ -13,7 +13,7 @@ describe("FileRecoveryService", () => {
 
   beforeEach(() => {
     mockWindow = new Emitter
-    recoveryDirectory = path.join(os.tmpdir(), crypto.randomBytes(5).toString('hex'))
+    recoveryDirectory = temp.mkdirSync()
     recoveryService = new FileRecoveryService(recoveryDirectory)
   })
 
@@ -42,6 +42,9 @@ describe("FileRecoveryService", () => {
 
       fs.writeFileSync(filePath, "changed")
       recoveryService.didSavePath({sender: mockWindow}, filePath)
+      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+      assert.equal(fs.readFileSync(filePath, 'utf8'), "changed")
+
       recoveryService.didSavePath({sender: anotherMockWindow}, filePath)
       assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
       assert.equal(fs.readFileSync(filePath, 'utf8'), "changed")
