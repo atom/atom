@@ -1589,15 +1589,15 @@ describe "TextEditorPresenter", ->
           expect(stateForCursor(presenter, 4)).toEqual {top: 8 * 10, left: 4 * 10, width: 10, height: 10}
 
           blockDecoration1 = addBlockDecorationBeforeScreenRow(0)
-          blockDecoration2 = addBlockDecorationBeforeScreenRow(1)
+          blockDecoration2 = addBlockDecorationAfterScreenRow(1)
 
           waitsForStateToUpdate presenter, ->
             presenter.setBlockDecorationDimensions(blockDecoration1, 0, 30)
             presenter.setBlockDecorationDimensions(blockDecoration2, 0, 10)
 
           runs ->
-            expect(stateForCursor(presenter, 0)).toEqual {top: 50, left: 2 * 10, width: 10, height: 10}
-            expect(stateForCursor(presenter, 1)).toEqual {top: 60, left: 4 * 10, width: 10, height: 10}
+            expect(stateForCursor(presenter, 0)).toEqual {top: 1 * 10 + 30, left: 2 * 10, width: 10, height: 10}
+            expect(stateForCursor(presenter, 1)).toEqual {top: 2 * 10 + 30 + 10, left: 4 * 10, width: 10, height: 10}
             expect(stateForCursor(presenter, 2)).toBeUndefined()
             expect(stateForCursor(presenter, 3)).toBeUndefined()
             expect(stateForCursor(presenter, 4)).toBeUndefined()
