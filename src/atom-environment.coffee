@@ -684,7 +684,7 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
-        @document.body.appendChild(@views.getView(@titleBar)) if @titleBar
+        @workspace.addHeaderPanel({item: @views.getView(@titleBar)}) if @titleBar
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
 
