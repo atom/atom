@@ -1,3 +1,5 @@
+@import "ui-variables";
+
 //
 // Core Variables (Forked from Bootstrap 3.3.6)
 // Don't use these variables in packages/themes.
@@ -138,46 +140,38 @@
 //
 // //** Border color for table and cell borders.
 // @table-border-color:            #ddd;
+
+
+//== Buttons
 //
-//
-// //== Buttons
-// //
-// //## For each of Bootstrap's buttons, define text, background and border color.
-//
-// @btn-font-weight:                normal;
-//
-// @btn-default-color:              #333;
-// @btn-default-bg:                 #fff;
-// @btn-default-border:             #ccc;
-//
-// @btn-primary-color:              #fff;
-// @btn-primary-bg:                 @brand-primary;
-// @btn-primary-border:             darken(@btn-primary-bg, 5%);
-//
-// @btn-success-color:              #fff;
-// @btn-success-bg:                 @brand-success;
-// @btn-success-border:             darken(@btn-success-bg, 5%);
-//
-// @btn-info-color:                 #fff;
-// @btn-info-bg:                    @brand-info;
-// @btn-info-border:                darken(@btn-info-bg, 5%);
-//
-// @btn-warning-color:              #fff;
-// @btn-warning-bg:                 @brand-warning;
-// @btn-warning-border:             darken(@btn-warning-bg, 5%);
-//
-// @btn-danger-color:               #fff;
-// @btn-danger-bg:                  @brand-danger;
-// @btn-danger-border:              darken(@btn-danger-bg, 5%);
-//
-// @btn-link-disabled-color:        @gray-light;
-//
-// // Allows for customizing button radius independently from global border radius
-// @btn-border-radius-base:         @border-radius-base;
-// @btn-border-radius-large:        @border-radius-large;
-// @btn-border-radius-small:        @border-radius-small;
-//
-//
+//## For each of Bootstrap's buttons, define text, background and border color.
+
+@btn-default-color:              @text-color;
+@btn-default-bg:                 @button-background-color;
+
+@btn-primary-color:              #fff;
+@btn-primary-bg:                 @background-color-info;
+
+@btn-success-color:              #fff;
+@btn-success-bg:                 @background-color-success;
+
+@btn-info-color:                 #fff;
+@btn-info-bg:                    @background-color-info;
+
+@btn-warning-color:              #fff;
+@btn-warning-bg:                 @background-color-warning;
+
+@btn-error-color:               #fff;
+@btn-error-bg:                  @background-color-error;
+
+@btn-link-disabled-color:        @text-color-subtle;
+
+// Allows for customizing button radius independently from global border radius
+@btn-border-radius-base:         @component-border-radius;
+@btn-border-radius-large:        @component-border-radius * 2;
+@btn-border-radius-small:        @component-border-radius / 2;
+
+
 // //== Forms
 // //
 // //##
