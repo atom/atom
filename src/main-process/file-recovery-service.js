@@ -75,8 +75,8 @@ export default class FileRecoveryService {
 
     if (!this.observedWindows.has(window)) {
       this.observedWindows.add(window)
-      window.webContents.on("crashed", () => this.recoverFilesForWindow(window))
-      window.on("closed", () => {
+      window.webContents.on('crashed', () => this.recoverFilesForWindow(window))
+      window.on('closed', () => {
         this.observedWindows.delete(window)
         this.recoveryFilesByWindow.delete(window)
       })
