@@ -6,6 +6,13 @@ import Path from 'path'
 import fs from 'fs-plus'
 
 class RecoveryFile {
+  static fileNameForPath (path) {
+    const extension = Path.extname(path)
+    const basename = Path.basename(path, extension).substring(0, 34)
+    const randomSuffix = crypto.randomBytes(3).toString('hex')
+    return `${basename}-${randomSuffix}${extension}`
+  }
+
   constructor (originalPath, recoveryPath) {
     this.originalPath = originalPath
     this.recoveryPath = recoveryPath
@@ -64,8 +71,10 @@ export default class FileRecoveryService {
     const window = BrowserWindow.fromWebContents(event.sender)
     let recoveryFile = this.recoveryFilesByFilePath.get(path)
     if (recoveryFile == null) {
-      const recoveryPath = Path.join(this.recoveryDirectory, crypto.randomBytes(5).toString('hex'))
-      recoveryFile = new RecoveryFile(path, recoveryPath)
+      recoveryFile = new RecoveryFile(
+        path,
+        Path.join(this.recoveryDirectory, RecoveryFile.fileNameForPath(path))
+      )
       this.recoveryFilesByFilePath.set(path, recoveryFile)
     }
     recoveryFile.retain()
