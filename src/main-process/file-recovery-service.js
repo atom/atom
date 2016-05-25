@@ -1,6 +1,6 @@
 'use babel'
 
-import {BrowserWindow, dialog, ipcMain} from 'electron'
+import {dialog} from 'electron'
 import crypto from 'crypto'
 import Path from 'path'
 import fs from 'fs-plus'
