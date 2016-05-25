@@ -5,9 +5,10 @@ import FileRecoveryService from '../../src/main-process/file-recovery-service'
 import temp from 'temp'
 import fs from 'fs-plus'
 import {Emitter} from 'event-kit'
+import sinon from 'sinon'
 
 describe("FileRecoveryService", () => {
-  let recoveryService, recoveryDirectory, windows
+  let recoveryService, recoveryDirectory, windows, previousConsoleLog
 
   function createWindow () {
     const window = new BrowserWindow({show: false})
@@ -116,24 +117,23 @@ describe("FileRecoveryService", () => {
       })
     })
 
-    it("emits a warning when a file can't be recovered", () => {
+    it("emits a warning when a file can't be recovered", sinon.test(function () {
       const mockWindow = createWindow()
       const filePath = temp.path()
       fs.writeFileSync(filePath, "content")
       fs.chmodSync(filePath, 0444)
 
-      const previousConsoleLog = console.log
       let logs = []
-      console.log = (message) => logs.push(message)
+      this.stub(console, 'log', (message) => logs.push(message))
 
       recoveryService.willSavePath({sender: mockWindow.webContents}, filePath)
       mockWindow.webContents.emit("crashed")
       let recoveryFiles = fs.listTreeSync(recoveryDirectory)
       assert.equal(recoveryFiles.length, 1)
-      assert.deepEqual(logs, [`Cannot recover ${filePath}. A recovery file has been saved here: ${recoveryFiles[0]}.`])
-
-      console.log = previousConsoleLog
-    })
+      assert.equal(logs.length, 1)
+      assert.match(logs[0], new RegExp(filePath))
+      assert.match(logs[0], new RegExp(recoveryFiles[0]))
+    }))
   })
 
   it("doesn't create a recovery file when the file that's being saved doesn't exist yet", () => {

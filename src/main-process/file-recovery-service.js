@@ -1,6 +1,6 @@
 'use babel'
 
-import {BrowserWindow, ipcMain} from 'electron'
+import {BrowserWindow, dialog, ipcMain} from 'electron'
 import crypto from 'crypto'
 import Path from 'path'
 import fs from 'fs-plus'
@@ -113,7 +113,10 @@ export default class FileRecoveryService {
       try {
         recoveryFile.recoverSync()
       } catch (error) {
-        console.log(`Cannot recover ${recoveryFile.originalPath}. A recovery file has been saved here: ${recoveryFile.recoveryPath}.`)
+        console.log(
+          `There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
+          `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`
+        )
       } finally {
         this.recoveryFilesByFilePath.delete(recoveryFile.originalPath)
       }
