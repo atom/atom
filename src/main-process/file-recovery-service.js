@@ -52,10 +52,12 @@ export default class FileRecoveryService {
       try {
         recoveryFile.recoverSync()
       } catch (error) {
-        console.log(
+        const message = 'A file that Atom was saving could be corrupted'
+        const detail =
           `There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
           `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`
-        )
+        console.log(detail)
+        dialog.showMessageBox(window.browserWindow, {type: 'info', buttons: ['OK'], message, detail})
       } finally {
         this.recoveryFilesByFilePath.delete(recoveryFile.originalPath)
       }

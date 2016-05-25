@@ -86,7 +86,6 @@ class AtomApplication
     @handleEvents()
     @setupDockMenu()
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
-    @fileRecoveryService.start()
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)

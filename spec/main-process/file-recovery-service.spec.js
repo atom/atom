@@ -1,6 +1,6 @@
 'use babel'
 
-import {BrowserWindow} from 'electron'
+import {dialog} from 'electron'
 import FileRecoveryService from '../../src/main-process/file-recovery-service'
 import temp from 'temp'
 import fs from 'fs-plus'
@@ -111,6 +111,7 @@ describe("FileRecoveryService", () => {
 
       let logs = []
       this.stub(console, 'log', (message) => logs.push(message))
+      this.stub(dialog, 'showMessageBox')
 
       recoveryService.willSavePath(mockWindow, filePath)
       recoveryService.didCrashWindow(mockWindow)
