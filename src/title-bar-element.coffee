@@ -10,21 +10,13 @@ class TitleBarElement extends HTMLElement
     @titleElement.textContent = document.title
     @appendChild @titleElement
 
-    @activeItemSubscription = atom.workspace.onDidChangeActivePaneItem (activeItem) =>
-      @subscribeToActiveTextEditor()
+    @workspace.onDidChangeActivePaneItem => @updateTitle()
+
+    @updateTitle()
 
     return this
 
-  subscribeToActiveTextEditor: ->
-    @cursorSubscription?.dispose()
-    @cursorSubscription = @getActiveTextEditor()?.onDidChangeTitle =>
-      @updateTitle()
-    @updateTitle()
-
-  updateTitle: ->
+  updateTitle: =>
     @titleElement.textContent = document.title
-
-  getActiveTextEditor: ->
-    atom.workspace.getActiveTextEditor()
 
 module.exports = TitleBarElement = document.registerElement 'atom-title-bar', prototype: TitleBarElement.prototype
