@@ -55,6 +55,7 @@
     "season": "^5.3",
     "semver": "^4.3.3",
     "service-hub": "^0.7.0",
+    "sinon": "1.17.4",
     "source-map-support": "^0.3.2",
     "temp": "0.8.1",
     "text-buffer": "9.1.0",
