@@ -24,7 +24,12 @@ export default class FileRecoveryService {
       )
       this.recoveryFilesByFilePath.set(path, recoveryFile)
     }
-    recoveryFile.retain()
+
+    try {
+      recoveryFile.retain()
+    } catch (err) {
+      console.log(`Couldn't retain ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`)
+    }
 
     if (!this.observedWindows.has(window)) {
       this.observedWindows.add(window)
@@ -39,7 +44,11 @@ export default class FileRecoveryService {
   didSavePath (window, path) {
     const recoveryFile = this.recoveryFilesByFilePath.get(path)
     if (recoveryFile != null) {
-      recoveryFile.release()
+      try {
+        recoveryFile.release()
+      } catch (err) {
+        console.log(`Couldn't release ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`)
+      }
       if (recoveryFile.isReleased()) this.recoveryFilesByFilePath.delete(path)
       this.recoveryFilesByWindow.get(window).delete(recoveryFile)
     }
