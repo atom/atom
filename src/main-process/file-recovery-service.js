@@ -1,6 +1,6 @@
 'use babel'
 
-import {ipcMain} from 'electron'
+import {BrowserWindow, ipcMain} from 'electron'
 import crypto from 'crypto'
 import Path from 'path'
 import fs from 'fs-plus'
@@ -9,7 +9,7 @@ export default class FileRecoveryService {
   constructor (recoveryDirectory) {
     this.recoveryDirectory = recoveryDirectory
     this.recoveryPathsByWindowAndFilePath = new WeakMap()
-    this.crashListeners = new WeakSet()
+    this.observedWindows = new WeakSet()
   }
 
   start () {
@@ -24,7 +24,7 @@ export default class FileRecoveryService {
       return
     }
 
-    const window = event.sender
+    const window = BrowserWindow.fromWebContents(event.sender)
     const recoveryFileName = crypto.randomBytes(5).toString('hex')
     const recoveryPath = Path.join(this.recoveryDirectory, recoveryFileName)
     fs.writeFileSync(recoveryPath, fs.readFileSync(path))
@@ -34,16 +34,20 @@ export default class FileRecoveryService {
     }
     this.recoveryPathsByWindowAndFilePath.get(window).set(path, recoveryPath)
 
-    if (!this.crashListeners.has(window)) {
-      window.on('crashed', () => this.recoverFilesForWindow(window))
-      this.crashListeners.add(window)
+    if (!this.observedWindows.has(window)) {
+      window.webContents.on("crashed", () => this.recoverFilesForWindow(window))
+      window.on("closed", () => {
+        this.observedWindows.delete(window)
+        this.recoveryPathsByWindowAndFilePath.delete(window)
+      })
+      this.observedWindows.add(window)
     }
 
     event.returnValue = true
   }
 
   didSavePath (event, path) {
-    const window = event.sender
+    const window = BrowserWindow.fromWebContents(event.sender)
     const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
     if (recoveryPathsByFilePath == null || !recoveryPathsByFilePath.has(path)) {
       event.returnValue = false
