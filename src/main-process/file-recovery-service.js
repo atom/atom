@@ -10,7 +10,6 @@ export default class FileRecoveryService {
     this.recoveryDirectory = recoveryDirectory
     this.recoveryFilesByFilePath = new Map()
     this.recoveryFilesByWindow = new WeakMap()
-    this.observedWindows = new WeakSet()
   }
 
   willSavePath (window, path) {
@@ -29,10 +28,6 @@ export default class FileRecoveryService {
       recoveryFile.retain()
     } catch (err) {
       console.log(`Couldn't retain ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`)
-    }
-
-    if (!this.observedWindows.has(window)) {
-      this.observedWindows.add(window)
     }
 
     if (!this.recoveryFilesByWindow.has(window)) {
@@ -76,7 +71,6 @@ export default class FileRecoveryService {
   }
 
   didCloseWindow (window) {
-    this.observedWindows.delete(window)
     this.recoveryFilesByWindow.delete(window)
   }
 }
