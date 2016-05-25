@@ -5,49 +5,6 @@ import crypto from 'crypto'
 import Path from 'path'
 import fs from 'fs-plus'
 
-class RecoveryFile {
-  static fileNameForPath (path) {
-    const extension = Path.extname(path)
-    const basename = Path.basename(path, extension).substring(0, 34)
-    const randomSuffix = crypto.randomBytes(3).toString('hex')
-    return `${basename}-${randomSuffix}${extension}`
-  }
-
-  constructor (originalPath, recoveryPath) {
-    this.originalPath = originalPath
-    this.recoveryPath = recoveryPath
-    this.refCount = 0
-  }
-
-  storeSync () {
-    fs.writeFileSync(this.recoveryPath, fs.readFileSync(this.originalPath))
-  }
-
-  recoverSync () {
-    fs.writeFileSync(this.originalPath, fs.readFileSync(this.recoveryPath))
-    this.removeSync()
-    this.refCount = 0
-  }
-
-  removeSync () {
-    fs.unlinkSync(this.recoveryPath)
-  }
-
-  retain () {
-    if (this.refCount === 0) this.storeSync()
-    this.refCount++
-  }
-
-  release () {
-    this.refCount--
-    if (this.refCount === 0) this.removeSync()
-  }
-
-  isReleased () {
-    return this.refCount === 0
-  }
-}
-
 export default class FileRecoveryService {
   constructor (recoveryDirectory) {
     this.recoveryDirectory = recoveryDirectory
@@ -110,5 +67,48 @@ export default class FileRecoveryService {
   didCloseWindow (window) {
     this.observedWindows.delete(window)
     this.recoveryFilesByWindow.delete(window)
+  }
+}
+
+class RecoveryFile {
+  static fileNameForPath (path) {
+    const extension = Path.extname(path)
+    const basename = Path.basename(path, extension).substring(0, 34)
+    const randomSuffix = crypto.randomBytes(3).toString('hex')
+    return `${basename}-${randomSuffix}${extension}`
+  }
+
+  constructor (originalPath, recoveryPath) {
+    this.originalPath = originalPath
+    this.recoveryPath = recoveryPath
+    this.refCount = 0
+  }
+
+  storeSync () {
+    fs.writeFileSync(this.recoveryPath, fs.readFileSync(this.originalPath))
+  }
+
+  recoverSync () {
+    fs.writeFileSync(this.originalPath, fs.readFileSync(this.recoveryPath))
+    this.removeSync()
+    this.refCount = 0
+  }
+
+  removeSync () {
+    fs.unlinkSync(this.recoveryPath)
+  }
+
+  retain () {
+    if (this.refCount === 0) this.storeSync()
+    this.refCount++
+  }
+
+  release () {
+    this.refCount--
+    if (this.refCount === 0) this.removeSync()
+  }
+
+  isReleased () {
+    return this.refCount === 0
   }
 }
