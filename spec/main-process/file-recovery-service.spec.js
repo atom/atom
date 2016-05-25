@@ -42,7 +42,7 @@ describe("FileRecoveryService", () => {
       assert.equal(fs.readFileSync(filePath, 'utf8'), "changed")
     })
 
-    it("creates many recovery files and deletes them when many windows attempt to save the same file", () => {
+    it("creates only one recovery file when many windows attempt to save the same file, deleting it when the last one finishes saving it", () => {
       const mockWindow = createWindow()
       const anotherMockWindow = createWindow()
       const filePath = temp.path()
@@ -50,7 +50,7 @@ describe("FileRecoveryService", () => {
       fs.writeFileSync(filePath, "some content")
       recoveryService.willSavePath({sender: mockWindow.webContents}, filePath)
       recoveryService.willSavePath({sender: anotherMockWindow.webContents}, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 2)
+      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
 
       fs.writeFileSync(filePath, "changed")
       recoveryService.didSavePath({sender: mockWindow.webContents}, filePath)
@@ -78,26 +78,42 @@ describe("FileRecoveryService", () => {
       assert.equal(fs.readFileSync(filePath, 'utf8'), "some content")
     })
 
-    it("restores the created recovery files and deletes them in the order in which windows crash when they attempt to save the same file", () => {
-      const mockWindow = createWindow()
-      const anotherMockWindow = createWindow()
-      const filePath = temp.path()
+    describe("when many windows attempt to save the same file", () => {
+      it("recovers the file when the window that initiated the save crashes", () => {
+        const mockWindow = createWindow()
+        const anotherMockWindow = createWindow()
+        const filePath = temp.path()
 
-      fs.writeFileSync(filePath, "window 1")
-      recoveryService.willSavePath({sender: mockWindow.webContents}, filePath)
-      fs.writeFileSync(filePath, "window 2")
-      recoveryService.willSavePath({sender: anotherMockWindow.webContents}, filePath)
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 2)
+        fs.writeFileSync(filePath, "window 1")
+        recoveryService.willSavePath({sender: mockWindow.webContents}, filePath)
+        fs.writeFileSync(filePath, "window 2")
+        recoveryService.willSavePath({sender: anotherMockWindow.webContents}, filePath)
+        assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
 
-      fs.writeFileSync(filePath, "changed")
+        fs.writeFileSync(filePath, "changed")
 
-      mockWindow.webContents.emit("crashed")
-      assert.equal(fs.readFileSync(filePath, 'utf8'), "window 1")
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+        mockWindow.webContents.emit("crashed")
+        assert.equal(fs.readFileSync(filePath, 'utf8'), "window 1")
+        assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      })
 
-      anotherMockWindow.webContents.emit("crashed")
-      assert.equal(fs.readFileSync(filePath, 'utf8'), "window 2")
-      assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      it("recovers the file when a window that did not initiate the save crashes", () => {
+        const mockWindow = createWindow()
+        const anotherMockWindow = createWindow()
+        const filePath = temp.path()
+
+        fs.writeFileSync(filePath, "window 1")
+        recoveryService.willSavePath({sender: mockWindow.webContents}, filePath)
+        fs.writeFileSync(filePath, "window 2")
+        recoveryService.willSavePath({sender: anotherMockWindow.webContents}, filePath)
+        assert.equal(fs.listTreeSync(recoveryDirectory).length, 1)
+
+        fs.writeFileSync(filePath, "changed")
+
+        anotherMockWindow.webContents.emit("crashed")
+        assert.equal(fs.readFileSync(filePath, 'utf8'), "window 1")
+        assert.equal(fs.listTreeSync(recoveryDirectory).length, 0)
+      })
     })
 
     it("emits a warning when a file can't be recovered", () => {

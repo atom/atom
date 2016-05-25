@@ -5,10 +5,47 @@ import crypto from 'crypto'
 import Path from 'path'
 import fs from 'fs-plus'
 
+class RecoveryFile {
+  constructor (originalPath, recoveryPath) {
+    this.originalPath = originalPath
+    this.recoveryPath = recoveryPath
+    this.refCount = 0
+  }
+
+  storeSync () {
+    fs.writeFileSync(this.recoveryPath, fs.readFileSync(this.originalPath))
+  }
+
+  recoverSync () {
+    fs.writeFileSync(this.originalPath, fs.readFileSync(this.recoveryPath))
+    this.removeSync()
+    this.refCount = 0
+  }
+
+  removeSync () {
+    fs.unlinkSync(this.recoveryPath)
+  }
+
+  retain () {
+    if (this.refCount === 0) this.storeSync()
+    this.refCount++
+  }
+
+  release () {
+    this.refCount--
+    if (this.refCount === 0) this.removeSync()
+  }
+
+  isReleased () {
+    return this.refCount === 0
+  }
+}
+
 export default class FileRecoveryService {
   constructor (recoveryDirectory) {
     this.recoveryDirectory = recoveryDirectory
-    this.recoveryPathsByWindowAndFilePath = new WeakMap()
+    this.recoveryFilesByFilePath = new Map()
+    this.recoveryFilesByWindow = new WeakMap()
     this.observedWindows = new WeakSet()
   }
 
@@ -25,22 +62,24 @@ export default class FileRecoveryService {
     }
 
     const window = BrowserWindow.fromWebContents(event.sender)
-    const recoveryFileName = crypto.randomBytes(5).toString('hex')
-    const recoveryPath = Path.join(this.recoveryDirectory, recoveryFileName)
-    fs.writeFileSync(recoveryPath, fs.readFileSync(path))
-
-    if (!this.recoveryPathsByWindowAndFilePath.has(window)) {
-      this.recoveryPathsByWindowAndFilePath.set(window, new Map())
+    let recoveryFile = this.recoveryFilesByFilePath.get(path)
+    if (recoveryFile == null) {
+      const recoveryPath = Path.join(this.recoveryDirectory, crypto.randomBytes(5).toString('hex'))
+      recoveryFile = new RecoveryFile(path, recoveryPath)
+      this.recoveryFilesByFilePath.set(path, recoveryFile)
     }
-    this.recoveryPathsByWindowAndFilePath.get(window).set(path, recoveryPath)
+    recoveryFile.retain()
+
+    if (!this.recoveryFilesByWindow.has(window)) this.recoveryFilesByWindow.set(window, new Set())
+    this.recoveryFilesByWindow.get(window).add(recoveryFile)
 
     if (!this.observedWindows.has(window)) {
+      this.observedWindows.add(window)
       window.webContents.on("crashed", () => this.recoverFilesForWindow(window))
       window.on("closed", () => {
         this.observedWindows.delete(window)
-        this.recoveryPathsByWindowAndFilePath.delete(window)
+        this.recoveryFilesByWindow.delete(window)
       })
-      this.observedWindows.add(window)
     }
 
     event.returnValue = true
@@ -48,29 +87,29 @@ export default class FileRecoveryService {
 
   didSavePath (event, path) {
     const window = BrowserWindow.fromWebContents(event.sender)
-    const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
-    if (recoveryPathsByFilePath == null || !recoveryPathsByFilePath.has(path)) {
-      event.returnValue = false
-      return
+    const recoveryFile = this.recoveryFilesByFilePath.get(path)
+    if (recoveryFile != null) {
+      recoveryFile.release()
+      if (recoveryFile.isReleased()) this.recoveryFilesByFilePath.delete(path)
+      this.recoveryFilesByWindow.get(window).delete(recoveryFile)
     }
 
-    const recoveryPath = recoveryPathsByFilePath.get(path)
-    fs.unlinkSync(recoveryPath)
-    recoveryPathsByFilePath.delete(path)
     event.returnValue = true
   }
 
   recoverFilesForWindow (window) {
-    const recoveryPathsByFilePath = this.recoveryPathsByWindowAndFilePath.get(window)
-    for (let [filePath, recoveryPath] of recoveryPathsByFilePath) {
+    if (!this.recoveryFilesByWindow.has(window)) return
+
+    for (const recoveryFile of this.recoveryFilesByWindow.get(window)) {
       try {
-        fs.writeFileSync(filePath, fs.readFileSync(recoveryPath))
-        fs.unlinkSync(recoveryPath)
+        recoveryFile.recoverSync()
       } catch (error) {
-        console.log(`Cannot recover ${filePath}. A recovery file has been saved here: ${recoveryPath}.`)
+        console.log(`Cannot recover ${recoveryFile.originalPath}. A recovery file has been saved here: ${recoveryFile.recoveryPath}.`)
+      } finally {
+        this.recoveryFilesByFilePath.delete(recoveryFile.originalPath)
       }
     }
 
-    recoveryPathsByFilePath.clear()
+    this.recoveryFilesByWindow.delete(window)
   }
 }
