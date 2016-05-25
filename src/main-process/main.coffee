@@ -21,7 +21,7 @@ start = ->
     return
   else if args.test and args.mainProcess
     console.log = previousConsoleLog
-    testRunner = require(path.join(args.resourcePath, 'spec/browser/mocha-test-runner'))
+    testRunner = require(path.join(args.resourcePath, 'spec/main-process/mocha-test-runner'))
     app.on 'ready', -> testRunner(args.pathsToOpen)
     return
 
@@ -49,7 +49,7 @@ start = ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
-    AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
+    AtomApplication = require path.join(args.resourcePath, 'src', 'main-process', 'atom-application')
     AtomApplication.open(args)
 
     console.log("App load time: #{Date.now() - global.shellStartTime}ms") unless args.test
@@ -128,7 +128,7 @@ parseCommandLine = ->
   options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported.')
   options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'This option is not currently supported.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
-  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
+  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the main process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')

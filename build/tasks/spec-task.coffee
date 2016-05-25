@@ -107,7 +107,7 @@ module.exports = (grunt) ->
   runMainProcessSpecs = (callback) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
-    mainProcessSpecsPath = path.resolve('spec/browser')
+    mainProcessSpecsPath = path.resolve('spec/main-process')
 
     if process.platform in ['darwin', 'linux']
       options =
