@@ -197,7 +197,7 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
-        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language.'
+        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language. **Note:** If you want to hide the wrap guide (the vertical line) you can disable the `wrap-guide` package.'
       softWrapHangingIndent:
         type: 'integer'
         default: 0

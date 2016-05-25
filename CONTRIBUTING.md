@@ -221,6 +221,8 @@ Unsure where to begin contributing to Atom? You can start by looking through the
 
 Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
 
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](http://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
+
 ### Pull Requests
 
 * Include screenshots and animated GIFs in your pull request whenever possible.

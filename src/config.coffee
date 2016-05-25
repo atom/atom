@@ -785,7 +785,7 @@ class Config
         properties[key] ?= {}
         rootSchema = properties[key]
 
-    _.extend rootSchema, schema
+    Object.assign rootSchema, schema
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
     @setScopedDefaultsFromSchema(keyPath, schema)
     @resetSettingsForSchemaChange()
@@ -870,7 +870,7 @@ class Config
     return if @shouldNotAccessFileSystem()
 
     allSettings = {'*': @settings}
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = Object.assign allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
     allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
