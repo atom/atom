@@ -2,10 +2,10 @@
 fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
-SquirrelUpdate = require '../src/browser/squirrel-update'
-Spawner = require '../src/browser/spawner'
-WinPowerShell = require '../src/browser/win-powershell'
-WinRegistry = require '../src/browser/win-registry'
+SquirrelUpdate = require '../src/main-process/squirrel-update'
+Spawner = require '../src/main-process/spawner'
+WinPowerShell = require '../src/main-process/win-powershell'
+WinRegistry = require '../src/main-process/win-registry'
 
 # Run passed callback as Spawner.spawn() would do
 invokeCallback = (callback) ->
@@ -70,14 +70,14 @@ describe "Windows Squirrel Update", ->
 
     beforeEach ->
       desktopShortcutPath = path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk')
-      
+
       jasmine.unspy(Spawner, 'spawn')
       spyOn(Spawner, 'spawn').andCallFake (command, args, callback) ->
         if path.basename(command) is 'Update.exe' and args?[0] is '--createShortcut'
           fs.writeFileSync(desktopShortcutPath, '')
         else
           # simply ignore other commands
-          
+
         invokeCallback callback
 
     it "does not exist before install", ->

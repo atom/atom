@@ -1,5 +1,5 @@
 ChildProcess = require 'child_process'
-Spawner = require '../src/browser/spawner'
+Spawner = require '../src/main-process/spawner'
 
 describe "Spawner", ->
   beforeEach ->
@@ -18,7 +18,7 @@ describe "Spawner", ->
 
   it "invokes passed callback", ->
     someCallback = jasmine.createSpy('someCallback')
-    
+
     Spawner.spawn('some-command', 'some-args', someCallback)
 
     waitsFor ->

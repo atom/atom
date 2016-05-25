@@ -3,7 +3,7 @@
   "productName": "Atom",
   "version": "1.9.0-dev",
   "description": "A hackable text editor for the 21st Century.",
-  "main": "./src/browser/main.js",
+  "main": "./src/main-process/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/atom/atom.git"
@@ -19,6 +19,7 @@
     "babel-core": "^5.8.21",
     "bootstrap": "^3.3.4",
     "cached-run-in-this-context": "0.4.1",
+    "chai": "3.5.0",
     "clear-cut": "^2.0.1",
     "coffee-script": "1.8.0",
     "color": "^0.7.3",
@@ -38,6 +39,7 @@
     "less-cache": "0.23",
     "line-top-index": "0.2.0",
     "marked": "^0.3.5",
+    "mocha": "2.5.1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
     "ohnogit": "0.0.12",
