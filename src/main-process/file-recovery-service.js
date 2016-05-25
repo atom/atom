@@ -56,19 +56,9 @@ export default class FileRecoveryService {
     this.observedWindows = new WeakSet()
   }
 
-  start () {
-    ipcMain.on('will-save-path', this.willSavePath.bind(this))
-    ipcMain.on('did-save-path', this.didSavePath.bind(this))
-  }
+  willSavePath (window, path) {
+    if (!fs.existsSync(path)) return
 
-  willSavePath (event, path) {
-    if (!fs.existsSync(path)) {
-      // Unexisting files won't be truncated/overwritten, and so there's no data to be lost.
-      event.returnValue = false
-      return
-    }
-
-    const window = BrowserWindow.fromWebContents(event.sender)
     let recoveryFile = this.recoveryFilesByFilePath.get(path)
     if (recoveryFile == null) {
       recoveryFile = new RecoveryFile(
@@ -79,34 +69,26 @@ export default class FileRecoveryService {
     }
     recoveryFile.retain()
 
-    if (!this.recoveryFilesByWindow.has(window)) this.recoveryFilesByWindow.set(window, new Set())
-    this.recoveryFilesByWindow.get(window).add(recoveryFile)
-
     if (!this.observedWindows.has(window)) {
       this.observedWindows.add(window)
-      window.webContents.on('crashed', () => this.recoverFilesForWindow(window))
-      window.on('closed', () => {
-        this.observedWindows.delete(window)
-        this.recoveryFilesByWindow.delete(window)
-      })
     }
 
-    event.returnValue = true
+    if (!this.recoveryFilesByWindow.has(window)) {
+      this.recoveryFilesByWindow.set(window, new Set())
+    }
+    this.recoveryFilesByWindow.get(window).add(recoveryFile)
   }
 
-  didSavePath (event, path) {
-    const window = BrowserWindow.fromWebContents(event.sender)
+  didSavePath (window, path) {
     const recoveryFile = this.recoveryFilesByFilePath.get(path)
     if (recoveryFile != null) {
       recoveryFile.release()
       if (recoveryFile.isReleased()) this.recoveryFilesByFilePath.delete(path)
       this.recoveryFilesByWindow.get(window).delete(recoveryFile)
     }
-
-    event.returnValue = true
   }
 
-  recoverFilesForWindow (window) {
+  didCrashWindow (window) {
     if (!this.recoveryFilesByWindow.has(window)) return
 
     for (const recoveryFile of this.recoveryFilesByWindow.get(window)) {
@@ -122,6 +104,11 @@ export default class FileRecoveryService {
       }
     }
 
+    this.recoveryFilesByWindow.delete(window)
+  }
+
+  didCloseWindow (window) {
+    this.observedWindows.delete(window)
     this.recoveryFilesByWindow.delete(window)
   }
 }
