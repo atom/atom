@@ -10,6 +10,7 @@ export default class FileRecoveryService {
     this.recoveryDirectory = recoveryDirectory
     this.recoveryFilesByFilePath = new Map()
     this.recoveryFilesByWindow = new WeakMap()
+    this.windowsByRecoveryFile = new Map()
   }
 
   willSavePath (window, path) {
@@ -33,7 +34,11 @@ export default class FileRecoveryService {
     if (!this.recoveryFilesByWindow.has(window)) {
       this.recoveryFilesByWindow.set(window, new Set())
     }
+    if (!this.windowsByRecoveryFile.has(recoveryFile)) {
+      this.windowsByRecoveryFile.set(recoveryFile, new Set())
+    }
     this.recoveryFilesByWindow.get(window).add(recoveryFile)
+    this.windowsByRecoveryFile.get(recoveryFile).add(window)
   }
 
   didSavePath (window, path) {
@@ -46,6 +51,7 @@ export default class FileRecoveryService {
       }
       if (recoveryFile.isReleased()) this.recoveryFilesByFilePath.delete(path)
       this.recoveryFilesByWindow.get(window).delete(recoveryFile)
+      this.windowsByRecoveryFile.get(recoveryFile).delete(window)
     }
   }
 
@@ -58,19 +64,26 @@ export default class FileRecoveryService {
       } catch (error) {
         const message = 'A file that Atom was saving could be corrupted'
         const detail =
-          `There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
+          `Error ${error.code}. There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
           `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`
         console.log(detail)
         dialog.showMessageBox(window.browserWindow, {type: 'info', buttons: ['OK'], message, detail})
       } finally {
+        for (let window of this.windowsByRecoveryFile.get(recoveryFile)) {
+          this.recoveryFilesByWindow.get(window).delete(recoveryFile)
+        }
+        this.windowsByRecoveryFile.delete(recoveryFile)
         this.recoveryFilesByFilePath.delete(recoveryFile.originalPath)
       }
     }
-
-    this.recoveryFilesByWindow.delete(window)
   }
 
   didCloseWindow (window) {
+    if (!this.recoveryFilesByWindow.has(window)) return
+
+    for (let recoveryFile of this.recoveryFilesByWindow.get(window)) {
+      this.windowsByRecoveryFile.get(recoveryFile).delete(window)
+    }
     this.recoveryFilesByWindow.delete(window)
   }
 }
@@ -96,7 +109,6 @@ class RecoveryFile {
   recoverSync () {
     fs.writeFileSync(this.originalPath, fs.readFileSync(this.recoveryPath))
     this.removeSync()
-    this.refCount = 0
   }
 
   removeSync () {
