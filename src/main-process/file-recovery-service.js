@@ -101,11 +101,11 @@ class RecoveryFile {
   }
 
   storeSync () {
-    fs.writeFileSync(this.recoveryPath, fs.readFileSync(this.originalPath))
+    fs.copyFileSync(this.originalPath, this.recoveryPath)
   }
 
   recoverSync () {
-    fs.writeFileSync(this.originalPath, fs.readFileSync(this.recoveryPath))
+    fs.copyFileSync(this.recoveryPath, this.originalPath)
     this.removeSync()
   }
 
