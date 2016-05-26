@@ -1,4 +1,5 @@
 @import "ui-variables";
+@import "mixins/mixins";
 
 :focus {
   outline: none;
@@ -14,6 +15,12 @@
 }
 
 // Blocks
+
+.center-block {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 // Must be div.block so as not to affect syntax highlighting.
 ul.block,
@@ -47,9 +54,14 @@ div > .inline-block-tight:last-child {
   vertical-align: top;
 }
 
+// Floats
+// -------------------------
+
 // Use left margin when it's in a float: right element.
 // Sets the margin correctly when inline blocks are hidden and shown.
 .pull-right {
+  float: right !important;
+
   .inline-block {
     margin-right: 0;
     margin-left: @component-padding;
@@ -63,4 +75,47 @@ div > .inline-block-tight:last-child {
   > .inline-block-tight:first-child {
     margin-left: 0;
   }
+}
+
+.pull-left {
+  float: left !important;
+}
+
+.clearfix {
+  .clearfix();
+}
+
+
+// Toggling content
+// -------------------------
+
+// Note: Deprecated .hide in favor of .hidden or .sr-only (as appropriate) in v3.0.1
+.hide {
+  display: none !important;
+}
+.show {
+  display: block !important;
+}
+.invisible {
+  visibility: hidden;
+}
+.text-hide {
+  .text-hide();
+}
+
+
+// Hide from screenreaders and browsers
+//
+// Credit: HTML5 Boilerplate
+
+.hidden {
+  display: none !important;
+}
+
+
+// For Affix plugin
+// -------------------------
+
+.affix {
+  position: fixed;
 }
