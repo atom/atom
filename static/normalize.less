@@ -1,16 +1,5 @@
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
-
-//
-// 1. Set default font family to sans-serif.
-// 2. Prevent iOS and IE text size adjust after device orientation change,
-//    without disabling user zoom.
-//
-
-html {
-  font-family: sans-serif; // 1
-  -ms-text-size-adjust: 100%; // 2
-  -webkit-text-size-adjust: 100%; // 2
-}
+// Modified to Chrome only.
 
 //
 // Remove default margin.
@@ -24,71 +13,26 @@ body {
 // ==========================================================================
 
 //
-// Correct `block` display not defined for any HTML5 element in IE 8/9.
-// Correct `block` display not defined for `details` or `summary` in IE 10/11
-// and Firefox.
-// Correct `block` display not defined for `main` in IE 11.
-//
-
-article,
-aside,
-details,
-figcaption,
-figure,
-footer,
-header,
-hgroup,
-main,
-menu,
-nav,
-section,
-summary {
-  display: block;
-}
-
-//
-// 1. Correct `inline-block` display not defined in IE 8/9.
-// 2. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
+// 1. Normalize vertical alignment of `progress` in Chrome, Firefox, and Opera.
 //
 
 audio,
 canvas,
 progress,
 video {
-  display: inline-block; // 1
-  vertical-align: baseline; // 2
+  vertical-align: baseline; // 1
 }
 
 //
 // Prevent modern browsers from displaying `audio` without controls.
-// Remove excess height in iOS 5 devices.
 //
 
 audio:not([controls]) {
-  display: none;
-  height: 0;
-}
-
-//
-// Address `[hidden]` styling not present in IE 8/9/10.
-// Hide the `template` element in IE 8/9/10/11, Safari, and Firefox < 22.
-//
-
-[hidden],
-template {
   display: none;
 }
 
 // Links
 // ==========================================================================
-
-//
-// Remove the gray background color from active links in IE 10.
-//
-
-a {
-  background-color: transparent;
-}
 
 //
 // Improve readability of focused elements when they are also in an
@@ -139,15 +83,6 @@ h1 {
 }
 
 //
-// Address styling not present in IE 8/9.
-//
-
-mark {
-  background: #ff0;
-  color: #000;
-}
-
-//
 // Address inconsistent and variable font size in all browsers.
 //
 
@@ -175,35 +110,8 @@ sub {
   bottom: -0.25em;
 }
 
-// Embedded content
-// ==========================================================================
-
-//
-// Remove border when inside `a` element in IE 8/9/10.
-//
-
-img {
-  border: 0;
-}
-
-//
-// Correct overflow not hidden in IE 9/10/11.
-//
-
-svg:not(:root) {
-  overflow: hidden;
-}
-
 // Grouping content
 // ==========================================================================
-
-//
-// Address margin not present in IE 8/9 and Safari.
-//
-
-figure {
-  margin: 1em 40px;
-}
 
 //
 // Address differences between Firefox and other browsers.
@@ -260,18 +168,8 @@ textarea {
 }
 
 //
-// Address `overflow` set to `hidden` in IE 8/9/10/11.
-//
-
-button {
-  overflow: visible;
-}
-
-//
 // Address inconsistent `text-transform` inheritance for `button` and `select`.
 // All other form control elements do not inherit `text-transform` values.
-// Correct `button` style inheritance in Firefox, IE 8/9/10/11, and Opera.
-// Correct `select` style inheritance in Firefox.
 //
 
 button,
@@ -280,19 +178,14 @@ select {
 }
 
 //
-// 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
-//    and `video` controls.
-// 2. Correct inability to style clickable `input` types in iOS.
-// 3. Improve usability and consistency of cursor style between image-type
+// 1. Improve usability and consistency of cursor style between image-type
 //    `input` and others.
 //
 
 button,
-html input[type="button"], // 1
 input[type="reset"],
 input[type="submit"] {
-  -webkit-appearance: button; // 2
-  cursor: pointer; // 3
+  cursor: pointer; // 1
 }
 
 //
@@ -302,39 +195,6 @@ input[type="submit"] {
 button[disabled],
 html input[disabled] {
   cursor: default;
-}
-
-//
-// Remove inner padding and border in Firefox 4+.
-//
-
-button::-moz-focus-inner,
-input::-moz-focus-inner {
-  border: 0;
-  padding: 0;
-}
-
-//
-// Address Firefox 4+ setting `line-height` on `input` using `!important` in
-// the UA stylesheet.
-//
-
-input {
-  line-height: normal;
-}
-
-//
-// It's recommended that you don't attempt to style these elements.
-// Firefox's implementation doesn't respect box-sizing, padding, or width.
-//
-// 1. Address box sizing set to `content-box` in IE 8/9/10.
-// 2. Remove excess padding in IE 8/9/10.
-//
-
-input[type="checkbox"],
-input[type="radio"] {
-  box-sizing: border-box; // 1
-  padding: 0; // 2
 }
 
 //
@@ -374,27 +234,17 @@ input[type="search"]::-webkit-search-decoration {
 //
 
 fieldset {
-  border: 1px solid #c0c0c0;
+  border: 1px solid;
   margin: 0 2px;
   padding: 0.35em 0.625em 0.75em;
 }
 
 //
-// 1. Correct `color` not being inherited in IE 8/9/10/11.
-// 2. Remove padding so people aren't caught out if they zero out fieldsets.
+// 1. Remove padding so people aren't caught out if they zero out fieldsets.
 //
 
 legend {
-  border: 0; // 1
-  padding: 0; // 2
-}
-
-//
-// Remove default vertical scrollbar in IE 8/9/10/11.
-//
-
-textarea {
-  overflow: auto;
+  padding: 0; // 1
 }
 
 //
