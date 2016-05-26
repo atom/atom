@@ -16,19 +16,15 @@ export default class FileRecoveryService {
   willSavePath (window, path) {
     if (!fs.existsSync(path)) return
 
-    let recoveryFile = this.recoveryFilesByFilePath.get(path)
-    if (recoveryFile == null) {
-      recoveryFile = new RecoveryFile(
-        path,
-        Path.join(this.recoveryDirectory, RecoveryFile.fileNameForPath(path))
-      )
-      this.recoveryFilesByFilePath.set(path, recoveryFile)
-    }
+    const recoveryPath = Path.join(this.recoveryDirectory, RecoveryFile.fileNameForPath(path))
+    const recoveryFile =
+      this.recoveryFilesByFilePath.get(path) || new RecoveryFile(path, recoveryPath)
 
     try {
       recoveryFile.retain()
     } catch (err) {
       console.log(`Couldn't retain ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`)
+      return
     }
 
     if (!this.recoveryFilesByWindow.has(window)) {
@@ -37,8 +33,10 @@ export default class FileRecoveryService {
     if (!this.windowsByRecoveryFile.has(recoveryFile)) {
       this.windowsByRecoveryFile.set(recoveryFile, new Set())
     }
+
     this.recoveryFilesByWindow.get(window).add(recoveryFile)
     this.windowsByRecoveryFile.get(recoveryFile).add(window)
+    this.recoveryFilesByFilePath.set(path, recoveryFile)
   }
 
   didSavePath (window, path) {
@@ -116,13 +114,13 @@ class RecoveryFile {
   }
 
   retain () {
-    if (this.refCount === 0) this.storeSync()
+    if (this.isReleased()) this.storeSync()
     this.refCount++
   }
 
   release () {
     this.refCount--
-    if (this.refCount === 0) this.removeSync()
+    if (this.isReleased()) this.removeSync()
   }
 
   isReleased () {
