@@ -23,7 +23,6 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      titleBarStyle: 'hidden'
       # Add an opaque backgroundColor (instead of keeping the default
       # transparent one) to prevent subpixel anti-aliasing from being disabled.
       # We believe this is a regression introduced with Electron 0.37.3, and
@@ -40,6 +39,9 @@ class AtomWindow
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if process.platform is 'linux'
       options.icon = @constructor.iconPath
+
+    if process.platform is 'darwin'
+      options.titleBarStyle = 'hidden'
 
     @browserWindow = new BrowserWindow options
     global.atomApplication.addWindow(this)
