@@ -4,6 +4,7 @@ AtomProtocolHandler = require './atom-protocol-handler'
 AutoUpdateManager = require './auto-update-manager'
 StorageFolder = require '../storage-folder'
 Config = require '../config'
+FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
 fs = require 'fs-plus'
@@ -78,6 +79,7 @@ class AtomApplication
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
+    @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
@@ -242,7 +244,7 @@ class AtomApplication
           options.window = window
           @openPaths(options)
         else
-          new AtomWindow(options)
+          new AtomWindow(@fileRecoveryService, options)
       else
         @promptForPathToOpen('all', {window})
 
@@ -324,6 +326,14 @@ class AtomApplication
 
     ipcMain.on 'get-auto-update-manager-error', (event) =>
       event.returnValue = @autoUpdateManager.getErrorMessage()
+
+    ipcMain.on 'will-save-path', (event, path) =>
+      @fileRecoveryService.willSavePath(@windowForEvent(event), path)
+      event.returnValue = true
+
+    ipcMain.on 'did-save-path', (event, path) =>
+      @fileRecoveryService.didSavePath(@windowForEvent(event), path)
+      event.returnValue = true
 
   setupDockMenu: ->
     if process.platform is 'darwin'
@@ -485,7 +495,7 @@ class AtomApplication
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
       windowDimensions ?= @getDimensionsForNewWindow()
-      openedWindow = new AtomWindow({initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
+      openedWindow = new AtomWindow(@fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
@@ -564,7 +574,7 @@ class AtomApplication
         packagePath = @packages.resolvePackagePath(packageName)
         windowInitializationScript = path.resolve(packagePath, pack.urlMain)
         windowDimensions = @getDimensionsForNewWindow()
-        new AtomWindow({windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
+        new AtomWindow(@fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
@@ -609,7 +619,7 @@ class AtomApplication
     devMode = true
     isSpec = true
     safeMode ?= false
-    new AtomWindow({windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, env})
+    new AtomWindow(@fileRecoveryService, {windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, env})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'

@@ -15,7 +15,7 @@ class AtomWindow
   loaded: null
   isSpec: null
 
-  constructor: (settings={}) ->
+  constructor: (@fileRecoveryService, settings={}) ->
     {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
@@ -125,6 +125,7 @@ class AtomWindow
       global.atomApplication.saveState(false)
 
     @browserWindow.on 'closed', =>
+      @fileRecoveryService.didCloseWindow(this)
       global.atomApplication.removeWindow(this)
 
     @browserWindow.on 'unresponsive', =>
@@ -140,6 +141,7 @@ class AtomWindow
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @headless
 
+      @fileRecoveryService.didCrashWindow(this)
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']

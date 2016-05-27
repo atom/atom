@@ -124,7 +124,7 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config, @clipboard, @grammarRegistry,
-      @assert, @applicationDelegate, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
+      @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @ignoreInvisibles, @displayLayer
     } = params
 

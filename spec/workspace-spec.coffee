@@ -25,7 +25,7 @@ describe "Workspace", ->
       projectState = atom.project.serialize({isUnloading: true})
       atom.workspace.destroy()
       atom.project.destroy()
-      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom)})
+      atom.project = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm.bind(atom), applicationDelegate: atom.applicationDelegate})
       atom.project.deserialize(projectState)
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
