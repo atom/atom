@@ -64,10 +64,6 @@ class LinesComponent extends TiledComponent
         @domNode.appendChild(@placeholderTextDiv)
       @oldState.placeholderText = @newState.placeholderText
 
-    if @newState.width isnt @oldState.width
-      @domNode.style.width = @newState.width + 'px'
-      @oldState.width = @newState.width
-
     @cursorsComponent.updateSync(state)
 
   buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool, @assert, @grammars})
