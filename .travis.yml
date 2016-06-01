@@ -26,3 +26,6 @@ addons:
   apt:
     packages:
       - libgnome-keyring-dev
+
+env:
+  - CXX=g++-4.8
