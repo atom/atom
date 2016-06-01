@@ -26,6 +26,9 @@ addons:
   apt:
     packages:
       - libgnome-keyring-dev
+      - g++-4.8
+    sources:
+      - ubuntu-toolchain-r-test
 
 env:
   - CXX=g++-4.8
