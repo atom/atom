@@ -6,7 +6,9 @@ notifications:
     on_failure: change
 
 node_js:
-  - 0.10
+  - "0.10"
+  - "4"
+  - "6"
 
 install: ./script/install.sh
 script: ./bin/npm test
