@@ -15,9 +15,10 @@
     "apm": "./bin/apm"
   },
   "scripts": {
+    "build": "node script/check-version.js && grunt",
     "prepublish": "grunt prepublish",
-    "install": "node ./script/download-node.js",
-    "test": "grunt test"
+    "test": "node script/check-version.js && grunt test",
+    "check-version": "node version.js"
   },
   "dependencies": {
     "asar-require": "0.2.0",

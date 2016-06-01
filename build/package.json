@@ -1,0 +1,17 @@
+{
+  "name": "atom-package-manager-build",
+  "description": "Atom package manager build tools",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "install": "node ./download-node.js"
+  },
+  "devDependencies": {
+    "mv": "^2.1.1",
+    "npm": "^3.9.3",
+    "request": "^2.72.0",
+    "tar": "^2.2.1",
+    "temp": "~0.7.0"
+  }
+}

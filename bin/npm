@@ -1,0 +1,3 @@
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PATH="$SCRIPT_DIR:$PATH"
+./build/node_modules/.bin/npm $@

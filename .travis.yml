@@ -8,6 +8,9 @@ notifications:
 node_js:
   - 0.10
 
+install: ./script/install.sh
+script: ./bin/npm test
+
 git:
   depth: 10
 

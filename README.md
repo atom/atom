@@ -31,11 +31,18 @@ _Atom > Install Shell Commands_ menu option to install it again if you aren't
 able to run it from a terminal.
 
 ## Building
+
   * Clone the repository
   * :penguin: Install `libgnome-keyring-dev` if you are on Linux
-  * Run `npm install`
-  * Run `grunt` to compile the CoffeeScript code
-  * Run `npm test` to run the specs
+  * Run the install script:
+    * Mac/Linux: `./script/install.sh`
+    * Windows: `.\script\install.cmd`
+  * Run `./bin/npm run build` to compile the CoffeeScript code (or `.\bin\npm.cmd` on Windows)
+  * Run `./bin/npm test` to run the specs (or `.\bin\npm.cmd` on Windows)
+
+### Why `bin/npm` / `bin\npm.cmd`?
+
+apm includes npm, and spawns it for various processes. It also comes with a bundled version of Node, and this script ensures that npm uses the right version of Node for things like running the tests. If you're using the same version of Node as is listed in `BUNDLED_NODE_VERSION`, you can skip using this script.
 
 ## Using
 
