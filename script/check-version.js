@@ -2,7 +2,7 @@
 
 var path = require('path');
 
-var getBundledNodeVersion = require('../build/bundled-node-version')
+var getBundledNodeVersion = require('./bundled-node-version')
 
 var bundledNodePath = path.join(__dirname, '..', 'bin', 'node')
 if (process.platform === 'win32') {

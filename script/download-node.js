@@ -62,11 +62,11 @@ var downloadNode = function(version, done) {
     else
       arch = process.arch === 'x64' ? 'x64/' : '';
     downloadURL = "http://nodejs.org/dist/" + version + "/win-" + arch + "node.exe";
-    filename = path.join('..', 'bin', "node.exe");
+    filename = path.join('bin', "node.exe");
   } else {
     arch = process.arch === 'ia32' ? 'x86' : process.arch;
     downloadURL = "http://nodejs.org/dist/" + version + "/node-" + version + "-" + process.platform + "-" + arch + ".tar.gz";
-    filename = path.join('..', 'bin', "node");
+    filename = path.join('bin', "node");
   }
 
   var downloadFile = function() {
@@ -93,7 +93,7 @@ var downloadNode = function(version, done) {
   }
 };
 
-var versionToInstall = fs.readFileSync(path.join('..', 'BUNDLED_NODE_VERSION'), 'utf8').trim()
+var versionToInstall = fs.readFileSync(path.join('BUNDLED_NODE_VERSION'), 'utf8').trim()
 downloadNode(versionToInstall, function(error) {
   if (error != null) {
     console.error('Failed to download node', error);

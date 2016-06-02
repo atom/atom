@@ -17,6 +17,7 @@
   "scripts": {
     "build": "node script/check-version.js && grunt",
     "prepublish": "grunt prepublish",
+    "install": "node script/postinstall.js",
     "test": "node script/check-version.js && grunt test",
     "check-version": "node version.js"
   },
