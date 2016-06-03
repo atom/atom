@@ -91,10 +91,13 @@ class Install extends Command
         callback("#{stdout}\n#{stderr}")
 
   installModule: (options, pack, modulePath, callback) ->
+    installGlobally = options.installGlobally ? true
+
     installArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'install']
     installArgs.push(modulePath)
     installArgs.push("--target=#{@electronVersion}")
     installArgs.push("--arch=#{config.getElectronArch()}")
+    installArgs.push("--global-style") if installGlobally
     installArgs.push('--silent') if options.argv.silent
     installArgs.push('--quiet') if options.argv.quiet
     installArgs.push('--production') if options.argv.production
@@ -106,8 +109,6 @@ class Install extends Command
     @addBuildEnvVars(env)
     installOptions = {env}
     installOptions.streaming = true if @verbose
-
-    installGlobally = options.installGlobally ? true
 
     if installGlobally
       installDirectory = temp.mkdirSync('apm-install-dir-')
