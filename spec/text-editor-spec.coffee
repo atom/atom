@@ -5268,6 +5268,30 @@ describe "TextEditor", ->
         coffeeEditor.insertText("\n")
         expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
 
+  describe "editor.atomicSoftTabs", ->
+    it "skips tab-length runs of leading whitespace when moving the cursor", ->
+      atom.config.set('editor.tabLength', 4)
+
+      atom.config.set('editor.atomicSoftTabs', true)
+      editor.setCursorScreenPosition([2, 3])
+      expect(editor.getCursorScreenPosition()).toEqual [2, 4]
+
+      atom.config.set('editor.atomicSoftTabs', false)
+      editor.setCursorScreenPosition([2, 3])
+      expect(editor.getCursorScreenPosition()).toEqual [2, 3]
+
+      atom.config.set('editor.atomicSoftTabs', true)
+      editor.setCursorScreenPosition([2, 3])
+      expect(editor.getCursorScreenPosition()).toEqual [2, 4]
+
+      atom.config.set('editor.atomicSoftTabs', false, scopeSelector: '.source.foo')
+      editor.setCursorScreenPosition([2, 3])
+      expect(editor.getCursorScreenPosition()).toEqual [2, 4]
+
+      atom.config.set('editor.atomicSoftTabs', false, scopeSelector: '.source.js')
+      editor.setCursorScreenPosition([2, 3])
+      expect(editor.getCursorScreenPosition()).toEqual [2, 3]
+
   describe ".destroy()", ->
     it "destroys marker layers associated with the text editor", ->
       selectionsMarkerLayerId = editor.selectionsMarkerLayer.id

@@ -21,7 +21,7 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ({@notificationManager, packageManager, config}) ->
+  constructor: ({@notificationManager, packageManager, config, @applicationDelegate}) ->
     @emitter = new Emitter
     @buffers = []
     @paths = []
@@ -360,7 +360,6 @@ class Project extends Model
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
-    @subscribeToBuffer(buffer)
 
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
@@ -390,6 +389,8 @@ class Project extends Model
       @on 'buffer-created', (buffer) -> callback(buffer)
 
   subscribeToBuffer: (buffer) ->
+    buffer.onWillSave ({path}) => @applicationDelegate.emitWillSavePath(path)
+    buffer.onDidSave ({path}) => @applicationDelegate.emitDidSavePath(path)
     buffer.onDidDestroy => @removeBuffer(buffer)
     buffer.onDidChangePath =>
       unless @getPaths().length > 0

@@ -17,20 +17,24 @@ module.exports = (grunt) ->
 
     if process.platform is 'win32'
       done = @async()
-      fs.access(installDir, fs.W_OK, (err) ->
-        adminRequired = true if err
-        if adminRequired
-          grunt.log.ok("User does not have write access to #{installDir}, elevating to admin")
-        runas ?= require 'runas'
-        copyFolder = path.resolve 'script', 'copy-folder.cmd'
+      grunt.log.ok("Installing into \"#{installDir}\" from \"#{shellAppDir}\"")
+      parentInstallDir = path.resolve(installDir, '..')
+      adminRequired = false
+      try
+        rm installDir
+        mkdir installDir
+      catch err
+        grunt.log.ok("Admin elevation required for write access to \"#{installDir}\"")
+        adminRequired = true
 
-        if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: adminRequired) isnt 0
-          grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
-        else
-          grunt.log.ok("Installed into #{installDir}")
+      runas ?= require 'runas'
+      copyFolder = path.resolve 'script', 'copy-folder.cmd'
+      if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: adminRequired) isnt 0
+        grunt.fail.fatal("Unable to copy files.")
+      else
+        grunt.log.ok("Completed successfully.")
 
-        done()
-      )
+      done()
 
     else if process.platform is 'darwin'
       rm installDir

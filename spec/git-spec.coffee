@@ -356,7 +356,7 @@ describe "GitRepository", ->
         atom.workspace.open('file.txt')
 
       runs ->
-        project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
+        project2 = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm, applicationDelegate: atom.applicationDelegate})
         project2.deserialize(atom.project.serialize({isUnloading: false}))
         buffer = project2.getBuffers()[0]
 

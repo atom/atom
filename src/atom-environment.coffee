@@ -185,7 +185,7 @@ class AtomEnvironment extends Model
 
     @clipboard = new Clipboard()
 
-    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config})
+    @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
@@ -730,7 +730,7 @@ class AtomEnvironment extends Model
       @emitter.emit 'will-throw-error', eventObject
 
       if openDevTools
-        @openDevTools().then => @executeJavaScriptInDevTools('DevToolsAPI.showConsole()')
+        @openDevTools().then => @executeJavaScriptInDevTools('DevToolsAPI.showPanel("console")')
 
       @emitter.emit 'did-throw-error', {message, url, line, column, originalError}
 

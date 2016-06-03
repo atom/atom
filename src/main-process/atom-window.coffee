@@ -2,12 +2,11 @@
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
-_ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 
 module.exports =
 class AtomWindow
-  _.extend @prototype, EventEmitter.prototype
+  Object.assign @prototype, EventEmitter.prototype
 
   @iconPath: path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
   @includeShellLoadTime: true
@@ -16,7 +15,7 @@ class AtomWindow
   loaded: null
   isSpec: null
 
-  constructor: (settings={}) ->
+  constructor: (@fileRecoveryService, settings={}) ->
     {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
@@ -24,11 +23,17 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-      'web-preferences':
-        'direct-write': true
-
-    if @isSpec
-      options['web-preferences']['page-visibility'] = true
+      # Add an opaque backgroundColor (instead of keeping the default
+      # transparent one) to prevent subpixel anti-aliasing from being disabled.
+      # We believe this is a regression introduced with Electron 0.37.3, and
+      # thus we should remove this as soon as a fix gets released.
+      backgroundColor: "#fff"
+      webPreferences:
+        # Prevent specs from throttling when the window is in the background:
+        # this should result in faster CI builds, and an improvement in the
+        # local development experience when running specs through the UI (which
+        # now won't pause when e.g. minimizing the window).
+        backgroundThrottling: not @isSpec
 
     # Don't set icon on Windows so the exe's ico will be used as window and
     # taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
@@ -40,7 +45,7 @@ class AtomWindow
 
     @handleEvents()
 
-    loadSettings = _.extend({}, settings)
+    loadSettings = Object.assign({}, settings)
     loadSettings.appVersion = app.getVersion()
     loadSettings.resourcePath = @resourcePath
     loadSettings.devMode ?= false
@@ -120,6 +125,7 @@ class AtomWindow
       global.atomApplication.saveState(false)
 
     @browserWindow.on 'closed', =>
+      @fileRecoveryService.didCloseWindow(this)
       global.atomApplication.removeWindow(this)
 
     @browserWindow.on 'unresponsive', =>
@@ -135,6 +141,7 @@ class AtomWindow
     @browserWindow.webContents.on 'crashed', =>
       global.atomApplication.exit(100) if @headless
 
+      @fileRecoveryService.didCrashWindow(this)
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
         buttons: ['Close Window', 'Reload', 'Keep It Open']

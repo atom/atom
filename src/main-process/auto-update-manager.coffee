@@ -1,5 +1,4 @@
 autoUpdater = null
-_ = require 'underscore-plus'
 {EventEmitter} = require 'events'
 path = require 'path'
 
@@ -13,7 +12,7 @@ ErrorState = 'error'
 
 module.exports =
 class AutoUpdateManager
-  _.extend @prototype, EventEmitter.prototype
+  Object.assign @prototype, EventEmitter.prototype
 
   constructor: (@version, @testMode, resourcePath, @config) ->
     @state = IdleState

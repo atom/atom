@@ -35,9 +35,13 @@ module.exports = ({blobStore}) ->
       if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
         ipcRenderer.send('call-window-method', 'toggleDevTools')
 
-      # Reload: cmd-w / ctrl-w
+      # Close: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
         ipcRenderer.send('call-window-method', 'close')
+
+      # Copy: cmd-c / ctrl-c
+      if (event.metaKey or event.ctrlKey) and event.keyCode is 67
+        ipcRenderer.send('call-window-method', 'copy')
 
     window.addEventListener('keydown', handleKeydown, true)
 
@@ -47,13 +51,6 @@ module.exports = ({blobStore}) ->
     process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
 
     document.title = "Spec Suite"
-
-    # Avoid throttling of test window by playing silence
-    # See related discussion in https://github.com/atom/atom/pull/9485
-    context = new AudioContext()
-    source = context.createBufferSource()
-    source.connect(context.destination)
-    source.start(0)
 
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)

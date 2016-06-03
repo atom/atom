@@ -549,7 +549,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      editor = @buildTextEditor(_.extend({buffer, largeFileMode}, options))
+      editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
       disposable = atom.textEditors.add(editor)
       grammarSubscription = editor.observeGrammar(@handleGrammarUsed.bind(this))
       editor.onDidDestroy ->
@@ -572,7 +572,7 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = _.extend({
+    params = Object.assign({
       @config, @clipboard, @grammarRegistry, @assert
     }, params)
     new TextEditor(params)

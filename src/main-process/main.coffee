@@ -9,6 +9,7 @@ fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
 yargs = require 'yargs'
+previousConsoleLog = console.log
 console.log = require 'nslog'
 
 start = ->
@@ -16,7 +17,13 @@ start = ->
   args.env = process.env
   setupAtomHome(args)
   setupCompileCache()
-  return if handleStartupEventWithSquirrel()
+  if handleStartupEventWithSquirrel()
+    return
+  else if args.test and args.mainProcess
+    console.log = previousConsoleLog
+    testRunner = require(path.join(args.resourcePath, 'spec/main-process/mocha-test-runner'))
+    app.on 'ready', -> testRunner(args.pathsToOpen)
+    return
 
   # NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
@@ -42,7 +49,7 @@ start = ->
     app.removeListener 'open-file', addPathToOpen
     app.removeListener 'open-url', addUrlToOpen
 
-    AtomApplication = require path.join(args.resourcePath, 'src', 'browser', 'atom-application')
+    AtomApplication = require path.join(args.resourcePath, 'src', 'main-process', 'atom-application')
     AtomApplication.open(args)
 
     console.log("App load time: #{Date.now() - global.shellStartTime}ms") unless args.test
@@ -121,7 +128,7 @@ parseCommandLine = ->
   options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported.')
   options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'This option is not currently supported.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
-  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the browser process in the foreground.')
+  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the main process in the foreground.')
   options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
   options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
   options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
@@ -130,6 +137,7 @@ parseCommandLine = ->
   options.boolean('safe').describe('safe', 'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.')
   options.boolean('portable').describe('portable', 'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
+  options.alias('m', 'main-process').boolean('m').describe('m', 'Run the specified specs in the main process.')
   options.string('timeout').describe('timeout', 'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).')
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
@@ -154,6 +162,7 @@ parseCommandLine = ->
   safeMode = args['safe']
   pathsToOpen = args._
   test = args['test']
+  mainProcess = args['main-process']
   timeout = args['timeout']
   newWindow = args['new-window']
   pidToKillWhenClosed = args['pid'] if args['wait']
@@ -186,6 +195,6 @@ parseCommandLine = ->
   {resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
    version, pidToKillWhenClosed, devMode, safeMode, newWindow,
    logFile, socketPath, userDataDir, profileStartup, timeout, setPortable,
-   clearWindowState, addToLastWindow}
+   clearWindowState, addToLastWindow, mainProcess}
 
 start()

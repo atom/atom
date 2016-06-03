@@ -91,6 +91,9 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
   * If you're building Atom with Visual Studio 2013 try setting the `GYP_MSVS_VERSION` environment variable to 2013 and then `script/clean` followed by `script/build` (re-open your command prompt or Powershell window if you set it using the GUI)
 
+* `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
+  * Try running `npm install -g node-gyp`, and run `script/build` again.
+
 * Other `node-gyp` errors on first build attempt, even though the right Node.js and Python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
 

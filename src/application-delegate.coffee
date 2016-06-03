@@ -266,3 +266,9 @@ class ApplicationDelegate
 
   getAutoUpdateManagerErrorMessage: ->
     ipcRenderer.sendSync('get-auto-update-manager-error')
+
+  emitWillSavePath: (path) ->
+    ipcRenderer.sendSync('will-save-path', path)
+
+  emitDidSavePath: (path) ->
+    ipcRenderer.sendSync('did-save-path', path)
