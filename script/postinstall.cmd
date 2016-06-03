@@ -9,3 +9,7 @@ echo ""
 for /f "delims=" %%i in ('.\bin\node.exe -v') do set bundledVersion=%%i
 echo ^>^> Rebuilding apm dependencies with bundled Node !bundledVersion!
 call .\bin\npm rebuild
+
+echo ""
+echo ^>^> Deduping apm dependencies
+call .\bin\npm dedupe
