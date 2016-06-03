@@ -42,7 +42,6 @@ var copyNodeBinToLocation = function(callback, version, targetFilename, fromDire
   var arch = process.arch === 'ia32' ? 'x86' : process.arch;
   var subDir = "node-" + version + "-" + process.platform + "-" + arch;
   var downloadedNodePath = path.join(fromDirectory, subDir, 'bin', 'node');
-  var targetDir = path.dirname(targetFilename)
   return mv(downloadedNodePath, targetFilename, {mkdirp: true}, function(err) {
     if (err) {
       callback(err);
