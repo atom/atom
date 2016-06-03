@@ -1,4 +1,4 @@
-semver = require 'npm/node_modules/semver'
+semver = require 'semver'
 deprecatedPackages = null
 
 exports.isDeprecatedPackage = (name, version) ->

@@ -4,7 +4,7 @@ _ = require 'underscore-plus'
 async = require 'async'
 yargs = require 'yargs'
 read = require 'read'
-semver = require 'npm/node_modules/semver'
+semver = require 'semver'
 Git = require 'git-utils'
 
 Command = require './command'

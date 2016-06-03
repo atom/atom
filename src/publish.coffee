@@ -3,7 +3,7 @@ url = require 'url'
 
 yargs = require 'yargs'
 Git = require 'git-utils'
-semver = require 'npm/node_modules/semver'
+semver = require 'semver'
 
 fs = require './fs'
 config = require './apm'
