@@ -34,9 +34,7 @@ able to run it from a terminal.
 
   * Clone the repository
   * :penguin: Install `libgnome-keyring-dev` if you are on Linux
-  * Run the install script:
-    * Mac/Linux: `./script/install.sh`
-    * Windows: `.\script\install.cmd`
+  * Run `npm install`; this will install the dependencies with your bulit-in version of Node/npm, and then rebuild them with the bundled versions.
   * Run `./bin/npm run build` to compile the CoffeeScript code (or `.\bin\npm.cmd` on Windows)
   * Run `./bin/npm test` to run the specs (or `.\bin\npm.cmd` on Windows)
 
