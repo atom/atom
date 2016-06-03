@@ -6,4 +6,4 @@ then
   export npm_config_node_gyp="$maybe_node_gyp_path"
 fi
 export PATH="$SCRIPT_DIR:$PATH"
-./node_modules/.bin/npm $@
+"$SCRIPT_DIR"/../node_modules/.bin/npm $@
