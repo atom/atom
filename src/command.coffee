@@ -1,7 +1,7 @@
 child_process = require 'child_process'
 path = require 'path'
 _ = require 'underscore-plus'
-semver = require 'npm/node_modules/semver'
+semver = require 'semver'
 config = require './apm'
 git = require './git'
 

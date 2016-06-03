@@ -6,7 +6,7 @@ _ = require 'underscore-plus'
 CSON = require 'season'
 plist = require 'plist'
 {ScopeSelector} = require 'first-mate'
-tar = require 'npm/node_modules/tar'
+tar = require 'tar'
 temp = require 'temp'
 
 fs = require './fs'

@@ -1,6 +1,6 @@
 _ = require 'underscore-plus'
 yargs = require 'yargs'
-semver = require 'npm/node_modules/semver'
+semver = require 'semver'
 
 Command = require './command'
 config = require './apm'

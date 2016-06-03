@@ -1,5 +1,5 @@
 npm = require 'npm'
-request = require 'npm/node_modules/request'
+request = require 'request'
 
 config = require './apm'
 

@@ -6,7 +6,7 @@ async = require 'async'
 CSON = require 'season'
 yargs = require 'yargs'
 Git = require 'git-utils'
-semver = require 'npm/node_modules/semver'
+semver = require 'semver'
 temp = require 'temp'
 hostedGitInfo = require 'hosted-git-info'
 
