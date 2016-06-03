@@ -6,7 +6,11 @@ notifications:
     on_failure: change
 
 node_js:
-  - 0.10
+  - "0.10"
+  - "4"
+  - "6"
+
+script: ./bin/npm test
 
 git:
   depth: 10
@@ -21,3 +25,9 @@ addons:
   apt:
     packages:
       - libgnome-keyring-dev
+      - g++-4.8
+    sources:
+      - ubuntu-toolchain-r-test
+
+env:
+  - CXX=g++-4.8
