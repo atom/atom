@@ -1,49 +1,16 @@
-#!/bin/sh
-
-while getopts ":fhtvw-:" opt; do
-  case "$opt" in
-    -)
-      case "${OPTARG}" in
-        wait)
-          WAIT=1
-          ;;
-        help|version)
-          REDIRECT_STDERR=1
-          EXPECT_OUTPUT=1
-          ;;
-        foreground|test)
-          EXPECT_OUTPUT=1
-          ;;
-      esac
-      ;;
-    w)
-      WAIT=1
-      ;;
-    h|v)
-      REDIRECT_STDERR=1
-      EXPECT_OUTPUT=1
-      ;;
-    f|t)
-      EXPECT_OUTPUT=1
-      ;;
-  esac
-done
-
-directory=$(dirname "$0")
-
-WINPS=`ps | grep -i $$`
-PID=`echo $WINPS | cut -d' ' -f 4`
-
-if [ $EXPECT_OUTPUT ]; then
-  export ELECTRON_ENABLE_LOGGING=1
-  "$directory/../../atom.exe" --executed-from="$(pwd)" --pid=$PID "$@"
+#!/bin/bash
+# Get current path in Windows format
+if command -v "cygpath" > /dev/null; then
+  # We have cygpath to do the conversion
+  ATOMCMD=$(cygpath "$(dirname "$0")/atom.cmd" -a -w)
 else
-  "$directory/../app/apm/bin/node.exe" "$directory/atom.js" "$@"
+  # We don't have cygpath so try pwd -W
+  pushd "$(dirname "$0")" > /dev/null
+  ATOMCMD="$(pwd -W)/atom.cmd"
+  popd > /dev/null
 fi
-
-# If the wait flag is set, don't exit this process until Atom tells it to.
-if [ $WAIT ]; then
-  while true; do
-    sleep 1
-  done
+if [ "$(uname -o)" == "Msys" ]; then
+  cmd.exe //C "$ATOMCMD" "$@" # Msys thinks /C is a Windows path...
+else
+  cmd.exe /C "$ATOMCMD" "$@" # Cygwin does not
 fi

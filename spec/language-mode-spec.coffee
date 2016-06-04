@@ -334,66 +334,56 @@ describe "LanguageMode", ->
       it "folds every foldable line", ->
         languageMode.foldAll()
 
-        fold1 = editor.tokenizedLineForScreenRow(0).fold
-        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 12]
-        fold1.destroy()
-
-        fold2 = editor.tokenizedLineForScreenRow(1).fold
-        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 9]
-        fold2.destroy()
-
-        fold3 = editor.tokenizedLineForScreenRow(4).fold
-        expect([fold3.getStartRow(), fold3.getEndRow()]).toEqual [4, 7]
+        [fold1, fold2, fold3] = languageMode.unfoldAll()
+        expect([fold1.start.row, fold1.end.row]).toEqual [0, 12]
+        expect([fold2.start.row, fold2.end.row]).toEqual [1, 9]
+        expect([fold3.start.row, fold3.end.row]).toEqual [4, 7]
 
     describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates a fold based on the syntactic region starting at the given row", ->
           languageMode.foldBufferRow(1)
-          fold = editor.tokenizedLineForScreenRow(1).fold
-          expect(fold.getStartRow()).toBe 1
-          expect(fold.getEndRow()).toBe 9
+          [fold] = languageMode.unfoldAll()
+          expect([fold.start.row, fold.end.row]).toEqual [1, 9]
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
           languageMode.foldBufferRow(8)
-          fold = editor.tokenizedLineForScreenRow(1).fold
-          expect(fold.getStartRow()).toBe 1
-          expect(fold.getEndRow()).toBe 9
+          [fold] = languageMode.unfoldAll()
+          expect([fold.start.row, fold.end.row]).toEqual [1, 9]
 
       describe "when the bufferRow is already folded", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           languageMode.foldBufferRow(2)
-          expect(editor.tokenizedLineForScreenRow(1).fold).toBeDefined()
-          expect(editor.tokenizedLineForScreenRow(0).fold).not.toBeDefined()
+          expect(editor.isFoldedAtBufferRow(0)).toBe(false)
+          expect(editor.isFoldedAtBufferRow(1)).toBe(true)
 
           languageMode.foldBufferRow(1)
-          expect(editor.tokenizedLineForScreenRow(0).fold).toBeDefined()
+          expect(editor.isFoldedAtBufferRow(0)).toBe(true)
 
       describe "when the bufferRow is in a multi-line comment", ->
         it "searches upward and downward for surrounding comment lines and folds them as a single fold", ->
           buffer.insert([1, 0], "  //this is a comment\n  // and\n  //more docs\n\n//second comment")
           languageMode.foldBufferRow(1)
-          fold = editor.tokenizedLineForScreenRow(1).fold
-          expect(fold.getStartRow()).toBe 1
-          expect(fold.getEndRow()).toBe 3
+          [fold] = languageMode.unfoldAll()
+          expect([fold.start.row, fold.end.row]).toEqual [1, 3]
 
       describe "when the bufferRow is a single-line comment", ->
         it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
           buffer.insert([1, 0], "  //this is a single line comment\n")
           languageMode.foldBufferRow(1)
-          fold = editor.tokenizedLineForScreenRow(0).fold
-          expect(fold.getStartRow()).toBe 0
-          expect(fold.getEndRow()).toBe 13
+          [fold] = languageMode.unfoldAll()
+          expect([fold.start.row, fold.end.row]).toEqual [0, 13]
 
     describe ".foldAllAtIndentLevel(indentLevel)", ->
       it "folds blocks of text at the given indentation level", ->
         languageMode.foldAllAtIndentLevel(0)
-        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
+        expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {" + editor.displayLayer.foldCharacter
         expect(editor.getLastScreenRow()).toBe 0
 
         languageMode.foldAllAtIndentLevel(1)
         expect(editor.lineTextForScreenRow(0)).toBe "var quicksort = function () {"
-        expect(editor.lineTextForScreenRow(1)).toBe "  var sort = function(items) {"
+        expect(editor.lineTextForScreenRow(1)).toBe "  var sort = function(items) {" + editor.displayLayer.foldCharacter
         expect(editor.getLastScreenRow()).toBe 4
 
         languageMode.foldAllAtIndentLevel(2)
@@ -429,45 +419,47 @@ describe "LanguageMode", ->
       it "folds every foldable line", ->
         languageMode.foldAll()
 
-        fold1 = editor.tokenizedLineForScreenRow(0).fold
-        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
-        fold1.destroy()
-
-        fold2 = editor.tokenizedLineForScreenRow(1).fold
-        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [1, 4]
-
-        fold3 = editor.tokenizedLineForScreenRow(2).fold.destroy()
-
-        fold4 = editor.tokenizedLineForScreenRow(3).fold
-        expect([fold4.getStartRow(), fold4.getEndRow()]).toEqual [6, 8]
+        folds = languageMode.unfoldAll()
+        expect(folds.length).toBe 8
+        expect([folds[0].start.row, folds[0].end.row]).toEqual [0, 30]
+        expect([folds[1].start.row, folds[1].end.row]).toEqual [1, 4]
+        expect([folds[2].start.row, folds[2].end.row]).toEqual [5, 27]
+        expect([folds[3].start.row, folds[3].end.row]).toEqual [6, 8]
+        expect([folds[4].start.row, folds[4].end.row]).toEqual [11, 16]
+        expect([folds[5].start.row, folds[5].end.row]).toEqual [17, 20]
+        expect([folds[6].start.row, folds[6].end.row]).toEqual [21, 22]
+        expect([folds[7].start.row, folds[7].end.row]).toEqual [24, 25]
 
     describe ".foldAllAtIndentLevel()", ->
       it "folds every foldable range at a given indentLevel", ->
         languageMode.foldAllAtIndentLevel(2)
 
-        fold1 = editor.tokenizedLineForScreenRow(6).fold
-        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [6, 8]
-        fold1.destroy()
-
-        fold2 = editor.tokenizedLineForScreenRow(11).fold
-        expect([fold2.getStartRow(), fold2.getEndRow()]).toEqual [11, 14]
-        fold2.destroy()
+        folds = languageMode.unfoldAll()
+        expect(folds.length).toBe 5
+        expect([folds[0].start.row, folds[0].end.row]).toEqual [6, 8]
+        expect([folds[1].start.row, folds[1].end.row]).toEqual [11, 16]
+        expect([folds[2].start.row, folds[2].end.row]).toEqual [17, 20]
+        expect([folds[3].start.row, folds[3].end.row]).toEqual [21, 22]
+        expect([folds[4].start.row, folds[4].end.row]).toEqual [24, 25]
 
       it "does not fold anything but the indentLevel", ->
         languageMode.foldAllAtIndentLevel(0)
 
-        fold1 = editor.tokenizedLineForScreenRow(0).fold
-        expect([fold1.getStartRow(), fold1.getEndRow()]).toEqual [0, 19]
-        fold1.destroy()
-
-        fold2 = editor.tokenizedLineForScreenRow(5).fold
-        expect(fold2).toBeFalsy()
+        folds = languageMode.unfoldAll()
+        expect(folds.length).toBe 1
+        expect([folds[0].start.row, folds[0].end.row]).toEqual [0, 30]
 
     describe ".isFoldableAtBufferRow(bufferRow)", ->
       it "returns true if the line starts a multi-line comment", ->
         expect(languageMode.isFoldableAtBufferRow(1)).toBe true
         expect(languageMode.isFoldableAtBufferRow(6)).toBe true
-        expect(languageMode.isFoldableAtBufferRow(17)).toBe false
+        expect(languageMode.isFoldableAtBufferRow(8)).toBe false
+        expect(languageMode.isFoldableAtBufferRow(11)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(15)).toBe false
+        expect(languageMode.isFoldableAtBufferRow(17)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(21)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(24)).toBe true
+        expect(languageMode.isFoldableAtBufferRow(28)).toBe false
 
       it "does not return true for a line in the middle of a comment that's followed by an indented line", ->
         expect(languageMode.isFoldableAtBufferRow(7)).toBe false

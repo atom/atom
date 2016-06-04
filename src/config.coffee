@@ -319,6 +319,23 @@ ScopeDescriptor = require './scope-descriptor'
 # * line breaks - `line breaks<br/>`
 # * ~~strikethrough~~ - `~~strikethrough~~`
 #
+# #### order
+#
+# The settings view orders your settings alphabetically. You can override this
+# ordering with the order key.
+#
+# ```coffee
+# config:
+#   zSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 1
+#   aSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 2
+# ```
+#
 # ## Best practices
 #
 # * Don't depend on (or write to) configuration keys outside of your keypath.
@@ -768,7 +785,7 @@ class Config
         properties[key] ?= {}
         rootSchema = properties[key]
 
-    _.extend rootSchema, schema
+    Object.assign rootSchema, schema
     @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
     @setScopedDefaultsFromSchema(keyPath, schema)
     @resetSettingsForSchemaChange()
@@ -853,7 +870,7 @@ class Config
     return if @shouldNotAccessFileSystem()
 
     allSettings = {'*': @settings}
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = Object.assign allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
     allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)

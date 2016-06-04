@@ -4,7 +4,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
-remote = require 'remote'
+{remote} = require 'electron'
 MenuHelpers = require './menu-helpers'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']

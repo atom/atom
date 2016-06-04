@@ -84,7 +84,7 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @loadDeserializers()
+        @registerDeserializerMethods()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -277,24 +277,24 @@ class Package
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
       [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
 
-  loadDeserializers: ->
+  registerDeserializerMethods: ->
     if @metadata.deserializers?
-      for name, implementationPath of @metadata.deserializers
-        do =>
-          deserializePath = path.join(@path, implementationPath)
-          deserializeFunction = null
-          atom.deserializers.add
-            name: name,
-            deserialize: =>
-              @registerViewProviders()
-              deserializeFunction ?= require(deserializePath)
-              deserializeFunction.apply(this, arguments)
+      Object.keys(@metadata.deserializers).forEach (deserializerName) =>
+        methodName = @metadata.deserializers[deserializerName]
+        atom.deserializers.add
+          name: deserializerName,
+          deserialize: (state, atomEnvironment) =>
+            @registerViewProviders()
+            @requireMainModule()
+            @mainModule[methodName](state, atomEnvironment)
       return
 
   registerViewProviders: ->
     if @metadata.viewProviders? and not @registeredViewProviders
-      for implementationPath in @metadata.viewProviders
-        @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
+      @requireMainModule()
+      @metadata.viewProviders.forEach (methodName) =>
+        @viewRegistry.addViewProvider (model) =>
+          @mainModule[methodName](model)
       @registeredViewProviders = true
 
   getStylesheetsPath: ->

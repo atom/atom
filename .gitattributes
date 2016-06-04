@@ -12,3 +12,6 @@ spec/fixtures/css.css text eol=lf
 spec/fixtures/sample.js text eol=lf
 spec/fixtures/sample.less text eol=lf
 spec/fixtures/sample.txt text eol=lf
+
+# Windows bash scripts are also Unix LF endings
+*.sh		eol=lf

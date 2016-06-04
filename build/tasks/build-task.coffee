@@ -54,9 +54,9 @@ module.exports = (grunt) ->
     # so that it doesn't becomes larger than it needs to be.
     ignoredPaths = [
       path.join('git-utils', 'deps')
-      path.join('nodegit', 'vendor')
-      path.join('nodegit', 'node_modules', 'node-pre-gyp')
-      path.join('nodegit', 'node_modules', '.bin')
+      path.join('ohnogit', 'node_modules', 'nodegit', 'vendor')
+      path.join('ohnogit', 'node_modules', 'nodegit', 'node_modules', 'node-pre-gyp')
+      path.join('ohnogit', 'node_modules', 'nodegit', 'node_modules', '.bin')
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
       path.join('bootstrap', 'docs')
@@ -122,9 +122,9 @@ module.exports = (grunt) ->
     # Ignore *.cc and *.h files from native modules
     ignoredPaths.push "#{_.escapeRegExp(path.join('ctags', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('git-utils', 'src') + path.sep)}.*\\.(cc|h)*"
-    ignoredPaths.push "#{_.escapeRegExp(path.join('nodegit', 'src') + path.sep)}.*\\.(cc|h)?"
-    ignoredPaths.push "#{_.escapeRegExp(path.join('nodegit', 'generate') + path.sep)}.*\\.(cc|h)?"
-    ignoredPaths.push "#{_.escapeRegExp(path.join('nodegit', 'include') + path.sep)}.*\\.(cc|h)?"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('ohnogit', 'node_modules', 'nodegit', 'src') + path.sep)}.*\\.(cc|h)?"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('ohnogit', 'node_modules', 'nodegit', 'generate') + path.sep)}.*\\.(cc|h)?"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('ohnogit', 'node_modules', 'nodegit', 'include') + path.sep)}.*\\.(cc|h)?"
     ignoredPaths.push "#{_.escapeRegExp(path.join('keytar', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('nslog', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('oniguruma', 'src') + path.sep)}.*\\.(cc|h)*"
@@ -133,7 +133,6 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('scrollbar-style', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('cached-run-in-this-context', 'src') + path.sep)}.*\\.(cc|h)?"
-    ignoredPaths.push "#{_.escapeRegExp(path.join('marker-index', 'src') + path.sep)}.*\\.(cc|h)?"
     ignoredPaths.push "#{_.escapeRegExp(path.join('keyboard-layout', 'src') + path.sep)}.*\\.(cc|h|mm)*"
 
     # Ignore build files

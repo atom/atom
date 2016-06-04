@@ -52,8 +52,10 @@ module.exports = (grunt) ->
     stderr = []
     error = null
     proc = childProcess.spawn(options.cmd, options.args, options.opts)
-    proc.stdout.on 'data', (data) -> stdout.push(data.toString())
-    proc.stderr.on 'data', (data) -> stderr.push(data.toString())
+    if proc.stdout?
+      proc.stdout.on 'data', (data) -> stdout.push(data.toString())
+    if proc.stderr?
+      proc.stderr.on 'data', (data) -> stderr.push(data.toString())
     proc.on 'error', (processError) -> error ?= processError
     proc.on 'close', (exitCode, signal) ->
       error ?= new Error(signal) if exitCode isnt 0

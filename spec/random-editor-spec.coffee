@@ -17,7 +17,7 @@ describe "TextEditor", ->
       buffer = new TextBuffer
       editor = atom.workspace.buildTextEditor({buffer})
       editor.setEditorWidthInChars(80)
-      tokenizedBuffer = editor.displayBuffer.tokenizedBuffer
+      tokenizedBuffer = editor.tokenizedBuffer
       steps = []
 
       times 30, ->
@@ -33,8 +33,8 @@ describe "TextEditor", ->
         logLines()
         throw new Error("Invalid buffer row #{actualBufferRow} for screen row #{screenRow}", )
 
-      actualScreenLine = editor.tokenizedLineForScreenRow(screenRow)
-      unless actualScreenLine.text is referenceScreenLine.text
+      actualScreenLine = editor.lineTextForScreenRow(screenRow)
+      unless actualScreenLine is referenceScreenLine
         logLines()
         throw new Error("Invalid line text at screen row #{screenRow}")
 
@@ -84,7 +84,8 @@ describe "TextEditor", ->
     referenceEditor.setEditorWidthInChars(80)
     referenceEditor.setText(editor.getText())
     referenceEditor.setSoftWrapped(editor.isSoftWrapped())
-    screenLines = referenceEditor.tokenizedLinesForScreenRows(0, referenceEditor.getLastScreenRow())
+
+    screenLines = [0..referenceEditor.getLastScreenRow()].map (row) => referenceEditor.lineTextForScreenRow(row)
     bufferRows = referenceEditor.bufferRowsForScreenRows(0, referenceEditor.getLastScreenRow())
 
     {screenLines, bufferRows}
