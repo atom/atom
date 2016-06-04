@@ -24,5 +24,12 @@ do
 done
 
 binDir=`pwd -P`
+
+maybe_node_gyp_path="$binDir"/../node_modules/.bin/node-gyp
+if [ -e "$maybe_node_gyp_path" ]
+then
+  export npm_config_node_gyp="$maybe_node_gyp_path"
+fi
+
 builtin cd "$initialCwd"
 "$binDir/$nodeBin" "$binDir/../lib/cli.js" "$@"
