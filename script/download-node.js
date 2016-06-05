@@ -64,6 +64,9 @@ var downloadNode = function(version, done) {
     filename = path.join('bin', "node.exe");
   } else {
     arch = process.arch === 'ia32' ? 'x86' : process.arch;
+    if (arch == 'arm') {
+      arch = "armv" + process.config.variables.arm_version + "l";
+    }
     downloadURL = "http://nodejs.org/dist/" + version + "/node-" + version + "-" + process.platform + "-" + arch + ".tar.gz";
     filename = path.join('bin', "node");
   }
