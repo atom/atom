@@ -187,9 +187,9 @@ describe "TokenizedBuffer", ->
             buffer.delete([[1, 0], [3, 0]])
             changeHandler.reset()
 
-            expect(tokenizedBuffer.firstInvalidRow()).toBe 3
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 2
             advanceClock()
-            expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
+            expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 6, delta: 0)
 
         describe "when the change invalidates all the lines before the current invalid region", ->
           it "retokenizes the invalidated lines and continues into the valid region", ->
@@ -259,7 +259,7 @@ describe "TokenizedBuffer", ->
               expect(changeHandler).toHaveBeenCalled()
               [event] = changeHandler.argsForCall[0]
               delete event.bufferChange
-              expect(event).toEqual(start: 3, end: 5, delta: 0)
+              expect(event).toEqual(start: 3, end: 7, delta: 0)
 
           it "resumes highlighting with the state of the previous line", ->
             buffer.insert([0, 0], '/*')
@@ -309,7 +309,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 3, end: 4, delta: 0)
+            expect(event).toEqual(start: 3, end: 7, delta: 0)
 
         describe "when lines are both updated and inserted", ->
           it "updates tokens to reflect the change", ->
@@ -360,7 +360,7 @@ describe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 5, end: 7, delta: 0)
+            expect(event).toEqual(start: 5, end: 9, delta: 0)
 
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
