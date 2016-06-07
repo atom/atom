@@ -32,7 +32,7 @@ class AtomApplication
   @open: (options) ->
     unless options.socketPath?
       if process.platform is 'win32'
-        options.socketPath = '\\\\.\\pipe\\atom-sock'
+        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-sock"
       else
         options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
