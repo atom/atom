@@ -35,9 +35,13 @@ module.exports = ({blobStore}) ->
       if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
         ipcRenderer.send('call-window-method', 'toggleDevTools')
 
-      # Reload: cmd-w / ctrl-w
+      # Close: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
         ipcRenderer.send('call-window-method', 'close')
+
+      # Copy: cmd-c / ctrl-c
+      if (event.metaKey or event.ctrlKey) and event.keyCode is 67
+        ipcRenderer.send('call-window-method', 'copy')
 
     window.addEventListener('keydown', handleKeydown, true)
 
