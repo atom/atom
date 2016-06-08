@@ -4,7 +4,7 @@ path = require 'path'
 
 IdleState = 'idle'
 CheckingState = 'checking'
-DownladingState = 'downloading'
+DownloadingState = 'downloading'
 UpdateAvailableState = 'update-available'
 NoUpdateAvailableState = 'no-update-available'
 UnsupportedState = 'unsupported'
@@ -42,7 +42,7 @@ class AutoUpdateManager
       @emitWindowEvent('update-not-available')
 
     autoUpdater.on 'update-available', =>
-      @setState(DownladingState)
+      @setState(DownloadingState)
       # We use sendMessage to send an event called 'update-available' in 'update-downloaded'
       # once the update download is complete. This mismatch between the electron
       # autoUpdater events is unfortunate but in the interest of not changing the
