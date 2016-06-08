@@ -217,6 +217,10 @@ class TextEditor extends Model
     @disposables.add @buffer.onDidChangeModified =>
       @terminatePendingState() if not @hasTerminatedPendingState and @buffer.isModified()
 
+    if not @getPath()
+      @disposables.add @buffer.onDidChangeText =>
+        @emitter.emit 'did-change-title', @getTitle()
+
     @preserveCursorPositionOnBufferReload()
 
   terminatePendingState: ->
@@ -674,16 +678,26 @@ class TextEditor extends Model
   # UI such as the tabs.
   #
   # If the editor's buffer is saved, its title is the file name. If it is
-  # unsaved, its title is "untitled".
+  # unsaved, its title is "untitled" only if the first 50 characters of first
+  # line is blank
   #
   # Returns a {String}.
   getTitle: ->
-    @getFileName() ? 'untitled'
+    fileName = @getFileName()
+    if fileName
+      return fileName
+    else
+      textOverview = @getTextOverview()
+      if /^\s*$/.test(textOverview)
+        return 'untitled'
+      else
+        return textOverview;
 
   # Essential: Get unique title for display in other parts of the UI, such as
   # the window title.
   #
-  # If the editor's buffer is unsaved, its title is "untitled"
+  # If the editor's buffer is unsaved, its title is "untitled" only if the first
+  #  50 characters of first line is blank.
   # If the editor's buffer is saved, its unique title is formatted as one
   # of the following,
   # * "<filename>" when it is the only editing buffer with this file name.
@@ -716,7 +730,11 @@ class TextEditor extends Model
 
       "#{fileName} \u2014 #{path.join(pathSegments...)}"
     else
-      'untitled'
+      textOverview = @getTextOverview()
+      if /^\s*$/.test(textOverview)
+        return 'untitled'
+      else
+        return textOverview;
 
   # Essential: Returns the {String} path of this editor's text buffer.
   getPath: -> @buffer.getPath()
@@ -783,6 +801,11 @@ class TextEditor extends Model
 
   # Essential: Returns a {String} representing the entire contents of the editor.
   getText: -> @buffer.getText()
+
+  # Essential: Returns a {String} representing an overview of the content of the
+  # editor. Is the first 50 characters of the first line.
+  getTextOverview: ->
+    @getText().match(/(^.{0,50}|^.*$)/)[0].replace(/(\s+)/gi, ' ')
 
   # Essential: Get the text in the given {Range} in buffer coordinates.
   #
