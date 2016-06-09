@@ -28,15 +28,15 @@ Atom packages.
 
 apm is bundled and installed automatically with Atom. You can run the
 _Atom > Install Shell Commands_ menu option to install it again if you aren't
-able to run it from a terminal.
+able to run it from a terminal (Mac OS X only).
 
 ## Building
 
   * Clone the repository
   * :penguin: Install `libgnome-keyring-dev` if you are on Linux
-  * Run `npm install`; this will install the dependencies with your bulit-in version of Node/npm, and then rebuild them with the bundled versions.
-  * Run `./bin/npm run build` to compile the CoffeeScript code (or `.\bin\npm.cmd` on Windows)
-  * Run `./bin/npm test` to run the specs (or `.\bin\npm.cmd` on Windows)
+  * Run `npm install`; this will install the dependencies with your built-in version of Node/npm, and then rebuild them with the bundled versions.
+  * Run `./bin/npm run build` to compile the CoffeeScript code (or `.\bin\npm.cmd run build` on Windows)
+  * Run `./bin/npm test` to run the specs (or `.\bin\npm.cmd test` on Windows)
 
 ### Why `bin/npm` / `bin\npm.cmd`?
 
