@@ -12,7 +12,7 @@ var home = process.env[isWindows ? 'USERPROFILE' : 'HOME'];
 var tmpdir = os.tmpdir();
 
 // Windows: Use START as a way to ignore error if Atom.exe isnt running
-childProcess.safeExec(isWindows ? `START taskkill /F /IM ${productName}.exe` : `pkill -9 ${productName} || true`);
+childProcess.safeExec(isWindows ? `START taskkill /F /IM ${productName}.exe` : `pkill -9 ${productName}  || true`);
 
 var pathsToRemove = [
   [__dirname, '..', 'node_modules'],
