@@ -88,13 +88,14 @@ module.exports =
     # Use the explictly-configured version when set
     return process.env.GYP_MSVS_VERSION if process.env.GYP_MSVS_VERSION
 
-    return '2015' if visualStudioIsInstalled("14.0")
-    return '2013' if visualStudioIsInstalled("12.0")
-    return '2012' if visualStudioIsInstalled("11.0")
-    return '2010' if visualStudioIsInstalled("10.0")
+    vs2013Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 12.0", "Common7", "IDE")
+    return '2013' if fs.existsSync(vs2013Path)
 
-  visualStudioIsInstalled: (version) ->
-    fs.existsSync(path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio #{version}", "Common7", "IDE"))
+    vs2012Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 11.0", "Common7", "IDE")
+    return '2012' if fs.existsSync(vs2012Path)
+
+    vs2010Path = path.join(@x86ProgramFilesDirectory(), "Microsoft Visual Studio 10.0", "Common7", "IDE")
+    return '2010' if fs.existsSync(vs2010Path)
 
   loadNpm: (callback) ->
     npmOptions =
