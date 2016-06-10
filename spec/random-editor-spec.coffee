@@ -85,7 +85,7 @@ describe "TextEditor", ->
     referenceEditor.setText(editor.getText())
     referenceEditor.setSoftWrapped(editor.isSoftWrapped())
 
-    screenLines = [0..referenceEditor.getLastScreenRow()].map (row) => referenceEditor.lineTextForScreenRow(row)
+    screenLines = [0..referenceEditor.getLastScreenRow()].map (row) -> referenceEditor.lineTextForScreenRow(row)
     bufferRows = referenceEditor.bufferRowsForScreenRows(0, referenceEditor.getLastScreenRow())
 
     {screenLines, bufferRows}
