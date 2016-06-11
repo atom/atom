@@ -159,12 +159,26 @@ describe "TextEditor", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
         expect(editor.getTitle()).toBe 'sample.js'
         buffer.setPath(undefined)
+        editor.setText("")
+        expect(editor.getTitle()).toBe 'untitled'
+
+      it "returns overview of first line for undefined path, or 'untitled' if overview is blank", ->
+        buffer.setPath(undefined)
+        expect(editor.getTitle()).toBe 'var quicksort = function () {'
+        editor.setText("\ndef")
         expect(editor.getTitle()).toBe 'untitled'
 
     describe ".getLongTitle()", ->
       it "returns file name when there is no opened file with identical name", ->
         expect(editor.getLongTitle()).toBe 'sample.js'
         buffer.setPath(undefined)
+        editor.setText("")
+        expect(editor.getLongTitle()).toBe 'untitled'
+
+      it "returns overview of first line for undefined path, or 'untitled' if overview is blank", ->
+        buffer.setPath(undefined)
+        expect(editor.getLongTitle()).toBe 'var quicksort = function () {'
+        editor.setText("\ndef")
         expect(editor.getLongTitle()).toBe 'untitled'
 
       it "returns '<filename> — <parent-directory>' when opened files have identical file names", ->
@@ -212,7 +226,7 @@ describe "TextEditor", ->
       buffer.setPath('/foo/bar/baz.txt')
       buffer.setPath(undefined)
 
-      expect(observed).toEqual ['baz.txt', 'untitled']
+      expect(observed).toEqual ['baz.txt', 'var quicksort = function () {']
 
   describe "path", ->
     it "notifies ::onDidChangePath observers when the underlying buffer path changes", ->
