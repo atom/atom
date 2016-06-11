@@ -12,6 +12,14 @@ var getInstallNodeVersion = require('./bundled-node-version')
 
 temp.track();
 
+var identifyArch = function() {
+  var arch = process.arch === 'ia32' ? 'x86' : process.arch;
+  if (arch == 'arm') {
+    arch = "armv" + process.config.variables.arm_version + "l";
+  }
+  return arch;
+}
+
 var downloadFileToLocation = function(url, filename, callback) {
   var stream = fs.createWriteStream(filename);
   stream.on('end', callback);
@@ -39,7 +47,7 @@ var downloadTarballAndExtract = function(url, location, callback) {
 };
 
 var copyNodeBinToLocation = function(callback, version, targetFilename, fromDirectory) {
-  var arch = process.arch === 'ia32' ? 'x86' : process.arch;
+  var arch = identifyArch();
   var subDir = "node-" + version + "-" + process.platform + "-" + arch;
   var downloadedNodePath = path.join(fromDirectory, subDir, 'bin', 'node');
   return mv(downloadedNodePath, targetFilename, {mkdirp: true}, function(err) {
@@ -63,7 +71,7 @@ var downloadNode = function(version, done) {
     downloadURL = "http://nodejs.org/dist/" + version + "/win-" + arch + "node.exe";
     filename = path.join('bin', "node.exe");
   } else {
-    arch = process.arch === 'ia32' ? 'x86' : process.arch;
+    arch = identifyArch();
     downloadURL = "http://nodejs.org/dist/" + version + "/node-" + version + "-" + process.platform + "-" + arch + ".tar.gz";
     filename = path.join('bin', "node");
   }
