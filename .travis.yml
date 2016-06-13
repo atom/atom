@@ -8,6 +8,7 @@ branches:
 env:
   global:
     - ATOM_ACCESS_TOKEN=da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4
+    - C_INCLUDE_PATH=/usr/include/$(gcc -print-multiarch)
 
 compiler: clang
 
@@ -51,3 +52,4 @@ addons:
     - git
     - libgnome-keyring-dev
     - fakeroot
+    - gcc-multilib
