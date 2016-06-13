@@ -157,8 +157,10 @@ class AtomWindow
 
     @setupContextMenu()
 
-    @browserWindow.on 'blur', =>
-      @browserWindow.focusOnWebView()
+    if @isSpec
+      # Spec window's web view should always have focus
+      @browserWindow.on 'blur', =>
+        @browserWindow.focusOnWebView()
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
