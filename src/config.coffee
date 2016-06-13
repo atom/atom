@@ -241,8 +241,9 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # All types support an `enum` key, which lets you specify all the values the
 # setting can take. `enum` may be an array of allowed values (of the specified
-# type), or an array of objects with `value` and `description` properties, where
-# the `value` is an allowed value, and the `description` is a descriptive string
+# type), or an array of objects with `value`, `label`, and `description` properties,
+# where the `value` is an allowed value, the `label` is a short string used for the
+# label  the option in the settings view, and the `description` is a descriptive string
 # used in the settings view.
 #
 # In this example, the setting must be one of the 4 integers:
@@ -264,8 +265,8 @@ ScopeDescriptor = require './scope-descriptor'
 #     type: 'string'
 #     default: 'foo'
 #     enum: [
-#       {value: 'foo', description: 'Foo mode. You want this.'}
-#       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+#       {value: 'foo', label: 'Foo', description: 'Foo mode. You want this.'}
+#       {value: 'bar', label: 'Bar', description: 'Bar mode. Nobody wants that!'}
 #     ]
 # ```
 #
