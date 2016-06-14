@@ -1,34 +1,24 @@
 # apm - Atom Package Manager
 
-[![Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm)
+[![OS X Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm)
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/j6ixw374a397ugkb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/apm/branch/master)
 [![Dependency Status](https://david-dm.org/atom/apm.svg)](https://david-dm.org/atom/apm)
 
 Discover and install Atom packages powered by [atom.io](https://atom.io)
 
-You can configure apm by using the `apm config` command line option (recommended) or by manually
-editing the `~/.atom/.apmrc` file as per the [npm config](https://docs.npmjs.com/misc/config).
+You can configure apm by using the `apm config` command line option (recommended) or by manually editing the `~/.atom/.apmrc` file as per the [npm config](https://docs.npmjs.com/misc/config).
 
 ## Relation to npm
 
-apm comes with [npm](https://github.com/npm/npm) and spawns `npm` processes to
-install Atom packages. The major difference is that `apm` sets multiple command
-line arguments to `npm` to ensure that native modules are built against
-Chromium's v8 headers instead of node's v8 headers.
+apm comes with [npm](https://github.com/npm/npm) and spawns `npm` processes to install Atom packages. The major difference is that `apm` sets multiple command line arguments to `npm` to ensure that native modules are built against Chromium's v8 headers instead of node's v8 headers.
 
-The other major difference is that Atom packages are installed to
-`~/.atom/packages` instead of a local `node_modules` folder and Atom packages
-are published to and installed from GitHub repositories instead of
-[npmjs.com](https://www.npmjs.com/)
+The other major difference is that Atom packages are installed to `~/.atom/packages` instead of a local `node_modules` folder and Atom packages are published to and installed from GitHub repositories instead of [npmjs.com](https://www.npmjs.com/)
 
-Therefore you can think of `apm` as a simple `npm` wrapper that builds on top
-of the many strengths of `npm` but is customized and optimized to be used for
-Atom packages.
+Therefore you can think of `apm` as a simple `npm` wrapper that builds on top of the many strengths of `npm` but is customized and optimized to be used for Atom packages.
 
 ## Installing
 
-apm is bundled and installed automatically with Atom. You can run the
-_Atom > Install Shell Commands_ menu option to install it again if you aren't
-able to run it from a terminal (Mac OS X only).
+apm is bundled and installed automatically with Atom. You can run the _Atom > Install Shell Commands_ menu option to install it again if you aren't able to run it from a terminal (Mac OS X only).
 
 ## Building
 
