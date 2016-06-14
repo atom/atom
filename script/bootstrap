@@ -97,7 +97,7 @@ function bootstrap() {
   }
   var moduleInstallOptions = {env: moduleInstallEnv};
 
-  if (process.argv.indexOf('--no-quiet') === -1) {
+  if (process.argv.indexOf('--no-quiet') === -1 || process.env.ATOM_NOISY_BUILD) {
     buildInstallCommand  += ' --loglevel error';
     apmInstallCommand    += ' --loglevel error';
     moduleInstallCommand += ' --loglevel error';
