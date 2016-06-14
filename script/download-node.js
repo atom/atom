@@ -100,7 +100,7 @@ var downloadNode = function(version, done) {
   }
 };
 
-var versionToInstall = fs.readFileSync(path.join('BUNDLED_NODE_VERSION'), 'utf8').trim()
+var versionToInstall = fs.readFileSync(path.resolve(__dirname, '..', 'BUNDLED_NODE_VERSION'), 'utf8').trim()
 downloadNode(versionToInstall, function(error) {
   if (error != null) {
     console.error('Failed to download node', error);
