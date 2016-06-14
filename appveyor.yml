@@ -5,12 +5,12 @@ os: Windows Server 2012 R2
 install:
   - choco install atom -y
   - cd %APPVEYOR_BUILD_FOLDER%
-  - ".\bin\npm clean"
-  - ".\bin\npm install"
+  - ".\\bin\\npm clean"
+  - ".\\bin\\npm install"
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - ".\bin\npm test"
+  - ".\\bin\\npm test"
 
 test: off
 
