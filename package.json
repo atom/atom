@@ -1,7 +1,7 @@
 {
   "name": "atom-package-manager",
   "description": "Atom package manager",
-  "version": "1.11.2",
+  "version": "1.11.3",
   "license": "MIT",
   "repository": {
     "type": "git",
