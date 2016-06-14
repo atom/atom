@@ -1,0 +1,17 @@
+version: "{build}"
+
+os: Windows Server 2012 R2
+
+install:
+  - choco install atom -y
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - "%LOCALAPPDATA%/atom/bin/apm clean"
+  - "%LOCALAPPDATA%/atom/bin/apm install"
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - "%LOCALAPPDATA%/atom/bin/apm test --path %LOCALAPPDATA%/atom/bin/atom.cmd"
+
+test: off
+
+deploy: off
