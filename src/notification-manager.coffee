@@ -37,9 +37,9 @@ class NotificationManager
   #      following options:
   #      * `className` (optional) {String} additional class name add to the
   #        button. It will already receive `btn btn-success`.
-  #      * `onClick` (optional) {Function} callback to call when the button is
-  #        clicked. The context will be set to the {NotificationElement}
-  #        instance.
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A {String} that will be rendered as Markdown
   #      to describe the notification.
@@ -60,9 +60,9 @@ class NotificationManager
   #      following options:
   #      * `className` (optional) {String} additional class name add to the
   #        button. It will already receive `btn btn-info`.
-  #      * `onClick` (optional) {Function} callback to call when the button is
-  #        clicked. The context will be set to the {NotificationElement}
-  #        instance.
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A {String} that will be rendered as Markdown
   #      to describe the notification.
@@ -83,9 +83,9 @@ class NotificationManager
   #      following options:
   #      * `className` (optional) {String} additional class name add to the
   #        button. It will already receive `btn btn-warning`.
-  #      * `onClick` (optional) {Function} callback to call when the button is
-  #        clicked. The context will be set to the {NotificationElement}
-  #        instance.
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A {String} that will be rendered as Markdown
   #      to describe the notification.
@@ -106,9 +106,9 @@ class NotificationManager
   #      following options:
   #      * `className` (optional) {String} additional class name add to the
   #        button. It will already receive `btn btn-error`.
-  #      * `onClick` (optional) {Function} callback to call when the button is
-  #        clicked. The context will be set to the {NotificationElement}
-  #        instance.
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A {String} that will be rendered as Markdown
   #      to describe the notification.
@@ -131,9 +131,9 @@ class NotificationManager
   #      following options:
   #      * `className` (optional) {String} additional class name add to the
   #        button. It will already receive `btn btn-error`.
-  #      * `onClick` (optional) {Function} callback to call when the button is
-  #        clicked. The context will be set to the {NotificationElement}
-  #        instance.
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A {String} that will be rendered as Markdown
   #      to describe the notification.
