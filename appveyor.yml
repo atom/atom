@@ -18,7 +18,7 @@ environment:
       secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
 
   matrix:
-  - NODE_VERSION: 0.10.35
+  - NODE_VERSION: 4.4.5
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
