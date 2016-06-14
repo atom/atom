@@ -8,8 +8,8 @@ node script/download-node.js
 echo ""
 for /f "delims=" %%i in ('.\bin\node.exe -v') do set bundledVersion=%%i
 echo ^>^> Rebuilding apm dependencies with bundled Node !bundledVersion!
-call .\bin\npm rebuild
+call .\bin\npm.cmd rebuild
 
 echo ""
 echo ^>^> Deduping apm dependencies
-call .\bin\npm dedupe
+call .\bin\npm.cmd dedupe
