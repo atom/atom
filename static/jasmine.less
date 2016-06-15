@@ -23,12 +23,18 @@ body {
 }
 
 .spec-reporter {
-  flex: 0 1 578px; // initial window height, resize to see underlying editor
+  flex: 1 1 0;
   overflow-y: auto;
   font-size: 11px;
   line-height: 1.6em;
   color: #333;
   background-color: hsl(0, 0%, 98%);
+
+  // 578px initial window height, resize to see underlying editor
+  @media (min-height: 578px) {
+    flex: 0 1 75%;
+    min-height: 578px;
+  }
 
   .list-unstyled {
     list-style: none;
