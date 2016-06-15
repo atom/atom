@@ -1,12 +1,6 @@
 @import "ui-variables";
 @import "octicon-mixins";
 
-// This seems unused? Selector would be #jasmine-content
-#jasmine_content {
-  position: fixed;
-  right: 100%;
-}
-
 html {
   background-color: @base-background-color;
 }
@@ -17,18 +11,19 @@ body {
 }
 
 .spec-reporter-container {
-  position: absolute;
+  position: fixed;
+  z-index: 99999;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  background-color: hsl(0, 0%, 98%);
 }
 
 .spec-reporter {
   font-size: 11px;
   line-height: 1.6em;
   color: #333;
-  background-color: hsl(0, 0%, 98%);
-  border-top: 1px solid hsla(0, 0%, 0%, .1);
 
   .list-unstyled {
     list-style: none;
