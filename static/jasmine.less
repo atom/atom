@@ -12,19 +12,23 @@ body {
 
 .spec-reporter-container {
   position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   z-index: 99999;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  overflow-y: auto;
-  background-color: hsl(0, 0%, 98%);
 }
 
 .spec-reporter {
+  flex: 0 1 578px; // initial window height, resize to see underlying editor
+  overflow-y: auto;
   font-size: 11px;
   line-height: 1.6em;
   color: #333;
+  background-color: hsl(0, 0%, 98%);
 
   .list-unstyled {
     list-style: none;
