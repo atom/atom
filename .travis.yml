@@ -14,13 +14,11 @@ compiler: clang
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=0.12
-    - os: linux
       env: NODE_VERSION=4
     - os: osx
-      env: ATOM_SPECS_TASK=core NODE_VERSION=0.12
+      env: ATOM_SPECS_TASK=core NODE_VERSION=4
     - os: osx
-      env: ATOM_SPECS_TASK=packages NODE_VERSION=0.12
+      env: ATOM_SPECS_TASK=packages NODE_VERSION=4
 
 sudo: false
 
