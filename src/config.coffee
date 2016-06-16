@@ -80,7 +80,7 @@ ScopeDescriptor = require './scope-descriptor'
 #   # ...
 # ```
 #
-# See [package docs](https://atom.io/docs/latest/hacking-atom-package-word-count) for
+# See [package docs](http://flight-manual.atom.io/hacking-atom/sections/package-word-count/) for
 # more info.
 #
 # ## Config Schemas
@@ -424,7 +424,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -455,7 +455,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
@@ -532,7 +532,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   #
   # Returns the value from Atom's default settings, the user's configuration
@@ -607,7 +607,7 @@ class Config
   #   setting to the default value.
   # * `options` (optional) {Object}
   #   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   #   * `source` (optional) {String} The name of a file with which the setting
   #     is associated. Defaults to the user's config file.

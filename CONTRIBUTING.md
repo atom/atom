@@ -10,6 +10,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 [What should I know before I get started?](#what-should-i-know-before-i-get-started)
   * [Code of Conduct](#code-of-conduct)
   * [Atom and Packages](#atom-and-packages)
+  * [Atom Design Decisions](#design-decisions)
 
 [How Can I Contribute?](#how-can-i-contribute)
   * [Reporting Bugs](#reporting-bugs)
@@ -71,6 +72,10 @@ For more information on how to work with Atom's official packages, see [Contribu
 
 Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering aren't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed.
 Each community package has its own repository too, and you should be able to find it in Settings > Packages for the packages you installed and contribute there.
+
+### Design Decisions
+
+When we make a significant decision in how we maintain the project and what we can or cannot support, we will be documenting them in the [atom/design-decisions repository](https://github.com/atom/design-decisions). If you have a question around how we do things, check to see if it is documented there. If it is *not* documented there, please open a new topic on [Discuss, the official Atom message board](https://discuss.atom.io) and ask your question.
 
 ## How Can I Contribute?
 
