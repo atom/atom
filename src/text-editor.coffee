@@ -2825,7 +2825,7 @@ class TextEditor extends Model
     scopeDescriptor = @getRootScopeDescriptor()
     if @isSoftWrapped()
       if @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
-        @config.get('editor.preferredLineLength', scope: scopeDescriptor)
+        Math.min(@getEditorWidthInChars(), @config.get('editor.preferredLineLength', scope: scopeDescriptor))
       else
         @getEditorWidthInChars()
     else
