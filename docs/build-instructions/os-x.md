@@ -1,8 +1,8 @@
-# OS X
+# macOS
 
 ## Requirements
 
-  * OS X 10.8 or later
+  * macOS 10.8 or later
   * [Node.js](https://nodejs.org/en/download/) (0.10.x or above)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 

@@ -5,7 +5,7 @@ request = require 'request'
 module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
-  # Mac OS X code signing
+  # macOS code signing
 
   grunt.registerTask 'codesign:app', 'CodeSign Atom.app', ->
     done = @async()

@@ -190,7 +190,7 @@ class Workspace extends Model
     document.title = titleParts.join(" \u2014 ")
     @applicationDelegate.setRepresentedFilename(representedPath)
 
-  # On OS X, fades the application window's proxy icon when the current file
+  # On macOS, fades the application window's proxy icon when the current file
   # has been modified.
   updateDocumentEdited: =>
     modified = @getActivePaneItem()?.isModified?() ? false

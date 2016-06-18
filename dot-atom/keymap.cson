@@ -22,7 +22,7 @@
 # * http://flight-manual.atom.io/behind-atom/sections/keymaps-in-depth/
 #
 # If you're having trouble with your keybindings not working, try the
-# Keybinding Resolver: `Cmd+.` on OS X and `Ctrl+.` on other platforms. See the
+# Keybinding Resolver: `Cmd+.` on macOS and `Ctrl+.` on other platforms. See the
 # Debugging Guide for more information:
 # * http://flight-manual.atom.io/hacking-atom/sections/debugging/#check-the-keybindings
 #

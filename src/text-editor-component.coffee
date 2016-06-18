@@ -253,7 +253,7 @@ class TextEditorComponent
 
   detectAccentedCharacterMenu: ->
     # We need to get clever to detect when the accented character menu is
-    # opened on OS X. Usually, every keydown event that could cause input is
+    # opened on macOS. Usually, every keydown event that could cause input is
     # followed by a corresponding keypress. However, pressing and holding
     # long enough to open the accented character menu causes additional keydown
     # events to fire that aren't followed by their own keypress and textInput
@@ -369,7 +369,7 @@ class TextEditorComponent
 
     return unless @isInputEnabled()
 
-    # Workaround of the accented character suggestion feature in OS X.
+    # Workaround of the accented character suggestion feature in macOS.
     # This will only occur when the user is not composing in IME mode.
     # When the user selects a modified character from the OSX menu, `textInput`
     # will occur twice, once for the initial character, and once for the
