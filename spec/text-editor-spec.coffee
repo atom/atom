@@ -6024,6 +6024,18 @@ describe "TextEditor", ->
     it "sets the grammar", ->
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
+  describe "the softWrapAtPreferredLineLength config setting", ->
+    it "soft wraps the editor at the preferred line length unless the editor is narrower", ->
+      editor.setEditorWidthInChars(30)
+      atom.config.set('editor.softWrap', true)
+      atom.config.set('editor.softWrapAtPreferredLineLength', true)
+      atom.config.set('editor.preferredLineLength', 20)
+
+      expect(editor.lineTextForScreenRow(0)).toBe 'var quicksort = '
+
+      editor.setEditorWidthInChars(10)
+      expect(editor.lineTextForScreenRow(0)).toBe 'var '
+
   describe "::getElement", ->
     it "returns an element", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
