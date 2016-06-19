@@ -170,7 +170,6 @@ class ThemeManager
     @userStyleSheetDisposable = @styleManager.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
-    @requireStylesheet('../static/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
