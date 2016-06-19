@@ -14,8 +14,9 @@ console.log = require 'nslog'
 
 start = ->
   args = parseCommandLine()
-  args.env = process.env
+  args.env = Object.assign({}, process.env)
   setupAtomHome(args)
+  setupNodePath(args)
   setupCompileCache()
   if handleStartupEventWithSquirrel()
     return
@@ -69,7 +70,7 @@ handleStartupEventWithSquirrel = ->
 setupCrashReporter = ->
   crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
-setupAtomHome = ({setPortable}) ->
+setupAtomHome = ({env, setPortable}) ->
   return if process.env.ATOM_HOME
 
   atomHome = path.join(app.getPath('home'), '.atom')
@@ -88,7 +89,12 @@ setupAtomHome = ({setPortable}) ->
   try
     atomHome = fs.realpathSync(atomHome)
 
-  process.env.ATOM_HOME = atomHome
+  process.env.ATOM_HOME = env.ATOM_HOME = atomHome
+
+setupNodePath = ({env, resourcePath}) ->
+  # Add application-specific exports to module search path.
+  exportsPath = path.join(resourcePath, 'exports')
+  env.NODE_PATH = exportsPath
 
 setupCompileCache = ->
   compileCache = require('../compile-cache')
