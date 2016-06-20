@@ -10,7 +10,7 @@ In this directory you can only find very specific build and API level documentat
 
 Instructions for building Atom on various platforms from source.
 
-* [OS X](build-instructions/os-x.md)
+* [macOS](build-instructions/macos.md)
 * [Windows](build-instructions/windows.md)
 * [Linux](build-instructions/linux.md)
 * [FreeBSD](build-instructions/freebsd.md)

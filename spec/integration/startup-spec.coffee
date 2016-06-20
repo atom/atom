@@ -169,7 +169,7 @@ describe "Starting Atom", ->
           .then ->
             expect(win1Position.x).toBeGreaterThan(win0Position.x)
             # Ideally we'd test the y coordinate too, but if the window's
-            # already as tall as it can be, then OS X won't move it down outside
+            # already as tall as it can be, then macOS won't move it down outside
             # the screen.
             # expect(win1Position.y).toBeGreaterThan(win0Position.y)
 

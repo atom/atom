@@ -141,7 +141,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}linker\\.lock$"
     ignoredPaths.push "#{_.escapeRegExp(path.join('build', 'Release') + path.sep)}.+\\.node\\.dSYM"
 
-    # Hunspell dictionaries are only not needed on OS X.
+    # Hunspell dictionaries are only not needed on macOS.
     if process.platform is 'darwin'
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"

@@ -1,8 +1,8 @@
-# OS X
+# macOS
 
 ## Requirements
 
-  * OS X 10.8 or later
+  * macOS 10.8 or later
   * [Node.js](https://nodejs.org/en/download/) (0.10.x or above)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
@@ -21,5 +21,5 @@
 
 ## Troubleshooting
 
-### OSX build error reports in atom/atom
-* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Aos-x&type=Issues) to get a list of reports about build errors on OSX.
+### macOS build error reports in atom/atom
+* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Aos-x&type=Issues) to get a list of reports about build errors on macOS.
