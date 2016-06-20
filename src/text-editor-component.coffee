@@ -371,7 +371,7 @@ class TextEditorComponent
 
     # Workaround of the accented character suggestion feature in macOS.
     # This will only occur when the user is not composing in IME mode.
-    # When the user selects a modified character from the OSX menu, `textInput`
+    # When the user selects a modified character from the macOS menu, `textInput`
     # will occur twice, once for the initial character, and once for the
     # modified character. However, only a single keypress will have fired. If
     # this is the case, select backward to replace the original character.
@@ -551,7 +551,7 @@ class TextEditorComponent
 
     {detail, shiftKey, metaKey, ctrlKey} = event
 
-    # CTRL+click brings up the context menu on OSX, so don't handle those either
+    # CTRL+click brings up the context menu on macOS, so don't handle those either
     return if ctrlKey and process.platform is 'darwin'
 
     # Prevent focusout event on hidden input if editor is already focused

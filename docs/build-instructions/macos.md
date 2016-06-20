@@ -21,5 +21,5 @@
 
 ## Troubleshooting
 
-### OSX build error reports in atom/atom
-* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Aos-x&type=Issues) to get a list of reports about build errors on OSX.
+### macOS build error reports in atom/atom
+* Use [this search](https://github.com/atom/atom/search?q=label%3Abuild-error+label%3Aos-x&type=Issues) to get a list of reports about build errors on macOS.
