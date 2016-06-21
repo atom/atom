@@ -363,6 +363,24 @@ describe "Project", ->
           # Verify that the result is cached.
           expect(atom.project.repositoryForDirectory(directory)).toBe(promise)
 
+    it "creates a new repository if a previous one with the same directory had been destroyed", ->
+      repository = null
+      directory = new Directory(path.join(__dirname, '..'))
+
+      waitsForPromise ->
+        atom.project.repositoryForDirectory(directory).then (repo) -> repository = repo
+
+      runs ->
+        expect(repository.isDestroyed()).toBe(false)
+        repository.destroy()
+        expect(repository.isDestroyed()).toBe(true)
+
+      waitsForPromise ->
+        atom.project.repositoryForDirectory(directory).then (repo) -> repository = repo
+
+      runs ->
+        expect(repository.isDestroyed()).toBe(false)
+
   describe ".setPaths(paths)", ->
     describe "when path is a file", ->
       it "sets its path to the files parent directory and updates the root directory", ->
