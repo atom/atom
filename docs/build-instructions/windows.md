@@ -14,15 +14,17 @@
 
 You can use either:
 
- * [Visual Studio 2013 Update 5](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express or better) on Windows 7, 8 or 10
- * [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Community or better) with Windows 8 or 10
+ * [Visual C++ Build Tools 2015](http://landinghub.visualstudio.com/visual-cpp-build-tools)
+ * [Visual Studio 2013 Update 5](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express Edition or better)
+ * [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Community Edition or better)
 
 Whichever version you use, ensure that:
 
  * The default installation folder is chosen so the build tools can find it
- * Visual C++ support is installed
+ * If using Visual Studio make sure Visual C++ support is selected/installed
+ * If using Visual C++ Build Tools make sure Windows 8 SDK is selected/installed
  * A `git` command is in your path
- * If you have both VS2013 and VS2015 installed set the `GYP_MSVS_VERSION` environment variable to the Visual Studio version (`2013` or `2015`) you wish to use, e.g. ``[Environment]::SetEnvironmentVariable("GYP_MSVS_VERSION", "2015", "User")`` in PowerShell or set it in Windows advanced system settings control panel.
+ * Set the `GYP_MSVS_VERSION` environment variable to the Visual Studio/Build Tools version (`2013` or `2015`) e.g. ``[Environment]::SetEnvironmentVariable("GYP_MSVS_VERSION", "2015", "User")`` in PowerShell or set it in Windows advanced system settings control panel.
 
 ## Instructions
 
