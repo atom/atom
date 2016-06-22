@@ -589,7 +589,10 @@ class Workspace extends Model
 
   # Public: Register an opener for a uri.
   #
-  # An {TextEditor} will be used if no openers return a value.
+  # Atom loops through opener functions until one returns a value for a given uri.
+  # Openers are expected to return an object that inherits from HTMLElement or
+  # a model which has an associated view in the {ViewRegistry}.
+  # A {TextEditor} will be used if no openers return a value.
   #
   # ## Examples
   #
