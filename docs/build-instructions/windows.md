@@ -34,18 +34,18 @@ You can run these commands using Command Prompt, PowerShell or Git Shell via [Gi
 cd C:\
 git clone https://github.com/atom/atom/
 cd atom
-script/build
+script\build
 ```
 This will create the Atom application in the `out\Atom` folder as well as copy it to a subfolder of your user profile (e.g. `c:\Users\Bob`) called `AppData\Local\atom\app-dev`.
 
-### `script/build` Options
+### `script\build` Options
   * `--install-dir` - Creates the final built application in this directory. Example (trailing slash is optional):
 ```bash
-./script/build --install-dir Z:\Some\Destination\Directory\
+.\script\build --install-dir Z:\Some\Destination\Directory\
 ```
   * `--build-dir` - Build the application in this directory. Example (trailing slash is optional):
 ```bash
-./script/build --build-dir Z:\Some\Temporary\Directory\
+.\script\build --build-dir Z:\Some\Temporary\Directory\
 ```
   * `--no-install` - Skips the installation task after building.
   * `--verbose` - Verbose mode. A lot more information output.
@@ -70,10 +70,10 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 * `msbuild.exe failed with exit code: 1`
    * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
 
-* `script/build` stops with no error or warning shortly after displaying the versions of node, npm and Python
+* `script\build` stops with no error or warning shortly after displaying the versions of node, npm and Python
   * Make sure that the path where you have checked out Atom does not include a space. e.g. use `c:\atom` and not `c:\my stuff\atom`
 
-* `script/build` outputs only the Node.js and Python versions before returning
+* `script\build` outputs only the Node.js and Python versions before returning
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
     See [issue #2200](https://github.com/atom/atom/issues/2200).
 
@@ -87,11 +87,11 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 * `'node_modules\.bin\npm' is not recognized as an internal or external command, operable program or batch file.`
    * This occurs if the previous build left things in a bad state. Run `script\clean` and then `script\build` again.
 
-* `script/build` stops at installing runas with `Failed at the runas@x.y.z install script.`
+* `script\build` stops at installing runas with `Failed at the runas@x.y.z install script.`
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script/clean` followed by `script/build` (re-open your command prompt or Powershell window if you set it using the GUI)
+  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\build` (re-open your command prompt or Powershell window if you set it using the GUI)
 
 * `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
   * Try running `npm install -g node-gyp`, and run `script/build` again.
