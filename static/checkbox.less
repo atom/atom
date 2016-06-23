@@ -1,0 +1,79 @@
+@import "ui-variables";
+
+input.atom-checkbox {
+  -webkit-appearance: none;
+  display: inline-block;
+  position: relative;
+  width: 1.125em;
+  height: 1.125em;
+  margin: 0 .5em 0 0; // Bootstrap override
+  vertical-align: text-bottom;
+  font-size: inherit;
+  border-radius: @component-border-radius;
+  background-color: @text-color-subtle;
+  transition: background-color .16s cubic-bezier(0.5, 0.15, 0.2, 1);
+  cursor: pointer;
+
+  &:focus {
+    outline: 0;
+    box-shadow: 0 0 0 1px @base-border-color;
+  }
+  &:active {
+    background-color: @background-color-success;
+  }
+
+  &:before,
+  &:after {
+    content: "";
+    position: absolute;
+    top: .85em;
+    left: .425em;
+    height: .125em;
+    min-height: 2px;
+    max-height: 5px;
+    border-radius: 1px;
+    background-color: @base-background-color;
+    transform-origin: 0 0;
+    opacity: 0;
+    transition: transform .1s cubic-bezier(0.5, 0.15, 0.2, 1), opacity .1s cubic-bezier(0.5, 0.15, 0.2, 1);
+  }
+  &:before {
+    width: .35em;
+    transform: translate3d(0,0,0) rotate(225deg) scale(0);
+  }
+  &:after {
+    width: .7em;
+    margin: -1px;
+    transform: translate3d(0,0,0) rotate(-45deg) scale(0);
+    transition-delay: .05s;
+  }
+
+  &:checked {
+    background-color: @background-color-success;
+    &:active {
+      background-color: @text-color-subtle;
+    }
+    &:before {
+      opacity: 1;
+      transform: translate3d(0,0,0) rotate(225deg) scale(1);
+      transition-delay: .05s;
+    }
+    &:after {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) rotate(-45deg) scale(1);
+      transition-delay: 0;
+    }
+  }
+
+  &:indeterminate {
+    background-color: @background-color-success;
+    &:active {
+      background-color: @text-color-subtle;
+    }
+    &:after {
+      opacity: 1;
+      transform: translate3d(-.125em, -.25em, 0) rotate(0deg) scale(1);
+      transition-delay: 0;
+    }
+  }
+}
