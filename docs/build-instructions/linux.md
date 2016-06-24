@@ -16,20 +16,25 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Ubuntu / Debian
 
-* `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
+* `sudo apt-get install -y build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
   * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
   * Use `which node` to check if it is available.
   * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
-### Fedora / CentOS / RHEL
+### Fedora
 
-* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo dnf install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
+
+### Fedora
+
+* `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 * Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
 
 ### Arch
 
-* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2`
+* `sudo pacman -S gconf base-devel git nodejs npm libgnome-keyring python2 --noconfirm --needed`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
@@ -38,7 +43,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### openSUSE
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo zypper install -y nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 
 ## Instructions
 
@@ -72,19 +77,45 @@ If you have problems with permissions don't forget to prefix with `sudo`
   sudo script/grunt install
   ```
 
-  To use the newly installed Atom, quit and restart all running Atom instances.
+  To use the newly installed Atom, quit and restart all running Atom instances. It may be best to install Atom using your package manager instead (as this makes it easier to uninstall and upgrade Atom when you wish to), if possible. See the next section for how to do this on Debian/Red Hat-based distributions. 
 
-5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run (which is placed in `out`):
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create a `.rpm` package run
+ You can install this package by running:
+ 
+  ```sh
+  sudo dpkg -i atom*.deb
+  sudo apt-get -f install
+  ```
+
+  To create a `.rpm` package (stored in the `out/rpm` subfolder of the Atom source tree) run
 
   ```sh
   script/grunt mkrpm
   ```
+ 
+ to install this package, on CentOS / Fedora &leq;21 / Red Hat Enterprise Linux run:
+ 
+  ```sh
+  sudo yum localinstall out/rpm/atom*.rpm
+  ```
+ 
+ while on Fedora &geq;22 / its derivatives running:
+ 
+  ```sh
+  sudo dnf install out/rpm/atom*.rpm
+  ```
+ 
+ should install Atom. On openSUSE / other distributions using the ZYpp package manager you can install this RPM package by running:
+ 
+  ```sh
+  sudo zypper install out/rpm/atom*.rpm
+  ```
+ 
 
   To create a `.tar.gz` archive run
 
