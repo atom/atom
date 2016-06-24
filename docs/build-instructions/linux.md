@@ -14,7 +14,12 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
 
-### Ubuntu / Debian
+ for packaging:
+ 
+  * `fakeroot` is required to build Debian packages for Atom. 
+  * `rpmdevtools` is required to build RPM packages for Atom.
+
+### Debian / Ubuntu / derivatives thereof (e.g., Linux Mint)
 
 * `sudo apt-get install -y build-essential git libgnome-keyring-dev fakeroot`
 * Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
@@ -22,26 +27,26 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
   * Use `which node` to check if it is available.
   * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
 
-### Fedora
+### Fedora &geq;22 / derivatives thereof (e.g., Chapaeu &geq;22 / Korora &geq;22)
 
 * `sudo dnf install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 * Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
 
-### Fedora
+### CentOS / Fedora &leq;21 / Red Hat Enterprise Linux (RHEL) / derivatives thereof
 
 * `sudo yum install -y make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 * Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
 
-### Arch
+### Arch Linux / Manjaro Linux / derivatives thereof
 
 * `sudo pacman -S gconf base-devel git nodejs npm libgnome-keyring python2 --noconfirm --needed`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
-### Slackware
+### Slackware Linux
 
 * `sbopkg -k -i node -i atom`
 
-### openSUSE
+### openSUSE / SUSE Linux Enterprise Server (SLES)
 
 * `sudo zypper install -y nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
 
@@ -79,20 +84,20 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances. It may be best to install Atom using your package manager instead (as this makes it easier to uninstall and upgrade Atom when you wish to), if possible. See the next section for how to do this on Debian/Red Hat-based distributions. 
 
-5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run (which is placed in `out`):
+5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a Debian (`.deb`) package run (which is placed in `out`):
 
   ```sh
   script/grunt mkdeb
   ```
 
- You can install this package by running:
+ You can install this Debian package by running:
  
   ```sh
   sudo dpkg -i atom*.deb
   sudo apt-get -f install
   ```
 
-  To create a `.rpm` package (stored in the `out/rpm` subfolder of the Atom source tree) run
+  To create a RPM (`.rpm`) package (stored in the `out/rpm` subfolder of the Atom source tree) run
 
   ```sh
   script/grunt mkrpm
@@ -110,14 +115,13 @@ If you have problems with permissions don't forget to prefix with `sudo`
   sudo dnf install out/rpm/atom*.rpm
   ```
  
- should install Atom. On openSUSE / other distributions using the ZYpp package manager you can install this RPM package by running:
+ should install Atom. On openSUSE / SLES you can install this RPM package by running:
  
   ```sh
   sudo zypper install out/rpm/atom*.rpm
   ```
- 
 
-  To create a `.tar.gz` archive run
+ To create a `.tar.gz` archive run
 
   ```sh
   script/grunt mktar
