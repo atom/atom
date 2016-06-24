@@ -14,7 +14,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
 
- for packaging:
+for packaging:
  
   * `fakeroot` is required to build Debian packages for Atom. 
   * `rpmdevtools` is required to build RPM packages for Atom.
