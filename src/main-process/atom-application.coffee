@@ -32,7 +32,7 @@ class AtomApplication
   @open: (options) ->
     unless options.socketPath?
       if process.platform is 'win32'
-        options.socketPath = '\\\\.\\pipe\\atom-sock'
+        options.socketPath = "\\\\.\\pipe\\atom-#{options.version}-sock"
       else
         options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
@@ -182,7 +182,7 @@ class AtomApplication
       atomWindow ?= @focusedWindow()
       atomWindow?.browserWindow.inspectElement(x, y)
 
-    @on 'application:open-documentation', -> shell.openExternal('https://atom.io/docs/latest/?app')
+    @on 'application:open-documentation', -> shell.openExternal('https://flight-manual.atom.io/')
     @on 'application:open-discussions', -> shell.openExternal('https://discuss.atom.io')
     @on 'application:open-faq', -> shell.openExternal('https://atom.io/faq')
     @on 'application:open-terms-of-use', -> shell.openExternal('https://atom.io/terms')
@@ -368,7 +368,7 @@ class AtomApplication
       else
         @sendCommandToFirstResponder(command)
 
-  # Translates the command into OS X action and sends it to application's first
+  # Translates the command into macOS action and sends it to application's first
   # responder.
   sendCommandToFirstResponder: (command) ->
     return false unless process.platform is 'darwin'
@@ -666,7 +666,7 @@ class AtomApplication
   #
   # options -
   #   :type - A String which specifies the type of the dialog, could be 'file',
-  #           'folder' or 'all'. The 'all' is only available on OS X.
+  #           'folder' or 'all'. The 'all' is only available on macOS.
   #   :devMode - A Boolean which controls whether any newly opened windows
   #              should be in dev mode or not.
   #   :safeMode - A Boolean which controls whether any newly opened windows
@@ -687,7 +687,7 @@ class AtomApplication
         else throw new Error("#{type} is an invalid type for promptForPath")
 
     # Show the open dialog as child window on Windows and Linux, and as
-    # independent dialog on OS X. This matches most native apps.
+    # independent dialog on macOS. This matches most native apps.
     parentWindow =
       if process.platform is 'darwin'
         null

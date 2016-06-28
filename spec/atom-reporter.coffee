@@ -34,6 +34,7 @@ class AtomReporter
 
   constructor: ->
     @element = document.createElement('div')
+    @element.classList.add('spec-reporter-container')
     @element.innerHTML = """
       <div class="spec-reporter">
         <div class="padded pull-right">

@@ -297,7 +297,7 @@ Add a element at the end of the array is easy with push(), but there is a way mo
 var arr = [1,2,3,4,5];
 
 arr.push(6);
-arr[arr.length] = 6; // 43% faster in Chrome 47.0.2526.106 on Mac OS X 10.11.1
+arr[arr.length] = 6; // 43% faster in Chrome 47.0.2526.106 on macOS 10.11.1
 ```
 Both methods modify the original array. Don't believe me? Check the [jsperf](http://jsperf.com/push-item-inside-an-array)
 
@@ -307,7 +307,7 @@ Now we are trying to add an item to the beginning of the array
 var arr = [1,2,3,4,5];
 
 arr.unshift(0);
-[0].concat(arr); // 98% faster in Chrome 47.0.2526.106 on Mac OS X 10.11.1
+[0].concat(arr); // 98% faster in Chrome 47.0.2526.106 on macOS 10.11.1
 ```
 Here is a little bit detail, unshift edit the original array, concat return a new array. [jsperf](http://jsperf.com/unshift-item-inside-an-array)
 

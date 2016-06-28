@@ -176,7 +176,7 @@ class MenuManager
   unmerge: (menu, item) ->
     MenuHelpers.unmerge(menu, item)
 
-  # OSX can't handle displaying accelerators for multiple keystrokes.
+  # macOS can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
   filterMultipleKeystroke: (keystrokesByCommand) ->

@@ -9,7 +9,7 @@ import os from 'os'
 function getRawShellEnv () {
   let shell = getUserShell()
 
-  // The `-ilc` set of options was tested to work with the OS X v10.11
+  // The `-ilc` set of options was tested to work with the macOS v10.11
   // default-installed versions of bash, zsh, sh, and ksh. It *does not*
   // work with csh or tcsh.
   let results = spawnSync(shell, ['-ilc', 'env'], {encoding: 'utf8'})

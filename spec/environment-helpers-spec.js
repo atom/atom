@@ -23,7 +23,7 @@ describe('Environment handling', () => {
     delete process._originalEnv
   })
 
-  describe('on OSX, when PWD is not set', () => {
+  describe('on macOS, when PWD is not set', () => {
     beforeEach(() => {
       options.platform = 'darwin'
     })
@@ -67,7 +67,7 @@ describe('Environment handling', () => {
     })
   })
 
-  describe('on a platform other than OSX', () => {
+  describe('on a platform other than macOS', () => {
     beforeEach(() => {
       options.platform = 'penguin'
     })
