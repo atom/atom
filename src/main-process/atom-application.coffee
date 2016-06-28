@@ -76,6 +76,8 @@ class AtomApplication
     @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
     @config.load()
 
+    @config.onDidChange 'core.useCustomTitleBar', @promptForRelaunch
+
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
@@ -86,6 +88,7 @@ class AtomApplication
     @handleEvents()
     @setupDockMenu()
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
+
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
@@ -706,3 +709,16 @@ class AtomApplication
       openOptions.defaultPath = path
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)
+
+  promptForRelaunch: ->
+    chosen = dialog.showMessageBox BrowserWindow.getFocusedWindow(),
+      type: 'warning'
+      title: 'Relaunch required'
+      message: "To apply this setting, you'll need to relaunch Atom."
+      detail: ''
+      buttons: ['Relaunch Atom', 'Cancel']
+    if chosen is 0
+      # once we're using electron v.1.2.2
+      # app.relaunch()
+      app.quit()
+

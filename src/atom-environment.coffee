@@ -196,13 +196,15 @@ class AtomEnvironment extends Model
       notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
 
-    @titleBar = new TitleBar() if process.platform is 'darwin'
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
     @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
     @config.load()
+
+    # This needs to happen after config.load()
+    @titleBar = new TitleBar() if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
 
     @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
