@@ -70,15 +70,10 @@
     ModuleCache.register(loadSettings)
     ModuleCache.add(loadSettings.resourcePath)
 
-    // Start the crash reporter before anything else.
-    require('electron').crashReporter.start({
-      productName: 'Atom',
-      companyName: 'GitHub',
-      submitURL: 'http://54.249.141.255:1127/post',
-      // By explicitly passing the app version here, we could save the call
-      // of "require('remote').require('app').getVersion()".
-      extra: {_version: loadSettings.appVersion}
-    })
+    // By explicitly passing the app version here, we could save the call
+    // of "require('remote').require('app').getVersion()".
+    var startCrashReporter = require('../src/crash-reporter-start')
+    startCrashReporter({_version: loadSettings.appVersion})
 
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())

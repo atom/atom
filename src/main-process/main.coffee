@@ -4,12 +4,13 @@ process.on 'uncaughtException', (error={}) ->
   console.log(error.message) if error.message?
   console.log(error.stack) if error.stack?
 
-{crashReporter, app} = require 'electron'
+{app} = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
 temp = require 'temp'
 yargs = require 'yargs'
 previousConsoleLog = console.log
+startCrashReporter = require('../crash-reporter-start')
 console.log = require 'nslog'
 
 start = ->
@@ -38,7 +39,7 @@ start = ->
 
   app.on 'open-file', addPathToOpen
   app.on 'open-url', addUrlToOpen
-  app.on 'will-finish-launching', setupCrashReporter
+  app.on 'will-finish-launching', startCrashReporter
 
   if args.userDataDir?
     app.setPath('userData', args.userDataDir)
@@ -65,9 +66,6 @@ handleStartupEventWithSquirrel = ->
   SquirrelUpdate = require './squirrel-update'
   squirrelCommand = process.argv[1]
   SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
-
-setupCrashReporter = ->
-  crashReporter.start(productName: 'Atom', companyName: 'GitHub', submitURL: 'http://54.249.141.255:1127/post')
 
 setupAtomHome = ({setPortable}) ->
   return if process.env.ATOM_HOME
