@@ -5,13 +5,13 @@
 // editor resource with a tab.
 atom-pane-container {
   position: relative;
-  display: -webkit-flex;
-  -webkit-flex: 1;
+  display: flex;
+  flex: 1;
   min-width: 0;
 
   atom-pane-axis {
-    display: -webkit-flex;
-    -webkit-flex: 1;
+    display: flex;
+    flex: 1;
     min-width: 0;
 
     & > atom-pane-resize-handle {
@@ -21,7 +21,7 @@ atom-pane-container {
   }
 
   atom-pane-axis.vertical {
-    -webkit-flex-direction: column;
+    flex-direction: column;
 
     & > atom-pane-resize-handle {
       width: 100%;
@@ -33,7 +33,7 @@ atom-pane-container {
   }
 
   atom-pane-axis.horizontal {
-    -webkit-flex-direction: row;
+    flex-direction: row;
 
     & > atom-pane-resize-handle {
       width: 8px;
@@ -46,15 +46,15 @@ atom-pane-container {
 
   atom-pane {
     position: relative;
-    display: -webkit-flex;
-    -webkit-flex: 1;
-    -webkit-flex-direction: column;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     overflow: visible;
     min-width: 0;
 
     .item-views {
-      -webkit-flex: 1;
-      display: -webkit-flex;
+      flex: 1;
+      display: flex;
       min-height: 0;
       min-width: 0;
       position: relative;
