@@ -51,3 +51,4 @@ addons:
     - git
     - libgnome-keyring-dev
     - fakeroot
+    - gcc-multilib
