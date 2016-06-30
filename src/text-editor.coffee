@@ -188,7 +188,7 @@ class TextEditor extends Model
   update: (params) ->
     {
       softTabs, tabLength, softWrapped, mini, placeholderText, lineNumberGutterVisible,
-      showInvisibles, ignoreInvisibles, editorWidthInChars, scrollPastEnd
+      showInvisibles, ignoreInvisibles, editorWidthInChars, scrollPastEnd, autoHeight
     } = params
 
     resetDisplayLayer = false
@@ -227,6 +227,9 @@ class TextEditor extends Model
 
     if scrollPastEnd? and scrollPastEnd isnt @scrollPastEnd
       @setScrollPastEnd(scrollPastEnd)
+
+    if autoHeight? and autoHeight isnt @autoHeight
+      @setAutoHeight(autoHeight)
 
     if resetDisplayLayer
       @resetDisplayLayer()

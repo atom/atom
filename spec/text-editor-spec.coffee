@@ -100,7 +100,8 @@ describe "TextEditor", ->
       editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
       editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
-        ignoreInvisibles: true, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true
+        ignoreInvisibles: true, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
+        autoHeight: false
       })
       expect(changeSpy.callCount).toBe(1)
       expect(editor.getTabLength()).toBe(6)
@@ -111,6 +112,7 @@ describe "TextEditor", ->
       expect(editor.isMini()).toBe(false)
       expect(editor.isLineNumberGutterVisible()).toBe(false)
       expect(editor.getScrollPastEnd()).toBe(true)
+      expect(editor.getAutoHeight()).toBe(false)
 
   describe "config defaults", ->
     it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs`, and `core.fileEncoding` config values", ->
