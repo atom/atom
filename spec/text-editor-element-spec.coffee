@@ -267,6 +267,26 @@ describe "TextEditorElement", ->
       element.getModel().setMini(false)
       expect(element.hasAttribute('mini')).toBe false
 
+  describe "on TextEditor::onDidChangeAutoHeight", ->
+    it "changes the element's height", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
+      expect(element.style.height).toBe('')
+      element.getModel().setAutoHeight(false)
+
+      waitsForPromise ->
+        atom.views.getNextUpdatePromise()
+
+      runs ->
+        expect(element.style.height).toBe('100%')
+        element.getModel().setAutoHeight(true)
+
+      waitsForPromise ->
+        atom.views.getNextUpdatePromise()
+
+      runs ->
+        expect(element.style.height).toBe('')
+
   describe "events", ->
     element = null
 

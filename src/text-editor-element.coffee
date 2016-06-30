@@ -38,7 +38,8 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    @resetAutoHeight()
+    unless @getModel().getAutoHeight()
+      @style.height = "100%"
 
     if @config.get('editor.useShadowDOM')
       @useShadowDOM = true
@@ -193,8 +194,11 @@ class TextEditorElement extends HTMLElement
     @removeAttribute("mini")
 
   resetAutoHeight: ->
-    unless @getModel().getAutoHeight()
-      @style.height = "100%"
+    @views.updateDocument =>
+      if @getModel().getAutoHeight()
+        @style.height = ""
+      else
+        @style.height = "100%"
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
