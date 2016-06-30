@@ -5690,40 +5690,6 @@ describe "TextEditor", ->
       editor.selectPageUp()
       expect(editor.getSelectedBufferRanges()).toEqual [[[0, 0], [12, 2]]]
 
-  describe "scroll past end", ->
-    it "returns the scrollPastEnd setting on the editor instance if set, or 'editor.scrollPastEnd' otherwise", ->
-      atom.config.set('editor.scrollPastEnd', true)
-      expect(editor.getScrollPastEnd()).toBe(true)
-
-      atom.config.set('editor.scrollPastEnd', false)
-      expect(editor.getScrollPastEnd()).toBe(false)
-
-      editor.setScrollPastEnd(true)
-      expect(editor.getScrollPastEnd()).toBe(true)
-
-      atom.config.set('editor.scrollPastEnd', true)
-      atom.config.set('editor.scrollPastEnd', false)
-      expect(editor.getScrollPastEnd()).toBe(true)
-
-    it "emits a onDidChangeScrollPastEnd event when it changes", ->
-      scrollPastEndSpy = jasmine.createSpy('onDidChangeScrollPastEnd')
-      editor.onDidChangeScrollPastEnd(scrollPastEndSpy)
-
-      atom.config.set('editor.scrollPastEnd', true)
-      expect(scrollPastEndSpy).toHaveBeenCalled()
-
-      scrollPastEndSpy.reset()
-      editor.setScrollPastEnd(false)
-      expect(scrollPastEndSpy).toHaveBeenCalled()
-
-      scrollPastEndSpy.reset()
-      editor.setScrollPastEnd(false)
-      expect(scrollPastEndSpy).not.toHaveBeenCalled()
-
-      atom.config.set('editor.scrollPastEnd', false)
-      atom.config.set('editor.scrollPastEnd', true)
-      expect(scrollPastEndSpy).not.toHaveBeenCalled()
-
   describe "::setFirstVisibleScreenRow() and ::getFirstVisibleScreenRow()", ->
     beforeEach ->
       line = Array(9).join('0123456789')
@@ -5803,6 +5769,40 @@ describe "TextEditor", ->
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: true})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true})
+
+  describe "scroll past end", ->
+    it "returns the scrollPastEnd setting on the editor instance if set, or 'editor.scrollPastEnd' otherwise", ->
+      atom.config.set('editor.scrollPastEnd', true)
+      expect(editor.getScrollPastEnd()).toBe(true)
+
+      atom.config.set('editor.scrollPastEnd', false)
+      expect(editor.getScrollPastEnd()).toBe(false)
+
+      editor.setScrollPastEnd(true)
+      expect(editor.getScrollPastEnd()).toBe(true)
+
+      atom.config.set('editor.scrollPastEnd', true)
+      atom.config.set('editor.scrollPastEnd', false)
+      expect(editor.getScrollPastEnd()).toBe(true)
+
+    it "emits a onDidChangeScrollPastEnd event when it changes", ->
+      scrollPastEndSpy = jasmine.createSpy('onDidChangeScrollPastEnd')
+      editor.onDidChangeScrollPastEnd(scrollPastEndSpy)
+
+      atom.config.set('editor.scrollPastEnd', true)
+      expect(scrollPastEndSpy).toHaveBeenCalled()
+
+      scrollPastEndSpy.reset()
+      editor.setScrollPastEnd(false)
+      expect(scrollPastEndSpy).toHaveBeenCalled()
+
+      scrollPastEndSpy.reset()
+      editor.setScrollPastEnd(false)
+      expect(scrollPastEndSpy).not.toHaveBeenCalled()
+
+      atom.config.set('editor.scrollPastEnd', false)
+      atom.config.set('editor.scrollPastEnd', true)
+      expect(scrollPastEndSpy).not.toHaveBeenCalled()
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
