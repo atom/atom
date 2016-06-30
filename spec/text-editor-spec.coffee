@@ -5804,6 +5804,31 @@ describe "TextEditor", ->
       atom.config.set('editor.scrollPastEnd', true)
       expect(scrollPastEndSpy).not.toHaveBeenCalled()
 
+  describe "auto height", ->
+    it "returns true by default but can be customized", ->
+      expect(editor.getAutoHeight()).toBe(true)
+
+      editor.setAutoHeight(false)
+      expect(editor.getAutoHeight()).toBe(false)
+
+      editor.setAutoHeight(true)
+      expect(editor.getAutoHeight()).toBe(true)
+
+    it "emits a onDidChangeAutoHeight event when it changes", ->
+      autoHeightSpy = jasmine.createSpy('onDidChangeAutoHeight')
+      editor.onDidChangeAutoHeight(autoHeightSpy)
+
+      editor.setAutoHeight(true)
+      expect(autoHeightSpy).toHaveBeenCalled()
+
+      autoHeightSpy.reset()
+      editor.setAutoHeight(false)
+      expect(autoHeightSpy).toHaveBeenCalled()
+
+      autoHeightSpy.reset()
+      editor.setAutoHeight(false)
+      expect(autoHeightSpy).not.toHaveBeenCalled()
+
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
       newEditor = atom.workspace.buildTextEditor(

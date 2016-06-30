@@ -141,7 +141,6 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
-    @autoHeight ?= true
     @hasTerminatedPendingState = false
 
     @showInvisibles ?= true
@@ -3395,7 +3394,7 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight)
+    @editorElement ?= new TextEditorElement().initialize(this, atom)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
@@ -3469,6 +3468,17 @@ class TextEditor extends Model
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
     @height
+
+  getAutoHeight: ->
+    @autoHeight ? true
+
+  setAutoHeight: (autoHeight) ->
+    if autoHeight isnt @autoHeight
+      @autoHeight = autoHeight
+      @emitter.emit('did-change-auto-height')
+
+  onDidChangeAutoHeight: (callback) ->
+    @emitter.on('did-change-auto-height', callback)
 
   setWidth: (width, reentrant=false) ->
     if reentrant
