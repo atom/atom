@@ -187,6 +187,49 @@ class TextEditor extends Model
     if grammar?
       @setGrammar(grammar)
 
+  update: (params) ->
+    {
+      softTabs, tabLength, softWrapped, mini, placeholderText, lineNumberGutterVisible,
+      showInvisibles, ignoreInvisibles, editorWidthInChars
+    } = params
+
+    resetDisplayLayer = false
+
+    if softTabs? and softTabs isnt @softTabs
+      @setSoftTabs(softTabs)
+
+    if tabLength? and tabLength isnt @tabLength
+      @setTabLength(tabLength, false)
+      resetDisplayLayer = true
+
+    if softWrapped? and softWrapped isnt @softWrapped
+      @setSoftWrapped(softWrapped, false)
+      resetDisplayLayer = true
+
+    if mini? and mini isnt @mini
+      @setMini(mini)
+
+    if placeholderText? and placeholderText isnt @placeholderText
+      @setPlaceholderText(placeholderText)
+
+    if lineNumberGutterVisible? and lineNumberGutterVisible isnt @lineNumberGutterVisible
+      @setLineNumberGutterVisible(lineNumberGutterVisible)
+
+    if showInvisibles? and showInvisibles isnt @showInvisibles
+      @showInvisibles = showInvisibles
+      resetDisplayLayer = true
+
+    if ignoreInvisibles? and ignoreInvisibles isnt @ignoreInvisibles
+      @setIgnoreInvisibles(ignoreInvisibles, false)
+      resetDisplayLayer = true
+
+    if editorWidthInChars? and editorWidthInChars isnt @editorWidthInChars
+      @setEditorWidthInChars(editorWidthInChars, false)
+      resetDisplayLayer = true
+
+    if resetDisplayLayer
+      @resetDisplayLayer()
+
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 
@@ -652,12 +695,12 @@ class TextEditor extends Model
   #
   # * `editorWidthInChars` A {Number} representing the width of the
   # {TextEditorElement} in characters.
-  setEditorWidthInChars: (editorWidthInChars) ->
+  setEditorWidthInChars: (editorWidthInChars, resetDisplayLayer=true) ->
     if editorWidthInChars > 0
       previousWidthInChars = @editorWidthInChars
       @editorWidthInChars = editorWidthInChars
       if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
-        @resetDisplayLayer()
+        @resetDisplayLayer() if resetDisplayLayer
 
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
@@ -2721,18 +2764,18 @@ class TextEditor extends Model
   #
   # * `tabLength` {Number} length of a single tab. Setting to `null` will
   #   fallback to using the `editor.tabLength` config setting
-  setTabLength: (tabLength) ->
+  setTabLength: (tabLength, resetDisplayLayer=true) ->
     return if tabLength is @tabLength
 
     @tabLength = tabLength
     @tokenizedBuffer.setTabLength(@tabLength)
-    @resetDisplayLayer()
+    @resetDisplayLayer() if resetDisplayLayer
 
-  setIgnoreInvisibles: (ignoreInvisibles) ->
+  setIgnoreInvisibles: (ignoreInvisibles, resetDisplayLayer=true) ->
     return if ignoreInvisibles is @ignoreInvisibles
 
     @ignoreInvisibles = ignoreInvisibles
-    @resetDisplayLayer()
+    @resetDisplayLayer() if resetDisplayLayer
 
   getInvisibles: ->
     scopeDescriptor = @getRootScopeDescriptor()
@@ -2805,10 +2848,10 @@ class TextEditor extends Model
   # * `softWrapped` A {Boolean}
   #
   # Returns a {Boolean}.
-  setSoftWrapped: (softWrapped) ->
+  setSoftWrapped: (softWrapped, resetDisplayLayer=true) ->
     if softWrapped isnt @softWrapped
       @softWrapped = softWrapped
-      @resetDisplayLayer()
+      @resetDisplayLayer() if resetDisplayLayer
       softWrapped = @isSoftWrapped()
       @emitter.emit 'did-change-soft-wrapped', softWrapped
       softWrapped

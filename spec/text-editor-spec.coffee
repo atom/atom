@@ -94,6 +94,23 @@ describe "TextEditor", ->
       editor2.unfoldBufferRow(4)
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
+  describe ".update()", ->
+    it "updates the editor with the supplied config parameters", ->
+      atom.config.set('editor.showInvisibles', true)
+      editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
+      editor.update({
+        tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
+        ignoreInvisibles: true, mini: false, lineNumberGutterVisible: false
+      })
+      expect(changeSpy.callCount).toBe(1)
+      expect(editor.getTabLength()).toBe(6)
+      expect(editor.getSoftTabs()).toBe(false)
+      expect(editor.isSoftWrapped()).toBe(true)
+      expect(editor.getEditorWidthInChars()).toBe(40)
+      expect(editor.getInvisibles()).toEqual({})
+      expect(editor.isMini()).toBe(false)
+      expect(editor.isLineNumberGutterVisible()).toBe(false)
+
   describe "config defaults", ->
     it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs`, and `core.fileEncoding` config values", ->
       editor1 = null
