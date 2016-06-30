@@ -42,9 +42,11 @@ class NotificationManager
   #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A Markdown {String} containing a longer
-  #      description about the notification.
-  #    * `detail` (optional) A preformatted {String} that will be rendered as
-  #      plain text with details about the notification.
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -65,9 +67,11 @@ class NotificationManager
   #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A Markdown {String} containing a longer
-  #      description about the notification.
-  #    * `detail` (optional) A preformatted {String} that will be rendered as
-  #      plain text with details about the notification.
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -88,9 +92,11 @@ class NotificationManager
   #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A Markdown {String} containing a longer
-  #      description about the notification.
-  #    * `detail` (optional) A preformatted {String} that will be rendered as
-  #      plain text with details about the notification.
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -111,9 +117,11 @@ class NotificationManager
   #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A Markdown {String} containing a longer
-  #      description about the notification.
-  #    * `detail` (optional) A preformatted {String} that will be rendered as
-  #      plain text with details about the notification.
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -136,9 +144,11 @@ class NotificationManager
   #        {NotificationElement} instance.
   #      * `text` {String} inner text for the button
   #    * `description` (optional) A Markdown {String} containing a longer
-  #      description about the notification.
-  #    * `detail` (optional) A preformatted {String} that will be rendered as
-  #      plain text with details about the notification.
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
