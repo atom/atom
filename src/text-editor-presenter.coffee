@@ -13,7 +13,7 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @config, @lineTopIndex, scrollPastEnd} = params
+    {@model, @config, @lineTopIndex} = params
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
     {@displayLayer} = @model
@@ -43,8 +43,6 @@ class TextEditorPresenter
     @startBlinkingCursors() if @focused
     @startReflowing() if @continuousReflow
     @updating = false
-
-    @scrollPastEndOverride = scrollPastEnd ? true
 
   setLinesYardstick: (@linesYardstick) ->
 
@@ -160,6 +158,9 @@ class TextEditorPresenter
     @disposables.add @model.onDidChangeMini =>
       @shouldUpdateDecorations = true
       @emitDidUpdateState()
+    @disposables.add @model.onDidChangeScrollPastEnd =>
+      @updateScrollHeight()
+      @emitDidUpdateState()
 
     @disposables.add @model.onDidChangeLineNumberGutterVisible(@emitDidUpdateState.bind(this))
 
@@ -173,7 +174,6 @@ class TextEditorPresenter
   observeConfig: ->
     configParams = {scope: @model.getRootScopeDescriptor()}
 
-    @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
     @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
 
     if @configDisposables?
@@ -183,11 +183,6 @@ class TextEditorPresenter
     @configDisposables = new CompositeDisposable
     @disposables.add(@configDisposables)
 
-    @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
-      @scrollPastEnd = newValue
-      @updateScrollHeight()
-
-      @emitDidUpdateState()
     @configDisposables.add @config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
       @showLineNumbers = newValue
       @emitDidUpdateState()
@@ -651,7 +646,7 @@ class TextEditorPresenter
     return unless @contentHeight? and @clientHeight?
 
     contentHeight = @contentHeight
-    if @scrollPastEnd and @scrollPastEndOverride
+    if @model.getScrollPastEnd()
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
     scrollHeight = Math.max(contentHeight, @height)

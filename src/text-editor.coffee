@@ -142,7 +142,6 @@ class TextEditor extends Model
     @cursorsByMarkerId = new Map
     @selections = []
     @autoHeight ?= true
-    @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
 
     @showInvisibles ?= true
@@ -283,6 +282,9 @@ class TextEditor extends Model
     subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
+    subscriptions.add @config.onDidChange 'editor.scrollPastEnd', scope: scopeDescriptor, =>
+      unless @scrollPastEnd?
+        @emitter.emit('did-change-scroll-past-end')
 
     @resetDisplayLayer()
 
@@ -3320,6 +3322,20 @@ class TextEditor extends Model
     scrollEvent = {screenRange, options}
     @emitter.emit "did-request-autoscroll", scrollEvent
 
+  getScrollPastEnd: ->
+    if @scrollPastEnd?
+      @scrollPastEnd
+    else
+      @config.get('editor.scrollPastEnd', scope: @getRootScopeDescriptor())
+
+  setScrollPastEnd: (scrollPastEnd) ->
+    if scrollPastEnd isnt @scrollPastEnd
+      @scrollPastEnd = scrollPastEnd
+      @emitter.emit('did-change-scroll-past-end')
+
+  onDidChangeScrollPastEnd: (callback) ->
+    @emitter.on('did-change-scroll-past-end', callback)
+
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
@@ -3376,7 +3392,7 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
+    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
@@ -3470,7 +3486,7 @@ class TextEditor extends Model
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
-      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
+      unless @getScrollPastEnd()
         if @height? and @lineHeightInPixels?
           maxScreenRow -= Math.floor(@height / @lineHeightInPixels)
       screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)
