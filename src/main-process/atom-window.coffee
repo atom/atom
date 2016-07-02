@@ -46,6 +46,9 @@ class AtomWindow
     @browserWindow = new BrowserWindow options
     global.atomApplication.addWindow(this)
 
+    if process.platform is 'darwin' and global.atomApplication.config.get('core.useCustomTitleBar')
+      @browserWindow.setSheetOffset(23)
+
     @handleEvents()
 
     loadSettings = Object.assign({}, settings)
