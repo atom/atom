@@ -557,10 +557,6 @@ class AtomEnvironment extends Model
   # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     @applicationDelegate.setWindowFullScreen(fullScreen)
-    if fullScreen
-      @document.body.classList.add("fullscreen")
-    else
-      @document.body.classList.remove("fullscreen")
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
