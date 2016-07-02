@@ -1,15 +1,17 @@
 @import "ui-variables";
 
 @title-bar-text-size: 13px;
+@title-bar-height: 23px;
 @title-bar-background-color: @base-background-color;
 @title-bar-border-color: @base-border-color;
 
 body.fullscreen .title-bar {
-  display: none;
+  margin-top: -@title-bar-height;
 }
 
 .title-bar {
-  height: 23px;
+  height: @title-bar-height;
+  transition: margin-top 200ms ease-out 700ms;
 
   flex-shrink: 0;
   display: flex;
