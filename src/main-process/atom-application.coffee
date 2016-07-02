@@ -714,9 +714,8 @@ class AtomApplication
     chosen = dialog.showMessageBox BrowserWindow.getFocusedWindow(),
       type: 'warning'
       title: 'Relaunch required'
-      message: "To apply this setting, you'll need to relaunch Atom."
-      detail: ''
-      buttons: ['Relaunch Atom', 'Cancel']
+      message: "You will need to relaunch Atom for this change to take effect."
+      buttons: ['Quit Atom', 'Cancel']
     if chosen is 0
       # once we're using electron v.1.2.2
       # app.relaunch()
