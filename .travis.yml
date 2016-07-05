@@ -9,6 +9,8 @@ env:
   global:
     - ATOM_ACCESS_TOKEN=da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4
 
+osx_image: xcode7.3
+
 compiler: clang
 
 matrix:
