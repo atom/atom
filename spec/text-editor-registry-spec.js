@@ -9,8 +9,8 @@ describe('TextEditorRegistry', function () {
     registry = new TextEditorRegistry()
   })
 
-  describe('when a TextEditor is added', function () {
-    it('gets added to the list of registered editors', function () {
+  describe('.add', function () {
+    it('adds an editor to the list of registered editors', function () {
       editor = {}
       registry.add(editor)
       expect(editor.registered).toBe(true)
@@ -26,19 +26,9 @@ describe('TextEditorRegistry', function () {
       expect(registry.editors.size).toBe(0)
       expect(editor.registered).toBe(false)
     })
-
-    it('can be removed', function () {
-      editor = {}
-      registry.add(editor)
-      expect(registry.editors.size).toBe(1)
-      const success = registry.remove(editor)
-      expect(success).toBe(true)
-      expect(registry.editors.size).toBe(0)
-      expect(editor.registered).toBe(false)
-    })
   })
 
-  describe('when the registry is observed', function () {
+  describe('.observe', function () {
     it('calls the callback for current and future editors until unsubscribed', function () {
       const spy = jasmine.createSpy()
       const [editor1, editor2, editor3] = [{}, {}, {}]
