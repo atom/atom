@@ -40,13 +40,13 @@ class AtomWindow
     if process.platform is 'linux'
       options.icon = @constructor.iconPath
 
-    if process.platform is 'darwin' and global.atomApplication.config.get('core.useCustomTitleBar')
+    if @applyTitleBarSetting()
       options.titleBarStyle = 'hidden'
 
     @browserWindow = new BrowserWindow options
     global.atomApplication.addWindow(this)
 
-    if process.platform is 'darwin' and global.atomApplication.config.get('core.useCustomTitleBar')
+    if @applyTitleBarSetting()
       @browserWindow.setSheetOffset(23)
 
     @handleEvents()
@@ -204,6 +204,11 @@ class AtomWindow
     [x, y] = @browserWindow.getPosition()
     [width, height] = @browserWindow.getSize()
     {x, y, width, height}
+
+  applyTitleBarSetting: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    global.atomApplication.config.get('core.useCustomTitleBar')
 
   close: -> @browserWindow.close()
 
