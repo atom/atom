@@ -271,4 +271,4 @@ if process.platform is 'darwin'
   module.exports.core.properties.useCustomTitleBar =
     type: 'boolean'
     default: false
-    description: 'Use custom, theme-aware title-bar.<br />Note: This currently does not include a file icon or title context menu.<br />This setting will require a relaunch of Atom to take effect.'
+    description: 'Use custom, theme-aware title-bar.<br />Note: Note: This currently does not include a proxy icon.<br />This setting will require a relaunch of Atom to take effect.'
