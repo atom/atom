@@ -451,13 +451,13 @@ class TokenizedBuffer extends Model
     position = Point.fromObject(position)
 
     {openScopes, tags} = @tokenizedLineForRow(position.row)
-    scopes = openScopes.map (tag) => @grammarRegistry.scopeForId(tag)
+    scopes = openScopes.map (tag) => @grammar.scopeForId(tag)
 
     startColumn = 0
     for tag, tokenIndex in tags
       if tag < 0
         if tag % 2 is -1
-          scopes.push(@grammarRegistry.scopeForId(tag))
+          scopes.push(@grammar.scopeForId(tag))
         else
           scopes.pop()
       else
@@ -477,7 +477,7 @@ class TokenizedBuffer extends Model
         if tag % 2 is -1
           startScopes.pop()
         else
-          startScopes.push(@grammarRegistry.scopeForId(tag))
+          startScopes.push(@grammar.scopeForId(tag))
       else
         break unless selectorMatchesAnyScope(selector, startScopes)
         startColumn -= tag
@@ -487,7 +487,7 @@ class TokenizedBuffer extends Model
       tag = tags[endTokenIndex]
       if tag < 0
         if tag % 2 is -1
-          endScopes.push(@grammarRegistry.scopeForId(tag))
+          endScopes.push(@grammar.scopeForId(tag))
         else
           endScopes.pop()
       else
