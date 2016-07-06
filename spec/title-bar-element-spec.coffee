@@ -15,5 +15,4 @@ describe "TitleBarElement", ->
     document.title = 'new-title'
     element.updateTitle()
 
-    console.log element.querySelector('.title').textContent
     expect(element.querySelector('.title').textContent).toBe 'new-title'
