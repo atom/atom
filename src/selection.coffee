@@ -258,7 +258,7 @@ class Selection extends Model
   # Public: Selects all the text from the current cursor position to the end of
   # the screen line.
   selectToEndOfLine: ->
-    @modifySelection => @cursor.moveToEndOfScreenLine()
+    @modifySelection => @cursor.moveToEndOfLine()
 
   # Public: Selects all the text from the current cursor position to the end of
   # the buffer line.
