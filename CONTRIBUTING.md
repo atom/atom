@@ -280,6 +280,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
     * :arrow_down: `:arrow_down:` when downgrading dependencies
     * :shirt: `:shirt:` when removing linter warnings
     * :sparkles: `:sparkles:` when adding a feature `:sparkles:`
+    * :poop: `:poop` when knowingly introducing a bug
 
 ### CoffeeScript Styleguide
 
