@@ -130,21 +130,27 @@ exports.handleStartupEvent = (app, squirrelCommand) ->
   switch squirrelCommand
     when '--squirrel-install'
       createShortcuts ->
-        WindowsShell.installingAtom ->
+        WinShell.fileHandler.register ->
           addCommandsToPath ->
             app.quit()
       true
     when '--squirrel-updated'
       updateShortcuts ->
-        WindowsShell.upgradingAtom ->
-          addCommandsToPath ->
-            app.quit()
+        WinShell.fileHandler.update ->
+          WinShell.fileContextMenu.update ->
+            WinShell.folderContextMenu.update ->
+              WinShell.folderBackgroundContextMenu.update ->
+                addCommandsToPath ->
+                  app.quit()
       true
     when '--squirrel-uninstall'
       removeShortcuts ->
-        WindowsShell.uninstallingAtom ->
-          removeCommandsFromPath ->
-            app.quit()
+        WinShell.fileHandler.deregister ->
+          WinShell.fileContextMenu.deregister ->
+            WinShell.folderContextMenu.deregister ->
+              WinShell.folderBackgroundContextMenu.deregister ->
+                removeCommandsFromPath ->
+                  app.quit()
       true
     when '--squirrel-obsolete'
       app.quit()

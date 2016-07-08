@@ -61,6 +61,7 @@
     "text-buffer": "9.2.2",
     "typescript-simple": "1.0.0",
     "underscore-plus": "^1.6.6",
+    "winreg": "^1.2.1",
     "yargs": "^3.23.0"
   },
   "packageDependencies": {
