@@ -234,6 +234,11 @@ class TextEditor extends Model
     if resetDisplayLayer
       @resetDisplayLayer()
 
+    if @editorElement?
+      @editorElement.views.getNextUpdatePromise()
+    else
+      Promise.resolve()
+
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 
