@@ -1,7 +1,7 @@
 fs = require 'fs-plus'
 path = require 'path'
 Spawner = require './spawner'
-WinRegistry = require './win-registry'
+WinShell = require './win-shell'
 WinPowerShell = require './win-powershell'
 
 appFolder = path.resolve(process.execPath, '..')
@@ -130,19 +130,19 @@ exports.handleStartupEvent = (app, squirrelCommand) ->
   switch squirrelCommand
     when '--squirrel-install'
       createShortcuts ->
-        WinRegistry.installContextMenu ->
+        WindowsShell.installingAtom ->
           addCommandsToPath ->
             app.quit()
       true
     when '--squirrel-updated'
       updateShortcuts ->
-        WinRegistry.installContextMenu ->
+        WindowsShell.upgradingAtom ->
           addCommandsToPath ->
             app.quit()
       true
     when '--squirrel-uninstall'
       removeShortcuts ->
-        WinRegistry.uninstallContextMenu ->
+        WindowsShell.uninstallingAtom ->
           removeCommandsFromPath ->
             app.quit()
       true
