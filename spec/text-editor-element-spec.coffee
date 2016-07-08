@@ -269,23 +269,21 @@ describe "TextEditorElement", ->
 
   describe "on TextEditor::onDidChangeAutoHeight", ->
     it "changes the element's height", ->
-      element = new TextEditorElement
-      jasmine.attachToDOM(element)
-      expect(element.style.height).toBe('')
-      element.getModel().setAutoHeight(false)
+      editor = atom.workspace.buildTextEditor()
+      jasmine.attachToDOM(editor.element)
+      expect(editor.element.style.height).toBe('')
 
       waitsForPromise ->
-        atom.views.getNextUpdatePromise()
+        editor.update({autoHeight: false})
 
       runs ->
-        expect(element.style.height).toBe('100%')
-        element.getModel().setAutoHeight(true)
+        expect(editor.element.style.height).toBe('100%')
 
       waitsForPromise ->
-        atom.views.getNextUpdatePromise()
+        editor.update({autoHeight: true})
 
       runs ->
-        expect(element.style.height).toBe('')
+        expect(editor.element.style.height).toBe('')
 
   describe "events", ->
     element = null
