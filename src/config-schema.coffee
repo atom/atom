@@ -100,6 +100,10 @@ module.exports =
           'windows1258',
           'windows866'
         ]
+      fileEncodingAutoDetect:
+        type: 'boolean'
+        default: false
+        description: 'Auto detect character set encoding when reading files. If failed on detect, default encoding above will be used.'
       openEmptyEditorOnStart:
         description: 'Automatically open an empty editor on startup.'
         type: 'boolean'
