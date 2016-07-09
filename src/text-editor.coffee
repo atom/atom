@@ -77,6 +77,8 @@ class TextEditor extends Model
   height: null
   width: null
   registered: false
+  atomicSoftTabs: true
+  invisibles: null
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -176,8 +178,6 @@ class TextEditor extends Model
 
     @languageMode = new LanguageMode(this, @config)
 
-    @setEncoding(@config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
-
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
       name: 'line-number'
@@ -231,10 +231,7 @@ class TextEditor extends Model
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getRootScopeDescriptor()
-    subscriptions.add @config.onDidChange 'editor.atomicSoftTabs', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.invisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.showIndentGuide', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
@@ -2704,17 +2701,24 @@ class TextEditor extends Model
   # * `softTabs` A {Boolean}
   setSoftTabs: (@softTabs) -> @softTabs
 
+  # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
+  hasAtomicSoftTabs: -> @atomicSoftTabs
+
+  # Enable or disable atomic soft tabs for this editor.
+  #
+  # * `atomicSoftTabs` A {Boolean}
+  setAtomicSoftTabs: (atomicSoftTabs) ->
+    return if atomicSoftTabs is @atomicSoftTabs
+    @atomicSoftTabs = atomicSoftTabs
+    @resetDisplayLayer()
+
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
 
   # Essential: Get the on-screen length of tab characters.
   #
   # Returns a {Number}.
-  getTabLength: ->
-    if @tabLength?
-      @tabLength
-    else
-      @config.get('editor.tabLength', scope: @getRootScopeDescriptor())
+  getTabLength: -> @tabLength
 
   # Essential: Set the on-screen length of tab characters. Setting this to a
   # {Number} This will override the `editor.tabLength` setting.
@@ -2728,18 +2732,34 @@ class TextEditor extends Model
     @tokenizedBuffer.setTabLength(@tabLength)
     @resetDisplayLayer()
 
-  setIgnoreInvisibles: (ignoreInvisibles) ->
-    return if ignoreInvisibles is @ignoreInvisibles
+  # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
+  doesShowInvisibles: -> @showInvisibles
 
-    @ignoreInvisibles = ignoreInvisibles
+  # Enable or disable invisible character substitution for this editor.
+  #
+  # * `showInvisibles` A {Boolean}
+  setShowInvisibles: (showInvisibles) ->
+    return if showInvisibles is @showInvisibles
+    @showInvisibles = showInvisibles
     @resetDisplayLayer()
 
+  # Returns an {Object} representing the current invisible character
+  # substitutions for this editor. See {::setInvisibles}.
   getInvisibles: ->
-    scopeDescriptor = @getRootScopeDescriptor()
-    if @config.get('editor.showInvisibles', scope: scopeDescriptor) and not @ignoreInvisibles and @showInvisibles
-      @config.get('editor.invisibles', scope: scopeDescriptor)
+    if not @mini and @showInvisibles and @invisibles?
+      @invisibles
     else
       {}
+
+  # Set the invisible character substitutions for this editor.
+  #
+  # * `invisibles` An {Object} whose keys are names of invisible characters
+  #   and whose values are 1-character {Strings}s to display in place of those
+  #   invisble characters
+  setInvisibles: (invisibles) ->
+    return if invisibles is @invisibles
+    @invisibles = invisibles
+    @resetDisplayLayer()
 
   # Extended: Determine if the buffer uses hard or soft tabs.
   #

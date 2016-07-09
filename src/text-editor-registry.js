@@ -1,6 +1,14 @@
 /** @babel */
 
-import {Emitter, Disposable} from "event-kit"
+import {Emitter, Disposable, CompositeDisposable} from "event-kit"
+
+const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
+  ['core.fileEncoding', 'setEncoding'],
+  ['editor.atomicSoftTabs', 'setAtomicSoftTabs'],
+  ['editor.showInvisibles', 'setShowInvisibles'],
+  ['editor.tabLength', 'setTabLength'],
+  ['editor.invisibles', 'setInvisibles'],
+]
 
 // Experimental: This global registry tracks registered `TextEditors`.
 //
@@ -14,9 +22,18 @@ import {Emitter, Disposable} from "event-kit"
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
 export default class TextEditorRegistry {
-  constructor () {
+  constructor ({config}) {
+    this.config = config
+    this.subscriptions = new CompositeDisposable()
     this.editors = new Set()
     this.emitter = new Emitter()
+    this.scopesWithConfigSubscriptions = new Set()
+    this.editorsWithMaintainedConfig = new Set()
+  }
+
+  destroy () {
+    this.subscriptions.dispose()
+    this.editorsWithMaintainedConfig = null
   }
 
   // Register a `TextEditor`.
@@ -54,5 +71,41 @@ export default class TextEditorRegistry {
   observe (callback) {
     this.editors.forEach(callback)
     return this.emitter.on("did-add-editor", callback)
+  }
+
+  maintainGrammar (editor) {
+
+  }
+
+  maintainConfig (editor) {
+    this.editorsWithMaintainedConfig.add(editor)
+    this.subscribeToSettingsForEditorScope(editor)
+
+    const configOptions = {scope: editor.getRootScopeDescriptor()}
+    for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
+      editor[setterName](atom.config.get(settingKey, configOptions))
+    }
+  }
+
+  subscribeToSettingsForEditorScope (editor) {
+    const scopeDescriptor = editor.getRootScopeDescriptor()
+    const scopeChain = scopeDescriptor.getScopeChain()
+
+    if (!this.scopesWithConfigSubscriptions.has(scopeChain)) {
+      this.scopesWithConfigSubscriptions.add(scopeChain)
+
+      const configOptions = {scope: scopeDescriptor}
+      for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
+        this.subscriptions.add(
+          this.config.onDidChange(settingKey, configOptions, ({newValue}) => {
+            this.editorsWithMaintainedConfig.forEach(editor => {
+              if (editor.getRootScopeDescriptor().getScopeChain() === scopeChain) {
+                editor[setterName](newValue)
+              }
+            })
+          })
+        )
+      }
+    }
   }
 }
