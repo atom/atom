@@ -102,7 +102,7 @@ module.exports =
         ]
       fileEncodingAutoDetect:
         type: 'boolean'
-        default: false
+        default: true
         description: 'Auto detect character set encoding when reading files. If failed on detect, default encoding above will be used.'
       openEmptyEditorOnStart:
         description: 'Automatically open an empty editor on startup.'
