@@ -146,5 +146,29 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.invisibles', invisibles1)
       expect(editor.getInvisibles()).toEqual(invisibles1)
     });
+
+    it('enables or disables the indent guide based on the config', function () {
+      editor.setShowIndentGuide(true)
+      expect(editor.doesShowIndentGuide()).toBe(true)
+
+      atom.config.set('editor.showIndentGuide', false)
+      registry.maintainConfig(editor)
+      expect(editor.doesShowIndentGuide()).toBe(false)
+
+      atom.config.set('editor.showIndentGuide', true)
+      expect(editor.doesShowIndentGuide()).toBe(true)
+    });
+
+    it('enables or disables soft wrap based on the config', function () {
+      editor.setSoftWrapped(true)
+      expect(editor.isSoftWrapped()).toBe(true)
+
+      atom.config.set('editor.softWrap', false)
+      registry.maintainConfig(editor)
+      expect(editor.isSoftWrapped()).toBe(false)
+
+      atom.config.set('editor.softWrap', true)
+      expect(editor.isSoftWrapped()).toBe(true)
+    });
   })
 })

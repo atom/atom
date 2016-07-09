@@ -8,6 +8,8 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.showInvisibles', 'setShowInvisibles'],
   ['editor.tabLength', 'setTabLength'],
   ['editor.invisibles', 'setInvisibles'],
+  ['editor.showIndentGuide', 'setShowIndentGuide'],
+  ['editor.softWrap', 'setSoftWrapped'],
 ]
 
 // Experimental: This global registry tracks registered `TextEditors`.

@@ -231,9 +231,6 @@ class TextEditor extends Model
     @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
 
     scopeDescriptor = @getRootScopeDescriptor()
-    subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.showIndentGuide', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
     subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
@@ -2761,6 +2758,13 @@ class TextEditor extends Model
     @invisibles = invisibles
     @resetDisplayLayer()
 
+  doesShowIndentGuide: -> @showIndentGuide
+
+  setShowIndentGuide: (showIndentGuide) ->
+    return if showIndentGuide is @showIndentGuide
+    @showIndentGuide = showIndentGuide
+    @resetDisplayLayer()
+
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
   # Returns `true` if the first non-comment line with leading whitespace starts
@@ -2817,8 +2821,7 @@ class TextEditor extends Model
     if @largeFileMode
       false
     else
-      scopeDescriptor = @getRootScopeDescriptor()
-      @softWrapped ? @config.get('editor.softWrap', scope: scopeDescriptor) ? false
+      @softWrapped
 
   # Essential: Enable or disable soft wrapping for this editor.
   #
