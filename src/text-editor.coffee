@@ -245,10 +245,8 @@ class TextEditor extends Model
   destroyed: ->
     @disposables.dispose()
     @displayLayer.destroy()
-    @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
     @tokenizedBuffer.destroy()
-    @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
     @selectionsMarkerLayer.destroy()
     @buffer.release()
