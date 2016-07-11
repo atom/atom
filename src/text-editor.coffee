@@ -2832,8 +2832,8 @@ class TextEditor extends Model
   getSoftWrapColumn: ->
     scopeDescriptor = @getRootScopeDescriptor()
     if @isSoftWrapped()
-      if @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
-        Math.min(@getEditorWidthInChars(), @config.get('editor.preferredLineLength', scope: scopeDescriptor))
+      if @softWrapAtPreferredLineLength
+        Math.min(@getEditorWidthInChars(), @preferredLineLength)
       else
         @getEditorWidthInChars()
     else
