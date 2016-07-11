@@ -3,6 +3,7 @@
 import {TextBuffer} from 'atom'
 import TextEditorRegistry from '../src/text-editor-registry'
 import TextEditor from '../src/text-editor'
+import {it, fit, ffit, fffit} from './async-spec-helpers'
 
 describe('TextEditorRegistry', function () {
   let registry, editor
@@ -13,7 +14,6 @@ describe('TextEditorRegistry', function () {
     })
 
     editor = new TextEditor({
-      buffer: new TextBuffer({filePath: 'test.js'}),
       config: atom.config,
       clipboard: atom.clipboard,
       grammarRegistry: atom.grammars
@@ -81,6 +81,33 @@ describe('TextEditorRegistry', function () {
   })
 
   describe('.maintainConfig(editor)', function () {
+    it('does not update editors when config settings change for unrelated scope selectors', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      const editor2 = new TextEditor({
+        config: atom.config,
+        clipboard: atom.clipboard,
+        grammarRegistry: atom.grammars
+      })
+
+      editor2.setGrammar(atom.grammars.selectGrammar('test.js'))
+
+      registry.maintainConfig(editor)
+      registry.maintainConfig(editor2)
+
+      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain.null-grammar'])
+      expect(editor2.getRootScopeDescriptor().getScopesArray()).toEqual(['source.js'])
+
+      expect(editor.getEncoding()).toBe('utf8')
+      expect(editor2.getEncoding()).toBe('utf8')
+
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain'})
+      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
+
+      expect(editor.getEncoding()).toBe('utf16le')
+      expect(editor2.getEncoding()).toBe('utf16be')
+    })
+
     it('sets the encoding based on the config', function () {
       editor.setEncoding('utf8')
       expect(editor.getEncoding()).toBe('utf8')
