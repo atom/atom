@@ -88,14 +88,14 @@ export default class TextEditorRegistry {
 
     const configOptions = {scope: editor.getRootScopeDescriptor()}
     for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
-      editor[setterName](atom.config.get(settingKey, configOptions))
+      editor[setterName](this.config.get(settingKey, configOptions))
     }
 
     const updateTabTypes = () => {
       editor.setSoftTabs(shouldEditorUseSoftTabs(
         editor,
-        atom.config.get('editor.tabType', configOptions),
-        atom.config.get('editor.softTabs', configOptions)
+        this.config.get('editor.tabType', configOptions),
+        this.config.get('editor.softTabs', configOptions)
       ))
     }
 
