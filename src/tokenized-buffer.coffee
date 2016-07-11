@@ -147,10 +147,10 @@ class TokenizedBuffer extends Model
 
   retokenizeLines: ->
     lastRow = @buffer.getLastRow()
+    @fullyTokenized = false
     @tokenizedLines = new Array(lastRow + 1)
     @invalidRows = []
     @invalidateRow(0)
-    @fullyTokenized = false
     event = {start: 0, end: lastRow, delta: 0}
     @emitter.emit 'did-change', event
 
