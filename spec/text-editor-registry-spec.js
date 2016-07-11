@@ -4,6 +4,7 @@ import {TextBuffer} from 'atom'
 import TextEditorRegistry from '../src/text-editor-registry'
 import TextEditor from '../src/text-editor'
 import {it, fit, ffit, fffit} from './async-spec-helpers'
+import dedent from 'dedent'
 
 describe('TextEditorRegistry', function () {
   let registry, editor
@@ -145,16 +146,64 @@ describe('TextEditorRegistry', function () {
     })
 
     describe('when the "tabType" config setting is "auto"', function () {
-      it('enables or disables soft tabs based on the editor\'s content', function () {
-        registry.maintainConfig(editor)
+      it('enables or disables soft tabs based on the editor\'s content', async function () {
+        await atom.packages.activatePackage('language-javascript')
+        editor.setGrammar(atom.grammars.selectGrammar('test.js'))
         atom.config.set('editor.tabType', 'auto')
 
-        editor.setText('{\n  hello;\n}')
+        registry.maintainConfig(editor)
+
+        editor.setText(dedent`
+          {
+            hello;
+          }
+        `)
+        editor.tokenizedBuffer.retokenizeLines()
         expect(editor.getSoftTabs()).toBe(true)
 
-        editor.setText('{\n\thello;\n}')
+        editor.setText(dedent`
+          {
+          	hello;
+          }
+        `)
         editor.tokenizedBuffer.retokenizeLines()
         expect(editor.getSoftTabs()).toBe(false)
+
+        editor.setText(dedent`
+          /*
+           * Comment with a leading space.
+           */
+          {
+          ${'\t'}hello;
+          }
+        ` + editor.getText())
+        editor.tokenizedBuffer.retokenizeLines()
+        expect(editor.getSoftTabs()).toBe(false)
+
+        editor.setText(dedent`
+          /*
+           * Comment with a leading space.
+           */
+
+          {
+          	hello;
+          }
+        `)
+
+        editor.tokenizedBuffer.retokenizeLines()
+        expect(editor.getSoftTabs()).toBe(false)
+
+        editor.setText(dedent`
+          /*
+           * Comment with a leading space.
+           */
+
+          {
+            hello;
+          }
+        `)
+        editor.tokenizedBuffer.retokenizeLines()
+        expect(editor.getSoftTabs()).toBe(true)
       })
     })
 
