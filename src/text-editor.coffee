@@ -137,17 +137,19 @@ class TextEditor extends Model
     @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
     @firstVisibleScreenColumn ?= 0
-    @mini ?= false
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
-    @autoHeight ?= true
-    @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
 
+    @autoHeight ?= true
+    @mini ?= false
+    @scrollPastEnd ?= true
     @showInvisibles ?= true
+    @softTabs ?= true
+    @tabLength ?= 2
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
@@ -161,6 +163,7 @@ class TextEditor extends Model
     @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
 
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
+    @resetDisplayLayer()
 
     for marker in @selectionsMarkerLayer.getMarkers()
       @addSelection(marker)
