@@ -11,20 +11,20 @@ class ShellOption
     @parts = parts
   isRegistered: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
-      .get @parts[0].name, (err, val) ->
+      .get @parts[0].name, (err, val) =>
         callback(not err? and val.value is @parts[0].value)
-  register: (callback) ->
+  register: (callback) =>
     doneCount = @parts.length
-    @parts.forEach((part) ->
-      reg = new Registry({hive: 'HKCU', key: if @part.key? then "#{@key}\\#{@part.key}" else @key})
+    @parts.forEach((part) =>
+      reg = new Registry({hive: 'HKCU', key: if part.key? then "#{@key}\\#{part.key}" else @key})
       reg.create( -> reg.set part.name, Registry.REG_SZ, part.value, -> callback() if doneCount-- is 0))
-  deregister: (callback) ->
-    @isRegistered (isRegistered) ->
+  deregister: (callback) =>
+    @isRegistered (isRegistered) =>
       if isRegistered
-        new Registry({hive: 'HKCU', key: @key}).destroy callback null, true
+        new Registry({hive: 'HKCU', key: @key}).destroy -> callback null, true
       else
         callback null, false
-  update: (callback) ->
+  update: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) ->
         if err? or not val.value.endsWith '\\' + exeName
@@ -32,20 +32,22 @@ class ShellOption
         else
           register callback
 
+exports.appName = appName
+
 exports.fileHandler = new ShellOption("\\Software\\Classes\\Applications\\#{exeName}",
-  parts: [{key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""}]
+  [{key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""}]
 )
 
-contextRegistrationParts = [
+contextParts = [
     {key: 'command', name: '', value: "#{appPath} \"%1\""},
     {name: '', value: "Open with #{appName}"},
     {name: 'Icon', value: "#{appPath}"}
 ]
 
-exports.fileContextMenu = new ShellOption("\\Software\\Classes\\*\\shell\\#{appName}", parts: contextRegistryParts)
+exports.fileContextMenu = new ShellOption("\\Software\\Classes\\*\\shell\\#{appName}", contextParts)
 
-exports.folderContextMenu = new ShellOption("\\Software\\Classes\\Directory\\shell\\#{appName}", parts: contextRegistryParts)
+exports.folderContextMenu = new ShellOption("\\Software\\Classes\\Directory\\shell\\#{appName}", contextParts)
 
 exports.folderBackgroundContextMenu = new ShellOption("\\Software\\Classes\\Directory\\background\\shell\\#{appName}",
-  parts: JSON.parse(JSON.stringify(contextRegistryParts).replace('%1', '%V'))
+  JSON.parse(JSON.stringify(contextParts).replace('%1', '%V'))
 )
