@@ -37,22 +37,6 @@ describe "TextEditor", ->
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
 
-    it "preserves the invisibles setting", ->
-      atom.config.set('editor.showInvisibles', true)
-      previousLineText = editor.lineTextForScreenRow(0)
-      editor2 = TextEditor.deserialize(editor.serialize(), atom)
-      expect(editor2.lineTextForScreenRow(0)).toBe(previousLineText)
-
-    it "updates invisibles if the settings have changed between serialization and deserialization", ->
-      atom.config.set('editor.showInvisibles', true)
-      previousLineText = editor.lineTextForScreenRow(0)
-      state = editor.serialize()
-      atom.config.set('editor.invisibles', eol: '?')
-      editor2 = TextEditor.deserialize(state, atom)
-
-      expect(editor2.lineTextForScreenRow(0)).not.toBe(previousLineText)
-      expect(editor2.lineTextForScreenRow(0).endsWith('?')).toBe(true)
-
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
       editor = null
@@ -93,66 +77,6 @@ describe "TextEditor", ->
       expect(editor2.getSelectedBufferRanges()).not.toEqual editor.getSelectedBufferRanges()
       editor2.unfoldBufferRow(4)
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
-
-  describe "config defaults", ->
-    it "uses the `editor.tabLength`, `editor.softWrap`, and `editor.softTabs`, and `core.fileEncoding` config values", ->
-      editor1 = null
-      editor2 = null
-      atom.config.set('editor.tabLength', 4)
-      atom.config.set('editor.softWrap', true)
-      atom.config.set('editor.softTabs', false)
-      atom.config.set('core.fileEncoding', 'utf16le')
-
-      waitsForPromise ->
-        atom.workspace.open('dir/a').then (o) -> editor1 = o
-
-      runs ->
-        expect(editor1.getTabLength()).toBe 4
-        expect(editor1.isSoftWrapped()).toBe true
-        expect(editor1.getSoftTabs()).toBe false
-        expect(editor1.getEncoding()).toBe 'utf16le'
-
-        atom.config.set('editor.tabLength', 8)
-        atom.config.set('editor.softWrap', false)
-        atom.config.set('editor.softTabs', true)
-        atom.config.set('core.fileEncoding', 'macroman')
-
-      waitsForPromise ->
-        atom.workspace.open('dir/b').then (o) -> editor2 = o
-
-      runs ->
-        expect(editor2.getTabLength()).toBe 8
-        expect(editor2.isSoftWrapped()).toBe false
-        expect(editor2.getSoftTabs()).toBe true
-        expect(editor2.getEncoding()).toBe 'macroman'
-
-        atom.config.set('editor.tabLength', -1)
-        expect(editor2.getTabLength()).toBe 1
-        atom.config.set('editor.tabLength', 2)
-        expect(editor2.getTabLength()).toBe 2
-        atom.config.set('editor.tabLength', 17)
-        expect(editor2.getTabLength()).toBe 17
-        atom.config.set('editor.tabLength', 128)
-        expect(editor2.getTabLength()).toBe 128
-
-    it "uses scoped `core.fileEncoding` values", ->
-      editor1 = null
-      editor2 = null
-
-      atom.config.set('core.fileEncoding', 'utf16le')
-      atom.config.set('core.fileEncoding', 'macroman', scopeSelector: '.js')
-
-      waitsForPromise ->
-        atom.workspace.open('dir/a').then (o) -> editor1 = o
-
-      runs ->
-        expect(editor1.getEncoding()).toBe 'utf16le'
-
-      waitsForPromise ->
-        atom.workspace.open('sample-with-comments.js').then (o) -> editor2 = o
-
-      runs ->
-        expect(editor2.getEncoding()).toBe 'macroman'
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -5997,6 +5921,14 @@ describe "TextEditor", ->
     it "ignores invisibles even if editor.showInvisibles is true", ->
       atom.config.set('editor.showInvisibles', true)
       expect(editor.lineTextForScreenRow(0).indexOf(atom.config.get('editor.invisibles.eol'))).toBe(-1)
+
+  describe "::setInvisibles(invisibles)", ->
+    it "updates the editor's invisible character substitutions", ->
+      previousLineText = editor.lineTextForScreenRow(0)
+      editor.setInvisibles(eol: '?')
+      expect(editor.lineTextForScreenRow(0)).not.toBe(previousLineText)
+      expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(true)
+      expect(editor.getInvisibles()).toEqual(eol: '?')
 
   describe "indent guides", ->
     it "shows indent guides when `editor.showIndentGuide` is set to true and the editor is not mini", ->
