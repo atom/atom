@@ -116,7 +116,7 @@ export default class TextEditorRegistry {
         this.subscriptions.add(
           this.config.onDidChange(settingKey, configOptions, ({newValue}) => {
             this.editorsWithMaintainedConfig.forEach(editor => {
-              if (editor.getRootScopeDescriptor().getScopeChain() === scopeChain) {
+              if (editor.getRootScopeDescriptor().isEqual(scopeDescriptor)) {
                 editor[setterName](newValue)
               }
             })
@@ -129,7 +129,7 @@ export default class TextEditorRegistry {
         const softTabs = this.config.get('editor.softTabs', configOptions)
 
         this.editorsWithMaintainedConfig.forEach(editor => {
-          if (editor.getRootScopeDescriptor().getScopeChain() === scopeChain) {
+          if (editor.getRootScopeDescriptor().isEqual(scopeDescriptor)) {
             editor.setSoftTabs(shouldEditorUseSoftTabs(editor, tabType, softTabs))
           }
         })
