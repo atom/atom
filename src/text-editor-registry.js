@@ -10,6 +10,9 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.invisibles', 'setInvisibles'],
   ['editor.showIndentGuide', 'setShowIndentGuide'],
   ['editor.softWrap', 'setSoftWrapped'],
+  ['editor.softWrapHangingIndent', 'setSoftWrapIndentLength'],
+  ['editor.softWrapAtPreferredLineLength', 'setSoftWrapAtPreferredLineLength'],
+  ['editor.preferredLineLength', 'setPreferredLineLength'],
 ]
 
 // Experimental: This global registry tracks registered `TextEditors`.
@@ -87,6 +90,17 @@ export default class TextEditorRegistry {
     for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
       editor[setterName](atom.config.get(settingKey, configOptions))
     }
+
+    const updateTabTypes = () => {
+      editor.setSoftTabs(shouldEditorUseSoftTabs(
+        editor,
+        atom.config.get('editor.tabType', configOptions),
+        atom.config.get('editor.softTabs', configOptions)
+      ))
+    }
+
+    updateTabTypes()
+    this.subscriptions.add(editor.onDidTokenize(updateTabTypes))
   }
 
   subscribeToSettingsForEditorScope (editor) {
@@ -97,6 +111,7 @@ export default class TextEditorRegistry {
       this.scopesWithConfigSubscriptions.add(scopeChain)
 
       const configOptions = {scope: scopeDescriptor}
+
       for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
         this.subscriptions.add(
           this.config.onDidChange(settingKey, configOptions, ({newValue}) => {
@@ -108,6 +123,40 @@ export default class TextEditorRegistry {
           })
         )
       }
+
+      const updateTabTypes = () => {
+        const tabType = this.config.get('editor.tabType', configOptions)
+        const softTabs = this.config.get('editor.softTabs', configOptions)
+
+        this.editorsWithMaintainedConfig.forEach(editor => {
+          if (editor.getRootScopeDescriptor().getScopeChain() === scopeChain) {
+            editor.setSoftTabs(shouldEditorUseSoftTabs(editor, tabType, softTabs))
+          }
+        })
+      }
+
+      this.subscriptions.add(
+        this.config.onDidChange('editor.tabType', configOptions, updateTabTypes),
+        this.config.onDidChange('editor.softTabs', configOptions, updateTabTypes)
+      )
     }
+  }
+}
+
+function shouldEditorUseSoftTabs (editor, tabType, softTabs) {
+  switch (tabType) {
+    case 'hard':
+      return false
+    case 'soft':
+      return true
+    case 'auto':
+      switch (editor.usesSoftTabs()) {
+        case true:
+          return true
+        case false:
+          return false
+        default:
+          return softTabs
+      }
   }
 }

@@ -162,12 +162,9 @@ class TextEditor extends Model
 
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
 
-    @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
-
     for marker in @selectionsMarkerLayer.getMarkers()
       @addSelection(marker)
 
-    @subscribeToTabTypeConfig()
     @subscribeToBuffer()
     @subscribeToDisplayLayer()
 
@@ -226,36 +223,19 @@ class TextEditor extends Model
   onDidTerminatePendingState: (callback) ->
     @emitter.on 'did-terminate-pending-state', callback
 
-  subscribeToScopedConfigSettings: =>
-    @scopedConfigSubscriptions?.dispose()
-    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
-
-    scopeDescriptor = @getRootScopeDescriptor()
-    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-
-    @resetDisplayLayer()
-
   subscribeToDisplayLayer: ->
     @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
     @disposables.add @tokenizedBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
-    @disposables.add @tokenizedBuffer.onDidTokenize @handleTokenization.bind(this)
     @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
-
-  subscribeToTabTypeConfig: ->
-    @tabTypeSubscription?.dispose()
-    @tabTypeSubscription = @config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
-      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
 
   resetDisplayLayer: ->
     @displayLayer.reset({
       invisibles: @getInvisibles(),
       softWrapColumn: @getSoftWrapColumn(),
-      showIndentGuides: not @isMini() and @config.get('editor.showIndentGuide', scope: @getRootScopeDescriptor()),
-      atomicSoftTabs: @config.get('editor.atomicSoftTabs', scope: @getRootScopeDescriptor()),
+      showIndentGuides: not @isMini() and @doesShowIndentGuide(),
+      atomicSoftTabs: @hasAtomicSoftTabs(),
       tabLength: @getTabLength(),
       ratioForCharacter: @ratioForCharacter.bind(this),
       isWrapBoundary: isWrapBoundary,
@@ -2765,6 +2745,13 @@ class TextEditor extends Model
     @showIndentGuide = showIndentGuide
     @resetDisplayLayer()
 
+  setSoftWrapIndentLength: (softWrapIndentLength) ->
+    return if softWrapIndentLength is @softWrapIndentLength
+    @softWrapIndentLength = softWrapIndentLength
+    @resetDisplayLayer()
+
+  getSoftWrapIndentLength: -> @softWrapIndentLength
+
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
   # Returns `true` if the first non-comment line with leading whitespace starts
@@ -2796,20 +2783,6 @@ class TextEditor extends Model
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
 
-  # Private: Computes whether or not this editor should use softTabs based on
-  # the `editor.tabType` setting.
-  #
-  # Returns a {Boolean}
-  shouldUseSoftTabs: ({defaultValue}) ->
-    tabType = @config.get('editor.tabType', scope: @getRootScopeDescriptor())
-    switch tabType
-      when 'auto'
-        @usesSoftTabs() ? defaultValue ? @config.get('editor.softTabs') ? true
-      when 'hard'
-        false
-      when 'soft'
-        true
-
   ###
   Section: Soft Wrap Behavior
   ###
@@ -2837,6 +2810,20 @@ class TextEditor extends Model
       softWrapped
     else
       @isSoftWrapped()
+
+  setSoftWrapAtPreferredLineLength: (softWrapAtPreferredLineLength) ->
+    return if softWrapAtPreferredLineLength is @softWrapAtPreferredLineLength
+    @softWrapAtPreferredLineLength = softWrapAtPreferredLineLength
+    @resetDisplayLayer()
+
+  doesSoftWrapAtPreferredLineLength: -> @softWrapAtPreferredLineLength
+
+  setPreferredLineLength: (preferredLineLength) ->
+    return if preferredLineLength is @preferredLineLength
+    @preferredLineLength = preferredLineLength
+    @resetDisplayLayer()
+
+  getPreferredLineLength: -> @preferredLineLength
 
   # Essential: Toggle soft wrapping for this editor
   #
@@ -3342,12 +3329,8 @@ class TextEditor extends Model
   Section: Event Handlers
   ###
 
-  handleTokenization: ->
-    @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
-
   handleGrammarChange: ->
     @unfoldAll()
-    @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   ###

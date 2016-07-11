@@ -77,7 +77,7 @@ describe('TextEditorRegistry', function () {
       registry.maintainGrammar(editor)
       await atom.packages.activatePackage('language-javascript')
       expect(editor.getGrammar().name).toBe('JavaScript')
-    });
+    })
   })
 
   describe('.maintainConfig(editor)', function () {
@@ -91,7 +91,7 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('core.fileEncoding', 'utf8')
       expect(editor.getEncoding()).toBe('utf8')
-    });
+    })
 
     it('sets the tab length based on the config', function () {
       editor.setTabLength(4)
@@ -103,7 +103,63 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.tabLength', 4)
       expect(editor.getTabLength()).toBe(4)
-    });
+    })
+
+    it('enables soft tabs when the tabType config setting is "soft"', function () {
+      atom.config.set('editor.tabType', 'soft')
+      registry.maintainConfig(editor)
+      expect(editor.getSoftTabs()).toBe(true)
+    })
+
+    it('disables soft tabs when the tabType config setting is "hard"', function () {
+      atom.config.set('editor.tabType', 'hard')
+      registry.maintainConfig(editor)
+      expect(editor.getSoftTabs()).toBe(false)
+    })
+
+    describe('when the "tabType" config setting is "auto"', function () {
+      it('enables or disables soft tabs based on the editor\'s content', function () {
+        registry.maintainConfig(editor)
+        atom.config.set('editor.tabType', 'auto')
+
+        editor.setText('{\n  hello;\n}')
+        expect(editor.getSoftTabs()).toBe(true)
+
+        editor.setText('{\n\thello;\n}')
+        editor.tokenizedBuffer.retokenizeLines()
+        expect(editor.getSoftTabs()).toBe(false)
+      })
+    })
+
+    describe('when the "tabType" config setting is "auto"', function () {
+      it('enables or disables soft tabs based on the "softTabs" config setting', function () {
+        registry.maintainConfig(editor)
+
+        editor.setText('abc\ndef')
+        atom.config.set('editor.softTabs', true)
+        atom.config.set('editor.tabType', 'auto')
+        expect(editor.getSoftTabs()).toBe(true)
+
+        atom.config.set('editor.softTabs', false)
+        expect(editor.getSoftTabs()).toBe(false)
+      })
+    })
+
+    it('enables or disables soft tabs based on the config', function () {
+      editor.setSoftTabs(true)
+      expect(editor.getSoftTabs()).toBe(true)
+
+      atom.config.set('editor.tabType', 'hard')
+      registry.maintainConfig(editor)
+      expect(editor.getSoftTabs()).toBe(false)
+
+      atom.config.set('editor.tabType', 'soft')
+      expect(editor.getSoftTabs()).toBe(true)
+
+      atom.config.set('editor.tabType', 'auto')
+      atom.config.set('editor.softTabs', true)
+      expect(editor.getSoftTabs()).toBe(true)
+    })
 
     it('enables or disables atomic soft tabs based on the config', function () {
       editor.setAtomicSoftTabs(true)
@@ -115,7 +171,7 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.atomicSoftTabs', true)
       expect(editor.hasAtomicSoftTabs()).toBe(true)
-    });
+    })
 
     it('enables or disables invisible based on the config', function () {
       editor.setShowInvisibles(true)
@@ -127,7 +183,7 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.showInvisibles', true)
       expect(editor.doesShowInvisibles()).toBe(true)
-    });
+    })
 
     it('sets the invisibles based on the config', function () {
       editor.setShowInvisibles(true)
@@ -145,7 +201,7 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.invisibles', invisibles1)
       expect(editor.getInvisibles()).toEqual(invisibles1)
-    });
+    })
 
     it('enables or disables the indent guide based on the config', function () {
       editor.setShowIndentGuide(true)
@@ -157,7 +213,7 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.showIndentGuide', true)
       expect(editor.doesShowIndentGuide()).toBe(true)
-    });
+    })
 
     it('enables or disables soft wrap based on the config', function () {
       editor.setSoftWrapped(true)
@@ -169,6 +225,42 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.softWrap', true)
       expect(editor.isSoftWrapped()).toBe(true)
-    });
+    })
+
+    it('sets the soft wrap indent length based on the config', function () {
+      editor.setSoftWrapIndentLength(4)
+      expect(editor.getSoftWrapIndentLength()).toBe(4)
+
+      atom.config.set('editor.softWrapHangingIndent', 2)
+      registry.maintainConfig(editor)
+      expect(editor.getSoftWrapIndentLength()).toBe(2)
+
+      atom.config.set('editor.softWrapHangingIndent', 4)
+      expect(editor.getSoftWrapIndentLength()).toBe(4)
+    })
+
+    it('enables or disables preferred line length-based soft wrap based on the config', function () {
+      editor.setSoftWrapAtPreferredLineLength(true)
+      expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(true)
+
+      atom.config.set('editor.softWrapAtPreferredLineLength', false)
+      registry.maintainConfig(editor)
+      expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(false)
+
+      atom.config.set('editor.softWrapAtPreferredLineLength', true)
+      expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(true)
+    })
+
+    it('sets the preferred line length based on the config', function () {
+      editor.setPreferredLineLength(80)
+      expect(editor.getPreferredLineLength()).toBe(80)
+
+      atom.config.set('editor.preferredLineLength', 110)
+      registry.maintainConfig(editor)
+      expect(editor.getPreferredLineLength()).toBe(110)
+
+      atom.config.set('editor.preferredLineLength', 80)
+      expect(editor.getPreferredLineLength()).toBe(80)
+    })
   })
 })
