@@ -426,7 +426,7 @@ class Package
     return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
-        Failed to require the main module of '#{@name}' because it requires an incompatible native module (#{_.map(@incompatibleModules, 'name').join(', ')}).
+        Failed to require the main module of '#{@name}' because it requires one or more incompatible native modules (#{_.map(@incompatibleModules, 'name').join(', ')}).
         Run `apm rebuild` in the package directory and restart Atom to resolve.
       """
       return
