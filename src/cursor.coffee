@@ -18,7 +18,7 @@ class Cursor extends Model
   visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, @config, id}) ->
+  constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -160,8 +160,8 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
-    _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
+    nonWordCharacters = @getNonWordCharacters()
+    nonWordCharacters.includes(before) isnt nonWordCharacters.includes(after)
 
   # Public: Returns whether this cursor is between a word's start and end.
   #
@@ -608,9 +608,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   wordRegExp: (options) ->
-    scope = @getScopeDescriptor()
-    nonWordCharacters = _.escapeRegExp(@config.get('editor.nonWordCharacters', {scope}))
-
+    nonWordCharacters = _.escapeRegExp(@getNonWordCharacters())
     source = "^[\t ]*$|[^\\s#{nonWordCharacters}]+"
     if options?.includeNonWordCharacters ? true
       source += "|" + "[#{nonWordCharacters}]+"
@@ -624,7 +622,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    nonWordCharacters = @getNonWordCharacters()
     lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
     uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
     snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
@@ -646,6 +644,14 @@ class Cursor extends Model
   ###
   Section: Private
   ###
+
+  getNonWordCharacters: ->
+    (
+      @editor
+        .scopedSettingsDelegate
+        ?.getNonWordCharacters?(@getScopeDescriptor().getScopesArray()) ?
+      @editor.getNonWordCharacters()
+    )
 
   changePosition: (options, fn) ->
     @clearSelection(autoscroll: false)

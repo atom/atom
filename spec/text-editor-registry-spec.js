@@ -394,5 +394,28 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.undoGroupingInterval', 300)
       expect(editor.getUndoGroupingInterval()).toBe(300)
     })
+
+    it('sets the non-word characters based on the config', function () {
+      atom.config.set('editor.nonWordCharacters', '(){}')
+      registry.maintainConfig(editor)
+      expect(editor.getNonWordCharacters()).toBe('(){}')
+
+      atom.config.set('editor.nonWordCharacters', '(){}[]')
+      expect(editor.getNonWordCharacters()).toBe('(){}[]')
+    })
+
+    it('gives the editor a scoped-settings delegate based on the config', function () {
+      atom.config.set('editor.nonWordCharacters', '()')
+      atom.config.set('editor.nonWordCharacters', '(){}', {scopeSelector: '.a.b .c.d'})
+      atom.config.set('editor.nonWordCharacters', '(){}[]', {scopeSelector: '.e.f *'})
+
+      registry.maintainConfig(editor)
+
+      let delegate = editor.getScopedSettingsDelegate()
+
+      expect(delegate.getNonWordCharacters(['a.b', 'c.d'])).toBe('(){}')
+      expect(delegate.getNonWordCharacters(['e.f', 'g.h'])).toBe('(){}[]')
+      expect(delegate.getNonWordCharacters(['i.j'])).toBe('()')
+    })
   })
 })

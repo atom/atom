@@ -154,6 +154,7 @@ class TextEditor extends Model
     @autoIndent ?= true
     @autoIndentOnPaste ?= true
     @undoGroupingInterval ?= 300
+    @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
@@ -2094,7 +2095,7 @@ class TextEditor extends Model
 
   # Add a cursor based on the given {DisplayMarker}.
   addCursor: (marker) ->
-    cursor = new Cursor(editor: this, marker: marker, config: @config)
+    cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
     @cursorsByMarkerId.set(marker.id, cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
@@ -3328,6 +3329,10 @@ class TextEditor extends Model
   Section: Config
   ###
 
+  setScopedSettingsDelegate: (@scopedSettingsDelegate) ->
+
+  getScopedSettingsDelegate: -> @scopedSettingsDelegate
+
   setAutoIndent: (@autoIndent) ->
 
   setAutoIndentOnPaste: (@autoIndentOnPaste) ->
@@ -3343,6 +3348,10 @@ class TextEditor extends Model
   setUndoGroupingInterval: (@undoGroupingInterval) ->
 
   getUndoGroupingInterval: -> @undoGroupingInterval
+
+  setNonWordCharacters: (@nonWordCharacters) ->
+
+  getNonWordCharacters: -> @nonWordCharacters
 
   ###
   Section: Event Handlers

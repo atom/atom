@@ -1645,28 +1645,29 @@ describe "TextEditor", ->
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
 
-      describe 'when editor.nonWordCharacters is set scoped to a grammar', ->
-        coffeeEditor = null
-        beforeEach ->
-          waitsForPromise ->
-            atom.packages.activatePackage('language-coffee-script')
-          waitsForPromise ->
-            atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
+      it "selects words based on the non-word characters configured at the cursor's current scope", ->
+        editor.setText("one-one; 'two-two'; three-three");
 
-        it 'selects the correct surrounding word for the given scoped setting', ->
-          coffeeEditor.setCursorBufferPosition [0, 9] # in the middle of quicksort
-          coffeeEditor.selectWordsContainingCursors()
-          expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 6], [0, 15]]
+        editor.setCursorBufferPosition([0, 1])
+        editor.addCursorAtBufferPosition([0, 12])
 
-          atom.config.set 'editor.nonWordCharacters', 'qusort', scopeSelector: '.source.coffee'
+        scopeDescriptors = editor.getCursors().map (c) -> c.getScopeDescriptor()
+        expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js'])
+        expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted.single.js'])
 
-          coffeeEditor.setCursorBufferPosition [0, 9]
-          coffeeEditor.selectWordsContainingCursors()
-          expect(coffeeEditor.getSelectedBufferRange()).toEqual [[0, 8], [0, 11]]
+        editor.setScopedSettingsDelegate({
+          getNonWordCharacters: (scopes) ->
+            result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
+            if (scopes.some (scope) -> scope.startsWith('string'))
+              result
+            else
+              result + '-'
+        })
 
-          editor.setCursorBufferPosition [0, 7]
-          editor.selectWordsContainingCursors()
-          expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 13]]
+        editor.selectWordsContainingCursors()
+
+        expect(editor.getSelections()[0].getText()).toBe('one')
+        expect(editor.getSelections()[1].getText()).toBe('two-two')
 
     describe ".selectToFirstCharacterOfLine()", ->
       it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->

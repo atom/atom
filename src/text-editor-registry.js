@@ -18,6 +18,7 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.autoIndentOnPaste', 'setAutoIndentOnPaste'],
   ['editor.scrollPastEnd', 'setScrollPastEnd'],
   ['editor.undoGroupingInterval', 'setUndoGroupingInterval'],
+  ['editor.nonWordCharacters', 'setNonWordCharacters'],
 ]
 
 // Experimental: This global registry tracks registered `TextEditors`.
@@ -39,6 +40,7 @@ export default class TextEditorRegistry {
     this.emitter = new Emitter()
     this.scopesWithConfigSubscriptions = new Set()
     this.editorsWithMaintainedConfig = new Set()
+    this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
   }
 
   destroy () {
@@ -90,6 +92,7 @@ export default class TextEditorRegistry {
   maintainConfig (editor) {
     this.editorsWithMaintainedConfig.add(editor)
     this.subscribeToSettingsForEditorScope(editor)
+    editor.setScopedSettingsDelegate(this.scopedSettingsDelegate)
 
     const configOptions = {scope: editor.getRootScopeDescriptor()}
     for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
@@ -163,5 +166,15 @@ function shouldEditorUseSoftTabs (editor, tabType, softTabs) {
         default:
           return softTabs
       }
+  }
+}
+
+class ScopedSettingsDelegate {
+  constructor (config) {
+    this.config = config
+  }
+
+  getNonWordCharacters(scope) {
+    return this.config.get('editor.nonWordCharacters', {scope: scope})
   }
 }
