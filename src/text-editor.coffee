@@ -150,6 +150,9 @@ class TextEditor extends Model
     @showInvisibles ?= true
     @softTabs ?= true
     @tabLength ?= 2
+    @backUpBeforeSaving ?= false
+    @autoIndent ?= true
+    @autoIndentOnPaste ?= true
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
@@ -3324,11 +3327,13 @@ class TextEditor extends Model
   Section: Config
   ###
 
-  shouldAutoIndent: ->
-    @config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
+  setAutoIndent: (@autoIndent) ->
 
-  shouldAutoIndentOnPaste: ->
-    @config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
+  setAutoIndentOnPaste: (@autoIndentOnPaste) ->
+
+  shouldAutoIndent: -> @autoIndent
+
+  shouldAutoIndentOnPaste: -> @autoIndentOnPaste
 
   ###
   Section: Event Handlers

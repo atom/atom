@@ -350,5 +350,27 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.backUpBeforeSaving', true)
       expect(editor.doesBackUpBeforeSaving()).toBe(true)
     })
+
+    it('enables or disables auto-indent based on the config', function () {
+      expect(editor.shouldAutoIndent()).toBe(true)
+
+      atom.config.set('editor.autoIndent', false)
+      registry.maintainConfig(editor)
+      expect(editor.shouldAutoIndent()).toBe(false)
+
+      atom.config.set('editor.autoIndent', true)
+      expect(editor.shouldAutoIndent()).toBe(true)
+    })
+
+    it('enables or disables auto-indent-on-paste based on the config', function () {
+      expect(editor.shouldAutoIndentOnPaste()).toBe(true)
+
+      atom.config.set('editor.autoIndentOnPaste', false)
+      registry.maintainConfig(editor)
+      expect(editor.shouldAutoIndentOnPaste()).toBe(false)
+
+      atom.config.set('editor.autoIndentOnPaste', true)
+      expect(editor.shouldAutoIndentOnPaste()).toBe(true)
+    })
   })
 })

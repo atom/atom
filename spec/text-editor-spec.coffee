@@ -16,6 +16,7 @@ describe "TextEditor", ->
 
     runs ->
       buffer = editor.buffer
+      editor.setAutoIndent(false)
       lineLengths = buffer.getLines().map (line) -> line.length
 
     waitsForPromise ->
@@ -2121,8 +2122,8 @@ describe "TextEditor", ->
         expect(editor.indentationForBufferRow(0)).toBe 1
         expect(editor.indentationForBufferRow(1)).toBe 0
 
-      it "updates the line's indentation when the editor.autoIndent setting is true", ->
-        atom.config.set('editor.autoIndent', true)
+      it "updates the line's indentation when the the autoIndent setting is true", ->
+        editor.setAutoIndent(true)
         editor.setCursorBufferPosition([1, 0])
         editor.moveLineUp()
         expect(editor.indentationForBufferRow(0)).toBe 0
@@ -2450,7 +2451,7 @@ describe "TextEditor", ->
         expect(editor.indentationForBufferRow(1)).toBe 0
 
       it "updates the line's indentation when the editor.autoIndent setting is true", ->
-        atom.config.set('editor.autoIndent', true)
+        editor.setAutoIndent(true)
         editor.setCursorBufferPosition([0, 0])
         editor.moveLineDown()
         expect(editor.indentationForBufferRow(0)).toBe 1
@@ -3012,7 +3013,7 @@ describe "TextEditor", ->
           expect(editor.getCursorBufferPosition()).toEqual [0, 2]
 
       it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
-        atom.config.set("editor.autoIndent", true)
+        editor.setAutoIndent(true)
         editor.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
         expect(buffer.lineForRow(1)).toBe "  "
@@ -3041,7 +3042,7 @@ describe "TextEditor", ->
           expect(editor.getCursorBufferPosition()).toEqual [3, 4]
 
       it "indents the new line to the correct level when editor.autoIndent is true", ->
-        atom.config.set('editor.autoIndent', true)
+        editor.setAutoIndent(true)
 
         editor.setText('  var test')
         editor.setCursorBufferPosition([0, 2])
@@ -3072,7 +3073,7 @@ describe "TextEditor", ->
     describe ".insertNewLine()", ->
       describe "when a new line is appended before a closing tag (e.g. by pressing enter before a selection)", ->
         it "moves the line down and keeps the indentation level the same when editor.autoIndent is true", ->
-          atom.config.set('editor.autoIndent', true)
+          editor.setAutoIndent(true)
           editor.setCursorBufferPosition([9, 2])
           editor.insertNewline()
           expect(editor.lineTextForBufferRow(10)).toBe '  };'
@@ -3083,7 +3084,7 @@ describe "TextEditor", ->
             atom.packages.activatePackage('language-javascript')
 
           runs ->
-            atom.config.set("editor.autoIndent", true)
+            editor.setAutoIndent(true)
             editor.setGrammar(atom.grammars.selectGrammar("file.js"))
             editor.setText('var test = function () {\n  return true;};')
             editor.setCursorBufferPosition([1, 14])
@@ -3093,7 +3094,7 @@ describe "TextEditor", ->
 
         it "indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified", ->
           runs ->
-            atom.config.set("editor.autoIndent", true)
+            editor.setAutoIndent(true)
             editor.setGrammar(atom.grammars.selectGrammar("file"))
             editor.setText('  if true')
             editor.setCursorBufferPosition([0, 8])
@@ -3107,7 +3108,7 @@ describe "TextEditor", ->
             atom.packages.activatePackage('language-coffee-script')
 
           runs ->
-            atom.config.set("editor.autoIndent", true)
+            editor.setAutoIndent(true)
             editor.setGrammar(atom.grammars.selectGrammar("file.coffee"))
             editor.setText('if true\n  return trueelse\n  return false')
             editor.setCursorBufferPosition([1, 13])
@@ -3122,7 +3123,7 @@ describe "TextEditor", ->
             atom.packages.activatePackage('language-go')
 
           runs ->
-            atom.config.set("editor.autoIndent", true)
+            editor.setAutoIndent(true)
             editor.setGrammar(atom.grammars.selectGrammar("file.go"))
             editor.setText('fmt.Printf("some%s",\n	"thing")')
             editor.setCursorBufferPosition([1, 10])
@@ -3893,7 +3894,7 @@ describe "TextEditor", ->
 
         describe "when `autoIndentOnPaste` is true", ->
           beforeEach ->
-            atom.config.set("editor.autoIndentOnPaste", true)
+            editor.setAutoIndentOnPaste(true)
 
           describe "when pasting multiple lines before any non-whitespace characters", ->
             it "auto-indents the lines spanned by the pasted text, based on the first pasted line", ->
@@ -3962,7 +3963,7 @@ describe "TextEditor", ->
 
         describe "when `autoIndentOnPaste` is false", ->
           beforeEach ->
-            atom.config.set('editor.autoIndentOnPaste', false)
+            editor.setAutoIndentOnPaste(false)
 
           describe "when the cursor is indented further than the original copied text", ->
             it "increases the indentation of the copied lines to match", ->
@@ -3999,7 +4000,7 @@ describe "TextEditor", ->
 
         describe 'when the clipboard has many selections', ->
           beforeEach ->
-            atom.config.set("editor.autoIndentOnPaste", false)
+            editor.setAutoIndentOnPaste(false)
             editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
             editor.copySelectedText()
 
@@ -4862,13 +4863,13 @@ describe "TextEditor", ->
           editor.insertText("\n ")
           expect(editor.lineTextForBufferRow(2)).toBe " "
 
-          atom.config.set("editor.autoIndent", false)
+          editor.setAutoIndent(false)
           editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe "  "
 
     describe "when editor.autoIndent is true", ->
       beforeEach ->
-        atom.config.set("editor.autoIndent", true)
+        editor.setAutoIndent(true)
 
       describe "when `indent` is triggered", ->
         it "auto-indents the line", ->
@@ -4876,7 +4877,7 @@ describe "TextEditor", ->
           editor.insertText("\n ")
           expect(editor.lineTextForBufferRow(2)).toBe " "
 
-          atom.config.set("editor.autoIndent", true)
+          editor.setAutoIndent(true)
           editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe "    "
 
@@ -4915,7 +4916,7 @@ describe "TextEditor", ->
           editor.insertText('  var this-line-should-be-indented-more\n')
           expect(editor.indentationForBufferRow(1)).toBe 1
 
-          atom.config.set("editor.autoIndent", true)
+          editor.setAutoIndent(true)
           editor.setCursorBufferPosition([2, Infinity])
           editor.insertText('\n')
           expect(editor.indentationForBufferRow(1)).toBe 1
@@ -4967,31 +4968,6 @@ describe "TextEditor", ->
           expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
           editor.insertText('foo')
           expect(editor.indentationForBufferRow(2)).toBe editor.indentationForBufferRow(1) + 1
-
-    describe 'when scoped settings are used', ->
-      coffeeEditor = null
-      beforeEach ->
-        waitsForPromise ->
-          atom.packages.activatePackage('language-coffee-script')
-        waitsForPromise ->
-          atom.workspace.open('coffee.coffee', autoIndent: false).then (o) -> coffeeEditor = o
-
-        runs ->
-          atom.config.set('editor.autoIndent', true, scopeSelector: '.source.js')
-          atom.config.set('editor.autoIndent', false, scopeSelector: '.source.coffee')
-
-      afterEach: ->
-        atom.packages.deactivatePackages()
-        atom.packages.unloadPackages()
-
-      it "does not auto-indent the line for javascript files", ->
-        editor.setCursorBufferPosition([1, 30])
-        editor.insertText("\n")
-        expect(editor.lineTextForBufferRow(2)).toBe "    "
-
-        coffeeEditor.setCursorBufferPosition([1, 18])
-        coffeeEditor.insertText("\n")
-        expect(coffeeEditor.lineTextForBufferRow(2)).toBe ""
 
   describe "atomic soft tabs", ->
     it "skips tab-length runs of leading whitespace when moving the cursor", ->
@@ -5704,16 +5680,6 @@ describe "TextEditor", ->
           bufferRange: marker1.getRange(),
           rangeIsReversed: false
         }
-
-  describe "when the editor is constructed with the showInvisibles option set to false", ->
-    beforeEach ->
-      atom.workspace.destroyActivePane()
-      waitsForPromise ->
-        atom.workspace.open('sample.js', showInvisibles: false).then (o) -> editor = o
-
-    it "ignores invisibles even if editor.showInvisibles is true", ->
-      atom.config.set('editor.showInvisibles', true)
-      expect(editor.lineTextForScreenRow(0).indexOf(atom.config.get('editor.invisibles.eol'))).toBe(-1)
 
   describe "invisibles", ->
     it "substitutes invisible characters according to the given rules", ->
