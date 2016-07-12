@@ -229,7 +229,7 @@ class AtomEnvironment extends Model
       ipcRenderer.on responseChannel, (event, response) ->
         ipcRenderer.removeAllListeners(responseChannel)
         @notifications.addWarning("#{response.message.replace(/([\\\.+\\-_#!])/g, '\\$1')}") if not response.writable
-      @disposables.add new Disposable => ipcRenderer.removeAllListeners(responseChannel)
+      @disposables.add new Disposable -> ipcRenderer.removeAllListeners(responseChannel)
       ipcRenderer.send('check-portable-home-writable', responseChannel)
 
     checkPortableHomeWritable()
