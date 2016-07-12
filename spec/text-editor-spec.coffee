@@ -648,7 +648,7 @@ describe "TextEditor", ->
 
         describe "when invisible characters are enabled with soft tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
-            atom.config.set('editor.showInvisibles', true)
+            editor.setShowInvisibles(true)
             editor.setCursorScreenPosition [1, 7]
             editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1, 2]
@@ -657,7 +657,7 @@ describe "TextEditor", ->
 
         describe "when invisible characters are enabled with hard tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
-            atom.config.set('editor.showInvisibles', true)
+            editor.setShowInvisibles(true)
             buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', normalizeLineEndings: false)
 
             editor.setCursorScreenPosition [1, 7]
@@ -5388,7 +5388,7 @@ describe "TextEditor", ->
 
     describe "when the editor has a height and lineHeightInPixels", ->
       beforeEach ->
-        atom.config.set('editor.scrollPastEnd', true)
+        editor.setScrollPastEnd(true)
         editor.setHeight(100, true)
         editor.setLineHeightInPixels(10)
 
@@ -5427,8 +5427,7 @@ describe "TextEditor", ->
 
       describe "when the 'editor.scrollPastEnd' option is set to false", ->
         it "ensures that the bottom row is less than the buffer's line count", ->
-          atom.config.set('editor.scrollPastEnd', false)
-
+          editor.setScrollPastEnd(false)
           editor.setFirstVisibleScreenRow(95)
           expect(editor.getFirstVisibleScreenRow()).toEqual 89
           expect(editor.getVisibleRowRange()).toEqual [89, 99]
