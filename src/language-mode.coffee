@@ -8,7 +8,7 @@ class LanguageMode
   # Sets up a `LanguageMode` for the given {TextEditor}.
   #
   # editor - The {TextEditor} to associate with
-  constructor: (@editor, @config) ->
+  constructor: (@editor) ->
     {@buffer} = @editor
     @regexesByPattern = {}
 
@@ -252,6 +252,7 @@ class LanguageMode
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
+    patterns =
     increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)
@@ -331,27 +332,21 @@ class LanguageMode
     if desiredIndentLevel >= 0 and desiredIndentLevel < currentIndentLevel
       @editor.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  getRegexForProperty: (scopeDescriptor, property) ->
-    if pattern = @config.get(property, scope: scopeDescriptor)
+  cacheRegex: (pattern) ->
+    if pattern
       @regexesByPattern[pattern] ?= new OnigRegExp(pattern)
-      @regexesByPattern[pattern]
 
   increaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.increaseIndentPattern')
+    @cacheRegex(@editor.getIncreaseIndentPattern(scopeDescriptor))
 
   decreaseIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseIndentPattern')
+    @cacheRegex(@editor.getDecreaseIndentPattern(scopeDescriptor))
 
   decreaseNextIndentRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.decreaseNextIndentPattern')
+    @cacheRegex(@editor.getDecreaseNextIndentPattern(scopeDescriptor))
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
-    @getRegexForProperty(scopeDescriptor, 'editor.foldEndPattern')
+    @cacheRegex(@editor.getFoldEndPattern(scopeDescriptor))
 
   commentStartAndEndStringsForScope: (scope) ->
-    commentStartEntry = @config.getAll('editor.commentStart', {scope})[0]
-    commentEndEntry = _.find @config.getAll('editor.commentEnd', {scope}), (entry) ->
-      entry.scopeSelector is commentStartEntry.scopeSelector
-    commentStartString = commentStartEntry?.value
-    commentEndString = commentEndEntry?.value
-    {commentStartString, commentEndString}
+    @editor.getCommentStrings(scope)

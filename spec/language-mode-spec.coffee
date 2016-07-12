@@ -107,7 +107,7 @@ describe "LanguageMode", ->
         expect(languageMode.suggestedIndentForBufferRow(11)).toBe 1
 
       it "does not take invisibles into account", ->
-        atom.config.set('editor.showInvisibles', true)
+        editor.setShowInvisibles(true)
         expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
         expect(languageMode.suggestedIndentForBufferRow(1)).toBe 1
         expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2

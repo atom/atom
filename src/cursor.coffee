@@ -646,12 +646,7 @@ class Cursor extends Model
   ###
 
   getNonWordCharacters: ->
-    (
-      @editor
-        .scopedSettingsDelegate
-        ?.getNonWordCharacters?(@getScopeDescriptor().getScopesArray()) ?
-      @editor.getNonWordCharacters()
-    )
+    @editor.getNonWordCharacters(@getScopeDescriptor().getScopesArray())
 
   changePosition: (options, fn) ->
     @clearSelection(autoscroll: false)

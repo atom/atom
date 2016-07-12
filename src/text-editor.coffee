@@ -181,7 +181,7 @@ class TextEditor extends Model
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
 
-    @languageMode = new LanguageMode(this, @config)
+    @languageMode = new LanguageMode(this)
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
@@ -3351,7 +3351,23 @@ class TextEditor extends Model
 
   setNonWordCharacters: (@nonWordCharacters) ->
 
-  getNonWordCharacters: -> @nonWordCharacters
+  getNonWordCharacters: (scopes) ->
+    (scopes and @scopedSettingsDelegate?.getNonWordCharacters?(scopes)) ? @nonWordCharacters
+
+  getCommentStrings: (scopes) ->
+    (scopes and @scopedSettingsDelegate?.getCommentStrings?(scopes)) ? @commentStrings
+
+  getIncreaseIndentPattern: (scopes) ->
+    (scopes and @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)) ? @increaseIndentPattern
+
+  getDecreaseIndentPattern: (scopes) ->
+    (scopes and @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)) ? @decreaseIndentPattern
+
+  getDecreaseNextIndentPattern: (scopes) ->
+    (scopes and @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)) ? @decreaseNextIndentPattern
+
+  getFoldEndPattern: (scopes) ->
+    (scopes and @scopedSettingsDelegate?.getFoldEndPattern?(scopes)) ? @foldEndPattern
 
   ###
   Section: Event Handlers

@@ -177,4 +177,33 @@ class ScopedSettingsDelegate {
   getNonWordCharacters(scope) {
     return this.config.get('editor.nonWordCharacters', {scope: scope})
   }
+
+  getIncreaseIndentPattern (scope) {
+    return this.config.get('editor.increaseIndentPattern', {scope: scope})
+  }
+
+  getDecreaseIndentPattern (scope) {
+    return this.config.get('editor.decreaseIndentPattern', {scope: scope})
+  }
+
+  getDecreaseNextIndentPattern (scope) {
+    return this.config.get('editor.decreaseNextIndentPattern', {scope: scope})
+  }
+
+  getFoldEndPattern (scope) {
+    return this.config.get('editor.foldEndPattern', {scope: scope})
+  }
+
+  getCommentStrings (scope) {
+    const commentStartEntries = this.config.getAll('editor.commentStart', {scope})
+    const commentEndEntries = this.config.getAll('editor.commentEnd', {scope})
+    const commentStartEntry = commentStartEntries[0]
+    const commentEndEntry = commentEndEntries.find(entry => {
+      return entry.scopeSelector === commentStartEntry.scopeSelector
+    })
+    return {
+      commentStartString: commentStartEntry && commentStartEntry.value,
+      commentEndString: commentEndEntry && commentEndEntry.value,
+    }
+  }
 }
