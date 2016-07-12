@@ -383,5 +383,16 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.scrollPastEnd', true)
       expect(editor.getScrollPastEnd()).toBe(true)
     })
+
+    it('sets the undo grouping interval based on the config', function () {
+      expect(editor.getUndoGroupingInterval()).toBe(300)
+
+      atom.config.set('editor.undoGroupingInterval', 600)
+      registry.maintainConfig(editor)
+      expect(editor.getUndoGroupingInterval()).toBe(600)
+
+      atom.config.set('editor.undoGroupingInterval', 300)
+      expect(editor.getUndoGroupingInterval()).toBe(300)
+    })
   })
 })

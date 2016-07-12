@@ -3909,7 +3909,7 @@ describe('TextEditorComponent', function () {
       spyOn(Date, 'now').andCallFake(function () {
         return currentTime
       })
-      atom.config.set('editor.undoGroupingInterval', 100)
+      editor.setUndoGroupingInterval(100)
       editor.setText('')
       componentNode.dispatchEvent(buildTextInputEvent({
         data: 'x',

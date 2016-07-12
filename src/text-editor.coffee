@@ -153,6 +153,7 @@ class TextEditor extends Model
     @backUpBeforeSaving ?= false
     @autoIndent ?= true
     @autoIndentOnPaste ?= true
+    @undoGroupingInterval ?= 300
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
@@ -898,7 +899,7 @@ class TextEditor extends Model
     return false unless @emitWillInsertTextEvent(text)
 
     groupingInterval = if options.groupUndo
-      @config.get('editor.undoGroupingInterval')
+      @undoGroupingInterval
     else
       0
 
@@ -3338,6 +3339,10 @@ class TextEditor extends Model
   setScrollPastEnd: (@scrollPastEnd) ->
 
   getScrollPastEnd: -> @scrollPastEnd
+
+  setUndoGroupingInterval: (@undoGroupingInterval) ->
+
+  getUndoGroupingInterval: -> @undoGroupingInterval
 
   ###
   Section: Event Handlers
