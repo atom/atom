@@ -19,7 +19,6 @@ class TokenizedBuffer extends Model
   chunkSize: 50
   invalidRows: null
   visible: false
-  configSettings: null
   changeCount: 0
 
   @deserialize: (state, atomEnvironment) ->
@@ -28,14 +27,13 @@ class TokenizedBuffer extends Model
     else
       # TODO: remove this fallback after everyone transitions to the latest version.
       state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
-    state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
     state.assert = atomEnvironment.assert
     new this(state)
 
   constructor: (params) ->
     {
-      @buffer, @tabLength, @largeFileMode, @config,
+      @buffer, @tabLength, @largeFileMode,
       @grammarRegistry, @assert, grammarScopeName
     } = params
 
@@ -116,16 +114,6 @@ class TokenizedBuffer extends Model
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
     @disposables.add(@grammarUpdateDisposable)
 
-    @configSettings = {tabLength: @config.get('editor.tabLength', {scope: @rootScopeDescriptor})}
-
-    if @configSubscriptions?
-      @configSubscriptions.dispose()
-      @disposables.remove(@configSubscriptions)
-    @configSubscriptions = new CompositeDisposable
-    @configSubscriptions.add @config.onDidChange 'editor.tabLength', {scope: @rootScopeDescriptor}, ({newValue}) =>
-      @configSettings.tabLength = newValue
-    @disposables.add(@configSubscriptions)
-
     @retokenizeLines()
 
     @emitter.emit 'did-change-grammar', grammar
@@ -157,13 +145,9 @@ class TokenizedBuffer extends Model
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
 
-  getTabLength: ->
-    @tabLength ? @configSettings.tabLength
+  getTabLength: -> @tabLength
 
-  setTabLength: (tabLength) ->
-    return if tabLength is @tabLength
-
-    @tabLength = tabLength
+  setTabLength: (@tabLength) ->
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()

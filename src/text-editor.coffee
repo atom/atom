@@ -109,7 +109,6 @@ class TextEditor extends Model
     state.buffer = state.tokenizedBuffer.buffer
     state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId) ? state.buffer.addDisplayLayer()
     state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
-    state.config = atomEnvironment.config
     state.clipboard = atomEnvironment.clipboard
     state.grammarRegistry = atomEnvironment.grammars
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
@@ -125,12 +124,11 @@ class TextEditor extends Model
     {
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config, @clipboard, @grammarRegistry,
+      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard, @grammarRegistry,
       @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @ignoreInvisibles, @displayLayer
     } = params
 
-    throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
     throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
 
@@ -158,7 +156,7 @@ class TextEditor extends Model
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
-      @tabLength, @buffer, @largeFileMode, @config, @grammarRegistry, @assert
+      @tabLength, @buffer, @largeFileMode, @grammarRegistry, @assert
     })
     @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
@@ -560,7 +558,7 @@ class TextEditor extends Model
     softTabs = @getSoftTabs()
     newEditor = new TextEditor({
       @buffer, selectionsMarkerLayer, @tabLength, softTabs,
-      suppressCursorCreation: true, @config,
+      suppressCursorCreation: true,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @grammarRegistry, @assert, displayLayer
     })
