@@ -31,7 +31,7 @@ class Workspace extends Model
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
       @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
-      @deserializerManager
+      @deserializerManager, @textEditorRegistry
     } = params
 
     @emitter = new Emitter
@@ -575,7 +575,9 @@ class Workspace extends Model
     params = Object.assign({
       @config, @clipboard, @grammarRegistry, @assert
     }, params)
-    new TextEditor(params)
+    editor = new TextEditor(params)
+    @textEditorRegistry.maintainConfig(editor)
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

@@ -189,13 +189,15 @@ class AtomEnvironment extends Model
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
+    @textEditors = new TextEditorRegistry({@config})
+
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
-      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
+      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this),
+      textEditorRegistry: @textEditors,
     })
     @themes.workspace = @workspace
 
-    @textEditors = new TextEditorRegistry({@config})
     @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
     @config.load()
