@@ -728,17 +728,21 @@ class TextEditor extends Model
   Section: File Operations
   ###
 
+  setBackUpBeforeSaving: (@backUpBeforeSaving) ->
+
+  doesBackUpBeforeSaving: -> @backUpBeforeSaving
+
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save(backup: @config.get('editor.backUpBeforeSaving'))
+  save: -> @buffer.save(backup: @backUpBeforeSaving)
 
   # Essential: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: @config.get('editor.backUpBeforeSaving'))
+  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: @backUpBeforeSaving)
 
   # Determine whether the user should be prompted to save before closing
   # this editor.

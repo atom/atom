@@ -13,6 +13,7 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.softWrapHangingIndent', 'setSoftWrapIndentLength'],
   ['editor.softWrapAtPreferredLineLength', 'setSoftWrapAtPreferredLineLength'],
   ['editor.preferredLineLength', 'setPreferredLineLength'],
+  ['editor.backUpBeforeSaving', 'setBackUpBeforeSaving'],
 ]
 
 // Experimental: This global registry tracks registered `TextEditors`.

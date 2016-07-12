@@ -338,5 +338,17 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.preferredLineLength', 80)
       expect(editor.getPreferredLineLength()).toBe(80)
     })
+
+    it('enables or disables back-up-before-save based on the config', function () {
+      editor.setBackUpBeforeSaving(true)
+      expect(editor.doesBackUpBeforeSaving()).toBe(true)
+
+      atom.config.set('editor.backUpBeforeSaving', false)
+      registry.maintainConfig(editor)
+      expect(editor.doesBackUpBeforeSaving()).toBe(false)
+
+      atom.config.set('editor.backUpBeforeSaving', true)
+      expect(editor.doesBackUpBeforeSaving()).toBe(true)
+    })
   })
 })
