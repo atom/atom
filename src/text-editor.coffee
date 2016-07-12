@@ -3335,6 +3335,10 @@ class TextEditor extends Model
 
   shouldAutoIndentOnPaste: -> @autoIndentOnPaste
 
+  setScrollPastEnd: (@scrollPastEnd) ->
+
+  getScrollPastEnd: -> @scrollPastEnd
+
   ###
   Section: Event Handlers
   ###
@@ -3443,7 +3447,7 @@ class TextEditor extends Model
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
-      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
+      unless @scrollPastEnd
         if @height? and @lineHeightInPixels?
           maxScreenRow -= Math.floor(@height / @lineHeightInPixels)
       screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)

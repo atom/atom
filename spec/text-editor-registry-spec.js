@@ -372,5 +372,16 @@ describe('TextEditorRegistry', function () {
       atom.config.set('editor.autoIndentOnPaste', true)
       expect(editor.shouldAutoIndentOnPaste()).toBe(true)
     })
+
+    it('enables or disables scrolling past the end of the buffer based on the config', function () {
+      expect(editor.getScrollPastEnd()).toBe(true)
+
+      atom.config.set('editor.scrollPastEnd', false)
+      registry.maintainConfig(editor)
+      expect(editor.getScrollPastEnd()).toBe(false)
+
+      atom.config.set('editor.scrollPastEnd', true)
+      expect(editor.getScrollPastEnd()).toBe(true)
+    })
   })
 })

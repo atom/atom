@@ -16,6 +16,7 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.backUpBeforeSaving', 'setBackUpBeforeSaving'],
   ['editor.autoIndent', 'setAutoIndent'],
   ['editor.autoIndentOnPaste', 'setAutoIndentOnPaste'],
+  ['editor.scrollPastEnd', 'setScrollPastEnd'],
 ]
 
 // Experimental: This global registry tracks registered `TextEditors`.
