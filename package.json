@@ -50,12 +50,14 @@
   },
   "devDependencies": {
     "jasmine-focused": ">=1.0.7 <2.0",
-    "grunt": "~0.4.1",
-    "grunt-contrib-coffee": "~0.12.0",
+    "grunt": "^1.0.1",
+    "grunt-coffeelint": "0.0.16",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-coffee": "^1.0.0",
     "grunt-cli": "~0.1.8",
-    "grunt-shell": "~0.2.2",
+    "grunt-shell": "^1.3.0",
     "express": "~3.2.3",
-    "grunt-coffeelint": "0.0.15",
+    "grunt-coffeelint": "0.0.16",
     "coffee-script": "^1.8.0"
   }
 }
