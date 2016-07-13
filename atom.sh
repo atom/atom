@@ -81,7 +81,7 @@ if [ $OS == 'Mac' ]; then
     "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
-    open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
+    open -a "$ATOM_PATH/$ATOM_APP_NAME" --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
   fi
 elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
