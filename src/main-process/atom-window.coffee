@@ -46,9 +46,6 @@ class AtomWindow
     @browserWindow = new BrowserWindow options
     global.atomApplication.addWindow(this)
 
-    if @applyTitleBarSetting()
-      @browserWindow.setSheetOffset(23)
-
     @handleEvents()
 
     loadSettings = Object.assign({}, settings)
