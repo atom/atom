@@ -42,7 +42,6 @@
     "mocha": "2.5.1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
-    "ohnogit": "0.0.13",
     "oniguruma": "^5",
     "pathwatcher": "~6.5",
     "property-accessors": "^1.1.3",

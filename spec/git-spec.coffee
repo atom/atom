@@ -25,16 +25,6 @@ describe "GitRepository", ->
     it "returns null when no repository is found", ->
       expect(GitRepository.open(path.join(temp.dir, 'nogit.txt'))).toBeNull()
 
-  describe ".async", ->
-    it "returns a GitRepositoryAsync for the same repo", ->
-      repoPath = path.join(__dirname, 'fixtures', 'git', 'master.git')
-      repo = new GitRepository(repoPath)
-      onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise ->
-        repo.async.getPath().then(onSuccess)
-      runs ->
-        expect(onSuccess.mostRecentCall.args[0]).toEqualPath(repoPath)
-
   describe "new GitRepository(path)", ->
     it "throws an exception when no repository is found", ->
       expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
