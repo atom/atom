@@ -33,7 +33,7 @@ function copySubmoduleRepository () {
   return workingDirectory
 }
 
-describe('GitRepositoryAsync', () => {
+fdescribe('GitRepositoryAsync', () => {
   let repo
 
   afterEach(() => {
