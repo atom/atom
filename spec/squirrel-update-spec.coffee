@@ -5,7 +5,7 @@ temp = require 'temp'
 SquirrelUpdate = require '../src/main-process/squirrel-update'
 Spawner = require '../src/main-process/spawner'
 WinPowerShell = require '../src/main-process/win-powershell'
-WinRegistry = require '../src/main-process/win-registry'
+WinShell = require '../src/main-process/win-shell'
 
 # Run passed callback as Spawner.spawn() would do
 invokeCallback = (callback) ->
@@ -26,12 +26,11 @@ describe "Windows Squirrel Update", ->
       # do nothing on command, just run passed callback
       invokeCallback callback
 
-    # Prevent any actual change to Windows registry
-    for own method of WinRegistry
-      # all WinRegistry APIs share the same signature
-      spyOn(WinRegistry, method).andCallFake (callback) ->
-        # do nothing on registry, just run passed callback
-        invokeCallback callback
+      # Prevent any actual change to Windows Shell
+    for own property of WinShell
+      for own method of property
+        spyOn(property, method).andCallFake (callback) ->
+          invokeCallback callback
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')
