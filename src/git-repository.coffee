@@ -117,6 +117,10 @@ class GitRepository
       @subscriptions.dispose()
       @subscriptions = null
 
+  # Public: Returns a {Boolean} indicating if this repository has been destroyed.
+  isDestroyed: ->
+    not @repo?
+
   # Public: Invoke the given callback when this GitRepository's destroy() method
   # is invoked.
   #
