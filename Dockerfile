@@ -4,6 +4,8 @@
 # Base docker image
 FROM fedora:21
 
+RUN curl --silent --location https://rpm.nodesource.com/setup_4.x | bash -
+
 # Install dependencies
 RUN yum install -y \
     make \
@@ -12,12 +14,10 @@ RUN yum install -y \
     glibc-devel \
     git-core \
     libgnome-keyring-devel \
-    rpmdevtools
+    rpmdevtools \
+    nodejs \
+    npm
 
-RUN git clone https://github.com/creationix/nvm.git /tmp/.nvm
-RUN source /tmp/.nvm/nvm.sh
-RUN nvm install 4.4.7
-RUN nvm use 4.4.7
 RUN npm install -g npm --loglevel error
 
 ADD . /atom
