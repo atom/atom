@@ -12,11 +12,13 @@ RUN yum install -y \
     glibc-devel \
     git-core \
     libgnome-keyring-devel \
-    rpmdevtools \
-    nodejs \
-    npm
+    rpmdevtools
 
-RUN npm install -g npm@1.4.28 --loglevel error
+RUN git clone https://github.com/creationix/nvm.git /tmp/.nvm
+RUN source /tmp/.nvm/nvm.sh
+RUN nvm install 4.4.7
+RUN nvm use 4.4.7
+RUN npm install -g npm --loglevel error
 
 ADD . /atom
 WORKDIR /atom
