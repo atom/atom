@@ -23,13 +23,13 @@ atom-text-editor {
 .define-selection-flash-color-if-not-defined() { @syntax-selection-flash-color: rgba(100, 255, 100, 0.7); }
 .define-selection-flash-color-if-not-defined();
 
-@-webkit-keyframes flash {
+@keyframes flash {
   from { background-color: @syntax-selection-flash-color; }
   to { background-color: null; }
 }
 
 atom-text-editor .flash.selection .region {
-  -webkit-animation-name: flash;
-  -webkit-animation-duration: .5s;
-  -webkit-animation-iteration-count: 1;
+  animation-name: flash;
+  animation-duration: .5s;
+  animation-iteration-count: 1;
 }

@@ -11,6 +11,7 @@ AWS = require 'aws-sdk'
 grunt = null
 
 token = process.env.ATOM_ACCESS_TOKEN
+repo = process.env.ATOM_REPO ? 'atom/atom'
 defaultHeaders =
   Authorization: "token #{token}"
   'User-Agent': 'Atom'
@@ -119,7 +120,8 @@ logError = (message, error, details) ->
 zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourcePath, assetName, callback) ->
     if process.platform is 'win32'
-      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} \"#{sourcePath}\""
+      sevenZipPath = if process.env.JANKY_SHA1? then "C:/psmodules/" else ""
+      zipCommand = "#{sevenZipPath}7z.exe a -r \"#{assetName}\" \"#{sourcePath}\""
     else
       zipCommand = "zip -r --symlinks '#{assetName}' '#{sourcePath}'"
     options = {cwd: directory, maxBuffer: Infinity}
@@ -134,10 +136,10 @@ zipAssets = (buildDir, assets, callback) ->
   async.parallel(tasks, callback)
 
 getAtomDraftRelease = (isPrerelease, branchName, callback) ->
-  atomRepo = new GitHub({repo: 'atom/atom', token})
+  atomRepo = new GitHub({repo: repo, token})
   atomRepo.getReleases {prerelease: isPrerelease}, (error, releases=[]) ->
     if error?
-      logError('Fetching atom/atom releases failed', error, releases)
+      logError("Fetching #{repo} #{if isPrerelease then "pre" else "" }releases failed", error, releases)
       callback(error)
     else
       [firstDraft] = releases.filter ({draft}) -> draft
@@ -160,7 +162,7 @@ getAtomDraftRelease = (isPrerelease, branchName, callback) ->
 createAtomDraftRelease = (isPrerelease, branchName, callback) ->
   {version} = require('../../package.json')
   options =
-    uri: 'https://api.github.com/repos/atom/atom/releases'
+    uri: "https://api.github.com/repos/#{repo}/releases"
     method: 'POST'
     headers: defaultHeaders
     json:
@@ -177,7 +179,7 @@ createAtomDraftRelease = (isPrerelease, branchName, callback) ->
 
   request options, (error, response, body='') ->
     if error? or response.statusCode isnt 201
-      logError("Creating atom/atom draft release failed", error, body)
+      logError("Creating #{repo} draft release failed", error, body)
       callback(error ? new Error(response.statusCode))
     else
       callback(null, body)

@@ -72,7 +72,10 @@ function needsPatching (options = { platform: process.platform, env: process.env
 // underlying functionality.
 function clone (to, from) {
   for (var key in to) {
-    delete to[key]
+    // Don't erase NODE_ENV. Fixes #12024
+    if (key !== 'NODE_ENV') {
+      delete to[key]
+    }
   }
 
   Object.assign(to, from)
