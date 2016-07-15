@@ -62,6 +62,7 @@ function removeNodeModules() {
 
   try {
     fsPlus.removeSync(path.resolve(__dirname, '..', 'node_modules'));
+    fsPlus.removeSync(path.resolve(__dirname, '..', 'apm', 'node_modules'));
   } catch (error) {
     console.error(error.message);
     process.exit(1);
