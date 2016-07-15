@@ -25,16 +25,6 @@ describe "GitRepository", ->
     it "returns null when no repository is found", ->
       expect(GitRepository.open(path.join(temp.dir, 'nogit.txt'))).toBeNull()
 
-  describe ".async", ->
-    it "returns a GitRepositoryAsync for the same repo", ->
-      repoPath = path.join(__dirname, 'fixtures', 'git', 'master.git')
-      repo = new GitRepository(repoPath)
-      onSuccess = jasmine.createSpy('onSuccess')
-      waitsForPromise ->
-        repo.async.getPath().then(onSuccess)
-      runs ->
-        expect(onSuccess.mostRecentCall.args[0]).toBe(repoPath)
-
   describe "new GitRepository(path)", ->
     it "throws an exception when no repository is found", ->
       expect(-> new GitRepository(path.join(temp.dir, 'nogit.txt'))).toThrow()
@@ -259,35 +249,15 @@ describe "GitRepository", ->
         expect(repo.isStatusModified(status)).toBe false
         expect(repo.isStatusNew(status)).toBe false
 
-    it 'caches the proper statuses when multiple project are open', ->
-      otherWorkingDirectory = copyRepository()
+    it 'caches statuses that were looked up synchronously', ->
+      originalContent = 'undefined'
+      fs.writeFileSync(modifiedPath, 'making this path modified')
+      repo.getPathStatus('file.txt')
 
-      atom.project.setPaths([workingDirectory, otherWorkingDirectory])
-
-      waitsForPromise ->
-        atom.workspace.open('b.txt')
-
-      statusHandler = null
+      fs.writeFileSync(modifiedPath, originalContent)
+      waitsForPromise -> repo.refreshStatus()
       runs ->
-        repo = atom.project.getRepositories()[0]
-
-        statusHandler = jasmine.createSpy('statusHandler')
-        repo.onDidChangeStatuses statusHandler
-        repo.refreshStatus()
-
-      waitsFor ->
-        statusHandler.callCount > 0
-
-      runs ->
-        subDir = path.join(workingDirectory, 'dir')
-        fs.mkdirSync(subDir)
-
-        filePath = path.join(subDir, 'b.txt')
-        fs.writeFileSync(filePath, '')
-
-        status = repo.getCachedPathStatus(filePath)
-        expect(repo.isStatusModified(status)).toBe true
-        expect(repo.isStatusNew(status)).toBe false
+        expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeFalsy()
 
   describe "buffer events", ->
     [editor] = []
