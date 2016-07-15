@@ -22,6 +22,8 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.nonWordCharacters', 'setNonWordCharacters']
 ]
 
+const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
+
 // Experimental: This global registry tracks registered `TextEditors`.
 //
 // If you want to add functionality to a wider set of text editors than just
@@ -34,14 +36,30 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
 export default class TextEditorRegistry {
-  constructor ({config}) {
+  constructor ({config, grammarRegistry}) {
     this.config = config
+    this.grammarRegistry = grammarRegistry
+    this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
+    this.grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
+    this.clear()
+  }
+
+  clear () {
+    if (this.subscriptions) {
+      this.subscriptions.dispose()
+    }
+
     this.subscriptions = new CompositeDisposable()
     this.editors = new Set()
     this.emitter = new Emitter()
     this.scopesWithConfigSubscriptions = new Set()
     this.editorsWithMaintainedConfig = new Set()
-    this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
+    this.editorsWithMaintainedGrammar = new Set()
+    this.editorGrammarScores = new WeakMap()
+    this.subscriptions.add(
+      this.grammarRegistry.onDidAddGrammar(this.grammarAddedOrUpdated),
+      this.grammarRegistry.onDidUpdateGrammar(this.grammarAddedOrUpdated)
+    )
   }
 
   destroy () {
@@ -87,7 +105,24 @@ export default class TextEditorRegistry {
   }
 
   maintainGrammar (editor) {
+    this.editorsWithMaintainedGrammar.add(editor)
 
+    const assignGrammar = () => {
+      const {grammar, score} = this.grammarRegistry.selectGrammarWithScore(
+        editor.getPath(),
+        editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
+      )
+
+      if (!grammar) {
+        throw new Error(`No grammar found for path: ${editor.getPath()}`)
+      }
+
+      editor.setGrammar(grammar)
+      this.editorGrammarScores.set(editor, score)
+    }
+
+    assignGrammar()
+    this.subscriptions.add(editor.onDidChangePath(assignGrammar))
   }
 
   maintainConfig (editor) {
@@ -110,6 +145,29 @@ export default class TextEditorRegistry {
 
     updateTabTypes()
     this.subscriptions.add(editor.onDidTokenize(updateTabTypes))
+  }
+
+  // Private
+
+  grammarAddedOrUpdated (grammar) {
+    this.editorsWithMaintainedGrammar.forEach(editor => {
+      if (grammar.injectionSelector != null) {
+        if (editor.tokenizedBuffer.hasTokenForSelector(grammar.injectionSelector)) {
+          editor.tokenizedBuffer.retokenizeLines()
+        }
+      } else {
+        const newScore = this.grammarRegistry.getGrammarScore(
+          grammar,
+          editor.getPath(),
+          editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
+        )
+        let currentScore = this.editorGrammarScores.get(editor)
+        if (currentScore == null || newScore > currentScore) {
+          editor.setGrammar(grammar, newScore)
+          this.subscribeToSettingsForEditorScope(editor)
+        }
+      }
+    })
   }
 
   subscribeToSettingsForEditorScope (editor) {

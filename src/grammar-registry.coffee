@@ -29,6 +29,9 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   #
   # Returns a {Grammar}, never null.
   selectGrammar: (filePath, fileContents) ->
+    @selectGrammarWithScore(filePath, fileContents).grammar
+
+  selectGrammarWithScore: (filePath, fileContents) ->
     bestMatch = null
     highestScore = -Infinity
     for grammar in @grammars
@@ -36,7 +39,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       if score > highestScore or not bestMatch?
         bestMatch = grammar
         highestScore = score
-    bestMatch
+    {grammar: bestMatch, score: highestScore}
 
   # Extended: Returns a {Number} representing how well the grammar matches the
   # `filePath` and `contents`.

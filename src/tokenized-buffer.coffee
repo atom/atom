@@ -41,16 +41,13 @@ class TokenizedBuffer extends Model
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator({@grammarRegistry})
 
-    @disposables.add @grammarRegistry.onDidAddGrammar(@grammarAddedOrUpdated)
-    @disposables.add @grammarRegistry.onDidUpdateGrammar(@grammarAddedOrUpdated)
-
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
-    @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
+    @rootScopeDescriptor = new ScopeDescriptor(scopes: ['text.plain'])
 
     if grammar = @grammarRegistry.grammarForScopeName(grammarScopeName)
       @setGrammar(grammar)
     else
-      @reloadGrammar()
+      @retokenizeLines()
       @grammarToRestoreScopeName = grammarScopeName
 
   destroyed: ->
@@ -92,15 +89,6 @@ class TokenizedBuffer extends Model
   onDidTokenize: (callback) ->
     @emitter.on 'did-tokenize', callback
 
-  grammarAddedOrUpdated: (grammar) =>
-    if @grammarToRestoreScopeName is grammar.scopeName
-      @setGrammar(grammar)
-    else if grammar.injectionSelector?
-      @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
-    else
-      newScore = @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
-      @setGrammar(grammar, newScore) if newScore > @currentGrammarScore
-
   setGrammar: (grammar, score) ->
     return unless grammar? and grammar isnt @grammar
 
@@ -120,12 +108,6 @@ class TokenizedBuffer extends Model
 
   getGrammarSelectionContent: ->
     @buffer.getTextInRange([[0, 0], [10, 0]])
-
-  reloadGrammar: ->
-    if grammar = @grammarRegistry.selectGrammar(@buffer.getPath(), @getGrammarSelectionContent())
-      @setGrammar(grammar)
-    else
-      throw new Error("No grammar found for path: #{path}")
 
   hasTokenForSelector: (selector) ->
     for tokenizedLine in @tokenizedLines when tokenizedLine?
@@ -159,7 +141,7 @@ class TokenizedBuffer extends Model
 
   tokenizeNextChunk: ->
     # Short circuit null grammar which can just use the placeholder tokens
-    if @grammar is @grammarRegistry.nullGrammar and @firstInvalidRow()?
+    if (not @grammar? or @grammar.name is 'Null grammar') and @firstInvalidRow()?
       @invalidRows = []
       @markTokenizationComplete()
       return
@@ -235,7 +217,7 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    if @largeFileMode
+    if @largeFileMode or not @grammar?
       newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
     else
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
@@ -311,7 +293,7 @@ class TokenizedBuffer extends Model
     @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow] by 1
 
   buildPlaceholderTokenizedLineForRow: (row) ->
-    openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
+    openScopes = []
     text = @buffer.lineForRow(row)
     tags = [text.length]
     lineEnding = @buffer.lineEndingForRow(row)

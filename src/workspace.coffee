@@ -577,6 +577,7 @@ class Workspace extends Model
     }, params)
     editor = new TextEditor(params)
     @textEditorRegistry.maintainConfig(editor)
+    @textEditorRegistry.maintainGrammar(editor)
     editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been

@@ -189,7 +189,7 @@ class AtomEnvironment extends Model
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
-    @textEditors = new TextEditorRegistry({@config})
+    @textEditors = new TextEditorRegistry({@config, grammarRegistry: @grammars})
 
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
@@ -329,6 +329,8 @@ class AtomEnvironment extends Model
     @workspace.subscribeToEvents()
 
     @grammars.clear()
+
+    @textEditors.clear()
 
     @views.clear()
     @registerDefaultViewProviders()
