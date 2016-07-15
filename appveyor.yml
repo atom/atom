@@ -7,7 +7,6 @@ environment:
 
 install:
   - npm install -g npm
-  - npm clean
   - npm install
 
 build_script:
