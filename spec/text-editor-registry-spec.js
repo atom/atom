@@ -1,6 +1,5 @@
 /** @babel */
 
-import {TextBuffer} from 'atom'
 import TextEditorRegistry from '../src/text-editor-registry'
 import TextEditor from '../src/text-editor'
 import {it, fit, ffit, fffit} from './async-spec-helpers'

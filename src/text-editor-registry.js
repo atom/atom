@@ -1,6 +1,7 @@
 /** @babel */
 
-import {Emitter, Disposable, CompositeDisposable} from "event-kit"
+import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
+import {Point, Range} from 'atom'
 
 const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['core.fileEncoding', 'setEncoding'],
@@ -18,7 +19,7 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.autoIndentOnPaste', 'setAutoIndentOnPaste'],
   ['editor.scrollPastEnd', 'setScrollPastEnd'],
   ['editor.undoGroupingInterval', 'setUndoGroupingInterval'],
-  ['editor.nonWordCharacters', 'setNonWordCharacters'],
+  ['editor.nonWordCharacters', 'setNonWordCharacters']
 ]
 
 // Experimental: This global registry tracks registered `TextEditors`.
@@ -58,7 +59,7 @@ export default class TextEditorRegistry {
   add (editor) {
     this.editors.add(editor)
     editor.registered = true
-    this.emitter.emit("did-add-editor", editor)
+    this.emitter.emit('did-add-editor', editor)
 
     return new Disposable(() => this.remove(editor))
   }
@@ -82,7 +83,7 @@ export default class TextEditorRegistry {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   observe (callback) {
     this.editors.forEach(callback)
-    return this.emitter.on("did-add-editor", callback)
+    return this.emitter.on('did-add-editor', callback)
   }
 
   maintainGrammar (editor) {
@@ -174,7 +175,7 @@ class ScopedSettingsDelegate {
     this.config = config
   }
 
-  getNonWordCharacters(scope) {
+  getNonWordCharacters (scope) {
     return this.config.get('editor.nonWordCharacters', {scope: scope})
   }
 
@@ -203,7 +204,7 @@ class ScopedSettingsDelegate {
     })
     return {
       commentStartString: commentStartEntry && commentStartEntry.value,
-      commentEndString: commentEndEntry && commentEndEntry.value,
+      commentEndString: commentEndEntry && commentEndEntry.value
     }
   }
 }

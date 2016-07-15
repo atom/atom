@@ -1646,7 +1646,7 @@ describe "TextEditor", ->
           expect(editor.getSelectedBufferRange()).toEqual [[12, 2], [12, 6]]
 
       it "selects words based on the non-word characters configured at the cursor's current scope", ->
-        editor.setText("one-one; 'two-two'; three-three");
+        editor.setText("one-one; 'two-two'; three-three")
 
         editor.setCursorBufferPosition([0, 1])
         editor.addCursorAtBufferPosition([0, 12])
