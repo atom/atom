@@ -2,15 +2,16 @@ version: "{build}"
 
 os: Windows Server 2012 R2
 
+environment:
+  nodejs_version: "4.4.5"
+
 install:
-  - choco install atom -y
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - ".\\bin\\npm clean"
-  - ".\\bin\\npm install"
+  - npm install -g npm
+  - npm clean
+  - npm install
 
 build_script:
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - ".\\bin\\npm test"
+  - npm test
 
 test: off
 
