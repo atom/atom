@@ -33,6 +33,7 @@ install:
 script: script/cibuild
 
 cache:
+  timeout: 1000
   directories:
     - node_modules
     - build/node_modules
