@@ -4,7 +4,6 @@ setlocal EnableExtensions
 
 echo ^>^> Downloading bundled Node
 node .\script\download-node.js
-echo ^>^> Downloaded Node version
 
 echo The version of Node we downloaded:
 call .\bin\node.exe -v
