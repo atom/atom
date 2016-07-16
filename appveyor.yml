@@ -6,6 +6,7 @@ environment:
   nodejs_version: "4.4.5"
 
 install:
+  - ps: Install-Product node $env:nodejs_version
   - npm install -g npm
   - npm install
 
