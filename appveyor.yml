@@ -12,6 +12,8 @@ install:
   - npm install -g npm
   - npm install
 
+build: off
+
 test: off
 
 deploy: off
