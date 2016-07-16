@@ -23,6 +23,7 @@ var downloadFileToLocation = function(url, filename, callback) {
   var stream = fs.createWriteStream(filename);
   stream.on('end', callback);
   stream.on('error', callback);
+  var requestStream = request.get(url)
   requestStream.on('response', function(response) {
     if (response.statusCode == 404) {
       console.error('download not found:', url);
