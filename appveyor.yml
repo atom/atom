@@ -12,9 +12,6 @@ install:
   - npm install -g npm
   - npm install
 
-build_script:
-  - npm test
-
 test: off
 
 deploy: off
