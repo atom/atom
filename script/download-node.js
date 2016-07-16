@@ -23,7 +23,13 @@ var downloadFileToLocation = function(url, filename, callback) {
   var stream = fs.createWriteStream(filename);
   stream.on('end', callback);
   stream.on('error', callback);
-  request.get(url).pipe(stream);
+  requestStream.on('response', function(response) {
+    if (response.statusCode == 404) {
+      console.error('download not found:', url);
+      process.exit(1);
+    }
+    requestStream.pipe(stream);
+  });
 };
 
 var downloadTarballAndExtract = function(url, location, callback) {
