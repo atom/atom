@@ -1,6 +1,6 @@
 'atom-text-editor':
   # Platform Bindings
-  'home': 'editor:move-to-first-character-of-line'
+  'home': 'editor:move-to-first-character-of-screen-line'
   'end': 'editor:move-to-end-of-screen-line'
   # TODO: make the next two function use the full line, instead of screen line?
   'shift-home': 'editor:select-to-first-character-of-screen-line'

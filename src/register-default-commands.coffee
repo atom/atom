@@ -117,7 +117,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:move-to-beginning-of-line': -> @moveToBeginningOfLine()
     'editor:move-to-end-of-screen-line': -> @moveToEndOfScreenLine()
     'editor:move-to-end-of-line': -> @moveToEndOfLine()
-    'editor:move-to-first-character-of-line': -> @moveToFirstCharacterOfScreenLine()
+    'editor:move-to-first-character-of-screen-line': -> @moveToFirstCharacterOfScreenLine() # TODO: change name to move-to-first-character-of-screen-line?
     'editor:move-to-beginning-of-word': -> @moveToBeginningOfWord()
     'editor:move-to-end-of-word': -> @moveToEndOfWord()
     'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
