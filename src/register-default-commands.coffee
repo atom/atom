@@ -134,7 +134,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
 
     # TODO: add select-to-beginning-of-screen-line
     'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
-    # TODO: add select-to-first-character-of-screen-line
+    'editor:select-to-first-character-of-screen-line': -> @selectToFirstCharacterOfScreenLine()
     'editor:select-to-end-of-line': -> @selectToEndOfLine()
     'editor:select-to-end-of-screen-line': -> @selectToEndOfScreenLine()
 
@@ -145,7 +145,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
     'editor:select-to-next-subword-boundary': -> @selectToNextSubwordBoundary()
     'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
-    'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
+    # 'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 
