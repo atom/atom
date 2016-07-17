@@ -2017,9 +2017,10 @@ class TextEditor extends Model
   moveToBeginningOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
 
-  # Essential: Move every cursor to the first non-whitespace character of its line.
-  moveToFirstCharacterOfLine: ->
-    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+  # Essential: Move every cursor to the first non-whitespace character of its
+  # screen line.
+  moveToFirstCharacterOfScreenLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfScreenLine()
 
   # Essential: Move every cursor to the end of its line in buffer coordinates.
   moveToEndOfLine: ->

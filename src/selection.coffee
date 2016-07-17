@@ -258,7 +258,7 @@ class Selection extends Model
   # # Public: Selects all the text from the current cursor position to the first
   # # character of the line.
   # selectToFirstCharacterOfLine: ->
-  #   @modifySelection => @cursor.moveToFirstCharacterOfLine()
+  #   @modifySelection => @cursor.moveToFirstCharacterOfScreenLine()
   #
   # # Public: Selects all the text from the current cursor position to the end of
   # # the screen line.
@@ -284,9 +284,8 @@ class Selection extends Model
 
   # Public: Selects all the text from the current cursor position to the first
   # non-whitespace character of the screen line.
-  # TODO: rename moveToFirstCharacterOfLine to moveToFirstCharacterOfScreenLine?
   selectToFirstCharacterOfScreenLine: ->
-    @modifySelection => @cursor.moveToFirstCharacterOfLine()
+    @modifySelection => @cursor.moveToFirstCharacterOfScreenLine()
 
 
 
@@ -577,7 +576,7 @@ class Selection extends Model
       # Remove leading whitespace from the line below
       @modifySelection =>
         @cursor.moveRight()
-        @cursor.moveToFirstCharacterOfLine()
+        @cursor.moveToFirstCharacterOfScreenLine()
       @deleteSelectedText()
 
       @cursor.moveLeft() if insertSpace

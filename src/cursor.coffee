@@ -311,8 +311,8 @@ class Cursor extends Model
     @setBufferPosition([@getBufferRow(), 0])
 
   # Public: Moves the cursor to the beginning of the first character in the
-  # line.
-  moveToFirstCharacterOfLine: ->
+  # screen line.
+  moveToFirstCharacterOfScreenLine: ->
     screenRow = @getScreenRow()
     screenLineStart = @editor.clipScreenPosition([screenRow, 0], skipSoftWrapIndentation: true)
     screenLineEnd = [screenRow, Infinity]

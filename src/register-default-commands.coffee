@@ -117,7 +117,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:move-to-beginning-of-line': -> @moveToBeginningOfLine()
     'editor:move-to-end-of-screen-line': -> @moveToEndOfScreenLine()
     'editor:move-to-end-of-line': -> @moveToEndOfLine()
-    'editor:move-to-first-character-of-line': -> @moveToFirstCharacterOfLine()
+    'editor:move-to-first-character-of-line': -> @moveToFirstCharacterOfScreenLine()
     'editor:move-to-beginning-of-word': -> @moveToBeginningOfWord()
     'editor:move-to-end-of-word': -> @moveToEndOfWord()
     'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
@@ -132,9 +132,10 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     # 'editor:select-to-end-of-line': -> @selectToEndOfLine()
     # 'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
 
-    # TODO: add select-to-beginning-of-screen-line
     'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
+    'editor:select-to-beginning-of-screen-line': -> @selectToBeginningOfScreenLine()
     'editor:select-to-first-character-of-screen-line': -> @selectToFirstCharacterOfScreenLine()
+
     'editor:select-to-end-of-line': -> @selectToEndOfLine()
     'editor:select-to-end-of-screen-line': -> @selectToEndOfScreenLine()
 
