@@ -2,8 +2,9 @@
   # Platform Bindings
   'home': 'editor:move-to-first-character-of-screen-line'
   'end': 'editor:move-to-end-of-screen-line'
-  'shift-home': 'editor:select-to-beginning-of-line'
-  'shift-end': 'editor:select-to-end-of-line'
+  # TODO: make the next two function use the full line, instead of screen line?
+  'shift-home': 'editor:select-to-first-character-of-screen-line'
+  'shift-end': 'editor:select-to-end-of-screen-line'
 
 'atom-text-editor:not([mini])':
   # Atom Specific
