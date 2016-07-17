@@ -302,7 +302,7 @@ class Cursor extends Model
   moveToBottom: ->
     @setBufferPosition(@editor.getEofBufferPosition())
 
-  # Public: Moves the cursor to the beginning of the line.
+  # Public: Moves the cursor to the beginning of the screen line.
   moveToBeginningOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), 0])
 
@@ -330,7 +330,7 @@ class Cursor extends Model
 
     @setBufferPosition([screenLineBufferRange.start.row, targetBufferColumn])
 
-  # Public: Moves the cursor to the end of the line.
+  # Public: Moves the cursor to the end of the screen line.
   moveToEndOfScreenLine: ->
     @setScreenPosition([@getScreenRow(), Infinity])
 

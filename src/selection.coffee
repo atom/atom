@@ -245,25 +245,65 @@ class Selection extends Model
   selectAll: ->
     @setBufferRange(@editor.buffer.getRange(), autoscroll: false)
 
+
+
+
+
+  # Original
+  # # Public: Selects all the text from the current cursor position to the
+  # # beginning of the line.
+  # selectToBeginningOfLine: ->
+  #   @modifySelection => @cursor.moveToBeginningOfLine()
+  #
+  # # Public: Selects all the text from the current cursor position to the first
+  # # character of the line.
+  # selectToFirstCharacterOfLine: ->
+  #   @modifySelection => @cursor.moveToFirstCharacterOfLine()
+  #
+  # # Public: Selects all the text from the current cursor position to the end of
+  # # the screen line.
+  # selectToEndOfLine: ->
+  #   @modifySelection => @cursor.moveToEndOfScreenLine()
+  #
+  # # Public: Selects all the text from the current cursor position to the end of
+  # # the buffer line.
+  # selectToEndOfBufferLine: ->
+  #   @modifySelection => @cursor.moveToEndOfLine()
+
+
+
   # Public: Selects all the text from the current cursor position to the
   # beginning of the line.
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()
 
+  # Public: Selects all the text from the current cursor position to the
+  # beginning of the screen line.
+  selectToBeginningOfScreenLine: ->
+    @modifySelection => @cursor.moveToBeginningOfScreenLine()
+
   # Public: Selects all the text from the current cursor position to the first
-  # character of the line.
-  selectToFirstCharacterOfLine: ->
+  # non-whitespace character of the screen line.
+  # TODO: rename moveToFirstCharacterOfLine to moveToFirstCharacterOfScreenLine?
+  selectToFirstCharacterOfScreenLine: ->
     @modifySelection => @cursor.moveToFirstCharacterOfLine()
 
+
+
   # Public: Selects all the text from the current cursor position to the end of
-  # the screen line.
+  # the line.
   selectToEndOfLine: ->
     @modifySelection => @cursor.moveToEndOfLine()
 
   # Public: Selects all the text from the current cursor position to the end of
-  # the buffer line.
-  selectToEndOfBufferLine: ->
-    @modifySelection => @cursor.moveToEndOfLine()
+  # the screen line.
+  selectToEndOfScreenLine: ->
+    @modifySelection => @cursor.moveToEndOfScreenLine()
+
+
+
+
+
 
   # Public: Selects all the text from the current cursor position to the
   # beginning of the word.
