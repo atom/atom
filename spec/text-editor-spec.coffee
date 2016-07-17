@@ -1743,6 +1743,7 @@ describe "TextEditor", ->
           editor.selectWordsContainingCursors()
           expect(editor.getSelectedBufferRange()).toEqual [[0, 4], [0, 13]]
 
+    # TODO: rename to selectToFirstCharacterOfScreenLine
     describe ".selectToFirstCharacterOfLine()", ->
       it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
         editor.setCursorScreenPosition [0, 5]

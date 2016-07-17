@@ -175,7 +175,7 @@
       { label: 'Select to Beginning of Word', command: 'editor:select-to-beginning-of-word' }
       { label: 'Select to Beginning of Line', command: 'editor:select-to-beginning-of-line' }
       { label: 'Select to Beginning of Screen Line', command: 'editor:select-to-beginning-of-screen-line' }
-      { label: 'Select to First Character of Line', command: 'editor:select-to-first-character-of-screen-line' }
+      { label: 'Select to First Character of Screen Line', command: 'editor:select-to-first-character-of-screen-line' }
       { label: 'Select to End of Word', command: 'editor:select-to-end-of-word' }
       { label: 'Select to End of Line', command: 'editor:select-to-end-of-line' }
       { label: 'Select to End of Screen Line', command: 'editor:select-to-end-of-screen-line' }

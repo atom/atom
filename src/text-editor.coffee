@@ -2363,6 +2363,11 @@ class TextEditor extends Model
   selectAll: ->
     @expandSelectionsForward (selection) -> selection.selectAll()
 
+
+
+
+
+
   # Essential: Move the cursor of each selection to the beginning of its line
   # while preserving the selection's tail position.
   #
@@ -2370,14 +2375,23 @@ class TextEditor extends Model
   selectToBeginningOfLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfLine()
 
+  # Essential: Move the cursor of each selection to the beginning of its screen line
+  # while preserving the selection's tail position.
+  #
+  # This method may merge selections that end up intesecting.
+  selectToBeginningOfScreenLine: ->
+    @expandSelectionsBackward (selection) -> selection.selectToBeginningOfScreenLine()
+
   # Essential: Move the cursor of each selection to the first non-whitespace
-  # character of its line while preserving the selection's tail position. If the
-  # cursor is already on the first character of the line, move it to the
-  # beginning of the line.
+  # character of its screen line while preserving the selection's tail position. If the
+  # cursor is already on the first character of the screen line, move it to the
+  # beginning of the screen line.
   #
   # This method may merge selections that end up intersecting.
-  selectToFirstCharacterOfLine: ->
-    @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
+  # selectToFirstCharacterOfLine: ->
+  #   @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
+  selectToFirstCharacterOfScreenLine: ->
+    @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfScreenLine()
 
   # Essential: Move the cursor of each selection to the end of its line while
   # preserving the selection's tail position.
@@ -2385,6 +2399,18 @@ class TextEditor extends Model
   # This method may merge selections that end up intersecting.
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) -> selection.selectToEndOfLine()
+
+  # Essential: Move the cursor of each selection to the end of its screen line while
+  # preserving the selection's tail position.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToEndOfScreenLine: ->
+    @expandSelectionsForward (selection) -> selection.selectToEndOfScreenLine()
+
+
+
+
+
 
   # Essential: Expand selections to the beginning of their containing word.
   #
