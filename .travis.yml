@@ -29,6 +29,7 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
+  - npm install -g npm
 
 script: script/cibuild
 
