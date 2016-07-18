@@ -2368,6 +2368,7 @@ class TextEditor extends Model
   selectAll: ->
     @expandSelectionsForward (selection) -> selection.selectAll()
 
+  # TODO: cleanup
 
 
 

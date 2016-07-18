@@ -118,27 +118,22 @@
   'cmd-backspace': 'editor:delete-to-beginning-of-line'
   'cmd-shift-backspace': 'editor:delete-to-beginning-of-line'
   'cmd-delete': 'editor:delete-to-end-of-line'
-
+  # TODO: cleanup
   # 'ctrl-A': 'editor:select-to-first-character-of-line'
   'ctrl-A': 'editor:select-to-first-character-of-screen-line'
   # 'ctrl-E': 'editor:select-to-end-of-line'
   'ctrl-E': 'editor:select-to-end-of-screen-line'
-
   'cmd-left': 'editor:move-to-first-character-of-screen-line'
   'cmd-right': 'editor:move-to-end-of-screen-line'
-
   # 'cmd-shift-left': 'editor:select-to-first-character-of-line'
   'cmd-shift-left': 'editor:select-to-first-character-of-screen-line'
   # 'cmd-shift-right': 'editor:select-to-end-of-line'
   'cmd-shift-right': 'editor:select-to-end-of-screen-line'
-
   'alt-backspace': 'editor:delete-to-beginning-of-word'
   'alt-delete': 'editor:delete-to-end-of-word'
-
   'ctrl-a': 'editor:move-to-first-character-of-screen-line'
   # 'ctrl-e': 'editor:move-to-end-of-line'
   'ctrl-e': 'editor:move-to-end-of-screen-line'
-
   'ctrl-k': 'editor:cut-to-end-of-line'
 
 
