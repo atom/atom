@@ -277,6 +277,11 @@ class Selection extends Model
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()
 
+  # Public: Selects all the text from the current cursor position to the first
+  # non-whitespace character of the line.
+  selectToFirstCharacterOfLine: ->
+    @modifySelection => @cursor.moveToFirstCharacterOfLine()
+
   # Public: Selects all the text from the current cursor position to the
   # beginning of the screen line.
   selectToBeginningOfScreenLine: ->

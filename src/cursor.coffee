@@ -311,6 +311,27 @@ class Cursor extends Model
     @setBufferPosition([@getBufferRow(), 0])
 
   # Public: Moves the cursor to the beginning of the first character in the
+  # buffer line.
+  moveToFirstCharacterOfLine: ->
+    # screenRow = @getScreenRow()
+    bufferRow = @getBufferRow()
+    bufferLineStart = @editor.clipBufferPosition([bufferRow, 0], skipSoftWrapIndentation: true)
+    bufferLineEnd = [bufferRow, Infinity]
+    bufferLineBufferRange = @editor.screenRangeForBufferRange([bufferLineStart, bufferLineEnd])
+    #
+    firstCharacterColumn = null
+    @editor.scanInBufferRange /\S/, bufferLineBufferRange, ({range, stop}) ->
+      firstCharacterColumn = range.start.column
+      stop()
+
+    if firstCharacterColumn? and firstCharacterColumn isnt @getBufferColumn()
+      targetBufferColumn = firstCharacterColumn
+    else
+      targetBufferColumn = bufferLineBufferRange.start.column
+
+    @setBufferPosition([bufferLineBufferRange.start.row, targetBufferColumn])
+
+  # Public: Moves the cursor to the beginning of the first character in the
   # screen line.
   moveToFirstCharacterOfScreenLine: ->
     screenRow = @getScreenRow()

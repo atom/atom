@@ -2013,6 +2013,11 @@ class TextEditor extends Model
   moveToBeginningOfLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
 
+  # Essential: Move every cursor to the first non-whitespace character of its
+  # line.
+  moveToFirstCharacterOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+
   # Essential: Move every cursor to the beginning of its line in screen coordinates.
   moveToBeginningOfScreenLine: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfScreenLine()
@@ -2383,13 +2388,20 @@ class TextEditor extends Model
     @expandSelectionsBackward (selection) -> selection.selectToBeginningOfScreenLine()
 
   # Essential: Move the cursor of each selection to the first non-whitespace
+  # character of its line while preserving the selection's tail position. If the
+  # cursor is already on the first character of the line, move it to the
+  # beginning of the line.
+  #
+  # This method may merge selections that end up intersecting.
+  selectToFirstCharacterOfLine: ->
+    @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
+
+  # Essential: Move the cursor of each selection to the first non-whitespace
   # character of its screen line while preserving the selection's tail position. If the
   # cursor is already on the first character of the screen line, move it to the
   # beginning of the screen line.
   #
   # This method may merge selections that end up intersecting.
-  # selectToFirstCharacterOfLine: ->
-  #   @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfLine()
   selectToFirstCharacterOfScreenLine: ->
     @expandSelectionsBackward (selection) -> selection.selectToFirstCharacterOfScreenLine()
 

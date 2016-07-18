@@ -133,6 +133,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     # 'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
 
     'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
+    'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
     'editor:select-to-beginning-of-screen-line': -> @selectToBeginningOfScreenLine()
     'editor:select-to-first-character-of-screen-line': -> @selectToFirstCharacterOfScreenLine()
 
@@ -146,7 +147,6 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
     'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
     'editor:select-to-next-subword-boundary': -> @selectToNextSubwordBoundary()
     'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
-    # 'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
     'editor:select-line': -> @selectLinesContainingCursors()
   )
 

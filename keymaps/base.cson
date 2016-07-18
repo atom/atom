@@ -1,8 +1,8 @@
 'atom-text-editor':
   # Platform Bindings
+  # TODO: make home and end select the buffer or screen line? Originally screen
   'home': 'editor:move-to-first-character-of-screen-line'
   'end': 'editor:move-to-end-of-screen-line'
-  # TODO: make the next two function use the full line, instead of screen line?
   'shift-home': 'editor:select-to-first-character-of-screen-line'
   'shift-end': 'editor:select-to-end-of-screen-line'
 
