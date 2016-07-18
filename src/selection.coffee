@@ -270,7 +270,7 @@ class Selection extends Model
   # selectToEndOfBufferLine: ->
   #   @modifySelection => @cursor.moveToEndOfLine()
 
-  # TODO: cleanup
+  # TODO: cleanup, reorder to match other files
 
 
   # Public: Selects all the text from the current cursor position to the
