@@ -17,7 +17,7 @@ class ShellOption
     doneCount = @parts.length
     @parts.forEach((part) =>
       reg = new Registry({hive: 'HKCU', key: if part.key? then "#{@key}\\#{part.key}" else @key})
-      reg.create( -> reg.set part.name, Registry.REG_SZ, part.value, -> callback() if doneCount-- is 0))
+      reg.create( -> reg.set part.name, Registry.REG_SZ, part.value, -> callback() if --doneCount is 0))
   deregister: (callback) =>
     @isRegistered (isRegistered) =>
       if isRegistered
@@ -26,11 +26,11 @@ class ShellOption
         callback null, false
   update: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
-      .get @parts[0].name, (err, val) ->
-        if err? or not val.value.endsWith '\\' + exeName
-          callback err, val
+      .get @parts[0].name, (err, val) =>
+        if err? or not val.value.includes '\\' + exeName
+          callback(err)
         else
-          register callback
+          @register callback
 
 exports.appName = appName
 
