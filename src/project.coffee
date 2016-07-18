@@ -129,6 +129,7 @@ class Project extends Model
         # registered in the future that could supply a Repository for the
         # directory.
         @repositoryPromisesByPath.delete(pathForDirectory) unless repo?
+        repo?.onDidDestroy?(=> @repositoryPromisesByPath.delete(pathForDirectory))
         repo
       @repositoryPromisesByPath.set(pathForDirectory, promise)
     promise

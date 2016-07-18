@@ -9,7 +9,7 @@ import os from 'os'
 function getRawShellEnv () {
   let shell = getUserShell()
 
-  // The `-ilc` set of options was tested to work with the OS X v10.11
+  // The `-ilc` set of options was tested to work with the macOS v10.11
   // default-installed versions of bash, zsh, sh, and ksh. It *does not*
   // work with csh or tcsh.
   let results = spawnSync(shell, ['-ilc', 'env'], {encoding: 'utf8'})
@@ -72,7 +72,10 @@ function needsPatching (options = { platform: process.platform, env: process.env
 // underlying functionality.
 function clone (to, from) {
   for (var key in to) {
-    delete to[key]
+    // Don't erase NODE_ENV. Fixes #12024
+    if (key !== 'NODE_ENV') {
+      delete to[key]
+    }
   }
 
   Object.assign(to, from)

@@ -1,48 +1,6 @@
 @import "ui-variables";
 
-// Override bootstrap styles here.
-
-.panel {
-  border-radius: 0;
-  border: none;
-  background-color: transparent;
-  box-shadow: none;
-
-  &.bordered {
-    .panel-heading {
-      border-radius: @component-border-radius @component-border-radius 0 0;
-    }
-  }
-}
-
-// interstitial panels
-
-.inset-panel {
-  .panel-heading {
-    border-radius: @component-border-radius @component-border-radius 0 0;
-  }
-}
-
-.panel-heading {
-  margin: 0;
-  padding: @component-padding;
-
-  border-radius: 0;
-
-  font-size: @font-size;
-  line-height: 1;
-
-  .btn {
-    @btn-height: @component-line-height - 5px;
-    height: @btn-height;
-    line-height: @btn-height;
-    font-size: @font-size - 2px;
-    position: relative;
-    top: -5px;
-  }
-}
-
-// Tool panels
+// Atom panels
 
 atom-panel-container.left,
 atom-panel-container.right {
@@ -53,7 +11,6 @@ atom-panel-container.right {
 atom-panel {
   display: block;
   position: relative;
-  background-color: @tool-panel-background-color;
 }
 
 atom-panel-container > atom-panel.left,
@@ -65,78 +22,4 @@ atom-panel-container > atom-panel.right {
 atom-panel-container > atom-panel.left > *,
 atom-panel-container > atom-panel.right > * {
   height: initial;
-}
-
-// Modal panels
-
-.overlay, // deprecated .overlay
-atom-panel.modal {
-  position: absolute;
-  display: block;
-  left: 50%;
-  width: 500px;
-  margin-left: -250px;
-  z-index: 9999;
-  box-sizing: border-box;
-
-  color: @text-color;
-  background-color: @overlay-background-color;
-
-  padding: 10px;
-
-  // shrink modals when window gets narrow
-  @media (max-width: 500px) {
-    & {
-      width: 100%;
-      left: 0;
-      margin-left: 0;
-    }
-  }
-
-  h1 {
-    margin-top: 0;
-    color: @text-color-highlight;
-    font-size: 1.6em;
-    font-weight: bold;
-  }
-
-  h2 {
-    font-size: 1.3em;
-  }
-
-  atom-text-editor[mini] {
-    margin-bottom: 10px;
-  }
-
-  .message {
-    padding-top: 5px;
-    font-size: 11px;
-  }
-
-  &.mini {
-    width: 200px;
-    margin-left: -100px;
-    font-size: 12px;
-  }
-}
-
-// deprecated: from-top, from-bottom
-.overlay.from-top,
-atom-panel.modal {
-  top: 0;
-  border-top: none;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-
-// TODO: Remove these!
-.overlay.from-bottom {
-  bottom: 0;
-  border-bottom: none;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.overlay.floating {
-  left: auto;
 }

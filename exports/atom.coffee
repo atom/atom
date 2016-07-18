@@ -8,7 +8,6 @@ module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   GitRepository: require '../src/git-repository'
-  GitRepositoryAsync: require '../src/git-repository-async'
   Notification: require '../src/notification'
   TextBuffer: TextBuffer
   Point: Point

@@ -33,8 +33,20 @@ class NotificationManager
   #
   # * `message` A {String} message
   # * `options` (optional) An options {Object} with the following keys:
-  #    * `detail` (optional) A {String} with additional details about the
-  #      notification.
+  #    * `buttons` (optional) An {Array} of {Object} where each {Object} has the
+  #      following options:
+  #      * `className` (optional) {String} a class name to add to the button's
+  #        default class name (`btn btn-success`).
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
+  #      * `text` {String} inner text for the button
+  #    * `description` (optional) A Markdown {String} containing a longer
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -46,8 +58,20 @@ class NotificationManager
   #
   # * `message` A {String} message
   # * `options` (optional) An options {Object} with the following keys:
-  #    * `detail` (optional) A {String} with additional details about the
-  #      notification.
+  #    * `buttons` (optional) An {Array} of {Object} where each {Object} has the
+  #      following options:
+  #      * `className` (optional) {String} a class name to add to the button's
+  #        default class name (`btn btn-info`).
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
+  #      * `text` {String} inner text for the button
+  #    * `description` (optional) A Markdown {String} containing a longer
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -59,8 +83,20 @@ class NotificationManager
   #
   # * `message` A {String} message
   # * `options` (optional) An options {Object} with the following keys:
-  #    * `detail` (optional) A {String} with additional details about the
-  #      notification.
+  #    * `buttons` (optional) An {Array} of {Object} where each {Object} has the
+  #      following options:
+  #      * `className` (optional) {String} a class name to add to the button's
+  #        default class name (`btn btn-warning`).
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
+  #      * `text` {String} inner text for the button
+  #    * `description` (optional) A Markdown {String} containing a longer
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
@@ -72,12 +108,26 @@ class NotificationManager
   #
   # * `message` A {String} message
   # * `options` (optional) An options {Object} with the following keys:
-  #    * `detail` (optional) A {String} with additional details about the
-  #      notification.
+  #    * `buttons` (optional) An {Array} of {Object} where each {Object} has the
+  #      following options:
+  #      * `className` (optional) {String} a class name to add to the button's
+  #        default class name (`btn btn-error`).
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
+  #      * `text` {String} inner text for the button
+  #    * `description` (optional) A Markdown {String} containing a longer
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
   #      in the notification header. Defaults to `'flame'`.
+  #    * `stack` (optional) A preformatted {String} with stack trace information
+  #      describing the location of the error.
   addError: (message, options) ->
     @addNotification(new Notification('error', message, options))
 
@@ -85,12 +135,26 @@ class NotificationManager
   #
   # * `message` A {String} message
   # * `options` (optional) An options {Object} with the following keys:
-  #    * `detail` (optional) A {String} with additional details about the
-  #      notification.
+  #    * `buttons` (optional) An {Array} of {Object} where each {Object} has the
+  #      following options:
+  #      * `className` (optional) {String} a class name to add to the button's
+  #        default class name (`btn btn-error`).
+  #      * `onDidClick` (optional) {Function} callback to call when the button
+  #        has been clicked. The context will be set to the
+  #        {NotificationElement} instance.
+  #      * `text` {String} inner text for the button
+  #    * `description` (optional) A Markdown {String} containing a longer
+  #      description about the notification. By default, this **will not**
+  #      preserve newlines and whitespace when it is rendered.
+  #    * `detail` (optional) A plain-text {String} containing additional details
+  #      about the notification. By default, this **will** preserve newlines
+  #      and whitespace when it is rendered.
   #    * `dismissable` (optional) A {Boolean} indicating whether this
   #      notification can be dismissed by the user. Defaults to `false`.
   #    * `icon` (optional) A {String} name of an icon from Octicons to display
   #      in the notification header. Defaults to `'bug'`.
+  #    * `stack` (optional) A preformatted {String} with stack trace information
+  #      describing the location of the error.
   addFatalError: (message, options) ->
     @addNotification(new Notification('fatal', message, options))
 

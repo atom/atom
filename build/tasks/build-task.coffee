@@ -59,12 +59,6 @@ module.exports = (grunt) ->
       path.join('ohnogit', 'node_modules', 'nodegit', 'node_modules', '.bin')
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
-      path.join('bootstrap', 'docs')
-      path.join('bootstrap', 'dist')
-      path.join('bootstrap', 'fonts')
-      path.join('bootstrap', '_config.yml')
-      path.join('bootstrap', '_includes')
-      path.join('bootstrap', '_layouts')
       path.join('npm', 'doc')
       path.join('npm', 'html')
       path.join('npm', 'man')
@@ -141,7 +135,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}linker\\.lock$"
     ignoredPaths.push "#{_.escapeRegExp(path.join('build', 'Release') + path.sep)}.+\\.node\\.dSYM"
 
-    # Hunspell dictionaries are only not needed on OS X.
+    # Hunspell dictionaries are only not needed on macOS.
     if process.platform is 'darwin'
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
