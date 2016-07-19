@@ -288,7 +288,7 @@ module.exports = (grunt) ->
   ciTasks.push('set-version', 'check-licenses', 'lint', 'generate-asar')
   ciTasks.push('mkdeb') if process.platform is 'linux'
   ciTasks.push('mktar') if process.platform is 'linux'
-  ciTasks.push('test') if process.platform is 'darwin'
+  # ciTasks.push('test') if process.platform is 'darwin'
   ciTasks.push('codesign:app') if process.platform is 'darwin' and not process.env.CI
   if process.platform is 'win32'
     ciTasks.push('codesign:exe') if process.env.JANKY_SIGNTOOL

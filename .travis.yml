@@ -35,6 +35,7 @@ script: script/cibuild
 cache:
   timeout: 1000
   directories:
+    - $HOME/.atom/.node-gyp/.atom
     - node_modules
     - apm/node_modules
     - build/node_modules
