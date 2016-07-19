@@ -29,13 +29,13 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
-  - npm install -g npm
 
 script: script/cibuild
 
 cache:
   timeout: 1000
   directories:
+    - node_modules
     - build/node_modules
     - apm/node_modules
 
