@@ -21,6 +21,7 @@ module.exports = ({blobStore}) ->
 
   AtomEnvironment = require './atom-environment'
   ApplicationDelegate = require './application-delegate'
+  !process.env.ATOM_HOME && (process.env.ATOM_HOME = process.env.HOME && path.join(process.env.HOME, '.atom') || '');
   window.atom = new AtomEnvironment({
     window, document, blobStore,
     applicationDelegate: new ApplicationDelegate,
