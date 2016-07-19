@@ -36,10 +36,8 @@ script: script/cibuild
 cache:
   timeout: 1000
   directories:
-    - node_modules
     - build/node_modules
     - apm/node_modules
-    - $HOME/.atom/compile-cache
 
 notifications:
   email:
