@@ -26,11 +26,16 @@ describe "Windows Squirrel Update", ->
       # do nothing on command, just run passed callback
       invokeCallback callback
 
-      # Prevent any actual change to Windows Shell
-    for own property of WinShell
-      for own method of property
-        spyOn(property, method).andCallFake (callback) ->
-          invokeCallback callback
+    # Prevent any actual change to Windows Shell
+    class FakeShellOption
+      isRegistered: (callback) -> callback true
+      register: (callback) -> callback null
+      deregister: (callback) -> callback null, true
+      update: (callback) -> callback null
+    WinShell.fileHandler = new FakeShellOption()
+    WinShell.fileContextMenu = new FakeShellOption()
+    WinShell.folderContextMenu = new FakeShellOption()
+    WinShell.folderBackgroundContextMenu = new FakeShellOption()
 
   it "quits the app on all squirrel events", ->
     app = quit: jasmine.createSpy('quit')

@@ -129,7 +129,7 @@ updateContextMenus = (callback) ->
   WinShell.fileContextMenu.update ->
     WinShell.folderContextMenu.update ->
       WinShell.folderBackgroundContextMenu.update ->
-        callback
+        callback()
 
 # Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = (app, squirrelCommand) ->
