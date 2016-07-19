@@ -9,21 +9,25 @@ class ShellOption
   constructor: (key, parts) ->
     @key = key
     @parts = parts
+
   isRegistered: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) =>
         callback(not err? and val.value is @parts[0].value)
+
   register: (callback) =>
     doneCount = @parts.length
-    @parts.forEach((part) =>
+    for part in @parts
       reg = new Registry({hive: 'HKCU', key: if part.key? then "#{@key}\\#{part.key}" else @key})
-      reg.create( -> reg.set part.name, Registry.REG_SZ, part.value, -> callback() if --doneCount is 0))
+      reg.create( -> reg.set part.name, Registry.REG_SZ, part.value, -> callback() if --doneCount is 0)
+
   deregister: (callback) =>
     @isRegistered (isRegistered) =>
       if isRegistered
         new Registry({hive: 'HKCU', key: @key}).destroy -> callback null, true
       else
         callback null, false
+
   update: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) =>
