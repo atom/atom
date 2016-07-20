@@ -22,6 +22,12 @@ dependencies:
   override:
     - script/bootstrap
 
+  cache_directories:
+    - apm/node_modules
+    - build/node_modules
+    - node_modules
+    - electron
+
 test:
   override:
     - script/grunt ci
