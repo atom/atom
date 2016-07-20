@@ -30,7 +30,6 @@ dependencies:
     - apm/node_modules
     - build/node_modules
     - node_modules
-    - electron
 
 test:
   override:
