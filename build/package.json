@@ -32,7 +32,7 @@
     "grunt-standard": "^2.0.0",
     "legal-eagle": "~0.13.0",
     "minidump": "~0.9",
-    "npm": "3.9.5",
+    "npm": "3.10.5",
     "rcedit": "~0.3.0",
     "request": "~2.27.0",
     "rimraf": "~2.2.2",
