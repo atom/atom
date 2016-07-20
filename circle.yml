@@ -1,4 +1,7 @@
 machine:
+  environment:
+    XCODE_SCHEME: test
+
   xcode:
     version: 7.3
 
