@@ -1,4 +1,16 @@
+machine:
+  node:
+    version: 4.4.7
+
 general:
   branches:
     only:
-      - io-circle-ci
+      - as-circle-ci
+
+dependencies:
+  override:
+    - script/bootstrap
+
+test:
+  override:
+    - script/grunt ci
