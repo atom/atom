@@ -7,7 +7,6 @@ var tar = require('tar');
 var temp = require('temp');
 
 var request = require('request');
-
 var getInstallNodeVersion = require('./bundled-node-version')
 
 temp.track();
@@ -24,7 +23,14 @@ var downloadFileToLocation = function(url, filename, callback) {
   var stream = fs.createWriteStream(filename);
   stream.on('end', callback);
   stream.on('error', callback);
-  request.get(url).pipe(stream);
+  var requestStream = request.get(url)
+  requestStream.on('response', function(response) {
+    if (response.statusCode == 404) {
+      console.error('download not found:', url);
+      process.exit(1);
+    }
+    requestStream.pipe(stream);
+  });
 };
 
 var downloadTarballAndExtract = function(url, location, callback) {
@@ -67,13 +73,13 @@ var downloadNode = function(version, done) {
     if (process.env.JANKY_SHA1)
       arch = ''; // Always download 32-bit node on Atom Windows CI builds
     else
-      arch = process.arch === 'x64' ? 'x64/' : '';
+      arch = process.arch === 'x64' ? 'x64/' : 'x86/';
     downloadURL = "http://nodejs.org/dist/" + version + "/win-" + arch + "node.exe";
-    filename = path.join('bin', "node.exe");
+    filename = path.join(__dirname, '..', 'bin', "node.exe");
   } else {
     arch = identifyArch();
     downloadURL = "http://nodejs.org/dist/" + version + "/node-" + version + "-" + process.platform + "-" + arch + ".tar.gz";
-    filename = path.join('bin', "node");
+    filename = path.join(__dirname, '..', 'bin', "node");
   }
 
   var downloadFile = function() {
