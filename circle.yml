@@ -18,9 +18,13 @@ dependencies:
     - nvm install 4.4.7
     - nvm use 4.4.7
     - npm install -g npm
+    - script/fingerprint-clean
 
   override:
     - script/bootstrap
+
+  post:
+    - script/fingerprint-write
 
   cache_directories:
     - apm/node_modules
