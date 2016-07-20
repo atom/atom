@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 var fingerprint = require('./utils/fingerprint')
+var fs = require('fs')
+var path = require('path')
+
+if (!fs.existsSync(path.resolve(__dirname, '..', 'node_modules', '.atom-ci-fingerprint'))) {
+  return
+}
 
 if (fingerprint.fingerprintMatches()) {
   console.log('node_modules matches current fingerprint ' + fingerprint.fingerprint() + ' - not removing')
