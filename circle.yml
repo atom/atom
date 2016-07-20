@@ -1,4 +1,7 @@
 machine:
+  xcode:
+    version: 7.3
+
   node:
     version: 4.4.7
 
