@@ -112,5 +112,5 @@ module.exports =
         ;
         ; You should instead edit your .apmrc config located in ~/.atom/.apmrc
         cache = #{@getCacheDirectory()}
-
+        progress = false
       """
