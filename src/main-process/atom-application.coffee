@@ -231,6 +231,7 @@ class AtomApplication
     @openPathOnEvent('application:open-your-keymap', 'atom://.atom/keymap')
     @openPathOnEvent('application:open-your-snippets', 'atom://.atom/snippets')
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
+    @openPathOnEvent('application:open-your-syntax-stylesheet', 'atom://.atom/syntax-stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
     @disposable.add ipcHelpers.on app, 'before-quit', =>

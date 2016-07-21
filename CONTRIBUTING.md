@@ -124,7 +124,7 @@ Include details about your configuration and environment:
 * **What's the name and version of the OS you're using**?
 * **Are you running Atom in a virtual machine?** If so, which VM software are you using and which operating systems and versions are used for the host and the guest?
 * **Which [packages](#atom-and-packages) do you have installed?** You can get that list by running `apm list --installed`.
-* **Are you using [local configuration files](http://flight-manual.atom.io/using-atom/sections/basic-customization/)** `config.cson`, `keymap.cson`, `snippets.cson`, `styles.less` and `init.coffee` to customize Atom? If so, provide the contents of those files, preferably in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) or with a link to a [gist](https://gist.github.com/).
+* **Are you using [local configuration files](http://flight-manual.atom.io/using-atom/sections/basic-customization/)** `config.cson`, `keymap.cson`, `snippets.cson`, `styles.less`, `syntax-styles.less`, and `init.coffee` to customize Atom? If so, provide the contents of those files, preferably in a [code block](https://help.github.com/articles/markdown-basics/#multiple-lines) or with a link to a [gist](https://gist.github.com/).
 * **Are you using Atom with multiple monitors?** If so, can you reproduce the problem when you use a single monitor?
 * **Which keyboard layout are you using?** Are you using a US layout or some other layout?
 

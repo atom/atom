@@ -175,3 +175,16 @@ class StyleManager
       stylesheetPath
     else
       path.join(@configDirPath, 'styles.less')
+
+
+  # Extended: Get the path of the user syntax style sheet in `~/.atom`.
+  #
+  # Returns a {String}.
+  getUserSyntaxStyleSheetPath: ->
+    return "" unless @configDirPath?
+
+    syntaxStylesheetPath = fs.resolve(path.join(@configDirPath, 'syntax-styles'), ['css', 'less'])
+    if fs.isFileSync(syntaxStylesheetPath)
+      syntaxStylesheetPath
+    else
+      path.join(@configDirPath, 'syntax-styles.less')

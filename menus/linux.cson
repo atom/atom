@@ -96,6 +96,7 @@
       { label: 'Keymap…', command: 'application:open-your-keymap' }
       { label: 'Snippets…', command: 'application:open-your-snippets' }
       { label: 'Stylesheet…', command: 'application:open-your-stylesheet' }
+      { label: 'Syntax Stylesheet…', command: 'application:open-your-syntax-stylesheet' }
       { type: 'separator' }
     ]
   }
