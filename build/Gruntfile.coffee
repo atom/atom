@@ -296,7 +296,9 @@ module.exports = (grunt) ->
     ciTasks.push('create-windows-installer:installer')
     ciTasks.push('codesign:installer') if process.env.JANKY_SIGNTOOL
     ciTasks.push('codesign:cleanup')
-  ciTasks.push('publish-build') unless process.env.CI
+
+  if process.env.ATOM_PUBLISH_REPO or not process.env.CI
+    ciTasks.push('publish-build')
 
   grunt.registerTask('ci', ciTasks)
 
