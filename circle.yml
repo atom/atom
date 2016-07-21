@@ -9,7 +9,7 @@ machine:
 
 general:
   artifacts:
-    - out/Atom.app
+    - out/Atom.zip
 
 dependencies:
   pre:
@@ -33,3 +33,6 @@ dependencies:
 test:
   override:
     - script/grunt ci
+
+  post:
+    - zip -r out/Atom.zip out/Atom.app
