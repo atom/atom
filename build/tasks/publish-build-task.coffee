@@ -11,7 +11,7 @@ AWS = require 'aws-sdk'
 grunt = null
 
 token = process.env.ATOM_ACCESS_TOKEN
-repo = process.env.ATOM_REPO ? 'atom/atom'
+repo = process.env.ATOM_PUBLISH_REPO ? 'atom/atom'
 defaultHeaders =
   Authorization: "token #{token}"
   'User-Agent': 'Atom'
