@@ -112,5 +112,6 @@ module.exports =
         ;
         ; You should instead edit your .apmrc config located in ~/.atom/.apmrc
         cache = #{@getCacheDirectory()}
-
+        ; Hide progress-bar to prevent npm from altering apm console output.
+        progress = false
       """
