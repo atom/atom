@@ -7,11 +7,6 @@ machine:
   xcode:
     version: 7.3
 
-general:
-  branches:
-    only:
-      - as-circle-ci
-
 dependencies:
   pre:
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
