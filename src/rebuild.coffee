@@ -43,6 +43,7 @@ class Rebuild extends Command
       '--userconfig'
       config.getUserConfigPath()
       'rebuild'
+      '--runtime=electron'
       "--target=#{@electronVersion}"
       "--arch=#{config.getElectronArch()}"
     ]
