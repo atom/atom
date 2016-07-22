@@ -33,6 +33,9 @@ artifacts:
     name: AtomSetup.msi
 
 cache:
+  - '%APPVEYOR_BUILD_FOLDER%\build\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\node_modules'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\.node-gyp\.atom'
   - '%USERPROFILE%\.atom\.npm'
