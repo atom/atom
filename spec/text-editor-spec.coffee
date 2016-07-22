@@ -631,6 +631,16 @@ describe "TextEditor", ->
           cursor = editor.getLastCursor()
           expect(cursor.getScreenPosition()).toEqual [1, 0]
 
+      describe "when soft wrap is on and line is indented", ->
+        it "moves cursor to the beginning screen line excluding indentation", ->
+          editor.setSoftWrapped(true)
+          editor.setEditorWidthInChars(10)
+          editor.setIndentationForBufferRow(editor.bufferRowForScreenRow(1), 1)
+          editor.setCursorScreenPosition([1, 4])
+          editor.moveToBeginningOfScreenLine()
+          cursor = editor.getLastCursor()
+          expect(cursor.getScreenPosition()).toEqual [1, 2]
+
       describe "when soft wrap is off", ->
         it "moves cursor to the beginning of the line", ->
           editor.setCursorScreenPosition [0, 5]
