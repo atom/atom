@@ -33,9 +33,10 @@ class Dedupe extends Command
 
   installNode: (callback) ->
     installNodeArgs = ['install']
+    installNodeArgs.push("--runtime=electron")
     installNodeArgs.push("--target=#{@electronVersion}")
     installNodeArgs.push("--dist-url=#{config.getElectronUrl()}")
-    installNodeArgs.push('--arch=ia32')
+    installNodeArgs.push("--arch=#{config.getElectronArch()}")
     installNodeArgs.push('--ensure')
 
     env = _.extend({}, process.env, HOME: @atomNodeDirectory)
@@ -71,8 +72,9 @@ class Dedupe extends Command
 
   forkDedupeCommand: (options, callback) ->
     dedupeArgs = ['--globalconfig', config.getGlobalConfigPath(), '--userconfig', config.getUserConfigPath(), 'dedupe']
+    dedupeArgs.push("--runtime=electron")
     dedupeArgs.push("--target=#{@electronVersion}")
-    dedupeArgs.push('--arch=ia32')
+    dedupeArgs.push("--arch=#{config.getElectronArch()}")
     dedupeArgs.push('--silent') if options.argv.silent
     dedupeArgs.push('--quiet') if options.argv.quiet
 
