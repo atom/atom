@@ -32,6 +32,7 @@ module.exports = (gruntObject) ->
     cp path.join(docsOutputDir, 'api.json'), path.join(buildDir, 'atom-api.json')
 
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
+    grunt.log.ok("Starting upload-assets to #{repo} repo")
     releaseBranch = grunt.config.get('atom.releaseBranch')
     isPrerelease = grunt.config.get('atom.channel') is 'beta'
     return unless releaseBranch?
