@@ -304,7 +304,23 @@ class Cursor extends Model
 
   # Public: Moves the cursor to the beginning of the line.
   moveToBeginningOfScreenLine: ->
-    @setScreenPosition([@getScreenRow(), 0])
+    screenRow = @getScreenRow()
+
+    # check if screenRow is soft-wrapped
+    lineIterator = @editor.displayLayer.spatialLineIterator
+    lineIterator.seekToScreenRow(screenRow)
+    softWrapped = lineIterator.isSoftWrappedAtStart()
+
+    if softWrapped
+      # get text content of screen line
+      lineText = @editor.screenLineForScreenRow(screenRow).lineText
+      # get number of spaces at start in internal representation (not the same as indent level)
+      match = lineText.match(/^\s+/g)
+      spaces = if match then match[0].length else 0
+
+      @setScreenPosition([screenRow, spaces])
+    else
+      @setScreenPosition([screenRow, 0])
 
   # Public: Moves the cursor to the beginning of the buffer line.
   moveToBeginningOfLine: ->
