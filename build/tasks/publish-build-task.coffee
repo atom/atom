@@ -190,7 +190,7 @@ createAtomDraftRelease = (isPrerelease, branchName, callback) ->
       callback(null, body)
 
 deleteRelease = (release) ->
-  grunt.log.ok("Deleting GitHub release #{release}")
+  grunt.log.ok("Deleting GitHub release #{release.tag_name}")
   options =
     uri: release.url
     method: 'DELETE'
@@ -201,7 +201,7 @@ deleteRelease = (release) ->
       logError('Deleting release failed', error, body)
 
 deleteExistingAssets = (release, assetNames, callback) ->
-  grunt.log.ok("Deleting #{assetNames.join(',')} from GitHub release #{release}")
+  grunt.log.ok("Deleting #{assetNames.join(',')} from GitHub release #{release.tag_name}")
   [callback, assetNames] = [assetNames, callback] if not callback?
 
   deleteAsset = (url, callback) ->
@@ -223,7 +223,7 @@ deleteExistingAssets = (release, assetNames, callback) ->
 
 uploadAssets = (release, buildDir, assets, callback) ->
   uploadToReleases = (release, assetName, assetPath, callback) ->
-    grunt.log.ok("Uploading #{assetName} to GitHub release #{release}")
+    grunt.log.ok("Uploading #{assetName} to GitHub release #{release.tag_name}")
     options =
       uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
       method: 'POST'
