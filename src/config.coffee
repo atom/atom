@@ -786,9 +786,10 @@ class Config
         rootSchema = properties[key]
 
     Object.assign rootSchema, schema
-    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
-    @setScopedDefaultsFromSchema(keyPath, schema)
-    @resetSettingsForSchemaChange()
+    @transact =>
+      @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+      @setScopedDefaultsFromSchema(keyPath, schema)
+      @resetSettingsForSchemaChange()
 
   load: ->
     @initializeConfigDirectory()
