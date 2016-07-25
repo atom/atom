@@ -75,7 +75,7 @@ function bootstrap() {
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
-  var apmInstallCommand = npmPath + npmFlags + '--target=0.10.40 ' + 'install';
+  var apmInstallCommand = npmPath + npmFlags + '--target=4.4.5 --global-style ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
@@ -97,7 +97,7 @@ function bootstrap() {
   }
   var moduleInstallOptions = {env: moduleInstallEnv};
 
-  if (process.argv.indexOf('--no-quiet') === -1) {
+  if (process.argv.indexOf('--no-quiet') === -1 || process.env.ATOM_NOISY_BUILD) {
     buildInstallCommand  += ' --loglevel error';
     apmInstallCommand    += ' --loglevel error';
     moduleInstallCommand += ' --loglevel error';
@@ -121,11 +121,6 @@ function bootstrap() {
       command: apmInstallCommand,
       message: 'Installing apm...',
       options: apmInstallOptions
-    },
-    {
-      command: apmPath + ' clean' + apmFlags,
-      message: 'Deleting old packages...',
-      options: moduleInstallOptions
     },
     {
       command: moduleInstallCommand,
