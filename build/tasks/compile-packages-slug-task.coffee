@@ -40,8 +40,6 @@ module.exports = (grunt) ->
       continue if path.basename(moduleDirectory) is '.bin'
 
       metadataPath = path.join(moduleDirectory, 'package.json')
-      continue unless fs.existsSync(metadataPath)
-
       metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
 

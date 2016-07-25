@@ -7,11 +7,10 @@ export BUILD_ATOM_RELEASES_S3_KEY=$BUILD_ATOM_LINUX_RELEASES_S3_KEY
 export BUILD_ATOM_RELEASES_S3_SECRET=$BUILD_ATOM_LINUX_RELEASES_S3_SECRET
 export BUILD_ATOM_RELEASES_S3_BUCKET=$BUILD_ATOM_LINUX_RELEASES_S3_BUCKET
 
-rm -rf /tmp/.atom-nvm
-git clone https://github.com/creationix/nvm.git /tmp/.atom-nvm
-source /tmp/.atom-nvm/nvm.sh
-nvm install 4.4.7
-nvm use 4.4.7
-npm install -g npm
+if [ -d /usr/local/share/nodenv ]; then
+  export NODENV_ROOT=/usr/local/share/nodenv
+  export PATH=/usr/local/share/nodenv/bin:/usr/local/share/nodenv/shims:$PATH
+  export NODENV_VERSION="v0.10.21"
+fi
 
 script/cibuild
