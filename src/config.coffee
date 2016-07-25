@@ -959,9 +959,10 @@ class Config
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
       keys = splitKeyPath(keyPath)
-      for key, childValue of defaults
-        continue unless defaults.hasOwnProperty(key)
-        @setDefaults(keys.concat([key]).join('.'), childValue)
+      @transact =>
+        for key, childValue of defaults
+          continue unless defaults.hasOwnProperty(key)
+          @setDefaults(keys.concat([key]).join('.'), childValue)
     else
       try
         defaults = @makeValueConformToSchema(keyPath, defaults)
