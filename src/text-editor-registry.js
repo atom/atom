@@ -55,6 +55,7 @@ export default class TextEditorRegistry {
     this.scopesWithConfigSubscriptions = new Set()
     this.editorsWithMaintainedConfig = new Set()
     this.editorsWithMaintainedGrammar = new Set()
+    this.editorGrammarOverrides = new Map()
     this.editorGrammarScores = new WeakMap()
     this.subscriptions.add(
       this.grammarRegistry.onDidAddGrammar(this.grammarAddedOrUpdated),
@@ -106,23 +107,21 @@ export default class TextEditorRegistry {
 
   maintainGrammar (editor) {
     this.editorsWithMaintainedGrammar.add(editor)
+    this.selectGrammarForEditor(editor)
+    this.subscriptions.add(editor.onDidChangePath(() => {
+      this.editorGrammarScores.delete(editor)
+      this.selectGrammarForEditor(editor)
+    }))
+  }
 
-    const assignGrammar = () => {
-      const {grammar, score} = this.grammarRegistry.selectGrammarWithScore(
-        editor.getPath(),
-        editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
-      )
+  setGrammarOverride (editor, grammar) {
+    this.editorGrammarOverrides.set(editor)
+    editor.setGrammar(grammar)
+  }
 
-      if (!grammar) {
-        throw new Error(`No grammar found for path: ${editor.getPath()}`)
-      }
-
-      editor.setGrammar(grammar)
-      this.editorGrammarScores.set(editor, score)
-    }
-
-    assignGrammar()
-    this.subscriptions.add(editor.onDidChangePath(assignGrammar))
+  clearGrammarOverride (editor) {
+    this.editorGrammarOverrides.delete(editor)
+    this.selectGrammarForEditor(editor)
   }
 
   maintainConfig (editor) {
@@ -155,19 +154,42 @@ export default class TextEditorRegistry {
         if (editor.tokenizedBuffer.hasTokenForSelector(grammar.injectionSelector)) {
           editor.tokenizedBuffer.retokenizeLines()
         }
-      } else {
-        const newScore = this.grammarRegistry.getGrammarScore(
+      } else if (!this.editorGrammarOverrides.has(editor)) {
+        const score = this.grammarRegistry.getGrammarScore(
           grammar,
           editor.getPath(),
           editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
         )
+
         let currentScore = this.editorGrammarScores.get(editor)
-        if (currentScore == null || newScore > currentScore) {
-          editor.setGrammar(grammar, newScore)
+        if (currentScore == null || score > currentScore) {
+          editor.setGrammar(grammar, score)
+          this.editorGrammarScores.set(editor, score)
           this.subscribeToSettingsForEditorScope(editor)
         }
       }
     })
+  }
+
+  selectGrammarForEditor (editor) {
+    if (this.editorGrammarOverrides.has(editor)) {
+      return
+    }
+
+    const {grammar, score} = this.grammarRegistry.selectGrammarWithScore(
+      editor.getPath(),
+      editor.getTextInBufferRange(GRAMMAR_SELECTION_RANGE)
+    )
+
+    if (!grammar) {
+      throw new Error(`No grammar found for path: ${editor.getPath()}`)
+    }
+
+    const currentScore = this.editorGrammarScores.get(editor)
+    if (currentScore == null || score > currentScore) {
+      editor.setGrammar(grammar)
+      this.editorGrammarScores.set(editor, score)
+    }
   }
 
   subscribeToSettingsForEditorScope (editor) {

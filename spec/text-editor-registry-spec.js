@@ -85,6 +85,27 @@ describe('TextEditorRegistry', function () {
     })
   })
 
+  describe('.setGrammarOverride and .clearGrammarOverride', function () {
+    it('sets the editor\'s grammar and does not update it based on other criteria until the override is cleared', async function () {
+      registry.maintainGrammar(editor)
+      await atom.packages.activatePackage('language-c')
+      expect(editor.getGrammar().name).toBe('Null Grammar')
+
+      registry.setGrammarOverride(editor, atom.grammars.grammarForScopeName('source.c'))
+      expect(editor.getGrammar().name).toBe('C')
+
+      editor.getBuffer().setPath('file-1.js')
+      await atom.packages.activatePackage('language-javascript')
+      expect(editor.getGrammar().name).toBe('C')
+
+      editor.getBuffer().setPath('file-2.js')
+      expect(editor.getGrammar().name).toBe('C')
+
+      registry.clearGrammarOverride(editor)
+      expect(editor.getGrammar().name).toBe('JavaScript')
+    })
+  })
+
   describe('.maintainConfig(editor)', function () {
     it('does not update editors when config settings change for unrelated scope selectors', async function () {
       await atom.packages.activatePackage('language-javascript')
