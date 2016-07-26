@@ -1,6 +1,6 @@
 var path = require('path');
 var fs = require('fs');
-var childProcess = require('child_process');
+var execFile = require('child_process').execFile;
 
 var pythonExecutable = process.env.PYTHON;
 
@@ -48,7 +48,7 @@ function verifyNpm(cb) {
   if (npmCommand === 'npm' && process.platform === 'win32')
     npmCommand += ".cmd";
 
-  childProcess.execFile(npmCommand, ['-v'], { env: process.env }, function(err, stdout) {
+  execFile(npmCommand, ['-v'], { env: process.env }, function(err, stdout) {
     if (err)
       return cb("npm 1.4 is required to build Atom. An error (" + err + ") occured when checking the version.");
 
@@ -85,7 +85,7 @@ function verifyPython27(cb) {
 function checkPythonVersion (python, cb) {
   var pythonHelpMessage = "Set the PYTHON env var to '/path/to/Python27/python.exe' if your python is installed in a non-default location.";
 
-  childProcess.execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: process.env }, function (err, stdout) {
+  execFile(python, ['-c', 'import platform; print(platform.python_version());'], { env: process.env }, function (err, stdout) {
     if (err) {
       error = "Python 2.7 is required to build Atom. An error (" + err + ") occured when checking the version of '" + python + "'. ";
       error += pythonHelpMessage;
