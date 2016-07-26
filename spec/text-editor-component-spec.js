@@ -361,7 +361,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('renders an placeholder space on empty lines when no line-ending character is defined', function () {
-      atom.config.set('editor.showInvisibles', false)
+      editor.setShowInvisibles(false)
       expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
     })
 
@@ -447,8 +447,8 @@ describe('TextEditorComponent', function () {
       }
 
       beforeEach(async function () {
-        atom.config.set('editor.showInvisibles', true)
-        atom.config.set('editor.invisibles', invisibles)
+        editor.setShowInvisibles(true)
+        editor.setInvisibles(invisibles)
         await nextViewUpdatePromise()
       })
 
@@ -458,12 +458,12 @@ describe('TextEditorComponent', function () {
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
 
-        atom.config.set('editor.showInvisibles', false)
+        editor.setShowInvisibles(false)
         await nextViewUpdatePromise()
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe(' a line with tabs and spaces ')
 
-        atom.config.set('editor.showInvisibles', true)
+        editor.setShowInvisibles(true)
         await nextViewUpdatePromise()
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
@@ -498,7 +498,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders a placeholder space on empty lines when the line-ending character is an empty string', async function () {
-        atom.config.set('editor.invisibles', {
+        editor.setInvisibles({
           eol: ''
         })
         await nextViewUpdatePromise()
@@ -506,7 +506,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders an placeholder space on empty lines when the line-ending character is false', async function () {
-        atom.config.set('editor.invisibles', {
+        editor.setInvisibles({
           eol: false
         })
         await nextViewUpdatePromise()
@@ -514,7 +514,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('interleaves invisible line-ending characters with indent guides on empty lines', async function () {
-        atom.config.set('editor.showIndentGuide', true)
+        editor.setShowIndentGuide(true)
 
         await nextViewUpdatePromise()
 
@@ -559,7 +559,7 @@ describe('TextEditorComponent', function () {
 
     describe('when indent guides are enabled', function () {
       beforeEach(async function () {
-        atom.config.set('editor.showIndentGuide', true)
+        editor.setShowIndentGuide(true)
         await nextViewUpdatePromise()
       })
 
@@ -604,8 +604,8 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders indent guides correctly on lines containing only whitespace when invisibles are enabled', async function () {
-        atom.config.set('editor.showInvisibles', true)
-        atom.config.set('editor.invisibles', {
+        editor.setShowInvisibles(true)
+        editor.setInvisibles({
           space: '-',
           eol: 'x'
         })
@@ -4378,10 +4378,10 @@ describe('TextEditorComponent', function () {
     })
 
     it('does not render invisible characters', function () {
-      atom.config.set('editor.invisibles', {
+      editor.setInvisibles({
         eol: 'E'
       })
-      atom.config.set('editor.showInvisibles', true)
+      editor.setShowInvisibles(true)
       expect(component.lineNodeForScreenRow(0).textContent).toBe('var quicksort = function () {')
     })
 
@@ -4431,194 +4431,6 @@ describe('TextEditorComponent', function () {
       jasmine.attachToDOM(wrapperNode)
       atom.commands.dispatch(wrapperNode, 'core:move-right')
       expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-    })
-  })
-
-  describe('scoped config settings', function () {
-    let coffeeComponent, coffeeEditor
-
-    beforeEach(async function () {
-      await atom.packages.activatePackage('language-coffee-script')
-      coffeeEditor = await atom.workspace.open('coffee.coffee', {autoIndent: false})
-    })
-
-    afterEach(function () {
-      atom.packages.deactivatePackages()
-      atom.packages.unloadPackages()
-    })
-
-    describe('soft wrap settings', function () {
-      beforeEach(function () {
-        atom.config.set('editor.softWrap', true, {
-          scopeSelector: '.source.coffee'
-        })
-        atom.config.set('editor.preferredLineLength', 17, {
-          scopeSelector: '.source.coffee'
-        })
-        atom.config.set('editor.softWrapAtPreferredLineLength', true, {
-          scopeSelector: '.source.coffee'
-        })
-        editor.setDefaultCharWidth(1)
-        editor.setEditorWidthInChars(20)
-        coffeeEditor.setDefaultCharWidth(1)
-        coffeeEditor.setEditorWidthInChars(20)
-      })
-
-      it('wraps lines when editor.softWrap is true for a matching scope', function () {
-        expect(editor.lineTextForScreenRow(2)).toEqual('    if (items.length <= 1) return items;')
-        expect(coffeeEditor.lineTextForScreenRow(3)).toEqual('    return items ')
-      })
-
-      it('updates the wrapped lines when editor.preferredLineLength changes', function () {
-        atom.config.set('editor.preferredLineLength', 20, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual('    return items if ')
-      })
-
-      it('updates the wrapped lines when editor.softWrapAtPreferredLineLength changes', function () {
-        atom.config.set('editor.softWrapAtPreferredLineLength', false, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual('    return items if ')
-      })
-
-      it('updates the wrapped lines when editor.softWrap changes', function () {
-        atom.config.set('editor.softWrap', false, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual('    return items if items.length <= 1')
-        atom.config.set('editor.softWrap', true, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(3)).toEqual('    return items ')
-      })
-
-      it('updates the wrapped lines when the grammar changes', function () {
-        editor.setGrammar(coffeeEditor.getGrammar())
-        expect(editor.isSoftWrapped()).toBe(true)
-        expect(editor.lineTextForScreenRow(0)).toEqual('var quicksort = ')
-      })
-
-      describe('::isSoftWrapped()', function () {
-        it('returns the correct value based on the scoped settings', function () {
-          expect(editor.isSoftWrapped()).toBe(false)
-          expect(coffeeEditor.isSoftWrapped()).toBe(true)
-        })
-      })
-    })
-
-    describe('invisibles settings', function () {
-      const jsInvisibles = {
-        eol: 'J',
-        space: 'A',
-        tab: 'V',
-        cr: 'A'
-      }
-      const coffeeInvisibles = {
-        eol: 'C',
-        space: 'O',
-        tab: 'F',
-        cr: 'E'
-      }
-
-      beforeEach(async function () {
-        atom.config.set('editor.showInvisibles', true, {
-          scopeSelector: '.source.js'
-        })
-        atom.config.set('editor.invisibles', jsInvisibles, {
-          scopeSelector: '.source.js'
-        })
-        atom.config.set('editor.showInvisibles', false, {
-          scopeSelector: '.source.coffee'
-        })
-        atom.config.set('editor.invisibles', coffeeInvisibles, {
-          scopeSelector: '.source.coffee'
-        })
-        editor.setText(' a line with tabs\tand spaces \n')
-        await nextViewUpdatePromise()
-      })
-
-      it('renders the invisibles when editor.showInvisibles is true for a given grammar', function () {
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + jsInvisibles.space + 'a line with tabs' + jsInvisibles.tab + 'and spaces' + jsInvisibles.space + jsInvisibles.eol)
-      })
-
-      it('does not render the invisibles when editor.showInvisibles is false for a given grammar', async function () {
-        editor.setGrammar(coffeeEditor.getGrammar())
-        await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(0).textContent).toBe(' a line with tabs and spaces ')
-      })
-
-      it('re-renders the invisibles when the invisible settings change', async function () {
-        let jsGrammar = editor.getGrammar()
-        editor.setGrammar(coffeeEditor.getGrammar())
-        atom.config.set('editor.showInvisibles', true, {
-          scopeSelector: '.source.coffee'
-        })
-        await nextViewUpdatePromise()
-
-        let newInvisibles = {
-          eol: 'N',
-          space: 'E',
-          tab: 'W',
-          cr: 'I'
-        }
-
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + coffeeInvisibles.space + 'a line with tabs' + coffeeInvisibles.tab + 'and spaces' + coffeeInvisibles.space + coffeeInvisibles.eol)
-        atom.config.set('editor.invisibles', newInvisibles, {
-          scopeSelector: '.source.coffee'
-        })
-        await nextViewUpdatePromise()
-
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + newInvisibles.space + 'a line with tabs' + newInvisibles.tab + 'and spaces' + newInvisibles.space + newInvisibles.eol)
-        editor.setGrammar(jsGrammar)
-        await nextViewUpdatePromise()
-
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + jsInvisibles.space + 'a line with tabs' + jsInvisibles.tab + 'and spaces' + jsInvisibles.space + jsInvisibles.eol)
-      })
-    })
-
-    describe('editor.showIndentGuide', function () {
-      beforeEach(async function () {
-        atom.config.set('editor.showIndentGuide', true, {
-          scopeSelector: '.source.js'
-        })
-        atom.config.set('editor.showIndentGuide', false, {
-          scopeSelector: '.source.coffee'
-        })
-        await nextViewUpdatePromise()
-      })
-
-      it('has an "indent-guide" class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false', async function () {
-        let line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(true)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-        editor.setGrammar(coffeeEditor.getGrammar())
-        await nextViewUpdatePromise()
-
-        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(false)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-      })
-
-      it('removes the "indent-guide" class when editor.showIndentGuide to false', async function () {
-        let line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(true)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-        atom.config.set('editor.showIndentGuide', false, {
-          scopeSelector: '.source.js'
-        })
-        await nextViewUpdatePromise()
-
-        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(false)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-      })
     })
   })
 

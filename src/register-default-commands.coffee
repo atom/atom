@@ -235,7 +235,7 @@ stopEventPropagationAndGroupUndo = (config, commandListeners) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
         model = @getModel()
-        model.transact config.get('editor.undoGroupingInterval'), ->
+        model.transact model.getUndoGroupingInterval(), ->
           commandListener.call(model, event)
   newCommandListeners
 
