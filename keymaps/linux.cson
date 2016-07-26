@@ -129,6 +129,7 @@
   'ctrl-/': 'editor:toggle-line-comments'
   'ctrl-j': 'editor:join-lines'
   'ctrl-D': 'editor:duplicate-lines'
+  'ctrl-shift-L': 'editor:split-selections-into-lines'
   'alt-shift-up': 'editor:add-selection-above'
   'alt-shift-down': 'editor:add-selection-below'
 
