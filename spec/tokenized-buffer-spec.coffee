@@ -736,60 +736,6 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
       expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'
 
-  describe 'when a file is opened', ->
-    [registration, editor, called] = []
-    beforeEach ->
-      runs ->
-        called = false
-        registration = atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', -> called = true)
-
-      waitsForPromise ->
-        atom.workspace.open('sample.js', autoIndent: false).then (o) ->
-          editor = o
-
-      waitsForPromise ->
-        atom.packages.activatePackage('language-javascript')
-
-    afterEach: ->
-      registration?.dispose?()
-      atom.packages.deactivatePackages()
-      atom.packages.unloadPackages()
-
-    it 'triggers the grammar-used hook', ->
-      waitsFor ->
-        called is true
-
-      runs ->
-        expect(called).toBe true
-
-    describe 'when changing the grammar of an open file', ->
-      [coffeeRegistration, coffeeCalled] = []
-
-      beforeEach ->
-        coffeeCalled = false
-        coffeeRegistration = atom.packages.onDidTriggerActivationHook('language-coffee-script:grammar-used', -> coffeeCalled = true)
-
-        waitsForPromise ->
-          atom.packages.activatePackage('language-coffee-script')
-
-      afterEach ->
-        coffeeRegistration?.dispose()
-
-      it 'triggers the grammar-used hook', ->
-        waitsFor ->
-          called is true
-
-        runs ->
-          expect(called).toBe true
-          expect(coffeeCalled).toBe false
-          editor.setGrammar(atom.grammars.selectGrammar('.coffee'))
-
-        waitsFor ->
-          coffeeCalled is true
-
-        runs ->
-          expect(coffeeCalled).toBe true
-
   describe "text decoration layer API", ->
     describe "iterator", ->
       it "iterates over the syntactic scope boundaries", ->

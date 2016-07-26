@@ -652,6 +652,35 @@ describe "Workspace", ->
           expect(rightPane.getPendingItem()).toBe editor2
           expect(rightPane.destroyed.callCount).toBe 0
 
+  describe 'the grammar-used hook', ->
+    it 'fires when opening a file or changing the grammar of an open file', ->
+      editor = null
+      javascriptGrammarUsed = false
+      coffeescriptGrammarUsed = false
+
+      waitsForPromise ->
+        atom.packages.activate()
+
+      runs ->
+        atom.packages.onDidTriggerActivationHook 'language-javascript:grammar-used', -> javascriptGrammarUsed = true
+        atom.packages.onDidTriggerActivationHook 'language-coffee-script:grammar-used', -> coffeescriptGrammarUsed = true
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+      waitsFor -> javascriptGrammarUsed
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        editor.setGrammar(atom.grammars.selectGrammar('.coffee'))
+
+      waitsFor -> coffeescriptGrammarUsed
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
