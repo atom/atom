@@ -116,6 +116,7 @@ describe "TokenizedBuffer", ->
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
         assert: atom.assert, tabLength: 2,
       })
+      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       startTokenizing(tokenizedBuffer)
 
     it "stops tokenization", ->
@@ -131,6 +132,7 @@ describe "TokenizedBuffer", ->
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
         assert: atom.assert, tabLength: 2,
       })
+      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       startTokenizing(tokenizedBuffer)
       tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
@@ -408,6 +410,7 @@ describe "TokenizedBuffer", ->
           buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
           assert: atom.assert, tabLength: 2,
         })
+        tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.coffee'))
         startTokenizing(tokenizedBuffer)
 
     afterEach ->
@@ -510,6 +513,7 @@ describe "TokenizedBuffer", ->
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
         assert: atom.assert, tabLength: 2,
       })
+      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
@@ -522,6 +526,7 @@ describe "TokenizedBuffer", ->
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
         assert: atom.assert, tabLength: 2,
       })
+      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       fullyTokenize(tokenizedBuffer)
 
     describe "when the selector does not match the token at the position", ->
@@ -544,6 +549,7 @@ describe "TokenizedBuffer", ->
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
         assert: atom.assert, tabLength: 2,
       })
+      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       fullyTokenize(tokenizedBuffer)
 
     describe "when the line is non-empty", ->
@@ -642,6 +648,7 @@ describe "TokenizedBuffer", ->
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
         assert: atom.assert, tabLength: 2,
       })
+      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
       fullyTokenize(tokenizedBuffer)
 
     it "includes the first line of multi-line comments", ->

@@ -293,7 +293,10 @@ class TokenizedBuffer extends Model
     @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow] by 1
 
   buildPlaceholderTokenizedLineForRow: (row) ->
-    openScopes = []
+    if @grammar?
+      openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
+    else
+      openScopes = []
     text = @buffer.lineForRow(row)
     tags = [text.length]
     lineEnding = @buffer.lineEndingForRow(row)
