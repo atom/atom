@@ -18,5 +18,6 @@ module.exports = (grunt) ->
     homeDir = process.env[if process.platform is 'win32' then 'USERPROFILE' else 'HOME']
 
     rm 'node_modules'
+    rm 'apm/node_modules'
     rm path.join(homeDir, '.atom', '.node-gyp')
     grunt.task.run('partial-clean')
