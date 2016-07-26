@@ -4803,12 +4803,12 @@ describe "TextEditor", ->
   describe '.setTabLength(tabLength)', ->
     it 'retokenizes the editor with the given tab length', ->
       expect(editor.getTabLength()).toBe 2
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
       expect(leadingWhitespaceTokens.length).toBe(3)
 
       editor.setTabLength(6)
       expect(editor.getTabLength()).toBe 6
-      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> token is 'leading-whitespace'
+      leadingWhitespaceTokens = editor.tokensForScreenRow(5).filter (token) -> 'leading-whitespace' in token.scopes
       expect(leadingWhitespaceTokens.length).toBe(1)
 
       changeHandler = jasmine.createSpy('changeHandler')
@@ -5273,14 +5273,21 @@ describe "TextEditor", ->
           editor.setText("// http://github.com")
 
           tokens = editor.tokensForScreenRow(0)
-          expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']
+          expect(tokens).toEqual [
+            {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
+            {text: ' http://github.com', scopes: ['source.js', 'comment.line.double-slash.js']}
+          ]
 
         waitsForPromise ->
           atom.packages.activatePackage('language-hyperlink')
 
         runs ->
           tokens = editor.tokensForScreenRow(0)
-          expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js', 'markup.underline.link.http.hyperlink']
+          expect(tokens).toEqual [
+            {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
+            {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']}
+            {text: 'http://github.com', scopes: ['source.js', 'comment.line.double-slash.js', 'markup.underline.link.http.hyperlink']}
+          ]
 
       describe "when the grammar is updated", ->
         it "retokenizes existing buffers that contain tokens that match the injection selector", ->
@@ -5291,21 +5298,36 @@ describe "TextEditor", ->
             editor.setText("// SELECT * FROM OCTOCATS")
 
             tokens = editor.tokensForScreenRow(0)
-            expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']
+            expect(tokens).toEqual [
+              {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
+              {text: ' SELECT * FROM OCTOCATS', scopes: ['source.js', 'comment.line.double-slash.js']}
+            ]
 
           waitsForPromise ->
             atom.packages.activatePackage('package-with-injection-selector')
 
           runs ->
             tokens = editor.tokensForScreenRow(0)
-            expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']
+            expect(tokens).toEqual [
+              {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
+              {text: ' SELECT * FROM OCTOCATS', scopes: ['source.js', 'comment.line.double-slash.js']}
+            ]
 
           waitsForPromise ->
             atom.packages.activatePackage('language-sql')
 
           runs ->
             tokens = editor.tokensForScreenRow(0)
-            expect(tokens).toEqual ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js', 'keyword.other.DML.sql', 'keyword.operator.star.sql', 'keyword.other.DML.sql']
+            expect(tokens).toEqual [
+              {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
+              {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']},
+              {text: 'SELECT', scopes: ['source.js', 'comment.line.double-slash.js', 'keyword.other.DML.sql']},
+              {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']},
+              {text: '*', scopes: ['source.js', 'comment.line.double-slash.js', 'keyword.operator.star.sql']},
+              {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']},
+              {text: 'FROM', scopes: ['source.js', 'comment.line.double-slash.js', 'keyword.other.DML.sql']},
+              {text: ' OCTOCATS', scopes: ['source.js', 'comment.line.double-slash.js']}
+            ]
 
   describe ".normalizeTabsInBufferRange()", ->
     it "normalizes tabs depending on the editor's soft tab/tab length settings", ->
@@ -5682,6 +5704,9 @@ describe "TextEditor", ->
         }
 
   describe "invisibles", ->
+    beforeEach ->
+      editor.setShowInvisibles(true)
+
     it "substitutes invisible characters according to the given rules", ->
       previousLineText = editor.lineTextForScreenRow(0)
       editor.setInvisibles(eol: '?')
@@ -5702,24 +5727,35 @@ describe "TextEditor", ->
       editor.setTabLength(2)
 
       editor.setShowIndentGuide(false)
-      expect(editor.tokensForScreenRow(0)).toEqual ['source.js', 'leading-whitespace']
+      expect(editor.tokensForScreenRow(0)).toEqual [
+        {text: '  ', scopes: ['source.js', 'leading-whitespace']},
+        {text: 'foo', scopes: ['source.js']}
+      ]
 
       editor.setShowIndentGuide(true)
-      expect(editor.tokensForScreenRow(0)).toEqual ['source.js', 'leading-whitespace indent-guide']
+      expect(editor.tokensForScreenRow(0)).toEqual [
+        {text: '  ', scopes: ['source.js', 'leading-whitespace indent-guide']},
+        {text: 'foo', scopes: ['source.js']}
+      ]
 
       editor.setMini(true)
-      expect(editor.tokensForScreenRow(0)).toEqual ['source.js', 'leading-whitespace']
+      expect(editor.tokensForScreenRow(0)).toEqual [
+        {text: '  ', scopes: ['source.js', 'leading-whitespace']},
+        {text: 'foo', scopes: ['source.js']}
+      ]
 
   describe "when the editor is constructed with the grammar option set", ->
     beforeEach ->
-      atom.workspace.destroyActivePane()
       waitsForPromise ->
         atom.packages.activatePackage('language-coffee-script')
 
-      waitsForPromise ->
-        atom.workspace.open('sample.js', grammar: atom.grammars.grammarForScopeName('source.coffee')).then (o) -> editor = o
-
     it "sets the grammar", ->
+      editor = new TextEditor({
+        grammar: atom.grammars.grammarForScopeName('source.coffee')
+        clipboard: atom.clipboard
+        grammarRegistry: atom.grammars
+      })
+
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
   describe "the softWrapAtPreferredLineLength config setting", ->

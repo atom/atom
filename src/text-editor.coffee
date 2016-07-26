@@ -809,8 +809,22 @@ class TextEditor extends Model
     return
 
   tokensForScreenRow: (screenRow) ->
-    for tagCode in @screenLineForScreenRow(screenRow).tagCodes when @displayLayer.isOpenTagCode(tagCode)
-      @displayLayer.tagForCode(tagCode)
+    tokens = []
+    lineTextIndex = 0
+    currentTokenScopes = []
+    {lineText, tagCodes} = @screenLineForScreenRow(screenRow)
+    for tagCode in tagCodes
+      if @displayLayer.isOpenTagCode(tagCode)
+        currentTokenScopes.push(@displayLayer.tagForCode(tagCode))
+      else if @displayLayer.isCloseTagCode(tagCode)
+        currentTokenScopes.pop()
+      else
+        tokens.push({
+          text: lineText.substr(lineTextIndex, tagCode)
+          scopes: currentTokenScopes.slice()
+        })
+        lineTextIndex += tagCode
+    tokens
 
   screenLineForScreenRow: (screenRow) ->
     return if screenRow < 0 or screenRow > @getLastScreenRow()
