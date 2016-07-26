@@ -431,6 +431,27 @@ describe "PackageManager", ->
         runs ->
           expect(Package.prototype.requireMainModule.callCount).toBe 1
 
+      it "does not double register activation hooks when deactivating and reactivating", ->
+        expect(mainModule.activate.callCount).toBe 0
+        atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+        atom.packages.triggerDeferredActivationHooks()
+
+        waitsForPromise ->
+          promise
+
+        runs ->
+          expect(mainModule.activate.callCount).toBe 1
+          atom.packages.deactivatePackage('package-with-activation-hooks')
+          promise = atom.packages.activatePackage('package-with-activation-hooks')
+          atom.packages.triggerActivationHook('language-fictitious:grammar-used')
+          atom.packages.triggerDeferredActivationHooks()
+
+        waitsForPromise ->
+          promise
+
+        runs ->
+          expect(mainModule.activate.callCount).toBe 2
+
       it "activates the package immediately when activationHooks is empty", ->
         mainModule = require './fixtures/packages/package-with-empty-activation-hooks/index'
         spyOn(mainModule, 'activate').andCallThrough()
