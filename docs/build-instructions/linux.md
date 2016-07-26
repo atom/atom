@@ -34,7 +34,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### Slackware
 
-* `sbopkg -k -i node -i atom`
+* `sbopkg -k -i iojs -i atom`
 
 ### openSUSE
 
