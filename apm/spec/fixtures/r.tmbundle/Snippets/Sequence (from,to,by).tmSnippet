@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>seq(${1:from}, ${2:to}, ${3:by})</string>
+	<key>name</key>
+	<string>Sequence (from,to,by)</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>seq</string>
+	<key>uuid</key>
+	<string>4852C9E0-D22C-4FA2-8C85-628B97F6C3B2</string>
+</dict>
+</plist>

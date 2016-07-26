@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>CRAN="http://cran.cnr.berkeley.edu"
+SOFILE="$HOME/Library/Application Support/Rdaemon/startOptions.R"
+if [ -f "$SOFILE" ]; then
+	RES=$(cat "$SOFILE" | egrep 'options.*?repos.*?list' | perl -pe 's/^\s*options\s*.*?repos\s*=\s*.*?[\x{27}"](.*?)[\x{27}"].*/$1/g' | tail -n 1)
+	[[ ! -z "$RES" ]] &amp;&amp; [[ "${RES:0:4}" == "http" ]] &amp;&amp; CRAN="$RES"
+fi
+open "$CRAN/web/packages/"</string>
+	<key>input</key>
+	<string>none</string>
+	<key>name</key>
+	<string>CRAN Packages</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>uuid</key>
+	<string>2A3C3EF9-2043-4304-81EC-EA3309286F98</string>
+</dict>
+</plist>

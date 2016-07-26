@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>attach(${1:${TM_FILENAME/.*?(\\w+).*|.*/(?1:$1:NSObject)/}})${TM_C_POINTER: *}outlet</string>
+	<key>name</key>
+	<string>Attach</string>
+	<key>scope</key>
+	<string>source.rd.tm</string>
+	<key>tabTrigger</key>
+	<string>att</string>
+	<key>uuid</key>
+	<string>5F49FB43-86AA-4352-AECB-CA573E9DC7E8</string>
+</dict>
+</plist>

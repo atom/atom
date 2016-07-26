@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>bundleUUID</key>
+	<string>B5A22967-2E6A-4B66-9C71-DA8762C01E27</string>
+	<key>command</key>
+	<string>#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] &amp;&amp; . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+######### global variables #########
+
+RDHOME="$HOME/Library/Application Support/Rdaemon"
+if [ "$TM_RdaemonRAMDRIVE" == "1" ]; then
+	RDRAMDISK="/tmp/TMRramdisk1"
+else
+	RDRAMDISK="$RDHOME"
+fi
+
+[[ ! -d "$RDHOME" ]] &amp;&amp; echo "Please install Rdaemon first." &amp;&amp; exit 206
+
+######### begin script #########
+
+#get R's PID
+RPID=$(ps aw | grep '[0-9] /.*TMRdaemon' | awk '{print $1;}' )
+RdaemonWASrunning=1
+#check whether Rdaemon runs - if not start it
+if [ -z $RPID ]; then
+	[[ -e "$RDHOME"/daemon/x11runs ]] &amp;&amp; rm "$RDHOME"/daemon/x11runs
+	X=$(ps -ax | grep X11 | wc -l)
+	if [ "$X" -gt "1" ]; then
+		touch "$RDHOME"/daemon/x11runs
+	fi
+	if [ -f "$RDHOME"/daemon/startScript.sh ]; then
+		"$RDHOME"/daemon/startScript.sh
+	else
+		echo "You have to install Rdaemon first!"
+		exit_show_tool_tip
+	fi
+	RdaemonWASrunning=0
+fi
+
+#check free space on ram drive
+if [ "$TM_RdaemonRAMDRIVE" == "1" ]; then
+RES=$(df -H | grep TMRramdisk1 | awk '{ print $5 }' | perl -e 'print &lt;&gt;+0;')
+if [ $RES -gt 96 ]; then
+	"$DIALOG" -e -p '{messageTitle="Rdaemon – RAM drive – Security Alert"; alertStyle="critical"; informativeText="Free disk space is less than 3%!\nFor safety reasons save your data image and restart the Rdaemon!";}' &gt;/dev/null
+	echo "RAM drive on '/tmp/TMRramdrive1':"
+	RES=$(df -H | grep TMRramdisk1 | awk '{ print $5 }')
+	echo -n " $RES are used of"
+	RES=$(df -H | grep TMRramdisk1 | awk '{ print $2 }')
+	echo -n " $RES."
+	exit_show_tool_tip
+fi
+fi
+
+#get the task from TM and delete beginning &gt;+: SPACE TAB
+TASK=$(cat | sed -e 's/Browse\[.*\]//;s/^[&gt;+:]//;s/^[ 	]*//;s/\\/\\\\/g;/^#/d')
+
+#check named input pipe for safety reasons
+if [ ! -p "$RDHOME"/r_in ]; then
+	echo -en "Rdaemon Error:\nThe pipe /tmp/r_in is not found!\n\nYou have to kill Rdaemon manually!"
+	exit 206
+fi
+
+#set history counter to 0
+echo -n 0 &gt; "$RDHOME/history"/Rhistcounter.txt
+
+#get current position of r_out
+POS=$(stat "$RDRAMDISK"/r_out | awk '{ print $8 }')
+PROMPT=$(tail -n 1 "$RDRAMDISK"/r_out | sed 's/&gt; $//')
+
+#if [ ! -z "$TM_DIRECTORY" ]; then
+#	echo -e  "@|setwd('$TM_DIRECTORY')" &gt; "$RDHOME"/r_in
+#fi
+
+#send task to Rdaemon and give Rdaemon the chance to read from the pipe
+export token=$("$DIALOG" -a ProgressDialog -p "{title=Rdaemon;isIndeterminate=1;summary='Sending task to Rdaemon…';}")
+echo "$TASK" | sed 's/\\/\\\\/g' | while read LINE
+do
+	echo -e "@|$LINE" &gt; "$RDHOME"/r_in
+	sleep 0.002
+	"$DIALOG" -t $token -p "{details='$LINE';}" 2&amp;&gt;/dev/null
+done
+"$DIALOG" -x $token 2&amp;&gt;/dev/null
+
+#wait for R's response by expecting &gt;, +, or : plus SPACE!
+POSNEW=$(stat "$RDRAMDISK"/r_out | awk '{ print $8 }')
+OFF=$(($POSNEW - $POS + 2))
+
+PROGRESS_INIT=0 # to start the progress dialog after 100ms only
+while [ 1 ]
+do
+	RES=$(tail -c 2 "$RDRAMDISK"/r_out)
+	#expect these things from R
+	[[ "$RES" == "&gt; " ]] &amp;&amp; break
+	[[ "$RES" == "+ " ]] &amp;&amp; break
+	[[ "$RES" == ": " ]] &amp;&amp; break
+	#monitoring of the CPU coverage as progress bar
+	cpu=$(ps o pcpu -p "$RPID" | tail -n 1)
+	[[ "${cpu:0:1}" == "%" ]] &amp;&amp; break
+	CP=$(echo -n "$cpu" | perl -e 'print 100-&lt;&gt;')
+	sleep 0.1
+	if [ $PROGRESS_INIT -eq 0 ]; then
+		export token=$("$DIALOG" -a ProgressDialog -p "{title=Rdaemon;progressValue=50;summary='Rdaemon is busy…';}")
+		PROGRESS_INIT=1
+	fi
+	"$DIALOG" -t $token -p "{details='`tail -n 1 "$RDRAMDISK"/r_out`';progressValue=$CP;}" 2&amp;&gt;/dev/null
+done
+"$DIALOG" -x $token 2&amp;&gt;/dev/null
+
+#read only the current response from Rdaemon
+POSNEW=$(stat "$RDRAMDISK"/r_out | awk '{ print $8 }')
+OFF=$(($POSNEW - $POS + 2))
+#clean/escape the response
+echo -en "$PROMPT"
+RES=$(tail -c $OFF "$RDRAMDISK"/r_out | perl -e '
+	undef($/); $a=&lt;&gt;;
+	$a=~s/\x0D{1,}/\x0D/sg;
+	while($a=~m/(.*?)\x0D&lt;.{50}(.) +\x08+(.*)/) { $a=~s/(.*?)\x0D&lt;.{50}(.) +\x08+(.*)/$1$2$3/sg; }
+	$a=~s/\\/\\\\/g;$a=~s/\`/\\\`/sg;$a=~s/\$/\\\$/sg;$a=~s/_\x08//sg;
+	$a=~s/\x07//sg;
+	$a .= "\n&gt; " if ($a!~/&gt; $/ &amp;&amp; $a!~/\+ $/);
+	print "$a";
+')
+ERR=$(echo -en "$RES" | egrep -i '^\s*err' | wc -l)
+if [ $ERR -gt 0 ]; then
+	echo -en "$RES" &gt; /tmp/TMRdaemon_error.rCon
+	mate /tmp/TMRdaemon_error.Rcon
+	exit
+# else
+  # echo -en "$RES" &gt;&gt; "$RDHOME"/console.Rcon
+fi
+
+
+if [ "$RdaemonWASrunning" == "0" ]; then
+#read only the current response from Rdaemon
+POSNEW=$(stat "$RDRAMDISK"/r_out | awk '{ print $8 }')
+OFF=$(($POSNEW - $POS + 2))
+#clean/escape the response
+#echo -en "$PROMPT"
+# tail -c $OFF "$RDRAMDISK"/r_out | perl -e '
+#   undef($/); $a=&lt;&gt;;
+#   $a=~s/\x0D{1,}/\x0D/sg;
+#   while($a=~m/(.*?)\x0D&lt;.{50}(.) +\x08+(.*)/) { $a=~s/(.*?)\x0D&lt;.{50}(.) +\x08+(.*)/$1$2$3/sg; }
+#   $a=~s/_\x08//sg;
+#   $a=~s/_\x07//sg;
+#   #$a=~s/\`/\\\`/sg;$a=~s/\$/\\\$/sg;
+#   $a .= "\n&gt; " if ($a!~/&gt; $/ &amp;&amp; $a!~/\+ $/);
+#   print "$a";
+# ' &gt;&gt; "$RDHOME"/console.Rcon
+
+osascript &amp;&gt;/dev/null \
+	   -e 'tell app "SystemUIServer" to activate' \
+	   -e 'tell app "TextMate" to activate' &amp;
+
+open "$RDHOME/Rsession.tmproj"
+mate "$RDHOME"/console.Rcon
+sleep 0.3
+open "txmt://open?line=1000000&amp;column=10000000"
+fi
+
+</string>
+	<key>fallbackInput</key>
+	<string>document</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>keyEquivalent</key>
+	<string>@R</string>
+	<key>name</key>
+	<string>Rdaemon</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>text</string>
+	<key>outputLocation</key>
+	<string>toolTip</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>semanticClass</key>
+	<string>process.external.run.r</string>
+	<key>uuid</key>
+	<string>DC1EC8A4-BC20-4D1C-91B6-328CEC2CA228</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>

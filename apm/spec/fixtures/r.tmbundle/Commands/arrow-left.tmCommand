@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>FLAG=$(echo -en "$TM_CURRENT_LINE" | perl -e '$_=&lt;&gt;;m/.*?( $)/;print 1 if defined($1)')
+if [ -z "$FLAG" ]; then
+	echo -n " &lt;- "
+else
+	echo -n "&lt;- "
+fi</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^-</string>
+	<key>name</key>
+	<string>“ &lt;- ”</string>
+	<key>output</key>
+	<string>afterSelectedText</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>06BD4251-25D5-4BA0-99BC-5D3061E64128</string>
+</dict>
+</plist>

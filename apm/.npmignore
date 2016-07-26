@@ -1,0 +1,9 @@
+.npmignore
+*.coffee
+.DS_Store
+npm-debug.log
+spec/
+tasks/
+bin/node
+.travis.yml
+.pairs

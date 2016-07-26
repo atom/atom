@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>RPID=$(ps aw | grep '[0-9] /.*TMRHelperDaemon' | awk '{print $1}' )
+if [ ! -z $RPID ]; then
+	out=$(kill $RPID)
+	if [ -z "$out" ]; then
+		rm -f /tmp/textmate_Rhelper_console
+		rm -f /tmp/textmate_Rhelper_data.html
+		rm -f /tmp/textmate_Rhelper_head.html
+		rm -f /tmp/textmate_Rhelper_in
+		rm -f /tmp/textmate_Rhelper_out
+		rm -f /tmp/textmate_Rhelper_search.html
+		rm -f /tmp/textmate_Rhelper_status
+		echo "Helper Daemon was terminated."
+	else
+		echo "Error while terminating Helper Daemon running as PID $RPID."
+	fi
+else
+	echo "No Helper Daemon found."
+fi</string>
+	<key>input</key>
+	<string>none</string>
+	<key>name</key>
+	<string>Terminate Helper Daemon</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>90C73568-B9B1-4D3D-BAC5-5C2999BE39BC</string>
+</dict>
+</plist>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>bundleUUID</key>
+	<string>B29D7850-6E70-11D9-A369-000D93B3A10E</string>
+	<key>command</key>
+	<string>
+if [ "${TM_SCOPE:0:17}" == "source.rd.console" ]; then
+	echo -n "source(\"$TM_DROPPED_FILEPATH\", chdir = \${1:TRUE})"
+else
+	if [ "$TM_MODIFIER_FLAGS" == "SHIFT" ]; then
+		echo "source(\"$TM_DROPPED_FILEPATH\", chdir = \${1:TRUE})"
+	else
+		echo "source(\"$TM_DROPPED_FILE\", chdir = \${1:TRUE})"
+	fi
+fi</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>r</string>
+		<string>R</string>
+	</array>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>source (*.R)</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>7AA6473C-4B13-4252-8773-9B08675048FB</string>
+</dict>
+</plist>

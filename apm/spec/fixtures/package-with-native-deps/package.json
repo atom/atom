@@ -1,0 +1,11 @@
+{
+  "name": "test-module",
+  "version": "1.0.0",
+  "main": "./index.js",
+  "engines": {
+    "atom": "*"
+  },
+  "dependencies": {
+    "native-dep": "./node_modules/native-dep"
+  }
+}

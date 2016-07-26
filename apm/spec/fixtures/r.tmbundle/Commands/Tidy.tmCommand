@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#[[ -z "$TM_SELECTED_TEXT" ]] &amp;&amp; echo "Please select a function definition" &amp;&amp; #exit_show_tool_tip
+
+echo "dummy &lt;- function() {" &gt; /tmp/TM_Rtidy_func.R
+cat &gt;&gt; /tmp/TM_Rtidy_func.R
+echo "}" &gt;&gt; /tmp/TM_Rtidy_func.R
+
+if [ $TM_SOFT_TABS == "YES" ]; then
+	export TAB=$(perl -e 'print " " x $ENV{"TM_TAB_SIZE"}')
+else
+	export TAB="	"
+fi
+
+export TABLEVEL=$(head -n 2 /tmp/TM_Rtidy_func.R | tail -n 1 | perl -pe 's/^([ \t]*).*/$1/')
+
+cat &lt;&lt;-HFS &gt; /tmp/TM_Rtidy.R
+options(keep.source = FALSE)
+options(warn = -1)
+options(show.error.messages = TRUE)
+source("/tmp/TM_Rtidy_func.R")
+dump(ls(all = TRUE), file = "/tmp/TM_Rtidy_func_new.R", control = c("keepInteger", "keepNA", "quoteExpressions"))
+HFS
+
+R --vanilla --slave &lt; /tmp/TM_Rtidy.R 2&gt; /tmp/TM_Rtidy.err
+
+ERR=$(cat /tmp/TM_Rtidy.err | sed '1,3d' | sed '$d')
+if [ ! -z "$ERR" ]; then
+	[[ -e /tmp/TM_Rtidy_func.R ]] &amp;&amp; rm /tmp/TM_Rtidy_func.R
+	[[ -e /tmp/TM_Rtidy.R ]] &amp;&amp; rm /tmp/TM_Rtidy.R
+	[[ -e /tmp/TM_Rtidy_func_new.R ]] &amp;&amp; rm /tmp/TM_Rtidy_func_new.R
+	[[ -e /tmp/TM_Rtidy.err ]] &amp;&amp; rm /tmp/TM_Rtidy.err
+	echo "Syntax Error at:"
+	if [ -z "$TM_SELECTED_TEXT" ]; then
+		ERR=$(echo -en "$ERR" | perl -e '$_=&lt;&gt;;chomp;m/^(\d+):(.*)/;print "line " . ($1-1) . ": $2"')
+		LINE=$(echo -en "$ERR" | perl -pe 's/^line (\d+):.*/$1/')
+		open "txmt://open?line=$LINE"
+	else
+		ERR=$(echo -en "$ERR" | perl -e '$_=&lt;&gt;;chomp;m/^(\d+):(.*)/;print "line " . ($1-2+$ENV{"TM_INPUT_START_LINE"}) . ": $2"')
+		LINE=$(echo -en "$ERR" | perl -pe 's/^line (\d+):.*/$1/')
+		#LINE=$(($LINE + $TM_INPUT_START_LINE - 1))
+		open "txmt://open?line=$LINE"
+	fi
+	echo -en "$ERR"
+	exit_show_tool_tip
+fi
+
+if [ -e /tmp/TM_Rtidy_func_new.R ]; then
+	cat /tmp/TM_Rtidy_func_new.R | sed '1,3d;$d' | perl -pe 's/^    /$ENV{"TABLEVEL"}/;s/^\`(.*?)\` &lt;\-\n/$1 &lt;\- /;s/ {4}/$ENV{"TAB"}/g;s/function \(/function(/;s/(.*?&lt;\- function\()/\n$1/'
+else
+	echo "Unknown error occured"
+	exit_show_tool_tip
+fi
+
+[[ -e /tmp/TM_Rtidy_func.R ]] &amp;&amp; rm /tmp/TM_Rtidy_func.R
+[[ -e /tmp/TM_Rtidy.R ]] &amp;&amp; rm /tmp/TM_Rtidy.R
+[[ -e /tmp/TM_Rtidy_func_new.R ]] &amp;&amp; rm /tmp/TM_Rtidy_func_new.R
+[[ -e /tmp/TM_Rtidy.err ]] &amp;&amp; rm /tmp/TM_Rtidy.err
+
+
+
+</string>
+	<key>fallbackInput</key>
+	<string>document</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^H</string>
+	<key>name</key>
+	<string>Tidy (removes all comments!)</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>scope</key>
+	<string>source.r -source.r.rd.console</string>
+	<key>uuid</key>
+	<string>3A526F78-B82D-41BD-9799-CA5F846401DC</string>
+</dict>
+</plist>

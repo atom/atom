@@ -39,7 +39,7 @@ function bootstrap() {
   if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
     fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
 
-  var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
+  var apmPath = path.resolve(__dirname, '..', 'apm', 'bin', 'apm')
   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
 
   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
@@ -119,7 +119,7 @@ function bootstrap() {
     },
     {
       command: apmInstallCommand,
-      message: 'Installing apm...',
+      message: 'Installing apm modules...',
       options: apmInstallOptions
     },
     {

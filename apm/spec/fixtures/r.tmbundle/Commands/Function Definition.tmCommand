@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby
+#require ENV['TM_SUPPORT_PATH'] +'/lib/escape.rb'
+#print "${1:${2:x} &lt;- }function(${3:var}) {\n#{if s = ENV['TM_SELECTED_TEXT'] then e_sn(s.chomp.gsub(/(\A|\n)/,"\\1\t")) else "\t\$4" end}\n}"
+
+require ENV['TM_SUPPORT_PATH'] +'/lib/escape.rb'
+require File.join(ENV["TM_SUPPORT_PATH"], "lib/current_word.rb")
+if ENV['TM_SELECTED_TEXT'].nil? or ENV['TM_SELECTED_TEXT'].empty?
+	word = Word.current_word('\w\.')
+else
+	word = ENV['TM_SELECTED_TEXT']
+end
+line, col = ENV['TM_CURRENT_LINE'], ENV['TM_LINE_INDEX'].to_i
+left  = line[0...(col - word.length)].to_s
+right = line[col..-1].to_s
+if ENV['TM_SELECTED_TEXT'].nil? or ENV['TM_SELECTED_TEXT'].empty?
+	print "#{e_sn(left)}${1:${2:x} &lt;- }function(${3:var}) {\n\t#{e_sn(word)}\$4\n}#{e_sn(right)}"
+else
+	print "${1:${2:x} &lt;- }function(${3:var}) {\n\t#{e_sn(word)}\$4\n}"
+end</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^@W</string>
+	<key>name</key>
+	<string>Function Definition</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>4C1A1536-31FF-4FF5-B0C5-CD47D21CFD52</string>
+</dict>
+</plist>

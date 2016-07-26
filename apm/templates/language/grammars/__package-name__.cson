@@ -1,0 +1,14 @@
+# If this is your first time writing a language grammar, check out:
+#   - http://manual.macromates.com/en/language_grammars
+
+'scopeName': 'source.__package-name__'
+'name': 'PackageName'
+'fileTypes': [
+  'extension'
+]
+'patterns': [
+  {
+    'match': '^\\s*@@.*$'
+    'name': 'comment'
+  }
+]

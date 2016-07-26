@@ -1,0 +1,11 @@
+#!/bin/bash
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export PATH="$SCRIPT_DIR:$PATH"
+
+maybe_node_gyp_path="$SCRIPT_DIR"/../node_modules/.bin/node-gyp
+if [ -e "$maybe_node_gyp_path" ]
+then
+  export npm_config_node_gyp="$maybe_node_gyp_path"
+fi
+
+"$SCRIPT_DIR"/../node_modules/.bin/npm $@

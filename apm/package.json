@@ -1,11 +1,61 @@
 {
-  "name": "atom-bundled-apm",
-  "description": "Atom's bundled apm",
+  "name": "atom-package-manager",
+  "description": "Atom package manager",
+  "version": "1.12.3",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/atom/atom.git"
+    "url": "https://github.com/atom/apm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/apm/issues"
+  },
+  "main": "./lib/apm.js",
+  "bin": {
+    "apm": "./bin/apm"
+  },
+  "scripts": {
+    "build": "node script/check-version.js && grunt",
+    "prepublish": "grunt prepublish",
+    "install": "node script/postinstall.js",
+    "test": "node script/check-version.js && grunt test",
+    "check-version": "node version.js"
   },
   "dependencies": {
-    "atom-package-manager": "1.10.0"
+    "asar-require": "0.2.0",
+    "async": "~0.2.8",
+    "colors": "~0.6.1",
+    "first-mate": "^5.0",
+    "fs-plus": "2.x",
+    "git-utils": "^4.0",
+    "hosted-git-info": "^2.1.4",
+    "keytar": "^3.0",
+    "mv": "2.0.0",
+    "ncp": "~0.5.1",
+    "npm": "3.10.5",
+    "open": "0.0.4",
+    "plist": "git+https://github.com/nathansobo/node-plist.git",
+    "q": "~0.9.7",
+    "read": "~1.0.5",
+    "request": "^2.72.0",
+    "rimraf": "^2.5.2",
+    "season": ">=5.0.5 <6.0",
+    "semver": "^5.1.0",
+    "tar": "^2.2.1",
+    "temp": "~0.7.0",
+    "underscore-plus": "1.x",
+    "wordwrap": "0.0.2",
+    "wrench": "~1.5.1",
+    "yargs": "^3.23.0"
+  },
+  "devDependencies": {
+    "coffee-script": "^1.8.0",
+    "express": "~3.2.3",
+    "grunt": "^1.0.1",
+    "grunt-coffeelint": "0.0.16",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-coffee": "^1.0.0",
+    "grunt-shell": "^1.3.0",
+    "jasmine-focused": ">=1.0.7 <2.0"
   }
 }

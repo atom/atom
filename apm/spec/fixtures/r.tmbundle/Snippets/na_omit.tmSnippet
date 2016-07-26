@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>na.omit(${0:})</string>
+	<key>name</key>
+	<string>na.omit</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>nao</string>
+	<key>uuid</key>
+	<string>C7D7C1F9-E2F7-4B09-8C1A-AD66C19E9CB3</string>
+</dict>
+</plist>

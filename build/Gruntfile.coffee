@@ -204,6 +204,7 @@ module.exports = (grunt) ->
         'dot-atom/**/*.coffee'
         'exports/**/*.coffee'
         'src/**/*.coffee'
+        'apm/src/**/*.coffee'
       ]
       build: [
         'build/tasks/**/*.coffee'
@@ -211,6 +212,7 @@ module.exports = (grunt) ->
       ]
       test: [
         'spec/*.coffee'
+        'apm/spec/*.coffee'
       ]
 
     standard:

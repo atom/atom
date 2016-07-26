@@ -1,0 +1,49 @@
+'use babel';
+
+import __PackageName__View from './__package-name__-view';
+import { CompositeDisposable } from 'atom';
+
+export default {
+
+  __packageName__View: null,
+  modalPanel: null,
+  subscriptions: null,
+
+  activate(state) {
+    this.__packageName__View = new __PackageName__View(state.__packageName__ViewState);
+    this.modalPanel = atom.workspace.addModalPanel({
+      item: this.__packageName__View.getElement(),
+      visible: false
+    });
+
+    // Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
+    this.subscriptions = new CompositeDisposable();
+
+    // Register command that toggles this view
+    this.subscriptions.add(atom.commands.add('atom-workspace', {
+      '__package-name__:toggle': () => this.toggle()
+    }));
+  },
+
+  deactivate() {
+    this.modalPanel.destroy();
+    this.subscriptions.dispose();
+    this.__packageName__View.destroy();
+  },
+
+  serialize() {
+    return {
+      __packageName__ViewState: this.__packageName__View.serialize()
+    };
+  },
+
+  toggle() {
+    console.log('__PackageName__ was toggled!');
+    return (
+      this.modalPanel.isVisible() ?
+      this.modalPanel.hide() :
+      this.modalPanel.show()
+    );
+  }
+
+};

@@ -1,0 +1,33 @@
+language: node_js
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
+
+node_js:
+  - "0.10"
+  - "4"
+  - "6"
+
+script: ./bin/npm test
+
+git:
+  depth: 10
+
+branches:
+  only:
+    - master
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - libgnome-keyring-dev
+      - g++-4.8
+    sources:
+      - ubuntu-toolchain-r-test
+
+env:
+  - CXX=g++-4.8
