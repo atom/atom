@@ -1,0 +1,47 @@
+[
+  {
+    "name": "duckberg",
+    "releases": {
+      "latest": "1.0"
+    },
+    "metadata": {
+      "name": "duckberg",
+      "version": "1.0",
+      "description": "Life is like a hurricane"
+    }
+  },
+  {
+    "name": "ducktales",
+    "releases": {
+      "latest": "2.0"
+    },
+    "metadata": {
+      "name": "ducktales",
+      "version": "2.0",
+      "description": "Might solve a mystery or rewrite history"
+    }
+  },
+  {
+    "name": "duckblur",
+    "releases": {
+      "latest": "19.92"
+    },
+    "metadata": {
+      "name": "duckblur",
+      "version": "19.92",
+      "theme": true,
+      "description": "Racecars, lasers, airplanes"
+    }
+  },
+  {
+    "name": "atom-2048",
+    "releases": {
+      "latest": "1.2.3"
+    },
+    "metadata": {
+      "name": "atom-2048",
+      "version": "1.2.3",
+      "description": "Racecars, lasers, airplanes"
+    }
+  }
+]

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>autoScrollOutput</key>
+	<true/>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] &amp;&amp; . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+cd "${TM_PROJECT_DIRECTORY:-${TM_DIRECTORY:-$HOME}}"
+
+#only for Mac OSX 10.4 X11
+OS=$(uname -r | perl -pe 's/(\d+)\..*/$1/')
+[[ $OS -eq 8 ]] &amp;&amp; export DISPLAY=:0.0
+
+CRAN="http://cran.cnr.berkeley.edu"
+SOFILE="$HOME/Library/Application Support/Rdaemon/startOptions.R"
+if [ -f "$SOFILE" ]; then
+	RES=$(cat "$SOFILE" | egrep 'options.*?repos.*?list' | perl -pe 's/^\s*options\s*.*?repos\s*=\s*.*?[\x{27}"](.*?)[\x{27}"].*/$1/g' | tail -n 1)
+	[[ ! -z "$RES" ]] &amp;&amp; [[ "${RES:0:4}" == "http" ]] &amp;&amp; CRAN="$RES"
+fi
+
+if [ ! -z "$TM_INPUT_START_LINE" ]; then
+	if [ `echo -en "$TM_SELECTED_TEXT" | egrep -cv '^[	 ]*#'` -gt 0 ]; then
+		echo -en "$TM_SELECTED_TEXT" | "$TM_BUNDLE_SUPPORT/tmR.rb" "$CRAN" 1
+	else
+		cat | "$TM_BUNDLE_SUPPORT/tmR.rb" "$CRAN" 0
+	fi
+else
+	cat | "$TM_BUNDLE_SUPPORT/tmR.rb" "$CRAN" 0
+fi
+</string>
+	<key>fallbackInput</key>
+	<string>document</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>inputFormat</key>
+	<string>text</string>
+	<key>keyEquivalent</key>
+	<string>@r</string>
+	<key>name</key>
+	<string>Run Document / Selection in R</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>html</string>
+	<key>outputLocation</key>
+	<string>newWindow</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>semanticClass</key>
+	<string>process.run.script.r</string>
+	<key>uuid</key>
+	<string>F5D7F00C-6DEE-469E-AFEE-6E4B7CDD4148</string>
+	<key>version</key>
+	<integer>2</integer>
+</dict>
+</plist>

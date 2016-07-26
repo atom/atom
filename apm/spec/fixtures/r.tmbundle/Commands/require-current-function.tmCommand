@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>[[ -n "$TM_SELECTED_TEXT" ]] &amp;&amp; echo "Please unselect first." &amp;&amp; exit_show_tool_tip
+
+LINE=$(cat | perl -e '
+	$line=$ENV{"TM_CURRENT_LINE"};$col=$ENV{"TM_LINE_INDEX"};
+	$lineL=substr($line,0,$col);
+	$lineR=substr($line,$col);
+	$lineL=~s/(?=[\$`\\])/\\/g;
+	$lineR=~s/(?=[\$`\\])/\\/g;
+	print "$lineL\${0:}$lineR";
+')
+WORD=$(/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -- &lt;&lt;-SCR1 
+	require File.join(ENV["TM_SUPPORT_PATH"], "lib/current_word.rb")
+	word = Word.current_word('\w._\(')
+	print word
+SCR1
+)
+
+WORD=$(echo -en "$WORD" | perl -pe 's/\([^\(]*$//')
+
+[[ -z "$WORD" ]] &amp;&amp; echo "No keyword found" &amp;&amp; exit_show_tool_tip
+
+"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getPackageFor('$WORD')"
+LIB=$(cat /tmp/textmate_Rhelper_out)
+if [ -z "$LIB" ]; then
+	echo -en "No package found."
+	exit 206
+fi
+
+if [ `echo "$LIB" | wc -l` -gt 1 ]; then
+	LIB=$(echo "$LIB" | sort -f | /System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby -e '
+		require File.join(ENV["TM_SUPPORT_PATH"], "lib/ui.rb")
+		require File.join(ENV["TM_SUPPORT_PATH"], "lib/exit_codes.rb")
+		words = STDIN.read().split("\n")
+		index=TextMate::UI.menu(words)
+		if index != nil
+			print words[index]
+		end
+	')
+fi
+
+if [ `echo -n "$TM_SCOPE" | grep -c -F 'source.rd.console'` -gt 0 ]; then
+	echo -en "&gt; require($LIB); "
+	echo -n "$LINE" | sed 's/^&gt; //'
+else
+	TABS=$(echo -en "$LINE" | perl -e '$a=&lt;&gt;;$a=~m/^([\t ]+)/;print $1 if defined($1)')
+	echo -en "$TABS"
+	echo -e "require($LIB)"
+	echo -n "$LINE"
+fi
+
+</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^L</string>
+	<key>name</key>
+	<string>“require(xxx)” for current Function</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>8D7F64A5-B2C5-4BF1-B7C5-352CF6AAEF28</string>
+</dict>
+</plist>

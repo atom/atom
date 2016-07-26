@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>cum${1:max}(${2:x})</string>
+	<key>name</key>
+	<string>Cummulative</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>cum</string>
+	<key>uuid</key>
+	<string>9BB0E6BD-62E9-4D5A-A1B6-6A5545F58EFD</string>
+</dict>
+</plist>

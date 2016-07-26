@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby
+# print "Got:" + STDIN.read
+
+require ENV['TM_SUPPORT_PATH'] +'/lib/ui.rb'
+require ENV['TM_SUPPORT_PATH'] +'/lib/exit_codes.rb'
+opts = { "Summary" =&gt; "summary(${1:x})", 
+         "Table" =&gt; "table(${1:x})"}
+keys = opts.keys.sort
+ans = TextMate::UI.menu(keys)
+TextMate.exit_discard unless ans
+print opts[keys[ans]]</string>
+	<key>fallbackInput</key>
+	<string>word</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>~@S</string>
+	<key>name</key>
+	<string>Summaries…</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>6A931F29-5A2B-4CCB-A958-0A0A9A3F2BEF</string>
+</dict>
+</plist>

@@ -1,0 +1,5 @@
+x
+method="euclidean|maximum|manhattan|canberra|binary|minkowski"
+diag=FALSE
+upper=FALSE
+p = 2

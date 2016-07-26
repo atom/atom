@@ -1,0 +1,19 @@
+version: "{build}"
+
+os: Windows Server 2012 R2
+
+platform: x86
+
+environment:
+  nodejs_version: "4.4.5"
+
+install:
+  - ps: Install-Product node $env:nodejs_version $env:platform
+  - npm install -g npm
+  - npm install
+
+build: off
+
+test: off
+
+deploy: off

@@ -1,0 +1,98 @@
+/*
+ Style sheet rewritten by Felix Jung on 11/27/2012.
+*/
+body
+{
+	font-family: FONTPLACEHOLDER;
+	font-size: FONTSIZEPLACEHOLDER;
+	background-color: rgb(99, 99, 99);
+}
+
+p
+{
+	margin: 0;
+	padding: 2px 0 2px 0;
+}
+
+p#version
+{
+	font-size: 10pt;
+	font-weight: bold;
+	color: rgb(185, 140, 174);
+}
+
+div.framed
+{
+	border-style: dotted;
+	border-width: 1px 0;
+	border-color: #666;
+	margin: 10px 0;
+	padding: 10px
+}
+
+span.comment
+{
+	color: rgb(143, 144, 141);
+}
+
+div#script_output
+{
+	background-color: rgb(39, 41, 44);
+}
+
+div.img
+{
+  background-color: rgb(255, 255, 255);
+}
+
+span.output
+{
+	color: rgb(162, 181, 112);
+}
+
+span.error
+{
+	background: rgb(170, 71, 68);
+	color: rgb(247, 202, 141);
+}
+
+span.warning
+{
+	background: rgb(247, 202, 141);
+	color: rgb(0, 0, 0);
+}
+
+hr
+{
+	border: none;
+	color: rgb(99, 99, 99);
+	background-color: rgb(99, 99, 99);
+	height: 1pt;
+}
+
+pre
+{
+	padding: 0;
+	margin: 0;
+	line-height: 1.5;
+	font-family: FONTPLACEHOLDER;
+	font-size: FONTSIZEPLACEHOLDER;
+	color:rgba(231, 231, 231, 1);
+}
+
+a
+{
+    color: rgb(126, 175, 194);
+}
+
+.hidden
+{
+	display: none;
+}
+
+.prompt
+{
+    color: rgb(126, 175, 194);
+    font-weight: bold;
+    text-decoration: none;
+}

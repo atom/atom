@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>rug(${1:jitter(${2:x})})</string>
+	<key>name</key>
+	<string>Add Tick Marks</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>tabTrigger</key>
+	<string>rug</string>
+	<key>uuid</key>
+	<string>EB449D09-F66E-4C1B-BFAF-B9FA27DB991C</string>
+</dict>
+</plist>

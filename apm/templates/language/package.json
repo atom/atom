@@ -1,0 +1,14 @@
+{
+  "name": "language-__package-name__",
+  "version": "0.0.0",
+  "description": "A short description of your language package",
+  "keywords": [
+    "language",
+    "grammar"
+  ],
+  "repository": "https://github.com/__package-author__/language-__package-name__",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  }
+}

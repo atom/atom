@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>
+
+"$TM_BUNDLE_SUPPORT"/bin/askRhelperDaemon.sh "@getHttpPort()"
+sleep 0.05
+PORT=$(cat /tmp/textmate_Rhelper_out)
+
+
+if [ $PORT -gt 0 ]; then
+	echo "&lt;base href='http://127.0.0.1:$PORT/doc/html/index.html'&gt;"
+	curl -sS "http://127.0.0.1:$PORT/doc/html/index.html"
+
+else
+	RHOME=${R_HOME:=/Library/Frameworks/R.framework/Versions/Current/Resources}
+	echo "&lt;base href='file://${RHOME// /%20}/doc/html/index.html'&gt;"
+	cat "${RHOME// /%20}"/doc/html/index.html
+
+fi</string>
+	<key>input</key>
+	<string>none</string>
+	<key>name</key>
+	<string>Show R Documentation</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>source.r</string>
+	<key>uuid</key>
+	<string>F6F4215A-5543-42B3-8EBD-C8C7C9F190C9</string>
+</dict>
+</plist>

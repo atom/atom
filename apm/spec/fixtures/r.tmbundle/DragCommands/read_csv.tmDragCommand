@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>bundleUUID</key>
+	<string>B29D7850-6E70-11D9-A369-000D93B3A10E</string>
+	<key>command</key>
+	<string>
+if [ "${TM_SCOPE:0:17}" == "source.rd.console" ]; then
+	echo -n "read.csv(file = \"$TM_DROPPED_FILEPATH\", header = \${1:TRUE}, stringsAsFactors = \${2:FALSE})"
+else
+	if [ "$TM_MODIFIER_FLAGS" == "SHIFT" ]; then
+		echo "read.csv(file = \"$TM_DROPPED_FILEPATH\", header = \${1:TRUE}, stringsAsFactors = \${2:FALSE})"
+	else
+		echo "read.csv(file = \"$TM_DROPPED_FILE\", header = \${1:TRUE}, stringsAsFactors = \${2:FALSE})"
+	fi
+fi</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>csv</string>
+		<string>CSV</string>
+	</array>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>read.csv (*.csv)</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>FF242DDB-CDE9-4FC0-8AC7-3345E49FBACA</string>
+</dict>
+</plist>

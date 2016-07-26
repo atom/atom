@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>bundleUUID</key>
+	<string>B29D7850-6E70-11D9-A369-000D93B3A10E</string>
+	<key>command</key>
+	<string>#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] &amp;&amp; . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+
+if [ "${TM_SCOPE:0:17}" == "source.rd.console" ]; then
+	echo -n "read.table(file = \"$TM_DROPPED_FILEPATH\", sep = \"\${1:\\t}\", header = \${2:TRUE}, stringsAsFactors = \${3:FALSE})"
+else
+	if [ "$TM_MODIFIER_FLAGS" == "SHIFT" ]; then
+		echo "read.table(file = \"$TM_DROPPED_FILEPATH\", sep = \"\${1:\\t}\", header = \${2:TRUE}, stringsAsFactors = \${3:FALSE})"
+	else
+		echo "read.table(file = \"$TM_DROPPED_FILE\", sep = \"\${1:\\t}\", header = \${2:TRUE}, stringsAsFactors = \${3:FALSE})"
+	fi
+fi</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>tab</string>
+		<string>TAB</string>
+	</array>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>read.table (*.tab)</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.r, source.rd.console</string>
+	<key>uuid</key>
+	<string>59C40B86-99F3-4713-9C88-C3AD7CE0C821</string>
+</dict>
+</plist>

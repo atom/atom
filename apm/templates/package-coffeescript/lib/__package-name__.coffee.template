@@ -1,0 +1,33 @@
+__PackageName__View = require './__package-name__-view'
+{CompositeDisposable} = require 'atom'
+
+module.exports = __PackageName__ =
+  __packageName__View: null
+  modalPanel: null
+  subscriptions: null
+
+  activate: (state) ->
+    @__packageName__View = new __PackageName__View(state.__packageName__ViewState)
+    @modalPanel = atom.workspace.addModalPanel(item: @__packageName__View.getElement(), visible: false)
+
+    # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
+    @subscriptions = new CompositeDisposable
+
+    # Register command that toggles this view
+    @subscriptions.add atom.commands.add 'atom-workspace', '__package-name__:toggle': => @toggle()
+
+  deactivate: ->
+    @modalPanel.destroy()
+    @subscriptions.dispose()
+    @__packageName__View.destroy()
+
+  serialize: ->
+    __packageName__ViewState: @__packageName__View.serialize()
+
+  toggle: ->
+    console.log '__PackageName__ was toggled!'
+
+    if @modalPanel.isVisible()
+      @modalPanel.hide()
+    else
+      @modalPanel.show()

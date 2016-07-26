@@ -1,0 +1,14 @@
+
+{
+  "releases": {
+    "latest": "1.2.3"
+  },
+  "name": "atom-2048",
+  "versions": {
+    "1.2.3": {
+      "dist": {
+        "tarball": "http://localhost:3000/tarball/test-module-1.0.0.tgz"
+      }
+    }
+  }
+}

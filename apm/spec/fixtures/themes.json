@@ -1,0 +1,14 @@
+[
+  {
+    "name": "duckblur",
+    "releases": {
+      "latest": "19.92"
+    },
+    "metadata": {
+      "name": "duckblur",
+      "version": "19.92",
+      "theme": true,
+      "description": "Racecars, lasers, airplanes"
+    }
+  }
+]

@@ -1,0 +1,6 @@
+# If you want some examples of settings, check out:
+# https://github.com/atom/language-gfm/blob/master/settings/gfm.cson
+
+'.source.__package-name__':
+  'editor':
+    'commentStart': '@@ '
