@@ -12,7 +12,6 @@ TokenizedBufferIterator = require './tokenized-buffer-iterator'
 module.exports =
 class TokenizedBuffer extends Model
   grammar: null
-  currentGrammarScore: null
   buffer: null
   tabLength: null
   tokenizedLines: null
@@ -44,11 +43,8 @@ class TokenizedBuffer extends Model
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @rootScopeDescriptor = new ScopeDescriptor(scopes: ['text.plain'])
 
-    if grammar = @grammarRegistry.grammarForScopeName(grammarScopeName)
-      @setGrammar(grammar)
-    else
-      @retokenizeLines()
-      @grammarToRestoreScopeName = grammarScopeName
+    @retokenizeLines()
+    @grammarToRestoreScopeName = grammarScopeName
 
   destroyed: ->
     @disposables.dispose()
@@ -66,15 +62,13 @@ class TokenizedBuffer extends Model
     @emitter.on 'did-invalidate-range', fn
 
   serialize: ->
-    state = {
+    {
       deserializer: 'TokenizedBuffer'
       bufferPath: @buffer.getPath()
       bufferId: @buffer.getId()
       tabLength: @tabLength
       largeFileMode: @largeFileMode
     }
-    state.grammarScopeName = @grammar?.scopeName unless @buffer.getPath()
-    state
 
   observeGrammar: (callback) ->
     callback(@grammar)
@@ -94,7 +88,6 @@ class TokenizedBuffer extends Model
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-    @currentGrammarScore = score ? @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
 
     @grammarToRestoreScopeName = null
 

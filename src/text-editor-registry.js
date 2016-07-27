@@ -44,6 +44,23 @@ export default class TextEditorRegistry {
     this.clear()
   }
 
+  static deserialize (state, atomEnvironment) {
+    const registry = new TextEditorRegistry({
+      config: atomEnvironment.config,
+      grammarRegistry: atomEnvironment.grammars
+    })
+
+    registry.editorGrammarOverrides = state.editorGrammarOverrides
+
+    return registry
+  }
+
+  serialize () {
+    return {
+      editorGrammarOverrides: Object.assign({}, this.editorGrammarOverrides)
+    }
+  }
+
   clear () {
     if (this.subscriptions) {
       this.subscriptions.dispose()
@@ -55,7 +72,7 @@ export default class TextEditorRegistry {
     this.scopesWithConfigSubscriptions = new Set()
     this.editorsWithMaintainedConfig = new Set()
     this.editorsWithMaintainedGrammar = new Set()
-    this.editorGrammarOverrides = new Map()
+    this.editorGrammarOverrides = {}
     this.editorGrammarScores = new WeakMap()
     this.subscriptions.add(
       this.grammarRegistry.onDidAddGrammar(this.grammarAddedOrUpdated),
@@ -115,12 +132,12 @@ export default class TextEditorRegistry {
   }
 
   setGrammarOverride (editor, grammar) {
-    this.editorGrammarOverrides.set(editor)
+    this.editorGrammarOverrides[editor.id] = grammar.scopeName
     editor.setGrammar(grammar)
   }
 
   clearGrammarOverride (editor) {
-    this.editorGrammarOverrides.delete(editor)
+    delete this.editorGrammarOverrides[editor.id]
     this.selectGrammarForEditor(editor)
   }
 
@@ -150,11 +167,19 @@ export default class TextEditorRegistry {
 
   grammarAddedOrUpdated (grammar) {
     this.editorsWithMaintainedGrammar.forEach(editor => {
-      if (grammar.injectionSelector != null) {
+      if (grammar.injectionSelector) {
         if (editor.tokenizedBuffer.hasTokenForSelector(grammar.injectionSelector)) {
           editor.tokenizedBuffer.retokenizeLines()
         }
-      } else if (!this.editorGrammarOverrides.has(editor)) {
+        return
+      }
+
+      const grammarOverride = this.editorGrammarOverrides[editor.id]
+      if (grammarOverride) {
+        if (grammar.scopeName === grammarOverride) {
+          editor.setGrammar(grammar)
+        }
+      } else {
         const score = this.grammarRegistry.getGrammarScore(
           grammar,
           editor.getPath(),
@@ -172,7 +197,11 @@ export default class TextEditorRegistry {
   }
 
   selectGrammarForEditor (editor) {
-    if (this.editorGrammarOverrides.has(editor)) {
+    const grammarOverride = this.editorGrammarOverrides[editor.id]
+
+    if (grammarOverride) {
+      const grammar = this.grammarRegistry.grammarForScopeName(grammarOverride)
+      editor.setGrammar(grammar)
       return
     }
 

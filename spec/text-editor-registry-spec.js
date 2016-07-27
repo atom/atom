@@ -443,4 +443,41 @@ describe('TextEditorRegistry', function () {
       expect(delegate.getNonWordCharacters(['i.j'])).toBe('()')
     })
   })
+
+  describe('serialization', function () {
+    it('persists editors\' grammar overrides', async function () {
+      const editor2 = new TextEditor({
+        config: atom.config,
+        clipboard: atom.clipboard,
+        grammarRegistry: atom.grammars
+      })
+
+      await atom.packages.activatePackage('language-c')
+      await atom.packages.activatePackage('language-html')
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainGrammar(editor)
+      registry.maintainGrammar(editor2)
+      registry.setGrammarOverride(editor, atom.grammars.grammarForScopeName('source.c'))
+      registry.setGrammarOverride(editor2, atom.grammars.grammarForScopeName('source.js'))
+
+      atom.packages.deactivatePackage('language-javascript')
+
+      const editorCopy = TextEditor.deserialize(editor.serialize(), atom)
+      const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
+      const registryCopy = TextEditorRegistry.deserialize(registry.serialize(), atom)
+
+      expect(editorCopy.getGrammar()).toBe(null)
+      expect(editor2Copy.getGrammar()).toBe(null)
+
+      registryCopy.maintainGrammar(editorCopy)
+      registryCopy.maintainGrammar(editor2Copy)
+      expect(editorCopy.getGrammar().name).toBe('C')
+      expect(editor2Copy.getGrammar()).toBe(null)
+
+      await atom.packages.activatePackage('language-javascript')
+      expect(editorCopy.getGrammar().name).toBe('C')
+      expect(editor2Copy.getGrammar().name).toBe('JavaScript')
+    })
+  })
 })
