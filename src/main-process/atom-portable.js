@@ -4,7 +4,7 @@ const {ipcMain} = require('electron')
 
 module.exports = class AtomPortable {
   static getPortableAtomHomePath () {
-    var execDirectoryPath = path.dirname(process.execPath)
+    const execDirectoryPath = path.dirname(process.execPath)
     return path.join(execDirectoryPath, '..', '.atom')
   }
 
