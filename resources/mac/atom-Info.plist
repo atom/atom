@@ -58,7 +58,7 @@
 				<string>ads</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>ADA.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>ADA source</string>
 			<key>CFBundleTypeRole</key>
@@ -72,7 +72,7 @@
 				<string>scpt</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>AppleScript_compiled.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Compiled AppleScript</string>
 			<key>CFBundleTypeRole</key>
@@ -86,7 +86,7 @@
 				<string>applescript</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>AppleScript.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>AppleScript source</string>
 			<key>CFBundleTypeRole</key>
@@ -100,7 +100,7 @@
 				<string>as</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>AS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>ActionScript source</string>
 			<key>CFBundleTypeRole</key>
@@ -115,7 +115,7 @@
 				<string>asa</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>ASP.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>ASP document</string>
 			<key>CFBundleTypeRole</key>
@@ -132,7 +132,7 @@
 				<string>ashx</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>ASPNET.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>ASP.NET document</string>
 			<key>CFBundleTypeRole</key>
@@ -146,7 +146,7 @@
 				<string>bib</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>BibTeX.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>BibTeX bibliography</string>
 			<key>CFBundleTypeRole</key>
@@ -160,7 +160,7 @@
 				<string>c</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>C.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>C source</string>
 			<key>CFBundleTypeRole</key>
@@ -178,7 +178,7 @@
 				<string>c++</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>C++.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>C++ source</string>
 			<key>CFBundleTypeRole</key>
@@ -192,7 +192,7 @@
 				<string>cs</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>C#.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>C# source</string>
 			<key>CFBundleTypeRole</key>
@@ -206,7 +206,7 @@
 				<string>coffee</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>CoffeeScript.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>CoffeeScript source</string>
 			<key>CFBundleTypeRole</key>
@@ -234,7 +234,7 @@
 				<string>cfdg</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>CFDG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Context Free Design Grammar</string>
 			<key>CFBundleTypeRole</key>
@@ -263,7 +263,7 @@
 				<string>csv</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>CSV.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Comma separated values</string>
 			<key>CFBundleTypeRole</key>
@@ -277,7 +277,7 @@
 				<string>tsv</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>TSV.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Tab separated values</string>
 			<key>CFBundleTypeRole</key>
@@ -292,7 +292,7 @@
 				<string>fcgi</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>CGI.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>CGI script</string>
 			<key>CFBundleTypeRole</key>
@@ -307,7 +307,7 @@
 				<string>htaccess</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>CFG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Configuration file</string>
 			<key>CFBundleTypeRole</key>
@@ -321,7 +321,7 @@
 				<string>css</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>CSS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Cascading style sheet</string>
 			<key>CFBundleTypeRole</key>
@@ -335,7 +335,7 @@
 				<string>diff</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Diff.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Differences file</string>
 			<key>CFBundleTypeRole</key>
@@ -349,7 +349,7 @@
 				<string>dtd</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>DTD.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Document Type Definition</string>
 			<key>CFBundleTypeRole</key>
@@ -363,7 +363,7 @@
 				<string>dylan</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Dylan.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Dylan source</string>
 			<key>CFBundleTypeRole</key>
@@ -378,7 +378,7 @@
 				<string>hrl</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Erlang.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Erlang source</string>
 			<key>CFBundleTypeRole</key>
@@ -392,7 +392,7 @@
 				<string>fscript</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>F-Script.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>F-Script source</string>
 			<key>CFBundleTypeRole</key>
@@ -411,7 +411,7 @@
 				<string>f95</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Fortran.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Fortran source</string>
 			<key>CFBundleTypeRole</key>
@@ -426,7 +426,7 @@
 				<string>pch</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>H.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Header</string>
 			<key>CFBundleTypeRole</key>
@@ -443,7 +443,7 @@
 				<string>h++</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>H++.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>C++ header</string>
 			<key>CFBundleTypeRole</key>
@@ -472,7 +472,7 @@
 				<string>gtdlog</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>GTD.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>GTD document</string>
 			<key>CFBundleTypeRole</key>
@@ -487,7 +487,7 @@
 				<string>lhs</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Haskell.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Haskell source</string>
 			<key>CFBundleTypeRole</key>
@@ -504,7 +504,7 @@
 				<string>shtml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>HTML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>HTML document</string>
 			<key>CFBundleTypeRole</key>
@@ -518,7 +518,7 @@
 				<string>inc</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Inc.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Include file</string>
 			<key>CFBundleTypeRole</key>
@@ -532,7 +532,7 @@
 				<string>ics</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>ICS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>iCalendar schedule</string>
 			<key>CFBundleTypeRole</key>
@@ -546,7 +546,7 @@
 				<string>ini</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>INI.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>MS Windows initialization file</string>
 			<key>CFBundleTypeRole</key>
@@ -560,7 +560,7 @@
 				<string>io</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>IO.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Io source</string>
 			<key>CFBundleTypeRole</key>
@@ -574,7 +574,7 @@
 				<string>java</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Java.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Java source</string>
 			<key>CFBundleTypeRole</key>
@@ -588,7 +588,7 @@
 				<string>bsh</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>BeanShell.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>BeanShell script</string>
 			<key>CFBundleTypeRole</key>
@@ -602,7 +602,7 @@
 				<string>properties</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Java.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Java properties file</string>
 			<key>CFBundleTypeRole</key>
@@ -617,7 +617,7 @@
 				<string>htc</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>JS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>JavaScript source</string>
 			<key>CFBundleTypeRole</key>
@@ -631,7 +631,7 @@
 				<string>jsp</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>JSP.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Java Server Page</string>
 			<key>CFBundleTypeRole</key>
@@ -645,7 +645,7 @@
 				<string>json</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>JSON.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>JSON file</string>
 			<key>CFBundleTypeRole</key>
@@ -659,7 +659,7 @@
 				<string>ldif</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>LDIF.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>LDAP Data Interchange Format</string>
 			<key>CFBundleTypeRole</key>
@@ -692,7 +692,7 @@
 				<string>el</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Lisp.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Lisp source</string>
 			<key>CFBundleTypeRole</key>
@@ -706,7 +706,7 @@
 				<string>log</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Log.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Log file</string>
 			<key>CFBundleTypeRole</key>
@@ -720,7 +720,7 @@
 				<string>logo</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Logo.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Logo source</string>
 			<key>CFBundleTypeRole</key>
@@ -734,7 +734,7 @@
 				<string>lua</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Lua.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Lua source</string>
 			<key>CFBundleTypeRole</key>
@@ -751,7 +751,7 @@
 				<string>md</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Markdown.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Markdown document</string>
 			<key>CFBundleTypeRole</key>
@@ -781,7 +781,7 @@
 				<string>mediawiki</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Mediawiki.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Mediawiki document</string>
 			<key>CFBundleTypeRole</key>
@@ -798,7 +798,7 @@
 				<string>asm</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>MIPS.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>MIPS assembler source</string>
 			<key>CFBundleTypeRole</key>
@@ -813,7 +813,7 @@
 				<string>cm3</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Modula-3.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Modula-3 source</string>
 			<key>CFBundleTypeRole</key>
@@ -827,7 +827,7 @@
 				<string>moinmoin</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>MoinMoin.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>MoinMoin document</string>
 			<key>CFBundleTypeRole</key>
@@ -841,7 +841,7 @@
 				<string>m</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Obj-C.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Objective-C source</string>
 			<key>CFBundleTypeRole</key>
@@ -855,7 +855,7 @@
 				<string>mm</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Obj-C++.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Objective-C++ source</string>
 			<key>CFBundleTypeRole</key>
@@ -872,7 +872,7 @@
 				<string>mly</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>OCaml.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>OCaml source</string>
 			<key>CFBundleTypeRole</key>
@@ -902,7 +902,7 @@
 				<string>p</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Pascal.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Pascal source</string>
 			<key>CFBundleTypeRole</key>
@@ -916,7 +916,7 @@
 				<string>patch</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Patch.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Patch file</string>
 			<key>CFBundleTypeRole</key>
@@ -932,7 +932,7 @@
 				<string>perl</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Perl.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Perl source</string>
 			<key>CFBundleTypeRole</key>
@@ -946,7 +946,7 @@
 				<string>pm</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>PerlModule.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Perl module</string>
 			<key>CFBundleTypeRole</key>
@@ -963,7 +963,7 @@
 				<string>php5</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>PHP.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>PHP source</string>
 			<key>CFBundleTypeRole</key>
@@ -978,7 +978,7 @@
 				<string>eps</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>PostScript.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>PostScript source</string>
 			<key>CFBundleTypeRole</key>
@@ -995,7 +995,7 @@
 				<string>scriptTerminology</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Plist.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Property list</string>
 			<key>CFBundleTypeRole</key>
@@ -1012,7 +1012,7 @@
 				<string>python</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Python.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Python source</string>
 			<key>CFBundleTypeRole</key>
@@ -1027,7 +1027,7 @@
 				<string>s</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>R.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>R source</string>
 			<key>CFBundleTypeRole</key>
@@ -1042,7 +1042,7 @@
 				<string>ragel</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Ragel.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Ragel source</string>
 			<key>CFBundleTypeRole</key>
@@ -1057,7 +1057,7 @@
 				<string>remind</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Remind.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Remind document</string>
 			<key>CFBundleTypeRole</key>
@@ -1072,7 +1072,7 @@
 				<string>rest</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>ReST.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>reStructuredText document</string>
 			<key>CFBundleTypeRole</key>
@@ -1087,7 +1087,7 @@
 				<string>erb</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>RHTML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>HTML with embedded Ruby</string>
 			<key>CFBundleTypeRole</key>
@@ -1101,7 +1101,7 @@
 				<string>erbsql</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>ERBSQL.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>SQL with embedded Ruby</string>
 			<key>CFBundleTypeRole</key>
@@ -1118,7 +1118,7 @@
 				<string>rxml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Ruby.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Ruby source</string>
 			<key>CFBundleTypeRole</key>
@@ -1148,7 +1148,7 @@
 				<string>sch</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Scheme.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Scheme source</string>
 			<key>CFBundleTypeRole</key>
@@ -1159,10 +1159,10 @@
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
-				<string>ext</string>
+				<string>etx</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Setext.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Setext document</string>
 			<key>CFBundleTypeRole</key>
@@ -1182,7 +1182,7 @@
 				<string>bash_logout</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Shell.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Shell script</string>
 			<key>CFBundleTypeRole</key>
@@ -1196,7 +1196,7 @@
 				<string>slate</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Slate.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Slate source</string>
 			<key>CFBundleTypeRole</key>
@@ -1210,7 +1210,7 @@
 				<string>sql</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>SQL.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>SQL source</string>
 			<key>CFBundleTypeRole</key>
@@ -1224,7 +1224,7 @@
 				<string>sml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>SML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Standard ML source</string>
 			<key>CFBundleTypeRole</key>
@@ -1238,7 +1238,7 @@
 				<string>strings</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Strings.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Strings document</string>
 			<key>CFBundleTypeRole</key>
@@ -1252,7 +1252,7 @@
 				<string>svg</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>SVG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Scalable vector graphics</string>
 			<key>CFBundleTypeRole</key>
@@ -1267,7 +1267,7 @@
 				<string>swg</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>SWIG.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>SWIG source</string>
 			<key>CFBundleTypeRole</key>
@@ -1281,7 +1281,7 @@
 				<string>tcl</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Tcl.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Tcl source</string>
 			<key>CFBundleTypeRole</key>
@@ -1297,7 +1297,7 @@
 				<string>cls</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>TeX.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>TeX document</string>
 			<key>CFBundleTypeRole</key>
@@ -1313,7 +1313,7 @@
 				<string>utf8</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Text.icns</string>
 			<key>CFBundleTypeMIMETypes</key>
 			<array>
 				<string>text/plain</string>
@@ -1337,7 +1337,7 @@
 				<string>textile</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Textile.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Textile document</string>
 			<key>CFBundleTypeRole</key>
@@ -1365,7 +1365,7 @@
 				<string>xhtml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>XHTML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>XHTML document</string>
 			<key>CFBundleTypeRole</key>
@@ -1386,7 +1386,7 @@
 				<string>dtml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>XML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>XML document</string>
 			<key>CFBundleTypeRole</key>
@@ -1401,7 +1401,7 @@
 				<string>xslt</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>XSL.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>XSL stylesheet</string>
 			<key>CFBundleTypeRole</key>
@@ -1416,7 +1416,7 @@
 				<string>vcard</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Vcard.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Electronic business card</string>
 			<key>CFBundleTypeRole</key>
@@ -1430,7 +1430,7 @@
 				<string>vb</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>VB.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Visual Basic source</string>
 			<key>CFBundleTypeRole</key>
@@ -1445,7 +1445,7 @@
 				<string>yml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>YAML.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>YAML document</string>
 			<key>CFBundleTypeRole</key>
@@ -1459,7 +1459,7 @@
 				<string>nfo</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>NFO.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Text document</string>
 			<key>CFBundleTypeRole</key>
@@ -1484,7 +1484,7 @@
 				<string>lgt</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Source.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Source</string>
 			<key>CFBundleTypeRole</key>
@@ -1523,7 +1523,7 @@
 				<string>*</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Document.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Document</string>
 			<key>CFBundleTypeRole</key>
@@ -1533,7 +1533,7 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeIconFile</key>
-			<string>file.icns</string>
+			<string>Blank.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Document</string>
 			<key>CFBundleTypeOSTypes</key>

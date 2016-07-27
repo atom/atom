@@ -172,7 +172,7 @@ module.exports = (grunt) ->
 
     if process.platform is 'darwin'
       cp path.join('resources', 'app-icons', channel, 'atom.icns'), path.resolve(appDir, '..', 'atom.icns')
-      cp path.join('resources', 'mac', 'file.icns'), path.resolve(appDir, '..', 'file.icns')
+      cp path.join('resources', 'mac', 'icns'), path.resolve(appDir, '..')
       cp path.join('resources', 'mac', 'speakeasy.pem'), path.resolve(appDir, '..', 'speakeasy.pem')
 
     if process.platform is 'win32'
