@@ -3553,7 +3553,7 @@ describe('TextEditorComponent', function () {
 
   describe('mousewheel events', function () {
     beforeEach(function () {
-      atom.config.set('editor.scrollSensitivity', 100)
+      editor.setScrollSensitivity(100)
     })
 
     describe('updating scrollTop and scrollLeft', function () {
@@ -3586,7 +3586,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('updates the scrollLeft or scrollTop according to the scroll sensitivity', async function () {
-        atom.config.set('editor.scrollSensitivity', 50)
+        editor.setScrollSensitivity(50)
         componentNode.dispatchEvent(new WheelEvent('mousewheel', {
           wheelDeltaX: -5,
           wheelDeltaY: -10
@@ -3602,26 +3602,6 @@ describe('TextEditorComponent', function () {
 
         expect(verticalScrollbarNode.scrollTop).toBe(5)
         expect(horizontalScrollbarNode.scrollLeft).toBe(7)
-      })
-
-      it('uses the previous scrollSensitivity when the value is not an int', async function () {
-        atom.config.set('editor.scrollSensitivity', 'nope')
-        componentNode.dispatchEvent(new WheelEvent('mousewheel', {
-          wheelDeltaX: 0,
-          wheelDeltaY: -10
-        }))
-        await nextAnimationFramePromise()
-        expect(verticalScrollbarNode.scrollTop).toBe(10)
-      })
-
-      it('parses negative scrollSensitivity values at the minimum', async function () {
-        atom.config.set('editor.scrollSensitivity', -50)
-        componentNode.dispatchEvent(new WheelEvent('mousewheel', {
-          wheelDeltaX: 0,
-          wheelDeltaY: -10
-        }))
-        await nextAnimationFramePromise()
-        expect(verticalScrollbarNode.scrollTop).toBe(1)
       })
     })
 

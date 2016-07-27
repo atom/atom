@@ -80,6 +80,7 @@ class TextEditor extends Model
   atomicSoftTabs: true
   invisibles: null
   showLineNumbers: true
+  scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -3358,6 +3359,10 @@ class TextEditor extends Model
       @presenter?.didChangeScrollPastEnd()
 
   getScrollPastEnd: -> @scrollPastEnd
+
+  setScrollSensitivity: (@scrollSensitivity) ->
+
+  getScrollSensitivity: -> @scrollSensitivity
 
   setShowLineNumbers: (showLineNumbers) ->
     if showLineNumbers isnt @showLineNumbers
