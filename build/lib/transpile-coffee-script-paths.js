@@ -10,34 +10,26 @@ const mkdirp = require('mkdirp')
 const path = require('path')
 
 const CONFIG = require('../config')
-const computeDestinationPath = require('./compute-destination-path')
-
-const GLOBS = [
-  'src/**/*.coffee,spec/*.coffee',
-  '!spec/*-spec.coffee',
-  'exports/**/*.coffee',
-  'static/**/*.coffee'
-]
 
 module.exports =
 function transpileCoffeeScriptPaths () {
   console.log('Transpiling CoffeeScript paths...');
-  for (let srcPath of getPathsToTranspile()) {
-    transpileCoffeeScriptPath(srcPath, computeDestinationPath(srcPath).replace(/coffee$/, 'js'))
+  for (let path of getPathsToTranspile()) {
+    transpileCoffeeScriptPath(path)
   }
 }
 
 function getPathsToTranspile () {
   let paths = []
-  paths = paths.concat(glob.sync(`${CONFIG.repositoryRootPath}/src/**/*.coffee`))
-  paths = paths.concat(glob.sync(`${CONFIG.repositoryRootPath}/spec/*.coffee`, {ignore: '**/*-spec.coffee'}))
-  paths = paths.concat(glob.sync(`${CONFIG.repositoryRootPath}/exports/**/*.coffee`))
+  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/src/**/*.coffee`))
+  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/spec/*.coffee`, {ignore: '**/*-spec.coffee'}))
+  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/exports/**/*.coffee`))
   return paths
 }
 
-function transpileCoffeeScriptPath (srcPath, destPath) {
-  const inputCode = fs.readFileSync(srcPath, 'utf8')
-  let outputCode = coffee.compile(inputCode)
-  mkdirp.sync(path.dirname(destPath))
-  fs.writeFileSync(destPath, outputCode)
+function transpileCoffeeScriptPath (coffeePath) {
+  const inputCode = fs.readFileSync(coffeePath, 'utf8')
+  const jsPath = coffeePath.replace(/coffee$/g, 'js')
+  fs.writeFileSync(jsPath, coffee.compile(inputCode))
+  fs.unlinkSync(coffeePath)
 }

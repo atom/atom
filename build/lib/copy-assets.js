@@ -7,16 +7,20 @@ const path = require('path')
 const fs = require('fs-extra')
 const computeDestinationPath = require('./compute-destination-path')
 const CONFIG = require('../config')
+const glob = require('glob')
 
 module.exports = function () {
-  console.log('Copying static assets...');
-  const sourcePaths = [
-    path.join(CONFIG.repositoryRootPath, 'static'),
+  console.log('Copying assets...');
+  const srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
+    path.join(CONFIG.repositoryRootPath, 'exports'),
+    path.join(CONFIG.repositoryRootPath, 'node_modules'),
+    path.join(CONFIG.repositoryRootPath, 'static'),
+    path.join(CONFIG.repositoryRootPath, 'src'),
     path.join(CONFIG.repositoryRootPath, 'vendor')
   ]
-
-  for (let srcPath of sourcePaths) {
+  srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: '**/*-spec.*'}))
+  for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath))
   }
 }

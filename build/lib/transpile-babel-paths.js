@@ -8,9 +8,7 @@ module.exports = transpileBabelPaths
 const babel = require('babel-core')
 const fs = require('fs')
 const glob = require('glob')
-const mkdirp = require('mkdirp')
 const path = require('path')
-const computeDestinationPath = require('./compute-destination-path')
 
 const CONFIG = require('../config')
 const BABEL_OPTIONS = require('../../static/babelrc.json')
@@ -25,9 +23,9 @@ const BUFFER = Buffer(PREFIX_LENGTH)
 
 function transpileBabelPaths () {
   console.log('Transpiling Babel paths...');
-  for (let srcPath of glob.sync(`${CONFIG.repositoryRootPath}/src/**/*.js`)) {
-    if (usesBabel(srcPath)) {
-      transpileBabelPath(srcPath, computeDestinationPath(srcPath))
+  for (let path of glob.sync(`${CONFIG.electronAppPath}/src/**/*.js`)) {
+    if (usesBabel(path)) {
+      transpileBabelPath(path)
     }
   }
 }
@@ -40,16 +38,8 @@ function usesBabel (path) {
   return BABEL_PREFIXES.indexOf(filePrefix) !== -1
 }
 
-function transpileBabelPath (srcPath, destPath) {
+function transpileBabelPath (path) {
   const options = Object.assign({}, BABEL_OPTIONS)
-  options.sourceFileName = path.relative(path.dirname(destPath), srcPath)
-  if (process.platform === 'win32') {
-    options.sourceFileName = options.sourceFileName.replace(/\\/g, '/')
-  }
-  options.sourceMapTarget = path.basename(destPath)
-
-  let result = babel.transformFileSync(srcPath, options)
-
-  mkdirp.sync(path.dirname(destPath))
-  fs.writeFileSync(destPath, result.code)
+  options.sourceMap = null
+  fs.writeFileSync(path, babel.transformFileSync(path, options).code)
 }
