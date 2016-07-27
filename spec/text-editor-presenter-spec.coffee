@@ -1227,7 +1227,7 @@ describe "TextEditorPresenter", ->
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).not.toContain('invisible-character eol')
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).not.toContain('invisible-character eol')
 
-            atom.config.set('editor.showInvisibles', true)
+            editor.setShowInvisibles(true)
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).toContain('invisible-character eol')
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).toContain('invisible-character eol')
