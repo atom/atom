@@ -23,11 +23,20 @@ const BUFFER = Buffer(PREFIX_LENGTH)
 
 function transpileBabelPaths () {
   console.log('Transpiling Babel paths...');
-  for (let path of glob.sync(`${CONFIG.electronAppPath}/src/**/*.js`)) {
+  for (let path of getPathsToTranspile()) {
     if (usesBabel(path)) {
       transpileBabelPath(path)
     }
   }
+}
+
+function getPathsToTranspile () {
+  let paths = []
+  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/src/**/*.js`))
+  for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
+    paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/node_modules/${packageName}/**/*.js`))
+  }
+  return paths
 }
 
 function usesBabel (path) {

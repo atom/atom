@@ -24,6 +24,9 @@ function getPathsToTranspile () {
   paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/src/**/*.coffee`))
   paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/spec/*.coffee`, {ignore: '**/*-spec.coffee'}))
   paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/exports/**/*.coffee`))
+  for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
+    paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/node_modules/${packageName}/**/*.coffee`))
+  }
   return paths
 }
 
