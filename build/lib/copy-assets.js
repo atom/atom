@@ -19,7 +19,7 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'src'),
     path.join(CONFIG.repositoryRootPath, 'vendor')
   ]
-  srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: '**/*-spec.*'}))
+  srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: path.join('**', '*-spec.*')}))
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath))
   }

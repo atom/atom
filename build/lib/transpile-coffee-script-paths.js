@@ -6,7 +6,6 @@
 const coffee = require('coffee-script')
 const fs = require('fs')
 const glob = require('glob')
-const mkdirp = require('mkdirp')
 const path = require('path')
 
 const CONFIG = require('../config')
@@ -21,11 +20,11 @@ function transpileCoffeeScriptPaths () {
 
 function getPathsToTranspile () {
   let paths = []
-  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/src/**/*.coffee`))
-  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/spec/*.coffee`, {ignore: '**/*-spec.coffee'}))
-  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/exports/**/*.coffee`))
+  paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'src', '**', '*.coffee')))
+  paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'spec', '*.coffee')))
+  paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'exports', '**', '*.coffee')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
-    paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/node_modules/${packageName}/**/*.coffee`))
+    paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.coffee')))
   }
   return paths
 }

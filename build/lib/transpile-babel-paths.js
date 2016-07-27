@@ -32,9 +32,9 @@ function transpileBabelPaths () {
 
 function getPathsToTranspile () {
   let paths = []
-  paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/src/**/*.js`))
+  paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'src', '**', '*.js')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
-    paths = paths.concat(glob.sync(`${CONFIG.electronAppPath}/node_modules/${packageName}/**/*.js`))
+    paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.js')))
   }
   return paths
 }
