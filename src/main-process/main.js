@@ -16,6 +16,7 @@ const path = require('path')
 const temp = require('temp')
 const yargs = require('yargs')
 const dedent = require('dedent')
+const startCrashReporter = require('../crash-reporter-start')
 const previousConsoleLog = console.log
 console.log = require('nslog')
 
@@ -38,7 +39,6 @@ function start () {
 
   app.setAppUserModelId('com.squirrel.atom.atom')
 
-  const startCrashReporter = require('../crash-reporter-start')
   function addPathToOpen (event, pathToOpen) {
     event.preventDefault()
     args.pathsToOpen.push(pathToOpen)
@@ -195,7 +195,6 @@ function parseCommandLine () {
   }
 
   const addToLastWindow = args['add']
-  let devMode = args['dev']
   const safeMode = args['safe']
   const pathsToOpen = args._
   const test = args['test']
@@ -221,6 +220,7 @@ function parseCommandLine () {
   const clearWindowState = args['clear-window-state']
   const urlsToOpen = []
   const setPortable = args.portable
+  let devMode = args['dev']
   let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
   let resourcePath = null
 
