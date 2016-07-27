@@ -76,6 +76,8 @@ class WorkspaceElement extends HTMLElement
     @verticalAxis.appendChild(@paneContainer)
     @addEventListener 'focus', @handleFocus.bind(this)
 
+    @addEventListener 'mousewheel', @handleMousewheel.bind(this), true
+
     @panelContainers =
       top: @views.getView(@model.panelContainers.top)
       left: @views.getView(@model.panelContainers.left)
@@ -99,6 +101,15 @@ class WorkspaceElement extends HTMLElement
     this
 
   getModel: -> @model
+
+  handleMousewheel: (event) ->
+    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.matches('atom-text-editor')
+      if event.wheelDeltaY > 0
+        @model.increaseFontSize()
+      else if event.wheelDeltaY < 0
+        @model.decreaseFontSize()
+      event.preventDefault()
+      event.stopPropagation()
 
   handleFocus: (event) ->
     @model.getActivePane().activate()

@@ -392,15 +392,6 @@ class TextEditorComponent
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
 
-    # Ctrl+MouseWheel adjusts font size.
-    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling')
-      if wheelDeltaY > 0
-        @workspace.increaseFontSize()
-      else if wheelDeltaY < 0
-        @workspace.decreaseFontSize()
-      event.preventDefault()
-      return
-
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
       previousScrollLeft = @presenter.getScrollLeft()
