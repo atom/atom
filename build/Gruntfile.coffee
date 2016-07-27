@@ -14,7 +14,7 @@ _ = require 'underscore-plus'
 packageJson = require '../package.json'
 
 module.exports = (grunt) ->
-  process.env.ATOM_RESOURCE_PATH ?= path.resolve(__dirname, '..');
+  process.env.ATOM_RESOURCE_PATH ?= path.resolve(__dirname, '..')
 
   require('time-grunt')(grunt)
 
