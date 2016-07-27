@@ -33,6 +33,7 @@ describe "Workspace", ->
         notificationManager: atom.notifications, clipboard: atom.clipboard,
         applicationDelegate: atom.applicationDelegate,
         viewRegistry: atom.views, assert: atom.assert.bind(atom),
+        textEditorRegistry: atom.textEditors
       })
       atom.workspace.deserialize(workspaceState, atom.deserializers)
 
@@ -843,7 +844,8 @@ describe "Workspace", ->
         config: atom.config, project: atom.project, packageManager: atom.packages,
         notificationManager: atom.notifications, deserializerManager: atom.deserializers,
         clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-        applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
+        applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
+        textEditorRegistry: atom.textEditors
       })
       workspace2.deserialize(state, atom.deserializers)
       expect(jsPackage.loadGrammarsSync.callCount).toBe 1
@@ -905,7 +907,8 @@ describe "Workspace", ->
           config: atom.config, project: atom.project, packageManager: atom.packages,
           notificationManager: atom.notifications, deserializerManager: atom.deserializers,
           clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-          applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
+          applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
+          textEditorRegistry: atom.textEditors
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = workspace2.getActivePaneItem()
