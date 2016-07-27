@@ -659,8 +659,7 @@ describe "Workspace", ->
       javascriptGrammarUsed = false
       coffeescriptGrammarUsed = false
 
-      waitsForPromise ->
-        atom.packages.activate()
+      atom.packages.triggerDeferredActivationHooks()
 
       runs ->
         atom.packages.onDidTriggerActivationHook 'language-javascript:grammar-used', -> javascriptGrammarUsed = true
