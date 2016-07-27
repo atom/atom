@@ -5,7 +5,6 @@
 
 const path = require('path')
 const fs = require('fs-extra')
-const computeDestinationPath = require('./compute-destination-path')
 const CONFIG = require('../config')
 const glob = require('glob')
 
@@ -25,4 +24,9 @@ module.exports = function () {
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath))
   }
+}
+
+function computeDestinationPath (srcPath) {
+  let relativePath = path.relative(CONFIG.repositoryRootPath, srcPath)
+  return path.join(CONFIG.electronAppPath, relativePath)
 }
