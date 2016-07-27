@@ -10,7 +10,7 @@ const glob = require('glob')
 
 module.exports = function () {
   console.log('Copying assets...');
-  const srcPaths = [
+  let srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
     path.join(CONFIG.repositoryRootPath, 'exports'),
     path.join(CONFIG.repositoryRootPath, 'keymaps'),
@@ -20,7 +20,7 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'src'),
     path.join(CONFIG.repositoryRootPath, 'vendor')
   ]
-  srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: path.join('**', '*-spec.*')}))
+  srcPaths = srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: path.join('**', '*-spec.*')}))
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath))
   }
