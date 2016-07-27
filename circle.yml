@@ -1,4 +1,38 @@
+machine:
+  environment:
+    XCODE_SCHEME: test
+    XCODE_WORKSPACE: test
+    XCODE_PROJECT: test
+
+  xcode:
+    version: 7.3
+
 general:
-  branches:
-    only:
-      - io-circle-ci
+  artifacts:
+    - out/Atom.zip
+
+dependencies:
+  pre:
+    - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
+    - nvm install 4.4.7
+    - nvm use 4.4.7
+    - npm install -g npm
+    - script/fingerprint-clean
+
+  override:
+    - script/bootstrap
+
+  post:
+    - script/fingerprint-write
+
+  cache_directories:
+    - apm/node_modules
+    - build/node_modules
+    - node_modules
+
+test:
+  override:
+    - script/grunt ci
+
+  post:
+    - zip -r out/Atom.zip out/Atom.app

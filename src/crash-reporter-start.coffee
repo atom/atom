@@ -4,6 +4,7 @@ module.exports = (extra) ->
   crashReporter.start({
     productName: 'Atom',
     companyName: 'GitHub',
-    submitURL: 'http://54.249.141.255:1127/post'
+    submitURL: 'https://crashreporter.atom.io',
+    autoSubmit: false,
     extra: extra
   })
