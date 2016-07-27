@@ -518,6 +518,110 @@ describe "Project", ->
       atom.project.removePath(ftpURI)
       expect(atom.project.getPaths()).toEqual []
 
+  describe ".createFile(path)", ->
+    base = path.join(__dirname, 'fixtures', 'dir')
+    filePath = path.join(base, 'newfile.txt')
+
+    beforeEach ->
+      fs.removeSync(filePath) if fs.existsSync(filePath)
+
+    afterEach ->
+      fs.removeSync(filePath) if fs.existsSync(filePath)
+
+    it "creates and yields an empty file", ->
+      waitsForPromise ->
+        atom.project.createFile(filePath)
+          .then (file) ->
+            expect(file.isFile()).toBe true
+            expect(file.getPath()).toBe filePath
+
+      runs ->
+        expect(fs.readFileSync(filePath, 'utf8')).toBe ''
+
+    it "calls callbacks registered with ::onDidCreateFile", ->
+      waitsFor 'onDidCreateFile event', 100, (done) ->
+        atom.project.createFile(filePath)
+        atom.project.onDidCreateFile (file) ->
+          expect(file.getPath()).toBe filePath
+          done()
+
+    describe "when the file already exists", ->
+      it "rejects with an error", ->
+        fs.writeFileSync(filePath, '')
+        waitsFor 'file creation to fail', 100, (done) ->
+          atom.project.createFile(filePath)
+            .catch (err) ->
+              expect(err.message).toMatch(/exists/)
+              done()
+
+    describe "when creating the file results in an error", ->
+      err = null
+
+      beforeEach ->
+        err = new Error()
+        fakeWriteFile = (filename, data, callback) ->
+          callback(err)
+        spyOn(fs, 'writeFile').andCallFake(fakeWriteFile)
+
+      it "rejects with that error", ->
+        waitsFor 'file creation to fail with the right error', 100, (done) ->
+          atom.project.createFile(filePath)
+            .catch (e) ->
+              expect(e).toBe(err)
+              done()
+
+  describe ".createDirectory(path)", ->
+    base = path.join(__dirname, 'fixtures', 'dir')
+    dirPath = path.join(base, 'subdir')
+
+    beforeEach ->
+      fs.removeSync(dirPath) if fs.existsSync(dirPath)
+
+    afterEach ->
+      fs.removeSync(dirPath) if fs.existsSync(dirPath)
+
+    it "creates and yields an empty directory", ->
+      waitsForPromise ->
+        atom.project.createDirectory(dirPath)
+          .then (directory) ->
+            expect(directory.isDirectory()).toBe true
+            expect(directory.getPath()).toBe dirPath
+
+      runs ->
+        expect(fs.existsSync(dirPath)).toBe true
+
+    it "calls callbacks registered with ::onDidCreateDirectory", ->
+      waitsFor 'onDidCreateDirectory event', 100, (done) ->
+        atom.project.createDirectory(dirPath)
+        atom.project.onDidCreateDirectory (dir) ->
+          expect(dir.getPath()).toBe dirPath
+          done()
+
+    describe "when the directory already exists", ->
+      it "rejects with an error", ->
+        fs.makeTreeSync(dirPath)
+        waitsFor 'directory creation to fail', 100, (done) ->
+          atom.project.createDirectory(dirPath)
+            .catch (err) ->
+              expect(err.message).toMatch(/exists/)
+              done()
+
+    describe "when creating the directory results in an error", ->
+      err = null
+
+      beforeEach ->
+        err = new Error()
+        fakeMakeTree = (filename, callback) ->
+          callback(err)
+        spyOn(fs, 'makeTree').andCallFake(fakeMakeTree)
+
+      it "rejects with that error", ->
+        waitsFor 'directory creation to fail with the right error', 100, (done) ->
+          atom.project.createDirectory(dirPath)
+            .catch (e) ->
+              expect(e).toBe(err)
+              done()
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       atom.project.addPath(temp.mkdirSync("another-path"))
