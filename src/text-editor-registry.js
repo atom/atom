@@ -19,7 +19,8 @@ const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['editor.autoIndentOnPaste', 'setAutoIndentOnPaste'],
   ['editor.scrollPastEnd', 'setScrollPastEnd'],
   ['editor.undoGroupingInterval', 'setUndoGroupingInterval'],
-  ['editor.nonWordCharacters', 'setNonWordCharacters']
+  ['editor.nonWordCharacters', 'setNonWordCharacters'],
+  ['editor.scrollSensitivity', 'setScrollSensitivity']
 ]
 
 const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()

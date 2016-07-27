@@ -427,6 +427,15 @@ describe('TextEditorRegistry', function () {
       expect(editor.getNonWordCharacters()).toBe('(){}[]')
     })
 
+    it('sets the scroll sensitivity based on the config', function () {
+      atom.config.set('editor.scrollSensitivity', 60)
+      registry.maintainConfig(editor)
+      expect(editor.getScrollSensitivity()).toBe(60)
+
+      atom.config.set('editor.scrollSensitivity', 70)
+      expect(editor.getScrollSensitivity()).toBe(70)
+    })
+
     it('gives the editor a scoped-settings delegate based on the config', function () {
       atom.config.set('editor.nonWordCharacters', '()')
       atom.config.set('editor.nonWordCharacters', '(){}', {scopeSelector: '.a.b .c.d'})
