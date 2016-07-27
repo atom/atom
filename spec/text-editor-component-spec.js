@@ -1324,6 +1324,17 @@ describe('TextEditorComponent', function () {
       expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
     })
 
+    it('does render cursors that are associated with non-empty selections when editor.showCursorWhenSelecting is true', async function () {
+      atom.config.set('editor.showCursorWhenSelecting', true)
+      editor.setSelectedScreenRange([[0, 4], [4, 6]])
+      editor.addCursorAtScreenPosition([6, 8])
+      await nextViewUpdatePromise()
+      let cursorNodes = componentNode.querySelectorAll('.cursor')
+      expect(cursorNodes.length).toBe(2)
+      expect(cursorNodes[0].style['-webkit-transform']).toBe('translate(' + (Math.round(8 * charWidth)) + 'px, ' + (6 * lineHeightInPixels) + 'px)')
+      atom.config.unset('editor.showCursorWhenSelecting')
+    })
+
     it('updates cursor positions when the line height changes', async function () {
       editor.setCursorBufferPosition([1, 10])
       component.setLineHeight(2)

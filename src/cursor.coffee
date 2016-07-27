@@ -575,7 +575,9 @@ class Cursor extends Model
   isVisible: -> @visible
 
   updateVisibility: ->
-    @setVisible(@marker.getBufferRange().isEmpty())
+    scope = @getScopeDescriptor()
+    showCursorWhenSelecting = @config.get('editor.showCursorWhenSelecting', {scope})
+    @setVisible(showCursorWhenSelecting or @marker.getBufferRange().isEmpty())
 
   ###
   Section: Comparing to another cursor
