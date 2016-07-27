@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+var path = require('path');
 process.env.ATOM_RESOURCE_PATH = path.resolve(__dirname, '..');
 var runGrunt = require('./utils/run-grunt.js');
 
