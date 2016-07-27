@@ -446,11 +446,14 @@ class TextEditorPresenter
     return unless @startRow? and @endRow? and @hasPixelRectRequirements() and @baseCharacterWidth?
 
     @state.content.cursors = {}
-    for cursor in @model.cursorsForScreenRowRange(@startRow, @endRow - 1) when cursor.isVisible()
+    for cursor in @getVisibleCursors()
       pixelRect = @pixelRectForScreenRange(cursor.getScreenRange())
       pixelRect.width = Math.round(@baseCharacterWidth) if pixelRect.width is 0
       @state.content.cursors[cursor.id] = pixelRect
     return
+
+  getVisibleCursors: ->
+    @model.cursorsForScreenRowRange(@startRow, @endRow - 1).filter (cursor) -> cursor.isVisible()
 
   updateOverlaysState: ->
     return unless @hasOverlayPositionRequirements()
@@ -909,10 +912,16 @@ class TextEditorPresenter
     height = @explicitHeight ? @contentHeight
     unless @height is height
       @height = height
+      @ensureCursorIsVisible() unless @explicitHeight?
       @updateScrollbarDimensions()
       @updateClientHeight()
       @updateScrollHeight()
       @updateEndRow()
+
+  ensureCursorIsVisible: ->
+    cursors = @getVisibleCursors()
+    if cursors.length > 0
+      cursors[cursors.length - 1].autoscroll(center: false, includeMargin: false)
 
   setContentFrameWidth: (contentFrameWidth) ->
     if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
@@ -1445,9 +1454,12 @@ class TextEditorPresenter
       unless @getScrollTop() < desiredScrollCenter < @getScrollBottom()
         desiredScrollTop = desiredScrollCenter - @getClientHeight() / 2
         desiredScrollBottom = desiredScrollCenter + @getClientHeight() / 2
-    else
+    else if options?.includeMargin ? true
       desiredScrollTop = top - verticalScrollMarginInPixels
       desiredScrollBottom = bottom + verticalScrollMarginInPixels
+    else
+      desiredScrollTop = top
+      desiredScrollBottom = bottom
 
     if options?.reversed ? true
       if desiredScrollBottom > @getScrollBottom()
