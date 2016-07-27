@@ -38,7 +38,7 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 
 ### openSUSE
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpm-devel`
 
 ## Instructions
 
