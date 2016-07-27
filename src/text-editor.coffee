@@ -79,6 +79,7 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
+  showLineNumbers: true
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -3351,9 +3352,19 @@ class TextEditor extends Model
 
   shouldAutoIndentOnPaste: -> @autoIndentOnPaste
 
-  setScrollPastEnd: (@scrollPastEnd) ->
+  setScrollPastEnd: (scrollPastEnd) ->
+    if scrollPastEnd isnt @scrollPastEnd
+      @scrollPastEnd = scrollPastEnd
+      @presenter?.didChangeScrollPastEnd()
 
   getScrollPastEnd: -> @scrollPastEnd
+
+  setShowLineNumbers: (showLineNumbers) ->
+    if showLineNumbers isnt @showLineNumbers
+      @showLineNumbers = showLineNumbers
+      @presenter?.didChangeShowLineNumbers()
+
+  doesShowLineNumbers: -> @showLineNumbers
 
   setUndoGroupingInterval: (@undoGroupingInterval) ->
 

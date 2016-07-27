@@ -972,7 +972,7 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
-      atom.config.set('editor.showLineNumbers', false)
+      editor.setShowLineNumbers(false)
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
@@ -980,7 +980,7 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
-      atom.config.set('editor.showLineNumbers', true)
+      editor.setShowLineNumbers(true)
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('')
