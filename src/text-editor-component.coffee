@@ -47,7 +47,6 @@ class TextEditorComponent
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
-    @observeConfig()
     @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
     lineTopIndex = new LineTopIndex({
@@ -331,17 +330,6 @@ class TextEditorComponent
     @disposables.add @editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
-
-  observeConfig: ->
-    @disposables.add @config.onDidChange 'editor.fontSize', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-    @disposables.add @config.onDidChange 'editor.fontFamily', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-    @disposables.add @config.onDidChange 'editor.lineHeight', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?

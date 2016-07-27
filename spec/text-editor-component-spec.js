@@ -1217,7 +1217,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('accounts for character widths when positioning cursors', async function () {
-      atom.config.set('editor.fontFamily', 'sans-serif')
+      component.setFontFamily('sans-serif')
       editor.setCursorScreenPosition([0, 16])
       await nextViewUpdatePromise()
 
@@ -1233,7 +1233,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('accounts for the width of paired characters when positioning cursors', async function () {
-      atom.config.set('editor.fontFamily', 'sans-serif')
+      component.setFontFamily('sans-serif')
       editor.setText('he\u0301y')
       editor.setCursorBufferPosition([0, 3])
       await nextViewUpdatePromise()
@@ -1261,7 +1261,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('positions cursors correctly after character widths are changed via a stylesheet change', async function () {
-      atom.config.set('editor.fontFamily', 'sans-serif')
+      component.setFontFamily('sans-serif')
       editor.setCursorScreenPosition([0, 16])
       await nextViewUpdatePromise()
 
