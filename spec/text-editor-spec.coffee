@@ -163,9 +163,9 @@ describe "TextEditor", ->
 
     describe ".getLongTitle()", ->
       it "returns file name when there is no opened file with identical name", ->
-        expect(editor.getLongTitle()).toBe 'sample.js'
+        expect(editor.getLongTitle(atom.workspace.getTextEditors())).toBe 'sample.js'
         buffer.setPath(undefined)
-        expect(editor.getLongTitle()).toBe 'untitled'
+        expect(editor.getLongTitle(atom.workspace.getTextEditors())).toBe 'untitled'
 
       it "returns '<filename> — <parent-directory>' when opened files have identical file names", ->
         editor1 = null
@@ -176,8 +176,8 @@ describe "TextEditor", ->
             atom.workspace.open(path.join('sample-theme-2', 'readme')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe "readme \u2014 sample-theme-1"
-          expect(editor2.getLongTitle()).toBe "readme \u2014 sample-theme-2"
+          expect(editor1.getLongTitle(atom.workspace.getTextEditors())).toBe "readme \u2014 sample-theme-1"
+          expect(editor2.getLongTitle(atom.workspace.getTextEditors())).toBe "readme \u2014 sample-theme-2"
 
       it "returns '<filename> — <parent-directories>' when opened files have identical file names in subdirectories", ->
         editor1 = null
@@ -190,8 +190,8 @@ describe "TextEditor", ->
             atom.workspace.open(path.join(path2, 'main.js')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe "main.js \u2014 #{path1}"
-          expect(editor2.getLongTitle()).toBe "main.js \u2014 #{path2}"
+          expect(editor1.getLongTitle(atom.workspace.getTextEditors())).toBe "main.js \u2014 #{path1}"
+          expect(editor2.getLongTitle(atom.workspace.getTextEditors())).toBe "main.js \u2014 #{path2}"
 
       it "returns '<filename> — <parent-directories>' when opened files have identical file and same parent dir name", ->
         editor1 = null
@@ -202,8 +202,8 @@ describe "TextEditor", ->
             atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'plugin', 'main.js')).then (o) ->
               editor2 = o
         runs ->
-          expect(editor1.getLongTitle()).toBe "main.js \u2014 js"
-          expect(editor2.getLongTitle()).toBe "main.js \u2014 " + path.join('js', 'plugin')
+          expect(editor1.getLongTitle(atom.workspace.getTextEditors())).toBe "main.js \u2014 js"
+          expect(editor2.getLongTitle(atom.workspace.getTextEditors())).toBe "main.js \u2014 " + path.join('js', 'plugin')
 
     it "notifies ::onDidChangeTitle observers when the underlying buffer path changes", ->
       observed = []

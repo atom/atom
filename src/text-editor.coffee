@@ -689,15 +689,19 @@ class TextEditor extends Model
   # * "<filename>" when it is the only editing buffer with this file name.
   # * "<filename> — <unique-dir-prefix>" when other buffers have this file name.
   #
+  # * `textEditors` An optional {Array} of the other {TextEditor} instances that
+  # should be taken into account when determining a unique directory prefix.
+  #
   # Returns a {String}
-  getLongTitle: ->
+  getLongTitle: (textEditors) ->
     if @getPath()
       fileName = @getFileName()
 
       allPathSegments = []
-      for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
-        if textEditor.getFileName() is fileName
-          allPathSegments.push(textEditor.getDirectoryPath().split(path.sep))
+      if textEditors?
+        for textEditor in textEditors when textEditor isnt this
+          if textEditor.getFileName() is fileName
+            allPathSegments.push(textEditor.getDirectoryPath().split(path.sep))
 
       if allPathSegments.length is 0
         return fileName
