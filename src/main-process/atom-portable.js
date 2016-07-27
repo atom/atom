@@ -25,6 +25,8 @@ module.exports = class AtomPortable {
       return false
     }
 
+    // Currently checking only that the directory exists and is writable,
+    // probably want to do some integrity checks on contents in future.
     return this.isPortableAtomHomePathWritable(defaultHome)
   }
 

@@ -37,6 +37,7 @@ function start () {
     return
   }
 
+  // NB: This prevents Win10 from showing dupe items in the taskbar
   app.setAppUserModelId('com.squirrel.atom.atom')
 
   function addPathToOpen (event, pathToOpen) {
@@ -152,6 +153,7 @@ function parseCommandLine () {
       ATOM_HOME               The root path for all configuration files and folders.
                               Defaults to \`~/.atom\`.`
   )
+  // Deprecated 1.0 API preview flag
   options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported.')
   options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'This option is not currently supported.')
   options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
@@ -242,6 +244,8 @@ function parseCommandLine () {
   }
 
   if (args['path-environment']) {
+    // On Yosemite the $PATH is not inherited by the "open" command, so we have to
+    // explicitly pass it by command line, see http://git.io/YC8_Ew.
     process.env.PATH = args['path-environment']
   }
 
