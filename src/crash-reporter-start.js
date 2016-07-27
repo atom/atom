@@ -1,6 +1,5 @@
-module.exports = (extra) ->
-  {crashReporter} = require 'electron'
-
+module.exports = function (extra) {
+  const {crashReporter} = require('electron')
   crashReporter.start({
     productName: 'Atom',
     companyName: 'GitHub',
@@ -8,3 +7,4 @@ module.exports = (extra) ->
     autoSubmit: false,
     extra: extra
   })
+}

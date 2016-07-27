@@ -23,6 +23,7 @@
     "clear-cut": "^2.0.1",
     "coffee-script": "1.8.0",
     "color": "^0.7.3",
+    "dedent": "0.6.0",
     "devtron": "1.1.0",
     "event-kit": "^1.5.0",
     "find-parent-dir": "^0.3.0",
