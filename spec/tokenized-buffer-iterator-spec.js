@@ -12,16 +12,16 @@ describe('TokenizedBufferIterator', () => {
           text: '',
           openScopes: []
         }
+      },
+
+      grammar: {
+        scopeForId () {
+          return 'foo'
+        }
       }
     }
 
-    const grammarRegistry = {
-      scopeForId () {
-        return 'foo'
-      }
-    }
-
-    const iterator = new TokenizedBufferIterator(tokenizedBuffer, grammarRegistry)
+    const iterator = new TokenizedBufferIterator(tokenizedBuffer)
 
     iterator.seek(Point(0, 0))
     expect(iterator.getPosition()).toEqual(Point(0, 0))
@@ -60,20 +60,20 @@ describe('TokenizedBufferIterator', () => {
             openScopes: [-1]
           }
         }
-      }
-    }
+      },
 
-    const grammarRegistry = {
-      scopeForId (id) {
-        if (id === -2 || id === -1) {
-          return 'foo'
-        } else if (id === -3) {
-          return 'qux'
+      grammar: {
+        scopeForId (id) {
+          if (id === -2 || id === -1) {
+            return 'foo'
+          } else if (id === -3) {
+            return 'qux'
+          }
         }
       }
     }
 
-    const iterator = new TokenizedBufferIterator(tokenizedBuffer, grammarRegistry)
+    const iterator = new TokenizedBufferIterator(tokenizedBuffer)
 
     iterator.seek(Point(0, 0))
     expect(iterator.getPosition()).toEqual(Point(0, 0))

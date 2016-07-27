@@ -572,9 +572,7 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = Object.assign({
-      @config, @clipboard, @grammarRegistry, @assert
-    }, params)
+    params = Object.assign({@clipboard, @assert}, params)
     editor = new TextEditor(params)
     @textEditorRegistry.maintainConfig(editor)
     @textEditorRegistry.maintainGrammar(editor)

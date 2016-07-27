@@ -26,31 +26,26 @@ class TokenizedBuffer extends Model
     else
       # TODO: remove this fallback after everyone transitions to the latest version.
       state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
-    state.grammarRegistry = atomEnvironment.grammars
     state.assert = atomEnvironment.assert
     new this(state)
 
   constructor: (params) ->
-    {
-      @buffer, @tabLength, @largeFileMode,
-      @grammarRegistry, @assert, grammarScopeName
-    } = params
+    {@buffer, @tabLength, @largeFileMode, @assert} = params
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
-    @tokenIterator = new TokenIterator({@grammarRegistry})
+    @tokenIterator = new TokenIterator(this)
 
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @rootScopeDescriptor = new ScopeDescriptor(scopes: ['text.plain'])
 
     @retokenizeLines()
-    @grammarToRestoreScopeName = grammarScopeName
 
   destroyed: ->
     @disposables.dispose()
 
   buildIterator: ->
-    new TokenizedBufferIterator(this, @grammarRegistry)
+    new TokenizedBufferIterator(this)
 
   getInvalidatedRanges: ->
     if @invalidatedRange?
@@ -88,8 +83,6 @@ class TokenizedBuffer extends Model
 
     @grammar = grammar
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
-
-    @grammarToRestoreScopeName = null
 
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()

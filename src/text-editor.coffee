@@ -110,7 +110,6 @@ class TextEditor extends Model
     state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId) ? state.buffer.addDisplayLayer()
     state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
     state.clipboard = atomEnvironment.clipboard
-    state.grammarRegistry = atomEnvironment.grammars
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     editor = new this(state)
     if state.registered
@@ -124,13 +123,12 @@ class TextEditor extends Model
     {
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard, @grammarRegistry,
+      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
       @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @ignoreInvisibles, @displayLayer
     } = params
 
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
-    throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
 
     @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
@@ -156,7 +154,7 @@ class TextEditor extends Model
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
-      @tabLength, @buffer, @largeFileMode, @grammarRegistry, @assert
+      @tabLength, @buffer, @largeFileMode, @assert
     })
     @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
@@ -560,7 +558,7 @@ class TextEditor extends Model
       @buffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @grammarRegistry, @assert, displayLayer
+      @clipboard, @assert, displayLayer
     })
     newEditor
 

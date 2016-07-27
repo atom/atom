@@ -5737,7 +5737,6 @@ describe "TextEditor", ->
       editor = new TextEditor({
         grammar: atom.grammars.grammarForScopeName('source.coffee')
         clipboard: atom.clipboard
-        grammarRegistry: atom.grammars
       })
 
       expect(editor.getGrammar().name).toBe 'CoffeeScript'

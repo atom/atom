@@ -2,7 +2,7 @@
 
 module.exports =
 class TokenizedBufferIterator
-  constructor: (@tokenizedBuffer, @grammarRegistry) ->
+  constructor: (@tokenizedBuffer) ->
     @openTags = null
     @closeTags = null
     @containingTags = null
@@ -16,7 +16,7 @@ class TokenizedBufferIterator
     @currentTags = currentLine.tags
     @currentLineOpenTags = currentLine.openScopes
     @currentLineLength = currentLine.text.length
-    @containingTags = @currentLineOpenTags.map (id) => @grammarRegistry.scopeForId(id)
+    @containingTags = @currentLineOpenTags.map (id) => @tokenizedBuffer.grammar.scopeForId(id)
     currentColumn = 0
     for tag, index in @currentTags
       if tag >= 0
@@ -28,7 +28,7 @@ class TokenizedBufferIterator
           @containingTags.pop() while @closeTags.shift()
           @containingTags.push(tag) while tag = @openTags.shift()
       else
-        scopeName = @grammarRegistry.scopeForId(tag)
+        scopeName = @tokenizedBuffer.grammar.scopeForId(tag)
         if tag % 2 is 0
           if @openTags.length > 0
             @tagIndex = index
@@ -55,7 +55,7 @@ class TokenizedBufferIterator
         else
           if @shouldMoveToNextLine
             @moveToNextLine()
-            @openTags = @currentLineOpenTags.map (id) => @grammarRegistry.scopeForId(id)
+            @openTags = @currentLineOpenTags.map (id) => @tokenizedBuffer.grammar.scopeForId(id)
             @shouldMoveToNextLine = false
           else if @nextLineHasMismatchedContainingTags()
             @closeTags = @containingTags.slice().reverse()
@@ -71,7 +71,7 @@ class TokenizedBufferIterator
           else
             @position = Point(@position.row, Math.min(@currentLineLength, @position.column + @currentTags[@tagIndex]))
         else
-          scopeName = @grammarRegistry.scopeForId(tag)
+          scopeName = @tokenizedBuffer.grammar.scopeForId(tag)
           if tag % 2 is 0
             if @openTags.length > 0
               break
@@ -101,7 +101,7 @@ class TokenizedBufferIterator
       return true if line.openScopes.length isnt @containingTags.length
 
       for i in [0...@containingTags.length] by 1
-        if @containingTags[i] isnt @grammarRegistry.scopeForId(line.openScopes[i])
+        if @containingTags[i] isnt @tokenizedBuffer.grammar.scopeForId(line.openScopes[i])
           return true
       false
     else

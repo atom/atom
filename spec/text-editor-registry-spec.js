@@ -17,7 +17,6 @@ describe('TextEditorRegistry', function () {
     editor = new TextEditor({
       config: atom.config,
       clipboard: atom.clipboard,
-      grammarRegistry: atom.grammars
     })
   })
 
@@ -113,7 +112,6 @@ describe('TextEditorRegistry', function () {
       const editor2 = new TextEditor({
         config: atom.config,
         clipboard: atom.clipboard,
-        grammarRegistry: atom.grammars
       })
 
       editor2.setGrammar(atom.grammars.selectGrammar('test.js'))
@@ -449,7 +447,6 @@ describe('TextEditorRegistry', function () {
       const editor2 = new TextEditor({
         config: atom.config,
         clipboard: atom.clipboard,
-        grammarRegistry: atom.grammars
       })
 
       await atom.packages.activatePackage('language-c')
