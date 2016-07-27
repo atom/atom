@@ -156,8 +156,9 @@ class Project extends Model
 
   # Public: Add a path to the project's list of root paths
   #
-  # * `projectPath` {String} The path to the directory to add.
+  # * `projectPath` {String} The absolute path to the directory to add.
   addPath: (projectPath, options) ->
+    return unless path.isAbsolute(projectPath)
     directory = null
     for provider in @directoryProviders
       break if directory = provider.directoryForURISync?(projectPath)

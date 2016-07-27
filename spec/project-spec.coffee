@@ -470,6 +470,15 @@ describe "Project", ->
       expect(atom.project.getPaths()).toEqual([oldPath, newPath])
       expect(onDidChangePathsSpy).toHaveBeenCalled()
 
+    it "doesn't add relative paths", ->
+      onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
+      atom.project.onDidChangePaths(onDidChangePathsSpy)
+      [oldPath] = atom.project.getPaths()
+
+      atom.project.addPath('a-dir')
+      expect(atom.project.getPaths()).toEqual([oldPath])
+      expect(onDidChangePathsSpy).not.toHaveBeenCalled()
+
   describe ".removePath(path)", ->
     onDidChangePathsSpy = null
 
