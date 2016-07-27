@@ -1,9 +1,4 @@
-// This module exports a function that transpiles all files with a babel prefix
-// into the appropriate location in the build output directory.
-
 'use strict'
-
-module.exports = transpileBabelPaths
 
 const babel = require('babel-core')
 const fs = require('fs')
@@ -21,7 +16,7 @@ const BABEL_PREFIXES = [
 const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.length))
 const BUFFER = Buffer(PREFIX_LENGTH)
 
-function transpileBabelPaths () {
+module.exports = function () {
   console.log('Transpiling Babel paths...');
   for (let path of getPathsToTranspile()) {
     if (usesBabel(path)) {
@@ -34,7 +29,10 @@ function getPathsToTranspile () {
   let paths = []
   paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'src', '**', '*.js')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
-    paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.js')))
+    paths = paths.concat(glob.sync(
+      path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.js'),
+      {ignore: path.join(CONFIG.electronAppPath, 'node_modules', packageName, 'spec', '**', '*.js')}
+    ))
   }
   return paths
 }

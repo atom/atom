@@ -1,6 +1,3 @@
-// This module exports a function that transpiles all .coffee files into the
-// appropriate location in the build output directory.
-
 'use strict'
 
 const coffee = require('coffee-script')
@@ -10,8 +7,7 @@ const path = require('path')
 
 const CONFIG = require('../config')
 
-module.exports =
-function transpileCoffeeScriptPaths () {
+module.exports = function () {
   console.log('Transpiling CoffeeScript paths...');
   for (let path of getPathsToTranspile()) {
     transpileCoffeeScriptPath(path)
@@ -24,7 +20,10 @@ function getPathsToTranspile () {
   paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'spec', '*.coffee')))
   paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'exports', '**', '*.coffee')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
-    paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.coffee')))
+    paths = paths.concat(glob.sync(
+      path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.coffee'),
+      {ignore: path.join(CONFIG.electronAppPath, 'node_modules', packageName, 'spec', '**', '*.coffee')}
+    ))
   }
   return paths
 }
