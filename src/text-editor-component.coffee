@@ -926,9 +926,6 @@ class TextEditorComponent
     @linesYardstick.invalidateCache()
     @presenter.measurementsChanged()
 
-  setShowIndentGuide: (showIndentGuide) ->
-    @config.set("editor.showIndentGuide", showIndentGuide)
-
   setScrollSensitivity: (scrollSensitivity) =>
     if scrollSensitivity = parseInt(scrollSensitivity)
       @scrollSensitivity = Math.abs(scrollSensitivity) / 100
