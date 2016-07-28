@@ -34,12 +34,12 @@ module.exports = function () {
       throw new Error('TODO: handle this case!')
     }
 
-    copyShellCommands(bundledResourcesPath)
+    copyNonASARResources(bundledResourcesPath)
     console.log(`Application bundle(s) created on ${packagedAppPath}`)
   })
 }
 
-function copyShellCommands (bundledResourcesPath) {
+function copyNonASARResources (bundledResourcesPath) {
   const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
   console.log(`Copying shell commands to ${bundledShellCommandsPath}...`);
   fs.copySync(
@@ -52,6 +52,9 @@ function copyShellCommands (bundledResourcesPath) {
     // TODO: Change command installer to point to appropriate path and remove this fallback after a few releases.
     fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(bundledShellCommandsPath, 'apm', 'node_modules', '.bin', 'apm'))
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(bundledShellCommandsPath, 'atom.sh'))
+  }
+  if (process.platform === 'darwin') {
+    fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'file.icns'), path.join(bundledResourcesPath, 'file.icns'))
   }
 }
 
