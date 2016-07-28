@@ -10,13 +10,12 @@ const appMetadata = require('../package.json')
 const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
-const intermediateShellCommandsPath = path.join(buildOutputPath, 'shell')
 const cachePath = path.join(repositoryRootPath, 'cache')
 const channel = getChannel()
 
 module.exports = {
   appMetadata, channel,
-  repositoryRootPath, buildOutputPath, intermediateAppPath, intermediateShellCommandsPath,
+  repositoryRootPath, buildOutputPath, intermediateAppPath,
   cachePath
 }
 

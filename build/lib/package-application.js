@@ -1,15 +1,10 @@
 'use strict'
 
-// This is where we'll run electron-packager on our intermediate app dir.
-// It takes an ignore regex for paths to exclude, and I've started on a function
-// to build up this regexp based on existing work in build-task.coffee. We should
-// try to lean on electron-packager to do as much of the work for us as possible
-// other than transpilation. It looks like it has a programmatic API. We'll need to
-// copy more stuff such as the package.json for the packager to work correctly.
-
+const assert = require('assert')
 const fs = require('fs-extra')
 const path = require('path')
 const electronPackager = require('electron-packager')
+const includePathInPackagedApp = require('./include-path-in-packaged-app')
 
 const CONFIG = require('../config')
 
@@ -26,22 +21,32 @@ module.exports = function () {
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
-  }, (err, appPaths) => {
+  }, (err, packagedAppPaths) => {
     if (err) {
       console.error(err)
     } else {
-      if (appPaths.length > 1) {
-        throw new Error('TODO: handle this case!')
-      }
-
+      assert(packagedAppPaths.length === 1, 'Generated more than one electron application!')
+      const packagedAppPath = packagedAppPaths[0]
       if (process.platform === 'darwin') {
-        const bundleResourcesPath = path.join(appPaths[0], 'Atom.app', 'Contents', 'Resources')
-        fs.copySync(CONFIG.intermediateShellCommandsPath, path.join(bundleResourcesPath, 'app'))
+        const bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
+        const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
+        console.log(`Copying shell commands to ${bundledShellCommandsPath}...`);
+        fs.copySync(
+          path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
+          path.join(bundledShellCommandsPath, 'apm'),
+          {filter: includePathInPackagedApp}
+        )
+        if (process.platform !== 'windows') {
+          // Existing symlinks on user systems point to an outdated path, so just symlink it to the real location of the apm binary.
+          // TODO: Change command installer to point to appropriate path and remove this fallback after a few releases.
+          fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(bundledShellCommandsPath, 'apm', 'node_modules', '.bin', 'apm'))
+          fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(bundledShellCommandsPath, 'atom.sh'))
+        }
       } else {
         throw new Error('TODO: handle this case!')
       }
 
-      console.log(`Application bundle(s) created on ${appPaths}`)
+      console.log(`Application bundle(s) created on ${packagedAppPath}`)
     }
   })
 }
