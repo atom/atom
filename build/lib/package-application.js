@@ -22,33 +22,36 @@ module.exports = function () {
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
   }, (err, packagedAppPaths) => {
-    if (err) {
-      console.error(err)
-    } else {
-      assert(packagedAppPaths.length === 1, 'Generated more than one electron application!')
-      const packagedAppPath = packagedAppPaths[0]
-      if (process.platform === 'darwin') {
-        const bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
-        const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
-        console.log(`Copying shell commands to ${bundledShellCommandsPath}...`);
-        fs.copySync(
-          path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
-          path.join(bundledShellCommandsPath, 'apm'),
-          {filter: includePathInPackagedApp}
-        )
-        if (process.platform !== 'windows') {
-          // Existing symlinks on user systems point to an outdated path, so just symlink it to the real location of the apm binary.
-          // TODO: Change command installer to point to appropriate path and remove this fallback after a few releases.
-          fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(bundledShellCommandsPath, 'apm', 'node_modules', '.bin', 'apm'))
-          fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(bundledShellCommandsPath, 'atom.sh'))
-        }
-      } else {
-        throw new Error('TODO: handle this case!')
-      }
+    if (err) throw new Error(err)
+    assert(packagedAppPaths.length === 1, 'Generated more than one electron application!')
 
-      console.log(`Application bundle(s) created on ${packagedAppPath}`)
+    const packagedAppPath = packagedAppPaths[0]
+    let bundledResourcesPath
+    if (process.platform === 'darwin') {
+      bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
+    } else {
+      throw new Error('TODO: handle this case!')
     }
+
+    copyShellCommands(bundledResourcesPath)
+    console.log(`Application bundle(s) created on ${packagedAppPath}`)
   })
+}
+
+function copyShellCommands (bundledResourcesPath) {
+  const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
+  console.log(`Copying shell commands to ${bundledShellCommandsPath}...`);
+  fs.copySync(
+    path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
+    path.join(bundledShellCommandsPath, 'apm'),
+    {filter: includePathInPackagedApp}
+  )
+  if (process.platform !== 'win32') {
+    // Existing symlinks on user systems point to an outdated path, so just symlink it to the real location of the apm binary.
+    // TODO: Change command installer to point to appropriate path and remove this fallback after a few releases.
+    fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(bundledShellCommandsPath, 'apm', 'node_modules', '.bin', 'apm'))
+    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(bundledShellCommandsPath, 'atom.sh'))
+  }
 }
 
 function buildAsarUnpackGlobExpression () {
