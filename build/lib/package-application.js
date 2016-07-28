@@ -36,7 +36,7 @@ module.exports = function () {
 
       if (process.platform === 'darwin') {
         const bundleResourcesPath = path.join(appPaths[0], 'Atom.app', 'Contents', 'Resources')
-        fs.copySync(CONFIG.intermediateResourcesPath, path.join(bundleResourcesPath, 'app'))
+        fs.copySync(CONFIG.intermediateShellCommandsPath, path.join(bundleResourcesPath, 'app'))
       } else {
         throw new Error('TODO: handle this case!')
       }

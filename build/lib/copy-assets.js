@@ -28,14 +28,14 @@ module.exports = function () {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {filter: skipIgnoredPaths})
   }
 
-  console.log(`Copying resources to ${CONFIG.intermediateResourcesPath}...`);
+  console.log(`Copying shell commands to ${CONFIG.intermediateShellCommandsPath}...`);
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
-    path.join(CONFIG.intermediateResourcesPath, 'apm'),
+    path.join(CONFIG.intermediateShellCommandsPath, 'apm'),
     {filter: skipIgnoredPaths}
   )
   if (process.platform !== 'windows') {
-    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(CONFIG.intermediateResourcesPath, 'atom.sh'))
+    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(CONFIG.intermediateShellCommandsPath, 'atom.sh'))
   }
 }
 
