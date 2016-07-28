@@ -39,32 +39,17 @@ describe "TextEditorElement", ->
       expect(element.hasAttribute('mini')).toBe true
 
   describe "when the editor is attached to the DOM", ->
-    describe "when the editor.useShadowDOM config option is true", ->
-      it "mounts the react component and unmounts when removed from the dom", ->
-        atom.config.set('editor.useShadowDOM', true)
+    it "mounts the component and unmounts when removed from the dom", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
 
-        element = new TextEditorElement
-        jasmine.attachToDOM(element)
+      component = element.component
+      expect(component.mounted).toBe true
+      element.remove()
+      expect(component.mounted).toBe false
 
-        component = element.component
-        expect(component.mounted).toBe true
-        element.remove()
-        expect(component.mounted).toBe false
-
-        jasmine.attachToDOM(element)
-        expect(element.component.mounted).toBe true
-
-    describe "when the editor.useShadowDOM config option is false", ->
-      it "mounts the react component and unmounts when removed from the dom", ->
-        atom.config.set('editor.useShadowDOM', false)
-
-        element = new TextEditorElement
-        jasmine.attachToDOM(element)
-
-        component = element.component
-        expect(component.mounted).toBe true
-        element.getModel().destroy()
-        expect(component.mounted).toBe false
+      jasmine.attachToDOM(element)
+      expect(element.component.mounted).toBe true
 
   describe "when the editor is detached from the DOM and then reattached", ->
     it "does not render duplicate line numbers", ->
@@ -96,42 +81,21 @@ describe "TextEditorElement", ->
       expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
 
   describe "focus and blur handling", ->
-    describe "when the editor.useShadowDOM config option is true", ->
-      it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
-        atom.config.set('editor.useShadowDOM', true)
+    it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
+      element = new TextEditorElement
+      jasmineContent.appendChild(element)
 
-        element = new TextEditorElement
-        jasmineContent.appendChild(element)
+      blurCalled = false
+      element.addEventListener 'blur', -> blurCalled = true
 
-        blurCalled = false
-        element.addEventListener 'blur', -> blurCalled = true
+      element.focus()
+      expect(blurCalled).toBe false
+      expect(element.hasFocus()).toBe true
+      expect(document.activeElement).toBe element
+      expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
 
-        element.focus()
-        expect(blurCalled).toBe false
-        expect(element.hasFocus()).toBe true
-        expect(document.activeElement).toBe element
-        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
-
-        document.body.focus()
-        expect(blurCalled).toBe true
-
-    describe "when the editor.useShadowDOM config option is false", ->
-      it "proxies focus/blur events to/from the hidden input", ->
-        atom.config.set('editor.useShadowDOM', false)
-
-        element = new TextEditorElement
-        jasmineContent.appendChild(element)
-
-        blurCalled = false
-        element.addEventListener 'blur', -> blurCalled = true
-
-        element.focus()
-        expect(blurCalled).toBe false
-        expect(element.hasFocus()).toBe true
-        expect(document.activeElement).toBe element.querySelector('input')
-
-        document.body.focus()
-        expect(blurCalled).toBe true
+      document.body.focus()
+      expect(blurCalled).toBe true
 
     describe "when focused while a parent node is being attached to the DOM", ->
       class ElementThatFocusesChild extends HTMLDivElement
@@ -161,8 +125,6 @@ describe "TextEditorElement", ->
       spyOn(atom.themes, 'onDidChangeActiveThemes').andCallFake (fn) ->
         themeReloadCallback = fn
         new Disposable
-
-      atom.config.set("editor.useShadowDOM", false)
 
       element = new TextEditorElement()
       element.style.height = '200px'

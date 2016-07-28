@@ -22,7 +22,6 @@ class TextEditorElement extends HTMLElement
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
-    @config = atom.config
     @themes = atom.themes
     @workspace = atom.workspace
     @assert = atom.assert
@@ -43,31 +42,22 @@ class TextEditorElement extends HTMLElement
     unless @autoHeight
       @style.height = "100%"
 
-    if @config.get('editor.useShadowDOM')
-      @useShadowDOM = true
+    unless ShadowStyleSheet?
+      ShadowStyleSheet = document.createElement('style')
+      ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
 
-      unless ShadowStyleSheet?
-        ShadowStyleSheet = document.createElement('style')
-        ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+    @createShadowRoot()
 
-      @createShadowRoot()
+    @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
+    @stylesElement = new StylesElement
+    @stylesElement.initialize(@styles)
+    @stylesElement.setAttribute('context', 'atom-text-editor')
 
-      @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-      @stylesElement = new StylesElement
-      @stylesElement.initialize(@styles)
-      @stylesElement.setAttribute('context', 'atom-text-editor')
+    @rootElement = document.createElement('div')
+    @rootElement.classList.add('editor--private')
 
-      @rootElement = document.createElement('div')
-      @rootElement.classList.add('editor--private')
-
-      @shadowRoot.appendChild(@stylesElement)
-      @shadowRoot.appendChild(@rootElement)
-    else
-      @useShadowDOM = false
-
-      @classList.add('editor', 'editor-colors')
-      @stylesElement = document.head.querySelector('atom-styles')
-      @rootElement = this
+    @shadowRoot.appendChild(@stylesElement)
+    @shadowRoot.appendChild(@rootElement)
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
@@ -91,9 +81,8 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
+  initialize: (model, {@views, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
     throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
     throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
@@ -141,10 +130,8 @@ class TextEditorElement extends HTMLElement
       stylesElement: @stylesElement
       editor: @model
       tileSize: @tileSize
-      useShadowDOM: @useShadowDOM
       views: @views
       themes: @themes
-      config: @config
       workspace: @workspace
       assert: @assert
       grammars: @grammars
@@ -152,12 +139,7 @@ class TextEditorElement extends HTMLElement
     )
     @rootElement.appendChild(@component.getDomNode())
 
-    if @useShadowDOM
-      @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
-    else
-      inputNode = @component.hiddenInputComponent.getDomNode()
-      inputNode.addEventListener 'focus', @focused.bind(this)
-      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
+    @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
 
   unmountComponent: ->
     if @component?
@@ -169,11 +151,6 @@ class TextEditorElement extends HTMLElement
     @component?.focused()
 
   blurred: (event) ->
-    unless @useShadowDOM
-      if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
-        event.stopImmediatePropagation()
-        return
-
     @component?.blurred()
 
   # Work around what seems to be a bug in Chromium. Focus can be stolen from the

@@ -42,7 +42,7 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars, scrollPastEnd}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, tileSize, @views, @themes, @workspace, @assert, @grammars, scrollPastEnd}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
@@ -55,7 +55,6 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
-      config: @config
       lineTopIndex: lineTopIndex
       scrollPastEnd: scrollPastEnd
 
@@ -63,17 +62,13 @@ class TextEditorComponent
 
     @domElementPool = new DOMElementPool
     @domNode = document.createElement('div')
-    if @useShadowDOM
-      @domNode.classList.add('editor-contents--private')
+    @domNode.classList.add('editor-contents--private')
 
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', 'atom-overlay')
-      @domNode.appendChild(insertionPoint)
-      @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
-      @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
-    else
-      @domNode.classList.add('editor-contents')
-      @overlayManager = new OverlayManager(@presenter, @domNode, @views)
+    insertionPoint = document.createElement('content')
+    insertionPoint.setAttribute('select', 'atom-overlay')
+    @domNode.appendChild(insertionPoint)
+    @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+    @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -82,7 +77,7 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     if @blockDecorationsComponent?

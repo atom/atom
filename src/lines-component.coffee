@@ -21,7 +21,7 @@ module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
 
-  constructor: ({@presenter, @useShadowDOM, @domElementPool, @assert, @grammars}) ->
+  constructor: ({@presenter, @domElementPool, @assert, @grammars}) ->
     @domNode = document.createElement('div')
     @domNode.classList.add('lines')
     @tilesNode = document.createElement("div")
@@ -34,10 +34,9 @@ class LinesComponent extends TiledComponent
     @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
 
-    if @useShadowDOM
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', '.overlayer')
-      @domNode.appendChild(insertionPoint)
+    insertionPoint = document.createElement('content')
+    insertionPoint.setAttribute('select', '.overlayer')
+    @domNode.appendChild(insertionPoint)
 
   getDomNode: ->
     @domNode
