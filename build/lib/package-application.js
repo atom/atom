@@ -17,6 +17,7 @@ module.exports = function () {
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
+    'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
     'out': CONFIG.buildOutputPath,
     'overwrite': true,
     'platform': process.platform,
