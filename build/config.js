@@ -12,9 +12,28 @@ const buildOutputPath = path.join(repositoryRootPath, 'out')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
 const intermediateResourcesPath = path.join(buildOutputPath, 'resources')
 const cachePath = path.join(repositoryRootPath, 'cache')
+const channel = getChannel()
 
 module.exports = {
-  appMetadata,
+  appMetadata, channel,
   repositoryRootPath, buildOutputPath, intermediateAppPath, intermediateResourcesPath,
   cachePath
+}
+
+function getChannel () {
+  if (appMetadata.version.match(/dev/) || isBuildingPR()) {
+    return 'dev'
+  } else if (appMetadata.version.match(/beta/)) {
+    return 'beta'
+  } else {
+    return 'stable'
+  }
+}
+
+function isBuildingPR () {
+  return (
+    process.env.APPVEYOR_PULL_REQUEST_NUMBER ||
+    process.env.TRAVIS_PULL_REQUEST ||
+    process.env.CI_PULL_REQUEST
+  )
 }
