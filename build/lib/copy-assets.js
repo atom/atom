@@ -26,6 +26,11 @@ module.exports = function () {
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {filter: includePathInPackagedApp})
   }
+
+  fs.copySync(
+    path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'),
+    path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
+  )
 }
 
 function computeDestinationPath (srcPath) {
