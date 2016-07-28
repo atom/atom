@@ -16,15 +16,17 @@ module.exports = function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
   // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md
   electronPackager({
-    arch: process.arch,
-    asar: {unpack: buildAsarUnpackGlobExpression()},
-    download: {cache: CONFIG.cachePath},
-    dir: CONFIG.intermediateAppPath,
-    ignore: buildIgnoredPathsRegExp(),
-    out: CONFIG.buildOutputPath,
-    overwrite: true,
-    platform: process.platform,
-    version: CONFIG.appMetadata.electronVersion
+    'app-version': CONFIG.appMetadata.version,
+    'arch': process.arch,
+    'asar': {unpack: buildAsarUnpackGlobExpression()},
+    'build-version': CONFIG.appMetadata.version,
+    'download': {cache: CONFIG.cachePath},
+    'dir': CONFIG.intermediateAppPath,
+    'ignore': buildIgnoredPathsRegExp(),
+    'out': CONFIG.buildOutputPath,
+    'overwrite': true,
+    'platform': process.platform,
+    'version': CONFIG.appMetadata.electronVersion
   }, (err, appPaths) => {
     if (err) {
       console.error(err)
