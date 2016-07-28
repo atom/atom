@@ -1262,6 +1262,7 @@ describe('TextEditorComponent', function () {
 
     it('positions cursors correctly after character widths are changed via a stylesheet change', async function () {
       component.setFontFamily('sans-serif')
+      await nextViewUpdatePromise()
       editor.setCursorScreenPosition([0, 16])
       await nextViewUpdatePromise()
 
