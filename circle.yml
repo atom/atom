@@ -17,22 +17,20 @@ dependencies:
     - nvm install 4.4.7
     - nvm use 4.4.7
     - npm install -g npm
-    - script/fingerprint-clean
 
   override:
     - script/bootstrap
-
-  post:
-    - script/fingerprint-write
+    - node build/build.js
 
   cache_directories:
+    - cache
     - apm/node_modules
     - build/node_modules
     - node_modules
 
 test:
   override:
-    - script/grunt ci
+    - echo 'Run tests!!!'
 
   post:
     - zip -r out/Atom.zip out/Atom.app
