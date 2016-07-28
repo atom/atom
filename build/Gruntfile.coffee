@@ -320,7 +320,7 @@ getDefaultChannelAndReleaseBranch = (version) ->
     else
       channel = 'stable'
 
-    minorVersion = version.match(/^\d\.\d/)[0]
+    minorVersion = version.match(/^\d+\.\d+/)[0]
     releaseBranch = "#{minorVersion}-releases"
   [channel, releaseBranch]
 
