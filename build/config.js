@@ -9,23 +9,9 @@ const appMetadata = require('../package.json')
 
 const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
-
-let appName = appMetadata.productName
-const appFileName = appMetadata.name
-
-let electronRootPath, electronAppPath
-
-switch (process.platform) {
-  case 'darwin':
-    appName += '.app'
-    electronRootPath = path.join(buildOutputPath, appName, 'Contents')
-    electronAppPath = path.join(electronRootPath, 'Resources', 'app')
-    break;
-}
+const intermediateAppPath = path.join(buildOutputPath, 'app')
 
 module.exports = {
   appMetadata,
-  repositoryRootPath, buildOutputPath,
-  appName, appFileName,
-  electronRootPath, electronAppPath
+  repositoryRootPath, buildOutputPath, intermediateAppPath,
 }

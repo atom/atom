@@ -17,7 +17,7 @@ const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.l
 const BUFFER = Buffer(PREFIX_LENGTH)
 
 module.exports = function () {
-  console.log('Transpiling Babel paths...');
+  console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}...`);
   for (let path of getPathsToTranspile()) {
     if (usesBabel(path)) {
       transpileBabelPath(path)
@@ -27,11 +27,11 @@ module.exports = function () {
 
 function getPathsToTranspile () {
   let paths = []
-  paths = paths.concat(glob.sync(path.join(CONFIG.electronAppPath, 'src', '**', '*.js')))
+  paths = paths.concat(glob.sync(path.join(CONFIG.intermediateAppPath, 'src', '**', '*.js')))
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     paths = paths.concat(glob.sync(
-      path.join(CONFIG.electronAppPath, 'node_modules', packageName, '**', '*.js'),
-      {ignore: path.join(CONFIG.electronAppPath, 'node_modules', packageName, 'spec', '**', '*.js')}
+      path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, '**', '*.js'),
+      {ignore: path.join(CONFIG.intermediateAppPath, 'node_modules', packageName, 'spec', '**', '*.js')}
     ))
   }
   return paths

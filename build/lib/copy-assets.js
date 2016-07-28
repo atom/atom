@@ -9,7 +9,7 @@ const CONFIG = require('../config')
 const glob = require('glob')
 
 module.exports = function () {
-  console.log('Copying assets...');
+  console.log(`Copying assets to ${CONFIG.intermediateAppPath}...`);
   let srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
     path.join(CONFIG.repositoryRootPath, 'exports'),
@@ -27,6 +27,6 @@ module.exports = function () {
 }
 
 function computeDestinationPath (srcPath) {
-  let relativePath = path.relative(CONFIG.repositoryRootPath, srcPath)
-  return path.join(CONFIG.electronAppPath, relativePath)
+  const relativePath = path.relative(CONFIG.repositoryRootPath, srcPath)
+  return path.join(CONFIG.intermediateAppPath, relativePath)
 }
