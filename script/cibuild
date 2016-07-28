@@ -40,10 +40,6 @@ function setEnvironmentVariables() {
     process.env.CC = 'clang';
     process.env.CXX = 'clang++';
     process.env.npm_config_clang = '1';
-  } else if (process.platform === 'win32') {
-    process.env.BUILD_ATOM_RELEASES_S3_KEY = process.env.BUILD_ATOM_WIN_RELEASES_S3_KEY
-    process.env.BUILD_ATOM_RELEASES_S3_SECRET = process.env.BUILD_ATOM_WIN_RELEASES_S3_SECRET
-    process.env.BUILD_ATOM_RELEASES_S3_BUCKET = process.env.BUILD_ATOM_WIN_RELEASES_S3_BUCKET
   }
 }
 

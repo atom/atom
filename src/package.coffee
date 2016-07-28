@@ -159,6 +159,7 @@ class Package
 
   # TODO: Remove. Settings view calls this method currently.
   activateConfig: ->
+    return if @configSchemaRegisteredOnLoad
     @requireMainModule()
     @registerConfigSchemaFromMainModule()
 

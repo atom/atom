@@ -344,7 +344,12 @@ class TextEditorComponent
 
   onTextInput: (event) =>
     event.stopPropagation()
-    event.preventDefault()
+
+    # WARNING: If we call preventDefault on the input of a space character,
+    # then the browser interprets the spacebar keypress as a page-down command,
+    # causing spaces to scroll elements containing editors. This is impossible
+    # to test.
+    event.preventDefault() if event.data isnt ' '
 
     return unless @isInputEnabled()
 
