@@ -75,7 +75,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('updates the editor\'s grammar when a more appropriate grammar is added for its path', async function () {
-      expect(editor.getGrammar()).toBe(null)
+      expect(editor.getGrammar().name).toBe('Null Grammar')
 
       editor.getBuffer().setPath('test.js')
       registry.maintainGrammar(editor)
@@ -473,13 +473,13 @@ describe('TextEditorRegistry', function () {
       const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
       const registryCopy = TextEditorRegistry.deserialize(registry.serialize(), atom)
 
-      expect(editorCopy.getGrammar()).toBe(null)
-      expect(editor2Copy.getGrammar()).toBe(null)
+      expect(editorCopy.getGrammar().name).toBe('Null Grammar')
+      expect(editor2Copy.getGrammar().name).toBe('Null Grammar')
 
       registryCopy.maintainGrammar(editorCopy)
       registryCopy.maintainGrammar(editor2Copy)
       expect(editorCopy.getGrammar().name).toBe('C')
-      expect(editor2Copy.getGrammar()).toBe(null)
+      expect(editor2Copy.getGrammar().name).toBe('Null Grammar')
 
       await atom.packages.activatePackage('language-javascript')
       expect(editorCopy.getGrammar().name).toBe('C')

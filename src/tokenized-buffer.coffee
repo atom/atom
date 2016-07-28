@@ -8,10 +8,11 @@ TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
 TokenizedBufferIterator = require './tokenized-buffer-iterator'
+NullGrammar = require './null-grammar'
 
 module.exports =
 class TokenizedBuffer extends Model
-  grammar: null
+  grammar: NullGrammar
   buffer: null
   tabLength: null
   tokenizedLines: null
@@ -127,7 +128,7 @@ class TokenizedBuffer extends Model
 
   tokenizeNextChunk: ->
     # Short circuit null grammar which can just use the placeholder tokens
-    if (not @grammar? or @grammar.name is 'Null grammar') and @firstInvalidRow()?
+    if (@grammar.name is 'Null Grammar') and @firstInvalidRow()?
       @invalidRows = []
       @markTokenizationComplete()
       return
@@ -203,7 +204,7 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    if @largeFileMode or not @grammar?
+    if @largeFileMode or @grammar is NullGrammar
       newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
     else
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
@@ -279,7 +280,7 @@ class TokenizedBuffer extends Model
     @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow] by 1
 
   buildPlaceholderTokenizedLineForRow: (row) ->
-    if @grammar?
+    if @grammar isnt NullGrammar
       openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
     else
       openScopes = []
