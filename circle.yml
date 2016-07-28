@@ -22,6 +22,9 @@ dependencies:
     - script/bootstrap
     - node build/build.js
 
+  post:
+    - zip -r out/Atom.zip out/Atom-darwin-x64
+
   cache_directories:
     - cache
     - apm/node_modules
@@ -31,6 +34,3 @@ dependencies:
 test:
   override:
     - echo 'Run tests!!!'
-
-  post:
-    - zip -r out/Atom.zip out/Atom.app
