@@ -10,9 +10,11 @@ const appMetadata = require('../package.json')
 const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
+const intermediateResourcesPath = path.join(buildOutputPath, 'resources')
 const cachePath = path.join(repositoryRootPath, 'cache')
 
 module.exports = {
   appMetadata,
-  repositoryRootPath, buildOutputPath, intermediateAppPath, cachePath
+  repositoryRootPath, buildOutputPath, intermediateAppPath, intermediateResourcesPath,
+  cachePath
 }

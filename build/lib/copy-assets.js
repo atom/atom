@@ -10,6 +10,8 @@ const glob = require('glob')
 
 module.exports = function () {
   console.log(`Copying assets to ${CONFIG.intermediateAppPath}...`);
+  const ignoredPathsRegExp = buildIgnoredPathsRegExp()
+  const skipIgnoredPaths = (path) => !ignoredPathsRegExp.test(path)
   let srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
     path.join(CONFIG.repositoryRootPath, 'exports'),
@@ -22,13 +24,18 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'vendor')
   ]
   srcPaths = srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: path.join('**', '*-spec.*')}))
-  const ignoredPathsRegExp = buildIgnoredPathsRegExp()
   for (let srcPath of srcPaths) {
-    fs.copySync(
-      srcPath,
-      computeDestinationPath(srcPath),
-      {filter: (path) => !ignoredPathsRegExp.test(path)}
-    )
+    fs.copySync(srcPath, computeDestinationPath(srcPath), {filter: skipIgnoredPaths})
+  }
+
+  console.log(`Copying resources to ${CONFIG.intermediateResourcesPath}...`);
+  fs.copySync(
+    path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
+    path.join(CONFIG.intermediateResourcesPath, 'apm'),
+    {filter: skipIgnoredPaths}
+  )
+  if (process.platform !== 'windows') {
+    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(CONFIG.intermediateResourcesPath, 'atom.sh'))
   }
 }
 
@@ -42,6 +49,12 @@ function buildIgnoredPathsRegExp () {
     escapeRegExp(path.join('git-utils', 'deps')),
     escapeRegExp(path.join('oniguruma', 'deps')),
     escapeRegExp(path.join('less', 'dist')),
+    escapeRegExp(path.join('npm', 'doc')),
+    escapeRegExp(path.join('npm', 'html')),
+    escapeRegExp(path.join('npm', 'man')),
+    escapeRegExp(path.join('npm', 'node_modules', '.bin', 'beep')),
+    escapeRegExp(path.join('npm', 'node_modules', '.bin', 'clear')),
+    escapeRegExp(path.join('npm', 'node_modules', '.bin', 'starwars')),
     escapeRegExp(path.join('pegjs', 'examples')),
     escapeRegExp(path.join('get-parameter-names', 'node_modules', 'testla')),
     escapeRegExp(path.join('get-parameter-names', 'node_modules', '.bin', 'testla')),

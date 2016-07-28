@@ -7,6 +7,7 @@
 // other than transpilation. It looks like it has a programmatic API. We'll need to
 // copy more stuff such as the package.json for the packager to work correctly.
 
+const fs = require('fs-extra')
 const path = require('path')
 const electronPackager = require('electron-packager')
 
@@ -29,6 +30,17 @@ module.exports = function () {
     if (err) {
       console.error(err)
     } else {
+      if (appPaths.length > 1) {
+        throw new Error('TODO: handle this case!')
+      }
+
+      if (process.platform === 'darwin') {
+        const bundleResourcesPath = path.join(appPaths[0], 'Atom.app', 'Contents', 'Resources')
+        fs.copySync(CONFIG.intermediateResourcesPath, path.join(bundleResourcesPath, 'app'))
+      } else {
+        throw new Error('TODO: handle this case!')
+      }
+
       console.log(`Application bundle(s) created on ${appPaths}`)
     }
   })
