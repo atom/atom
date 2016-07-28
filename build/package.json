@@ -2,6 +2,7 @@
   "name": "atom-build-scripts",
   "description": "Atom build scripts",
   "dependencies": {
+    "electron-packager": "^7.3.0",
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
     "mkdirp": "0.5.1"
