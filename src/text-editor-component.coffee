@@ -42,7 +42,7 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, tileSize, @views, @themes, @workspace, @assert, scrollPastEnd}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, tileSize, @views, @themes, @assert, scrollPastEnd}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
