@@ -8,7 +8,7 @@ const path = require('path')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  console.log(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}...`);
+  console.log(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}...`)
   for (let path of getPathsToTranspile()) {
     transpilePegJsPath(path)
   }
