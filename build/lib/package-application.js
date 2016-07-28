@@ -23,7 +23,8 @@ module.exports = function () {
     ignore: buildIgnoredPathsRegExp(),
     out: CONFIG.buildOutputPath,
     overwrite: true,
-    platform: process.platform
+    platform: process.platform,
+    version: CONFIG.appMetadata.electronVersion
   }, (err, appPaths) => {
     if (err) {
       console.error(err)
