@@ -16,6 +16,7 @@ module.exports = function () {
     path.join(CONFIG.repositoryRootPath, 'keymaps'),
     path.join(CONFIG.repositoryRootPath, 'menus'),
     path.join(CONFIG.repositoryRootPath, 'node_modules'),
+    path.join(CONFIG.repositoryRootPath, 'package.json'),
     path.join(CONFIG.repositoryRootPath, 'static'),
     path.join(CONFIG.repositoryRootPath, 'src'),
     path.join(CONFIG.repositoryRootPath, 'vendor')

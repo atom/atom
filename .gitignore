@@ -10,8 +10,8 @@ npm-debug.log
 debug.log
 /tags
 /atom-shell/
-/electron/
 /out/
+/cache/
 docs/output
 docs/includes
 spec/fixtures/evil-files/

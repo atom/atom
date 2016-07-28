@@ -7,6 +7,7 @@
 // other than transpilation. It looks like it has a programmatic API. We'll need to
 // copy more stuff such as the package.json for the packager to work correctly.
 
+const path = require('path')
 const electronPackager = require('electron-packager')
 
 const CONFIG = require('../config')
@@ -14,7 +15,36 @@ const CONFIG = require('../config')
 module.exports = function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
   // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md
-  // electronPackager(...)
+  electronPackager({
+    arch: process.arch,
+    asar: {unpack: buildAsarUnpackGlobExpression()},
+    download: {cache: CONFIG.cachePath},
+    dir: CONFIG.intermediateAppPath,
+    ignore: buildIgnoredPathsRegExp(),
+    out: CONFIG.buildOutputPath,
+    overwrite: true,
+    platform: process.platform
+  }, (err, appPaths) => {
+    if (err) {
+      console.error(err)
+    } else {
+      console.log(`Application bundle(s) created on ${appPaths}`)
+    }
+  })
+}
+
+function buildAsarUnpackGlobExpression () {
+  const unpack = [
+    '*.node',
+    'ctags-config',
+    'ctags-darwin',
+    'ctags-linux',
+    'ctags-win32.exe',
+    path.join('**', 'node_modules', 'spellchecker', '**'),
+    path.join('**', 'resources', 'atom.png')
+  ]
+
+  return `{${unpack.join(',')}}`
 }
 
 function buildIgnoredPathsRegExp () {
