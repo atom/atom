@@ -13,7 +13,7 @@ cloneObject = (object) ->
 
 module.exports =
 class LinesTileComponent
-  constructor: ({@presenter, @id, @domElementPool, @assert, grammars}) ->
+  constructor: ({@presenter, @id, @domElementPool, @assert}) ->
     @measuredLines = new Set
     @lineNodesByLineId = {}
     @screenRowsByLineId = {}
