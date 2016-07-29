@@ -84,24 +84,47 @@ describe('TextEditorRegistry', function () {
     })
   })
 
-  describe('.setGrammarOverride and .clearGrammarOverride', function () {
-    it('sets the editor\'s grammar and does not update it based on other criteria until the override is cleared', async function () {
-      registry.maintainGrammar(editor)
+  describe('.setGrammarOverride', function () {
+    it('sets the editor\'s grammar and does not update it based on other criteria', async function () {
       await atom.packages.activatePackage('language-c')
-      expect(editor.getGrammar().name).toBe('Null Grammar')
+      await atom.packages.activatePackage('language-javascript')
 
-      registry.setGrammarOverride(editor, atom.grammars.grammarForScopeName('source.c'))
+      registry.maintainGrammar(editor)
+      editor.getBuffer().setPath('file-1.js')
+      expect(editor.getGrammar().name).toBe('JavaScript')
+
+      registry.setGrammarOverride(editor, 'source.c')
+      expect(editor.getGrammar().name).toBe('C')
+
+      editor.getBuffer().setPath('file-3.rb')
+      await atom.packages.activatePackage('language-ruby')
       expect(editor.getGrammar().name).toBe('C')
 
       editor.getBuffer().setPath('file-1.js')
-      await atom.packages.activatePackage('language-javascript')
       expect(editor.getGrammar().name).toBe('C')
+    })
+  })
 
-      editor.getBuffer().setPath('file-2.js')
+  describe('.clearGrammarOverride', function () {
+    it('resumes setting the grammar based on its path and content', async function () {
+      await atom.packages.activatePackage('language-c')
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainGrammar(editor)
+      editor.getBuffer().setPath('file-1.js')
+      expect(editor.getGrammar().name).toBe('JavaScript')
+
+      registry.setGrammarOverride(editor, 'source.c')
+      expect(registry.getGrammarOverride(editor)).toBe('source.c')
       expect(editor.getGrammar().name).toBe('C')
 
       registry.clearGrammarOverride(editor)
       expect(editor.getGrammar().name).toBe('JavaScript')
+
+      editor.getBuffer().setPath('file-3.rb')
+      await atom.packages.activatePackage('language-ruby')
+      expect(editor.getGrammar().name).toBe('Ruby')
+      expect(registry.getGrammarOverride(editor)).toBe(undefined)
     })
   })
 
@@ -464,14 +487,17 @@ describe('TextEditorRegistry', function () {
 
       registry.maintainGrammar(editor)
       registry.maintainGrammar(editor2)
-      registry.setGrammarOverride(editor, atom.grammars.grammarForScopeName('source.c'))
-      registry.setGrammarOverride(editor2, atom.grammars.grammarForScopeName('source.js'))
+      registry.setGrammarOverride(editor, 'source.c')
+      registry.setGrammarOverride(editor2, 'source.js')
 
       atom.packages.deactivatePackage('language-javascript')
 
       const editorCopy = TextEditor.deserialize(editor.serialize(), atom)
       const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
-      const registryCopy = TextEditorRegistry.deserialize(registry.serialize(), atom)
+      const registryCopy = TextEditorRegistry.deserialize(
+        JSON.parse(JSON.stringify(registry.serialize())),
+        atom
+      )
 
       expect(editorCopy.getGrammar().name).toBe('Null Grammar')
       expect(editor2Copy.getGrammar().name).toBe('Null Grammar')

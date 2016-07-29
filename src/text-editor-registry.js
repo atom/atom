@@ -132,9 +132,14 @@ export default class TextEditorRegistry {
     }))
   }
 
-  setGrammarOverride (editor, grammar) {
-    this.editorGrammarOverrides[editor.id] = grammar.scopeName
-    editor.setGrammar(grammar)
+  setGrammarOverride (editor, scopeName) {
+    this.editorGrammarOverrides[editor.id] = scopeName
+    this.editorGrammarScores.delete(editor)
+    editor.setGrammar(this.grammarRegistry.grammarForScopeName(scopeName))
+  }
+
+  getGrammarOverride (editor) {
+    return this.editorGrammarOverrides[editor.id]
   }
 
   clearGrammarOverride (editor) {
