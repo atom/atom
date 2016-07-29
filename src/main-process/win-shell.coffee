@@ -13,11 +13,11 @@ class ShellOption
   isRegistered: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) =>
-        callback(not err? and val.value is @parts[0].value)
+        callback(not err? and val? and val.value is @parts[0].value)
 
   register: (callback) =>
     doneCount = @parts.length
-    for part in @parts
+    @parts.forEach (part) =>
       reg = new Registry({hive: 'HKCU', key: if part.key? then "#{@key}\\#{part.key}" else @key})
       reg.create( -> reg.set part.name, Registry.REG_SZ, part.value, -> callback() if --doneCount is 0)
 
@@ -31,7 +31,7 @@ class ShellOption
   update: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) =>
-        if err? or not val.value.includes '\\' + exeName
+        if err? or not val? or val.value.includes '\\' + exeName
           callback(err)
         else
           @register callback
