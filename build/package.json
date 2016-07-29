@@ -8,6 +8,7 @@
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
     "mkdirp": "0.5.1",
+    "normalize-package-data": "2.3.5",
     "npm": "3.10.5",
     "pegjs": "0.9.0"
   }

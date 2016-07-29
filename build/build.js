@@ -11,6 +11,7 @@ const transpileCoffeeScriptPaths = require('./lib/transpile-coffee-script-paths'
 const transpileCsonPaths = require('./lib/transpile-cson-paths')
 const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
 const generateModuleCache = require('./lib/generate-module-cache')
+const generateMetadata = require('./lib/generate-metadata')
 const packageApplication = require('./lib/package-application')
 
 cleanOutputDirectory()
@@ -20,4 +21,5 @@ transpileCoffeeScriptPaths()
 transpileCsonPaths()
 transpilePegJsPaths()
 generateModuleCache()
+generateMetadata()
 packageApplication()
