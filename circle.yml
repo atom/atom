@@ -20,7 +20,7 @@ dependencies:
 
   override:
     - script/bootstrap
-    - node build/build.js
+    - build/build.js
 
   post:
     - zip -r out/Atom.zip out/Atom-darwin-x64
