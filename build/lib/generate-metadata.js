@@ -4,6 +4,7 @@ const path = require('path')
 const CSON = require('season')
 const fs = require('fs-extra')
 const normalizePackageData = require('normalize-package-data')
+const deprecatedPackagesMetadata = require('./deprecated-packages')
 const semver = require('semver')
 
 const CONFIG = require('../config')
@@ -121,7 +122,6 @@ function buildPlatformKeymapsMetadata () {
 }
 
 function buildDeprecatedPackagesMetadata () {
-  const deprecatedPackagesMetadata = require('../deprecated-packages')
   for (let packageName of Object.keys(deprecatedPackagesMetadata)) {
     const packageMetadata = deprecatedPackagesMetadata[packageName]
     if (packageMetadata.version && !semver.validRange(packageMetadata.version)) {

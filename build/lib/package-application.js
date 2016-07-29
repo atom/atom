@@ -5,12 +5,13 @@ const fs = require('fs-extra')
 const path = require('path')
 const electronPackager = require('electron-packager')
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
+const getLicenseText = require('./get-license-text')
 
 const CONFIG = require('../config')
 
-module.exports = function () {
+module.exports = async function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
-  electronPackager({
+  const packagedAppPath = await runPackager({
     'app-version': CONFIG.appMetadata.version,
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
@@ -22,26 +23,21 @@ module.exports = function () {
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
-  }, (err, packagedAppPaths) => {
-    if (err) throw new Error(err)
-    assert(packagedAppPaths.length === 1, 'Generated more than one electron application!')
-
-    const packagedAppPath = packagedAppPaths[0]
-    let bundledResourcesPath
-    if (process.platform === 'darwin') {
-      bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
-    } else {
-      throw new Error('TODO: handle this case!')
-    }
-
-    copyNonASARResources(bundledResourcesPath)
-    console.log(`Application bundle(s) created on ${packagedAppPath}`)
   })
+  let bundledResourcesPath
+  if (process.platform === 'darwin') {
+    bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
+  } else {
+    throw new Error('TODO: handle this case!')
+  }
+
+  await copyNonASARResources(bundledResourcesPath)
+  console.log(`Application bundle created on ${packagedAppPath}`)
 }
 
-function copyNonASARResources (bundledResourcesPath) {
+async function copyNonASARResources (bundledResourcesPath) {
   const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
-  console.log(`Copying shell commands to ${bundledShellCommandsPath}...`);
+  console.log(`Copying shell commands to ${bundledShellCommandsPath}...`)
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
     path.join(bundledShellCommandsPath, 'apm'),
@@ -56,6 +52,9 @@ function copyNonASARResources (bundledResourcesPath) {
   if (process.platform === 'darwin') {
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'file.icns'), path.join(bundledResourcesPath, 'file.icns'))
   }
+
+  console.log(`Writing LICENSE.md to ${bundledResourcesPath}...`)
+  fs.writeFileSync(path.join(bundledResourcesPath, 'LICENSE.md'), await getLicenseText())
 }
 
 function buildAsarUnpackGlobExpression () {
@@ -70,4 +69,30 @@ function buildAsarUnpackGlobExpression () {
   ]
 
   return `{${unpack.join(',')}}`
+}
+
+function runPackager (options) {
+  return new Promise((resolve, reject) => {
+    electronPackager({
+      'app-version': CONFIG.appMetadata.version,
+      'arch': process.arch,
+      'asar': {unpack: buildAsarUnpackGlobExpression()},
+      'build-version': CONFIG.appMetadata.version,
+      'download': {cache: CONFIG.cachePath},
+      'dir': CONFIG.intermediateAppPath,
+      'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
+      'out': CONFIG.buildOutputPath,
+      'overwrite': true,
+      'platform': process.platform,
+      'version': CONFIG.appMetadata.electronVersion
+    }, (err, packagedAppPaths) => {
+      if (err) {
+        reject(err)
+        throw new Error(err)
+      } else {
+        assert(packagedAppPaths.length === 1, 'Generated more than one electron application!')
+        resolve(packagedAppPaths[0])
+      }
+    })
+  })
 }
