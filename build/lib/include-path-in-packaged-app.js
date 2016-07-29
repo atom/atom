@@ -7,6 +7,23 @@ module.exports = function (path) {
 }
 
 const EXCLUDE_REGEXPS_SOURCES = [
+  escapeRegExp('.DS_Store'),
+  escapeRegExp('.jshintrc'),
+  escapeRegExp('.npmignore'),
+  escapeRegExp('.pairs'),
+  escapeRegExp('.travis.yml'),
+  escapeRegExp('appveyor.yml'),
+  escapeRegExp('circle.yml'),
+  escapeRegExp('.idea'),
+  escapeRegExp('.editorconfig'),
+  escapeRegExp('.lint'),
+  escapeRegExp('.lintignore'),
+  escapeRegExp('.eslintrc'),
+  escapeRegExp('.jshintignore'),
+  escapeRegExp('coffeelint.json'),
+  escapeRegExp('.coffeelintignore'),
+  escapeRegExp('.gitattributes'),
+  escapeRegExp('.gitkeep'),
   escapeRegExp(path.join('git-utils', 'deps')),
   escapeRegExp(path.join('oniguruma', 'deps')),
   escapeRegExp(path.join('less', 'dist')),
