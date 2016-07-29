@@ -19,4 +19,5 @@ const testArguments = [
 ]
 
 console.log('Executing core specs...'.bold.green)
-childProcess.spawnSync(executablePath, testArguments, {stdio: 'inherit'})
+const exitStatus = childProcess.spawnSync(executablePath, testArguments, {stdio: 'inherit'}).status
+process.exit(exitStatus)
