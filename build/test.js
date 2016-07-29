@@ -40,6 +40,7 @@ function runCoreRenderProcessTests (callback) {
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
 
+// Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
   const packageSpecDirPath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')
@@ -52,9 +53,17 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     ]
 
     console.log(`Executing ${packageName} tests...`.bold.green)
-    const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+    const cp = childProcess.spawn(executablePath, testArguments)
+    let stderrOutput = ''
+    cp.stderr.on('data', data => stderrOutput += data)
     cp.on('error', error => { callback(error) })
-    cp.on('close', exitCode => { callback(null, exitCode) })
+    cp.on('close', exitCode => {
+      if (exitCode !== 0) {
+        console.log(`Package tests failed for ${packageName}:`.red)
+        console.log(stderrOutput)
+      }
+      callback(null, exitCode)
+    })
   })
 }
 
