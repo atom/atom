@@ -3,7 +3,6 @@
 'use strict'
 
 require('coffee-script/register')
-require('babel-core/register')
 
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const copyAssets = require('./lib/copy-assets')

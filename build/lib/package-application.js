@@ -3,15 +3,16 @@
 const assert = require('assert')
 const fs = require('fs-extra')
 const path = require('path')
+const childProcess = require('child_process')
 const electronPackager = require('electron-packager')
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
 const getLicenseText = require('./get-license-text')
 
 const CONFIG = require('../config')
 
-module.exports = async function () {
+module.exports = function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
-  const packagedAppPath = await runPackager({
+  return runPackager({
     'app-version': CONFIG.getAppVersion(),
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
@@ -23,19 +24,22 @@ module.exports = async function () {
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
-  })
-  let bundledResourcesPath
-  if (process.platform === 'darwin') {
-    bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
-  } else {
-    throw new Error('TODO: handle this case!')
-  }
+  }).then((packagedAppPath) => {
+    let bundledResourcesPath
+    if (process.platform === 'darwin') {
+      bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
+    } else {
+      throw new Error('TODO: handle this case!')
+    }
 
-  await copyNonASARResources(bundledResourcesPath)
-  console.log(`Application bundle created on ${packagedAppPath}`)
+    setAtomHelperVersion(packagedAppPath)
+    return copyNonASARResources(bundledResourcesPath).then(() => {
+      console.log(`Application bundle created on ${packagedAppPath}`)
+    })
+  })
 }
 
-async function copyNonASARResources (bundledResourcesPath) {
+function copyNonASARResources (bundledResourcesPath) {
   const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
   console.log(`Copying shell commands to ${bundledShellCommandsPath}...`)
   fs.copySync(
@@ -54,7 +58,19 @@ async function copyNonASARResources (bundledResourcesPath) {
   }
 
   console.log(`Writing LICENSE.md to ${bundledResourcesPath}...`)
-  fs.writeFileSync(path.join(bundledResourcesPath, 'LICENSE.md'), await getLicenseText())
+  return getLicenseText().then((licenseText) => {
+    fs.writeFileSync(path.join(bundledResourcesPath, 'LICENSE.md'), licenseText)
+  })
+}
+
+function setAtomHelperVersion (packagedAppPath) {
+  if (process.platform === 'darwin') {
+    const frameworksPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Frameworks')
+    const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
+    console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
+    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.getAppVersion(), helperPListPath])
+    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.getAppVersion(), helperPListPath])
+  }
 }
 
 function buildAsarUnpackGlobExpression () {
