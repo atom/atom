@@ -26,7 +26,7 @@ module.exports = function () {
   }
 
   fs.copySync(
-    path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.getChannel(), 'png', '1024.png'),
+    path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'),
     path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
   )
 }

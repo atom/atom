@@ -7,6 +7,7 @@ const path = require('path')
 const childProcess = require('child_process')
 
 const appMetadata = require('../package.json')
+const channel = getChannel()
 
 const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
@@ -14,7 +15,7 @@ const intermediateAppPath = path.join(buildOutputPath, 'app')
 const cachePath = path.join(repositoryRootPath, 'cache')
 
 module.exports = {
-  appMetadata, getAppVersion, getChannel,
+  appMetadata, channel,
   repositoryRootPath, buildOutputPath, intermediateAppPath,
   cachePath
 }
