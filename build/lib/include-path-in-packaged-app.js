@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const CONFIG = require('../config')
 
 module.exports = function (path) {
   return !EXCLUDED_PATHS_REGEXP.test(path)
@@ -74,11 +75,17 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.sep) + 'linker\\.lock$',
   escapeRegExp(path.join('build', 'Release') + path.sep) + '.+\\.node\\.dSYM',
 
-  // Ignore test, spec and example folders for packages
+  // Ignore test and example folders
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + '_*te?sts?_*' + escapeRegExp(path.sep),
-  'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'spec' + escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + escapeRegExp(path.sep) + 'examples?' + escapeRegExp(path.sep),
 ]
+
+// Ignore spec directories in all bundled packages
+const packageMetadata = require(path.join(CONFIG.repositoryRootPath, 'package.json'))
+for (let packageName in packageMetadata.packageDependencies) {
+  EXCLUDE_REGEXPS_SOURCES.push('^' + escapeRegExp(path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')))
+}
+
 // Ignore Hunspell dictionaries only on macOS.
 if (process.platform === 'darwin') {
   EXCLUDE_REGEXPS_SOURCES.push(escapeRegExp(path.join('spellchecker', 'vendor', 'hunspell_dictionaries')))
