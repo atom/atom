@@ -13,10 +13,10 @@ const CONFIG = require('../config')
 module.exports = function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
   return runPackager({
-    'app-version': CONFIG.getAppVersion(),
+    'app-version': CONFIG.appMetadata.version,
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
-    'build-version': CONFIG.getAppVersion(),
+    'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
     'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
@@ -68,8 +68,8 @@ function setAtomHelperVersion (packagedAppPath) {
     const frameworksPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Frameworks')
     const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
     console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
-    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.getAppVersion(), helperPListPath])
-    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.getAppVersion(), helperPListPath])
+    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
+    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.appMetadata.version, helperPListPath])
   }
 }
 

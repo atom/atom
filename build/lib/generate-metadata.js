@@ -1,5 +1,6 @@
 'use strict'
 
+const childProcess = require('child_process')
 const path = require('path')
 const CSON = require('season')
 const fs = require('fs-extra')
@@ -15,6 +16,7 @@ module.exports = function () {
   CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata()
   CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()
   CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
+  CONFIG.appMetadata.version = computeAppVersion()
   checkDeprecatedPackagesMetadata()
   fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
@@ -129,4 +131,14 @@ function checkDeprecatedPackagesMetadata () {
       throw new Error(`Invalid range: ${version} (${name}).`)
     }
   }
+}
+
+function computeAppVersion () {
+  let version = CONFIG.appMetadata.version
+  if (CONFIG.channel === 'dev') {
+    const result = childProcess.spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: CONFIG.repositoryRootPath})
+    const commitHash = result.stdout.toString().trim()
+    version += '-' + commitHash
+  }
+  return version
 }
