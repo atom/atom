@@ -4,7 +4,7 @@ const path = require('path')
 const CSON = require('season')
 const fs = require('fs-extra')
 const normalizePackageData = require('normalize-package-data')
-const deprecatedPackagesMetadata = require('./deprecated-packages')
+const deprecatedPackagesMetadata = require('../deprecated-packages')
 const semver = require('semver')
 
 const CONFIG = require('../config')
@@ -14,7 +14,8 @@ module.exports = function () {
   CONFIG.appMetadata._atomPackages = buildBundledPackagesMetadata()
   CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata()
   CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()
-  CONFIG.appMetadata._deprecatedPackages = buildDeprecatedPackagesMetadata()
+  CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
+  checkDeprecatedPackagesMetadata()
   fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
 
@@ -121,12 +122,11 @@ function buildPlatformKeymapsMetadata () {
   return keymaps
 }
 
-function buildDeprecatedPackagesMetadata () {
+function checkDeprecatedPackagesMetadata () {
   for (let packageName of Object.keys(deprecatedPackagesMetadata)) {
     const packageMetadata = deprecatedPackagesMetadata[packageName]
     if (packageMetadata.version && !semver.validRange(packageMetadata.version)) {
       throw new Error(`Invalid range: ${version} (${name}).`)
     }
   }
-  return deprecatedPackagesMetadata
 }

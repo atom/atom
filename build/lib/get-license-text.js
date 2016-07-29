@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const legalEagle = require('legal-eagle')
 
-const licenseOverrides = require('./license-overrides')
+const licenseOverrides = require('../license-overrides')
 const CONFIG = require('../config')
 
 module.exports = function () {
