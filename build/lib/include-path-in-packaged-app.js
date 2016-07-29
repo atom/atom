@@ -81,8 +81,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
 ]
 
 // Ignore spec directories in all bundled packages
-const packageMetadata = require(path.join(CONFIG.repositoryRootPath, 'package.json'))
-for (let packageName in packageMetadata.packageDependencies) {
+for (let packageName in CONFIG.appMetadata.packageDependencies) {
   EXCLUDE_REGEXPS_SOURCES.push('^' + escapeRegExp(path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')))
 }
 
