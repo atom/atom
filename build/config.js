@@ -4,6 +4,7 @@
 'use strict'
 
 const path = require('path')
+const childProcess = require('child_process')
 
 const appMetadata = require('../package.json')
 
@@ -11,12 +12,21 @@ const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
 const cachePath = path.join(repositoryRootPath, 'cache')
-const channel = getChannel()
 
 module.exports = {
-  appMetadata, channel,
+  appMetadata, getAppVersion, getChannel,
   repositoryRootPath, buildOutputPath, intermediateAppPath,
   cachePath
+}
+
+function getAppVersion () {
+  let version = appMetadata.version
+  if (getChannel() === 'dev') {
+    const result = childProcess.spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: repositoryRootPath})
+    const commitHash = result.stdout.toString().trim()
+    version += '-' + commitHash
+  }
+  return version
 }
 
 function getChannel () {

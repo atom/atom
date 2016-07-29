@@ -12,13 +12,13 @@ const CONFIG = require('../config')
 module.exports = async function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
   const packagedAppPath = await runPackager({
-    'app-version': CONFIG.appMetadata.version,
+    'app-version': CONFIG.getAppVersion(),
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
-    'build-version': CONFIG.appMetadata.version,
+    'build-version': CONFIG.getAppVersion(),
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
-    'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
+    'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.getChannel(), 'atom.icns'),
     'out': CONFIG.buildOutputPath,
     'overwrite': true,
     'platform': process.platform,
@@ -73,19 +73,7 @@ function buildAsarUnpackGlobExpression () {
 
 function runPackager (options) {
   return new Promise((resolve, reject) => {
-    electronPackager({
-      'app-version': CONFIG.appMetadata.version,
-      'arch': process.arch,
-      'asar': {unpack: buildAsarUnpackGlobExpression()},
-      'build-version': CONFIG.appMetadata.version,
-      'download': {cache: CONFIG.cachePath},
-      'dir': CONFIG.intermediateAppPath,
-      'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
-      'out': CONFIG.buildOutputPath,
-      'overwrite': true,
-      'platform': process.platform,
-      'version': CONFIG.appMetadata.electronVersion
-    }, (err, packagedAppPaths) => {
+    electronPackager(options, (err, packagedAppPaths) => {
       if (err) {
         reject(err)
         throw new Error(err)
