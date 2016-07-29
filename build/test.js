@@ -2,11 +2,12 @@
 
 'use strict'
 
-const async = require('async')
 require('colors')
-
-const path = require('path')
+const async = require('async')
 const childProcess = require('child_process')
+const fs = require('fs')
+const path = require('path')
+
 const CONFIG = require('./config')
 
 const packagedAppPath = path.resolve(__dirname, '..', 'out', 'Atom-darwin-x64')
@@ -39,7 +40,25 @@ function runCoreRenderProcessTests (callback) {
   cp.on('close', exitCode => { callback(null, exitCode) })
 }
 
-const testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests]
+const packageTestSuites = []
+for (let packageName in CONFIG.appMetadata.packageDependencies) {
+  const packageSpecDirPath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName, 'spec')
+  if (!fs.existsSync(packageSpecDirPath)) continue
+
+  packageTestSuites.push(function (callback) {
+    const testArguments = [
+      '--resource-path', resourcePath,
+      '--test', packageSpecDirPath
+    ]
+
+    console.log(`Executing ${packageName} tests...`.bold.green)
+    const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit'})
+    cp.on('error', error => { callback(error) })
+    cp.on('close', exitCode => { callback(null, exitCode) })
+  })
+}
+
+const testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
 
 async.parallelLimit(testSuitesToRun, 2, function (err, exitCodes) {
   if (err) {
