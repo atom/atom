@@ -26,5 +26,6 @@ module.exports = function () {
       ]
     }
   }
-  fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(newMetadata))
+  CONFIG.appMetadata = newMetadata
+  fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
