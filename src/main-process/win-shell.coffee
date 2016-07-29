@@ -3,7 +3,8 @@ Path = require 'path'
 
 exeName = Path.basename(process.execPath)
 appPath = "\"#{process.execPath}\""
-appName = exeName.replace('atom', 'Atom').replace('beta', 'Beta').replace('.exe', '')
+isBeta = appPath.includes(' Beta')
+appName = exeName.replace('atom', (if isBeta then 'Atom Beta' else 'Atom' )).replace('.exe', '')
 
 class ShellOption
   constructor: (key, parts) ->
