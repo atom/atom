@@ -33,4 +33,4 @@ dependencies:
 
 test:
   override:
-    - out/Atom-darwin-x64/Atom.app/Contents/MacOS/Atom --resource-path $(pwd) --test spec
+    - build/test.js
