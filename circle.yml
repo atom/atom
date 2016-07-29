@@ -33,4 +33,4 @@ dependencies:
 
 test:
   override:
-    - echo 'Run tests!!!'
+    - out/Atom-darwin-x64/Atom.app/Contents/MacOS/Atom --test spec
