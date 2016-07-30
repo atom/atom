@@ -6,6 +6,8 @@
 const path = require('path')
 
 const appMetadata = require('../package.json')
+const apmMetadata = require('../apm/node_modules/atom-package-manager/package.json')
+
 const channel = getChannel()
 
 const repositoryRootPath = path.resolve(__dirname, '..')
@@ -15,7 +17,7 @@ const cachePath = path.join(repositoryRootPath, 'cache')
 const homeDirPath = process.env.HOME || process.env.USERPROFILE
 
 module.exports = {
-  appMetadata, channel,
+  appMetadata, apmMetadata, channel,
   repositoryRootPath, buildOutputPath, intermediateAppPath,
   cachePath, homeDirPath
 }
