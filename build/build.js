@@ -2,6 +2,7 @@
 
 'use strict'
 
+// Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')
 
 const cleanOutputDirectory = require('./lib/clean-output-directory')
