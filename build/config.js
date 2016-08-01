@@ -13,12 +13,13 @@ const channel = getChannel()
 const repositoryRootPath = path.resolve(__dirname, '..')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
+const symbolsPath = path.join(buildOutputPath, 'symbols')
 const cachePath = path.join(repositoryRootPath, 'cache')
 const homeDirPath = process.env.HOME || process.env.USERPROFILE
 
 module.exports = {
   appMetadata, apmMetadata, channel,
-  repositoryRootPath, buildOutputPath, intermediateAppPath,
+  repositoryRootPath, buildOutputPath, intermediateAppPath, symbolsPath,
   cachePath, homeDirPath
 }
 

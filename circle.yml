@@ -9,7 +9,8 @@ machine:
 
 general:
   artifacts:
-    - out/Atom.zip
+    - out/atom-mac.zip
+    - out/atom-mac-symbols.zip
 
 dependencies:
   pre:
@@ -23,7 +24,8 @@ dependencies:
     - build/build.js
 
   post:
-    - zip -r out/Atom.zip out/Atom-darwin-x64
+    - cd out/Atom-darwin-x64 && zip -r ../atom-mac.zip ./Atom.app && cd -
+    - cd out && zip -r ./atom-mac-symbols.zip ./symbols && cd -
 
   cache_directories:
     - cache
