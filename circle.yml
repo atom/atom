@@ -10,8 +10,8 @@ machine:
   post:
     - |- # this weird literal syntax allows a : on the next line
       curl --header 'Accept: application/vnd.github.v3.raw' --output /tmp/mac.p12 $MAC_CODE_SIGNING_CERT_DOWNLOAD_URL
-    - security unlock-keychain -p circle circle.keychain
-    - security import /tmp/mac.p12 -P $MAC_CODE_SIGNING_CERT_PASSWORD -k circle.keychain -T /usr/bin/codesign
+    - security unlock-keychain -p $MAC_CODE_SIGNING_KEYCHAIN_PASSWORD $MAC_CODE_SIGNING_KEYCHAIN
+    - security import /tmp/mac.p12 -P $MAC_CODE_SIGNING_CERT_PASSWORD -k $MAC_CODE_SIGNING_KEYCHAIN -T /usr/bin/codesign
     - security find-identity -p codesigning
 
 general:
@@ -28,7 +28,7 @@ dependencies:
 
   override:
     - script/bootstrap
-    - build/build.js
+    - build/build.js --code-sign
 
   post:
     - cd out/Atom-darwin-x64 && zip -r ../atom-mac.zip ./Atom.app && cd -

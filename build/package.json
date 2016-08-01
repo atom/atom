@@ -14,6 +14,7 @@
     "mkdirp": "0.5.1",
     "normalize-package-data": "2.3.5",
     "npm": "3.10.5",
-    "pegjs": "0.9.0"
+    "pegjs": "0.9.0",
+    "yargs": "^4.8.1"
   }
 }
