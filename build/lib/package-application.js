@@ -29,18 +29,18 @@ module.exports = function () {
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
   }).then((packageOutputDirPath) => {
-    let bundledAppPath, bundledResourcesPath
+    let packagedAppPath, bundledResourcesPath
     if (process.platform === 'darwin') {
-      bundledAppPath = path.join(packageOutputDirPath, appName + '.app')
-      bundledResourcesPath = path.join(bundledAppPath, 'Contents', 'Resources')
+      packagedAppPath = path.join(packageOutputDirPath, appName + '.app')
+      bundledResourcesPath = path.join(packagedAppPath, 'Contents', 'Resources')
     } else {
       throw new Error('TODO: handle this case!')
     }
 
-    setAtomHelperVersion(bundledAppPath)
+    setAtomHelperVersion(packagedAppPath)
     return copyNonASARResources(bundledResourcesPath).then(() => {
-      console.log(`Application bundle created at ${bundledAppPath}`)
-      return bundledAppPath
+      console.log(`Application bundle created at ${packagedAppPath}`)
+      return packagedAppPath
     })
   })
 }
@@ -69,9 +69,9 @@ function copyNonASARResources (bundledResourcesPath) {
   })
 }
 
-function setAtomHelperVersion (bundledAppPath) {
+function setAtomHelperVersion (packagedAppPath) {
   if (process.platform === 'darwin') {
-    const frameworksPath = path.join(bundledAppPath, 'Contents', 'Frameworks')
+    const frameworksPath = path.join(packagedAppPath, 'Contents', 'Frameworks')
     const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
     console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
     childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
