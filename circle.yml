@@ -7,6 +7,13 @@ machine:
   xcode:
     version: 7.3
 
+  post:
+    - |- # this weird literal syntax allows a : on the next line
+      curl --header 'Accept: application/vnd.github.v3.raw' --output /tmp/mac.p12 $MAC_CODE_SIGNING_CERT_DOWNLOAD_URL
+    - security unlock-keychain -p circle circle.keychain
+    - security import /tmp/mac.p12 -P $MAC_CODE_SIGNING_CERT_PASSWORD -k circle.keychain -T /usr/bin/codesign
+    - security find-identity -p codesigning
+
 general:
   artifacts:
     - out/atom-mac.zip
