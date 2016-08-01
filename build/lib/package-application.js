@@ -21,6 +21,7 @@ module.exports = function () {
     'dir': CONFIG.intermediateAppPath,
     'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
     'out': CONFIG.buildOutputPath,
+    'osx-sign': getSignOptions(),
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
@@ -85,6 +86,14 @@ function buildAsarUnpackGlobExpression () {
   ]
 
   return `{${unpack.join(',')}}`
+}
+
+function getSignOptions () {
+  if (process.env.CI) {
+    return {identity: 'GitHub'}
+  } else {
+    return null
+  }
 }
 
 function runPackager (options) {
