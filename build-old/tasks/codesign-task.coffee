@@ -74,7 +74,7 @@ module.exports = (grunt) ->
       downloadFile process.env.WIN_P12KEY_URL, downloadedCertificateFile, (done) ->
         callback(downloadedCertificateFile, process.env.WIN_P12KEY_PASSWORD ? 'password')
     else
-      callback(path.resolve(__dirname, '..', 'certs', 'AtomDevTestSignKey.p12'), process.env.WIN_P12KEY_PASSWORD ? 'password')
+      callback(path.resolve(__dirname, '..', 'certs', 'windows-dev.p12'), process.env.WIN_P12KEY_PASSWORD ? 'password')
 
   downloadFile = (sourceUrl, targetPath, callback) ->
     options = {
