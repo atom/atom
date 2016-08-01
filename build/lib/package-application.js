@@ -11,7 +11,9 @@ const getLicenseText = require('./get-license-text')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  console.log(`Running electron-packager on ${CONFIG.intermediateAppPath}`)
+  const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+
+  console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
     'arch': process.arch,
@@ -20,22 +22,25 @@ module.exports = function () {
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
     'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
+    'name': appName,
     'out': CONFIG.buildOutputPath,
     'osx-sign': getSignOptions(),
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
-  }).then((packagedAppPath) => {
-    let bundledResourcesPath
+  }).then((packageOutputDirPath) => {
+    let bundledAppPath, bundledResourcesPath
     if (process.platform === 'darwin') {
-      bundledResourcesPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Resources')
+      bundledAppPath = path.join(packageOutputDirPath, appName + '.app')
+      bundledResourcesPath = path.join(bundledAppPath, 'Contents', 'Resources')
     } else {
       throw new Error('TODO: handle this case!')
     }
 
-    setAtomHelperVersion(packagedAppPath)
+    setAtomHelperVersion(bundledAppPath)
     return copyNonASARResources(bundledResourcesPath).then(() => {
-      console.log(`Application bundle created on ${packagedAppPath}`)
+      console.log(`Application bundle created at ${bundledAppPath}`)
+      return bundledAppPath
     })
   })
 }
@@ -64,9 +69,9 @@ function copyNonASARResources (bundledResourcesPath) {
   })
 }
 
-function setAtomHelperVersion (packagedAppPath) {
+function setAtomHelperVersion (bundledAppPath) {
   if (process.platform === 'darwin') {
-    const frameworksPath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'Frameworks')
+    const frameworksPath = path.join(bundledAppPath, 'Contents', 'Frameworks')
     const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
     console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
     childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
@@ -98,13 +103,13 @@ function getSignOptions () {
 
 function runPackager (options) {
   return new Promise((resolve, reject) => {
-    electronPackager(options, (err, packagedAppPaths) => {
+    electronPackager(options, (err, packageOutputDirPaths) => {
       if (err) {
         reject(err)
         throw new Error(err)
       } else {
-        assert(packagedAppPaths.length === 1, 'Generated more than one electron application!')
-        resolve(packagedAppPaths[0])
+        assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
+        resolve(packageOutputDirPaths[0])
       }
     })
   })
