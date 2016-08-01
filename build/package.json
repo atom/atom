@@ -30,7 +30,7 @@
     "grunt-peg": "~1.1.0",
     "grunt-shell": "~0.3.1",
     "grunt-standard": "^2.0.0",
-    "joanna": "0.0.3",
+    "joanna": "0.0.5",
     "legal-eagle": "~0.13.0",
     "minidump": "~0.9",
     "npm": "3.10.5",
