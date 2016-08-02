@@ -23,8 +23,8 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
-  - script/bootstrap.js
-  - script/build.js
+  - script/bootstrap
+  - script/build
 
 script:
   - echo 'Run tests at some point.'

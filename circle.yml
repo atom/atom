@@ -27,8 +27,8 @@ dependencies:
     - npm install -g npm
 
   override:
-    - script/bootstrap.js
-    - script/build.js --code-sign
+    - script/bootstrap
+    - script/build --code-sign
 
   post:
     - cd out/Atom-darwin-x64 && zip -r ../atom-mac.zip ./Atom.app && cd -
@@ -42,4 +42,4 @@ dependencies:
 
 test:
   override:
-    - script/test.js
+    - script/test
