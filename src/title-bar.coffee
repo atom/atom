@@ -9,12 +9,13 @@ class TitleBar
     @element.appendChild(@titleElement)
 
     @workspace.onDidChangeActivePaneItem => @updateTitle()
-    @themes.onDidChangeActiveThemes => @setSheetOffset()
+    @themes.onDidChangeActiveThemes => @updateWindowSheetOffset()
 
     @updateTitle()
-
-  setSheetOffset: ->
-    @applicationDelegate.getCurrentWindow().setSheetOffset(@element.offsetHeight)
+    @updateWindowSheetOffset()
 
   updateTitle: ->
     @titleElement.textContent = document.title
+
+  updateWindowSheetOffset: ->
+    @applicationDelegate.getCurrentWindow().setSheetOffset(@element.offsetHeight)
