@@ -206,6 +206,7 @@ describe "WindowEventHandler", ->
       webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
       spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
         webContents: webContentsSpy
+        on: ->
       })
 
       nativeKeyBindingsInput = document.createElement("input")
