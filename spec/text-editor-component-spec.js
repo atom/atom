@@ -1,6 +1,6 @@
 /** @babel */
 
-import {it, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 import TextEditorElement from '../src/text-editor-element'
 import _, {extend, flatten, last, toArray} from 'underscore-plus'
 
@@ -69,13 +69,12 @@ describe('TextEditorComponent', function () {
   describe('line rendering', async function () {
     function expectTileContainsRow (tileNode, screenRow, {top}) {
       let lineNode = tileNode.querySelector('[data-screen-row="' + screenRow + '"]')
-      let tokenizedLine = editor.tokenizedLineForScreenRow(screenRow)
-
+      let text = editor.lineTextForScreenRow(screenRow)
       expect(lineNode.offsetTop).toBe(top)
-      if (tokenizedLine.text === '') {
-        expect(lineNode.innerHTML).toBe('&nbsp;')
+      if (text === '') {
+        expect(lineNode.textContent).toBe(' ')
       } else {
-        expect(lineNode.textContent).toBe(tokenizedLine.text)
+        expect(lineNode.textContent).toBe(text)
       }
     }
 
@@ -294,12 +293,12 @@ describe('TextEditorComponent', function () {
 
       await nextViewUpdatePromise()
 
-      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.tokenizedLineForScreenRow(3).text)
+      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.lineTextForScreenRow(3))
       buffer.delete([[0, 0], [3, 0]])
 
       await nextViewUpdatePromise()
 
-      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.tokenizedLineForScreenRow(3).text)
+      expect(component.lineNodeForScreenRow(3).textContent).toBe(editor.lineTextForScreenRow(3))
     })
 
     it('updates the top position of lines when the line height changes', async function () {
@@ -361,9 +360,9 @@ describe('TextEditorComponent', function () {
       }
     })
 
-    it('renders an nbsp on empty lines when no line-ending character is defined', function () {
+    it('renders an placeholder space on empty lines when no line-ending character is defined', function () {
       atom.config.set('editor.showInvisibles', false)
-      expect(component.lineNodeForScreenRow(10).textContent).toBe(NBSP)
+      expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
     })
 
     it('gives the lines and tiles divs the same background color as the editor to improve GPU performance', async function () {
@@ -429,13 +428,14 @@ describe('TextEditorComponent', function () {
       expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(false)
     })
 
-    it('keeps rebuilding lines when continuous reflow is on', function () {
+    it('keeps rebuilding lines when continuous reflow is on', async function () {
       wrapperNode.setContinuousReflow(true)
-      let oldLineNode = componentNode.querySelector('.line')
+      let oldLineNode = componentNode.querySelectorAll('.line')[1]
 
-      waitsFor(function () {
-        return componentNode.querySelector('.line') !== oldLineNode
-      })
+      while (true) {
+        await nextViewUpdatePromise()
+        if (componentNode.querySelectorAll('.line')[1] !== oldLineNode) break
+      }
     })
 
     describe('when showInvisibles is enabled', function () {
@@ -484,7 +484,7 @@ describe('TextEditorComponent', function () {
       it('displays newlines as their own token outside of the other tokens\' scopeDescriptor', async function () {
         editor.setText('let\n')
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="source js"><span class="storage type var js">let</span></span><span class="invisible-character">' + invisibles.eol + '</span>')
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="source js"><span class="storage type var js">let</span><span class="invisible-character eol">' + invisibles.eol + '</span></span>')
       })
 
       it('displays trailing carriage returns using a visible, non-empty value', async function () {
@@ -497,20 +497,20 @@ describe('TextEditorComponent', function () {
         expect(component.lineNodeForScreenRow(10).textContent).toBe(invisibles.eol)
       })
 
-      it('renders an nbsp on empty lines when the line-ending character is an empty string', async function () {
+      it('renders a placeholder space on empty lines when the line-ending character is an empty string', async function () {
         atom.config.set('editor.invisibles', {
           eol: ''
         })
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).textContent).toBe(NBSP)
+        expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
-      it('renders an nbsp on empty lines when the line-ending character is false', async function () {
+      it('renders an placeholder space on empty lines when the line-ending character is false', async function () {
         atom.config.set('editor.invisibles', {
           eol: false
         })
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).textContent).toBe(NBSP)
+        expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
       it('interleaves invisible line-ending characters with indent guides on empty lines', async function () {
@@ -518,24 +518,25 @@ describe('TextEditorComponent', function () {
 
         await nextViewUpdatePromise()
 
+        editor.setTabLength(2)
         editor.setTextInBufferRange([[10, 0], [11, 0]], '\r\n', {
           normalizeLineEndings: false
         })
         await nextViewUpdatePromise()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span></span>')
         editor.setTabLength(3)
         await nextViewUpdatePromise()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span><span class="invisible-character">E</span> </span>')
         editor.setTabLength(1)
         await nextViewUpdatePromise()
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
 
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span></span><span class="indent-guide"><span class="invisible-character">E</span></span>')
         editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
         await nextViewUpdatePromise()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="indent-guide"><span class="invisible-character">C</span></span><span class="invisible-character">E</span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
       })
 
       describe('when soft wrapping is enabled', function () {
@@ -550,8 +551,8 @@ describe('TextEditorComponent', function () {
         })
 
         it('does not show end of line invisibles at the end of wrapped lines', function () {
-          expect(component.lineNodeForScreenRow(0).textContent).toBe('a line that ')
-          expect(component.lineNodeForScreenRow(1).textContent).toBe('wraps' + invisibles.space + invisibles.eol)
+          expect(component.lineNodeForScreenRow(0).textContent).toBe('a line ')
+          expect(component.lineNodeForScreenRow(1).textContent).toBe('that wraps' + invisibles.space + invisibles.eol)
         })
       })
     })
@@ -986,13 +987,14 @@ describe('TextEditorComponent', function () {
       expect(component.lineNumberNodeForScreenRow(3) != null).toBe(true)
     })
 
-    it('keeps rebuilding line numbers when continuous reflow is on', function () {
+    it('keeps rebuilding line numbers when continuous reflow is on', async function () {
       wrapperNode.setContinuousReflow(true)
       let oldLineNode = componentNode.querySelectorAll('.line-number')[1]
 
-      waitsFor(function () {
-        return componentNode.querySelectorAll('.line-number')[1] !== oldLineNode
-      })
+      while (true) {
+        await nextViewUpdatePromise()
+        if (componentNode.querySelectorAll('.line-number')[1] !== oldLineNode) break
+      }
     })
 
     describe('fold decorations', function () {
@@ -1051,7 +1053,7 @@ describe('TextEditorComponent', function () {
           beforeEach(async function () {
             editor.setSoftWrapped(true)
             await nextViewUpdatePromise()
-            componentNode.style.width = 16 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+            componentNode.style.width = 20 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
             component.measureDimensions()
             await nextViewUpdatePromise()
           })
@@ -1059,6 +1061,14 @@ describe('TextEditorComponent', function () {
           it('does not add the foldable class for soft-wrapped lines', function () {
             expect(lineNumberHasClass(0, 'foldable')).toBe(true)
             expect(lineNumberHasClass(1, 'foldable')).toBe(false)
+          })
+
+          it('does not add the folded class for soft-wrapped lines that contain a fold', async function () {
+            editor.foldBufferRange([[3, 19], [3, 21]])
+            await nextViewUpdatePromise()
+
+            expect(lineNumberHasClass(11, 'folded')).toBe(true)
+            expect(lineNumberHasClass(12, 'folded')).toBe(false)
           })
         })
       })
@@ -1082,7 +1092,7 @@ describe('TextEditorComponent', function () {
             component.destroy()
             lineNumber = component.lineNumberNodeForScreenRow(1)
             target = lineNumber.querySelector('.icon-right')
-            return target.dispatchEvent(buildClickEvent(target))
+            target.dispatchEvent(buildClickEvent(target))
           })
         })
 
@@ -1104,6 +1114,37 @@ describe('TextEditorComponent', function () {
           await nextViewUpdatePromise()
 
           expect(lineNumberHasClass(1, 'folded')).toBe(false)
+        })
+
+        it('unfolds all the free-form folds intersecting the buffer row when clicked', async function () {
+          expect(lineNumberHasClass(3, 'foldable')).toBe(false)
+
+          editor.foldBufferRange([[3, 4], [5, 4]])
+          editor.foldBufferRange([[5, 5], [8, 10]])
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(3, 'folded')).toBe(true)
+          expect(lineNumberHasClass(5, 'folded')).toBe(false)
+
+          let lineNumber = component.lineNumberNodeForScreenRow(3)
+          let target = lineNumber.querySelector('.icon-right')
+          target.dispatchEvent(buildClickEvent(target))
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(3, 'folded')).toBe(false)
+          expect(lineNumberHasClass(5, 'folded')).toBe(true)
+
+          editor.setSoftWrapped(true)
+          componentNode.style.width = 20 * charWidth + wrapperNode.getVerticalScrollbarWidth() + 'px'
+          component.measureDimensions()
+          await nextViewUpdatePromise()
+          editor.foldBufferRange([[3, 19], [3, 21]]) // fold starting on a soft-wrapped portion of the line
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(11, 'folded')).toBe(true)
+
+          lineNumber = component.lineNumberNodeForScreenRow(11)
+          target = lineNumber.querySelector('.icon-right')
+          target.dispatchEvent(buildClickEvent(target))
+          await nextViewUpdatePromise()
+          expect(lineNumberHasClass(11, 'folded')).toBe(false)
         })
 
         it('does not fold when the line number componentNode is clicked', function () {
@@ -1200,12 +1241,23 @@ describe('TextEditorComponent', function () {
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
       let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
-      let range = document.createRange()
+      let range = document.createRange(cursorLocationTextNode)
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
       let rangeRect = range.getBoundingClientRect()
       expect(cursorRect.left).toBeCloseTo(rangeRect.left, 0)
       expect(cursorRect.width).toBeCloseTo(rangeRect.width, 0)
+    })
+
+    it('positions cursors after the fold-marker when a fold ends the line', async function () {
+      editor.foldBufferRow(0)
+      await nextViewUpdatePromise()
+      editor.setCursorScreenPosition([0, 30])
+      await nextViewUpdatePromise()
+
+      let cursorRect = componentNode.querySelector('.cursor').getBoundingClientRect()
+      let foldMarkerRect = componentNode.querySelector('.fold-marker').getBoundingClientRect()
+      expect(cursorRect.left).toBeCloseTo(foldMarkerRect.right, 0)
     })
 
     it('positions cursors correctly after character widths are changed via a stylesheet change', async function () {
@@ -1475,7 +1527,7 @@ describe('TextEditorComponent', function () {
       component.measureDimensions()
       await nextViewUpdatePromise()
 
-      let marker2 = editor.displayBuffer.markBufferRange([[9, 0], [9, 0]])
+      let marker2 = editor.markBufferRange([[9, 0], [9, 0]])
       editor.decorateMarker(marker2, {
         type: ['line-number', 'line'],
         'class': 'b'
@@ -1651,6 +1703,219 @@ describe('TextEditorComponent', function () {
     })
   })
 
+  describe('block decorations rendering', function () {
+    function createBlockDecorationBeforeScreenRow(screenRow, {className}) {
+      let item = document.createElement("div")
+      item.className = className || ""
+      let blockDecoration = editor.decorateMarker(
+        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        {type: "block", item: item, position: "before"}
+      )
+      return [item, blockDecoration]
+    }
+
+    function createBlockDecorationAfterScreenRow(screenRow, {className}) {
+      let item = document.createElement("div")
+      item.className = className || ""
+      let blockDecoration = editor.decorateMarker(
+        editor.markScreenPosition([screenRow, 0], {invalidate: "never"}),
+        {type: "block", item: item, position: "after"}
+      )
+      return [item, blockDecoration]
+    }
+
+    beforeEach(async function () {
+      wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
+      component.measureDimensions()
+      await nextViewUpdatePromise()
+    })
+
+    afterEach(function () {
+      atom.themes.removeStylesheet('test')
+    })
+
+    it("renders visible and yet-to-be-measured block decorations, inserting them between the appropriate lines and refreshing them as needed", async function () {
+      let [item1, blockDecoration1] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
+      let [item2, blockDecoration2] = createBlockDecorationBeforeScreenRow(2, {className: "decoration-2"})
+      let [item3, blockDecoration3] = createBlockDecorationBeforeScreenRow(4, {className: "decoration-3"})
+      let [item4, blockDecoration4] = createBlockDecorationBeforeScreenRow(7, {className: "decoration-4"})
+      let [item5, blockDecoration5] = createBlockDecorationAfterScreenRow(7, {className: "decoration-5"})
+
+      atom.styles.addStyleSheet(
+        `atom-text-editor .decoration-1 { width: 30px; height: 80px; }
+         atom-text-editor .decoration-2 { width: 30px; height: 40px; }
+         atom-text-editor .decoration-3 { width: 30px; height: 100px; }
+         atom-text-editor .decoration-4 { width: 30px; height: 120px; }
+         atom-text-editor .decoration-5 { width: 30px; height: 42px; }`,
+         {context: 'atom-text-editor'}
+      )
+      await nextAnimationFramePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 80 + 40 + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBe(item1)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
+
+      expect(item1.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 0)
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 2 + 80)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 4 + 80 + 40)
+
+      editor.setCursorScreenPosition([0, 0])
+      editor.insertNewline()
+      blockDecoration1.destroy()
+
+      await nextAnimationFramePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 40 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
+
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 40)
+
+      atom.styles.addStyleSheet(
+        'atom-text-editor .decoration-2 { height: 60px; }',
+        {context: 'atom-text-editor'}
+      )
+
+      await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
+      await nextAnimationFramePromise() // applies the changes
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(7)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 60 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBeNull()
+
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 60)
+
+      item2.style.height = "20px"
+      wrapperNode.invalidateBlockDecorationDimensions(blockDecoration2)
+      await nextAnimationFramePromise()
+      await nextAnimationFramePromise()
+
+      expect(component.getDomNode().querySelectorAll(".line").length).toBe(9)
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 100 + 20 + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 120 + 42 + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+
+      expect(component.getTopmostDOMNode().querySelector(".decoration-1")).toBeNull()
+      expect(component.getTopmostDOMNode().querySelector(".decoration-2")).toBe(item2)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-3")).toBe(item3)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-4")).toBe(item4)
+      expect(component.getTopmostDOMNode().querySelector(".decoration-5")).toBe(item5)
+
+      expect(item2.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 3)
+      expect(item3.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 5 + 20)
+      expect(item4.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100)
+      expect(item5.getBoundingClientRect().top).toBe(editor.getLineHeightInPixels() * 8 + 20 + 100 + 120 + lineHeightInPixels)
+    })
+
+    it("correctly sets screen rows on <content> elements, both initially and when decorations move", async function () {
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
+      atom.styles.addStyleSheet(
+        'atom-text-editor .decoration-1 { width: 30px; height: 80px; }',
+         {context: 'atom-text-editor'}
+      )
+
+      await nextAnimationFramePromise()
+
+      let tileNode, contentElements
+
+      tileNode = component.tileNodesForLines()[0]
+      contentElements = tileNode.querySelectorAll("content")
+
+      expect(contentElements.length).toBe(1)
+      expect(contentElements[0].dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+
+      editor.setCursorBufferPosition([0, 0])
+      editor.insertNewline()
+      await nextAnimationFramePromise()
+
+      tileNode = component.tileNodesForLines()[0]
+      contentElements = tileNode.querySelectorAll("content")
+
+      expect(contentElements.length).toBe(1)
+      expect(contentElements[0].dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+
+      blockDecoration.getMarker().setHeadBufferPosition([2, 0])
+      await nextAnimationFramePromise()
+
+      tileNode = component.tileNodesForLines()[0]
+      contentElements = tileNode.querySelectorAll("content")
+
+      expect(contentElements.length).toBe(1)
+      expect(contentElements[0].dataset.screenRow).toBe("2")
+      expect(component.lineNodeForScreenRow(0).dataset.screenRow).toBe("0")
+      expect(component.lineNodeForScreenRow(1).dataset.screenRow).toBe("1")
+      expect(component.lineNodeForScreenRow(2).dataset.screenRow).toBe("2")
+    })
+
+    it('measures block decorations taking into account both top and bottom margins of the element and its children', async function () {
+      let [item, blockDecoration] = createBlockDecorationBeforeScreenRow(0, {className: "decoration-1"})
+      let child = document.createElement("div")
+      child.style.height = "7px"
+      child.style.width = "30px"
+      child.style.marginBottom = "20px"
+      item.appendChild(child)
+      atom.styles.addStyleSheet(
+        'atom-text-editor .decoration-1 { width: 30px; margin-top: 10px; }',
+         {context: 'atom-text-editor'}
+      )
+
+      await nextAnimationFramePromise() // causes the DOM to update and to retrieve new styles
+      await nextAnimationFramePromise() // applies the changes
+
+      expect(component.tileNodesForLines()[0].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + 10 + 7 + 20 + "px")
+      expect(component.tileNodesForLines()[0].style.webkitTransform).toBe("translate3d(0px, 0px, 0px)")
+      expect(component.tileNodesForLines()[1].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[1].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight}px, 0px)`)
+      expect(component.tileNodesForLines()[2].style.height).toBe(TILE_SIZE * editor.getLineHeightInPixels() + "px")
+      expect(component.tileNodesForLines()[2].style.webkitTransform).toBe(`translate3d(0px, ${component.tileNodesForLines()[0].offsetHeight + component.tileNodesForLines()[1].offsetHeight}px, 0px)`)
+    })
+  })
+
   describe('highlight decoration rendering', function () {
     let decoration, marker, scrollViewClientLeft
 
@@ -1674,7 +1939,7 @@ describe('TextEditorComponent', function () {
       component.measureDimensions()
       await nextViewUpdatePromise()
 
-      marker = editor.displayBuffer.markBufferRange([[9, 2], [9, 4]], {
+      marker = editor.markBufferRange([[9, 2], [9, 4]], {
         invalidate: 'inside'
       })
       editor.decorateMarker(marker, {
@@ -1869,7 +2134,7 @@ describe('TextEditorComponent', function () {
 
     describe('when the marker is empty', function () {
       it('renders an overlay decoration when added and removes the overlay when the decoration is destroyed', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], {
+        let marker = editor.markBufferRange([[2, 13], [2, 13]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -1891,7 +2156,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders the overlay element with the CSS class specified by the decoration', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[2, 13], [2, 13]], {
+        let marker = editor.markBufferRange([[2, 13], [2, 13]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -1912,7 +2177,7 @@ describe('TextEditorComponent', function () {
 
     describe('when the marker is not empty', function () {
       it('renders at the head of the marker by default', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[2, 5], [2, 10]], {
+        let marker = editor.markBufferRange([[2, 5], [2, 10]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -1943,10 +2208,11 @@ describe('TextEditorComponent', function () {
         item.style.height = itemHeight + 'px'
         wrapperNode.style.width = windowWidth + 'px'
         wrapperNode.style.height = windowHeight + 'px'
-        atom.setWindowDimensions({
+        await atom.setWindowDimensions({
           width: windowWidth,
           height: windowHeight
         })
+
         component.measureDimensions()
         component.measureWindowSize()
         await nextViewUpdatePromise()
@@ -1957,7 +2223,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('slides horizontally left when near the right edge on #win32 and #darwin', async function () {
-        let marker = editor.displayBuffer.markBufferRange([[0, 26], [0, 26]], {
+        let marker = editor.markBufferRange([[0, 26], [0, 26]], {
           invalidate: 'never'
         })
         let decoration = editor.decorateMarker(marker, {
@@ -2539,20 +2805,60 @@ describe('TextEditorComponent', function () {
       })
     })
 
-    describe('when a line is folded', function () {
-      beforeEach(async function () {
-        editor.foldBufferRow(4)
+    describe('when a fold marker is clicked', function () {
+      function clickElementAtPosition (marker, position) {
+        linesNode.dispatchEvent(
+          buildMouseEvent('mousedown', clientCoordinatesForScreenPosition(position), {target: marker})
+        )
+      }
+
+      it('unfolds only the selected fold when other folds are on the same line', async function () {
+        editor.foldBufferRange([[4, 6], [4, 10]])
+        editor.foldBufferRange([[4, 15], [4, 20]])
         await nextViewUpdatePromise()
+        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(2)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 6])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 15])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(0)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(false)
       })
 
-      describe('when the folded line\'s fold-marker is clicked', function () {
-        it('unfolds the buffer row', function () {
-          let target = component.lineNodeForScreenRow(4).querySelector('.fold-marker')
-          linesNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenPosition([4, 8]), {
-            target: target
-          }))
-          expect(editor.isFoldedAtBufferRow(4)).toBe(false)
-        })
+      it('unfolds only the selected fold when other folds are inside it', async function () {
+        editor.foldBufferRange([[4, 10], [4, 15]])
+        editor.foldBufferRange([[4, 4], [4, 5]])
+        editor.foldBufferRange([[4, 4], [4, 20]])
+        await nextViewUpdatePromise()
+        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 4])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 4])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(1)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(true)
+
+        clickElementAtPosition(foldMarkers[0], [4, 10])
+        await nextViewUpdatePromise()
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        expect(foldMarkers.length).toBe(0)
+        expect(editor.isFoldedAtBufferRow(4)).toBe(false)
       })
     })
 
@@ -2887,7 +3193,7 @@ describe('TextEditorComponent', function () {
             gutterNode.dispatchEvent(buildMouseEvent('mousedown', clientCoordinatesForScreenRowInGutter(11), {
               shiftKey: true
             }))
-            expect(editor.getSelectedScreenRange()).toEqual([[7, 4], [16, 0]])
+            expect(editor.getSelectedScreenRange()).toEqual([[7, 4], [17, 0]])
           })
         })
       })
@@ -2961,7 +3267,7 @@ describe('TextEditorComponent', function () {
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(11), {
               metaKey: true
             }))
-            expect(editor.getSelectedScreenRanges()).toEqual([[[7, 4], [7, 6]], [[11, 4], [19, 0]]])
+            expect(editor.getSelectedScreenRanges()).toEqual([[[7, 4], [7, 6]], [[11, 4], [20, 0]]])
           })
 
           it('merges overlapping selections on mouseup', async function () {
@@ -2975,7 +3281,7 @@ describe('TextEditorComponent', function () {
             gutterNode.dispatchEvent(buildMouseEvent('mouseup', clientCoordinatesForScreenRowInGutter(5), {
               metaKey: true
             }))
-            expect(editor.getSelectedScreenRanges()).toEqual([[[5, 0], [19, 0]]])
+            expect(editor.getSelectedScreenRanges()).toEqual([[[5, 0], [20, 0]]])
           })
         })
       })
@@ -2990,7 +3296,7 @@ describe('TextEditorComponent', function () {
               }))
               gutterNode.dispatchEvent(buildMouseEvent('mousemove', clientCoordinatesForScreenRowInGutter(11)))
               await nextAnimationFramePromise()
-              expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [11, 14]])
+              expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [11, 5]])
             })
           })
 
@@ -3433,6 +3739,40 @@ describe('TextEditorComponent', function () {
       })
     })
 
+    describe('when the mousewheel event\'s target is a block decoration', function () {
+      it('keeps it on the DOM if it is scrolled off-screen', async function () {
+        wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+        wrapperNode.style.width = 20 * charWidth + 'px'
+        component.measureDimensions()
+        await nextViewUpdatePromise()
+
+        let item = document.createElement("div")
+        item.style.width = "30px"
+        item.style.height = "30px"
+        item.className = "decoration-1"
+        editor.decorateMarker(
+          editor.markScreenPosition([0, 0], {invalidate: "never"}),
+          {type: "block", item: item}
+        )
+
+        await nextViewUpdatePromise()
+
+        let wheelEvent = new WheelEvent('mousewheel', {
+          wheelDeltaX: 0,
+          wheelDeltaY: -500
+        })
+        Object.defineProperty(wheelEvent, 'target', {
+          get: function () {
+            return item
+          }
+        })
+        componentNode.dispatchEvent(wheelEvent)
+        await nextAnimationFramePromise()
+
+        expect(component.getTopmostDOMNode().contains(item)).toBe(true)
+      })
+    })
+
     it('only prevents the default action of the mousewheel event if it actually lead to scrolling', async function () {
       spyOn(WheelEvent.prototype, 'preventDefault').andCallThrough()
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
@@ -3497,6 +3837,21 @@ describe('TextEditorComponent', function () {
       return event
     }
 
+    function buildKeydownEvent ({keyCode, target}) {
+      let event = new KeyboardEvent('keydown')
+      Object.defineProperty(event, 'keyCode', {
+        get: function () {
+          return keyCode
+        }
+      })
+      Object.defineProperty(event, 'target', {
+        get: function () {
+          return target
+        }
+      })
+      return event
+    }
+
     let inputNode
 
     beforeEach(function () {
@@ -3519,11 +3874,12 @@ describe('TextEditorComponent', function () {
       expect(editor.lineTextForBufferRow(0)).toBe('xyvar quicksort = function () {')
     })
 
-    it('replaces the last character if the length of the input\'s value does not increase, as occurs with the accented character menu', async function () {
-      componentNode.dispatchEvent(buildTextInputEvent({
-        data: 'u',
-        target: inputNode
-      }))
+    it('replaces the last character if a keypress event is bracketed by keydown events with matching keyCodes, which occurs when the accented character menu is shown', async function () {
+      componentNode.dispatchEvent(buildKeydownEvent({keyCode: 85, target: inputNode}))
+      componentNode.dispatchEvent(buildTextInputEvent({data: 'u', target: inputNode}))
+      componentNode.dispatchEvent(new KeyboardEvent('keypress'))
+      componentNode.dispatchEvent(buildKeydownEvent({keyCode: 85, target: inputNode}))
+      componentNode.dispatchEvent(new KeyboardEvent('keyup'))
       await nextViewUpdatePromise()
 
       expect(editor.lineTextForBufferRow(0)).toBe('uvar quicksort = function () {')
@@ -3758,15 +4114,33 @@ describe('TextEditorComponent', function () {
     })
   })
 
-  describe('when changing the font', async function () {
-    it('measures the default char, the korean char, the double width char and the half width char widths', async function () {
-      expect(editor.getDefaultCharWidth()).toBeCloseTo(12, 0)
+  describe('when decreasing the fontSize', async function () {
+    it('decreases the widths of the korean char, the double width char and the half width char', async function () {
+      originalDefaultCharWidth = editor.getDefaultCharWidth()
+      koreanDefaultCharWidth = editor.getKoreanCharWidth()
+      doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
+      halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
       component.setFontSize(10)
       await nextViewUpdatePromise()
-      expect(editor.getDefaultCharWidth()).toBeCloseTo(6, 0)
-      expect(editor.getKoreanCharWidth()).toBeCloseTo(9, 0)
-      expect(editor.getDoubleWidthCharWidth()).toBe(10)
-      expect(editor.getHalfWidthCharWidth()).toBe(5)
+      expect(editor.getDefaultCharWidth()).toBeLessThan(originalDefaultCharWidth)
+      expect(editor.getKoreanCharWidth()).toBeLessThan(koreanDefaultCharWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeLessThan(doubleWidthDefaultCharWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeLessThan(halfWidthDefaultCharWidth)
+    })
+  })
+
+  describe('when increasing the fontSize', function() {
+    it('increases the widths of the korean char, the double width char and the half width char', async function () {
+      originalDefaultCharWidth = editor.getDefaultCharWidth()
+      koreanDefaultCharWidth = editor.getKoreanCharWidth()
+      doubleWidthDefaultCharWidth = editor.getDoubleWidthCharWidth()
+      halfWidthDefaultCharWidth = editor.getHalfWidthCharWidth()
+      component.setFontSize(25)
+      await nextViewUpdatePromise()
+      expect(editor.getDefaultCharWidth()).toBeGreaterThan(originalDefaultCharWidth)
+      expect(editor.getKoreanCharWidth()).toBeGreaterThan(koreanDefaultCharWidth)
+      expect(editor.getDoubleWidthCharWidth()).toBeGreaterThan(doubleWidthDefaultCharWidth)
+      expect(editor.getHalfWidthCharWidth()).toBeGreaterThan(halfWidthDefaultCharWidth)
     })
   })
 
@@ -4567,6 +4941,13 @@ describe('TextEditorComponent', function () {
     })
   })
 
+  describe('::pixelPositionForScreenPosition()', () => {
+    it('returns the correct horizontal position, even if it is on a row that has not yet been rendered (regression)', () => {
+      editor.setTextInBufferRange([[5, 0], [6, 0]], 'hello world\n')
+      expect(wrapperNode.pixelPositionForScreenPosition([5, Infinity]).left).toBeGreaterThan(0)
+    })
+  })
+
   describe('middle mouse paste on Linux', function () {
     let originalPlatform
 
@@ -4585,7 +4966,7 @@ describe('TextEditorComponent', function () {
 
     it('pastes the previously selected text at the clicked location', async function () {
       let clipboardWrittenTo = false
-      spyOn(require('ipc'), 'send').andCallFake(function (eventName, selectedText) {
+      spyOn(require('electron').ipcRenderer, 'send').andCallFake(function (eventName, selectedText) {
         if (eventName === 'write-text-to-selection-clipboard') {
           require('../src/safe-clipboard').writeText(selectedText, 'selection')
           clipboardWrittenTo = true
@@ -4677,7 +5058,7 @@ describe('TextEditorComponent', function () {
 
   function lineNumberForBufferRowHasClass (bufferRow, klass) {
     let screenRow
-    screenRow = editor.displayBuffer.screenRowForBufferRow(bufferRow)
+    screenRow = editor.screenRowForBufferRow(bufferRow)
     return component.lineNumberNodeForScreenRow(screenRow).classList.contains(klass)
   }
 

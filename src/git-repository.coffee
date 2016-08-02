@@ -117,6 +117,10 @@ class GitRepository
       @subscriptions.dispose()
       @subscriptions = null
 
+  # Public: Returns a {Boolean} indicating if this repository has been destroyed.
+  isDestroyed: ->
+    not @repo?
+
   # Public: Invoke the given callback when this GitRepository's destroy() method
   # is invoked.
   #
@@ -463,20 +467,26 @@ class GitRepository
   refreshStatus: ->
     @handlerPath ?= require.resolve('./repository-status-handler')
 
+    relativeProjectPaths = @project?.getPaths()
+      .map (path) => @relativize(path)
+      .filter (path) -> path.length > 0
+
     @statusTask?.terminate()
-    @statusTask = Task.once @handlerPath, @getPath(), ({statuses, upstream, branch, submodules}) =>
-      statusesUnchanged = _.isEqual(statuses, @statuses) and
-                          _.isEqual(upstream, @upstream) and
-                          _.isEqual(branch, @branch) and
-                          _.isEqual(submodules, @submodules)
+    new Promise (resolve) =>
+      @statusTask = Task.once @handlerPath, @getPath(), relativeProjectPaths, ({statuses, upstream, branch, submodules}) =>
+        statusesUnchanged = _.isEqual(statuses, @statuses) and
+                            _.isEqual(upstream, @upstream) and
+                            _.isEqual(branch, @branch) and
+                            _.isEqual(submodules, @submodules)
 
-      @statuses = statuses
-      @upstream = upstream
-      @branch = branch
-      @submodules = submodules
+        @statuses = statuses
+        @upstream = upstream
+        @branch = branch
+        @submodules = submodules
 
-      for submodulePath, submoduleRepo of @getRepo().submodules
-        submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
+        for submodulePath, submoduleRepo of @getRepo().submodules
+          submoduleRepo.upstream = submodules[submodulePath]?.upstream ? {ahead: 0, behind: 0}
 
-      unless statusesUnchanged
-        @emitter.emit 'did-change-statuses'
+        unless statusesUnchanged
+          @emitter.emit 'did-change-statuses'
+        resolve()

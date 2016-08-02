@@ -5,8 +5,16 @@ var verifyRequirements = require('./utils/verify-requirements');
 var safeExec = require('./utils/child-process-wrapper.js').safeExec;
 var path = require('path');
 
+var t0, t1
+
 // Executes an array of commands one by one.
 function executeCommands(commands, done, index) {
+  if (index != undefined) {
+    t1 = Date.now()
+    console.log("=> Took " + (t1 - t0) + "ms.");
+    console.log();
+  }
+
   index = (index == undefined ? 0 : index);
   if (index < commands.length) {
     var command = commands[index];
@@ -17,6 +25,7 @@ function executeCommands(commands, done, index) {
       options = command.options;
       command = command.command;
     }
+    t0 = Date.now()
     safeExec(command, options, executeCommands.bind(this, commands, done, index + 1));
   }
   else
@@ -66,12 +75,29 @@ function bootstrap() {
 
   var buildInstallCommand = initialNpmCommand + npmFlags + 'install';
   var buildInstallOptions = {cwd: path.resolve(__dirname, '..', 'build')};
-  var apmInstallCommand = npmPath + npmFlags + '--target=0.10.35 ' + 'install';
+  var apmInstallCommand = npmPath + npmFlags + '--target=4.4.5 --global-style ' + 'install';
   var apmInstallOptions = {cwd: apmInstallPath};
   var moduleInstallCommand = apmPath + ' install' + apmFlags;
   var dedupeApmCommand = apmPath + ' dedupe' + apmFlags;
 
-  if (process.argv.indexOf('--no-quiet') === -1) {
+  var moduleInstallEnv = {};
+  for (var e in process.env) {
+    moduleInstallEnv[e] = process.env[e];
+  }
+
+  // Set our target (Electron) version so that node-pre-gyp can download the
+  // proper binaries.
+  var electronVersion = require('../package.json').electronVersion;
+  moduleInstallEnv.npm_config_target = electronVersion;
+
+  // Force 32-bit modules on Windows.
+  // /cc https://github.com/atom/atom/issues/10450
+  if (process.platform === 'win32') {
+    moduleInstallEnv.npm_config_target_arch = 'ia32';
+  }
+  var moduleInstallOptions = {env: moduleInstallEnv};
+
+  if (process.argv.indexOf('--no-quiet') === -1 || process.env.ATOM_NOISY_BUILD) {
     buildInstallCommand  += ' --loglevel error';
     apmInstallCommand    += ' --loglevel error';
     moduleInstallCommand += ' --loglevel error';
@@ -96,9 +122,14 @@ function bootstrap() {
       message: 'Installing apm...',
       options: apmInstallOptions
     },
-    apmPath + ' clean' + apmFlags,
-    moduleInstallCommand,
-    dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+    {
+      command: moduleInstallCommand,
+      options: moduleInstallOptions
+    },
+    {
+      command: dedupeApmCommand + ' ' + packagesToDedupe.join(' '),
+      options: moduleInstallOptions
+    }
   ];
 
   process.chdir(path.dirname(__dirname));

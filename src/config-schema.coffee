@@ -104,6 +104,14 @@ module.exports =
         description: 'Automatically open an empty editor on startup.'
         type: 'boolean'
         default: true
+      automaticallyUpdate:
+        description: 'Automatically update Atom when a new release is available.'
+        type: 'boolean'
+        default: true
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
+        type: 'boolean'
+        default: true
 
   editor:
     type: 'object'
@@ -147,6 +155,10 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Show line numbers in the editor\'s gutter.'
+      atomicSoftTabs:
+        type: 'boolean'
+        default: true
+        description: 'Skip over tab-length runs of leading whitespace when moving the cursor.'
       autoIndent:
         type: 'boolean'
         default: true
@@ -167,7 +179,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        enum: [1, 2, 3, 4, 6, 8]
+        minimum: 1
         description: 'Number of spaces used to represent a tab.'
       softWrap:
         type: 'boolean'
@@ -185,7 +197,7 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
-        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language.'
+        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language. **Note:** If you want to hide the wrap guide (the vertical line) you can disable the `wrap-guide` package.'
       softWrapHangingIndent:
         type: 'integer'
         default: 0

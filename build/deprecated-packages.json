@@ -862,6 +862,10 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
+  "language-jxa": {
+    "hasDeprecations": true,
+    "latestHasDeprecations": true
+  },
   "language-rspec": {
     "version": "<=0.2.1",
     "hasDeprecations": true,

@@ -85,5 +85,5 @@ parseAlpha = (alpha) ->
 
 numberToHexString = (number) ->
   hex = number.toString(16)
-  hex = "0#{hex}" if number < 10
+  hex = "0#{hex}" if number < 16
   hex

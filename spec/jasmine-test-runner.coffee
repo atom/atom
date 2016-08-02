@@ -1,8 +1,8 @@
-fs = require 'fs'
+Grim = require 'grim'
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
@@ -89,7 +89,7 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
     if logStream?
       fs.writeSync(logStream, str)
     else
-      ipc.send 'write-to-stderr', str
+      ipcRenderer.send 'write-to-stderr', str
 
   {TerminalReporter} = require 'jasmine-tagged'
   new TerminalReporter
@@ -97,13 +97,10 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
       log(str)
     onComplete: (runner) ->
       fs.closeSync(logStream) if logStream?
-      if process.env.JANKY_SHA1 or process.env.CI
-        grim = require 'grim'
-
-        if grim.getDeprecationsLength() > 0
-          grim.logDeprecations()
-          resolveWithExitCode(1)
-          return
+      if Grim.getDeprecationsLength() > 0
+        Grim.logDeprecations()
+        resolveWithExitCode(1)
+        return
 
       if runner.results().failedCount > 0
         resolveWithExitCode(1)

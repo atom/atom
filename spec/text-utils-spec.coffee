@@ -74,3 +74,24 @@ describe 'text utilities', ->
       expect(textUtils.isKoreanCharacter("ㄼ")).toBe(true)
 
       expect(textUtils.isKoreanCharacter("O")).toBe(false)
+
+  describe ".isWrapBoundary(previousCharacter, character)", ->
+    it "returns true when the character is CJK or when the previous character is a space/tab", ->
+      anyCharacter = 'x'
+      expect(textUtils.isWrapBoundary(anyCharacter, "我")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "私")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "Ｂ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "，")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "￠")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ﾊ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ﾋ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ﾬ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "￭")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "우")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "가")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ㅢ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ㄼ")).toBe(true)
+
+      expect(textUtils.isWrapBoundary(' ', 'h')).toBe(true)
+      expect(textUtils.isWrapBoundary('\t', 'h')).toBe(true)
+      expect(textUtils.isWrapBoundary('a', 'h')).toBe(false)

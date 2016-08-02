@@ -7,6 +7,7 @@ TokenizedLine = require './tokenized-line'
 TokenIterator = require './token-iterator'
 Token = require './token'
 ScopeDescriptor = require './scope-descriptor'
+TokenizedBufferIterator = require './tokenized-buffer-iterator'
 
 module.exports =
 class TokenizedBuffer extends Model
@@ -22,17 +23,20 @@ class TokenizedBuffer extends Model
   changeCount: 0
 
   @deserialize: (state, atomEnvironment) ->
-    state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
+    if state.bufferId
+      state.buffer = atomEnvironment.project.bufferForIdSync(state.bufferId)
+    else
+      # TODO: remove this fallback after everyone transitions to the latest version.
+      state.buffer = atomEnvironment.project.bufferForPathSync(state.bufferPath)
     state.config = atomEnvironment.config
     state.grammarRegistry = atomEnvironment.grammars
-    state.packageManager = atomEnvironment.packages
     state.assert = atomEnvironment.assert
     new this(state)
 
   constructor: (params) ->
     {
-      @buffer, @tabLength, @ignoreInvisibles, @largeFileMode, @config,
-      @grammarRegistry, @packageManager, @assert
+      @buffer, @tabLength, @largeFileMode, @config,
+      @grammarRegistry, @assert, grammarScopeName
     } = params
 
     @emitter = new Emitter
@@ -45,17 +49,37 @@ class TokenizedBuffer extends Model
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
-    @reloadGrammar()
+    if grammar = @grammarRegistry.grammarForScopeName(grammarScopeName)
+      @setGrammar(grammar)
+    else
+      @reloadGrammar()
+      @grammarToRestoreScopeName = grammarScopeName
 
   destroyed: ->
     @disposables.dispose()
 
+  buildIterator: ->
+    new TokenizedBufferIterator(this, @grammarRegistry)
+
+  getInvalidatedRanges: ->
+    if @invalidatedRange?
+      [@invalidatedRange]
+    else
+      []
+
+  onDidInvalidateRange: (fn) ->
+    @emitter.on 'did-invalidate-range', fn
+
   serialize: ->
-    deserializer: 'TokenizedBuffer'
-    bufferPath: @buffer.getPath()
-    tabLength: @tabLength
-    ignoreInvisibles: @ignoreInvisibles
-    largeFileMode: @largeFileMode
+    state = {
+      deserializer: 'TokenizedBuffer'
+      bufferPath: @buffer.getPath()
+      bufferId: @buffer.getId()
+      tabLength: @tabLength
+      largeFileMode: @largeFileMode
+    }
+    state.grammarScopeName = @grammar?.scopeName unless @buffer.getPath()
+    state
 
   observeGrammar: (callback) ->
     callback(@grammar)
@@ -71,7 +95,9 @@ class TokenizedBuffer extends Model
     @emitter.on 'did-tokenize', callback
 
   grammarAddedOrUpdated: (grammar) =>
-    if grammar.injectionSelector?
+    if @grammarToRestoreScopeName is grammar.scopeName
+      @setGrammar(grammar)
+    else if grammar.injectionSelector?
       @retokenizeLines() if @hasTokenForSelector(grammar.injectionSelector)
     else
       newScore = @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
@@ -84,32 +110,24 @@ class TokenizedBuffer extends Model
     @rootScopeDescriptor = new ScopeDescriptor(scopes: [@grammar.scopeName])
     @currentGrammarScore = score ? @grammarRegistry.getGrammarScore(grammar, @buffer.getPath(), @getGrammarSelectionContent())
 
+    @grammarToRestoreScopeName = null
+
     @grammarUpdateDisposable?.dispose()
     @grammarUpdateDisposable = @grammar.onDidUpdate => @retokenizeLines()
     @disposables.add(@grammarUpdateDisposable)
 
-    scopeOptions = {scope: @rootScopeDescriptor}
-    @configSettings =
-      tabLength: @config.get('editor.tabLength', scopeOptions)
-      invisibles: @config.get('editor.invisibles', scopeOptions)
-      showInvisibles: @config.get('editor.showInvisibles', scopeOptions)
+    @configSettings = {tabLength: @config.get('editor.tabLength', {scope: @rootScopeDescriptor})}
 
     if @configSubscriptions?
       @configSubscriptions.dispose()
       @disposables.remove(@configSubscriptions)
     @configSubscriptions = new CompositeDisposable
-    @configSubscriptions.add @config.onDidChange 'editor.tabLength', scopeOptions, ({newValue}) =>
+    @configSubscriptions.add @config.onDidChange 'editor.tabLength', {scope: @rootScopeDescriptor}, ({newValue}) =>
       @configSettings.tabLength = newValue
-      @retokenizeLines()
-    ['invisibles', 'showInvisibles'].forEach (key) =>
-      @configSubscriptions.add @config.onDidChange "editor.#{key}", scopeOptions, ({newValue}) =>
-        oldInvisibles = @getInvisiblesToShow()
-        @configSettings[key] = newValue
-        @retokenizeLines() unless _.isEqual(@getInvisiblesToShow(), oldInvisibles)
     @disposables.add(@configSubscriptions)
 
     @retokenizeLines()
-    @packageManager.triggerActivationHook("#{grammar.packageName}:grammar-used")
+
     @emitter.emit 'did-change-grammar', grammar
 
   getGrammarSelectionContent: ->
@@ -146,13 +164,6 @@ class TokenizedBuffer extends Model
     return if tabLength is @tabLength
 
     @tabLength = tabLength
-    @retokenizeLines()
-
-  setIgnoreInvisibles: (ignoreInvisibles) ->
-    if ignoreInvisibles isnt @ignoreInvisibles
-      @ignoreInvisibles = ignoreInvisibles
-      if @configSettings.showInvisibles and @configSettings.invisibles?
-        @retokenizeLines()
 
   tokenizeInBackground: ->
     return if not @visible or @pendingChunk or not @isAlive()
@@ -193,10 +204,9 @@ class TokenizedBuffer extends Model
       @validateRow(endRow)
       @invalidateRow(endRow + 1) unless filledRegion
 
-      [startRow, endRow] = @updateFoldableStatus(startRow, endRow)
-
       event = {start: startRow, end: endRow, delta: 0}
       @emitter.emit 'did-change', event
+      @emitter.emit 'did-invalidate-range', Range(Point(startRow, 0), Point(endRow + 1, 0))
 
     if @firstInvalidRow()?
       @tokenizeInBackground()
@@ -247,45 +257,14 @@ class TokenizedBuffer extends Model
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
 
-    start = @retokenizeWhitespaceRowsIfIndentLevelChanged(start - 1, -1)
-    end = @retokenizeWhitespaceRowsIfIndentLevelChanged(newRange.end.row + 1, 1) - delta
-
     newEndStack = @stackForRow(end + delta)
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
-    [start, end] = @updateFoldableStatus(start, end + delta)
-    end -= delta
+    @invalidatedRange = Range(start, end)
 
     event = {start, end, delta, bufferChange: e}
     @emitter.emit 'did-change', event
-
-  retokenizeWhitespaceRowsIfIndentLevelChanged: (row, increment) ->
-    line = @tokenizedLineForRow(row)
-    if line?.isOnlyWhitespace() and @indentLevelForRow(row) isnt line.indentLevel
-      while line?.isOnlyWhitespace()
-        @tokenizedLines[row] = @buildTokenizedLineForRow(row, @stackForRow(row - 1), @openScopesForRow(row))
-        row += increment
-        line = @tokenizedLineForRow(row)
-
-    row - increment
-
-  updateFoldableStatus: (startRow, endRow) ->
-    return [startRow, endRow] if @largeFileMode
-
-    scanStartRow = @buffer.previousNonBlankRow(startRow) ? startRow
-    scanStartRow-- while scanStartRow > 0 and @tokenizedLineForRow(scanStartRow).isComment()
-    scanEndRow = @buffer.nextNonBlankRow(endRow) ? endRow
-
-    for row in [scanStartRow..scanEndRow] by 1
-      foldable = @isFoldableAtRow(row)
-      line = @tokenizedLineForRow(row)
-      unless line.foldable is foldable
-        line.foldable = foldable
-        startRow = Math.min(startRow, row)
-        endRow = Math.max(endRow, row)
-
-    [startRow, endRow]
 
   isFoldableAtRow: (row) ->
     if @largeFileMode
@@ -351,26 +330,16 @@ class TokenizedBuffer extends Model
     openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
     text = @buffer.lineForRow(row)
     tags = [text.length]
-    tabLength = @getTabLength()
-    indentLevel = @indentLevelForRow(row)
     lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, tabLength, indentLevel, invisibles: @getInvisiblesToShow(), lineEnding, @tokenIterator})
+    new TokenizedLine({openScopes, text, tags, lineEnding, @tokenIterator})
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
 
   buildTokenizedLineForRowWithText: (row, text, ruleStack = @stackForRow(row - 1), openScopes = @openScopesForRow(row)) ->
     lineEnding = @buffer.lineEndingForRow(row)
-    tabLength = @getTabLength()
-    indentLevel = @indentLevelForRow(row)
     {tags, ruleStack} = @grammar.tokenizeLine(text, ruleStack, row is 0, false)
-    new TokenizedLine({openScopes, text, tags, ruleStack, tabLength, lineEnding, indentLevel, invisibles: @getInvisiblesToShow(), @tokenIterator})
-
-  getInvisiblesToShow: ->
-    if @configSettings.showInvisibles and not @ignoreInvisibles
-      @configSettings.invisibles
-    else
-      null
+    new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
     if 0 <= bufferRow < @tokenizedLines.length
@@ -411,6 +380,7 @@ class TokenizedBuffer extends Model
                 filePath: @buffer.getPath()
                 fileContents: @buffer.getText()
               }
+            break
     scopes
 
   indentLevelForRow: (bufferRow) ->

@@ -43,7 +43,7 @@ class LinesComponent extends TiledComponent
     @domNode
 
   shouldRecreateAllTilesOnUpdate: ->
-    @oldState.indentGuidesVisible isnt @newState.indentGuidesVisible or @newState.continuousReflow
+    @newState.continuousReflow
 
   beforeUpdateSync: (state) ->
     if @newState.maxHeight isnt @oldState.maxHeight
@@ -64,13 +64,7 @@ class LinesComponent extends TiledComponent
         @domNode.appendChild(@placeholderTextDiv)
       @oldState.placeholderText = @newState.placeholderText
 
-    if @newState.width isnt @oldState.width
-      @domNode.style.width = @newState.width + 'px'
-      @oldState.width = @newState.width
-
     @cursorsComponent.updateSync(state)
-
-    @oldState.indentGuidesVisible = @newState.indentGuidesVisible
 
   buildComponentForTile: (id) -> new LinesTileComponent({id, @presenter, @domElementPool, @assert, @grammars})
 
@@ -97,10 +91,14 @@ class LinesComponent extends TiledComponent
     @presenter.setLineHeight(lineHeightInPixels)
     @presenter.setBaseCharacterWidth(defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth)
 
-  lineNodeForLineIdAndScreenRow: (lineId, screenRow) ->
+  lineIdForScreenRow: (screenRow) ->
     tile = @presenter.tileForRow(screenRow)
-    @getComponentForTile(tile)?.lineNodeForLineId(lineId)
+    @getComponentForTile(tile)?.lineIdForScreenRow(screenRow)
 
-  textNodesForLineIdAndScreenRow: (lineId, screenRow) ->
+  lineNodeForScreenRow: (screenRow) ->
     tile = @presenter.tileForRow(screenRow)
-    @getComponentForTile(tile)?.textNodesForLineId(lineId)
+    @getComponentForTile(tile)?.lineNodeForScreenRow(screenRow)
+
+  textNodesForScreenRow: (screenRow) ->
+    tile = @presenter.tileForRow(screenRow)
+    @getComponentForTile(tile)?.textNodesForScreenRow(screenRow)

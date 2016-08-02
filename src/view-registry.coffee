@@ -15,6 +15,9 @@ AnyConstructor = Symbol('any-constructor')
 # application logic and is the primary point of API interaction. The view
 # just handles presentation.
 #
+# Note: Models can be any object, but must implement a `getTitle()` function
+# if they are to be displayed in a {Pane}
+#
 # View providers inform the workspace how your model objects should be
 # presented in the DOM. A view provider must always return a DOM node, which
 # makes [HTML 5 custom elements](http://www.html5rocks.com/en/tutorials/webcomponents/customelements/)
@@ -170,6 +173,11 @@ class ViewRegistry
   createView: (object) ->
     if object instanceof HTMLElement
       return object
+
+    if typeof object?.getElement is 'function'
+      element = object.getElement()
+      if element instanceof HTMLElement
+        return element
 
     if object?.element instanceof HTMLElement
       return object.element

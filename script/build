@@ -2,8 +2,23 @@
 var cp = require('./utils/child-process-wrapper.js');
 var runGrunt = require('./utils/run-grunt.js');
 var path = require('path');
+var fs = require('fs');
 
 process.chdir(path.dirname(__dirname));
+
+if (process.platform === 'win32') {
+  process.env['PATH'] = process.env['PATH']
+    .split(';')
+    .filter(function(p) {
+      if (fs.existsSync(path.resolve(p, 'msbuild.exe'))) {
+        console.log('Excluding "' + p + '" from PATH to avoid msbuild.exe mismatch')
+        return false;
+      } else {
+        return true;
+      }
+    })
+    .join(';');
+}
 
 cp.safeExec('node script/bootstrap', function() {
   // build/node_modules/.bin/grunt "$@"

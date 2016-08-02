@@ -3,6 +3,11 @@
 const Module = require('module')
 const path = require('path')
 const cachedVm = require('cached-run-in-this-context')
+const crypto = require('crypto')
+
+function computeHash (contents) {
+  return crypto.createHash('sha1').update(contents, 'utf8').digest('hex')
+}
 
 class NativeCompileCache {
   constructor () {
@@ -12,6 +17,10 @@ class NativeCompileCache {
 
   setCacheStore (store) {
     this.cacheStore = store
+  }
+
+  setV8Version (v8Version) {
+    this.v8Version = v8Version.toString()
   }
 
   install () {
@@ -28,20 +37,20 @@ class NativeCompileCache {
   }
 
   overrideModuleCompile () {
-    let cacheStore = this.cacheStore
+    let self = this
     let resolvedArgv = null
     // Here we override Node's module.js
     // (https://github.com/atom/node/blob/atom/lib/module.js#L378), changing
     // only the bits that affect compilation in order to use the cached one.
     Module.prototype._compile = function (content, filename) {
-      let self = this
+      let moduleSelf = this
       // remove shebang
       content = content.replace(/^\#\!.*/, '')
       function require (path) {
-        return self.require(path)
+        return moduleSelf.require(path)
       }
       require.resolve = function (request) {
-        return Module._resolveFilename(request, self)
+        return Module._resolveFilename(request, moduleSelf)
       }
       require.main = process.mainModule
 
@@ -54,18 +63,20 @@ class NativeCompileCache {
       // create wrapper function
       let wrapper = Module.wrap(content)
 
+      let cacheKey = filename
+      let invalidationKey = computeHash(wrapper + self.v8Version)
       let compiledWrapper = null
-      if (cacheStore.has(filename)) {
-        let buffer = cacheStore.get(filename)
+      if (self.cacheStore.has(cacheKey, invalidationKey)) {
+        let buffer = self.cacheStore.get(cacheKey, invalidationKey)
         let compilationResult = cachedVm.runInThisContextCached(wrapper, filename, buffer)
         compiledWrapper = compilationResult.result
         if (compilationResult.wasRejected) {
-          cacheStore.delete(filename)
+          self.cacheStore.delete(cacheKey)
         }
       } else {
         let compilationResult = cachedVm.runInThisContext(wrapper, filename)
         if (compilationResult.cacheBuffer) {
-          cacheStore.set(filename, compilationResult.cacheBuffer)
+          self.cacheStore.set(cacheKey, invalidationKey, compilationResult.cacheBuffer)
         }
         compiledWrapper = compilationResult.result
       }
@@ -88,8 +99,8 @@ class NativeCompileCache {
           global.v8debug.Debug.setBreakPoint(compiledWrapper, 0, 0)
         }
       }
-      let args = [self.exports, require, self, filename, dirname, process, global]
-      return compiledWrapper.apply(self.exports, args)
+      let args = [moduleSelf.exports, require, moduleSelf, filename, dirname, process, global]
+      return compiledWrapper.apply(moduleSelf.exports, args)
     }
   }
 

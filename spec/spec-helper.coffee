@@ -112,14 +112,14 @@ afterEach ->
 
   document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
 
-  ensureNoPathSubscriptions()
+  warnIfLeakingPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
-ensureNoPathSubscriptions = ->
+warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
-  pathwatcher.closeAllWatchers()
   if watchedPaths.length > 0
-    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+    console.error("WARNING: Leaking subscriptions for paths: " + watchedPaths.join(", "))
+  pathwatcher.closeAllWatchers()
 
 ensureNoDeprecatedFunctionsCalled = ->
   deprecations = Grim.getDeprecations()
@@ -172,8 +172,8 @@ jasmine.useRealClock = ->
 addCustomMatchers = (spec) ->
   spec.addMatchers
     toBeInstanceOf: (expected) ->
-      notText = if @isNot then " not" else ""
-      this.message = => "Expected #{jasmine.pp(@actual)} to#{notText} be instance of #{expected.name} class"
+      beOrNotBe = if @isNot then "not be" else "be"
+      this.message = => "Expected #{jasmine.pp(@actual)} to #{beOrNotBe} instance of #{expected.name} class"
       @actual instanceof expected
 
     toHaveLength: (expected) ->
@@ -181,40 +181,48 @@ addCustomMatchers = (spec) ->
         this.message = => "Expected object #{@actual} has no length method"
         false
       else
-        notText = if @isNot then " not" else ""
-        this.message = => "Expected object with length #{@actual.length} to#{notText} have length #{expected}"
+        haveOrNotHave = if @isNot then "not have" else "have"
+        this.message = => "Expected object with length #{@actual.length} to #{haveOrNotHave} length #{expected}"
         @actual.length is expected
 
     toExistOnDisk: (expected) ->
-      notText = this.isNot and " not" or ""
-      @message = -> return "Expected path '" + @actual + "'" + notText + " to exist."
+      toOrNotTo = this.isNot and "not to" or "to"
+      @message = -> return "Expected path '#{@actual}' #{toOrNotTo} exist."
       fs.existsSync(@actual)
 
     toHaveFocus: ->
-      notText = this.isNot and " not" or ""
+      toOrNotTo = this.isNot and "not to" or "to"
       if not document.hasFocus()
         console.error "Specs will fail because the Dev Tools have focus. To fix this close the Dev Tools or click the spec runner."
 
-      @message = -> return "Expected element '" + @actual + "' or its descendants" + notText + " to have focus."
+      @message = -> return "Expected element '#{@actual}' or its descendants #{toOrNotTo} have focus."
       element = @actual
       element = element.get(0) if element.jquery
       element is document.activeElement or element.contains(document.activeElement)
 
     toShow: ->
-      notText = if @isNot then " not" else ""
+      toOrNotTo = this.isNot and "not to" or "to"
       element = @actual
       element = element.get(0) if element.jquery
-      @message = -> return "Expected element '#{element}' or its descendants#{notText} to show."
+      @message = -> return "Expected element '#{element}' or its descendants #{toOrNotTo} show."
       element.style.display in ['block', 'inline-block', 'static', 'fixed']
 
+    toEqualPath: (expected) ->
+      actualPath = path.normalize(@actual)
+      expectedPath = path.normalize(expected)
+      @message = -> return "Expected path '#{actualPath}' to be equal to '#{expectedPath}'."
+      actualPath is expectedPath
+
 window.waitsForPromise = (args...) ->
+  label = null
   if args.length > 1
-    {shouldReject, timeout} = args[0]
+    {shouldReject, timeout, label} = args[0]
   else
     shouldReject = false
+  label ?= 'promise to be resolved or rejected'
   fn = _.last(args)
 
-  window.waitsFor timeout, (moveOn) ->
+  window.waitsFor label, timeout, (moveOn) ->
     promise = fn()
     if shouldReject
       promise.catch.call(promise, moveOn)

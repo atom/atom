@@ -6,11 +6,11 @@ return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # run them on Travis.
 return if process.env.CI
 
-fs = require "fs-plus"
-path = require "path"
-temp = require("temp").track()
-runAtom = require "./helpers/start-atom"
-CSON = require "season"
+fs = require 'fs-plus'
+path = require 'path'
+temp = require('temp').track()
+runAtom = require './helpers/start-atom'
+CSON = require 'season'
 
 describe "Starting Atom", ->
   atomHome = temp.mkdirSync('atom-home')
@@ -28,13 +28,12 @@ describe "Starting Atom", ->
     it "opens the parent directory and creates an empty text editor", ->
       runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
         client
-          .waitForPaneItemCount(1, 1000)
-
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([tempDirPath])
 
           .waitForExist("atom-text-editor", 5000)
           .then (exists) -> expect(exists).toBe true
+          .waitForPaneItemCount(1, 1000)
           .click("atom-text-editor")
           .keys("Hello!")
           .execute -> atom.workspace.getActiveTextEditor().getText()
@@ -124,6 +123,55 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(0, 1000)
           .treeViewRootDirectories()
           .then ({value}) -> expect(value).toEqual([otherTempDirPath])
+    describe "when using the -a, --add option", ->
+      it "reuses that window and add the folder to project paths", ->
+        fourthTempDir = temp.mkdirSync("a-fourth-dir")
+        fourthTempFilePath = path.join(fourthTempDir, "a-file")
+        fs.writeFileSync(fourthTempFilePath, "4 - This file was already here.")
+
+        fifthTempDir = temp.mkdirSync("a-fifth-dir")
+        fifthTempFilePath = path.join(fifthTempDir, "a-file")
+        fs.writeFileSync(fifthTempFilePath, "5 - This file was already here.")
+
+        runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
+          client
+            .waitForPaneItemCount(1, 5000)
+
+            # Opening another file reuses the same window and add parent dir to
+            # project paths.
+            .startAnotherAtom(['-a', fourthTempFilePath], ATOM_HOME: atomHome)
+            .waitForPaneItemCount(2, 5000)
+            .waitForWindowCount(1, 1000)
+            .treeViewRootDirectories()
+            .then ({value}) -> expect(value).toEqual([tempDirPath, fourthTempDir])
+            .execute -> atom.workspace.getActiveTextEditor().getText()
+            .then ({value: text}) -> expect(text).toBe "4 - This file was already here."
+
+            # Opening another directory resuses the same window and add the folder to project paths.
+            .startAnotherAtom(['--add', fifthTempDir], ATOM_HOME: atomHome)
+            .treeViewRootDirectories()
+            .then ({value}) -> expect(value).toEqual([tempDirPath, fourthTempDir, fifthTempDir])
+
+    it "opens the new window offset from the other window", ->
+      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
+        win0Position = null
+        win1Position = null
+        client
+          .waitForWindowCount(1, 10000)
+          .execute -> atom.getPosition()
+          .then ({value}) -> win0Position = value
+          .waitForNewWindow(->
+            @startAnotherAtom([path.join(temp.mkdirSync("a-third-dir"), "a-file")], ATOM_HOME: atomHome)
+          , 5000)
+          .waitForWindowCount(2, 10000)
+          .execute -> atom.getPosition()
+          .then ({value}) -> win1Position = value
+          .then ->
+            expect(win1Position.x).toBeGreaterThan(win0Position.x)
+            # Ideally we'd test the y coordinate too, but if the window's
+            # already as tall as it can be, then macOS won't move it down outside
+            # the screen.
+            # expect(win1Position.y).toBeGreaterThan(win0Position.y)
 
   describe "reopening a directory that was previously opened", ->
     it "remembers the state of the window", ->
@@ -132,6 +180,8 @@ describe "Starting Atom", ->
           .waitForPaneItemCount(0, 3000)
           .execute -> atom.workspace.open()
           .waitForPaneItemCount(1, 3000)
+          .keys("Hello!")
+          .waitUntil((-> Promise.resolve(false)), 1100)
 
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
@@ -217,6 +267,36 @@ describe "Starting Atom", ->
                 [tempDirPath]
                 [otherTempDirPath]
               ].sort()
+
+    it "doesn't reopen any previously opened windows if restorePreviousWindowsOnStart is disabled", ->
+      runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
+        client
+          .waitForExist("atom-workspace")
+          .waitForNewWindow(->
+            @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
+          , 5000)
+          .waitForExist("atom-workspace")
+
+      configPath = path.join(atomHome, 'config.cson')
+      config = CSON.readFileSync(configPath)
+      config['*'].core = {restorePreviousWindowsOnStart: false}
+      CSON.writeFileSync(configPath, config)
+
+      runAtom [], {ATOM_HOME: atomHome}, (client) ->
+        windowProjectPaths = []
+
+        client
+          .waitForWindowCount(1, 10000)
+          .then ({value: windowHandles}) ->
+            @window(windowHandles[0])
+            .waitForExist("atom-workspace")
+            .treeViewRootDirectories()
+            .then ({value: directories}) -> windowProjectPaths.push(directories)
+
+            .call ->
+              expect(windowProjectPaths).toEqual [
+                []
+              ]
 
   describe "opening a remote directory", ->
     it "opens the parent directory and creates an empty text editor", ->

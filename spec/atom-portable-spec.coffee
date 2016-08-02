@@ -1,7 +1,7 @@
-path = require "path"
+path = require 'path'
 fs = require 'fs-plus'
-temp = require "temp"
-AtomPortable = require "../src/browser/atom-portable"
+temp = require 'temp'
+AtomPortable = require '../src/main-process/atom-portable'
 
 portableModeCommonPlatformBehavior = (platform) ->
   describe "with ATOM_HOME environment variable", ->

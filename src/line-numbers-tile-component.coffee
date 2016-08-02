@@ -96,12 +96,13 @@ class LineNumbersTileComponent
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNumberNode: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex} = lineNumberState
+    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex, blockDecorationsHeight} = lineNumberState
 
     className = @buildLineNumberClassName(lineNumberState)
     lineNumberNode = @domElementPool.buildElement("div", className)
     lineNumberNode.dataset.screenRow = screenRow
     lineNumberNode.dataset.bufferRow = bufferRow
+    lineNumberNode.style.marginTop = blockDecorationsHeight + "px"
 
     @setLineNumberInnerNodes(bufferRow, softWrapped, lineNumberNode)
     lineNumberNode
@@ -138,6 +139,10 @@ class LineNumbersTileComponent
       node.dataset.bufferRow = newLineNumberState.bufferRow
       oldLineNumberState.screenRow = newLineNumberState.screenRow
       oldLineNumberState.bufferRow = newLineNumberState.bufferRow
+
+    unless oldLineNumberState.blockDecorationsHeight is newLineNumberState.blockDecorationsHeight
+      node.style.marginTop = newLineNumberState.blockDecorationsHeight + "px"
+      oldLineNumberState.blockDecorationsHeight = newLineNumberState.blockDecorationsHeight
 
   buildLineNumberClassName: ({bufferRow, foldable, decorationClasses, softWrapped}) ->
     className = "line-number"

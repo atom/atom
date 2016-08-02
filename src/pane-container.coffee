@@ -164,6 +164,15 @@ class PaneContainer extends Model
     else
       false
 
+  moveActiveItemToPane: (destPane) ->
+    item = @activePane.getActiveItem()
+    @activePane.moveItemToPane(item, destPane)
+    destPane.setActiveItem(item)
+
+  copyActiveItemToPane: (destPane) ->
+    item = @activePane.copyActiveItem()
+    destPane.activateItem(item)
+
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
     return

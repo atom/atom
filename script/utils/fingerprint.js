@@ -6,8 +6,14 @@ var fingerprintPath = path.resolve(__dirname, '..', '..', 'node_modules', '.atom
 
 module.exports = {
   fingerprint: function () {
-    var packageJson = fs.readFileSync(path.resolve(__dirname, '..', '..', 'package.json'))
-    var body = packageJson.toString() + process.platform + process.version
+    var atomPackageJson = fs.readFileSync(path.resolve(__dirname, '..', '..', 'package.json'))
+    var apmPackageJson = fs.readFileSync(path.resolve(__dirname, '..', '..', 'apm', 'package.json'))
+
+    //Include the electron minor version in the fingerprint since that changing requires a re-install
+    var electronVersion = JSON.parse(atomPackageJson).electronVersion.replace(/\.\d+$/, '')
+    var apmVersion = JSON.parse(apmPackageJson).dependencies['atom-package-manager']
+
+    var body = electronVersion + apmVersion + process.platform + process.version
     return crypto.createHash('sha1').update(body).digest('hex')
   },
 

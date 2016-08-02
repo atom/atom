@@ -14,6 +14,7 @@ class ThemePackage extends Package
 
   load: ->
     @loadTime = 0
+    @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     this
 
   activate: ->

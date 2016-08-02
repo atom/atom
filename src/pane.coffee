@@ -1,5 +1,6 @@
+Grim = require 'grim'
 {find, compact, extend, last} = require 'underscore-plus'
-{Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 Model = require './model'
 PaneAxis = require './pane-axis'
 TextEditor = require './text-editor'
@@ -8,6 +9,11 @@ TextEditor = require './text-editor'
 # Panes can contain multiple items, one of which is *active* at a given time.
 # The view corresponding to the active item is displayed in the interface. In
 # the default configuration, tabs are also displayed for each item.
+#
+# Each pane may also contain one *pending* item. When a pending item is added
+# to a pane, it will replace the currently pending item, if any, instead of
+# simply being added. In the default configuration, the text in the tab for
+# pending items is shown in italics.
 module.exports =
 class Pane extends Model
   container: undefined
@@ -15,7 +21,7 @@ class Pane extends Model
   focused: false
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
-    {items, activeItemURI, activeItemUri} = state
+    {items, itemStackIndices, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
     state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
     state.activeItem = find state.items, (item) ->
@@ -37,20 +43,25 @@ class Pane extends Model
     } = params
 
     @emitter = new Emitter
-    @itemSubscriptions = new WeakMap
+    @subscriptionsPerItem = new WeakMap
     @items = []
+    @itemStack = []
 
     @addItems(compact(params?.items ? []))
     @setActiveItem(@items[0]) unless @getActiveItem()?
+    @addItemsToStack(params?.itemStackIndices ? [])
     @setFlexScale(params?.flexScale ? 1)
 
   serialize: ->
     if typeof @activeItem?.getURI is 'function'
       activeItemURI = @activeItem.getURI()
+    itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
+    itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
 
     deserializer: 'Pane'
     id: @id
-    items: compact(@items.map((item) -> item.serialize?()))
+    items: itemsToBeSerialized.map((item) -> item.serialize())
+    itemStackIndices: itemStackIndices
     activeItemURI: activeItemURI
     focused: @focused
     flexScale: @flexScale
@@ -260,8 +271,8 @@ class Pane extends Model
   getPanes: -> [this]
 
   unsubscribeFromItem: (item) ->
-    @itemSubscriptions.get(item)?.dispose()
-    @itemSubscriptions.delete(item)
+    @subscriptionsPerItem.get(item)?.dispose()
+    @subscriptionsPerItem.delete(item)
 
   ###
   Section: Items
@@ -278,11 +289,29 @@ class Pane extends Model
   # Returns a pane item.
   getActiveItem: -> @activeItem
 
-  setActiveItem: (activeItem) ->
+  setActiveItem: (activeItem, options) ->
+    {modifyStack} = options if options?
     unless activeItem is @activeItem
+      @addItemToStack(activeItem) unless modifyStack is false
       @activeItem = activeItem
       @emitter.emit 'did-change-active-item', @activeItem
     @activeItem
+
+  # Build the itemStack after deserializing
+  addItemsToStack: (itemStackIndices) ->
+    if @items.length > 0
+      if itemStackIndices.length is 0 or itemStackIndices.length isnt @items.length or itemStackIndices.indexOf(-1) >= 0
+        itemStackIndices = (i for i in [0..@items.length-1])
+      for itemIndex in itemStackIndices
+        @addItemToStack(@items[itemIndex])
+      return
+
+  # Add item (or move item) to the end of the itemStack
+  addItemToStack: (newItem) ->
+    return unless newItem?
+    index = @itemStack.indexOf(newItem)
+    @itemStack.splice(index, 1) unless index is -1
+    @itemStack.push(newItem)
 
   # Return an {TextEditor} if the pane item is an {TextEditor}, or null otherwise.
   getActiveEditor: ->
@@ -295,6 +324,29 @@ class Pane extends Model
   # Returns an item or `null` if no item exists at the given index.
   itemAtIndex: (index) ->
     @items[index]
+
+  # Makes the next item in the itemStack active.
+  activateNextRecentlyUsedItem: ->
+    if @items.length > 1
+      @itemStackIndex = @itemStack.length - 1 unless @itemStackIndex?
+      @itemStackIndex = @itemStack.length if @itemStackIndex is 0
+      @itemStackIndex = @itemStackIndex - 1
+      nextRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
+
+  # Makes the previous item in the itemStack active.
+  activatePreviousRecentlyUsedItem: ->
+    if @items.length > 1
+      if @itemStackIndex + 1 is @itemStack.length or not @itemStackIndex?
+        @itemStackIndex = -1
+      @itemStackIndex = @itemStackIndex + 1
+      previousRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @setActiveItem(previousRecentlyUsedItem, modifyStack: false)
+
+  # Moves the active item to the end of the itemStack once the ctrl key is lifted
+  moveActiveItemToTopOfStack: ->
+    delete @itemStackIndex
+    @addItemToStack(@activeItem)
 
   # Public: Makes the next item active.
   activateNextItem: ->
@@ -337,36 +389,87 @@ class Pane extends Model
   #
   # * `index` {Number}
   activateItemAtIndex: (index) ->
-    @activateItem(@itemAtIndex(index))
+    item = @itemAtIndex(index) or @getActiveItem()
+    @setActiveItem(item)
 
   # Public: Make the given item *active*, causing it to be displayed by
   # the pane's view.
-  activateItem: (item) ->
+  #
+  # * `options` (optional) {Object}
+  #   * `pending` (optional) {Boolean} indicating that the item should be added
+  #     in a pending state if it does not yet exist in the pane. Existing pending
+  #     items in a pane are replaced with new pending items when they are opened.
+  activateItem: (item, options={}) ->
     if item?
-      @addItem(item, @getActiveItemIndex() + 1, false)
+      if @getPendingItem() is @activeItem
+        index = @getActiveItemIndex()
+      else
+        index = @getActiveItemIndex() + 1
+      @addItem(item, extend({}, options, {index: index}))
       @setActiveItem(item)
 
   # Public: Add the given item to the pane.
   #
   # * `item` The item to add. It can be a model with an associated view or a
   #   view.
-  # * `index` (optional) {Number} indicating the index at which to add the item.
-  #   If omitted, the item is added after the current active item.
+  # * `options` (optional) {Object}
+  #   * `index` (optional) {Number} indicating the index at which to add the item.
+  #     If omitted, the item is added after the current active item.
+  #   * `pending` (optional) {Boolean} indicating that the item should be
+  #     added in a pending state. Existing pending items in a pane are replaced with
+  #     new pending items when they are opened.
   #
   # Returns the added item.
-  addItem: (item, index=@getActiveItemIndex() + 1, moved=false) ->
+  addItem: (item, options={}) ->
+    # Backward compat with old API:
+    #   addItem(item, index=@getActiveItemIndex() + 1)
+    if typeof options is "number"
+      Grim.deprecate("Pane::addItem(item, #{options}) is deprecated in favor of Pane::addItem(item, {index: #{options}})")
+      options = index: options
+
+    index = options.index ? @getActiveItemIndex() + 1
+    moved = options.moved ? false
+    pending = options.pending ? false
+
     throw new Error("Pane items must be objects. Attempted to add item #{item}.") unless item? and typeof item is 'object'
     throw new Error("Adding a pane item with URI '#{item.getURI?()}' that has already been destroyed") if item.isDestroyed?()
 
     return if item in @items
 
     if typeof item.onDidDestroy is 'function'
-      @itemSubscriptions.set item, item.onDidDestroy => @removeItem(item, false)
+      itemSubscriptions = new CompositeDisposable
+      itemSubscriptions.add item.onDidDestroy => @removeItem(item, false)
+      if typeof item.onDidTerminatePendingState is "function"
+        itemSubscriptions.add item.onDidTerminatePendingState =>
+          @clearPendingItem() if @getPendingItem() is item
+      @subscriptionsPerItem.set item, itemSubscriptions
 
     @items.splice(index, 0, item)
+    lastPendingItem = @getPendingItem()
+    replacingPendingItem = lastPendingItem? and not moved
+    @pendingItem = null if replacingPendingItem
+    @setPendingItem(item) if pending
+
     @emitter.emit 'did-add-item', {item, index, moved}
+    @destroyItem(lastPendingItem) if replacingPendingItem
     @setActiveItem(item) unless @getActiveItem()?
     item
+
+  setPendingItem: (item) =>
+    if @pendingItem isnt item
+      mostRecentPendingItem = @pendingItem
+      @pendingItem = item
+      if mostRecentPendingItem?
+        @emitter.emit 'item-did-terminate-pending-state', mostRecentPendingItem
+
+  getPendingItem: =>
+    @pendingItem or null
+
+  clearPendingItem: =>
+    @setPendingItem(null)
+
+  onItemDidTerminatePendingState: (callback) =>
+    @emitter.on 'item-did-terminate-pending-state', callback
 
   # Public: Add the given items to the pane.
   #
@@ -379,13 +482,14 @@ class Pane extends Model
   # Returns an {Array} of added items.
   addItems: (items, index=@getActiveItemIndex() + 1) ->
     items = items.filter (item) => not (item in @items)
-    @addItem(item, index + i, false) for item, i in items
+    @addItem(item, {index: index + i}) for item, i in items
     items
 
   removeItem: (item, moved) ->
     index = @items.indexOf(item)
     return if index is -1
-
+    @pendingItem = null if @getPendingItem() is item
+    @removeItemFromStack(item)
     @emitter.emit 'will-remove-item', {item, index, destroyed: not moved, moved}
     @unsubscribeFromItem(item)
 
@@ -400,6 +504,14 @@ class Pane extends Model
     @emitter.emit 'did-remove-item', {item, index, destroyed: not moved, moved}
     @container?.didDestroyPaneItem({item, index, pane: this}) unless moved
     @destroy() if @items.length is 0 and @config.get('core.destroyEmptyPanes')
+
+  # Remove the given item from the itemStack.
+  #
+  # * `item` The item to remove.
+  # * `index` {Number} indicating the index to which to remove the item from the itemStack.
+  removeItemFromStack: (item) ->
+    index = @itemStack.indexOf(item)
+    @itemStack.splice(index, 1) unless index is -1
 
   # Public: Move the given item to the given index.
   #
@@ -419,7 +531,7 @@ class Pane extends Model
   #   given pane.
   moveItemToPane: (item, pane, index) ->
     @removeItem(item, true)
-    pane.addItem(item, index, true)
+    pane.addItem(item, {index: index, moved: true})
 
   # Public: Destroy the active item and activate the next item.
   destroyActiveItem: ->
@@ -465,15 +577,23 @@ class Pane extends Model
     else
       return true
 
-    chosen = @applicationDelegate.confirm
-      message: "'#{item.getTitle?() ? uri}' has changes, do you want to save them?"
-      detailedMessage: "Your changes will be lost if you close this item without saving."
-      buttons: ["Save", "Cancel", "Don't Save"]
+    saveDialog = (saveButtonText, saveFn, message) =>
+      chosen = @applicationDelegate.confirm
+        message: message
+        detailedMessage: "Your changes will be lost if you close this item without saving."
+        buttons: [saveButtonText, "Cancel", "Don't save"]
+      switch chosen
+        when 0 then saveFn(item, saveError)
+        when 1 then false
+        when 2 then true
 
-    switch chosen
-      when 0 then @saveItem(item, -> true)
-      when 1 then false
-      when 2 then true
+    saveError = (error) =>
+      if error
+        saveDialog("Save as", @saveItemAs, "'#{item.getTitle?() ? uri}' could not be saved.\nError: #{@getMessageForErrorCode(error.code)}")
+      else
+        true
+
+    saveDialog("Save", @saveItem, "'#{item.getTitle?() ? uri}' has changes, do you want to save them?")
 
   # Public: Save the active item.
   saveActiveItem: (nextAction) ->
@@ -490,9 +610,11 @@ class Pane extends Model
   # Public: Save the given item.
   #
   # * `item` The item to save.
-  # * `nextAction` (optional) {Function} which will be called after the item is
-  #   successfully saved.
-  saveItem: (item, nextAction) ->
+  # * `nextAction` (optional) {Function} which will be called with no argument
+  #   after the item is successfully saved, or with the error if it failed.
+  #   The return value will be that of `nextAction` or `undefined` if it was not
+  #   provided
+  saveItem: (item, nextAction) =>
     if typeof item?.getURI is 'function'
       itemURI = item.getURI()
     else if typeof item?.getUri is 'function'
@@ -501,9 +623,12 @@ class Pane extends Model
     if itemURI?
       try
         item.save?()
+        nextAction?()
       catch error
-        @handleSaveError(error, item)
-      nextAction?()
+        if nextAction
+          nextAction(error)
+        else
+          @handleSaveError(error, item)
     else
       @saveItemAs(item, nextAction)
 
@@ -511,9 +636,11 @@ class Pane extends Model
   # path they select.
   #
   # * `item` The item to save.
-  # * `nextAction` (optional) {Function} which will be called after the item is
-  #   successfully saved.
-  saveItemAs: (item, nextAction) ->
+  # * `nextAction` (optional) {Function} which will be called with no argument
+  #   after the item is successfully saved, or with the error if it failed.
+  #   The return value will be that of `nextAction` or `undefined` if it was not
+  #   provided
+  saveItemAs: (item, nextAction) =>
     return unless item?.saveAs?
 
     saveOptions = item.getSaveDialogOptions?() ? {}
@@ -522,9 +649,12 @@ class Pane extends Model
     if newItemPath
       try
         item.saveAs(newItemPath)
+        nextAction?()
       catch error
-        @handleSaveError(error, item)
-      nextAction?()
+        if nextAction
+          nextAction(error)
+        else
+          @handleSaveError(error, item)
 
   # Public: Save all items.
   saveItems: ->
@@ -574,7 +704,6 @@ class Pane extends Model
   # Public: Makes this pane the *active* pane, causing it to gain focus.
   activate: ->
     throw new Error("Pane has been destroyed") if @isDestroyed()
-
     @container?.setActivePane(this)
     @emitter.emit 'did-activate'
 
@@ -651,10 +780,12 @@ class Pane extends Model
       @parent.replaceChild(this, new PaneAxis({@container, orientation, children: [this], @flexScale}))
       @setFlexScale(1)
 
-    newPane = new Pane(extend({@applicationDelegate, @deserializerManager, @config}, params))
+    newPane = new Pane(extend({@applicationDelegate, @notificationManager, @deserializerManager, @config}, params))
     switch side
       when 'before' then @parent.insertChildBefore(this, newPane)
       when 'after' then @parent.insertChildAfter(this, newPane)
+
+    @moveItemToPane(@activeItem, newPane) if params?.moveActiveItem
 
     newPane.activate()
     newPane
@@ -701,7 +832,7 @@ class Pane extends Model
     if @parent.orientation is 'vertical'
       bottommostSibling = last(@parent.children)
       if bottommostSibling instanceof PaneAxis
-        @splitRight()
+        @splitDown()
       else
         bottommostSibling
     else
@@ -721,30 +852,28 @@ class Pane extends Model
       message = "#{message} '#{itemPath}'" if itemPath
       @notificationManager.addWarning(message, options)
 
-    if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
+    customMessage = @getMessageForErrorCode(error.code)
+    if customMessage?
+      addWarningWithPath("Unable to save file: #{customMessage}")
+    else if error.code is 'EISDIR' or error.message?.endsWith?('is a directory')
       @notificationManager.addWarning("Unable to save file: #{error.message}")
-    else if error.code is 'EACCES'
-      addWarningWithPath('Unable to save file: Permission denied')
     else if error.code in ['EPERM', 'EBUSY', 'UNKNOWN', 'EEXIST', 'ELOOP', 'EAGAIN']
       addWarningWithPath('Unable to save file', detail: error.message)
-    else if error.code is 'EROFS'
-      addWarningWithPath('Unable to save file: Read-only file system')
-    else if error.code is 'ENOSPC'
-      addWarningWithPath('Unable to save file: No space left on device')
-    else if error.code is 'ENXIO'
-      addWarningWithPath('Unable to save file: No such device or address')
-    else if error.code is 'ENOTSUP'
-      addWarningWithPath('Unable to save file: Operation not supported on socket')
-    else if error.code is 'EIO'
-      addWarningWithPath('Unable to save file: I/O error writing file')
-    else if error.code is 'EINTR'
-      addWarningWithPath('Unable to save file: Interrupted system call')
-    else if error.code is 'ECONNRESET'
-      addWarningWithPath('Unable to save file: Connection reset')
-    else if error.code is 'ESPIPE'
-      addWarningWithPath('Unable to save file: Invalid seek')
     else if errorMatch = /ENOTDIR, not a directory '([^']+)'/.exec(error.message)
       fileName = errorMatch[1]
       @notificationManager.addWarning("Unable to save file: A directory in the path '#{fileName}' could not be written to")
     else
       throw error
+
+  getMessageForErrorCode: (errorCode) ->
+    switch errorCode
+      when 'EACCES' then 'Permission denied'
+      when 'ECONNRESET' then 'Connection reset'
+      when 'EINTR' then 'Interrupted system call'
+      when 'EIO' then 'I/O error writing file'
+      when 'ENOSPC' then 'No space left on device'
+      when 'ENOTSUP' then 'Operation not supported on socket'
+      when 'ENXIO' then 'No such device or address'
+      when 'EROFS' then 'Read-only file system'
+      when 'ESPIPE' then 'Invalid seek'
+      when 'ETIMEDOUT' then 'Connection timed out'

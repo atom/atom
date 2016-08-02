@@ -1,0 +1,39 @@
+#!/bin/bash
+# mktar name version arch icon-path build-root-path
+
+set -e
+
+SCRIPT=`readlink -f "$0"`
+ROOT=`readlink -f $(dirname $SCRIPT)/..`
+cd $ROOT
+
+NAME="$1"
+VERSION="$2"
+ARCH="$3"
+ICON_FILE="$4"
+BUILD_ROOT_PATH="$5"
+FILE_MODE=755
+
+TAR_PATH=$BUILD_ROOT_PATH
+ATOM_PATH="$BUILD_ROOT_PATH/Atom"
+
+TARGET_ROOT="`mktemp -d`"
+chmod $FILE_MODE "$TARGET_ROOT"
+NAME_IN_TAR="$NAME-$VERSION-$ARCH"
+TARGET="$TARGET_ROOT/$NAME_IN_TAR"
+
+# Copy executable and resources
+cp -a "$ATOM_PATH" "$TARGET"
+
+# Copy icon file
+cp "$ICON_FILE" "$TARGET/$NAME.png"
+
+# Remove executable bit from .node files
+find "$TARGET" -type f -name "*.node" -exec chmod a-x {} \;
+
+# Create the archive
+pushd "$TARGET_ROOT"
+tar caf "$TAR_PATH/$NAME_IN_TAR.tar.gz" "$NAME_IN_TAR"
+popd
+
+rm -rf "$TARGET_ROOT"

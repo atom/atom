@@ -84,7 +84,7 @@ class Package
         @loadKeymaps()
         @loadMenus()
         @loadStylesheets()
-        @loadDeserializers()
+        @registerDeserializerMethods()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -158,7 +158,10 @@ class Package
     false
 
   # TODO: Remove. Settings view calls this method currently.
-  activateConfig: -> @registerConfigSchemaFromMainModule()
+  activateConfig: ->
+    return if @configSchemaRegisteredOnLoad
+    @requireMainModule()
+    @registerConfigSchemaFromMainModule()
 
   activateStylesheets: ->
     return if @stylesheetsActivated
@@ -275,24 +278,24 @@ class Package
     @stylesheets = @getStylesheetPaths().map (stylesheetPath) =>
       [stylesheetPath, @themeManager.loadStylesheet(stylesheetPath, true)]
 
-  loadDeserializers: ->
+  registerDeserializerMethods: ->
     if @metadata.deserializers?
-      for name, implementationPath of @metadata.deserializers
-        do =>
-          deserializePath = path.join(@path, implementationPath)
-          deserializeFunction = null
-          atom.deserializers.add
-            name: name,
-            deserialize: =>
-              @registerViewProviders()
-              deserializeFunction ?= require(deserializePath)
-              deserializeFunction.apply(this, arguments)
+      Object.keys(@metadata.deserializers).forEach (deserializerName) =>
+        methodName = @metadata.deserializers[deserializerName]
+        atom.deserializers.add
+          name: deserializerName,
+          deserialize: (state, atomEnvironment) =>
+            @registerViewProviders()
+            @requireMainModule()
+            @mainModule[methodName](state, atomEnvironment)
       return
 
   registerViewProviders: ->
     if @metadata.viewProviders? and not @registeredViewProviders
-      for implementationPath in @metadata.viewProviders
-        @viewRegistry.addViewProvider(require(path.join(@path, implementationPath)))
+      @requireMainModule()
+      @metadata.viewProviders.forEach (methodName) =>
+        @viewRegistry.addViewProvider (model) =>
+          @mainModule[methodName](model)
       @registeredViewProviders = true
 
   getStylesheetsPath: ->
@@ -424,8 +427,8 @@ class Package
     return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
-        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
-        Run `apm rebuild` in the package directory to resolve.
+        Failed to require the main module of '#{@name}' because it requires one or more incompatible native modules (#{_.map(@incompatibleModules, 'name').join(', ')}).
+        Run `apm rebuild` in the package directory and restart Atom to resolve.
       """
       return
     mainModulePath = @getMainModulePath()

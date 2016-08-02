@@ -12,9 +12,10 @@ environment:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     ATOM_ACCESS_TOKEN:
       secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
+    ATOM_NOISY_BUILD: 1
 
   matrix:
-  - NODE_VERSION: 0.10.35
+  - NODE_VERSION: 4.4.5
 
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
@@ -27,9 +28,15 @@ build_script:
 test: off
 deploy: off
 artifacts:
-  - path: atom-build
+  - path: out\**\AtomSetup.exe
+    name: AtomSetup.exe
+  - path: out\**\AtomSetup.msi
+    name: AtomSetup.msi
 
 cache:
+  - '%APPVEYOR_BUILD_FOLDER%\build\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\node_modules'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\.node-gyp\.atom'
   - '%USERPROFILE%\.atom\.npm'
