@@ -18,24 +18,31 @@ class TokenizedBufferIterator
     @currentLineLength = currentLine.text.length
     @containingTags = @currentLineOpenTags.map (id) => @grammarRegistry.scopeForId(id)
     currentColumn = 0
+
     for tag, index in @currentTags
       if tag >= 0
-        if currentColumn >= position.column and @isAtTagBoundary()
+        if currentColumn is position.column
           @tagIndex = index
           break
         else
           currentColumn += tag
           @containingTags.pop() while @closeTags.shift()
-          @containingTags.push(tag) while tag = @openTags.shift()
-      else
-        scopeName = @grammarRegistry.scopeForId(tag)
-        if tag % 2 is 0
-          if @openTags.length > 0
+          @containingTags.push(openTag) while openTag = @openTags.shift()
+          if currentColumn > position.column
             @tagIndex = index
             break
-          else
-            @closeTags.push(scopeName)
-        else
+      else
+        scopeName = @grammarRegistry.scopeForId(tag)
+        if tag % 2 is 0 # close tag
+          if @openTags.length > 0
+            if currentColumn is position.column
+              @tagIndex = index
+              break
+            else
+              @containingTags.pop() while @closeTags.shift()
+              @containingTags.push(openTag) while openTag = @openTags.shift()
+          @closeTags.push(scopeName)
+        else # open tag
           @openTags.push(scopeName)
 
     @tagIndex ?= @currentTags.length
