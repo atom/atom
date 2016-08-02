@@ -31,6 +31,7 @@ ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
 Clipboard = require './clipboard'
 Project = require './project'
+TitleBar = require './title-bar'
 Workspace = require './workspace'
 PanelContainer = require './panel-container'
 Panel = require './panel'
@@ -193,6 +194,7 @@ class AtomEnvironment extends Model
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
       notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
     })
+
     @themes.workspace = @workspace
 
     @textEditors = new TextEditorRegistry
@@ -550,10 +552,6 @@ class AtomEnvironment extends Model
   # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     @applicationDelegate.setWindowFullScreen(fullScreen)
-    if fullScreen
-      @document.body.classList.add("fullscreen")
-    else
-      @document.body.classList.remove("fullscreen")
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
@@ -678,6 +676,9 @@ class AtomEnvironment extends Model
         startTime = Date.now()
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
+
+        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
 
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
