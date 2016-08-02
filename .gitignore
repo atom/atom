@@ -16,3 +16,4 @@ docs/output
 docs/includes
 spec/fixtures/evil-files/
 out/
+electron/
