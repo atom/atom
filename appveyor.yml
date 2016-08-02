@@ -20,6 +20,7 @@ environment:
 install:
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
+  - npm install -g npm
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
