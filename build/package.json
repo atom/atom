@@ -2,7 +2,7 @@
   "name": "atom-build-scripts",
   "description": "Atom build scripts",
   "dependencies": {
-    "async": "^2.0.1",
+    "async": "2.0.1",
     "babel-core": "5.8.38",
     "coffee-script": "1.8.0",
     "colors": "1.1.2",
@@ -15,6 +15,6 @@
     "normalize-package-data": "2.3.5",
     "npm": "3.10.5",
     "pegjs": "0.9.0",
-    "yargs": "^4.8.1"
+    "yargs": "4.8.1"
   }
 }
