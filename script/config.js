@@ -3,24 +3,30 @@
 
 'use strict'
 
+const fs = require('fs')
 const path = require('path')
 
-const appMetadata = require('../package.json')
-const apmMetadata = require('../apm/node_modules/atom-package-manager/package.json')
-
-const channel = getChannel()
-
 const repositoryRootPath = path.resolve(__dirname, '..')
+const apmRootPath = path.join(repositoryRootPath, 'apm')
+const scriptRootPath = path.join(repositoryRootPath, 'script')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
 const symbolsPath = path.join(buildOutputPath, 'symbols')
 const cachePath = path.join(repositoryRootPath, 'cache')
 const homeDirPath = process.env.HOME || process.env.USERPROFILE
 
+const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
+const apmMetadata = require(path.join(apmRootPath, 'package.json'))
+const channel = getChannel()
+
+const apmBinPath = getApmBinPath()
+const npmBinPath = getNpmBinPath()
+
 module.exports = {
   appMetadata, apmMetadata, channel,
-  repositoryRootPath, buildOutputPath, intermediateAppPath, symbolsPath,
-  cachePath, homeDirPath
+  repositoryRootPath, apmRootPath, scriptRootPath, buildOutputPath, intermediateAppPath, symbolsPath,
+  cachePath, homeDirPath,
+  apmBinPath, npmBinPath
 }
 
 function getChannel () {
@@ -39,4 +45,15 @@ function isBuildingPR () {
     process.env.TRAVIS_PULL_REQUEST ||
     process.env.CI_PULL_REQUEST
   )
+}
+
+function getApmBinPath () {
+  const apmBinName = process.platform === 'win32' ? 'apm.cmd' : 'apm'
+  return path.join(apmRootPath, 'node_modules', '.bin', apmBinName)
+}
+
+function getNpmBinPath () {
+  const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+  const localNpmBinPath = path.resolve(repositoryRootPath, 'script', 'node_modules', '.bin', npmBinName)
+  return fs.existsSync(localNpmBinPath) ? localNpmBinPath : npmBinName
 }

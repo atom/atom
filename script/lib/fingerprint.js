@@ -19,7 +19,7 @@ exports.fingerprintMatches = function () {
 function computeFingerprint () {
   //Include the electron minor version in the fingerprint since that changing requires a re-install
   const electronVersion = CONFIG.appMetadata.electronVersion.replace(/\.\d+$/, '')
-  const apmVersion = CONFIG.apmMetadata.version
+  const apmVersion = CONFIG.apmMetadata.dependencies['atom-package-manager']
 
   const body = electronVersion + apmVersion + process.platform + process.version
   return crypto.createHash('sha1').update(body).digest('hex')

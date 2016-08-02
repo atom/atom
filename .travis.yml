@@ -23,8 +23,8 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
-  - script/bootstrap
-  - node build/build.js
+  - script/bootstrap.js
+  - script/build.js
 
 script:
   - echo 'Run tests at some point.'
@@ -34,7 +34,7 @@ cache:
     - cache
     - node_modules
     - apm/node_modules
-    - build/node_modules
+    - script/node_modules
 
 notifications:
   email:

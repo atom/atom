@@ -24,7 +24,7 @@ install:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - script\bootstrap.cmd
-  - node build\build.js
+  - script\build.cmd
 
 test: off
 deploy: off
@@ -35,7 +35,7 @@ artifacts:
     name: AtomSetup.msi
 
 cache:
-  - '%APPVEYOR_BUILD_FOLDER%\build\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\cache'

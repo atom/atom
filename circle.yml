@@ -27,8 +27,8 @@ dependencies:
     - npm install -g npm
 
   override:
-    - script/bootstrap
-    - build/build.js --code-sign
+    - script/bootstrap.js
+    - script/build.js --code-sign
 
   post:
     - cd out/Atom-darwin-x64 && zip -r ../atom-mac.zip ./Atom.app && cd -
@@ -37,9 +37,9 @@ dependencies:
   cache_directories:
     - cache
     - apm/node_modules
-    - build/node_modules
+    - script/node_modules
     - node_modules
 
 test:
   override:
-    - build/test.js
+    - script/test.js
