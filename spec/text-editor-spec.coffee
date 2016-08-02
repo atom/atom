@@ -6036,6 +6036,17 @@ describe "TextEditor", ->
       editor.setEditorWidthInChars(10)
       expect(editor.lineTextForScreenRow(0)).toBe 'var '
 
+  describe "the softWrapHangingIndent setting", ->
+    it "controls how much extra indentation is applied to soft-wrapped lines", ->
+      editor.setText('123456789')
+      editor.setEditorWidthInChars(8)
+      atom.config.set('editor.softWrap', true)
+      atom.config.set('editor.softWrapHangingIndent', 2)
+      expect(editor.lineTextForScreenRow(1)).toEqual '  9'
+
+      atom.config.set('editor.softWrapHangingIndent', 4)
+      expect(editor.lineTextForScreenRow(1)).toEqual '    9'
+
   describe "::getElement", ->
     it "returns an element", ->
       expect(editor.getElement() instanceof HTMLElement).toBe(true)
