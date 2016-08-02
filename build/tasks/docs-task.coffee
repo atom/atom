@@ -6,6 +6,7 @@ _ = require 'underscore-plus'
 donna = require 'donna'
 joanna = require 'joanna'
 tello = require 'tello'
+glob = require 'glob'
 
 module.exports = (grunt) ->
   getClassesToInclude = ->
@@ -32,7 +33,7 @@ module.exports = (grunt) ->
     docsOutputDir = grunt.config.get('docsOutputDir')
 
     [coffeeMetadata] = donna.generateMetadata(['.'])
-    jsMetadata = joanna('.')
+    jsMetadata = joanna(glob.sync('src/*.js'))
 
     metadata = {
       repository: coffeeMetadata.repository,
