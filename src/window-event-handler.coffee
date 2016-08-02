@@ -24,8 +24,13 @@ class WindowEventHandler
     @subscriptions.add listen(@document, 'submit', 'form', @handleFormSubmit)
 
     browserWindow = @applicationDelegate.getCurrentWindow()
-    browserWindow.on? 'enter-full-screen', @handleEnterFullScreen
-    browserWindow.on? 'leave-full-screen', @handleLeaveFullScreen
+    browserWindow.on 'enter-full-screen', @handleEnterFullScreen
+    @subscriptions.add new Disposable =>
+      browserWindow.removeListener('enter-full-screen', @handleEnterFullScreen)
+
+    browserWindow.on 'leave-full-screen', @handleLeaveFullScreen
+    @subscriptions.add new Disposable =>
+      browserWindow.removeListener('leave-full-screen', @handleLeaveFullScreen)
 
     @subscriptions.add @atomEnvironment.commands.add @window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
