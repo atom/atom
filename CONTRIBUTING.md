@@ -20,6 +20,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 
 [Styleguides](#styleguides)
   * [Git Commit Messages](#git-commit-messages)
+  * [JavaScript Styleguide](#javascript-styleguide)
   * [CoffeeScript Styleguide](#coffeescript-styleguide)
   * [Specs Styleguide](#specs-styleguide)
   * [Documentation Styleguide](#documentation-styleguide)
@@ -279,6 +280,25 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
     * :arrow_up: `:arrow_up:` when upgrading dependencies
     * :arrow_down: `:arrow_down:` when downgrading dependencies
     * :shirt: `:shirt:` when removing linter warnings
+
+### JavaScript Styleguide
+
+All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/).
+
+* Prefer `Object.assign()` to the object spread operator (`{...anotherObj}`)
+* Inline `export`s with expressions
+  ```js
+  // Use this:
+  export default class ClassName {
+
+  }
+
+  // Instead of:
+  class ClassName {
+
+  }
+  export default ClassName
+  ```
 
 ### CoffeeScript Styleguide
 

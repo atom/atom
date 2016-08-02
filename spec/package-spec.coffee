@@ -24,14 +24,14 @@ describe "Package", ->
       mockLocalStorage()
 
     it "does not activate it", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
       pack = buildPackage(packagePath)
       expect(pack.isCompatible()).toBe false
       expect(pack.incompatibleModules[0].name).toBe 'native-module'
       expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
 
     it "utilizes _atomModuleCache if present to determine the package's native dependencies", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-ignored-incompatible-native-module')
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-ignored-incompatible-native-module')
       pack = buildPackage(packagePath)
       expect(pack.getNativeModuleDependencyPaths().length).toBe(1) # doesn't see the incompatible module
       expect(pack.isCompatible()).toBe true
@@ -41,8 +41,7 @@ describe "Package", ->
       expect(pack.isCompatible()).toBe false
 
     it "caches the incompatible native modules in local storage", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
-
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
       expect(buildPackage(packagePath).isCompatible()).toBe false
       expect(global.localStorage.getItem.callCount).toBe 1
       expect(global.localStorage.setItem.callCount).toBe 1
@@ -50,6 +49,18 @@ describe "Package", ->
       expect(buildPackage(packagePath).isCompatible()).toBe false
       expect(global.localStorage.getItem.callCount).toBe 2
       expect(global.localStorage.setItem.callCount).toBe 1
+
+    it "logs an error to the console describing the problem", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
+
+      spyOn(console, 'warn')
+      spyOn(atom.notifications, 'addFatalError')
+
+      buildPackage(packagePath).activateNow()
+
+      expect(atom.notifications.addFatalError).not.toHaveBeenCalled()
+      expect(console.warn.callCount).toBe(1)
+      expect(console.warn.mostRecentCall.args[0]).toContain('it requires one or more incompatible native modules (native-module)')
 
   describe "::rebuild()", ->
     beforeEach ->

@@ -734,7 +734,7 @@ describe "TokenizedBuffer", ->
         expect(iterator.seek(Point(0, 8))).toEqual(["source.js"])
         expect(iterator.getPosition()).toEqual(Point(0, 8))
         expect(iterator.seek(Point(1, 0))).toEqual(["source.js", "comment.block.js"])
-        expect(iterator.getPosition()).toEqual(Point(1, 5))
+        expect(iterator.getPosition()).toEqual(Point(1, 0))
         expect(iterator.seek(Point(1, 18))).toEqual(["source.js", "constant.numeric.decimal.js"])
         expect(iterator.getPosition()).toEqual(Point(1, 18))
 
