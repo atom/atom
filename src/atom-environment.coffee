@@ -45,7 +45,6 @@ Gutter = require './gutter'
 TextEditorRegistry = require './text-editor-registry'
 AutoUpdateManager = require './auto-update-manager'
 
-TitleBarElement = require './title-bar-element'
 WorkspaceElement = require './workspace-element'
 PanelContainerElement = require './panel-container-element'
 PanelElement = require './panel-element'
@@ -203,9 +202,6 @@ class AtomEnvironment extends Model
 
     @config.load()
 
-    # This needs to happen after config.load()
-    @titleBar = new TitleBar() if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
-
     @themes.loadBaseStylesheets()
     @initialStyleElements = @styles.getSnapshot()
     @themes.initialLoadComplete = true if onlyLoadBaseStyleSheets
@@ -266,8 +262,6 @@ class AtomEnvironment extends Model
     registerDefaultCommands({commandRegistry: @commands, @config, @commandInstaller, notificationManager: @notifications, @project, @clipboard})
 
   registerDefaultViewProviders: ->
-    @views.addViewProvider TitleBar, (model, env) ->
-      new TitleBarElement().initialize(model, env)
     @views.addViewProvider Workspace, (model, env) ->
       new WorkspaceElement().initialize(model, env)
     @views.addViewProvider PanelContainer, (model, env) ->
@@ -683,7 +677,9 @@ class AtomEnvironment extends Model
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
 
-        @workspace.addHeaderPanel({item: @views.getView(@titleBar)}) if @titleBar
+        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
+
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
 
