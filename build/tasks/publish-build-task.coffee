@@ -11,6 +11,7 @@ AWS = require 'aws-sdk'
 grunt = null
 
 token = process.env.ATOM_ACCESS_TOKEN
+repo = process.env.ATOM_PUBLISH_REPO ? 'atom/atom'
 defaultHeaders =
   Authorization: "token #{token}"
   'User-Agent': 'Atom'
@@ -33,7 +34,12 @@ module.exports = (gruntObject) ->
   grunt.registerTask 'upload-assets', 'Upload the assets to a GitHub release', ->
     releaseBranch = grunt.config.get('atom.releaseBranch')
     isPrerelease = grunt.config.get('atom.channel') is 'beta'
-    return unless releaseBranch?
+
+    unless releaseBranch?
+      grunt.log.ok("Skipping upload-assets to #{repo} repo because this is not a release branch")
+      return
+
+    grunt.log.ok("Starting upload-assets to #{repo} repo")
 
     doneCallback = @async()
     startTime = Date.now()
@@ -118,8 +124,10 @@ logError = (message, error, details) ->
 
 zipAssets = (buildDir, assets, callback) ->
   zip = (directory, sourcePath, assetName, callback) ->
+    grunt.log.ok("Zipping #{sourcePath} into #{assetName}")
     if process.platform is 'win32'
-      zipCommand = "C:/psmodules/7z.exe a -r #{assetName} \"#{sourcePath}\""
+      sevenZipPath = if process.env.JANKY_SHA1? then "C:/psmodules/" else ""
+      zipCommand = "#{sevenZipPath}7z.exe a -r \"#{assetName}\" \"#{sourcePath}\""
     else
       zipCommand = "zip -r --symlinks '#{assetName}' '#{sourcePath}'"
     options = {cwd: directory, maxBuffer: Infinity}
@@ -134,10 +142,11 @@ zipAssets = (buildDir, assets, callback) ->
   async.parallel(tasks, callback)
 
 getAtomDraftRelease = (isPrerelease, branchName, callback) ->
-  atomRepo = new GitHub({repo: 'atom/atom', token})
+  grunt.log.ok("Obtaining GitHub draft release for #{branchName}")
+  atomRepo = new GitHub({repo: repo, token})
   atomRepo.getReleases {prerelease: isPrerelease}, (error, releases=[]) ->
     if error?
-      logError('Fetching atom/atom releases failed', error, releases)
+      logError("Fetching #{repo} #{if isPrerelease then "pre" else "" }releases failed", error, releases)
       callback(error)
     else
       [firstDraft] = releases.filter ({draft}) -> draft
@@ -152,15 +161,17 @@ getAtomDraftRelease = (isPrerelease, branchName, callback) ->
             logError('Fetching draft release assets failed', error, assets)
             callback(error ? new Error(response.statusCode))
           else
+            grunt.log.ok("Using GitHub draft release #{firstDraft.name}")
             firstDraft.assets = assets
             callback(null, firstDraft)
       else
         createAtomDraftRelease(isPrerelease, branchName, callback)
 
 createAtomDraftRelease = (isPrerelease, branchName, callback) ->
+  grunt.log.ok("Creating GitHub draft release #{branchName}")
   {version} = require('../../package.json')
   options =
-    uri: 'https://api.github.com/repos/atom/atom/releases'
+    uri: "https://api.github.com/repos/#{repo}/releases"
     method: 'POST'
     headers: defaultHeaders
     json:
@@ -177,12 +188,13 @@ createAtomDraftRelease = (isPrerelease, branchName, callback) ->
 
   request options, (error, response, body='') ->
     if error? or response.statusCode isnt 201
-      logError("Creating atom/atom draft release failed", error, body)
+      logError("Creating #{repo} draft release failed", error, body)
       callback(error ? new Error(response.statusCode))
     else
       callback(null, body)
 
 deleteRelease = (release) ->
+  grunt.log.ok("Deleting GitHub release #{release.tag_name}")
   options =
     uri: release.url
     method: 'DELETE'
@@ -193,6 +205,7 @@ deleteRelease = (release) ->
       logError('Deleting release failed', error, body)
 
 deleteExistingAssets = (release, assetNames, callback) ->
+  grunt.log.ok("Deleting #{assetNames.join(',')} from GitHub release #{release.tag_name}")
   [callback, assetNames] = [assetNames, callback] if not callback?
 
   deleteAsset = (url, callback) ->
@@ -214,6 +227,7 @@ deleteExistingAssets = (release, assetNames, callback) ->
 
 uploadAssets = (release, buildDir, assets, callback) ->
   uploadToReleases = (release, assetName, assetPath, callback) ->
+    grunt.log.ok("Uploading #{assetName} to GitHub release #{release.tag_name}")
     options =
       uri: release.upload_url.replace(/\{.*$/, "?name=#{assetName}")
       method: 'POST'
@@ -246,6 +260,7 @@ uploadAssets = (release, buildDir, assets, callback) ->
     s3 = new AWS.S3 s3Info
 
     key = "releases/#{release.tag_name}/#{assetName}"
+    grunt.log.ok("Uploading to S3 #{key}")
     uploadParams =
       Bucket: s3Bucket
       ACL: 'public-read'

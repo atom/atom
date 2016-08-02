@@ -159,6 +159,7 @@ class Package
 
   # TODO: Remove. Settings view calls this method currently.
   activateConfig: ->
+    return if @configSchemaRegisteredOnLoad
     @requireMainModule()
     @registerConfigSchemaFromMainModule()
 
@@ -426,8 +427,8 @@ class Package
     return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
-        Failed to require the main module of '#{@name}' because it requires an incompatible native module.
-        Run `apm rebuild` in the package directory to resolve.
+        Failed to require the main module of '#{@name}' because it requires one or more incompatible native modules (#{_.pluck(@incompatibleModules, 'name').join(', ')}).
+        Run `apm rebuild` in the package directory and restart Atom to resolve.
       """
       return
     mainModulePath = @getMainModulePath()

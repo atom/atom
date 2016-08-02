@@ -8,7 +8,6 @@ module.exports =
   BufferedNodeProcess: require '../src/buffered-node-process'
   BufferedProcess: require '../src/buffered-process'
   GitRepository: require '../src/git-repository'
-  GitRepositoryAsync: require '../src/git-repository-async'
   Notification: require '../src/notification'
   TextBuffer: TextBuffer
   Point: Point
@@ -18,6 +17,10 @@ module.exports =
   Emitter: Emitter
   Disposable: Disposable
   CompositeDisposable: CompositeDisposable
+
+# Shell integration is required by both Squirrel and Settings-View
+if process.platform is 'win32'
+  module.exports.WinShell = require '../src/main-process/win-shell'
 
 # The following classes can't be used from a Task handler and should therefore
 # only be exported when not running as a child node process
