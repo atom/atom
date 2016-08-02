@@ -5,6 +5,7 @@
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')
 
+const argv = require('yargs').argv
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSign = require('./lib/code-sign')
 const copyAssets = require('./lib/copy-assets')
@@ -31,4 +32,10 @@ generateMetadata()
 writeFingerprint()
 dumpSymbols()
   .then(packageApplication)
-  .then(codeSign)
+  .then(packagedAppPath => {
+    if (argv.codeSign) {
+      codeSign(packagedAppPath)
+    } else {
+      console.log('Skipping code-signing. Specify --code-sign option to perform code-signing...')
+    }
+  })
