@@ -133,16 +133,16 @@ describe "TextEditorElement", ->
     it "re-renders the scrollbar", ->
       jasmineContent.appendChild(element)
 
-      atom.styles.addStyleSheet """
+      atom.styles.addStyleSheet("""
         ::-webkit-scrollbar {
           width: 8px;
         }
-      """
+      """, context: 'atom-text-editor')
 
       initialThemeLoadComplete = true
       themeReloadCallback()
 
-      verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
+      verticalScrollbarNode = element.shadowRoot.querySelector(".vertical-scrollbar")
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
 
