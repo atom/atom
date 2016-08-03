@@ -11,6 +11,7 @@ const getLicenseText = require('./get-license-text')
 const CONFIG = require('../config')
 
 module.exports = function () {
+  const appName = getAppName()
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
@@ -20,7 +21,7 @@ module.exports = function () {
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
     'icon': getIcon(),
-    'name': getAppName(),
+    'name': appName,
     'out': CONFIG.buildOutputPath,
     'osx-sign': getSignOptions(),
     'overwrite': true,

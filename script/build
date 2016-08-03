@@ -19,6 +19,11 @@ const transpileCoffeeScriptPaths = require('./lib/transpile-coffee-script-paths'
 const transpileCsonPaths = require('./lib/transpile-cson-paths')
 const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
 
+process.on('unhandledRejection', function (e) {
+  console.error(e)
+  process.exit(1)
+})
+
 cleanOutputDirectory()
 copyAssets()
 transpileBabelPaths()
@@ -34,6 +39,6 @@ dumpSymbols()
     if (argv.codeSign) {
       codeSign(packagedAppPath)
     } else {
-      console.log('Skipping code-signing. Specify --code-sign option to perform code-signing...')
+      console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...')
     }
   })
