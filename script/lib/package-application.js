@@ -21,7 +21,7 @@ module.exports = function () {
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
-    'icon': path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns'),
+    'icon': getIcon(),
     'name': appName,
     'out': CONFIG.buildOutputPath,
     'osx-sign': getSignOptions(),
@@ -33,11 +33,14 @@ module.exports = function () {
     if (process.platform === 'darwin') {
       packagedAppPath = path.join(packageOutputDirPath, appName + '.app')
       bundledResourcesPath = path.join(packagedAppPath, 'Contents', 'Resources')
+      setAtomHelperVersion(packagedAppPath)
+    } else if (process.platform === 'linux') {
+      packagedAppPath = packageOutputDirPath
+      bundledResourcesPath = path.join(packagedAppPath, 'resources')
     } else {
       throw new Error('TODO: handle this case!')
     }
 
-    setAtomHelperVersion(packagedAppPath)
     return copyNonASARResources(bundledResourcesPath).then(() => {
       console.log(`Application bundle created at ${packagedAppPath}`)
       return packagedAppPath
@@ -70,13 +73,11 @@ function copyNonASARResources (bundledResourcesPath) {
 }
 
 function setAtomHelperVersion (packagedAppPath) {
-  if (process.platform === 'darwin') {
-    const frameworksPath = path.join(packagedAppPath, 'Contents', 'Frameworks')
-    const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
-    console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
-    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
-    childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.appMetadata.version, helperPListPath])
-  }
+  const frameworksPath = path.join(packagedAppPath, 'Contents', 'Frameworks')
+  const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
+  console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
+  childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
+  childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.appMetadata.version, helperPListPath])
 }
 
 function buildAsarUnpackGlobExpression () {
@@ -98,6 +99,19 @@ function getSignOptions () {
     return {identity: 'GitHub'}
   } else {
     return null
+  }
+}
+
+function getIcon () {
+  switch (process.platform) {
+    case 'darwin':
+      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns')
+    case 'linux':
+      // Don't pass an icon, as the dock/window list icon is set via the icon
+      // option in the BrowserWindow constructor in atom-window.coffee.
+      return null
+    default:
+      throw new Error("Handle other plaforms!")
   }
 }
 
