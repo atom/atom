@@ -4,7 +4,9 @@ fs = require 'fs-plus'
 _ = require 'underscore-plus'
 
 donna = require 'donna'
+joanna = require 'joanna'
 tello = require 'tello'
+glob = require 'glob'
 
 module.exports = (grunt) ->
   getClassesToInclude = ->
@@ -30,8 +32,16 @@ module.exports = (grunt) ->
   grunt.registerTask 'build-docs', 'Builds the API docs in src', ->
     docsOutputDir = grunt.config.get('docsOutputDir')
 
-    metadata = donna.generateMetadata(['.'])
-    api = tello.digest(metadata)
+    [coffeeMetadata] = donna.generateMetadata(['.'])
+    jsMetadata = joanna(glob.sync('src/*.js'))
+
+    metadata = {
+      repository: coffeeMetadata.repository,
+      version: coffeeMetadata.version,
+      files: Object.assign(coffeeMetadata.files, jsMetadata.files)
+    }
+
+    api = tello.digest([metadata])
     _.extend(api.classes, getClassesToInclude())
     api.classes = sortClasses(api.classes)
 
