@@ -84,10 +84,12 @@ class Workspace extends Model
     @openers = []
     @destroyedItemURIs = []
     @consumeServices(@packageManager)
+    @subscribeToAddedItems()
 
   subscribeToEvents: ->
     @subscribeToActiveItem()
     @subscribeToFontSize()
+    @subscribeToAddedItems()
 
   consumeServices: ({serviceHub}) ->
     @directorySearchers = []
@@ -159,6 +161,13 @@ class Workspace extends Model
 
       @activeItemSubscriptions.add(titleSubscription) if titleSubscription?
       @activeItemSubscriptions.add(modifiedSubscription) if modifiedSubscription?
+
+  subscribeToAddedItems: ->
+    @onDidAddPaneItem ({item, pane, index}) =>
+      if item instanceof TextEditor
+        # @textEditorRegistry.maintainConfig(item)
+        # @textEditorRegistry.maintainGrammar(item)
+        @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is
   # open.
@@ -383,8 +392,7 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddTextEditor: (callback) ->
-    @onDidAddPaneItem ({item, pane, index}) ->
-      callback({textEditor: item, pane, index}) if item instanceof TextEditor
+    @emitter.on 'did-add-text-editor', callback
 
   ###
   Section: Opening

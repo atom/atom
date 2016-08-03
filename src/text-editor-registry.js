@@ -124,6 +124,10 @@ export default class TextEditorRegistry {
   }
 
   maintainGrammar (editor) {
+    if (this.editorsWithMaintainedGrammar.has(editor)) {
+      return
+    }
+
     this.editorsWithMaintainedGrammar.add(editor)
     this.selectGrammarForEditor(editor)
     this.subscriptions.add(editor.onDidChangePath(() => {
@@ -148,6 +152,10 @@ export default class TextEditorRegistry {
   }
 
   maintainConfig (editor) {
+    if (this.editorsWithMaintainedConfig.has(editor)) {
+      return
+    }
+
     this.editorsWithMaintainedConfig.add(editor)
     this.subscribeToSettingsForEditorScope(editor)
     editor.setScopedSettingsDelegate(this.scopedSettingsDelegate)

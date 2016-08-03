@@ -813,6 +813,19 @@ describe "Workspace", ->
         editor.destroy()
         expect(workspace.getTextEditors()).toHaveLength 0
 
+  describe "when an editor is copied because its pane is split", ->
+    it "sets up the new editor to be configured by the text editor registry", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+      waitsForPromise ->
+        workspace.open('a').then (editor) ->
+          editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+          workspace.getActivePane().splitRight(copyActiveItem: true)
+          newEditor = workspace.getActiveTextEditor()
+          expect(newEditor).not.toBe(editor)
+          expect(newEditor.getGrammar().name).toBe(editor.getGrammar().name)
+
   it "stores the active grammars used by all the open editors", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
