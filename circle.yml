@@ -32,8 +32,10 @@ dependencies:
     - script/build --code-sign
 
   post:
-    - cd out/Atom-darwin-x64 && zip -r ../atom-mac.zip ./Atom.app && cd -
-    - cd out && zip -r ./atom-mac-symbols.zip ./symbols && cd -
+    - cd out
+    - zip -r ./atom-mac.zip ./Atom.app
+    - zip -r ./atom-mac-symbols.zip ./symbols
+    - cd -
 
   cache_directories:
     - cache

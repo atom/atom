@@ -132,8 +132,33 @@ function runPackager (options) {
         throw new Error(err)
       } else {
         assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
-        resolve(packageOutputDirPaths[0])
+        const packagedAppPath = renamePackagedAppDir(packageOutputDirPaths[0])
+        resolve(packagedAppPath)
       }
     })
   })
+}
+
+function renamePackagedAppDir (packageOutputDirPath) {
+  let packagedAppPath
+  if (process.platform === 'darwin') {
+    const appBundleName = getAppName() + '.app'
+    packagedAppPath = path.join(CONFIG.buildOutputPath, appBundleName)
+    fs.renameSync(path.join(packageOutputDirPath, appBundleName), packagedAppPath)
+  } else if (process.platform === 'linux') {
+    const appName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
+    let architecture
+    if (process.arch === 'ia32') {
+      architecture = 'i386'
+    } else if (process.arch === 'x64') {
+      architecture = 'amd64'
+    } else {
+      architecture = process.arch
+    }
+    packagedAppPath = path.join(CONFIG.buildOutputPath, `${appName}-${CONFIG.appMetadata.version}-${architecture}`)
+    fs.renameSync(packageOutputDirPath, packagedAppPath)
+  } else {
+    throw new Error('Implement this!')
+  }
+  return packagedAppPath
 }
