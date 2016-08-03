@@ -99,10 +99,7 @@ function getAppName () {
   if (process.platform === 'darwin') {
     return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
   } else {
-    // FIXME: the previous script/build used `atom` as the executable name on
-    // Windows and Linux, independently of the channel being built. Evaluate
-    // whether to change this, and if it breaks next installations.
-    throw new Error('Implement this!')
+    return 'atom'
   }
 }
 
