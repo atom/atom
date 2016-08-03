@@ -11,8 +11,6 @@ const getLicenseText = require('./get-license-text')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
-
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
@@ -22,7 +20,7 @@ module.exports = function () {
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
     'icon': getIcon(),
-    'name': appName,
+    'name': getAppName(),
     'out': CONFIG.buildOutputPath,
     'osx-sign': getSignOptions(),
     'overwrite': true,
@@ -94,6 +92,17 @@ function buildAsarUnpackGlobExpression () {
   ]
 
   return `{${unpack.join(',')}}`
+}
+
+function getAppName () {
+  if (process.platform === 'darwin') {
+    return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+  } else {
+    // FIXME: the previous script/build used `atom` as the executable name on
+    // Windows and Linux, independently of the channel being built. Evaluate
+    // whether to change this, and if it breaks next installations.
+    throw new Error('Implement this!')
+  }
 }
 
 function getSignOptions () {
