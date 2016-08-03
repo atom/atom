@@ -28,9 +28,9 @@ Whichever version you use, ensure that:
 
 ## Instructions
 
-You can run these commands using Command Prompt, PowerShell or Git Shell via [GitHub Desktop](https://desktop.github.com/). These instructions will assume the use of Bash from Git Shell - if you are using Command Prompt use a backslash instead: i.e. `script\build`.
+You can run these commands using Command Prompt, PowerShell, Bash on Ubuntu on Windows, or any other terminal. These instructions will assume the use of Command Prompt - if you are using Bash use a forward slash instead: i.e. `script/build`.
 
-```bash
+```cmd
 cd C:\
 git clone https://github.com/atom/atom/
 cd atom
@@ -49,16 +49,6 @@ This will create the Atom application in the `out\Atom` folder as well as copy i
 ```
   * `--no-install` - Skips the installation task after building.
   * `--verbose` - Verbose mode. A lot more information output.
-
-## Do I have to use GitHub Desktop?
-
-No, you can use your existing Git! GitHub Desktop's Git Shell is just easier to set up.
-
-If you _prefer_ using your existing Git installation, make sure git's cmd directory is in your PATH env variable (e.g. `C:\Program Files (x86)\Git\cmd`) before you open your PowerShell or Command Prompt.
-
-It is also recommended you open your Command Prompt or PowerShell as Administrator.
-
-If none of this works, do install Github Desktop and use its Git Shell as it makes life easier.
 
 ## Troubleshooting
 
