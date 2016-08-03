@@ -12,6 +12,7 @@ const copyAssets = require('./lib/copy-assets')
 const dumpSymbols = require('./lib/dump-symbols')
 const generateMetadata = require('./lib/generate-metadata')
 const generateModuleCache = require('./lib/generate-module-cache')
+const installApplication = require('./lib/install-application')
 const packageApplication = require('./lib/package-application')
 const prebuildLessCache = require('./lib/prebuild-less-cache')
 const transpileBabelPaths = require('./lib/transpile-babel-paths')
@@ -40,5 +41,11 @@ dumpSymbols()
       codeSign(packagedAppPath)
     } else {
       console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...')
+    }
+
+    if (argv.install) {
+      installApplication(packagedAppPath)
+    } else {
+      console.log('Skipping installation. Specify the --install option to install Atom...')
     }
   })
