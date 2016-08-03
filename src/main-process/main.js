@@ -113,9 +113,11 @@ function setupAtomHome ({setPortable}) {
 
   try {
     atomHome = fs.realpathSync(atomHome)
-  } finally {
-    process.env.ATOM_HOME = atomHome
+  } catch (e) {
+    // Don't throw an error if atomHome doesn't exist.
   }
+
+  process.env.ATOM_HOME = atomHome
 }
 
 function setupCompileCache () {
