@@ -10,6 +10,7 @@ const repositoryRootPath = path.resolve(__dirname, '..')
 const apmRootPath = path.join(repositoryRootPath, 'apm')
 const scriptRootPath = path.join(repositoryRootPath, 'script')
 const buildOutputPath = path.join(repositoryRootPath, 'out')
+const docsOutputPath = path.join(repositoryRootPath, 'docs', 'output')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
 const symbolsPath = path.join(buildOutputPath, 'symbols')
 const cachePath = path.join(repositoryRootPath, 'cache')
@@ -24,7 +25,8 @@ const npmBinPath = getNpmBinPath()
 
 module.exports = {
   appMetadata, apmMetadata, channel,
-  repositoryRootPath, apmRootPath, scriptRootPath, buildOutputPath, intermediateAppPath, symbolsPath,
+  repositoryRootPath, apmRootPath, scriptRootPath,
+  buildOutputPath, docsOutputPath, intermediateAppPath, symbolsPath,
   cachePath, homeDirPath,
   apmBinPath, npmBinPath
 }

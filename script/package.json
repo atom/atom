@@ -6,9 +6,11 @@
     "babel-core": "5.8.38",
     "coffee-script": "1.8.0",
     "colors": "1.1.2",
+    "donna": "1.0.13",
     "electron-packager": "7.3.0",
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
+    "joanna": "0.0.6",
     "legal-eagle": "0.13.0",
     "minidump": "0.9.0",
     "mkdirp": "0.5.1",
@@ -16,6 +18,7 @@
     "npm": "3.10.5",
     "pegjs": "0.9.0",
     "semver": "5.3.0",
+    "tello": "1.0.5",
     "yargs": "4.8.1"
   }
 }

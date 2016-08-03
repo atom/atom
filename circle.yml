@@ -18,6 +18,7 @@ general:
   artifacts:
     - out/atom-mac.zip
     - out/atom-mac-symbols.zip
+    - docs/output/atom-api.json
 
 dependencies:
   pre:
