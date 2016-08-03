@@ -41,14 +41,14 @@ module.exports = function () {
       throw new Error('TODO: handle this case!')
     }
 
-    return copyNonASARResources(bundledResourcesPath).then(() => {
+    return copyNonASARResources(packagedAppPath, bundledResourcesPath).then(() => {
       console.log(`Application bundle created at ${packagedAppPath}`)
       return packagedAppPath
     })
   })
 }
 
-function copyNonASARResources (bundledResourcesPath) {
+function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
   const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
   console.log(`Copying shell commands to ${bundledShellCommandsPath}...`)
   fs.copySync(
@@ -64,6 +64,8 @@ function copyNonASARResources (bundledResourcesPath) {
   }
   if (process.platform === 'darwin') {
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'file.icns'), path.join(bundledResourcesPath, 'file.icns'))
+  } else if (process.platform === 'linux') {
+    fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'), path.join(packagedAppPath, 'atom.png'))
   }
 
   console.log(`Writing LICENSE.md to ${bundledResourcesPath}...`)
@@ -111,7 +113,7 @@ function getIcon () {
       // option in the BrowserWindow constructor in atom-window.coffee.
       return null
     default:
-      throw new Error("Handle other plaforms!")
+      throw new Error("Handle other platforms!")
   }
 }
 
