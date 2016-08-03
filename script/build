@@ -4,6 +4,7 @@
 
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')
+require('colors')
 
 const argv = require('yargs').argv
 const cleanOutputDirectory = require('./lib/clean-output-directory')
@@ -40,12 +41,12 @@ dumpSymbols()
     if (argv.codeSign) {
       codeSign(packagedAppPath)
     } else {
-      console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...')
+      console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...'.gray)
     }
 
     if (argv.install) {
       installApplication(packagedAppPath)
     } else {
-      console.log('Skipping installation. Specify the --install option to install Atom...')
+      console.log('Skipping installation. Specify the --install option to install Atom...'.gray)
     }
   })
