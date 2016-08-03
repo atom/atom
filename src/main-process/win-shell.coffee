@@ -1,9 +1,16 @@
 Registry = require 'winreg'
 Path = require 'path'
 
+getAppVersion = ->
+  if process.type is 'renderer'
+    return atom.getVersion()
+  else
+    electron = require 'electron'
+    return electron.app.getVersion()
+
 exeName = Path.basename(process.execPath)
 appPath = "\"#{process.execPath}\""
-isBeta = appPath.includes(' Beta')
+isBeta = getAppVersion().includes('beta')
 appName = exeName.replace('atom', (if isBeta then 'Atom Beta' else 'Atom' )).replace('.exe', '')
 
 class ShellOption
