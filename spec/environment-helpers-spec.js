@@ -65,6 +65,9 @@ describe('updateProcessEnv(launchEnv)', function () {
           TERM: 'xterm-something',
           PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'
         })
+
+        // Doesn't error
+        updateProcessEnv(null)
       })
     })
 
