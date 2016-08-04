@@ -2,9 +2,8 @@
 
 'use strict'
 
-const path = require('path')
-
 const cleanDependencies = require('./lib/clean-dependencies')
+const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
 const dependenciesFingerprint = require('./lib/dependencies-fingerprint')
 const installApm = require('./lib/install-apm')
 const installAtomDependencies = require('./lib/install-atom-dependencies')
@@ -16,6 +15,8 @@ verifyMachineRequirements()
 if (dependenciesFingerprint.isOutdated()) {
   cleanDependencies()
 }
+
+if (process.platform === 'win32') deleteMsbuildFromPath()
 
 installScriptDependencies()
 installApm()
