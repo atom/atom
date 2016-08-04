@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
+{screen, ipcRenderer, remote, shell, systemPreferences, webFrame} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
@@ -57,11 +57,17 @@ class ApplicationDelegate
   reloadWindow: ->
     ipcRenderer.send("call-window-method", "reload")
 
+  minimizeWindow: ->
+    ipcRenderer.send("call-window-method", "minimize")
+
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()
 
   maximizeWindow: ->
     ipcRenderer.send("call-window-method", "maximize")
+
+  unmaximizeWindow: ->
+    ipcRenderer.send("call-window-method", "unmaximize")
 
   isWindowFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
@@ -129,6 +135,9 @@ class ApplicationDelegate
 
   getPrimaryDisplayWorkAreaSize: ->
     remote.screen.getPrimaryDisplay().workAreaSize
+
+  getAppleActionOnDoubleClick: ->
+    remote.systemPreferences.getUserDefault("AppleActionOnDoubleClick", "string")
 
   confirm: ({message, detailedMessage, buttons}) ->
     buttons ?= {}

@@ -8,11 +8,23 @@ class TitleBar
     @titleElement.classList.add('title')
     @element.appendChild(@titleElement)
 
+    @element.addEventListener 'dblclick', @dblclickHandler
+
     @workspace.onDidChangeActivePaneItem => @updateTitle()
     @themes.onDidChangeActiveThemes => @updateWindowSheetOffset()
 
     @updateTitle()
     @updateWindowSheetOffset()
+
+  dblclickHandler: =>
+    switch @applicationDelegate.getAppleActionOnDoubleClick()
+      when 'Minimize'
+        @applicationDelegate.minimizeWindow()
+      when 'Maximize'
+        if @applicationDelegate.isWindowMaximized()
+          @applicationDelegate.unmaximizeWindow()
+        else
+          @applicationDelegate.maximizeWindow()
 
   updateTitle: ->
     @titleElement.textContent = document.title
