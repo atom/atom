@@ -6,7 +6,7 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set(['NODE_ENV', 'NODE_PATH'])
 
 export default function updateProcessEnv (launchEnv) {
   let envToAssign
-  if (launchEnv.PWD) {
+  if (launchEnv && launchEnv.PWD) {
     envToAssign = launchEnv
   } else {
     if (process.platform === 'darwin') {
