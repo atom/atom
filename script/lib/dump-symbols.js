@@ -2,17 +2,23 @@
 
 const fs = require('fs-extra')
 const glob = require('glob')
-const minidump = require('minidump')
 const path = require('path')
 
 const CONFIG = require('../config')
 module.exports = function () {
-  console.log(`Dumping symbols in ${CONFIG.symbolsPath}...`)
-  const binaryPaths = glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', '**', '*.node'))
-  return Promise.all(binaryPaths.map(dumpSymbol))
+  if (process.platform === 'win32') {
+    console.log('Skipping symbol dumping because minidump is not supported on Windows...'.gray)
+    return Promise.resolve()
+  } else {
+    console.log(`Dumping symbols in ${CONFIG.symbolsPath}...`)
+    const binaryPaths = glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', '**', '*.node'))
+    return Promise.all(binaryPaths.map(dumpSymbol))
+  }
 }
 
 function dumpSymbol (binaryPath) {
+  const minidump = require('minidump')
+
   return new Promise(function (resolve, reject) {
     minidump.dumpSymbol(binaryPath, function (error, content) {
       if (error) {
