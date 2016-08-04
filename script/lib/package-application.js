@@ -125,7 +125,7 @@ function getIcon () {
       // option in the BrowserWindow constructor in atom-window.coffee.
       return null
     default:
-      throw new Error("Handle other platforms!")
+    return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 }
 
