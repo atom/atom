@@ -48,23 +48,28 @@ module.exports = function () {
 }
 
 function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
-  const bundledShellCommandsPath = path.join(bundledResourcesPath, 'app')
-  console.log(`Copying shell commands to ${bundledShellCommandsPath}...`)
+  console.log(`Copying non-ASAR resources to ${bundledResourcesPath}...`)
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
-    path.join(bundledShellCommandsPath, 'apm'),
+    path.join(bundledResourcesPath, 'app', 'apm'),
     {filter: includePathInPackagedApp}
   )
   if (process.platform !== 'win32') {
     // Existing symlinks on user systems point to an outdated path, so just symlink it to the real location of the apm binary.
     // TODO: Change command installer to point to appropriate path and remove this fallback after a few releases.
-    fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(bundledShellCommandsPath, 'apm', 'node_modules', '.bin', 'apm'))
-    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(bundledShellCommandsPath, 'atom.sh'))
+    fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.join(bundledResourcesPath, 'app', 'apm', 'node_modules', '.bin', 'apm'))
+    fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(bundledResourcesPath, 'app', 'atom.sh'))
   }
   if (process.platform === 'darwin') {
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'file.icns'), path.join(bundledResourcesPath, 'file.icns'))
   } else if (process.platform === 'linux') {
     fs.copySync(path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'), path.join(packagedAppPath, 'atom.png'))
+  } else if (process.platform === 'win32') {
+    fs.copySync(path.join('resources', 'win', 'atom.cmd'), path.join(bundledResourcesPath, 'cli', 'atom.cmd'))
+    fs.copySync(path.join('resources', 'win', 'atom.sh'), path.join(bundledResourcesPath, 'cli', 'atom.sh'))
+    fs.copySync(path.join('resources', 'win', 'atom.js'), path.join(bundledResourcesPath, 'cli', 'atom.js'))
+    fs.copySync(path.join('resources', 'win', 'apm.cmd'), path.join(bundledResourcesPath, 'cli', 'apm.cmd'))
+    fs.copySync(path.join('resources', 'win', 'apm.sh'), path.join(bundledResourcesPath, 'cli', 'apm.sh'))
   }
 
   console.log(`Writing LICENSE.md to ${bundledResourcesPath}...`)
