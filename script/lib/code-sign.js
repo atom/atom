@@ -24,14 +24,15 @@ module.exports = function (packagedAppPath) {
     childProcess.spawnSync(signtoolPath, [
       'sign', '/v',
       '/f', process.env.WIN_P12KEY_PATH,
-      '/p', process.env.WIN_P12KEY_PASSWORD
+      '/p', process.env.WIN_P12KEY_PASSWORD,
+      binToSignPath
     ], {stdio: 'inherit'})
 
     // TODO: when we will be able to generate an installer, sign that too!
     // const installerToSignPath = computeInstallerPath()
     // console.log(`Signing Windows Installer at ${installerToSignPath}`)
     // childProcess.spawnSync(signtoolPath, [
-    //   'sign', '/v',
+    //   'sign', binToSignPath, '/v',
     //   '/f', process.env.WIN_P12KEY_PATH,
     //   '/p', process.env.WIN_P12KEY_PASSWORD
     // ], {stdio: 'inherit'})
