@@ -136,8 +136,8 @@ class ApplicationDelegate
   getPrimaryDisplayWorkAreaSize: ->
     remote.screen.getPrimaryDisplay().workAreaSize
 
-  getAppleActionOnDoubleClick: ->
-    remote.systemPreferences.getUserDefault("AppleActionOnDoubleClick", "string")
+  getUserDefault: (key, type) ->
+    remote.systemPreferences.getUserDefault(key, type)
 
   confirm: ({message, detailedMessage, buttons}) ->
     buttons ?= {}

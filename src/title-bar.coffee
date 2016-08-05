@@ -17,7 +17,8 @@ class TitleBar
     @updateWindowSheetOffset()
 
   dblclickHandler: =>
-    switch @applicationDelegate.getAppleActionOnDoubleClick()
+    # User preference deciding which action to take on a title bar double-click
+    switch @applicationDelegate.getUserDefault('AppleActionOnDoubleClick', 'string')
       when 'Minimize'
         @applicationDelegate.minimizeWindow()
       when 'Maximize'
