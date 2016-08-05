@@ -2,58 +2,58 @@
   {
     label: '&File'
     submenu: [
-      { label: 'New &Window', command: 'application:new-window' }
-      { label: '&New File', command: 'application:new-file' }
-      { label: '&Open File…', command: 'application:open-file' }
-      { label: 'Open Folder…', command: 'application:open-folder' }
-      { label: 'Add Project Folder…', command: 'application:add-project-folder' }
-      { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
-      { type: 'separator' }
-      { label: 'Se&ttings', command: 'application:show-settings' }
-      { type: 'separator' }
-      { label: 'Config…', command: 'application:open-your-config' }
-      { label: 'Init Script…', command: 'application:open-your-init-script' }
-      { label: 'Keymap…', command: 'application:open-your-keymap' }
-      { label: 'Snippets…', command: 'application:open-your-snippets' }
-      { label: 'Stylesheet…', command: 'application:open-your-stylesheet' }
-      { type: 'separator' }
-      { label: '&Save', command: 'core:save' }
-      { label: 'Save &As…', command: 'core:save-as' }
-      { label: 'Save A&ll', command: 'window:save-all' }
-      { type: 'separator' }
-      { label: '&Close Tab', command: 'core:close' }
-      { label: 'Close &Pane', command: 'pane:close' }
-      { label: 'Clos&e Window', command: 'window:close' }
-      { type: 'separator' }
-      { label: 'E&xit', command: 'application:quit' }
+      {label: 'New &Window', command: 'application:new-window'}
+      {label: '&New File', command: 'application:new-file'}
+      {label: '&Open File…', command: 'application:open-file'}
+      {label: 'Open Folder…', command: 'application:open-folder'}
+      {label: 'Add Project Folder…', command: 'application:add-project-folder'}
+      {label: 'Reopen Last &Item', command: 'pane:reopen-closed-item'}
+      {type: 'separator'}
+      {label: 'Se&ttings', command: 'application:show-settings'}
+      {type: 'separator'}
+      {label: 'Config…', command: 'application:open-your-config'}
+      {label: 'Init Script…', command: 'application:open-your-init-script'}
+      {label: 'Keymap…', command: 'application:open-your-keymap'}
+      {label: 'Snippets…', command: 'application:open-your-snippets'}
+      {label: 'Stylesheet…', command: 'application:open-your-stylesheet'}
+      {type: 'separator'}
+      {label: '&Save', command: 'core:save'}
+      {label: 'Save &As…', command: 'core:save-as'}
+      {label: 'Save A&ll', command: 'window:save-all'}
+      {type: 'separator'}
+      {label: '&Close Tab', command: 'core:close'}
+      {label: 'Close &Pane', command: 'pane:close'}
+      {label: 'Clos&e Window', command: 'window:close'}
+      {type: 'separator'}
+      {label: 'E&xit', command: 'application:quit'}
     ]
   }
 
   {
     label: '&Edit'
     submenu: [
-      { label: '&Undo', command: 'core:undo' }
-      { label: '&Redo', command: 'core:redo' }
-      { type: 'separator' }
-      { label: 'Cu&t', command: 'core:cut' }
-      { label: '&Copy', command: 'core:copy' }
-      { label: 'Copy Pat&h', command: 'editor:copy-path' }
-      { label: '&Paste', command: 'core:paste' }
-      { label: 'Select &All', command: 'core:select-all' }
-      { type: 'separator' }
-      { label: '&Toggle Comments', command: 'editor:toggle-line-comments' }
+      {label: '&Undo', command: 'core:undo'}
+      {label: '&Redo', command: 'core:redo'}
+      {type: 'separator'}
+      {label: 'Cu&t', command: 'core:cut'}
+      {label: '&Copy', command: 'core:copy'}
+      {label: 'Copy Pat&h', command: 'editor:copy-path'}
+      {label: '&Paste', command: 'core:paste'}
+      {label: 'Select &All', command: 'core:select-all'}
+      {type: 'separator'}
+      {label: '&Toggle Comments', command: 'editor:toggle-line-comments'}
       {
         label: 'Lines',
         submenu: [
-          { label: '&Indent', command: 'editor:indent-selected-rows' }
-          { label: '&Outdent', command: 'editor:outdent-selected-rows' }
-          { label: '&Auto Indent', command: 'editor:auto-indent' }
-          { type: 'separator' }
-          { label: 'Move Line &Up', command: 'editor:move-line-up' }
-          { label: 'Move Line &Down', command: 'editor:move-line-down' }
-          { label: 'Du&plicate Lines', command: 'editor:duplicate-lines' }
-          { label: 'D&elete Line', command: 'editor:delete-line' }
-          { label: '&Join Lines', command: 'editor:join-lines' }
+          {label: '&Indent', command: 'editor:indent-selected-rows'}
+          {label: '&Outdent', command: 'editor:outdent-selected-rows'}
+          {label: '&Auto Indent', command: 'editor:auto-indent'}
+          {type: 'separator'}
+          {label: 'Move Line &Up', command: 'editor:move-line-up'}
+          {label: 'Move Line &Down', command: 'editor:move-line-down'}
+          {label: 'Du&plicate Lines', command: 'editor:duplicate-lines'}
+          {label: 'D&elete Line', command: 'editor:delete-line'}
+          {label: '&Join Lines', command: 'editor:join-lines'}
         ]
       }
       {
@@ -66,34 +66,34 @@
       {
         label: 'Text',
         submenu: [
-          { label: '&Upper Case', command: 'editor:upper-case' }
-          { label: '&Lower Case', command: 'editor:lower-case' }
-          { type: 'separator' }
-          { label: 'Delete to End of &Word', command: 'editor:delete-to-end-of-word' }
-          { label: 'Delete to Previous Word Boundary', command: 'editor:delete-to-previous-word-boundary' }
-          { label: 'Delete to Next Word Boundary', command: 'editor:delete-to-next-word-boundary' }
-          { label: '&Delete Line', command: 'editor:delete-line' }
-          { type: 'separator' }
-          { label: '&Transpose', command: 'editor:transpose' }
+          {label: '&Upper Case', command: 'editor:upper-case'}
+          {label: '&Lower Case', command: 'editor:lower-case'}
+          {type: 'separator'}
+          {label: 'Delete to End of &Word', command: 'editor:delete-to-end-of-word'}
+          {label: 'Delete to Previous Word Boundary', command: 'editor:delete-to-previous-word-boundary'}
+          {label: 'Delete to Next Word Boundary', command: 'editor:delete-to-next-word-boundary'}
+          {label: '&Delete Line', command: 'editor:delete-line'}
+          {type: 'separator'}
+          {label: '&Transpose', command: 'editor:transpose'}
         ]
       }
       {
         label: 'Folding',
         submenu: [
-          { label: '&Fold', command: 'editor:fold-current-row' }
-          { label: '&Unfold', command: 'editor:unfold-current-row' }
-          { label: 'Unfold &All', command: 'editor:unfold-all' }
-          { type: 'separator' }
-          { label: 'Fol&d All', command: 'editor:fold-all' }
-          { label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1' }
-          { label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2' }
-          { label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3' }
-          { label: 'Fold Level 4', command: 'editor:fold-at-indent-level-4' }
-          { label: 'Fold Level 5', command: 'editor:fold-at-indent-level-5' }
-          { label: 'Fold Level 6', command: 'editor:fold-at-indent-level-6' }
-          { label: 'Fold Level 7', command: 'editor:fold-at-indent-level-7' }
-          { label: 'Fold Level 8', command: 'editor:fold-at-indent-level-8' }
-          { label: 'Fold Level 9', command: 'editor:fold-at-indent-level-9' }
+          {label: '&Fold', command: 'editor:fold-current-row'}
+          {label: '&Unfold', command: 'editor:unfold-current-row'}
+          {label: 'Unfold &All', command: 'editor:unfold-all'}
+          {type: 'separator'}
+          {label: 'Fol&d All', command: 'editor:fold-all'}
+          {label: 'Fold Level 1', command: 'editor:fold-at-indent-level-1'}
+          {label: 'Fold Level 2', command: 'editor:fold-at-indent-level-2'}
+          {label: 'Fold Level 3', command: 'editor:fold-at-indent-level-3'}
+          {label: 'Fold Level 4', command: 'editor:fold-at-indent-level-4'}
+          {label: 'Fold Level 5', command: 'editor:fold-at-indent-level-5'}
+          {label: 'Fold Level 6', command: 'editor:fold-at-indent-level-6'}
+          {label: 'Fold Level 7', command: 'editor:fold-at-indent-level-7'}
+          {label: 'Fold Level 8', command: 'editor:fold-at-indent-level-8'}
+          {label: 'Fold Level 9', command: 'editor:fold-at-indent-level-9'}
         ]
       }
     ]
@@ -102,63 +102,63 @@
   {
     label: '&View'
     submenu: [
-      { label: 'Toggle &Full Screen', command: 'window:toggle-full-screen' }
-      { label: 'Toggle Menu Bar', command: 'window:toggle-menu-bar' }
+      {label: 'Toggle &Full Screen', command: 'window:toggle-full-screen'}
+      {label: 'Toggle Menu Bar', command: 'window:toggle-menu-bar'}
       {
         label: 'Panes'
         submenu: [
-          { label: 'Split Up', command: 'pane:split-up' }
-          { label: 'Split Down', command: 'pane:split-down' }
-          { label: 'Split Left', command: 'pane:split-left' }
-          { label: 'Split Right', command: 'pane:split-right' }
-          { type: 'separator' }
-          { label: 'Focus Next Pane', command: 'window:focus-next-pane' }
-          { label: 'Focus Previous Pane', command: 'window:focus-previous-pane' }
-          { type: 'separator' }
-          { label: 'Focus Pane Above', command: 'window:focus-pane-above' }
-          { label: 'Focus Pane Below', command: 'window:focus-pane-below' }
-          { label: 'Focus Pane On Left', command: 'window:focus-pane-on-left' }
-          { label: 'Focus Pane On Right', command: 'window:focus-pane-on-right' }
-          { type: 'separator' }
-          { label: 'Close Pane', command: 'pane:close' }
+          {label: 'Split Up', command: 'pane:split-up'}
+          {label: 'Split Down', command: 'pane:split-down'}
+          {label: 'Split Left', command: 'pane:split-left'}
+          {label: 'Split Right', command: 'pane:split-right'}
+          {type: 'separator'}
+          {label: 'Focus Next Pane', command: 'window:focus-next-pane'}
+          {label: 'Focus Previous Pane', command: 'window:focus-previous-pane'}
+          {type: 'separator'}
+          {label: 'Focus Pane Above', command: 'window:focus-pane-above'}
+          {label: 'Focus Pane Below', command: 'window:focus-pane-below'}
+          {label: 'Focus Pane On Left', command: 'window:focus-pane-on-left'}
+          {label: 'Focus Pane On Right', command: 'window:focus-pane-on-right'}
+          {type: 'separator'}
+          {label: 'Close Pane', command: 'pane:close'}
         ]
       }
       {
         label: 'Developer'
         submenu: [
-          { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
-          { label: '&Reload Window', command: 'window:reload' }
-          { label: 'Run Package &Specs', command: 'window:run-package-specs' }
-          { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
+          {label: 'Open In &Dev Mode…', command: 'application:open-dev'}
+          {label: '&Reload Window', command: 'window:reload'}
+          {label: 'Run Package &Specs', command: 'window:run-package-specs'}
+          {label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools'}
         ]
       }
-      { type: 'separator' }
-      { label: '&Increase Font Size', command: 'window:increase-font-size' }
-      { label: '&Decrease Font Size', command: 'window:decrease-font-size' }
-      { label: 'Re&set Font Size', command: 'window:reset-font-size' }
-      { type: 'separator' }
-      { label: 'Toggle Soft &Wrap', command: 'editor:toggle-soft-wrap' }
+      {type: 'separator'}
+      {label: '&Increase Font Size', command: 'window:increase-font-size'}
+      {label: '&Decrease Font Size', command: 'window:decrease-font-size'}
+      {label: 'Re&set Font Size', command: 'window:reset-font-size'}
+      {type: 'separator'}
+      {label: 'Toggle Soft &Wrap', command: 'editor:toggle-soft-wrap'}
     ]
   }
 
   {
     label: '&Selection'
     submenu: [
-      { label: 'Add Selection &Above', command: 'editor:add-selection-above' }
-      { label: 'Add Selection &Below', command: 'editor:add-selection-below' }
-      { label: 'S&plit into Lines', command: 'editor:split-selections-into-lines'}
-      { label: 'Single Selection', command: 'editor:consolidate-selections'}
-      { type: 'separator' }
-      { label: 'Select to &Top', command: 'core:select-to-top' }
-      { label: 'Select to Botto&m', command: 'core:select-to-bottom' }
-      { type: 'separator' }
-      { label: 'Select &Line', command: 'editor:select-line' }
-      { label: 'Select &Word', command: 'editor:select-word' }
-      { label: 'Select to Beginning of W&ord', command: 'editor:select-to-beginning-of-word' }
-      { label: 'Select to Beginning of L&ine', command: 'editor:select-to-beginning-of-line' }
-      { label: 'Select to First &Character of Line', command: 'editor:select-to-first-character-of-line' }
-      { label: 'Select to End of Wor&d', command: 'editor:select-to-end-of-word' }
-      { label: 'Select to End of Lin&e', command: 'editor:select-to-end-of-line' }
+      {label: 'Add Selection &Above', command: 'editor:add-selection-above'}
+      {label: 'Add Selection &Below', command: 'editor:add-selection-below'}
+      {label: 'S&plit into Lines', command: 'editor:split-selections-into-lines'}
+      {label: 'Single Selection', command: 'editor:consolidate-selections'}
+      {type: 'separator'}
+      {label: 'Select to &Top', command: 'core:select-to-top'}
+      {label: 'Select to Botto&m', command: 'core:select-to-bottom'}
+      {type: 'separator'}
+      {label: 'Select &Line', command: 'editor:select-line'}
+      {label: 'Select &Word', command: 'editor:select-word'}
+      {label: 'Select to Beginning of W&ord', command: 'editor:select-to-beginning-of-word'}
+      {label: 'Select to Beginning of L&ine', command: 'editor:select-to-beginning-of-line'}
+      {label: 'Select to First &Character of Line', command: 'editor:select-to-first-character-of-line'}
+      {label: 'Select to End of Wor&d', command: 'editor:select-to-end-of-word'}
+      {label: 'Select to End of Lin&e', command: 'editor:select-to-end-of-line'}
     ]
   }
 
@@ -175,23 +175,23 @@
   {
     label: '&Help'
     submenu: [
-      { label: 'View &Terms of Use', command: 'application:open-terms-of-use' }
-      { label: 'View &License', command: 'application:open-license' }
-      { label: 'VERSION', enabled: false }
-      { label: 'Restart and Install Update', command: 'application:install-update', visible: false}
-      { label: 'Check for Update', command: 'application:check-for-update', visible: false}
-      { label: 'Checking for Update', enabled: false, visible: false}
-      { label: 'Downloading Update', enabled: false, visible: false}
-      { type: 'separator' }
-      { label: '&Documentation', command: 'application:open-documentation' }
-      { label: 'Frequently Asked Questions', command: 'application:open-faq' }
-      { type: 'separator' }
-      { label: 'Community Discussions', command: 'application:open-discussions' }
-      { label: 'Report Issue', command: 'application:report-issue' }
-      { label: 'Search Issues', command: 'application:search-issues' }
-      { type: 'separator' }
-      { label: 'About Atom', command: 'application:about' }
-      { type: 'separator' }
+      {label: 'View &Terms of Use', command: 'application:open-terms-of-use'}
+      {label: 'View &License', command: 'application:open-license'}
+      {label: 'VERSION', enabled: false}
+      {label: 'Restart and Install Update', command: 'application:install-update', visible: false}
+      {label: 'Check for Update', command: 'application:check-for-update', visible: false}
+      {label: 'Checking for Update', enabled: false, visible: false}
+      {label: 'Downloading Update', enabled: false, visible: false}
+      {type: 'separator'}
+      {label: '&Documentation', command: 'application:open-documentation'}
+      {label: 'Frequently Asked Questions', command: 'application:open-faq'}
+      {type: 'separator'}
+      {label: 'Community Discussions', command: 'application:open-discussions'}
+      {label: 'Report Issue', command: 'application:report-issue'}
+      {label: 'Search Issues', command: 'application:search-issues'}
+      {type: 'separator'}
+      {label: 'About Atom', command: 'application:about'}
+      {type: 'separator'}
     ]
   }
 ]
