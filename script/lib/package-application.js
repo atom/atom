@@ -33,11 +33,9 @@ module.exports = function () {
       packagedAppPath = path.join(packageOutputDirPath, appName + '.app')
       bundledResourcesPath = path.join(packagedAppPath, 'Contents', 'Resources')
       setAtomHelperVersion(packagedAppPath)
-    } else if (process.platform === 'linux') {
+    } else {
       packagedAppPath = packageOutputDirPath
       bundledResourcesPath = path.join(packagedAppPath, 'resources')
-    } else {
-      throw new Error('TODO: handle this case!')
     }
 
     return copyNonASARResources(packagedAppPath, bundledResourcesPath).then(() => {
@@ -125,7 +123,7 @@ function getIcon () {
       // option in the BrowserWindow constructor in atom-window.coffee.
       return null
     default:
-    return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
+      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 }
 
@@ -163,7 +161,9 @@ function renamePackagedAppDir (packageOutputDirPath) {
     packagedAppPath = path.join(CONFIG.buildOutputPath, `${appName}-${CONFIG.appMetadata.version}-${architecture}`)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
-    throw new Error('Implement this!')
+    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
+    fs.renameSync(packageOutputDirPath, packagedAppPath)
   }
   return packagedAppPath
 }
