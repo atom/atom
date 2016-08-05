@@ -197,6 +197,21 @@ class AtomReporter
     time = "0#{time}" if time.length < 3
     @time.textContent = "#{time[0...-2]}.#{time[-2..]}s"
 
+  specTitle: (spec) ->
+    parentDescs = []
+    s = spec.suite
+    while s
+      parentDescs.unshift(s.description)
+      s = s.parentSuite
+
+    suiteString = ""
+    indent = ""
+    for desc in parentDescs
+      suiteString += indent + desc + "\n"
+      indent += "  "
+
+    "#{suiteString} #{indent} it #{spec.description}"
+
   addSpecs: (specs) ->
     coreSpecs = 0
     bundledPackageSpecs = 0
@@ -204,6 +219,7 @@ class AtomReporter
     for spec in specs
       symbol = document.createElement('li')
       symbol.setAttribute('id', "spec-summary-#{spec.id}")
+      symbol.setAttribute('title', @specTitle(spec))
       symbol.className = "spec-summary pending"
       switch spec.specType
         when 'core'

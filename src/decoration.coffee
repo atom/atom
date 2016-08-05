@@ -69,16 +69,16 @@ class Decoration
     @destroyed = false
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
-  # Essential: Destroy this marker.
+  # Essential: Destroy this marker decoration.
   #
-  # If you own the marker, you should use {DisplayMarker::destroy} which will destroy
-  # this decoration.
+  # You can also destroy the marker if you own it, which will destroy this
+  # decoration.
   destroy: ->
     return if @destroyed
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
-    @decorationManager.didDestroyDecoration(this)
+    @decorationManager.didDestroyMarkerDecoration(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 

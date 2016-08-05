@@ -5901,6 +5901,13 @@ describe "TextEditor", ->
           rangeIsReversed: false
         }
 
+      it "does not throw errors after the marker's containing layer is destroyed", ->
+        layer = editor.addMarkerLayer()
+        marker = layer.markBufferRange([[2, 4], [6, 8]])
+        decoration = editor.decorateMarker(marker, type: 'highlight', class: 'foo')
+        layer.destroy()
+        editor.decorationsStateForScreenRowRange(0, 5)
+
     describe "::decorateMarkerLayer", ->
       it "based on the markers in the layer, includes multiple decoration objects with the same properties and different ranges in the object returned from ::decorationsStateForScreenRowRange", ->
         layer1 = editor.getBuffer().addMarkerLayer()
