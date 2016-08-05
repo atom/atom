@@ -1,5 +1,5 @@
 const childProcess = require('child_process')
-const fs = require('fs')
+const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
 const syncRequest = require('sync-request')
