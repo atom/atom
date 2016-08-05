@@ -5600,6 +5600,13 @@ describe "TextEditor", ->
           rangeIsReversed: false
         }
 
+      it "does not throw errors after the marker's containing layer is destroyed", ->
+        layer = editor.addMarkerLayer()
+        marker = layer.markBufferRange([[2, 4], [6, 8]])
+        decoration = editor.decorateMarker(marker, type: 'highlight', class: 'foo')
+        layer.destroy()
+        editor.decorationsStateForScreenRowRange(0, 5)
+
     describe "::decorateMarkerLayer", ->
       it "based on the markers in the layer, includes multiple decoration objects with the same properties and different ranges in the object returned from ::decorationsStateForScreenRowRange", ->
         layer1 = editor.getBuffer().addMarkerLayer()
@@ -5752,6 +5759,17 @@ describe "TextEditor", ->
 
       editor.setEditorWidthInChars(10)
       expect(editor.lineTextForScreenRow(0)).toBe 'var '
+
+  describe "the softWrapHangingIndent setting", ->
+    it "controls how much extra indentation is applied to soft-wrapped lines", ->
+      editor.setText('123456789')
+      editor.setEditorWidthInChars(8)
+      atom.config.set('editor.softWrap', true)
+      atom.config.set('editor.softWrapHangingIndent', 2)
+      expect(editor.lineTextForScreenRow(1)).toEqual '  9'
+
+      atom.config.set('editor.softWrapHangingIndent', 4)
+      expect(editor.lineTextForScreenRow(1)).toEqual '    9'
 
   describe "::getElement", ->
     it "returns an element", ->

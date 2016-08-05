@@ -1,15 +1,13 @@
 # Like sands through the hourglass, so are the days of our lives.
 module.exports = ({blobStore}) ->
-  environmentHelpers = require('./environment-helpers')
+  updateProcessEnv = require('./update-process-env')
   path = require 'path'
   require './window'
   {getWindowLoadSettings} = require './window-load-settings-helpers'
   {ipcRenderer} = require 'electron'
   {resourcePath, isSpec, devMode, env} = getWindowLoadSettings()
 
-  # Set baseline environment
-  environmentHelpers.normalize({env: env})
-  env = process.env
+  updateProcessEnv(env)
 
   # Add application-specific exports to module search path.
   exportsPath = path.join(resourcePath, 'exports')
@@ -37,5 +35,5 @@ module.exports = ({blobStore}) ->
       setTimeout (-> document.querySelector('atom-workspace').focus()), 0
     window.addEventListener('focus', windowFocused)
     ipcRenderer.on('environment', (event, env) ->
-      environmentHelpers.replace(env)
+      updateProcessEnv(env)
     )

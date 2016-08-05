@@ -245,7 +245,8 @@ class TextEditor extends Model
       tabLength: @getTabLength(),
       ratioForCharacter: @ratioForCharacter.bind(this),
       isWrapBoundary: isWrapBoundary,
-      foldCharacter: ZERO_WIDTH_NBSP
+      foldCharacter: ZERO_WIDTH_NBSP,
+      softWrapHangingIndent: @config.get('editor.softWrapHangingIndent', scope: @getRootScopeDescriptor())
     })
 
   destroyed: ->

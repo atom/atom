@@ -23,6 +23,15 @@ class WindowEventHandler
     @subscriptions.add listen(@document, 'click', 'a', @handleLinkClick)
     @subscriptions.add listen(@document, 'submit', 'form', @handleFormSubmit)
 
+    browserWindow = @applicationDelegate.getCurrentWindow()
+    browserWindow.on 'enter-full-screen', @handleEnterFullScreen
+    @subscriptions.add new Disposable =>
+      browserWindow.removeListener('enter-full-screen', @handleEnterFullScreen)
+
+    browserWindow.on 'leave-full-screen', @handleLeaveFullScreen
+    @subscriptions.add new Disposable =>
+      browserWindow.removeListener('leave-full-screen', @handleLeaveFullScreen)
+
     @subscriptions.add @atomEnvironment.commands.add @window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
       'window:close': @handleWindowClose
@@ -135,6 +144,12 @@ class WindowEventHandler
   handleWindowBlur: =>
     @document.body.classList.add('is-blurred')
     @atomEnvironment.storeWindowDimensions()
+
+  handleEnterFullScreen: =>
+    @document.body.classList.add("fullscreen")
+
+  handleLeaveFullScreen: =>
+    @document.body.classList.remove("fullscreen")
 
   handleWindowBeforeunload: =>
     confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)

@@ -5,11 +5,12 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ## Requirements
 
   * OS with 64-bit or 32-bit architecture
-  * C++ toolchain
+  * C++11 toolchain
   * [Git](https://git-scm.com/)
-  * [Node.js](https://nodejs.org/en/download/) (0.10.x or above)
-  * [npm](https://www.npmjs.com/) v1.4.x or above (automatically bundled with Node.js)
+  * Node.js (4.x or above) (Can be installed via [nvm](https://github.com/creationix/nvm)).
+  * [npm](https://www.npmjs.com/) v3.10.5 or above (automatically bundled with Node.js)
     * `npm -v` to check the version.
+    * `npm install -g npm` to upgrade if necessary.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
@@ -17,10 +18,18 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ### Ubuntu / Debian
 
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
-* Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
-  * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
-  * Use `which node` to check if it is available.
-  * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
+* Install Node.js and npm:
+  * Install [nvm](https://github.com/creationix/nvm).
+  * Run `nvm install 4` to install Node 4.x.
+  * Run `npm install -g npm` to upgrade to the latest npm.
+  * You may need to install a newer C++ compiler with C++11 support if script/bootstrap has errors:
+    ```sh
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt-get update
+    sudo apt-get install gcc-5 g++-5
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 80 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+    sudo update-alternatives --config gcc # choose gcc-5 from the list
+    ```
 
 ### Fedora / CentOS / RHEL
 
