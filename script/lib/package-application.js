@@ -15,11 +15,13 @@ module.exports = function () {
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
+    'app-bundle-id': 'com.github.atom',
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
+    'helper-bundle-id': 'com.github.atom.helper',
     'icon': getIcon(),
     'name': appName,
     'out': CONFIG.buildOutputPath,
