@@ -18,6 +18,9 @@ environment:
   - NODE_VERSION: 4.4.5
 
 install:
+  - choco install curl
+  - |- # this weird literal syntax allows a : on the next line
+    curl --header 'Accept: application/vnd.github.v3.raw' --output %WIN_P12KEY_PATH% %WIN_P12KEY_URL%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
   - npm install -g npm
@@ -25,7 +28,7 @@ install:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - script\bootstrap.cmd
-  - script\build.cmd
+  - script\build.cmd --code-sign
 
 test: off
 deploy: off
