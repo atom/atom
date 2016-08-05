@@ -26,14 +26,12 @@ module.exports = function () {
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
-  }).then((packageOutputDirPath) => {
-    let packagedAppPath, bundledResourcesPath
+  }).then((packagedAppPath) => {
+    let bundledResourcesPath
     if (process.platform === 'darwin') {
-      packagedAppPath = path.join(packageOutputDirPath, appName + '.app')
       bundledResourcesPath = path.join(packagedAppPath, 'Contents', 'Resources')
       setAtomHelperVersion(packagedAppPath)
     } else {
-      packagedAppPath = packageOutputDirPath
       bundledResourcesPath = path.join(packagedAppPath, 'resources')
     }
 
