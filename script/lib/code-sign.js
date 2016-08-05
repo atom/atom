@@ -1,4 +1,5 @@
 const childProcess = require('child_process')
+const path = require('path')
 
 module.exports = function (packagedAppPath) {
   if (process.platform === 'darwin') {
