@@ -138,6 +138,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
   if (process.platform === 'darwin') {
     const appBundleName = getAppName() + '.app'
     packagedAppPath = path.join(CONFIG.buildOutputPath, appBundleName)
+    if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(path.join(packageOutputDirPath, appBundleName), packagedAppPath)
   } else if (process.platform === 'linux') {
     const appName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
@@ -150,10 +151,12 @@ function renamePackagedAppDir (packageOutputDirPath) {
       architecture = process.arch
     }
     packagedAppPath = path.join(CONFIG.buildOutputPath, `${appName}-${CONFIG.appMetadata.version}-${architecture}`)
+    if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
     const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
     packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
+    if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   }
   return packagedAppPath
