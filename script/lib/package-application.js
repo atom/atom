@@ -23,7 +23,6 @@ module.exports = function () {
     'icon': getIcon(),
     'name': appName,
     'out': CONFIG.buildOutputPath,
-    'osx-sign': getSignOptions(),
     'overwrite': true,
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion
@@ -103,14 +102,6 @@ function getAppName () {
     return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
   } else {
     return 'atom'
-  }
-}
-
-function getSignOptions () {
-  if (process.env.CI) {
-    return {identity: 'GitHub'}
-  } else {
-    return null
   }
 }
 
