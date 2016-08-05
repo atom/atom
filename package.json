@@ -92,7 +92,7 @@
     "deprecation-cop": "0.54.1",
     "dev-live-reload": "0.47.0",
     "encoding-selector": "0.22.0",
-    "exception-reporting": "0.38.2",
+    "exception-reporting": "0.38.3",
     "fuzzy-finder": "1.3.0",
     "git-diff": "1.1.0",
     "find-and-replace": "0.198.0",
