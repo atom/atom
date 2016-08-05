@@ -16,11 +16,13 @@ module.exports = function (packagedAppPath) {
 
     try {
       console.log(`Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)
-      childProcess.spawnSync('security', [
-        'unlock-keychain',
-        '-p', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD,
-        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
-      ], {stdio: 'inherit'})
+
+      const unlockArgs = ['unlock-keychain', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN]
+      // For signing on local workstations, password could be entered interactively
+      if (process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD) {
+        unlockArgs.push('-p', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+      }
+      childProcess.spawnSync('security', unlockArgs, {stdio: 'inherit'})
 
       console.log(`Importing certificate at ${certPath} into ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN} keychain`)
       childProcess.spawnSync('security', [
