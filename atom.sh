@@ -84,8 +84,8 @@ if [ $OS == 'Mac' ]; then
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
   fi
 elif [ $OS == 'Linux' ]; then
-  SCRIPT=$(readlink -f "$0")
-  USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
+  BIN_DIRECTORY=$(cd $(dirname "$0") >& /dev/null ; pwd -L)
+  USR_DIRECTORY=$(dirname "$BIN_DIRECTORY")
 
   if [ -n "$BETA_VERSION" ]; then
     ATOM_PATH="$USR_DIRECTORY/share/atom-beta/atom"

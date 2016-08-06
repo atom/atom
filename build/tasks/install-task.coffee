@@ -66,7 +66,7 @@ module.exports = (grunt) ->
 
       rm(path.join(binDir, apmFileName))
       fs.symlinkSync(
-        path.join('..', 'share', appFileName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'),
+        path.join(shareDir, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'),
         path.join(binDir, apmFileName)
       )
 
