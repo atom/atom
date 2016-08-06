@@ -3,6 +3,7 @@
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+path = require 'path'
 GitUtils = require 'git-utils'
 
 Task = require './task'
@@ -305,8 +306,8 @@ class GitRepository
   getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
-    for path, status of @statuses
-      directoryStatus |= status if path.indexOf(directoryPath) is 0
+    for statusPath, status of @statuses
+      directoryStatus |= status if statusPath.indexOf(directoryPath) is 0
     directoryStatus
 
   # Public: Get the status of a single path in the repository.
@@ -428,8 +429,8 @@ class GitRepository
   # Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
     getBufferPathStatus = =>
-      if path = buffer.getPath()
-        @getPathStatus(path)
+      if bufferPath = buffer.getPath()
+        @getPathStatus(bufferPath)
 
     bufferSubscriptions = new CompositeDisposable
     bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
@@ -464,8 +465,8 @@ class GitRepository
     @handlerPath ?= require.resolve('./repository-status-handler')
 
     relativeProjectPaths = @project?.getPaths()
-      .map (path) => @relativize(path)
-      .filter (path) -> path.length > 0
+      .map (projectPath) => @relativize(projectPath)
+      .filter (projectPath) -> projectPath.length > 0 and not path.isAbsolute(projectPath)
 
     @statusTask?.terminate()
     new Promise (resolve) =>
