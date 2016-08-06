@@ -2251,6 +2251,17 @@ describe('TextEditorComponent', function () {
 
         expect(overlay.style.left).toBe(windowWidth - itemWidth + 'px')
         expect(overlay.style.top).toBe(position.top + editor.getLineHeightInPixels() + 'px')
+
+        // window size change
+
+        windowWidth = Math.round(gutterWidth + 29 * editor.getDefaultCharWidth())
+        await atom.setWindowDimensions({
+          width: windowWidth,
+          height: windowHeight,
+        })
+        atom.views.performDocumentPoll()
+        expect(overlay.style.left).toBe(windowWidth - itemWidth + 'px')
+        expect(overlay.style.top).toBe(position.top + editor.getLineHeightInPixels() + 'px')
       })
     })
   })
