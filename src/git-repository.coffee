@@ -310,8 +310,8 @@ class GitRepository
   getDirectoryStatus: (directoryPath)  ->
     directoryPath = "#{@relativize(directoryPath)}/"
     directoryStatus = 0
-    for path, status of @statuses
-      directoryStatus |= status if path.indexOf(directoryPath) is 0
+    for statusPath, status of @statuses
+      directoryStatus |= status if statusPath.indexOf(directoryPath) is 0
     directoryStatus
 
   # Public: Get the status of a single path in the repository.
