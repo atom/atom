@@ -8,8 +8,9 @@ require('colors')
 
 const argv = require('yargs').argv
 const cleanOutputDirectory = require('./lib/clean-output-directory')
-const codeSign = require('./lib/code-sign')
+const codeSignOnMac = require('./lib/code-sign-on-mac')
 const copyAssets = require('./lib/copy-assets')
+const createWindowsInstaller = require('./lib/create-windows-installer')
 const dumpSymbols = require('./lib/dump-symbols')
 const generateAPIDocs = require('./lib/generate-api-docs')
 const generateMetadata = require('./lib/generate-metadata')
@@ -40,12 +41,17 @@ generateAPIDocs()
 dumpSymbols()
   .then(packageApplication)
   .then(packagedAppPath => {
-    if (argv.codeSign) {
-      codeSign(packagedAppPath)
-    } else {
-      console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...'.gray)
+    if (process.platform === 'darwin') {
+      if (argv.codeSign) {
+        codeSignOnMac(packagedAppPath)
+      } else {
+        console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...'.gray)
+      }
+      return Promise.resolve(packagedAppPath)
+    } else if (process.platform === 'win32') {
+      return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
     }
-
+  }).then(packagedAppPath => {
     if (argv.install) {
       installApplication(packagedAppPath)
     } else {
