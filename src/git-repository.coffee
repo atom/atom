@@ -3,6 +3,7 @@
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
+path = require 'path'
 GitUtils = require 'git-utils'
 
 Task = require './task'
@@ -468,8 +469,8 @@ class GitRepository
     @handlerPath ?= require.resolve('./repository-status-handler')
 
     relativeProjectPaths = @project?.getPaths()
-      .map (path) => @relativize(path)
-      .filter (path) -> path.length > 0
+      .map (projectPath) => @relativize(projectPath)
+      .filter (projectPath) -> projectPath.length > 0 and not path.isAbsolute(projectPath)
 
     @statusTask?.terminate()
     new Promise (resolve) =>
