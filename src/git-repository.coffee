@@ -433,8 +433,8 @@ class GitRepository
   # Subscribes to buffer events.
   subscribeToBuffer: (buffer) ->
     getBufferPathStatus = =>
-      if path = buffer.getPath()
-        @getPathStatus(path)
+      if bufferPath = buffer.getPath()
+        @getPathStatus(bufferPath)
 
     bufferSubscriptions = new CompositeDisposable
     bufferSubscriptions.add buffer.onDidSave(getBufferPathStatus)
