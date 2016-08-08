@@ -1,15 +1,19 @@
+'use strict'
+
 const downloadCertificate = require('./download-github-raw-file')
 const electronInstaller = require('electron-winstaller')
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
 
+const CONFIG = require('../config')
+
 module.exports = function (packagedAppPath, codeSign) {
   console.log(`Creating Windows Installer for ${packagedAppPath}`)
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
-    iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${CONFIG.channel}/atom.ico`
+    iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${CONFIG.channel}/atom.ico`,
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     remoteReleases: `https://atom.io/api/updates?version=${CONFIG.appMetadata.version}`,
