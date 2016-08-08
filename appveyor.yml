@@ -18,9 +18,6 @@ environment:
   - NODE_VERSION: 4.4.5
 
 install:
-  - choco install curl
-  - |- # this weird literal syntax allows a : on the next line
-    curl --insecure --header "Accept: application/vnd.github.v3.raw" %WIN_P12KEY_URL% > %WIN_P12KEY_PATH%
   - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
   - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
   - npm install -g npm
