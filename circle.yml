@@ -25,10 +25,8 @@ dependencies:
     - script/build --code-sign
 
   post:
-    - cd out
-    - zip -r ./atom-mac.zip ./Atom.app
-    - zip -r ./atom-mac-symbols.zip ./symbols
-    - cd -
+    - cd out && zip -r ./atom-mac.zip ./Atom.app
+    - cd out && zip -r ./atom-mac-symbols.zip ./symbols
 
   cache_directories:
     - cache
