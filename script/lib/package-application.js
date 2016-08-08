@@ -17,7 +17,7 @@ module.exports = function () {
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
     'app-bundle-id': 'com.github.atom',
-    'app-copyright': `Copyright (C) ${(new Date()).getFullYear()} GitHub, Inc. All rights reserved`,
+    'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
