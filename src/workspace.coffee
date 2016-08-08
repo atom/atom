@@ -84,7 +84,6 @@ class Workspace extends Model
     @openers = []
     @destroyedItemURIs = []
     @consumeServices(@packageManager)
-    @subscribeToAddedItems()
 
   subscribeToEvents: ->
     @subscribeToActiveItem()
