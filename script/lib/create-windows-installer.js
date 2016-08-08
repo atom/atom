@@ -9,7 +9,6 @@ const path = require('path')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath, codeSign) {
-  console.log(`Creating Windows Installer for ${packagedAppPath}`)
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
@@ -24,15 +23,18 @@ module.exports = function (packagedAppPath, codeSign) {
   if (codeSign && process.env.WIN_P12KEY_URL) {
     const certPath = path.join(os.tmpdir(), 'win.p12')
     downloadGithubRawFile(process.env.WIN_P12KEY_URL, certPath)
-    const deleteCertificate = function () {
+    options.certificateFile = certPath
+    options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
+  } else {
+    console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
+  }
+
+  const deleteCertificate = function () {
+    if (fs.existsSync(certPath)) {
       console.log(`Deleting certificate at ${certPath}`)
       fs.removeSync(certPath)
     }
-    options.certificateFile = certPath
-    options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
-    return electronInstaller.createWindowsInstaller(options).then(deleteCertificate, deleteCertificate)
-  } else {
-    console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
-    return electronInstaller.createWindowsInstaller(options)
   }
+  console.log(`Creating Windows Installer for ${packagedAppPath}`)
+  return electronInstaller.createWindowsInstaller(options).then(deleteCertificate, deleteCertificate)
 }
