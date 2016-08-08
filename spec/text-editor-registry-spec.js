@@ -82,6 +82,22 @@ describe('TextEditorRegistry', function () {
       await atom.packages.activatePackage('language-javascript')
       expect(editor.getGrammar().name).toBe('JavaScript')
     })
+
+    it('returns a disposable that can be used to stop updating the editor', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      const disposable = registry.maintainGrammar(editor)
+
+      editor.getBuffer().setPath('test.js')
+      expect(editor.getGrammar().name).toBe('JavaScript')
+
+      editor.getBuffer().setPath('test.txt')
+      expect(editor.getGrammar().name).toBe('Null Grammar')
+
+      disposable.dispose()
+      editor.getBuffer().setPath('test.js')
+      expect(editor.getGrammar().name).toBe('Null Grammar')
+    })
   })
 
   describe('.setGrammarOverride', function () {
@@ -129,7 +145,7 @@ describe('TextEditorRegistry', function () {
   })
 
   describe('.maintainConfig(editor)', function () {
-    it('does not update editors when config settings change for unrelated scope selectors', async function () {
+    it('does not update the editor when config settings change for unrelated scope selectors', async function () {
       await atom.packages.activatePackage('language-javascript')
 
       const editor2 = new TextEditor({
@@ -153,6 +169,32 @@ describe('TextEditorRegistry', function () {
 
       expect(editor.getEncoding()).toBe('utf16le')
       expect(editor2.getEncoding()).toBe('utf16be')
+    })
+
+    it('updates the editor\'s settings when its grammar changes', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      const disposable = registry.maintainConfig(editor)
+
+      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
+      expect(editor.getEncoding()).toBe('utf8')
+
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.source.js'})
+      expect(editor.getEncoding()).toBe('utf8')
+
+      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      expect(editor.getEncoding()).toBe('utf16le')
+
+      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
+      expect(editor.getEncoding()).toBe('utf16be')
+
+      editor.setGrammar(atom.grammars.selectGrammar('test.txt'))
+      expect(editor.getEncoding()).toBe('utf8')
+
+      disposable.dispose()
+
+      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      expect(editor.getEncoding()).toBe('utf8')
     })
 
     it('sets the encoding based on the config', function () {

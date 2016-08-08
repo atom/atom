@@ -135,10 +135,18 @@ export default class TextEditorRegistry {
     }
 
     this.selectGrammarForEditor(editor)
-    this.subscriptions.add(editor.onDidChangePath(() => {
+
+    const pathChangeSubscription = editor.onDidChangePath(() => {
       this.editorGrammarScores.delete(editor)
       this.selectGrammarForEditor(editor)
-    }))
+    })
+
+    this.subscriptions.add(pathChangeSubscription)
+
+    return new Disposable(() => {
+      this.subscriptions.remove(pathChangeSubscription)
+      pathChangeSubscription.dispose()
+    })
   }
 
   setGrammarOverride (editor, scopeName) {
@@ -160,17 +168,18 @@ export default class TextEditorRegistry {
     if (this.editorsWithMaintainedConfig.has(editor)) {
       return
     }
-
     this.editorsWithMaintainedConfig.add(editor)
-    this.subscribeToSettingsForEditorScope(editor)
+
     editor.setScopedSettingsDelegate(this.scopedSettingsDelegate)
 
-    const configOptions = {scope: editor.getRootScopeDescriptor()}
-    for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
-      editor[setterName](this.config.get(settingKey, configOptions))
-    }
+    this.subscribeToSettingsForEditorScope(editor)
+    const grammarChangeSubscription = editor.onDidChangeGrammar(() => {
+      this.subscribeToSettingsForEditorScope(editor)
+    })
+    this.subscriptions.add(grammarChangeSubscription)
 
     const updateTabTypes = () => {
+      const configOptions = {scope: editor.getRootScopeDescriptor()}
       editor.setSoftTabs(shouldEditorUseSoftTabs(
         editor,
         this.config.get('editor.tabType', configOptions),
@@ -180,6 +189,12 @@ export default class TextEditorRegistry {
 
     updateTabTypes()
     this.subscriptions.add(editor.onDidTokenize(updateTabTypes))
+
+    return new Disposable(() => {
+      editor.setScopedSettingsDelegate(null)
+      this.subscriptions.remove(grammarChangeSubscription)
+      grammarChangeSubscription.dispose()
+    })
   }
 
   // Private
@@ -209,7 +224,6 @@ export default class TextEditorRegistry {
         if (currentScore == null || score > currentScore) {
           editor.setGrammar(grammar, score)
           this.editorGrammarScores.set(editor, score)
-          this.subscribeToSettingsForEditorScope(editor)
         }
       }
     })
@@ -243,11 +257,14 @@ export default class TextEditorRegistry {
   subscribeToSettingsForEditorScope (editor) {
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
+    const configOptions = {scope: scopeDescriptor}
+
+    for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
+      editor[setterName](this.config.get(settingKey, configOptions))
+    }
 
     if (!this.scopesWithConfigSubscriptions.has(scopeChain)) {
       this.scopesWithConfigSubscriptions.add(scopeChain)
-
-      const configOptions = {scope: scopeDescriptor}
 
       for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
         this.subscriptions.add(
@@ -264,7 +281,6 @@ export default class TextEditorRegistry {
       const updateTabTypes = () => {
         const tabType = this.config.get('editor.tabType', configOptions)
         const softTabs = this.config.get('editor.softTabs', configOptions)
-
         this.editorsWithMaintainedConfig.forEach(editor => {
           if (editor.getRootScopeDescriptor().isEqual(scopeDescriptor)) {
             editor.setSoftTabs(shouldEditorUseSoftTabs(editor, tabType, softTabs))

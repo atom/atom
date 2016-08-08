@@ -3095,8 +3095,8 @@ describe "TextEditor", ->
 
         it "indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified", ->
           runs ->
-            editor.setAutoIndent(true)
             editor.setGrammar(atom.grammars.selectGrammar("file"))
+            editor.setAutoIndent(true)
             editor.setText('  if true')
             editor.setCursorBufferPosition([0, 8])
             editor.insertNewline()
