@@ -10,8 +10,9 @@ const path = require('path')
 
 const CONFIG = require('./config')
 
-const packagedAppPath = path.resolve(__dirname, '..', 'out', 'Atom-darwin-x64')
-const executablePath = path.join(packagedAppPath, 'Atom.app', 'Contents', 'MacOS', 'Atom')
+const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+const packagedAppPath = path.resolve(__dirname, '..', 'out', `${appName}.app`)
+const executablePath = path.join(packagedAppPath, 'Contents', 'MacOS', appName)
 const resourcePath = CONFIG.repositoryRootPath
 
 function runCoreMainProcessTests (callback) {
