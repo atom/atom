@@ -124,47 +124,12 @@ export default class TextEditorRegistry {
     return this.emitter.on('did-add-editor', callback)
   }
 
-  maintainGrammar (editor) {
-    if (this.editorsWithMaintainedGrammar.has(editor)) {
-      return
-    }
-
-    this.editorsWithMaintainedGrammar.add(editor)
-    if (editor.getGrammar() !== NullGrammar) {
-      this.editorGrammarOverrides[editor.id] = editor.getGrammar().scopeName
-    }
-
-    this.selectGrammarForEditor(editor)
-
-    const pathChangeSubscription = editor.onDidChangePath(() => {
-      this.editorGrammarScores.delete(editor)
-      this.selectGrammarForEditor(editor)
-    })
-
-    this.subscriptions.add(pathChangeSubscription)
-
-    return new Disposable(() => {
-      this.editorsWithMaintainedGrammar.delete(editor)
-      this.subscriptions.remove(pathChangeSubscription)
-      pathChangeSubscription.dispose()
-    })
-  }
-
-  setGrammarOverride (editor, scopeName) {
-    this.editorGrammarOverrides[editor.id] = scopeName
-    this.editorGrammarScores.delete(editor)
-    editor.setGrammar(this.grammarRegistry.grammarForScopeName(scopeName))
-  }
-
-  getGrammarOverride (editor) {
-    return this.editorGrammarOverrides[editor.id]
-  }
-
-  clearGrammarOverride (editor) {
-    delete this.editorGrammarOverrides[editor.id]
-    this.selectGrammarForEditor(editor)
-  }
-
+  // Keep a {TextEditor}'s configuration in sync with Atom's settings.
+  //
+  // * `editor` The editor whose configuration will be maintained.
+  //
+  // Returns a {Disposable} that can be used to stop updating the editor's
+  // configuration.
   maintainConfig (editor) {
     if (this.editorsWithMaintainedConfig.has(editor)) {
       return
@@ -200,6 +165,70 @@ export default class TextEditorRegistry {
       this.subscriptions.remove(grammarChangeSubscription)
       this.subscriptions.remove(tokenizeSubscription)
     })
+  }
+
+  // Set a {TextEditor}'s grammar based on its path and content, and continue
+  // to update its grammar as gramamrs are added or updated, or the editor's
+  // file path changes.
+  //
+  // * `editor` The editor whose grammar will be maintained.
+  //
+  // Returns a {Disposable} that can be used to stop updating the editor's
+  // grammar.
+  maintainGrammar (editor) {
+    if (this.editorsWithMaintainedGrammar.has(editor)) {
+      return
+    }
+
+    this.editorsWithMaintainedGrammar.add(editor)
+    if (editor.getGrammar() !== NullGrammar) {
+      this.editorGrammarOverrides[editor.id] = editor.getGrammar().scopeName
+    }
+
+    this.selectGrammarForEditor(editor)
+
+    const pathChangeSubscription = editor.onDidChangePath(() => {
+      this.editorGrammarScores.delete(editor)
+      this.selectGrammarForEditor(editor)
+    })
+
+    this.subscriptions.add(pathChangeSubscription)
+
+    return new Disposable(() => {
+      this.editorsWithMaintainedGrammar.delete(editor)
+      this.subscriptions.remove(pathChangeSubscription)
+      pathChangeSubscription.dispose()
+    })
+  }
+
+  // Force a {TextEditor} to use a different grammar than the one that would
+  // otherwise be selected for it.
+  //
+  // * `editor` The editor whose gramamr will be set.
+  // * `scopeName` The {String} root scope name for the desired {Grammar}.
+  setGrammarOverride (editor, scopeName) {
+    this.editorGrammarOverrides[editor.id] = scopeName
+    this.editorGrammarScores.delete(editor)
+    editor.setGrammar(this.grammarRegistry.grammarForScopeName(scopeName))
+  }
+
+  // Retrieve the grammar scope name that has been set as a grammar override
+  // for the given {TextEditor}.
+  //
+  // * `editor` The editor.
+  //
+  // Returns a {String} scope name, or `null` if no override has been set
+  // for the given editor.
+  getGrammarOverride (editor) {
+    return this.editorGrammarOverrides[editor.id]
+  }
+
+  // Remove any grammar override that has been set for the given {TextEditor}.
+  //
+  // * `editor` The editor.
+  clearGrammarOverride (editor) {
+    delete this.editorGrammarOverrides[editor.id]
+    this.selectGrammarForEditor(editor)
   }
 
   // Private
