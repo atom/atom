@@ -558,10 +558,12 @@ describe('TextEditorRegistry', function () {
 
       const editorCopy = TextEditor.deserialize(editor.serialize(), atom)
       const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
-      const registryCopy = TextEditorRegistry.deserialize(
-        JSON.parse(JSON.stringify(registry.serialize())),
-        atom
-      )
+
+      const registryCopy = new TextEditorRegistry({
+        config: atom.config,
+        grammarRegistry: atom.grammars
+      })
+      registryCopy.deserialize(JSON.parse(JSON.stringify(registry.serialize())))
 
       expect(editorCopy.getGrammar().name).toBe('Null Grammar')
       expect(editor2Copy.getGrammar().name).toBe('Null Grammar')

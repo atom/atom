@@ -705,6 +705,7 @@ class AtomEnvironment extends Model
     grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
     fullScreen: @isFullScreen()
     windowDimensions: @windowDimensions
+    textEditors: @textEditors.serialize()
 
   unloadEditorWindow: ->
     return if not @project
@@ -885,6 +886,8 @@ class AtomEnvironment extends Model
     startTime = Date.now()
     @project.deserialize(state.project, @deserializers) if state.project?
     @deserializeTimings.project = Date.now() - startTime
+
+    @textEditors.deserialize(state.textEditors) if state.textEditors
 
     startTime = Date.now()
     @workspace.deserialize(state.workspace, @deserializers) if state.workspace?

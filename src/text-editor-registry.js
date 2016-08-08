@@ -46,15 +46,8 @@ export default class TextEditorRegistry {
     this.clear()
   }
 
-  static deserialize (state, atomEnvironment) {
-    const registry = new TextEditorRegistry({
-      config: atomEnvironment.config,
-      grammarRegistry: atomEnvironment.grammars
-    })
-
-    registry.editorGrammarOverrides = state.editorGrammarOverrides
-
-    return registry
+  deserialize (state) {
+    this.editorGrammarOverrides = state.editorGrammarOverrides
   }
 
   serialize () {
