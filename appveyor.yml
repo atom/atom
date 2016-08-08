@@ -39,7 +39,10 @@ artifacts:
     name: AtomSetup.msi
   - path: out\RELEASES
     name: RELEASES
-  - path: out\*.nupkg
+  - path: out\atom-*-delta.nupkg
+    name: atom-delta.nupkg
+  - path: out\atom-*-full.nupkg
+    name: atom-full.nupkg
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
