@@ -16,12 +16,11 @@ module.exports = function (packagedAppPath, codeSign) {
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     remoteReleases: `https://atom.io/api/updates?version=${CONFIG.appMetadata.version}`,
-    setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico'),
-    title: CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 
+  const certPath = path.join(os.tmpdir(), 'win.p12')
   if (codeSign && process.env.WIN_P12KEY_URL) {
-    const certPath = path.join(os.tmpdir(), 'win.p12')
     downloadGithubRawFile(process.env.WIN_P12KEY_URL, certPath)
     options.certificateFile = certPath
     options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
