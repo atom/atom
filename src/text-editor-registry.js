@@ -144,6 +144,7 @@ export default class TextEditorRegistry {
     this.subscriptions.add(pathChangeSubscription)
 
     return new Disposable(() => {
+      this.editorsWithMaintainedGrammar.delete(editor)
       this.subscriptions.remove(pathChangeSubscription)
       pathChangeSubscription.dispose()
     })
@@ -188,12 +189,16 @@ export default class TextEditorRegistry {
     }
 
     updateTabTypes()
-    this.subscriptions.add(editor.onDidTokenize(updateTabTypes))
+    const tokenizeSubscription = editor.onDidTokenize(updateTabTypes)
+    this.subscriptions.add(tokenizeSubscription)
 
     return new Disposable(() => {
+      this.editorsWithMaintainedConfig.delete(editor)
       editor.setScopedSettingsDelegate(null)
-      this.subscriptions.remove(grammarChangeSubscription)
+      tokenizeSubscription.dispose()
       grammarChangeSubscription.dispose()
+      this.subscriptions.remove(grammarChangeSubscription)
+      this.subscriptions.remove(tokenizeSubscription)
     })
   }
 

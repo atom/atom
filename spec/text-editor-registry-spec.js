@@ -83,10 +83,13 @@ describe('TextEditorRegistry', function () {
       expect(editor.getGrammar().name).toBe('JavaScript')
     })
 
-    it('returns a disposable that can be used to stop updating the editor', async function () {
+    it('returns a disposable that can be used to stop the registry from updating the editor', async function () {
       await atom.packages.activatePackage('language-javascript')
 
+      const previousSubscriptionCount = getSubscriptionCount(editor)
       const disposable = registry.maintainGrammar(editor)
+      expect(getSubscriptionCount(editor)).toBeGreaterThan(previousSubscriptionCount)
+      expect(registry.editorsWithMaintainedGrammar.size).toBe(1)
 
       editor.getBuffer().setPath('test.js')
       expect(editor.getGrammar().name).toBe('JavaScript')
@@ -95,6 +98,9 @@ describe('TextEditorRegistry', function () {
       expect(editor.getGrammar().name).toBe('Null Grammar')
 
       disposable.dispose()
+      expect(getSubscriptionCount(editor)).toBe(previousSubscriptionCount)
+      expect(registry.editorsWithMaintainedGrammar.size).toBe(0)
+
       editor.getBuffer().setPath('test.js')
       expect(editor.getGrammar().name).toBe('Null Grammar')
     })
@@ -174,7 +180,7 @@ describe('TextEditorRegistry', function () {
     it('updates the editor\'s settings when its grammar changes', async function () {
       await atom.packages.activatePackage('language-javascript')
 
-      const disposable = registry.maintainConfig(editor)
+      registry.maintainConfig(editor)
 
       atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
       expect(editor.getEncoding()).toBe('utf8')
@@ -190,11 +196,27 @@ describe('TextEditorRegistry', function () {
 
       editor.setGrammar(atom.grammars.selectGrammar('test.txt'))
       expect(editor.getEncoding()).toBe('utf8')
+    })
+
+    it('returns a disposable that can be used to stop the registry from updating the editor\'s config', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      const previousSubscriptionCount = getSubscriptionCount(editor)
+      const disposable = registry.maintainConfig(editor)
+      expect(getSubscriptionCount(editor)).toBeGreaterThan(previousSubscriptionCount)
+      expect(registry.editorsWithMaintainedConfig.size).toBe(1)
+
+      atom.config.set('core.fileEncoding', 'utf16be')
+      expect(editor.getEncoding()).toBe('utf16be')
+      atom.config.set('core.fileEncoding', 'utf8')
+      expect(editor.getEncoding()).toBe('utf8')
 
       disposable.dispose()
 
-      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      atom.config.set('core.fileEncoding', 'utf16be')
       expect(editor.getEncoding()).toBe('utf8')
+      expect(getSubscriptionCount(editor)).toBe(previousSubscriptionCount)
+      expect(registry.editorsWithMaintainedConfig.size).toBe(0)
     })
 
     it('sets the encoding based on the config', function () {
@@ -555,3 +577,10 @@ describe('TextEditorRegistry', function () {
     })
   })
 })
+
+function getSubscriptionCount (editor) {
+  return editor.emitter.getTotalListenerCount() +
+    editor.tokenizedBuffer.emitter.getTotalListenerCount() +
+    editor.buffer.emitter.getTotalListenerCount() +
+    editor.displayLayer.emitter.getTotalListenerCount()
+}
