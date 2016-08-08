@@ -727,6 +727,7 @@ class TextEditorComponent
   pollDOM: =>
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
+      @measureWindowSize()
       @measureDimensions()
       @sampleFontStyling()
       @overlayManager?.measureOverlays()

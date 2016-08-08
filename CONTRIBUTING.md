@@ -285,8 +285,8 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 
 All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/).
 
-* Prefer `Object.assign()` to the object spread operator (`{...anotherObj}`)
-* Inline `export`s with expressions
+* Prefer the object spread operator (`{...anotherObj}`) to `Object.assign()`
+* Inline `export`s with expressions whenever possible
   ```js
   // Use this:
   export default class ClassName {
