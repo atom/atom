@@ -16,6 +16,7 @@ module.exports = function () {
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
     'app-bundle-id': 'com.github.atom',
+    'app-copyright': `Copyright (C) ${(new Date()).getFullYear()} GitHub, Inc. All rights reserved`,
     'arch': process.arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
@@ -27,7 +28,12 @@ module.exports = function () {
     'out': CONFIG.buildOutputPath,
     'overwrite': true,
     'platform': process.platform,
-    'version': CONFIG.appMetadata.electronVersion
+    'version': CONFIG.appMetadata.electronVersion,
+    'version-string': {
+      CompanyName: 'GitHub, Inc.',
+      FileDescription: 'Atom',
+      ProductName: 'Atom',
+    }
   }).then((packagedAppPath) => {
     let bundledResourcesPath
     if (process.platform === 'darwin') {
