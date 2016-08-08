@@ -199,7 +199,7 @@ describe "GitRepository", ->
 
     beforeEach ->
       workingDirectory = copyRepository()
-      repo = new GitRepository(workingDirectory)
+      repo = new GitRepository(workingDirectory, {project: atom.project, config: atom.config})
       modifiedPath = path.join(workingDirectory, 'file.txt')
       newPath = path.join(workingDirectory, 'untracked.txt')
       cleanPath = path.join(workingDirectory, 'other.txt')
@@ -248,6 +248,22 @@ describe "GitRepository", ->
         status = repo.getCachedPathStatus(filePath)
         expect(repo.isStatusModified(status)).toBe false
         expect(repo.isStatusNew(status)).toBe false
+
+    it "works correctly when the project has multiple folders (regression)", ->
+      atom.project.addPath(workingDirectory)
+      atom.project.addPath(path.join(__dirname, 'fixtures', 'dir'))
+      statusHandler = jasmine.createSpy('statusHandler')
+      repo.onDidChangeStatuses statusHandler
+
+      repo.refreshStatus()
+
+      waitsFor ->
+        statusHandler.callCount > 0
+
+      runs ->
+        expect(repo.getCachedPathStatus(cleanPath)).toBeUndefined()
+        expect(repo.isStatusNew(repo.getCachedPathStatus(newPath))).toBeTruthy()
+        expect(repo.isStatusModified(repo.getCachedPathStatus(modifiedPath))).toBeTruthy()
 
     it 'caches statuses that were looked up synchronously', ->
       originalContent = 'undefined'

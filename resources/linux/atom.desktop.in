@@ -2,7 +2,7 @@
 Name=<%= appName %>
 Comment=<%= description %>
 GenericName=Text Editor
-Exec=<%= installDir %>/share/<%= appFileName %>/atom %U
+Exec=<%= installDir %>/share/<%= appFileName %>/atom %F
 Icon=<%= iconPath %>
 Type=Application
 StartupNotify=true
