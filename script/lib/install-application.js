@@ -1,5 +1,6 @@
 'use strict'
 
+const copySync = require('./copy-sync')
 const fs = require('fs-extra')
 const path = require('path')
 
@@ -12,7 +13,7 @@ module.exports = function (packagedAppPath) {
       fs.removeSync(installationDirPath)
     }
     console.log(`Installing ${packagedAppPath} at ${installationDirPath}`)
-    fs.copySync(packagedAppPath, installationDirPath)
+    copySync(packagedAppPath, installationDirPath)
   } else {
     throw new Error("Not implemented yet.")
   }
