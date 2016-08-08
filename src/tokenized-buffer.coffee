@@ -242,6 +242,17 @@ class TokenizedBuffer extends Model
         row + delta
 
   handleBufferChange: (e) ->
+    if @lastBufferChangeEventId?
+      @assert(
+        @lastBufferChangeEventId is e.eventId - 1,
+        'Buffer Change Event Ids are not sequential',
+        (error) =>
+          error.metadata = {
+            tokenizedBufferEventId: @lastBufferChangeEventId,
+            nextTokenizedBufferEventId: e.eventId,
+          }
+      )
+    @lastBufferChangeEventId = e.eventId
     @changeCount = @buffer.changeCount
 
     {oldRange, newRange} = e
