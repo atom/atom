@@ -165,8 +165,8 @@ class Workspace extends Model
   subscribeToAddedItems: ->
     @onDidAddPaneItem ({item, pane, index}) =>
       if item instanceof TextEditor
-        # @textEditorRegistry.maintainConfig(item)
-        # @textEditorRegistry.maintainGrammar(item)
+        @textEditorRegistry.maintainConfig(item)
+        @textEditorRegistry.maintainGrammar(item)
         @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is

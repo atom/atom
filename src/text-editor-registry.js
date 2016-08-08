@@ -2,6 +2,7 @@
 
 import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
 import {Point, Range} from 'atom'
+import NullGrammar from './null-grammar'
 
 const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
   ['core.fileEncoding', 'setEncoding'],
@@ -129,6 +130,10 @@ export default class TextEditorRegistry {
     }
 
     this.editorsWithMaintainedGrammar.add(editor)
+    if (editor.getGrammar() !== NullGrammar) {
+      this.editorGrammarOverrides[editor.id] = editor.getGrammar().scopeName
+    }
+
     this.selectGrammarForEditor(editor)
     this.subscriptions.add(editor.onDidChangePath(() => {
       this.editorGrammarScores.delete(editor)

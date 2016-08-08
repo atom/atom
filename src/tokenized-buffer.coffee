@@ -12,7 +12,7 @@ NullGrammar = require './null-grammar'
 
 module.exports =
 class TokenizedBuffer extends Model
-  grammar: NullGrammar
+  grammar: null
   buffer: null
   tabLength: null
   tokenizedLines: null
@@ -31,7 +31,7 @@ class TokenizedBuffer extends Model
     new this(state)
 
   constructor: (params) ->
-    {@buffer, @tabLength, @largeFileMode, @assert} = params
+    {grammar, @buffer, @tabLength, @largeFileMode, @assert} = params
 
     @emitter = new Emitter
     @disposables = new CompositeDisposable
@@ -40,7 +40,7 @@ class TokenizedBuffer extends Model
     @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
     @rootScopeDescriptor = new ScopeDescriptor(scopes: ['text.plain'])
 
-    @retokenizeLines()
+    @setGrammar(grammar ? NullGrammar)
 
   destroyed: ->
     @disposables.dispose()
@@ -79,7 +79,7 @@ class TokenizedBuffer extends Model
   onDidTokenize: (callback) ->
     @emitter.on 'did-tokenize', callback
 
-  setGrammar: (grammar, score) ->
+  setGrammar: (grammar) ->
     return unless grammar? and grammar isnt @grammar
 
     @grammar = grammar

@@ -156,7 +156,7 @@ class TextEditor extends Model
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
-      @tabLength, @buffer, @largeFileMode, @assert
+      grammar, @tabLength, @buffer, @largeFileMode, @assert
     })
     @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
@@ -186,9 +186,6 @@ class TextEditor extends Model
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
-
-    if grammar?
-      @setGrammar(grammar)
 
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
@@ -557,13 +554,12 @@ class TextEditor extends Model
     displayLayer = @displayLayer.copy()
     selectionsMarkerLayer = displayLayer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
-    newEditor = new TextEditor({
+    new TextEditor({
       @buffer, selectionsMarkerLayer, @tabLength, softTabs,
       suppressCursorCreation: true,
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @assert, displayLayer
+      @clipboard, @assert, displayLayer, grammar: @getGrammar()
     })
-    newEditor
 
   # Controls visibility based on the given {Boolean}.
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)

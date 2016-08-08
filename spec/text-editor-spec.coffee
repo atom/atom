@@ -57,7 +57,7 @@ describe "TextEditor", ->
         expect(editor.tokensForScreenRow(1).length).toBe 2 # soft tab
 
   describe ".copy()", ->
-    it "returns a different edit session with the same initial state", ->
+    it "returns a different editor with the same initial state", ->
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
       editor.firstVisibleScreenRow = 5
