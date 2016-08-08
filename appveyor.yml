@@ -33,10 +33,13 @@ build_script:
 test: off
 deploy: off
 artifacts:
-  - path: out\**\AtomSetup.exe
+  - path: out\AtomSetup.exe
     name: AtomSetup.exe
-  - path: out\**\AtomSetup.msi
+  - path: out\AtomSetup.msi
     name: AtomSetup.msi
+  - path: out\RELEASES
+    name: RELEASES
+  - path: out\*.nupkg
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
