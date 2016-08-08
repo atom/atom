@@ -242,6 +242,7 @@ class TokenizedBuffer extends Model
         row + delta
 
   handleBufferChange: (e) ->
+    @lastBufferChangeEventId = e.eventId
     @changeCount = @buffer.changeCount
 
     {oldRange, newRange} = e
