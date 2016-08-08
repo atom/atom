@@ -45,7 +45,7 @@ dumpSymbols()
       if (argv.codeSign) {
         codeSignOnMac(packagedAppPath)
       } else {
-        console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing...'.gray)
+        console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
       }
       return Promise.resolve(packagedAppPath)
     } else if (process.platform === 'win32') {
@@ -55,6 +55,6 @@ dumpSymbols()
     if (argv.install) {
       installApplication(packagedAppPath)
     } else {
-      console.log('Skipping installation. Specify the --install option to install Atom...'.gray)
+      console.log('Skipping installation. Specify the --install option to install Atom'.gray)
     }
   })

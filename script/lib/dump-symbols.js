@@ -7,10 +7,10 @@ const path = require('path')
 const CONFIG = require('../config')
 module.exports = function () {
   if (process.platform === 'win32') {
-    console.log('Skipping symbol dumping because minidump is not supported on Windows...'.gray)
+    console.log('Skipping symbol dumping because minidump is not supported on Windows'.gray)
     return Promise.resolve()
   } else {
-    console.log(`Dumping symbols in ${CONFIG.symbolsPath}...`)
+    console.log(`Dumping symbols in ${CONFIG.symbolsPath}`)
     const binaryPaths = glob.sync(path.join(CONFIG.intermediateAppPath, 'node_modules', '**', '*.node'))
     return Promise.all(binaryPaths.map(dumpSymbol))
   }

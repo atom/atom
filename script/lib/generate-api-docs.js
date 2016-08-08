@@ -11,7 +11,7 @@ const CONFIG = require('../config')
 
 module.exports = function () {
   const generatedJSONPath = path.join(CONFIG.docsOutputPath, 'atom-api.json')
-  console.log(`Generating API docs at ${generatedJSONPath}...`)
+  console.log(`Generating API docs at ${generatedJSONPath}`)
 
   // Unfortunately, correct relative paths depend on a specific working
   // directory, but this script should be able to run from anywhere, so we

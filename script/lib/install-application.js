@@ -8,10 +8,10 @@ module.exports = function (packagedAppPath) {
     const packagedAppPathFileName = path.basename(packagedAppPath)
     const installationDirPath = path.join(path.sep, 'Applications', packagedAppPathFileName)
     if (fs.existsSync(installationDirPath)) {
-      console.log(`Removing previously installed ${packagedAppPathFileName} at ${installationDirPath}...`)
+      console.log(`Removing previously installed ${packagedAppPathFileName} at ${installationDirPath}`)
       fs.removeSync(installationDirPath)
     }
-    console.log(`Installing ${packagedAppPath} at ${installationDirPath}...`)
+    console.log(`Installing ${packagedAppPath} at ${installationDirPath}`)
     fs.copySync(packagedAppPath, installationDirPath)
   } else {
     throw new Error("Not implemented yet.")

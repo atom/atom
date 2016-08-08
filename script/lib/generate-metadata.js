@@ -11,7 +11,7 @@ const semver = require('semver')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  console.log(`Generating metadata for ${path.join(CONFIG.intermediateAppPath, 'package.json')}...`)
+  console.log(`Generating metadata for ${path.join(CONFIG.intermediateAppPath, 'package.json')}`)
   CONFIG.appMetadata._atomPackages = buildBundledPackagesMetadata()
   CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata()
   CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()

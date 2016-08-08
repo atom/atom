@@ -7,7 +7,7 @@ const ModuleCache = require('../../src/module-cache')
 const CONFIG = require('../config')
 
 module.exports = function () {
-  console.log(`Generating module cache for ${CONFIG.intermediateAppPath}...`)
+  console.log(`Generating module cache for ${CONFIG.intermediateAppPath}`)
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     ModuleCache.create(path.join(CONFIG.intermediateAppPath, 'node_modules', packageName))
   }

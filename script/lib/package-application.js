@@ -45,7 +45,7 @@ module.exports = function () {
 }
 
 function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
-  console.log(`Copying non-ASAR resources to ${bundledResourcesPath}...`)
+  console.log(`Copying non-ASAR resources to ${bundledResourcesPath}`)
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'apm', 'node_modules', 'atom-package-manager'),
     path.join(bundledResourcesPath, 'app', 'apm'),
@@ -69,7 +69,7 @@ function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
     fs.copySync(path.join('resources', 'win', 'apm.sh'), path.join(bundledResourcesPath, 'cli', 'apm.sh'))
   }
 
-  console.log(`Writing LICENSE.md to ${bundledResourcesPath}...`)
+  console.log(`Writing LICENSE.md to ${bundledResourcesPath}`)
   return getLicenseText().then((licenseText) => {
     fs.writeFileSync(path.join(bundledResourcesPath, 'LICENSE.md'), licenseText)
   })
@@ -78,7 +78,7 @@ function copyNonASARResources (packagedAppPath, bundledResourcesPath) {
 function setAtomHelperVersion (packagedAppPath) {
   const frameworksPath = path.join(packagedAppPath, 'Contents', 'Frameworks')
   const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
-  console.log(`Setting Atom Helper Version for ${helperPListPath}...`)
+  console.log(`Setting Atom Helper Version for ${helperPListPath}`)
   childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
   childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.appMetadata.version, helperPListPath])
 }

@@ -21,7 +21,7 @@ module.exports = function () {
   ]
 
   for (let path of cachePaths) {
-    console.log(`Cleaning ${path}...`)
+    console.log(`Cleaning ${path}`)
     fs.removeSync(path)
   }
 }

@@ -9,14 +9,14 @@ module.exports = function () {
   const fs = require('fs-extra')
 
   const apmDependenciesPath = path.join(CONFIG.apmRootPath, 'node_modules')
-  console.log(`Cleaning ${apmDependenciesPath}...`);
+  console.log(`Cleaning ${apmDependenciesPath}`);
   fs.removeSync(apmDependenciesPath)
 
   const atomDependenciesPath = path.join(CONFIG.repositoryRootPath, 'node_modules')
-  console.log(`Cleaning ${atomDependenciesPath}...`);
+  console.log(`Cleaning ${atomDependenciesPath}`);
   fs.removeSync(atomDependenciesPath)
 
   const scriptDependenciesPath = path.join(CONFIG.scriptRootPath, 'node_modules')
-  console.log(`Cleaning ${scriptDependenciesPath}...`);
+  console.log(`Cleaning ${scriptDependenciesPath}`);
   fs.removeSync(scriptDependenciesPath)
 }

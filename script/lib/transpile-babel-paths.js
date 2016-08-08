@@ -17,7 +17,7 @@ const PREFIX_LENGTH = Math.max.apply(null, BABEL_PREFIXES.map(prefix => prefix.l
 const BUFFER = Buffer(PREFIX_LENGTH)
 
 module.exports = function () {
-  console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}...`)
+  console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`)
   for (let path of getPathsToTranspile()) {
     if (usesBabel(path)) {
       transpileBabelPath(path)
