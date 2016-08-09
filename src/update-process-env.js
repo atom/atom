@@ -32,7 +32,7 @@ export default function updateProcessEnv (launchEnv) {
 function getEnvFromShell () {
   let shell = process.env.SHELL
   if (shell && (shell.endsWith('/bash') || shell.endsWith('/sh'))) {
-    let {stdout} = spawnSync(shell, ['-ilc', 'env'], {encoding: 'utf8'})
+    let {stdout} = spawnSync(shell, ['-ilc', 'command env'], {encoding: 'utf8'})
     if (stdout) {
       let result = {}
       for (let line of stdout.split('\n')) {
