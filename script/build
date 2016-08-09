@@ -51,6 +51,8 @@ dumpSymbols()
       return Promise.resolve(packagedAppPath)
     } else if (process.platform === 'win32') {
       return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
+    } else {
+      return Promise.resolve(packagedAppPath)
     }
   }).then(packagedAppPath => {
     if (argv.compressArtifacts) {
