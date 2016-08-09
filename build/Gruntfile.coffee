@@ -84,7 +84,6 @@ module.exports = (grunt) ->
         'src/**/*.coffee'
         'spec/*.coffee'
         '!spec/*-spec.coffee'
-        'exports/**/*.coffee'
         'static/**/*.coffee'
       ]
       dest: appDir
@@ -139,6 +138,13 @@ module.exports = (grunt) ->
       ext: '.js'
 
   for jsFile in glob.sync("src/**/*.js")
+    if usesBabel(jsFile)
+      babelConfig.dist.files.push({
+        src: [jsFile]
+        dest: path.join(appDir, jsFile)
+      })
+
+  for jsFile in glob.sync("exports/**/*.js")
     if usesBabel(jsFile)
       babelConfig.dist.files.push({
         src: [jsFile]
@@ -204,7 +210,6 @@ module.exports = (grunt) ->
         configFile: 'coffeelint.json'
       src: [
         'dot-atom/**/*.coffee'
-        'exports/**/*.coffee'
         'src/**/*.coffee'
       ]
       build: [
@@ -217,6 +222,7 @@ module.exports = (grunt) ->
 
     standard:
       src: [
+        'exports/**/*.js'
         'src/**/*.js'
         'static/*.js'
       ]
