@@ -23,10 +23,10 @@ class ApplicationDelegate
     ipcRenderer.send("call-window-method", "close")
 
   getTemporaryWindowState: ->
-    ipcHelpers.call('get-temporary-window-state')
+    ipcHelpers.call('get-temporary-window-state').then (stateJSON) -> JSON.parse(stateJSON)
 
   setTemporaryWindowState: (state) ->
-    ipcHelpers.call('set-temporary-window-state', state)
+    ipcHelpers.call('set-temporary-window-state', JSON.stringify(state))
 
   getWindowSize: ->
     [width, height] = remote.getCurrentWindow().getSize()
