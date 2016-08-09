@@ -61,11 +61,7 @@ function buildBundledPackagesMetadata () {
         if (packageKeymapPath.endsWith('.cson') || packageKeymapPath.endsWith('.json')) {
           const relativePath = path.relative(CONFIG.intermediateAppPath, packageKeymapPath)
           packageNewMetadata.keymaps[relativePath] = CSON.readFileSync(packageKeymapPath)
-          fs.removeSync(packageKeymapPath)
         }
-      }
-      if (fs.readdirSync(packageKeymapsPath).length === 0) {
-        fs.removeSync(packageKeymapsPath)
       }
     }
 
@@ -76,11 +72,7 @@ function buildBundledPackagesMetadata () {
         if (packageMenuPath.endsWith('.cson') || packageMenuPath.endsWith('.json')) {
           const relativePath = path.relative(CONFIG.intermediateAppPath, packageMenuPath)
           packageNewMetadata.menus[relativePath] = CSON.readFileSync(packageMenuPath)
-          fs.removeSync(packageMenuPath)
         }
-      }
-      if (fs.readdirSync(packageMenusPath).length === 0) {
-        fs.removeSync(packageMenusPath)
       }
     }
 
@@ -93,8 +85,6 @@ function buildBundledPackagesMetadata () {
         }
       }
     }
-
-    fs.removeSync(packageMetadataPath)
   }
   return packages
 }
