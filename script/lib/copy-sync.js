@@ -6,21 +6,25 @@ const path = require('path')
 module.exports = copySync
 
 function copySync(src, dest, options) {
-  options = options || {}
-  options.filter = options.filter || () => true
+  if (fs.existsSync(src)) {
+    options = options || {}
+    options.filter = options.filter || () => true
 
-  const destFolder = path.dirname(dest)
-  const stat = fs.statSync(src)
+    const destFolder = path.dirname(dest)
+    const stat = fs.statSync(src)
 
-  if (options.filter(src)) {
-    if (stat.isFile()) {
-      if (!fs.existsSync(destFolder)) fs.mkdirsSync(destFolder)
-      copyFileSync(src, dest, options)
-    } else if (stat.isDirectory()) {
-      fs.readdirSync(src).forEach(content => {
-        copySync(path.join(src, content), path.join(dest, content), options)
-      })
+    if (options.filter(src)) {
+      if (stat.isFile()) {
+        if (!fs.existsSync(destFolder)) fs.mkdirsSync(destFolder)
+        copyFileSync(src, dest, options)
+      } else if (stat.isDirectory()) {
+        fs.readdirSync(src).forEach(content => {
+          copySync(path.join(src, content), path.join(dest, content), options)
+        })
+      }
     }
+  } else {
+    console.log(`Skipping copy of "${src}" because it doesn't exist`.gray)
   }
 }
 
