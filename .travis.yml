@@ -25,10 +25,9 @@ install:
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm
   - script/bootstrap
-  - script/build
+  - script/build --compress-artifacts
 
-script:
-  - echo 'Run tests at some point.'
+script: false
 
 cache:
   directories:

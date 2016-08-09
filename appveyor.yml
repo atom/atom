@@ -25,7 +25,7 @@ install:
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
   - script\bootstrap.cmd
-  - script\build.cmd --code-sign
+  - script\build.cmd --code-sign --compress-artifacts
 
 test: off
 deploy: off
@@ -34,6 +34,8 @@ artifacts:
     name: AtomSetup.exe
   - path: out\AtomSetup.msi
     name: AtomSetup.msi
+  - path: out\atom-windows.zip
+    name: atom-windows.zip
   - path: out\RELEASES
     name: RELEASES
   - path: out\atom-*-delta.nupkg

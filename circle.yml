@@ -22,11 +22,7 @@ dependencies:
 
   override:
     - script/bootstrap
-    - script/build --code-sign
-
-  post:
-    - cd out && zip -r ./atom-mac.zip ./Atom.app
-    - cd out && zip -r ./atom-mac-symbols.zip ./symbols
+    - script/build --code-sign --compress-artifacts
 
   cache_directories:
     - cache

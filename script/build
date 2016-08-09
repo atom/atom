@@ -9,6 +9,7 @@ require('colors')
 const argv = require('yargs').argv
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
+const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
 const createWindowsInstaller = require('./lib/create-windows-installer')
 const dumpSymbols = require('./lib/dump-symbols')
@@ -52,6 +53,12 @@ dumpSymbols()
       return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
     }
   }).then(packagedAppPath => {
+    if (argv.compressArtifacts) {
+      compressArtifacts(packagedAppPath)
+    } else {
+      console.log('Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'.gray)
+    }
+
     if (argv.install) {
       installApplication(packagedAppPath)
     } else {
