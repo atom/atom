@@ -35,5 +35,8 @@ module.exports = function (packagedAppPath, codeSign) {
     }
   }
   console.log(`Creating Windows Installer for ${packagedAppPath}`)
-  return electronInstaller.createWindowsInstaller(options).then(deleteCertificate, deleteCertificate)
+  return electronInstaller.createWindowsInstaller(options).then(deleteCertificate, function (error) {
+    console.log(`Windows installer creation failed:\n${error}`)
+    deleteCertificate()
+  })
 }
