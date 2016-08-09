@@ -2,7 +2,11 @@
 
 import {spawnSync} from 'child_process'
 
-const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set(['NODE_ENV', 'NODE_PATH'])
+const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
+  'NODE_ENV',
+  'NODE_PATH',
+  'ATOM_HOME'
+])
 
 export default function updateProcessEnv (launchEnv) {
   let envToAssign
