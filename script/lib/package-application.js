@@ -16,14 +16,15 @@ module.exports = function () {
   const arch = process.platform === 'win32' ? 'ia32' : 'x64'
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
-    'app-version': CONFIG.appMetadata.version,
     'app-bundle-id': 'com.github.atom',
     'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
+    'app-version': CONFIG.appMetadata.version,
     'arch': arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.cachePath},
     'dir': CONFIG.intermediateAppPath,
+    'extend-info': path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
     'helper-bundle-id': 'com.github.atom.helper',
     'icon': getIcon(),
     'name': appName,
@@ -32,9 +33,9 @@ module.exports = function () {
     'platform': process.platform,
     'version': CONFIG.appMetadata.electronVersion,
     'version-string': {
-      CompanyName: 'GitHub, Inc.',
-      FileDescription: 'Atom',
-      ProductName: 'Atom',
+      'CompanyName': 'GitHub, Inc.',
+      'FileDescription': 'Atom',
+      'ProductName': 'Atom'
     }
   }).then((packagedAppPath) => {
     let bundledResourcesPath
