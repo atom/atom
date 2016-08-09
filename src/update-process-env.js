@@ -2,7 +2,11 @@
 
 import {spawnSync} from 'child_process'
 
-const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set(['NODE_ENV', 'NODE_PATH'])
+const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
+  'NODE_ENV',
+  'NODE_PATH',
+  'ATOM_HOME'
+])
 
 export default function updateProcessEnv (launchEnv) {
   let envToAssign
@@ -32,7 +36,7 @@ export default function updateProcessEnv (launchEnv) {
 function getEnvFromShell () {
   let shell = process.env.SHELL
   if (shell && (shell.endsWith('/bash') || shell.endsWith('/sh'))) {
-    let {stdout} = spawnSync(shell, ['-ilc', 'env'], {encoding: 'utf8'})
+    let {stdout} = spawnSync(shell, ['-ilc', 'command env'], {encoding: 'utf8'})
     if (stdout) {
       let result = {}
       for (let line of stdout.split('\n')) {
