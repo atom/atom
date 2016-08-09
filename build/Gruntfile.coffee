@@ -66,7 +66,7 @@ module.exports = (grunt) ->
     contentsDir = path.join(shellAppDir, 'Contents')
     appDir = path.join(contentsDir, 'Resources', 'app')
     installDir ?= path.join('/Applications', appName)
-    killCommand = 'pkill -9 Atom'
+    killCommand = 'pkill -9 "Atom|chromedriver"'
   else
     homeDir = process.env.HOME
     contentsDir = shellAppDir
