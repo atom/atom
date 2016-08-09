@@ -12,7 +12,7 @@
 
 ### Visual Studio
 
-You can use either:
+You can use any of the following:
 
  * [Visual C++ Build Tools 2015](http://landinghub.visualstudio.com/visual-cpp-build-tools)
  * [Visual Studio 2013 Update 5](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs) (Express Edition or better)
@@ -21,14 +21,14 @@ You can use either:
 Whichever version you use, ensure that:
 
  * The default installation folder is chosen so the build tools can find it
- * If using Visual Studio make sure Visual C++ support is selected/installed
- * If using Visual C++ Build Tools make sure Windows 8 SDK is selected/installed
+ * Visual C++ support is selected/installed if using Visual Studio
+ * Windows 8 SDK is selected/installed if using Visual C++ Build Tools
  * A `git` command is in your path
- * Set the `GYP_MSVS_VERSION` environment variable to the Visual Studio/Build Tools version (`2013` or `2015`) e.g. ``[Environment]::SetEnvironmentVariable("GYP_MSVS_VERSION", "2015", "User")`` in PowerShell or set it in Windows advanced system settings control panel.
+ * The `GYP_MSVS_VERSION` environment variable is set to the corresponding Visual Studio/Build Tools version (`2013` or `2015`)
 
 ## Instructions
 
-You can run these commands using Command Prompt, PowerShell, Bash on Ubuntu on Windows, or any other terminal. These instructions will assume the use of Command Prompt - if you are using Bash use a forward slash instead: i.e. `script/build`.
+You can run these commands using Command Prompt, PowerShell, Bash on Ubuntu on Windows, or any other terminal. These instructions will assume the use of Command Prompt.
 
 ```cmd
 cd C:\
@@ -36,16 +36,16 @@ git clone https://github.com/atom/atom/
 cd atom
 script\build
 ```
-This will create the Atom application in the `out\Atom` folder as well as copy it to a subfolder of your user profile (e.g. `c:\Users\Bob`) called `AppData\Local\atom\app-dev`.
+This will create the Atom application in the `out\Atom` folder as well as copy it to `%LOCALAPPDATA%\Atom\app-dev`.
 
 ### `script\build` Options
-  * `--install-dir` - Creates the final built application in this directory. Example (trailing slash is optional):
-```bash
-.\script\build --install-dir Z:\Some\Destination\Directory\
+  * `--install-dir` - Creates the final built application in this directory. Example:
+```cmd
+script\build --install-dir Z:\Some\Destination\Directory
 ```
-  * `--build-dir` - Build the application in this directory. Example (trailing slash is optional):
-```bash
-.\script\build --build-dir Z:\Some\Temporary\Directory\
+  * `--build-dir` - Build the application in this directory. Example:
+```cmd
+script\build --build-dir Z:\Some\Temporary\Directory
 ```
   * `--no-install` - Skips the installation task after building.
   * `--verbose` - Verbose mode. A lot more information output.
@@ -54,14 +54,14 @@ This will create the Atom application in the `out\Atom` folder as well as copy i
 
 ### Common Errors
 * `node is not recognized`
-  * If you just installed Node.js, you'll need to restart your PowerShell/Command Prompt/Git Shell before the node
-  command is available on your Path.
+  * If you just installed Node.js, you'll need to restart Command Prompt before the node command is available.
 
 * `msbuild.exe failed with exit code: 1`
-   * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
+   * If you installed Visual Studio, ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio, press Modify, and then check the Visual C++ box.
+   * If you installed Visual C++ Build Tools, ensure you have Windows 8 SDK support installed.  Go into Add/Remove Programs, select Visual Studio, press Modify and then check the Windows 8 SDK box.
 
 * `script\build` stops with no error or warning shortly after displaying the versions of node, npm and Python
-  * Make sure that the path where you have checked out Atom does not include a space. e.g. use `c:\atom` and not `c:\my stuff\atom`
+  * Make sure that the path where you have checked out Atom does not include a space (use `C:\atom` and not `C:\my stuff\atom`).
 
 * `script\build` outputs only the Node.js and Python versions before returning
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
@@ -81,7 +81,7 @@ This will create the Atom application in the `out\Atom` folder as well as copy i
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\build` (re-open your command prompt or Powershell window if you set it using the GUI)
+  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio/Build Tools is isntalled and then `script\clean` followed by `script\build` (re-open the Command Prompt if you set the variable using the GUI)
 
 * `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
   * Try running `npm install -g node-gyp`, and run `script/build` again.
