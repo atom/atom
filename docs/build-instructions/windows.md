@@ -28,7 +28,7 @@ Whichever version you use, ensure that:
 
 ## Instructions
 
-You can run these commands using Command Prompt, PowerShell, Bash on Ubuntu on Windows, or any other terminal. These instructions will assume the use of Command Prompt.
+You can run these commands using Command Prompt, PowerShell, Git Shell, or any other terminal. These instructions will assume the use of Command Prompt.
 
 ```cmd
 cd C:\
