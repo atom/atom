@@ -13,12 +13,13 @@ const CONFIG = require('../config')
 
 module.exports = function () {
   const appName = getAppName()
+  const arch = process.platform === 'win32' ? 'ia32' : 'x64'
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
     'app-version': CONFIG.appMetadata.version,
     'app-bundle-id': 'com.github.atom',
     'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
-    'arch': process.arch,
+    'arch': arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
     'download': {cache: CONFIG.cachePath},
