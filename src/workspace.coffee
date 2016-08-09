@@ -88,6 +88,7 @@ class Workspace extends Model
   subscribeToEvents: ->
     @subscribeToActiveItem()
     @subscribeToFontSize()
+    @subscribeToAddedItems()
 
   consumeServices: ({serviceHub}) ->
     @directorySearchers = []
@@ -159,6 +160,13 @@ class Workspace extends Model
 
       @activeItemSubscriptions.add(titleSubscription) if titleSubscription?
       @activeItemSubscriptions.add(modifiedSubscription) if modifiedSubscription?
+
+  subscribeToAddedItems: ->
+    @onDidAddPaneItem ({item, pane, index}) =>
+      if item instanceof TextEditor
+        grammarSubscription = item.observeGrammar(@handleGrammarUsed.bind(this))
+        item.onDidDestroy -> grammarSubscription.dispose()
+        @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is
   # open.
@@ -383,8 +391,7 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddTextEditor: (callback) ->
-    @onDidAddPaneItem ({item, pane, index}) ->
-      callback({textEditor: item, pane, index}) if item instanceof TextEditor
+    @emitter.on 'did-add-text-editor', callback
 
   ###
   Section: Opening
@@ -551,10 +558,7 @@ class Workspace extends Model
     @project.bufferForPath(filePath, options).then (buffer) =>
       editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
       disposable = atom.textEditors.add(editor)
-      grammarSubscription = editor.observeGrammar(@handleGrammarUsed.bind(this))
-      editor.onDidDestroy ->
-        grammarSubscription.dispose()
-        disposable.dispose()
+      editor.onDidDestroy -> disposable.dispose()
       editor
 
   handleGrammarUsed: (grammar) ->
