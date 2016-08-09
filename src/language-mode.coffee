@@ -25,8 +25,9 @@ class LanguageMode
   # endRow - The row {Number} to end at
   toggleLineCommentsForBufferRows: (start, end) ->
     scope = @editor.scopeDescriptorForBufferPosition([start, 0])
-    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
-    return unless commentStartString?
+    commentStrings = @editor.getCommentStrings(scope)
+    return unless commentStrings?
+    {commentStartString, commentEndString} = commentStrings
 
     buffer = @editor.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
@@ -194,10 +195,10 @@ class LanguageMode
   # the same type (comments next to source code).
   rowRangeForParagraphAtBufferRow: (bufferRow) ->
     scope = @editor.scopeDescriptorForBufferPosition([bufferRow, 0])
-    {commentStartString, commentEndString} = @commentStartAndEndStringsForScope(scope)
+    commentStrings = @editor.getCommentStrings(scope)
     commentStartRegex = null
-    if commentStartString? and not commentEndString?
-      commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '(?:$1)?')
+    if commentStrings?.commentStartString? and not commentStrings.commentEndString?
+      commentStartRegexString = _.escapeRegExp(commentStrings.commentStartString).replace(/(\s+)$/, '(?:$1)?')
       commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
 
     filterCommentStart = (line) ->
@@ -347,6 +348,3 @@ class LanguageMode
 
   foldEndRegexForScopeDescriptor: (scopeDescriptor) ->
     @cacheRegex(@editor.getFoldEndPattern(scopeDescriptor))
-
-  commentStartAndEndStringsForScope: (scope) ->
-    @editor.getCommentStrings(scope)

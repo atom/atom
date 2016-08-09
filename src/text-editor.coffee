@@ -3432,22 +3432,22 @@ class TextEditor extends Model
   #
   # Returns a {String} containing the non-word characters.
   getNonWordCharacters: (scopes) ->
-    (scopes and @scopedSettingsDelegate?.getNonWordCharacters?(scopes)) ? @nonWordCharacters
+    @scopedSettingsDelegate?.getNonWordCharacters?(scopes) ? @nonWordCharacters
 
   getCommentStrings: (scopes) ->
-    (scopes and @scopedSettingsDelegate?.getCommentStrings?(scopes)) ? @commentStrings
+    @scopedSettingsDelegate?.getCommentStrings?(scopes)
 
   getIncreaseIndentPattern: (scopes) ->
-    (scopes and @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)) ? @increaseIndentPattern
+    @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)
 
   getDecreaseIndentPattern: (scopes) ->
-    (scopes and @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)) ? @decreaseIndentPattern
+    @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)
 
   getDecreaseNextIndentPattern: (scopes) ->
-    (scopes and @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)) ? @decreaseNextIndentPattern
+    @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)
 
   getFoldEndPattern: (scopes) ->
-    (scopes and @scopedSettingsDelegate?.getFoldEndPattern?(scopes)) ? @foldEndPattern
+    @scopedSettingsDelegate?.getFoldEndPattern?(scopes)
 
   ###
   Section: Event Handlers
