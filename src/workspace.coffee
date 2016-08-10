@@ -164,10 +164,13 @@ class Workspace extends Model
   subscribeToAddedItems: ->
     @onDidAddPaneItem ({item, pane, index}) =>
       if item instanceof TextEditor
-        @textEditorRegistry.maintainConfig(item)
-        @textEditorRegistry.maintainGrammar(item)
-        grammarSubscription = item.observeGrammar(@handleGrammarUsed.bind(this))
-        item.onDidDestroy -> grammarSubscription.dispose()
+        subscriptions = new CompositeDisposable(
+          @textEditorRegistry.add(item)
+          @textEditorRegistry.maintainConfig(item)
+          @textEditorRegistry.maintainGrammar(item)
+          item.observeGrammar(@handleGrammarUsed.bind(this))
+        )
+        item.onDidDestroy -> subscriptions.dispose()
         @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is

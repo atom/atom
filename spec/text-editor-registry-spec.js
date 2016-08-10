@@ -38,6 +38,7 @@ describe('TextEditorRegistry', function () {
       disposable.dispose()
       expect(registry.editors.size).toBe(0)
       expect(editor.registered).toBe(false)
+      expect(retainedEditorCount(registry)).toBe(0)
     })
   })
 
@@ -103,6 +104,7 @@ describe('TextEditorRegistry', function () {
 
       editor.getBuffer().setPath('test.js')
       expect(editor.getGrammar().name).toBe('Null Grammar')
+      expect(retainedEditorCount(registry)).toBe(0)
     })
   })
 
@@ -216,7 +218,7 @@ describe('TextEditorRegistry', function () {
       atom.config.set('core.fileEncoding', 'utf16be')
       expect(editor.getEncoding()).toBe('utf8')
       expect(getSubscriptionCount(editor)).toBe(previousSubscriptionCount)
-      expect(registry.editorsWithMaintainedConfig.size).toBe(0)
+      expect(retainedEditorCount(registry)).toBe(0)
     })
 
     it('sets the encoding based on the config', function () {
@@ -585,4 +587,12 @@ function getSubscriptionCount (editor) {
     editor.tokenizedBuffer.emitter.getTotalListenerCount() +
     editor.buffer.emitter.getTotalListenerCount() +
     editor.displayLayer.emitter.getTotalListenerCount()
+}
+
+function retainedEditorCount (registry) {
+  const editors = new Set()
+  registry.editors.forEach(e => editors.add(e))
+  registry.editorsWithMaintainedConfig.forEach(e => editors.add(e))
+  registry.editorsWithMaintainedGrammar.forEach(e => editors.add(e))
+  return editors.size
 }
