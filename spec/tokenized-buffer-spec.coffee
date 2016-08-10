@@ -3,7 +3,7 @@ TokenizedBuffer = require '../src/tokenized-buffer'
 _ = require 'underscore-plus'
 
 describe "TokenizedBuffer", ->
-  [tokenizedBuffer, buffer, changeHandler] = []
+  [tokenizedBuffer, buffer] = []
 
   beforeEach ->
     # enable async tokenization
@@ -22,7 +22,6 @@ describe "TokenizedBuffer", ->
   fullyTokenize = (tokenizedBuffer) ->
     tokenizedBuffer.setVisible(true)
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
-    changeHandler?.reset()
 
   describe "serialization", ->
     describe "when the underlying buffer has a path", ->
@@ -125,7 +124,6 @@ describe "TokenizedBuffer", ->
         buffer, config: atom.config, grammarRegistry: atom.grammars, packageManager: atom.packages, assert: atom.assert
       })
       startTokenizing(tokenizedBuffer)
-      tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
 
     afterEach ->
       tokenizedBuffer.destroy()
@@ -147,78 +145,55 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
-        expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 4, delta: 0)
-        changeHandler.reset()
 
         # tokenize chunk 2
         advanceClock()
         expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(9).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeFalsy()
-        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 9, delta: 0)
-        changeHandler.reset()
 
         # tokenize last chunk
         advanceClock()
         expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(12).ruleStack?).toBeTruthy()
-        expect(changeHandler).toHaveBeenCalledWith(start: 10, end: 12, delta: 0)
 
     describe "when the buffer is partially tokenized", ->
       beforeEach ->
         # tokenize chunk 1 only
         advanceClock()
-        changeHandler.reset()
 
       describe "when there is a buffer change inside the tokenized region", ->
         describe "when lines are added", ->
           it "pushes the invalid rows down", ->
             expect(tokenizedBuffer.firstInvalidRow()).toBe 5
             buffer.insert([1, 0], '\n\n')
-            changeHandler.reset()
-
             expect(tokenizedBuffer.firstInvalidRow()).toBe 7
-            advanceClock()
-            expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 11, delta: 0)
 
         describe "when lines are removed", ->
           it "pulls the invalid rows up", ->
             expect(tokenizedBuffer.firstInvalidRow()).toBe 5
             buffer.delete([[1, 0], [3, 0]])
-            changeHandler.reset()
-
             expect(tokenizedBuffer.firstInvalidRow()).toBe 2
-            advanceClock()
-            expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 6, delta: 0)
 
         describe "when the change invalidates all the lines before the current invalid region", ->
           it "retokenizes the invalidated lines and continues into the valid region", ->
             expect(tokenizedBuffer.firstInvalidRow()).toBe 5
             buffer.insert([2, 0], '/*')
-            changeHandler.reset()
             expect(tokenizedBuffer.firstInvalidRow()).toBe 3
-
             advanceClock()
-            expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
             expect(tokenizedBuffer.firstInvalidRow()).toBe 8
 
       describe "when there is a buffer change surrounding an invalid row", ->
         it "pushes the invalid row to the end of the change", ->
           buffer.setTextInRange([[4, 0], [6, 0]], "\n\n\n")
-          changeHandler.reset()
-
           expect(tokenizedBuffer.firstInvalidRow()).toBe 8
-          advanceClock()
 
       describe "when there is a buffer change inside an invalid region", ->
         it "does not attempt to tokenize the lines in the change, and preserves the existing invalid row", ->
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
           buffer.setTextInRange([[6, 0], [7, 0]], "\n\n\n")
-
           expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeFalsy()
           expect(tokenizedBuffer.tokenizedLineForRow(7).ruleStack?).toBeFalsy()
-
-          changeHandler.reset()
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
 
     describe "when the buffer is fully tokenized", ->
@@ -235,31 +210,16 @@ describe "TokenizedBuffer", ->
             # line 2 is unchanged
             expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 0, end: 2, delta: 0)
-
           describe "when the change invalidates the tokenization of subsequent lines", ->
             it "schedules the invalidated lines to be tokenized in the background", ->
               buffer.insert([5, 30], '/* */')
-              changeHandler.reset()
               buffer.insert([2, 0], '/*')
               expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js']
-              expect(changeHandler).toHaveBeenCalled()
-              [event] = changeHandler.argsForCall[0]
-              delete event.bufferChange
-              expect(event).toEqual(start: 2, end: 2, delta: 0)
-              changeHandler.reset()
 
               advanceClock()
               expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
               expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
               expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-              expect(changeHandler).toHaveBeenCalled()
-              [event] = changeHandler.argsForCall[0]
-              delete event.bufferChange
-              expect(event).toEqual(start: 3, end: 7, delta: 0)
 
           it "resumes highlighting with the state of the previous line", ->
             buffer.insert([0, 0], '/*')
@@ -284,32 +244,16 @@ describe "TokenizedBuffer", ->
             expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[1]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
             expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[1]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.comparison.js'])
 
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 1, end: 3, delta: -2)
-
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
-            changeHandler.reset()
-
             buffer.setTextInRange([[2, 0], [3, 0]], '/*')
             expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
             expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js']
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 3, delta: -1)
-            changeHandler.reset()
 
             advanceClock()
             expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 3, end: 7, delta: 0)
 
         describe "when lines are both updated and inserted", ->
           it "updates tokens to reflect the change", ->
@@ -330,37 +274,20 @@ describe "TokenizedBuffer", ->
             # previous line 3 is pushed down to become line 5
             expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 1, end: 2, delta: 2)
-
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
-            changeHandler.reset()
-
             buffer.insert([2, 0], '/*\nabcde\nabcder')
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 2, delta: 2)
             expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
             expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js']
-            changeHandler.reset()
 
             advanceClock() # tokenize invalidated lines in background
             expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.tokenizedLineForRow(8).tokens[0].scopes).not.toBe ['source.js', 'comment.block.js']
-
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 5, end: 9, delta: 0)
 
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
@@ -577,23 +504,15 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.tokenizedLineForRow(14)).not.toBeDefined()
 
       it "updates the indentLevel of empty lines surrounding a change that inserts lines", ->
-        # create some new lines
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
-
         expect(tokenizedBuffer.indentLevelForRow(5)).toBe 3
         expect(tokenizedBuffer.indentLevelForRow(6)).toBe 3
         expect(tokenizedBuffer.indentLevelForRow(9)).toBe 3
         expect(tokenizedBuffer.indentLevelForRow(10)).toBe 3
         expect(tokenizedBuffer.indentLevelForRow(11)).toBe 2
 
-        tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
-
         buffer.setTextInRange([[7, 0], [8, 65]], '        one\n        two\n        three\n        four')
-
-        delete changeHandler.argsForCall[0][0].bufferChange
-        expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, delta: 2)
-
         expect(tokenizedBuffer.indentLevelForRow(5)).toBe 4
         expect(tokenizedBuffer.indentLevelForRow(6)).toBe 4
         expect(tokenizedBuffer.indentLevelForRow(11)).toBe 4
@@ -601,17 +520,9 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.indentLevelForRow(13)).toBe 2
 
       it "updates the indentLevel of empty lines surrounding a change that removes lines", ->
-        # create some new lines
         buffer.insert([7, 0], '\n\n')
         buffer.insert([5, 0], '\n\n')
-
-        tokenizedBuffer.onDidChange changeHandler = jasmine.createSpy('changeHandler')
-
         buffer.setTextInRange([[7, 0], [8, 65]], '    ok')
-
-        delete changeHandler.argsForCall[0][0].bufferChange
-        expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, delta: -1)
-
         expect(tokenizedBuffer.indentLevelForRow(5)).toBe 2
         expect(tokenizedBuffer.indentLevelForRow(6)).toBe 2
         expect(tokenizedBuffer.indentLevelForRow(7)).toBe 2 # new text
