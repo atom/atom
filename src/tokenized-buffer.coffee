@@ -37,7 +37,7 @@ class TokenizedBuffer extends Model
     @disposables = new CompositeDisposable
     @tokenIterator = new TokenIterator(this)
 
-    @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
+    @disposables.add @buffer.registerTextDecorationLayer(this)
     @rootScopeDescriptor = new ScopeDescriptor(scopes: ['text.plain'])
 
     @setGrammar(grammar ? NullGrammar)
@@ -73,9 +73,6 @@ class TokenizedBuffer extends Model
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
-  onDidChange: (callback) ->
-    @emitter.on 'did-change', callback
-
   onDidTokenize: (callback) ->
     @emitter.on 'did-tokenize', callback
 
@@ -108,8 +105,6 @@ class TokenizedBuffer extends Model
     @tokenizedLines = new Array(lastRow + 1)
     @invalidRows = []
     @invalidateRow(0)
-    event = {start: 0, end: lastRow, delta: 0}
-    @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -157,8 +152,6 @@ class TokenizedBuffer extends Model
       @validateRow(endRow)
       @invalidateRow(endRow + 1) unless filledRegion
 
-      event = {start: startRow, end: endRow, delta: 0}
-      @emitter.emit 'did-change', event
       @emitter.emit 'did-invalidate-range', Range(Point(startRow, 0), Point(endRow + 1, 0))
 
     if @firstInvalidRow()?
@@ -194,7 +187,7 @@ class TokenizedBuffer extends Model
       else if row > end
         row + delta
 
-  handleBufferChange: (e) ->
+  bufferDidChange: (e) ->
     if @lastBufferChangeEventId?
       @assert(
         @lastBufferChangeEventId is e.eventId - 1,
@@ -226,9 +219,6 @@ class TokenizedBuffer extends Model
       @invalidateRow(end + delta + 1)
 
     @invalidatedRange = Range(start, end)
-
-    event = {start, end, delta, bufferChange: e}
-    @emitter.emit 'did-change', event
 
   isFoldableAtRow: (row) ->
     if @largeFileMode

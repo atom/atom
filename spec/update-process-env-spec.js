@@ -25,6 +25,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         WILL_BE_DELETED: 'hi',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
       }
       const initialProcessEnv = process.env
 
@@ -35,6 +36,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         KEY2: 'value2',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
       })
 
       // See #11302. On Windows, `process.env` is a magic object that offers
