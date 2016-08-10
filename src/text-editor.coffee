@@ -3350,7 +3350,7 @@ class TextEditor extends Model
   # Experimental: Enable or disable automatic language-based indentation when
   # inserting a line-break in the editor.
   #
-  # * `autoIdent` a {Boolean} indicating whether to enable or disable automatic
+  # * `autoIndent` a {Boolean} indicating whether to enable or disable automatic
   #   indentation.
   setAutoIndent: (@autoIndent) ->
 
@@ -3362,7 +3362,7 @@ class TextEditor extends Model
   # Experimental: Enable or disable automatic language-based indentation when
   # pasting text into the editor.
   #
-  # * `autoIdent` a {Boolean} indicating whether to enable or disable automatic
+  # * `autoIndent` a {Boolean} indicating whether to enable or disable automatic
   #   indentation.
   setAutoIndentOnPaste: (@autoIndentOnPaste) ->
 
