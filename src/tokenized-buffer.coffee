@@ -46,7 +46,7 @@ class TokenizedBuffer extends Model
     @disposables.add @grammarRegistry.onDidAddGrammar(@grammarAddedOrUpdated)
     @disposables.add @grammarRegistry.onDidUpdateGrammar(@grammarAddedOrUpdated)
 
-    @disposables.add @buffer.preemptDidChange (e) => @handleBufferChange(e)
+    @disposables.add @buffer.registerTextDecorationLayer(this)
     @disposables.add @buffer.onDidChangePath (@bufferPath) => @reloadGrammar()
 
     if grammar = @grammarRegistry.grammarForScopeName(grammarScopeName)
@@ -241,7 +241,7 @@ class TokenizedBuffer extends Model
       else if row > end
         row + delta
 
-  handleBufferChange: (e) ->
+  bufferDidChange: (e) ->
     if @lastBufferChangeEventId?
       @assert(
         @lastBufferChangeEventId is e.eventId - 1,
