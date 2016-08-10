@@ -88,9 +88,6 @@ class TokenizedBuffer extends Model
   onDidChangeGrammar: (callback) ->
     @emitter.on 'did-change-grammar', callback
 
-  onDidChange: (callback) ->
-    @emitter.on 'did-change', callback
-
   onDidTokenize: (callback) ->
     @emitter.on 'did-tokenize', callback
 
@@ -151,8 +148,6 @@ class TokenizedBuffer extends Model
     @invalidRows = []
     @invalidateRow(0)
     @fullyTokenized = false
-    event = {start: 0, end: lastRow, delta: 0}
-    @emitter.emit 'did-change', event
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -204,8 +199,6 @@ class TokenizedBuffer extends Model
       @validateRow(endRow)
       @invalidateRow(endRow + 1) unless filledRegion
 
-      event = {start: startRow, end: endRow, delta: 0}
-      @emitter.emit 'did-change', event
       @emitter.emit 'did-invalidate-range', Range(Point(startRow, 0), Point(endRow + 1, 0))
 
     if @firstInvalidRow()?
@@ -273,9 +266,6 @@ class TokenizedBuffer extends Model
       @invalidateRow(end + delta + 1)
 
     @invalidatedRange = Range(start, end)
-
-    event = {start, end, delta, bufferChange: e}
-    @emitter.emit 'did-change', event
 
   isFoldableAtRow: (row) ->
     if @largeFileMode
