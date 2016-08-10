@@ -561,10 +561,10 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
-      disposable = atom.textEditors.add(editor)
-      editor.onDidDestroy -> disposable.dispose()
-      editor
+      new TextEditor(Object.assign(
+        {@clipboard, @assert, buffer, largeFileMode},
+        options
+      ))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
@@ -581,10 +581,12 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = Object.assign({@clipboard, @assert}, params)
-    editor = new TextEditor(params)
-    @textEditorRegistry.maintainConfig(editor)
-    @textEditorRegistry.maintainGrammar(editor)
+    editor = new TextEditor(Object.assign({@clipboard, @assert}, params))
+    subscriptions = new CompositeDisposable(
+      @textEditorRegistry.maintainConfig(editor),
+      @textEditorRegistry.maintainGrammar(editor)
+    )
+    editor.onDidDestroy -> subscriptions.dispose()
     editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
