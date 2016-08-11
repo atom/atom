@@ -1151,7 +1151,7 @@ describe "Workspace", ->
           atom.config.set('core.excludeVcsIgnoredPaths', true)
           resultHandler = jasmine.createSpy("result found")
           waitsForPromise ->
-            atom.workspace.scan /match/, paths:["subdir#{path.sep}"], (results) ->
+            atom.workspace.scan /match/, paths: ["subdir#{path.sep}"], (results) ->
               resultHandler()
 
           runs ->
@@ -1213,7 +1213,7 @@ describe "Workspace", ->
 
         resultHandler = jasmine.createSpy("result found")
         waitsForPromise ->
-          atom.workspace.scan /bbb/, paths:["a-dir#{path.sep}"], (results) ->
+          atom.workspace.scan /bbb/, paths: ["a-dir#{path.sep}"], (results) ->
             resultHandler()
 
         runs ->
