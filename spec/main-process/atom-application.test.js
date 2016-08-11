@@ -129,19 +129,13 @@ describe('AtomApplication', function () {
         })
       })
       assert.equal(activeEditorPath, existingDirCFilePath)
-      const window1ProjectPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getPaths())
-      })
-      assert.deepEqual(window1ProjectPaths, [dirAPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath])
 
       // Opens new windows when opening directories
       const window2 = atomApplication.openWithOptions(parseCommandLine([dirCPath]))
       assert.notEqual(window2, window1)
       await window2.loadedPromise
-      const window2ProjectPaths = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getPaths())
-      })
-      assert.deepEqual(window2ProjectPaths, [dirCPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window2), [dirCPath])
     })
 
     it('adds folders to existing windows when the --add option is used', async function () {
@@ -174,20 +168,14 @@ describe('AtomApplication', function () {
         })
       })
       assert.equal(activeEditorPath, existingDirCFilePath)
-      let window1ProjectPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getPaths())
-      })
-      assert.deepEqual(window1ProjectPaths, [dirAPath, dirCPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath])
 
       // When opening *directories* with add reuses an existing window and adds
       // the directory to the project
       reusedWindow = atomApplication.openWithOptions(parseCommandLine([dirBPath, '-a']))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
-      window1ProjectPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getPaths())
-      })
-      assert.deepEqual(window1ProjectPaths, [dirAPath, dirCPath, dirBPath])
+      assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath, dirBPath])
     })
 
     it('persists window state based on the project directories', async function () {
@@ -267,6 +255,16 @@ describe('AtomApplication', function () {
         }
         (${source})(sendBackToMainProcess)
       `)
+    })
+  }
+
+  function getTreeViewRootDirectories (atomWindow) {
+    return evalInWebContents(atomWindow.browserWindow.webContents, function (sendBackToMainProcess) {
+      sendBackToMainProcess(
+        Array
+          .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
+          .map(element => element.dataset.path)
+      )
     })
   }
 })
