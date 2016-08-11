@@ -2,7 +2,7 @@
 /* eslint-env jasmine */
 
 import child_process from 'child_process'
-import updateProcessEnv from '../src/update-process-env'
+import {updateProcessEnv, shouldGetEnvFromShell} from '../src/update-process-env'
 import dedent from 'dedent'
 
 describe('updateProcessEnv(launchEnv)', function () {
@@ -82,6 +82,34 @@ describe('updateProcessEnv(launchEnv)', function () {
         updateProcessEnv(process.env)
         expect(child_process.spawnSync).not.toHaveBeenCalled()
         expect(process.env).toEqual({FOO: 'bar'})
+      })
+    })
+
+    describe('shouldGetEnvFromShell()', function () {
+      it('returns the shell when the shell should be patched', function () {
+        process.platform = 'darwin'
+        expect(shouldGetEnvFromShell('/bin/sh')).toBe(true)
+        expect(shouldGetEnvFromShell('/usr/local/bin/sh')).toBe(true)
+        expect(shouldGetEnvFromShell('/bin/bash')).toBe(true)
+        expect(shouldGetEnvFromShell('/usr/local/bin/bash')).toBe(true)
+        expect(shouldGetEnvFromShell('/bin/zsh')).toBe(true)
+        expect(shouldGetEnvFromShell('/usr/local/bin/zsh')).toBe(true)
+        expect(shouldGetEnvFromShell('/bin/fish')).toBe(true)
+        expect(shouldGetEnvFromShell('/usr/local/bin/fish')).toBe(true)
+      })
+
+      it('returns false when the shell should not be patched', function () {
+        process.platform = 'darwin'
+        expect(shouldGetEnvFromShell('/bin/unsupported')).toBe(false)
+        expect(shouldGetEnvFromShell('/bin/shh')).toBe(false)
+        expect(shouldGetEnvFromShell('/bin/tcsh')).toBe(false)
+        expect(shouldGetEnvFromShell('/usr/csh')).toBe(false)
+      })
+
+      it('returns false when the shell is undefined or empty', function () {
+        process.platform = 'darwin'
+        expect(shouldGetEnvFromShell(undefined)).toBe(false)
+        expect(shouldGetEnvFromShell('')).toBe(false)
       })
     })
   })
