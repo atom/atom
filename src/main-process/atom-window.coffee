@@ -127,7 +127,7 @@ class AtomWindow
         false
 
   handleEvents: ->
-    @browserWindow.on 'close', ->
+    @browserWindow.on 'close', =>
       @atomApplication.saveState(false)
 
     @browserWindow.on 'closed', =>
