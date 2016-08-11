@@ -40,29 +40,6 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
 
-    it "opens the file to the specified line number", ->
-      filePath = path.join(fs.realpathSync(tempDirPath), "new-file")
-      fs.writeFileSync filePath, """
-        1
-        2
-        3
-        4
-      """
-
-      runAtom ["#{filePath}:3"], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(1, 1000)
-          .waitForExist("atom-text-editor", 5000)
-          .then (exists) -> expect(exists).toBe true
-
-          .execute -> atom.workspace.getActiveTextEditor().getPath()
-          .then ({value}) -> expect(value).toBe filePath
-
-          .execute -> atom.workspace.getActiveTextEditor().getCursorBufferPosition()
-          .then ({value}) ->
-            expect(value.row).toBe 2
-            expect(value.column).toBe 0
-
     it "opens the file to the specified line number and column number", ->
       filePath = path.join(fs.realpathSync(tempDirPath), "new-file")
       fs.writeFileSync filePath, """

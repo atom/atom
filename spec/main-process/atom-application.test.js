@@ -1,5 +1,7 @@
 /** @babel */
 
+import dedent from 'dedent'
+import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
 import temp from 'temp'
@@ -10,15 +12,6 @@ const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
 describe('AtomApplication', function () {
   let originalAtomHome, atomApplicationsToDestroy
-
-  function buildAtomApplication () {
-    const atomApplication = new AtomApplication({
-      resourcePath: ATOM_RESOURCE_PATH,
-      atomHomeDirPath: process.env.ATOM_HOME
-    })
-    atomApplicationsToDestroy.push(atomApplication)
-    return atomApplication
-  }
 
   beforeEach(function () {
     originalAtomHome = process.env.ATOM_HOME
@@ -36,9 +29,26 @@ describe('AtomApplication', function () {
   })
 
   describe('openWithOptions', function () {
-    it('positions new windows at an offset distance from the previous window', async function () {
-      this.timeout(20000)
+    this.timeout(20000)
 
+    it('can open to a specific line number of a file', async function () {
+      const filePath = path.join(temp.mkdirSync(), 'new-file')
+      fs.writeFileSync(filePath, '1\n2\n3\n4\n')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.openWithOptions(parseCommandLine([filePath + ':3']))
+      await window.loadedPromise
+
+      const cursorRow = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getCursorBufferPosition().row)
+        })
+      })
+
+      assert.equal(cursorRow, 2)
+    })
+
+    it('positions new windows at an offset distance from the previous window', async function () {
       const atomApplication = buildAtomApplication()
 
       const window1 = atomApplication.openWithOptions(parseCommandLine([]))
@@ -54,4 +64,33 @@ describe('AtomApplication', function () {
       assert.isAbove(window2Dimensions.y, window1Dimensions.y)
     })
   })
+
+  function buildAtomApplication () {
+    const atomApplication = new AtomApplication({
+      resourcePath: ATOM_RESOURCE_PATH,
+      atomHomeDirPath: process.env.ATOM_HOME
+    })
+    atomApplicationsToDestroy.push(atomApplication)
+    return atomApplication
+  }
+
+  let channelIdCounter = 0
+  function evalInWebContents (webContents, source) {
+    const channelId = 'eval-result-' + channelIdCounter++
+    return new Promise(function (resolve) {
+      electron.ipcMain.on(channelId, receiveResult)
+
+      function receiveResult (event, result) {
+        electron.ipcMain.removeListener('eval-result', receiveResult)
+        resolve(result)
+      }
+
+      webContents.executeJavaScript(dedent`
+        function sendBackToMainProcess (result) {
+          require('electron').ipcRenderer.send('${channelId}', result)
+        }
+        (${source})(sendBackToMainProcess)
+      `)
+    })
+  }
 })
