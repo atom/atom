@@ -194,6 +194,27 @@ class TextEditor extends Model
       value = params[param]
 
       switch param
+        when 'autoIndent'
+          @autoIndent = value
+
+        when 'autoIndentOnPaste'
+          @autoIndentOnPaste = value
+
+        when 'undoGroupingInterval'
+          @undoGroupingInterval = value
+
+        when 'nonWordCharacters'
+          @nonWordCharacters = value
+
+        when 'backUpBeforeSaving'
+          @backUpBeforeSaving = value
+
+        when 'scrollSensitivity'
+          @scrollSensitivity = value
+
+        when 'encoding'
+          @buffer.setEncoding(value)
+
         when 'softTabs'
           if value isnt @softTabs
             @softTabs = value

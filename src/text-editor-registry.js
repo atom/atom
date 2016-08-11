@@ -4,24 +4,24 @@ import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
 import {Point, Range} from 'atom'
 import NullGrammar from './null-grammar'
 
-const EDITOR_SETTER_NAMES_BY_SETTING_KEY = [
-  ['core.fileEncoding', 'setEncoding'],
-  ['editor.atomicSoftTabs', 'setAtomicSoftTabs'],
-  ['editor.showInvisibles', 'setShowInvisibles'],
-  ['editor.tabLength', 'setTabLength'],
-  ['editor.invisibles', 'setInvisibles'],
-  ['editor.showIndentGuide', 'setShowIndentGuide'],
-  ['editor.softWrap', 'setSoftWrapped'],
-  ['editor.softWrapHangingIndent', 'setSoftWrapIndentLength'],
-  ['editor.softWrapAtPreferredLineLength', 'setSoftWrapAtPreferredLineLength'],
-  ['editor.preferredLineLength', 'setPreferredLineLength'],
-  ['editor.backUpBeforeSaving', 'setBackUpBeforeSaving'],
-  ['editor.autoIndent', 'setAutoIndent'],
-  ['editor.autoIndentOnPaste', 'setAutoIndentOnPaste'],
-  ['editor.scrollPastEnd', 'setScrollPastEnd'],
-  ['editor.undoGroupingInterval', 'setUndoGroupingInterval'],
-  ['editor.nonWordCharacters', 'setNonWordCharacters'],
-  ['editor.scrollSensitivity', 'setScrollSensitivity']
+const EDITOR_PARAMS_BY_SETTING_KEY = [
+  ['core.fileEncoding', 'encoding'],
+  ['editor.atomicSoftTabs', 'atomicSoftTabs'],
+  ['editor.showInvisibles', 'showInvisibles'],
+  ['editor.tabLength', 'tabLength'],
+  ['editor.invisibles', 'invisibles'],
+  ['editor.showIndentGuide', 'showIndentGuide'],
+  ['editor.softWrap', 'softWrapped'],
+  ['editor.softWrapHangingIndent', 'softWrapHangingIndentLength'],
+  ['editor.softWrapAtPreferredLineLength', 'softWrapAtPreferredLineLength'],
+  ['editor.preferredLineLength', 'preferredLineLength'],
+  ['editor.backUpBeforeSaving', 'backUpBeforeSaving'],
+  ['editor.autoIndent', 'autoIndent'],
+  ['editor.autoIndentOnPaste', 'autoIndentOnPaste'],
+  ['editor.scrollPastEnd', 'scrollPastEnd'],
+  ['editor.undoGroupingInterval', 'undoGroupingInterval'],
+  ['editor.nonWordCharacters', 'nonWordCharacters'],
+  ['editor.scrollSensitivity', 'scrollSensitivity']
 ]
 
 const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
@@ -286,19 +286,22 @@ export default class TextEditorRegistry {
     const scopeChain = scopeDescriptor.getScopeChain()
     const configOptions = {scope: scopeDescriptor}
 
-    for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
-      editor[setterName](this.config.get(settingKey, configOptions))
+    const params = {}
+    for (const [settingKey, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
+      params[paramName] = this.config.get(settingKey, configOptions)
     }
+
+    editor.update(params)
 
     if (!this.scopesWithConfigSubscriptions.has(scopeChain)) {
       this.scopesWithConfigSubscriptions.add(scopeChain)
 
-      for (const [settingKey, setterName] of EDITOR_SETTER_NAMES_BY_SETTING_KEY) {
+      for (const [settingKey, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
         this.subscriptions.add(
           this.config.onDidChange(settingKey, configOptions, ({newValue}) => {
             this.editorsWithMaintainedConfig.forEach(editor => {
               if (editor.getRootScopeDescriptor().isEqual(scopeDescriptor)) {
-                editor[setterName](newValue)
+                editor.update({[paramName]: newValue})
               }
             })
           })
