@@ -127,7 +127,7 @@ class TextEditor extends Model
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
       @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
-      @tokenizedBuffer, @ignoreInvisibles, @displayLayer
+      @tokenizedBuffer, @displayLayer
     } = params
 
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
@@ -190,7 +190,7 @@ class TextEditor extends Model
   update: (params) ->
     {
       softTabs, tabLength, softWrapped, mini, placeholderText, lineNumberGutterVisible,
-      showInvisibles, ignoreInvisibles, editorWidthInChars, scrollPastEnd, autoHeight
+      showInvisibles, editorWidthInChars, scrollPastEnd, autoHeight
     } = params
 
     resetDisplayLayer = false
@@ -217,10 +217,6 @@ class TextEditor extends Model
 
     if showInvisibles? and showInvisibles isnt @showInvisibles
       @showInvisibles = showInvisibles
-      resetDisplayLayer = true
-
-    if ignoreInvisibles? and ignoreInvisibles isnt @ignoreInvisibles
-      @setIgnoreInvisibles(ignoreInvisibles, false)
       resetDisplayLayer = true
 
     if editorWidthInChars? and editorWidthInChars isnt @editorWidthInChars
@@ -621,7 +617,6 @@ class TextEditor extends Model
   setMini: (mini) ->
     if mini isnt @mini
       @mini = mini
-      @ignoreInvisibles = @mini
       @resetDisplayLayer()
       @emitter.emit 'did-change-mini', @mini
     @mini
@@ -2792,12 +2787,6 @@ class TextEditor extends Model
     return if showInvisibles is @showInvisibles
     @showInvisibles = showInvisibles
     @resetDisplayLayer()
-
-  setIgnoreInvisibles: (ignoreInvisibles, resetDisplayLayer=true) ->
-    return if ignoreInvisibles is @ignoreInvisibles
-
-    @ignoreInvisibles = ignoreInvisibles
-    @resetDisplayLayer() if resetDisplayLayer
 
   # Returns an {Object} representing the current invisible character
   # substitutions for this editor. See {::setInvisibles}.
