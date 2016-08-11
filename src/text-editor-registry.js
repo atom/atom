@@ -188,6 +188,7 @@ export default class TextEditorRegistry {
     this.subscriptions.add(pathChangeSubscription)
 
     return new Disposable(() => {
+      delete this.editorGrammarOverrides[editor.id]
       this.editorsWithMaintainedGrammar.delete(editor)
       this.subscriptions.remove(pathChangeSubscription)
       pathChangeSubscription.dispose()
