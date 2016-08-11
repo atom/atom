@@ -15,7 +15,7 @@ describe('AtomApplication', function () {
 
   beforeEach(function () {
     originalAtomHome = process.env.ATOM_HOME
-    process.env.ATOM_HOME = temp.mkdirSync('atom-home')
+    process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
     fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
     atomApplicationsToDestroy = []
@@ -32,7 +32,7 @@ describe('AtomApplication', function () {
     this.timeout(20000)
 
     it('can open to a specific line number of a file', async function () {
-      const filePath = path.join(temp.mkdirSync(), 'new-file')
+      const filePath = path.join(makeTempDir(), 'new-file')
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
       const atomApplication = buildAtomApplication()
 
@@ -49,7 +49,7 @@ describe('AtomApplication', function () {
     })
 
     it('can open to a specific line and column of a file', async function () {
-      const filePath = path.join(temp.mkdirSync(), 'new-file')
+      const filePath = path.join(makeTempDir(), 'new-file')
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
       const atomApplication = buildAtomApplication()
 
@@ -63,6 +63,23 @@ describe('AtomApplication', function () {
       })
 
       assert.deepEqual(cursorPosition, {row: 1, column: 1})
+    })
+
+    it('removes all trailing whitespace and colons from the specified path', async function () {
+      let filePath = path.join(makeTempDir(), 'new-file')
+      fs.writeFileSync(filePath, '1\n2\n3\n4\n')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.openWithOptions(parseCommandLine([filePath + '::   ']))
+      await window.loadedPromise
+
+      const openedPath = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
+        })
+      })
+
+      assert.equal(openedPath, filePath)
     })
 
     it('positions new windows at an offset distance from the previous window', async function () {
@@ -89,6 +106,9 @@ describe('AtomApplication', function () {
     })
     atomApplicationsToDestroy.push(atomApplication)
     return atomApplication
+  }
+  function makeTempDir (name) {
+    return fs.realpathSync(temp.mkdirSync(name))
   }
 
   let channelIdCounter = 0

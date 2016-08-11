@@ -40,17 +40,6 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
 
-    it "removes all trailing whitespace and colons from the specified path", ->
-      filePath = path.join(tempDirPath, "new-file")
-      runAtom ["#{filePath}:  "], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(1, 1000)
-          .waitForExist("atom-text-editor", 5000)
-          .then (exists) -> expect(exists).toBe true
-
-          .execute -> atom.workspace.getActiveTextEditor().getPath()
-          .then ({value}) -> expect(value).toBe filePath
-
   describe "when there is already a window open", ->
     it "reuses that window when opening files, but not when opening directories", ->
       tempFilePath = path.join(temp.mkdirSync("a-third-dir"), "a-file")
