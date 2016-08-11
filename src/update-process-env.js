@@ -40,7 +40,7 @@ function updateProcessEnv (launchEnv) {
   }
 }
 
-function envShouldBePatched (shell) {
+function shouldGetEnvFromShell (shell) {
   if (!shell || shell.trim() === '') {
     return false
   }
@@ -55,7 +55,7 @@ function envShouldBePatched (shell) {
 
 function getEnvFromShell () {
   let shell = process.env.SHELL
-  if (!envShouldBePatched(shell)) {
+  if (!shouldGetEnvFromShell(shell)) {
     return
   }
 
@@ -74,4 +74,4 @@ function getEnvFromShell () {
   }
 }
 
-export default { updateProcessEnv, envShouldBePatched }
+export default { updateProcessEnv, shouldGetEnvFromShell }
