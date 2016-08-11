@@ -4,6 +4,7 @@ import fs from 'fs-plus'
 import path from 'path'
 import temp from 'temp'
 import AtomApplication from '../../src/main-process/atom-application'
+import parseCommandLine from '../../src/main-process/parse-command-line'
 
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
@@ -40,11 +41,11 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
 
-      const window1 = atomApplication.openWithOptions({pathsToOpen: [], urlsToOpen: [], windowDimensions: {x: 0, y: 0, width: 100, height: 100}})
+      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
       await window1.loadedPromise
       window1.browserWindow.setBounds({width: 400, height: 400, x: 0, y: 0})
 
-      const window2 = atomApplication.openWithOptions({pathsToOpen: [], urlsToOpen: []})
+      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
       await window2.loadedPromise
 
       window1Dimensions = window1.getDimensions()
