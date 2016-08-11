@@ -822,7 +822,6 @@ class TextEditorComponent
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
-
     @presenter.setBackgroundColor(backgroundColor)
 
     lineNumberGutter = @gutterContainerComponent?.getLineNumberGutterComponent()
