@@ -40,21 +40,6 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
 
-  describe "when there is an existing window with no project path", ->
-    it "reuses that window to open a directory", ->
-      runAtom [], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([])
-
-          .startAnotherAtom([tempDirPath], ATOM_HOME: atomHome)
-          .waitUntil(->
-            @treeViewRootDirectories()
-            .then ({value}) -> value[0] is tempDirPath
-          , 5000)
-          .then (result) -> expect(result).toBe(true)
-          .waitForWindowCount(1, 5000)
-
   describe "launching with no path", ->
     it "doesn't open a new window if openEmptyEditorOnStart is disabled", ->
       configPath = path.join(atomHome, 'config.cson')

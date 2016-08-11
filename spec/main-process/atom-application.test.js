@@ -235,6 +235,25 @@ describe('AtomApplication', function () {
       assert.equal(reusedWindow, window1)
       assert.deepEqual(await getTreeViewRootDirectories(window1), [tempDirPath])
     })
+
+    it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      await window1.loadedPromise
+      const window1EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
+      })
+      assert.equal(window1EditorTitle, 'untitled')
+
+      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
+      await window2.loadedPromise
+      const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
+      })
+      assert.equal(window2EditorTitle, 'untitled')
+
+      assert.deepEqual(atomApplication.windows, [window1, window2])
+    })
   })
 
   function buildAtomApplication () {
