@@ -79,6 +79,33 @@ describe "TextEditor", ->
       editor2.unfoldBufferRow(4)
       expect(editor2.isFoldedAtBufferRow(4)).not.toBe editor.isFoldedAtBufferRow(4)
 
+  describe ".update()", ->
+    it "updates the editor with the supplied config parameters", ->
+      element = editor.element # force element initialization
+      editor.setShowInvisibles(true)
+      editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
+
+      updatePromise = editor.update({
+        tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
+        showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
+        autoHeight: false
+      })
+
+      waitsForPromise ->
+        updatePromise
+
+      runs ->
+        expect(changeSpy.callCount).toBe(1)
+        expect(editor.getTabLength()).toBe(6)
+        expect(editor.getSoftTabs()).toBe(false)
+        expect(editor.isSoftWrapped()).toBe(true)
+        expect(editor.getEditorWidthInChars()).toBe(40)
+        expect(editor.getInvisibles()).toEqual({})
+        expect(editor.isMini()).toBe(false)
+        expect(editor.isLineNumberGutterVisible()).toBe(false)
+        expect(editor.getScrollPastEnd()).toBe(true)
+        expect(editor.getAutoHeight()).toBe(false)
+
   describe "title", ->
     describe ".getTitle()", ->
       it "uses the basename of the buffer's path as its title, or 'untitled' if the path is undefined", ->
@@ -5450,6 +5477,22 @@ describe "TextEditor", ->
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: true})
       expect(scrollSpy).toHaveBeenCalledWith(screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true})
+
+  describe "scroll past end", ->
+    it "returns false by default but can be customized", ->
+      expect(editor.getScrollPastEnd()).toBe(false)
+      editor.setScrollPastEnd(true)
+      expect(editor.getScrollPastEnd()).toBe(true)
+      editor.setScrollPastEnd(false)
+      expect(editor.getScrollPastEnd()).toBe(false)
+
+  describe "auto height", ->
+    it "returns true by default but can be customized", ->
+      expect(editor.getAutoHeight()).toBe(true)
+      editor.setAutoHeight(false)
+      expect(editor.getAutoHeight()).toBe(false)
+      editor.setAutoHeight(true)
+      expect(editor.getAutoHeight()).toBe(true)
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->

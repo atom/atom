@@ -17,8 +17,6 @@ class TextEditorElement extends HTMLElement
   focusOnAttach: false
   hasTiledRendering: true
   logicalDisplayBuffer: true
-  scrollPastEnd: true
-  autoHeight: true
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
@@ -38,7 +36,7 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    unless @autoHeight
+    unless @getModel().getAutoHeight()
       @style.height = "100%"
 
     unless ShadowStyleSheet?
@@ -80,7 +78,7 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @themes, @workspace, @assert, @styles}, @autoHeight = true, @scrollPastEnd = true) ->
+  initialize: (model, {@views, @themes, @workspace, @assert, @styles}) ->
     throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
@@ -132,7 +130,6 @@ class TextEditorElement extends HTMLElement
       themes: @themes
       workspace: @workspace
       assert: @assert
-      scrollPastEnd: @scrollPastEnd
     )
     @rootElement.appendChild(@component.getDomNode())
 
@@ -168,6 +165,13 @@ class TextEditorElement extends HTMLElement
 
   removeMiniAttribute: ->
     @removeAttribute("mini")
+
+  didChangeAutoHeight: ->
+    @views.updateDocument =>
+      if @getModel().getAutoHeight()
+        @style.height = ""
+      else
+        @style.height = "100%"
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()

@@ -187,6 +187,60 @@ class TextEditor extends Model
       priority: 0
       visible: lineNumberGutterVisible
 
+  update: (params) ->
+    {
+      softTabs, tabLength, softWrapped, mini, placeholderText, lineNumberGutterVisible,
+      showInvisibles, ignoreInvisibles, editorWidthInChars, scrollPastEnd, autoHeight
+    } = params
+
+    resetDisplayLayer = false
+
+    if softTabs? and softTabs isnt @softTabs
+      @setSoftTabs(softTabs)
+
+    if tabLength? and tabLength isnt @tabLength
+      @setTabLength(tabLength, false)
+      resetDisplayLayer = true
+
+    if softWrapped? and softWrapped isnt @softWrapped
+      @setSoftWrapped(softWrapped, false)
+      resetDisplayLayer = true
+
+    if mini? and mini isnt @mini
+      @setMini(mini)
+
+    if placeholderText? and placeholderText isnt @placeholderText
+      @setPlaceholderText(placeholderText)
+
+    if lineNumberGutterVisible? and lineNumberGutterVisible isnt @lineNumberGutterVisible
+      @setLineNumberGutterVisible(lineNumberGutterVisible)
+
+    if showInvisibles? and showInvisibles isnt @showInvisibles
+      @showInvisibles = showInvisibles
+      resetDisplayLayer = true
+
+    if ignoreInvisibles? and ignoreInvisibles isnt @ignoreInvisibles
+      @setIgnoreInvisibles(ignoreInvisibles, false)
+      resetDisplayLayer = true
+
+    if editorWidthInChars? and editorWidthInChars isnt @editorWidthInChars
+      @setEditorWidthInChars(editorWidthInChars, false)
+      resetDisplayLayer = true
+
+    if scrollPastEnd? and scrollPastEnd isnt @scrollPastEnd
+      @setScrollPastEnd(scrollPastEnd)
+
+    if autoHeight? and autoHeight isnt @autoHeight
+      @setAutoHeight(autoHeight)
+
+    if resetDisplayLayer
+      @resetDisplayLayer()
+
+    if @editorElement?
+      @editorElement.views.getNextUpdatePromise()
+    else
+      Promise.resolve()
+
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 
@@ -627,12 +681,12 @@ class TextEditor extends Model
   #
   # * `editorWidthInChars` A {Number} representing the width of the
   # {TextEditorElement} in characters.
-  setEditorWidthInChars: (editorWidthInChars) ->
+  setEditorWidthInChars: (editorWidthInChars, resetDisplayLayer=true) ->
     if editorWidthInChars > 0
       previousWidthInChars = @editorWidthInChars
       @editorWidthInChars = editorWidthInChars
       if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
-        @resetDisplayLayer()
+        @resetDisplayLayer() if resetDisplayLayer
 
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
@@ -2721,12 +2775,12 @@ class TextEditor extends Model
   #
   # * `tabLength` {Number} length of a single tab. Setting to `null` will
   #   fallback to using the `editor.tabLength` config setting
-  setTabLength: (tabLength) ->
+  setTabLength: (tabLength, resetDisplayLayer=true) ->
     return if tabLength is @tabLength
 
     @tabLength = tabLength
     @tokenizedBuffer.setTabLength(@tabLength)
-    @resetDisplayLayer()
+    @resetDisplayLayer() if resetDisplayLayer
 
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
   doesShowInvisibles: -> @showInvisibles
@@ -2738,6 +2792,12 @@ class TextEditor extends Model
     return if showInvisibles is @showInvisibles
     @showInvisibles = showInvisibles
     @resetDisplayLayer()
+
+  setIgnoreInvisibles: (ignoreInvisibles, resetDisplayLayer=true) ->
+    return if ignoreInvisibles is @ignoreInvisibles
+
+    @ignoreInvisibles = ignoreInvisibles
+    @resetDisplayLayer() if resetDisplayLayer
 
   # Returns an {Object} representing the current invisible character
   # substitutions for this editor. See {::setInvisibles}.
@@ -2820,10 +2880,10 @@ class TextEditor extends Model
   # * `softWrapped` A {Boolean}
   #
   # Returns a {Boolean}.
-  setSoftWrapped: (softWrapped) ->
+  setSoftWrapped: (softWrapped, resetDisplayLayer=true) ->
     if softWrapped isnt @softWrapped
       @softWrapped = softWrapped
-      @resetDisplayLayer()
+      @resetDisplayLayer() if resetDisplayLayer
       softWrapped = @isSoftWrapped()
       @emitter.emit 'did-change-soft-wrapped', softWrapped
       softWrapped
@@ -3306,6 +3366,20 @@ class TextEditor extends Model
     scrollEvent = {screenRange, options}
     @emitter.emit "did-request-autoscroll", scrollEvent
 
+  getScrollPastEnd: ->
+    if @scrollPastEnd?
+      @scrollPastEnd
+    else
+      @config.get('editor.scrollPastEnd', scope: @getRootScopeDescriptor())
+
+  setScrollPastEnd: (scrollPastEnd) ->
+    if scrollPastEnd isnt @scrollPastEnd
+      @scrollPastEnd = scrollPastEnd
+      @emitter.emit('did-change-scroll-past-end')
+
+  onDidChangeScrollPastEnd: (callback) ->
+    @emitter.on('did-change-scroll-past-end', callback)
+
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
@@ -3463,7 +3537,7 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
+    @editorElement ?= new TextEditorElement().initialize(this, atom)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
@@ -3537,6 +3611,13 @@ class TextEditor extends Model
   getHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
     @height
+
+  getAutoHeight: -> @autoHeight
+
+  setAutoHeight: (autoHeight) ->
+    if autoHeight isnt @autoHeight
+      @autoHeight = autoHeight
+      @editorElement?.didChangeAutoHeight()
 
   setWidth: (width, reentrant=false) ->
     if reentrant
