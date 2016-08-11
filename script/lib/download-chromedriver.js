@@ -29,7 +29,7 @@ module.exports = function () {
     const chromedriverDirPath = path.join(CONFIG.electronDownloadPath, 'chromedriver')
     unzipPath(chromedriverZipPath, chromedriverDirPath)
   } else {
-    throw new Error('Downloading chromedriver for platforms other than macOS is unsupported!')
+    console.log('Skipping Chromedriver download because it is used only on macOS'.gray)
   }
 }
 

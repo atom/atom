@@ -5,7 +5,6 @@
 require('colors')
 const async = require('async')
 const childProcess = require('child_process')
-const downloadChromedriver = require('./lib/download-chromedriver')
 const fs = require('fs')
 const path = require('path')
 
@@ -15,8 +14,6 @@ const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
 const packagedAppPath = path.resolve(__dirname, '..', 'out', `${appName}.app`)
 const executablePath = path.join(packagedAppPath, 'Contents', 'MacOS', appName)
 const resourcePath = CONFIG.repositoryRootPath
-
-downloadChromedriver()
 
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
