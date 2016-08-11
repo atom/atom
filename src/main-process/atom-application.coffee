@@ -7,6 +7,7 @@ Config = require '../config'
 FileRecoveryService = require './file-recovery-service'
 ipcHelpers = require '../ipc-helpers'
 {BrowserWindow, Menu, app, dialog, ipcMain, shell} = require 'electron'
+{CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 path = require 'path'
 os = require 'os'
@@ -66,6 +67,14 @@ class AtomApplication
     @pidsToOpenWindows = {}
     @windows = []
 
+    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
+    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
+    @storageFolder = new StorageFolder(process.env.ATOM_HOME)
+
+    @disposable = new CompositeDisposable
+    @handleEvents()
+
   # This stuff was previously done in the constructor, but we want to be able to construct this object
   # for testing purposes without booting up the world. As you add tests, feel free to move instantiation
   # of these various sub-objects into the constructor, but you'll need to remove the side-effects they
@@ -73,27 +82,24 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-    @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
-    @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
     @config.load()
-
     @config.onDidChange 'core.useCustomTitleBar', @promptForRelaunch
 
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
-    @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
 
     @listenForArgumentsFromNewProcess()
     @setupJavaScriptArguments()
-    @handleEvents()
     @setupDockMenu()
-    @storageFolder = new StorageFolder(process.env.ATOM_HOME)
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
+
+  destroy: ->
+    @disposable.dispose()
 
   openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env}) ->
     if test
@@ -121,7 +127,7 @@ class AtomApplication
     @windows.push window
     @applicationMenu?.addWindow(window.browserWindow)
     window.once 'window:loaded', =>
-      @autoUpdateManager.emitUpdateAvailableEvent(window)
+      @autoUpdateManager?.emitUpdateAvailableEvent(window)
 
     unless window.isSpec
       focusHandler = => @lastFocusedWindow = window
@@ -218,27 +224,27 @@ class AtomApplication
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
-    app.on 'before-quit', =>
+    @disposable.add ipcHelpers.on app, 'before-quit', =>
       @quitting = true
 
-    app.on 'will-quit', =>
+    @disposable.add ipcHelpers.on app, 'will-quit', =>
       @killAllProcesses()
       @deleteSocketFile()
 
-    app.on 'open-file', (event, pathToOpen) =>
+    @disposable.add ipcHelpers.on app, 'open-file', (event, pathToOpen) =>
       event.preventDefault()
       @openPath({pathToOpen})
 
-    app.on 'open-url', (event, urlToOpen) =>
+    @disposable.add ipcHelpers.on app, 'open-url', (event, urlToOpen) =>
       event.preventDefault()
       @openUrl({urlToOpen, @devMode, @safeMode})
 
-    app.on 'activate-with-no-open-windows', (event) =>
+    @disposable.add ipcHelpers.on app, 'activate-with-no-open-windows', (event) =>
       event?.preventDefault()
       @emit('application:new-window')
 
     # A request from the associated render process to open a new render process.
-    ipcMain.on 'open', (event, options) =>
+    @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>
       window = @windowForEvent(event)
       if options?
         if typeof options.pathsToOpen is 'string'
@@ -247,21 +253,21 @@ class AtomApplication
           options.window = window
           @openPaths(options)
         else
-          new AtomWindow(@fileRecoveryService, options)
+          new AtomWindow(this, @fileRecoveryService, options)
       else
         @promptForPathToOpen('all', {window})
 
-    ipcMain.on 'update-application-menu', (event, template, keystrokesByCommand) =>
+    @disposable.add ipcHelpers.on ipcMain, 'update-application-menu', (event, template, keystrokesByCommand) =>
       win = BrowserWindow.fromWebContents(event.sender)
-      @applicationMenu.update(win, template, keystrokesByCommand)
+      @applicationMenu?.update(win, template, keystrokesByCommand)
 
-    ipcMain.on 'run-package-specs', (event, packageSpecPath) =>
+    @disposable.add ipcHelpers.on ipcMain, 'run-package-specs', (event, packageSpecPath) =>
       @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
 
-    ipcMain.on 'command', (event, command) =>
+    @disposable.add ipcHelpers.on ipcMain, 'command', (event, command) =>
       @emit(command)
 
-    ipcMain.on 'open-command', (event, command, args...) =>
+    @disposable.add ipcHelpers.on ipcMain, 'open-command', (event, command, args...) =>
       defaultPath = args[0] if args.length > 0
       switch command
         when 'application:open' then @promptForPathToOpen('all', getLoadSettings(), defaultPath)
@@ -269,72 +275,72 @@ class AtomApplication
         when 'application:open-folder' then @promptForPathToOpen('folder', getLoadSettings(), defaultPath)
         else console.log "Invalid open-command received: " + command
 
-    ipcMain.on 'window-command', (event, command, args...) ->
+    @disposable.add ipcHelpers.on ipcMain, 'window-command', (event, command, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win.emit(command, args...)
 
-    ipcMain.on 'call-window-method', (event, method, args...) ->
+    @disposable.add ipcHelpers.on ipcMain, 'call-window-method', (event, method, args...) ->
       win = BrowserWindow.fromWebContents(event.sender)
       win[method](args...)
 
-    ipcMain.on 'pick-folder', (event, responseChannel) =>
+    @disposable.add ipcHelpers.on ipcMain, 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
         event.sender.send(responseChannel, selectedPaths)
 
-    ipcHelpers.respondTo 'set-window-size', (win, width, height) ->
+    @disposable.add ipcHelpers.respondTo 'set-window-size', (win, width, height) ->
       win.setSize(width, height)
 
-    ipcHelpers.respondTo 'set-window-position', (win, x, y) ->
+    @disposable.add ipcHelpers.respondTo 'set-window-position', (win, x, y) ->
       win.setPosition(x, y)
 
-    ipcHelpers.respondTo 'center-window', (win) ->
+    @disposable.add ipcHelpers.respondTo 'center-window', (win) ->
       win.center()
 
-    ipcHelpers.respondTo 'focus-window', (win) ->
+    @disposable.add ipcHelpers.respondTo 'focus-window', (win) ->
       win.focus()
 
-    ipcHelpers.respondTo 'show-window', (win) ->
+    @disposable.add ipcHelpers.respondTo 'show-window', (win) ->
       win.show()
 
-    ipcHelpers.respondTo 'hide-window', (win) ->
+    @disposable.add ipcHelpers.respondTo 'hide-window', (win) ->
       win.hide()
 
-    ipcHelpers.respondTo 'get-temporary-window-state', (win) ->
+    @disposable.add ipcHelpers.respondTo 'get-temporary-window-state', (win) ->
       win.temporaryState
 
-    ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
+    @disposable.add ipcHelpers.respondTo 'set-temporary-window-state', (win, state) ->
       win.temporaryState = state
 
-    ipcMain.on 'did-cancel-window-unload', =>
+    @disposable.add ipcHelpers.on ipcMain, 'did-cancel-window-unload', =>
       @quitting = false
 
     clipboard = require '../safe-clipboard'
-    ipcMain.on 'write-text-to-selection-clipboard', (event, selectedText) ->
+    @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->
       clipboard.writeText(selectedText, 'selection')
 
-    ipcMain.on 'write-to-stdout', (event, output) ->
+    @disposable.add ipcHelpers.on ipcMain, 'write-to-stdout', (event, output) ->
       process.stdout.write(output)
 
-    ipcMain.on 'write-to-stderr', (event, output) ->
+    @disposable.add ipcHelpers.on ipcMain, 'write-to-stderr', (event, output) ->
       process.stderr.write(output)
 
-    ipcMain.on 'add-recent-document', (event, filename) ->
+    @disposable.add ipcHelpers.on ipcMain, 'add-recent-document', (event, filename) ->
       app.addRecentDocument(filename)
 
-    ipcMain.on 'execute-javascript-in-dev-tools', (event, code) ->
+    @disposable.add ipcHelpers.on ipcMain, 'execute-javascript-in-dev-tools', (event, code) ->
       event.sender.devToolsWebContents?.executeJavaScript(code)
 
-    ipcMain.on 'get-auto-update-manager-state', (event) =>
+    @disposable.add ipcHelpers.on ipcMain, 'get-auto-update-manager-state', (event) =>
       event.returnValue = @autoUpdateManager.getState()
 
-    ipcMain.on 'get-auto-update-manager-error', (event) =>
+    @disposable.add ipcHelpers.on ipcMain, 'get-auto-update-manager-error', (event) =>
       event.returnValue = @autoUpdateManager.getErrorMessage()
 
-    ipcMain.on 'will-save-path', (event, path) =>
+    @disposable.add ipcHelpers.on ipcMain, 'will-save-path', (event, path) =>
       @fileRecoveryService.willSavePath(@windowForEvent(event), path)
       event.returnValue = true
 
-    ipcMain.on 'did-save-path', (event, path) =>
+    @disposable.add ipcHelpers.on ipcMain, 'did-save-path', (event, path) =>
       @fileRecoveryService.didSavePath(@windowForEvent(event), path)
       event.returnValue = true
 
@@ -498,13 +504,15 @@ class AtomApplication
       windowInitializationScript ?= require.resolve('../initialize-application-window')
       resourcePath ?= @resourcePath
       windowDimensions ?= @getDimensionsForNewWindow()
-      openedWindow = new AtomWindow(@fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
+      openedWindow = new AtomWindow(this, @fileRecoveryService, {initialPaths, locationsToOpen, windowInitializationScript, resourcePath, devMode, safeMode, windowDimensions, profileStartup, clearWindowState, env})
 
     if pidToKillWhenClosed?
       @pidsToOpenWindows[pidToKillWhenClosed] = openedWindow
 
     openedWindow.browserWindow.once 'closed', =>
       @killProcessForWindow(openedWindow)
+
+    openedWindow
 
   # Kill all processes associated with opened windows.
   killAllProcesses: ->
@@ -577,7 +585,7 @@ class AtomApplication
         packagePath = @packages.resolvePackagePath(packageName)
         windowInitializationScript = path.resolve(packagePath, pack.urlMain)
         windowDimensions = @getDimensionsForNewWindow()
-        new AtomWindow(@fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
+        new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, @resourcePath, devMode, safeMode, urlToOpen, windowDimensions, env})
       else
         console.log "Package '#{pack.name}' does not have a url main: #{urlToOpen}"
     else
@@ -622,7 +630,7 @@ class AtomApplication
     devMode = true
     isSpec = true
     safeMode ?= false
-    new AtomWindow(@fileRecoveryService, {windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, env})
+    new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, env})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'

@@ -152,27 +152,6 @@ describe "Starting Atom", ->
             .treeViewRootDirectories()
             .then ({value}) -> expect(value).toEqual([tempDirPath, fourthTempDir, fifthTempDir])
 
-    it "opens the new window offset from the other window", ->
-      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
-        win0Position = null
-        win1Position = null
-        client
-          .waitForWindowCount(1, 10000)
-          .execute -> atom.getPosition()
-          .then ({value}) -> win0Position = value
-          .waitForNewWindow(->
-            @startAnotherAtom([path.join(temp.mkdirSync("a-third-dir"), "a-file")], ATOM_HOME: atomHome)
-          , 5000)
-          .waitForWindowCount(2, 10000)
-          .execute -> atom.getPosition()
-          .then ({value}) -> win1Position = value
-          .then ->
-            expect(win1Position.x).toBeGreaterThan(win0Position.x)
-            # Ideally we'd test the y coordinate too, but if the window's
-            # already as tall as it can be, then macOS won't move it down outside
-            # the screen.
-            # expect(win1Position.y).toBeGreaterThan(win0Position.y)
-
   describe "reopening a directory that was previously opened", ->
     it "remembers the state of the window", ->
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
