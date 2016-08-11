@@ -56,18 +56,6 @@ describe "Starting Atom", ->
           .waitForWindowCount(1, 5000)
 
   describe "launching with no path", ->
-    it "opens a new window with a single untitled buffer", ->
-      runAtom [], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(1, 5000)
-
-          # Opening with no file paths always creates a new window, even if
-          # existing windows have no project paths.
-          .waitForNewWindow(->
-            @startAnotherAtom([], ATOM_HOME: atomHome)
-          , 5000)
-          .waitForPaneItemCount(1, 5000)
-
     it "doesn't open a new window if openEmptyEditorOnStart is disabled", ->
       configPath = path.join(atomHome, 'config.cson')
       config = CSON.readFileSync(configPath)

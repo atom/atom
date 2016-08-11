@@ -224,6 +224,17 @@ describe('AtomApplication', function () {
       })
       assert.deepEqual(treeViewPaths, [dirAPath, dirBPath])
     })
+
+    it('reuses windows with no project paths to open directories', async function () {
+      const tempDirPath = makeTempDir()
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      await window1.loadedPromise
+
+      const reusedWindow = atomApplication.openWithOptions(parseCommandLine([tempDirPath]))
+      assert.equal(reusedWindow, window1)
+      assert.deepEqual(await getTreeViewRootDirectories(window1), [tempDirPath])
+    })
   })
 
   function buildAtomApplication () {
