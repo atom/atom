@@ -36,7 +36,7 @@ describe('AtomApplication', function () {
 
   describe('openWithOptions', function () {
     it('positions new windows at an offset distance from the previous window', async function () {
-      this.timeout(20000)
+      this.timeout(60 * 1000)
 
       const atomApplication = buildAtomApplication()
 
