@@ -48,6 +48,23 @@ describe('AtomApplication', function () {
       assert.equal(cursorRow, 2)
     })
 
+    it('can open to a specific line and column of a file', async function () {
+      const filePath = path.join(temp.mkdirSync(), 'new-file')
+      fs.writeFileSync(filePath, '1\n2\n3\n4\n')
+      const atomApplication = buildAtomApplication()
+
+      const window = atomApplication.openWithOptions(parseCommandLine([filePath + ':2:2']))
+      await window.loadedPromise
+
+      const cursorPosition = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getCursorBufferPosition())
+        })
+      })
+
+      assert.deepEqual(cursorPosition, {row: 1, column: 1})
+    })
+
     it('positions new windows at an offset distance from the previous window', async function () {
       const atomApplication = buildAtomApplication()
 
