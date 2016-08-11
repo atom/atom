@@ -212,6 +212,30 @@ describe('AtomApplication', function () {
 
       assert.equal(window2Text, 'Hello World!')
     })
+
+    it('shows all directories in the tree view when multiple directory paths are passed to Atom', async function () {
+      const dirAPath = makeTempDir("a")
+      const dirBPath = makeTempDir("b")
+      const dirBSubdirPath = path.join(dirBPath, 'c')
+      fs.mkdirSync(dirBSubdirPath)
+
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([dirAPath, dirBPath]))
+      await window1.loadedPromise
+
+      await new Promise(function (resolve) {
+        setTimeout(resolve, 1000)
+      })
+
+      let treeViewPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(
+          Array
+            .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
+            .map(element => element.dataset.path)
+        )
+      })
+      assert.deepEqual(treeViewPaths, [dirAPath, dirBPath])
+    })
   })
 
   function buildAtomApplication () {

@@ -40,22 +40,6 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
 
-  describe "opening multiple directories simultaneously", ->
-    it "shows them all in the tree-view", ->
-      nestedDir = path.join(otherTempDirPath, "nested-dir")
-      fs.mkdirSync(nestedDir)
-
-      runAtom [tempDirPath, otherTempDirPath], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
-
-          # Opening one of those directories again reuses the same window and
-          # does not change the project paths.
-          .startAnotherAtom([nestedDir], ATOM_HOME: atomHome)
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([tempDirPath, otherTempDirPath])
-
   describe "when there is an existing window with no project path", ->
     it "reuses that window to open a directory", ->
       runAtom [], {ATOM_HOME: atomHome}, (client) ->
