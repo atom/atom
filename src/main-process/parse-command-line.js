@@ -130,7 +130,7 @@ module.exports = function parseCommandLine (processArgs) {
     resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
     version, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, socketPath,
     userDataDir, profileStartup, timeout, setPortable, clearWindowState,
-    addToLastWindow, mainProcess
+    addToLastWindow, mainProcess, env: process.env
   }
 }
 

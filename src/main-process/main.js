@@ -21,7 +21,6 @@ console.log = require('nslog')
 
 function start () {
   const args = parseCommandLine(process.argv.slice(1))
-  args.env = process.env
   setupAtomHome(args)
   setupCompileCache()
 
