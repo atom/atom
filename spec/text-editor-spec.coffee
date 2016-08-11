@@ -5803,15 +5803,15 @@ describe "TextEditor", ->
       editor.setEditorWidthInChars(10)
       expect(editor.lineTextForScreenRow(0)).toBe 'var '
 
-  describe "::setSoftWrapIndentLength", ->
+  describe "softWrapHangingIndentLength", ->
     it "controls how much extra indentation is applied to soft-wrapped lines", ->
       editor.setText('123456789')
       editor.setEditorWidthInChars(8)
       editor.setSoftWrapped(true)
-      editor.setSoftWrapIndentLength(2)
+      editor.update({softWrapHangingIndentLength: 2})
       expect(editor.lineTextForScreenRow(1)).toEqual '  9'
 
-      editor.setSoftWrapIndentLength(4)
+      editor.update({softWrapHangingIndentLength: 4})
       expect(editor.lineTextForScreenRow(1)).toEqual '    9'
 
   describe "::getElement", ->

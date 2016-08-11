@@ -418,14 +418,14 @@ describe('TextEditorRegistry', function () {
 
     it('sets the soft wrap indent length based on the config', function () {
       editor.update({softWrapHangingIndentLength: 4})
-      expect(editor.getSoftWrapIndentLength()).toBe(4)
+      expect(editor.getSoftWrapHangingIndentLength()).toBe(4)
 
       atom.config.set('editor.softWrapHangingIndent', 2)
       registry.maintainConfig(editor)
-      expect(editor.getSoftWrapIndentLength()).toBe(2)
+      expect(editor.getSoftWrapHangingIndentLength()).toBe(2)
 
       atom.config.set('editor.softWrapHangingIndent', 4)
-      expect(editor.getSoftWrapIndentLength()).toBe(4)
+      expect(editor.getSoftWrapHangingIndentLength()).toBe(4)
     })
 
     it('enables or disables preferred line length-based soft wrap based on the config', function () {

@@ -153,6 +153,7 @@ class TextEditor extends Model
     @autoIndentOnPaste ?= true
     @undoGroupingInterval ?= 300
     @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
+    @softWrapHangingIndentLength ?= 0
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
@@ -371,7 +372,7 @@ class TextEditor extends Model
       ratioForCharacter: @ratioForCharacter.bind(this),
       isWrapBoundary: isWrapBoundary,
       foldCharacter: ZERO_WIDTH_NBSP,
-      softWrapHangingIndent: @getSoftWrapIndentLength()
+      softWrapHangingIndent: @getSoftWrapHangingIndentLength()
     })
 
   destroyed: ->
@@ -2859,9 +2860,7 @@ class TextEditor extends Model
 
   setShowIndentGuide: (showIndentGuide) -> @update({showIndentGuide})
 
-  setSoftWrapIndentLength: (softWrapHangingIndentLength) -> @update({softWrapHangingIndentLength})
-
-  getSoftWrapIndentLength: -> @softWrapHangingIndentLength
+  getSoftWrapHangingIndentLength: -> @softWrapHangingIndentLength
 
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
