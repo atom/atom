@@ -2,7 +2,7 @@
 /* eslint-env jasmine */
 
 import child_process from 'child_process'
-import updateProcessEnv from '../src/update-process-env'
+import {updateProcessEnv, shellShouldBePatched} from '../src/update-process-env'
 import dedent from 'dedent'
 
 describe('updateProcessEnv(launchEnv)', function () {
@@ -82,6 +82,42 @@ describe('updateProcessEnv(launchEnv)', function () {
         updateProcessEnv(process.env)
         expect(child_process.spawnSync).not.toHaveBeenCalled()
         expect(process.env).toEqual({FOO: 'bar'})
+      })
+    })
+
+    describe('shells on osx', function () {
+      it('shellShouldBePatched() returns the shell when the shell should be patched', function () {
+        process.platform = 'darwin'
+        let shellsToTest = new Set([
+          '/bin/sh',
+          '/usr/local/bin/sh',
+          '/bin/bash',
+          '/usr/local/bin/bash',
+          '/bin/zsh',
+          '/usr/local/bin/zsh',
+          '/bin/fish',
+          '/usr/local/bin/fish'
+        ])
+        for (let shell of shellsToTest) {
+          process.env.SHELL = shell
+          expect(shellShouldBePatched()).toBe(shell)
+        }
+      })
+
+      it('shellShouldBePatched() returns false when the shell should not be patched', function () {
+        process.platform = 'darwin'
+        let shellsToTest = new Set([
+          '/bin/unsupported',
+          '/bin/shh',
+          '/bin/tcsh',
+          '/usr/csh'
+        ])
+        for (let shell of shellsToTest) {
+          process.env.SHELL = shell
+          let result = shellShouldBePatched()
+          console.log(result)
+          expect(result).toBe(false)
+        }
       })
     })
   })

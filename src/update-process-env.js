@@ -8,7 +8,14 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'ATOM_HOME'
 ])
 
-export default function updateProcessEnv (launchEnv) {
+const OSX_SHELLS_TO_PATCH = new Set([
+  '/sh',
+  '/bash',
+  '/zsh',
+  '/fish'
+])
+
+function updateProcessEnv (launchEnv) {
   let envToAssign
   if (launchEnv && launchEnv.PWD) {
     envToAssign = launchEnv
@@ -33,9 +40,23 @@ export default function updateProcessEnv (launchEnv) {
   }
 }
 
-function getEnvFromShell () {
+function shellShouldBePatched () {
   let shell = process.env.SHELL
-  if (shell && (shell.endsWith('/bash') || shell.endsWith('/sh'))) {
+  if (!shell) {
+    return false
+  }
+  for (let s of OSX_SHELLS_TO_PATCH) {
+    if (shell.endsWith(s)) {
+      return shell
+    }
+  }
+
+  return false
+}
+
+function getEnvFromShell () {
+  let shell = shellShouldBePatched()
+  if (shell) {
     let {stdout} = spawnSync(shell, ['-ilc', 'command env'], {encoding: 'utf8'})
     if (stdout) {
       let result = {}
@@ -51,3 +72,5 @@ function getEnvFromShell () {
     }
   }
 }
+
+export default { updateProcessEnv, shellShouldBePatched }
