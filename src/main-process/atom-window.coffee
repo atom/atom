@@ -21,6 +21,7 @@ class AtomWindow
     locationsToOpen ?= []
 
     @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @closedPromise = new Promise((@resolveClosedPromise) =>)
 
     options =
       show: false
@@ -133,6 +134,7 @@ class AtomWindow
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
       @atomApplication.removeWindow(this)
+      @resolveClosedPromise()
 
     @browserWindow.on 'unresponsive', =>
       return if @isSpec

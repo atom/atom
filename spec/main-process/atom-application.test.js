@@ -18,6 +18,7 @@ describe('AtomApplication', function () {
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
     fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
+    fs.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), '{"*": {welcome: {showOnStartup: false}}}')
     atomApplicationsToDestroy = []
   })
 
@@ -187,6 +188,29 @@ describe('AtomApplication', function () {
         sendBackToMainProcess(atom.project.getPaths())
       })
       assert.deepEqual(window1ProjectPaths, [dirAPath, dirCPath, dirBPath])
+    })
+
+    it('persists window state based on the project directories', async function () {
+      const tempDirPath = makeTempDir()
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([path.join(tempDirPath, 'new-file')]))
+      await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          textEditor.insertText('Hello World!')
+          sendBackToMainProcess(null)
+        })
+      })
+      window1.close()
+      await window1.closedPromise
+
+      const window2 = atomApplication.openWithOptions(parseCommandLine([path.join(tempDirPath)]))
+      const window2Text = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getText())
+        })
+      })
+
+      assert.equal(window2Text, 'Hello World!')
     })
   })
 

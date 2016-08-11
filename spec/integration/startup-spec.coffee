@@ -40,20 +40,6 @@ describe "Starting Atom", ->
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
 
-  describe "reopening a directory that was previously opened", ->
-    it "remembers the state of the window", ->
-      runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(0, 3000)
-          .execute -> atom.workspace.open()
-          .waitForPaneItemCount(1, 3000)
-          .keys("Hello!")
-          .waitUntil((-> Promise.resolve(false)), 1100)
-
-      runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(1, 5000)
-
   describe "opening multiple directories simultaneously", ->
     it "shows them all in the tree-view", ->
       nestedDir = path.join(otherTempDirPath, "nested-dir")
