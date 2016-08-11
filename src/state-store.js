@@ -26,7 +26,7 @@ class StateStore {
   save (key, value) {
     return new Promise((resolve, reject) => {
       this.dbPromise.then(db => {
-        if (db == null) resolve()
+        if (db == null) return resolve()
 
         var request = db.transaction(['states'], 'readwrite')
           .objectStore('states')
