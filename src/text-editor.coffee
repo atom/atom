@@ -3427,35 +3427,15 @@ class TextEditor extends Model
   # for specific syntactic scopes.
   getScopedSettingsDelegate: -> @scopedSettingsDelegate
 
-  # Experimental: Enable or disable automatic language-based indentation when
-  # inserting a line-break in the editor.
-  #
-  # * `autoIndent` a {Boolean} indicating whether to enable or disable automatic
-  #   indentation.
-  setAutoIndent: (@autoIndent) ->
-
   # Experimental: Is auto-indentation enabled for this editor?
   #
   # Returns a {Boolean}.
   shouldAutoIndent: -> @autoIndent
 
-  # Experimental: Enable or disable automatic language-based indentation when
-  # pasting text into the editor.
-  #
-  # * `autoIndent` a {Boolean} indicating whether to enable or disable automatic
-  #   indentation.
-  setAutoIndentOnPaste: (@autoIndentOnPaste) ->
-
   # Experimental: Is auto-indentation on paste enabled for this editor?
   #
   # Returns a {Boolean}.
   shouldAutoIndentOnPaste: -> @autoIndentOnPaste
-
-  # Experimental: Enable or disable scrolling past the last line of the editor.
-  #
-  # * `scrollPastEnd` a {Boolean} indicating whether to enable or disable
-  #   scrolling past the end.
-  setScrollPastEnd: (scrollPastEnd) -> @update({scrollPastEnd})
 
   # Experimental: Does this editor allow scrolling past the last line?
   #
@@ -3473,33 +3453,16 @@ class TextEditor extends Model
   # Returns a positive {Number}.
   getScrollSensitivity: -> @scrollSensitivity
 
-  # Experimental: Show or hide the line numbers in the editor's gutter.
-  #
-  # * `showLineNumbers` a {Boolean} indicating whether to show the line numbers.
-  setShowLineNumbers: (showLineNumbers) -> @update({showLineNumbers})
-
   # Experimental: Are line numbers enabled for this editor?
   #
   # Returns a {Boolean}
   doesShowLineNumbers: -> @showLineNumbers
-
-  # Experimental: Set the time interval within which text editing operations
-  # are grouped together in the editor's undo history.
-  #
-  # * `undoGroupingInterval` the {Number} time interval in milliseconds
-  setUndoGroupingInterval: (@undoGroupingInterval) ->
 
   # Experimental: Get the time interval within which text editing operations
   # are grouped together in the editor's undo history.
   #
   # Returns the time interval {Number} in milliseconds.
   getUndoGroupingInterval: -> @undoGroupingInterval
-
-  # Experimental: Set the characters that are *not* considered part of words,
-  # for the purposes of word-based cursor movements.
-  #
-  # * `nonWordCharacters` A {String} containing the non-word characters.
-  setNonWordCharacters: (@nonWordCharacters) ->
 
   # Experimental: Get the characters that are *not* considered part of words,
   # for the purpose of word-based cursor movements.

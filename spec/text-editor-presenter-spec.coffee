@@ -246,7 +246,7 @@ describe "TextEditorPresenter", ->
           expect(stateFn(presenter).tiles[10].top).toBe(10 * 10 + 10 + 20 + 30)
           expect(stateFn(presenter).tiles[12].top).toBe(12 * 10 + 10 + 20 + 30)
 
-          editor.setSoftWrapped(true)
+          editor.update({softWrapped: true})
           presenter.setContentFrameWidth(5 * 25)
 
           expect(stateFn(presenter).tiles[0].top).toBe(0 * 10)
@@ -265,7 +265,7 @@ describe "TextEditorPresenter", ->
           expect(stateFn(presenter).tiles[26].top).toBe(26 * 10 + 10 + 20 + 30)
           expect(stateFn(presenter).tiles[28].top).toBe(28 * 10 + 10 + 20 + 30)
 
-          editor.setSoftWrapped(false)
+          editor.update({softWrapped: false})
 
           expect(stateFn(presenter).tiles[0].top).toBe(0 * 10)
           expect(stateFn(presenter).tiles[2].top).toBe(2 * 10 + 10)
@@ -480,9 +480,9 @@ describe "TextEditorPresenter", ->
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
-          expectStateUpdate presenter, -> editor.setSoftWrapped(true)
+          expectStateUpdate presenter, -> editor.update({softWrapped: true})
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
-          expectStateUpdate presenter, -> editor.setSoftWrapped(false)
+          expectStateUpdate presenter, -> editor.update({softWrapped: false})
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
@@ -529,11 +529,11 @@ describe "TextEditorPresenter", ->
         it "is always 0 when soft wrapping is enabled", ->
           presenter = buildPresenter(scrollLeft: 0, verticalScrollbarWidth: 0, contentFrameWidth: 85, baseCharacterWidth: 10)
 
-          editor.setSoftWrapped(false)
+          editor.update({softWrapped: false})
           presenter.setScrollLeft(Infinity)
           expect(getState(presenter).content.scrollLeft).toBeGreaterThan 0
 
-          editor.setSoftWrapped(true)
+          editor.update({softWrapped: true})
           expect(getState(presenter).content.scrollLeft).toBe 0
           presenter.setScrollLeft(10)
           expect(getState(presenter).content.scrollLeft).toBe 0
@@ -640,10 +640,10 @@ describe "TextEditorPresenter", ->
             expectStateUpdate presenter, -> presenter.setScrollTop(300)
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
-            expectStateUpdate presenter, -> editor.setScrollPastEnd(true)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: true})
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-            expectStateUpdate presenter, -> editor.setScrollPastEnd(false)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollTop", ->
@@ -682,11 +682,11 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
-          editor.setScrollPastEnd(true)
+          editor.update({scrollPastEnd: true})
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> editor.setScrollPastEnd(false)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
     describe ".hiddenInput", ->
@@ -821,10 +821,10 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight
 
-          expectStateUpdate presenter, -> editor.setScrollPastEnd(true)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: true})
           expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> editor.setScrollPastEnd(false)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
           expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollWidth", ->
@@ -875,9 +875,9 @@ describe "TextEditorPresenter", ->
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
-          expectStateUpdate presenter, -> editor.setSoftWrapped(true)
+          expectStateUpdate presenter, -> editor.update({softWrapped: true})
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
-          expectStateUpdate presenter, -> editor.setSoftWrapped(false)
+          expectStateUpdate presenter, -> editor.update({softWrapped: false})
           expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
@@ -1024,11 +1024,11 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
-          editor.setScrollPastEnd(true)
+          editor.update({scrollPastEnd: true})
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> editor.setScrollPastEnd(false)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
           expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
@@ -1495,7 +1495,7 @@ describe "TextEditorPresenter", ->
 
             it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
               editor.setText("a line that wraps, ok")
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(16)
               marker = editor.markBufferRange([[0, 0], [0, 2]])
@@ -1951,7 +1951,7 @@ describe "TextEditorPresenter", ->
 
         it "does not include highlights that end before the first visible row", ->
           editor.setText("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.")
-          editor.setSoftWrapped(true)
+          editor.update({softWrapped: true})
           editor.setWidth(100, true)
           editor.setDefaultCharWidth(10)
 
@@ -2756,19 +2756,19 @@ describe "TextEditorPresenter", ->
             expect(editor.isLineNumberGutterVisible()).toBe true
             expect(getLineNumberGutterState(presenter).visible).toBe true
 
-            expectStateUpdate presenter, -> editor.setMini(true)
+            expectStateUpdate presenter, -> editor.update({mini: true})
             expect(getLineNumberGutterState(presenter)).toBeUndefined()
 
-            expectStateUpdate presenter, -> editor.setMini(false)
+            expectStateUpdate presenter, -> editor.update({mini: false})
             expect(getLineNumberGutterState(presenter).visible).toBe true
 
-            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
+            expectStateUpdate presenter, -> editor.update({lineNumberGutterVisible: false})
             expect(getLineNumberGutterState(presenter).visible).toBe false
 
-            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
+            expectStateUpdate presenter, -> editor.update({lineNumberGutterVisible: true})
             expect(getLineNumberGutterState(presenter).visible).toBe true
 
-            expectStateUpdate presenter, -> editor.setShowLineNumbers(false)
+            expectStateUpdate presenter, -> editor.update({showLineNumbers: false})
             expect(getLineNumberGutterState(presenter).visible).toBe false
 
         describe ".content.maxLineNumberDigits", ->
@@ -2791,7 +2791,7 @@ describe "TextEditorPresenter", ->
           describe ".lineNumbers[id]", ->
             it "contains states for line numbers that are visible on screen", ->
               editor.foldBufferRow(4)
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(51)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 3)
@@ -2811,7 +2811,7 @@ describe "TextEditorPresenter", ->
 
             it "updates when the editor's content changes", ->
               editor.foldBufferRow(4)
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(50)
               presenter = buildPresenter(explicitHeight: 35, scrollTop: 30, tileSize: 2)
@@ -2842,7 +2842,7 @@ describe "TextEditorPresenter", ->
               expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
             it "correctly handles the first screen line being soft-wrapped", ->
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(30)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 50, tileSize: 2)
@@ -3047,7 +3047,7 @@ describe "TextEditorPresenter", ->
 
               it "only applies line-number decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
                 editor.setText("a line that wraps, ok")
-                editor.setSoftWrapped(true)
+                editor.update({softWrapped: true})
                 editor.setDefaultCharWidth(1)
                 editor.setEditorWidthInChars(16)
                 marker = editor.markBufferRange([[0, 0], [0, 2]])
@@ -3064,7 +3064,7 @@ describe "TextEditorPresenter", ->
 
               describe "when a fold spans a single soft-wrapped buffer row", ->
                 it "applies the 'folded' decoration only to its initial screen row", ->
-                  editor.setSoftWrapped(true)
+                  editor.update({softWrapped: true})
                   editor.setDefaultCharWidth(1)
                   editor.setEditorWidthInChars(20)
                   editor.foldBufferRange([[0, 20], [0, 22]])
@@ -3076,7 +3076,7 @@ describe "TextEditorPresenter", ->
 
               describe "when a fold is at the end of a soft-wrapped buffer row", ->
                 it "applies the 'folded' decoration only to its initial screen row", ->
-                  editor.setSoftWrapped(true)
+                  editor.update({softWrapped: true})
                   editor.setDefaultCharWidth(1)
                   editor.setEditorWidthInChars(25)
                   editor.foldBufferRow(1)
@@ -3493,11 +3493,11 @@ describe "TextEditorPresenter", ->
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight
 
-            expectStateUpdate presenter, -> editor.setScrollPastEnd(true)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: true})
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-            expectStateUpdate presenter, -> editor.setScrollPastEnd(false)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight
 
@@ -3546,12 +3546,12 @@ describe "TextEditorPresenter", ->
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
-            editor.setScrollPastEnd(true)
+            editor.update({scrollPastEnd: true})
             expectStateUpdate presenter, -> presenter.setScrollTop(300)
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
-            expectStateUpdate presenter, -> editor.setScrollPastEnd(false)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
@@ -3740,7 +3740,7 @@ describe "TextEditorPresenter", ->
     toggleSoftWrap = (log) ->
       softWrapped = not editor.isSoftWrapped()
       log "editor.setSoftWrapped(#{softWrapped})"
-      editor.setSoftWrapped(softWrapped)
+      editor.update({softWrapped: softWrapped})
 
     insertText = (log) ->
       range = buildRandomRange()

@@ -361,7 +361,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('renders an placeholder space on empty lines when no line-ending character is defined', function () {
-      editor.setShowInvisibles(false)
+      editor.update({showInvisibles: false})
       expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
     })
 
@@ -972,7 +972,7 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
-      editor.setShowLineNumbers(false)
+      editor.update({showLineNumbers: false})
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
@@ -980,7 +980,7 @@ describe('TextEditorComponent', function () {
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
-      editor.setShowLineNumbers(true)
+      editor.update({showLineNumbers: true})
       await nextViewUpdatePromise()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('')
@@ -3901,7 +3901,7 @@ describe('TextEditorComponent', function () {
       spyOn(Date, 'now').andCallFake(function () {
         return currentTime
       })
-      editor.setUndoGroupingInterval(100)
+      editor.update({undoGroupingInterval: 100})
       editor.setText('')
       componentNode.dispatchEvent(buildTextInputEvent({
         data: 'x',

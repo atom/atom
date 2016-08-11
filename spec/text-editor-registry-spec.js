@@ -222,7 +222,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the encoding based on the config', function () {
-      editor.setEncoding('utf8')
+      editor.update({encoding: 'utf8'})
       expect(editor.getEncoding()).toBe('utf8')
 
       atom.config.set('core.fileEncoding', 'utf16le')
@@ -234,7 +234,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the tab length based on the config', function () {
-      editor.setTabLength(4)
+      editor.update({tabLength: 4})
       expect(editor.getTabLength()).toBe(4)
 
       atom.config.set('editor.tabLength', 8)
@@ -334,7 +334,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables soft tabs based on the config', function () {
-      editor.setSoftTabs(true)
+      editor.update({softTabs: true})
       expect(editor.getSoftTabs()).toBe(true)
 
       atom.config.set('editor.tabType', 'hard')
@@ -350,7 +350,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables atomic soft tabs based on the config', function () {
-      editor.setAtomicSoftTabs(true)
+      editor.update({atomicSoftTabs: true})
       expect(editor.hasAtomicSoftTabs()).toBe(true)
 
       atom.config.set('editor.atomicSoftTabs', false)
@@ -362,7 +362,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables invisible based on the config', function () {
-      editor.setShowInvisibles(true)
+      editor.update({showInvisibles: true})
       expect(editor.doesShowInvisibles()).toBe(true)
 
       atom.config.set('editor.showInvisibles', false)
@@ -374,15 +374,16 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the invisibles based on the config', function () {
-      editor.setShowInvisibles(true)
-      atom.config.set('editor.showInvisibles', true)
-
       const invisibles1 = {'tab': 'a', 'cr': false, eol: false, space: false}
       const invisibles2 = {'tab': 'b', 'cr': false, eol: false, space: false}
 
-      editor.setInvisibles(invisibles1)
+      editor.update({
+        showInvisibles: true,
+        invisibles: invisibles1
+      })
       expect(editor.getInvisibles()).toEqual(invisibles1)
 
+      atom.config.set('editor.showInvisibles', true)
       atom.config.set('editor.invisibles', invisibles2)
       registry.maintainConfig(editor)
       expect(editor.getInvisibles()).toEqual(invisibles2)
@@ -392,7 +393,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables the indent guide based on the config', function () {
-      editor.setShowIndentGuide(true)
+      editor.update({showIndentGuide: true})
       expect(editor.doesShowIndentGuide()).toBe(true)
 
       atom.config.set('editor.showIndentGuide', false)
@@ -404,7 +405,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables soft wrap based on the config', function () {
-      editor.setSoftWrapped(true)
+      editor.update({softWrapped: true})
       expect(editor.isSoftWrapped()).toBe(true)
 
       atom.config.set('editor.softWrap', false)
@@ -416,7 +417,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the soft wrap indent length based on the config', function () {
-      editor.setSoftWrapIndentLength(4)
+      editor.update({softWrapHangingIndentLength: 4})
       expect(editor.getSoftWrapIndentLength()).toBe(4)
 
       atom.config.set('editor.softWrapHangingIndent', 2)
@@ -428,7 +429,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables preferred line length-based soft wrap based on the config', function () {
-      editor.setSoftWrapAtPreferredLineLength(true)
+      editor.update({softWrapAtPreferredLineLength: true})
       expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(true)
 
       atom.config.set('editor.softWrapAtPreferredLineLength', false)
@@ -440,7 +441,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the preferred line length based on the config', function () {
-      editor.setPreferredLineLength(80)
+      editor.update({preferredLineLength: 80})
       expect(editor.getPreferredLineLength()).toBe(80)
 
       atom.config.set('editor.preferredLineLength', 110)
@@ -452,7 +453,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables back-up-before-save based on the config', function () {
-      editor.setBackUpBeforeSaving(true)
+      editor.update({backUpBeforeSaving: true})
       expect(editor.doesBackUpBeforeSaving()).toBe(true)
 
       atom.config.set('editor.backUpBeforeSaving', false)
@@ -464,6 +465,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables auto-indent based on the config', function () {
+      editor.update({autoIndent: true})
       expect(editor.shouldAutoIndent()).toBe(true)
 
       atom.config.set('editor.autoIndent', false)
@@ -475,6 +477,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables auto-indent-on-paste based on the config', function () {
+      editor.update({autoIndentOnPaste: true})
       expect(editor.shouldAutoIndentOnPaste()).toBe(true)
 
       atom.config.set('editor.autoIndentOnPaste', false)
@@ -486,6 +489,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables scrolling past the end of the buffer based on the config', function () {
+      editor.update({scrollPastEnd: true})
       expect(editor.getScrollPastEnd()).toBe(true)
 
       atom.config.set('editor.scrollPastEnd', false)
@@ -497,6 +501,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the undo grouping interval based on the config', function () {
+      editor.update({undoGroupingInterval: 300})
       expect(editor.getUndoGroupingInterval()).toBe(300)
 
       atom.config.set('editor.undoGroupingInterval', 600)
@@ -508,6 +513,9 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the non-word characters based on the config', function () {
+      editor.update({nonWordCharacters: '()'})
+      expect(editor.getNonWordCharacters()).toBe('()')
+
       atom.config.set('editor.nonWordCharacters', '(){}')
       registry.maintainConfig(editor)
       expect(editor.getNonWordCharacters()).toBe('(){}')
@@ -517,6 +525,9 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the scroll sensitivity based on the config', function () {
+      editor.update({scrollSensitivity: 50})
+      expect(editor.getScrollSensitivity()).toBe(50)
+
       atom.config.set('editor.scrollSensitivity', 60)
       registry.maintainConfig(editor)
       expect(editor.getScrollSensitivity()).toBe(60)

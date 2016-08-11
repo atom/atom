@@ -16,7 +16,7 @@ describe "TextEditor", ->
 
     runs ->
       buffer = editor.buffer
-      editor.setAutoIndent(false)
+      editor.update({autoIndent: false})
       lineLengths = buffer.getLines().map (line) -> line.length
 
     waitsForPromise ->
@@ -2151,7 +2151,7 @@ describe "TextEditor", ->
         expect(editor.indentationForBufferRow(1)).toBe 0
 
       it "updates the line's indentation when the the autoIndent setting is true", ->
-        editor.setAutoIndent(true)
+        editor.update({autoIndent: true})
         editor.setCursorBufferPosition([1, 0])
         editor.moveLineUp()
         expect(editor.indentationForBufferRow(0)).toBe 0
@@ -2479,7 +2479,7 @@ describe "TextEditor", ->
         expect(editor.indentationForBufferRow(1)).toBe 0
 
       it "updates the line's indentation when the editor.autoIndent setting is true", ->
-        editor.setAutoIndent(true)
+        editor.update({autoIndent: true})
         editor.setCursorBufferPosition([0, 0])
         editor.moveLineDown()
         expect(editor.indentationForBufferRow(0)).toBe 1
@@ -3041,7 +3041,7 @@ describe "TextEditor", ->
           expect(editor.getCursorBufferPosition()).toEqual [0, 2]
 
       it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
-        editor.setAutoIndent(true)
+        editor.update({autoIndent: true})
         editor.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
         expect(buffer.lineForRow(1)).toBe "  "
@@ -3070,7 +3070,7 @@ describe "TextEditor", ->
           expect(editor.getCursorBufferPosition()).toEqual [3, 4]
 
       it "indents the new line to the correct level when editor.autoIndent is true", ->
-        editor.setAutoIndent(true)
+        editor.update({autoIndent: true})
 
         editor.setText('  var test')
         editor.setCursorBufferPosition([0, 2])
@@ -3101,7 +3101,7 @@ describe "TextEditor", ->
     describe ".insertNewLine()", ->
       describe "when a new line is appended before a closing tag (e.g. by pressing enter before a selection)", ->
         it "moves the line down and keeps the indentation level the same when editor.autoIndent is true", ->
-          editor.setAutoIndent(true)
+          editor.update({autoIndent: true})
           editor.setCursorBufferPosition([9, 2])
           editor.insertNewline()
           expect(editor.lineTextForBufferRow(10)).toBe '  };'
@@ -3112,7 +3112,7 @@ describe "TextEditor", ->
             atom.packages.activatePackage('language-javascript')
 
           runs ->
-            editor.setAutoIndent(true)
+            editor.update({autoIndent: true})
             editor.setGrammar(atom.grammars.selectGrammar("file.js"))
             editor.setText('var test = function () {\n  return true;};')
             editor.setCursorBufferPosition([1, 14])
@@ -3123,7 +3123,7 @@ describe "TextEditor", ->
         it "indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified", ->
           runs ->
             editor.setGrammar(atom.grammars.selectGrammar("file"))
-            editor.setAutoIndent(true)
+            editor.update({autoIndent: true})
             editor.setText('  if true')
             editor.setCursorBufferPosition([0, 8])
             editor.insertNewline()
@@ -3136,7 +3136,7 @@ describe "TextEditor", ->
             atom.packages.activatePackage('language-coffee-script')
 
           runs ->
-            editor.setAutoIndent(true)
+            editor.update({autoIndent: true})
             editor.setGrammar(atom.grammars.selectGrammar("file.coffee"))
             editor.setText('if true\n  return trueelse\n  return false')
             editor.setCursorBufferPosition([1, 13])
@@ -3151,7 +3151,7 @@ describe "TextEditor", ->
             atom.packages.activatePackage('language-go')
 
           runs ->
-            editor.setAutoIndent(true)
+            editor.update({autoIndent: true})
             editor.setGrammar(atom.grammars.selectGrammar("file.go"))
             editor.setText('fmt.Printf("some%s",\n	"thing")')
             editor.setCursorBufferPosition([1, 10])
@@ -3922,7 +3922,7 @@ describe "TextEditor", ->
 
         describe "when `autoIndentOnPaste` is true", ->
           beforeEach ->
-            editor.setAutoIndentOnPaste(true)
+            editor.update({autoIndentOnPaste: true})
 
           describe "when pasting multiple lines before any non-whitespace characters", ->
             it "auto-indents the lines spanned by the pasted text, based on the first pasted line", ->
@@ -3991,7 +3991,7 @@ describe "TextEditor", ->
 
         describe "when `autoIndentOnPaste` is false", ->
           beforeEach ->
-            editor.setAutoIndentOnPaste(false)
+            editor.update({autoIndentOnPaste: false})
 
           describe "when the cursor is indented further than the original copied text", ->
             it "increases the indentation of the copied lines to match", ->
@@ -4028,7 +4028,7 @@ describe "TextEditor", ->
 
         describe 'when the clipboard has many selections', ->
           beforeEach ->
-            editor.setAutoIndentOnPaste(false)
+            editor.update({autoIndentOnPaste: false})
             editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
             editor.copySelectedText()
 
@@ -4891,13 +4891,13 @@ describe "TextEditor", ->
           editor.insertText("\n ")
           expect(editor.lineTextForBufferRow(2)).toBe " "
 
-          editor.setAutoIndent(false)
+          editor.update({autoIndent: false})
           editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe "  "
 
     describe "when editor.autoIndent is true", ->
       beforeEach ->
-        editor.setAutoIndent(true)
+        editor.update({autoIndent: true})
 
       describe "when `indent` is triggered", ->
         it "auto-indents the line", ->
@@ -4905,7 +4905,7 @@ describe "TextEditor", ->
           editor.insertText("\n ")
           expect(editor.lineTextForBufferRow(2)).toBe " "
 
-          editor.setAutoIndent(true)
+          editor.update({autoIndent: true})
           editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe "    "
 
@@ -4944,7 +4944,7 @@ describe "TextEditor", ->
           editor.insertText('  var this-line-should-be-indented-more\n')
           expect(editor.indentationForBufferRow(1)).toBe 1
 
-          editor.setAutoIndent(true)
+          editor.update({autoIndent: true})
           editor.setCursorBufferPosition([2, Infinity])
           editor.insertText('\n')
           expect(editor.indentationForBufferRow(1)).toBe 1
@@ -5421,7 +5421,7 @@ describe "TextEditor", ->
 
     describe "when the editor has a height and lineHeightInPixels", ->
       beforeEach ->
-        editor.setScrollPastEnd(true)
+        editor.update({scrollPastEnd: true})
         editor.setHeight(100, true)
         editor.setLineHeightInPixels(10)
 
@@ -5460,7 +5460,7 @@ describe "TextEditor", ->
 
       describe "when the 'editor.scrollPastEnd' option is set to false", ->
         it "ensures that the bottom row is less than the buffer's line count", ->
-          editor.setScrollPastEnd(false)
+          editor.update({scrollPastEnd: false})
           editor.setFirstVisibleScreenRow(95)
           expect(editor.getFirstVisibleScreenRow()).toEqual 89
           expect(editor.getVisibleRowRange()).toEqual [89, 99]
@@ -5481,9 +5481,9 @@ describe "TextEditor", ->
   describe "scroll past end", ->
     it "returns false by default but can be customized", ->
       expect(editor.getScrollPastEnd()).toBe(false)
-      editor.setScrollPastEnd(true)
+      editor.update({scrollPastEnd: true})
       expect(editor.getScrollPastEnd()).toBe(true)
-      editor.setScrollPastEnd(false)
+      editor.update({scrollPastEnd: false})
       expect(editor.getScrollPastEnd()).toBe(false)
 
   describe "auto height", ->
