@@ -36,14 +36,12 @@ class AtomApplication
       else
         options.socketPath = path.join(os.tmpdir(), "atom-#{options.version}-#{process.env.USER}.sock")
 
-    createAtomApplication = -> new AtomApplication(options)
-
     # FIXME: Sometimes when socketPath doesn't exist, net.connect would strangely
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
     if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test
-      createAtomApplication()
+      new AtomApplication(options).initialize(options)
       return
 
     client = net.connect {path: options.socketPath}, ->
@@ -51,7 +49,7 @@ class AtomApplication
         client.end()
         app.quit()
 
-    client.on 'error', createAtomApplication
+    client.on 'error', -> new AtomApplication(options).initialize(options)
 
   windows: null
   applicationMenu: null
@@ -64,13 +62,16 @@ class AtomApplication
 
   constructor: (options) ->
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, timeout, clearWindowState} = options
-
     @socketPath = null if options.test
-
-    global.atomApplication = this
-
     @pidsToOpenWindows = {}
     @windows = []
+
+  # This stuff was previously done in the constructor, but we want to be able to construct this object
+  # for testing purposes without booting up the world. As you add tests, feel free to move instantiation
+  # of these various sub-objects into the constructor, but you'll need to remove the side-effects they
+  # perform during their construction, adding an initialize method that you call here.
+  initialize: (options) ->
+    global.atomApplication = this
 
     @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
     @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
@@ -88,7 +89,6 @@ class AtomApplication
     @handleEvents()
     @setupDockMenu()
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
-
 
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
       @openWithOptions(options)
@@ -720,4 +720,3 @@ class AtomApplication
       # once we're using electron v.1.2.2
       # app.relaunch()
       app.quit()
-
