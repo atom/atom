@@ -30,6 +30,7 @@ dependencies:
     - apm/node_modules
     - script/node_modules
     - node_modules
+    - ~/.atom/compile-cache
 
 test:
   override:
