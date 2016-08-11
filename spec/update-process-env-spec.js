@@ -85,8 +85,8 @@ describe('updateProcessEnv(launchEnv)', function () {
       })
     })
 
-    describe('shells on osx', function () {
-      it('shouldGetEnvFromShell() returns the shell when the shell should be patched', function () {
+    describe('shouldGetEnvFromShell()', function () {
+      it('returns the shell when the shell should be patched', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell('/bin/sh')).toBe(true)
         expect(shouldGetEnvFromShell('/usr/local/bin/sh')).toBe(true)
@@ -98,7 +98,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         expect(shouldGetEnvFromShell('/usr/local/bin/fish')).toBe(true)
       })
 
-      it('shouldGetEnvFromShell() returns false when the shell should not be patched', function () {
+      it('returns false when the shell should not be patched', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell('/bin/unsupported')).toBe(false)
         expect(shouldGetEnvFromShell('/bin/shh')).toBe(false)
@@ -106,7 +106,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         expect(shouldGetEnvFromShell('/usr/csh')).toBe(false)
       })
 
-      it('shouldGetEnvFromShell() returns false when the shell is undefined or empty', function () {
+      it('returns false when the shell is undefined or empty', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell(undefined)).toBe(false)
         expect(shouldGetEnvFromShell('')).toBe(false)
