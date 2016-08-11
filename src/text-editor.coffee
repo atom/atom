@@ -3355,20 +3355,6 @@ class TextEditor extends Model
     scrollEvent = {screenRange, options}
     @emitter.emit "did-request-autoscroll", scrollEvent
 
-  getScrollPastEnd: ->
-    if @scrollPastEnd?
-      @scrollPastEnd
-    else
-      @config.get('editor.scrollPastEnd', scope: @getRootScopeDescriptor())
-
-  setScrollPastEnd: (scrollPastEnd) ->
-    if scrollPastEnd isnt @scrollPastEnd
-      @scrollPastEnd = scrollPastEnd
-      @emitter.emit('did-change-scroll-past-end')
-
-  onDidChangeScrollPastEnd: (callback) ->
-    @emitter.on('did-change-scroll-past-end', callback)
-
   getHorizontalScrollbarHeight: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.")
 
