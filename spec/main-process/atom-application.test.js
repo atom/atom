@@ -97,6 +97,97 @@ describe('AtomApplication', function () {
       assert.isAbove(window2Dimensions.x, window1Dimensions.x)
       assert.isAbove(window2Dimensions.y, window1Dimensions.y)
     })
+
+    it('reuses existing windows when opening paths, but not directories', async function () {
+      const dirAPath = makeTempDir("a")
+      const dirBPath = makeTempDir("b")
+      const dirCPath = makeTempDir("c")
+      const existingDirCFilePath = path.join(dirCPath, 'existing-file')
+      fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
+
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      await window1.loadedPromise
+
+      let activeEditorPath
+      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
+        })
+      })
+      assert.equal(activeEditorPath, path.join(dirAPath, 'new-file'))
+
+      // Reuses the window when opening *files*, even if they're in a different directory
+      // Does not change the project paths when doing so.
+      const reusedWindow = atomApplication.openWithOptions(parseCommandLine([existingDirCFilePath]))
+      assert.equal(reusedWindow, window1)
+      assert.deepEqual(atomApplication.windows, [window1])
+      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
+        })
+      })
+      assert.equal(activeEditorPath, existingDirCFilePath)
+      const window1ProjectPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getPaths())
+      })
+      assert.deepEqual(window1ProjectPaths, [dirAPath])
+
+      // Opens new windows when opening directories
+      const window2 = atomApplication.openWithOptions(parseCommandLine([dirCPath]))
+      assert.notEqual(window2, window1)
+      await window2.loadedPromise
+      const window2ProjectPaths = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getPaths())
+      })
+      assert.deepEqual(window2ProjectPaths, [dirCPath])
+    })
+
+    it('adds folders to existing windows when the --add option is used', async function () {
+      const dirAPath = makeTempDir("a")
+      const dirBPath = makeTempDir("b")
+      const dirCPath = makeTempDir("c")
+      const existingDirCFilePath = path.join(dirCPath, 'existing-file')
+      fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
+
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      await window1.loadedPromise
+
+      let activeEditorPath
+      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
+        })
+      })
+      assert.equal(activeEditorPath, path.join(dirAPath, 'new-file'))
+
+      // When opening *files* with --add, reuses an existing window and adds
+      // parent directory to the project
+      let reusedWindow = atomApplication.openWithOptions(parseCommandLine([existingDirCFilePath, '--add']))
+      assert.equal(reusedWindow, window1)
+      assert.deepEqual(atomApplication.windows, [window1])
+      activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
+          sendBackToMainProcess(textEditor.getPath())
+        })
+      })
+      assert.equal(activeEditorPath, existingDirCFilePath)
+      let window1ProjectPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getPaths())
+      })
+      assert.deepEqual(window1ProjectPaths, [dirAPath, dirCPath])
+
+      // When opening *directories* with add reuses an existing window and adds
+      // the directory to the project
+      reusedWindow = atomApplication.openWithOptions(parseCommandLine([dirBPath, '-a']))
+      assert.equal(reusedWindow, window1)
+      assert.deepEqual(atomApplication.windows, [window1])
+      window1ProjectPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getPaths())
+      })
+      assert.deepEqual(window1ProjectPaths, [dirAPath, dirCPath, dirBPath])
+    })
   })
 
   function buildAtomApplication () {

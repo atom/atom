@@ -1,7 +1,7 @@
 # These tests are excluded by default. To run them from the command line:
 #
 # ATOM_INTEGRATION_TESTS_ENABLED=true apm test
-return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
+# return unless process.env.ATOM_INTEGRATION_TESTS_ENABLED
 # Integration tests require a fast machine and, for now, we cannot afford to
 # run them on Travis.
 return if process.env.CI
@@ -39,61 +39,6 @@ describe "Starting Atom", ->
           .execute -> atom.workspace.getActiveTextEditor().getText()
           .then ({value}) -> expect(value).toBe "Hello!"
           .dispatchCommand("editor:delete-line")
-
-  describe "when there is already a window open", ->
-    it "reuses that window when opening files, but not when opening directories", ->
-      tempFilePath = path.join(temp.mkdirSync("a-third-dir"), "a-file")
-      fs.writeFileSync(tempFilePath, "This file was already here.")
-
-      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(1, 5000)
-
-          # Opening another file reuses the same window and does not change the
-          # project paths.
-          .startAnotherAtom([tempFilePath], ATOM_HOME: atomHome)
-          .waitForPaneItemCount(2, 5000)
-          .waitForWindowCount(1, 1000)
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([tempDirPath])
-          .execute -> atom.workspace.getActiveTextEditor().getText()
-          .then ({value: text}) -> expect(text).toBe "This file was already here."
-
-          # Opening another directory creates a second window.
-          .waitForNewWindow(->
-            @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
-          , 5000)
-          .waitForPaneItemCount(0, 1000)
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([otherTempDirPath])
-    describe "when using the -a, --add option", ->
-      it "reuses that window and add the folder to project paths", ->
-        fourthTempDir = temp.mkdirSync("a-fourth-dir")
-        fourthTempFilePath = path.join(fourthTempDir, "a-file")
-        fs.writeFileSync(fourthTempFilePath, "4 - This file was already here.")
-
-        fifthTempDir = temp.mkdirSync("a-fifth-dir")
-        fifthTempFilePath = path.join(fifthTempDir, "a-file")
-        fs.writeFileSync(fifthTempFilePath, "5 - This file was already here.")
-
-        runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
-          client
-            .waitForPaneItemCount(1, 5000)
-
-            # Opening another file reuses the same window and add parent dir to
-            # project paths.
-            .startAnotherAtom(['-a', fourthTempFilePath], ATOM_HOME: atomHome)
-            .waitForPaneItemCount(2, 5000)
-            .waitForWindowCount(1, 1000)
-            .treeViewRootDirectories()
-            .then ({value}) -> expect(value).toEqual([tempDirPath, fourthTempDir])
-            .execute -> atom.workspace.getActiveTextEditor().getText()
-            .then ({value: text}) -> expect(text).toBe "4 - This file was already here."
-
-            # Opening another directory resuses the same window and add the folder to project paths.
-            .startAnotherAtom(['--add', fifthTempDir], ATOM_HOME: atomHome)
-            .treeViewRootDirectories()
-            .then ({value}) -> expect(value).toEqual([tempDirPath, fourthTempDir, fifthTempDir])
 
   describe "reopening a directory that was previously opened", ->
     it "remembers the state of the window", ->
