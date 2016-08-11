@@ -1,5 +1,5 @@
 const childProcess = require('child_process')
-const downloadGithubRawFile = require('./download-github-raw-file')
+const downloadFileFromGithub = require('./download-file-from-github')
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
@@ -12,7 +12,7 @@ module.exports = function (packagedAppPath) {
 
   try {
     const certPath = path.join(os.tmpdir(), 'mac.p12')
-    downloadGithubRawFile(process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
+    downloadFileFromGithub(process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
 
     console.log(`Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)
     const unlockArgs = ['unlock-keychain', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN]

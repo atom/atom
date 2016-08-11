@@ -1,6 +1,6 @@
 'use strict'
 
-const downloadGithubRawFile = require('./download-github-raw-file')
+const downloadFileFromGithub = require('./download-file-from-github')
 const electronInstaller = require('electron-winstaller')
 const fs = require('fs-extra')
 const os = require('os')
@@ -21,7 +21,7 @@ module.exports = function (packagedAppPath, codeSign) {
 
   const certPath = path.join(os.tmpdir(), 'win.p12')
   if (codeSign && process.env.WIN_P12KEY_URL) {
-    downloadGithubRawFile(process.env.WIN_P12KEY_URL, certPath)
+    downloadFileFromGithub(process.env.WIN_P12KEY_URL, certPath)
     options.certificateFile = certPath
     options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
   } else {
