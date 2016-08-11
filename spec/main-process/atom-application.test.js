@@ -1,5 +1,6 @@
 /** @babel */
 
+import season from 'season'
 import dedent from 'dedent'
 import electron from 'electron'
 import fs from 'fs-plus'
@@ -18,7 +19,9 @@ describe('AtomApplication', function () {
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
     fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
-    fs.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), '{"*": {welcome: {showOnStartup: false}}}')
+    season.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), {
+      '*': {welcome: {showOnStartup: false}}
+    })
     atomApplicationsToDestroy = []
   })
 
@@ -254,6 +257,26 @@ describe('AtomApplication', function () {
 
       assert.deepEqual(atomApplication.windows, [window1, window2])
     })
+
+    it('does not open an empty editor when opened with no path if the core.openEmptyEditorOnStart config setting is false', async function () {
+      const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
+      const config = season.readFileSync(configPath)
+      if (!config['*'].core) config['*'].core = {}
+      config['*'].core.openEmptyEditorOnStart = false
+      season.writeFileSync(configPath, config)
+
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      await window1.loadedPromise
+
+     // wait a bit just to make sure we don't pass due to querying the render process before it loads
+      await getTimeoutPromise(1000)
+
+      const itemCount = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.workspace.getActivePane().getItems().length)
+      })
+      assert.equal(itemCount, 0)
+    })
   })
 
   function buildAtomApplication () {
@@ -295,6 +318,12 @@ describe('AtomApplication', function () {
           .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
           .map(element => element.dataset.path)
       )
+    })
+  }
+
+  function getTimeoutPromise (timeout) {
+    return new Promise(function (resolve) {
+      global.setTimeout(resolve, timeout)
     })
   }
 })

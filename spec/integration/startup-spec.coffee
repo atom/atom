@@ -41,16 +41,6 @@ describe "Starting Atom", ->
           .dispatchCommand("editor:delete-line")
 
   describe "launching with no path", ->
-    it "doesn't open a new window if openEmptyEditorOnStart is disabled", ->
-      configPath = path.join(atomHome, 'config.cson')
-      config = CSON.readFileSync(configPath)
-      config['*'].core = {openEmptyEditorOnStart: false}
-      CSON.writeFileSync(configPath, config)
-
-      runAtom [], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForPaneItemCount(0, 5000)
-
     it "reopens any previously opened windows", ->
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
