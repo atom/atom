@@ -31,7 +31,7 @@ script: false
 
 cache:
   directories:
-    - cache
+    - electron
     - node_modules
     - apm/node_modules
     - script/node_modules

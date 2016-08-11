@@ -47,7 +47,7 @@ cache:
   - '%APPVEYOR_BUILD_FOLDER%\script\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
   - '%APPVEYOR_BUILD_FOLDER%\node_modules'
-  - '%APPVEYOR_BUILD_FOLDER%\cache'
+  - '%APPVEYOR_BUILD_FOLDER%\electron'
   - '%USERPROFILE%\.atom\.apm'
   - '%USERPROFILE%\.atom\.node-gyp\.atom'
   - '%USERPROFILE%\.atom\.npm'

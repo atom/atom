@@ -26,7 +26,7 @@ dependencies:
     - script/build --code-sign --compress-artifacts
 
   cache_directories:
-    - cache
+    - electron
     - apm/node_modules
     - script/node_modules
     - node_modules
