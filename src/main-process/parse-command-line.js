@@ -1,0 +1,143 @@
+'use strict'
+
+const dedent = require('dedent')
+const yargs = require('yargs')
+const {app} = require('electron')
+const path = require('path')
+const fs = require('fs-plus')
+
+module.exports = function parseCommandLine (processArgs) {
+  const options = yargs(processArgs).wrap(100)
+  const version = app.getVersion()
+  options.usage(
+    dedent`Atom Editor v${version}
+
+    Usage: atom [options] [path ...]
+
+    One or more paths to files or folders may be specified. If there is an
+    existing Atom window that contains all of the given folders, the paths
+    will be opened in that window. Otherwise, they will be opened in a new
+    window.
+
+    Environment Variables:
+
+      ATOM_DEV_RESOURCE_PATH  The path from which Atom loads source code in dev mode.
+                              Defaults to \`~/github/atom\`.
+
+      ATOM_HOME               The root path for all configuration files and folders.
+                              Defaults to \`~/.atom\`.`
+  )
+  // Deprecated 1.0 API preview flag
+  options.alias('1', 'one').boolean('1').describe('1', 'This option is no longer supported.')
+  options.boolean('include-deprecated-apis').describe('include-deprecated-apis', 'This option is not currently supported.')
+  options.alias('d', 'dev').boolean('d').describe('d', 'Run in development mode.')
+  options.alias('f', 'foreground').boolean('f').describe('f', 'Keep the main process in the foreground.')
+  options.alias('h', 'help').boolean('h').describe('h', 'Print this usage message.')
+  options.alias('l', 'log-file').string('l').describe('l', 'Log all output to file.')
+  options.alias('n', 'new-window').boolean('n').describe('n', 'Open a new window.')
+  options.boolean('profile-startup').describe('profile-startup', 'Create a profile of the startup execution time.')
+  options.alias('r', 'resource-path').string('r').describe('r', 'Set the path to the Atom source directory and enable dev-mode.')
+  options.boolean('safe').describe(
+    'safe',
+    'Do not load packages from ~/.atom/packages or ~/.atom/dev/packages.'
+  )
+  options.boolean('portable').describe(
+    'portable',
+    'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.'
+  )
+  options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
+  options.alias('m', 'main-process').boolean('m').describe('m', 'Run the specified specs in the main process.')
+  options.string('timeout').describe(
+    'timeout',
+    'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
+  )
+  options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
+  options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
+  options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
+  options.string('socket-path')
+  options.string('user-data-dir')
+  options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
+
+  const args = options.argv
+
+  if (args.help) {
+    process.stdout.write(options.help())
+    process.exit(0)
+  }
+
+  if (args.version) {
+    writeFullVersion()
+    process.exit(0)
+  }
+
+  const addToLastWindow = args['add']
+  const safeMode = args['safe']
+  const pathsToOpen = args._
+  const test = args['test']
+  const mainProcess = args['main-process']
+  const timeout = args['timeout']
+  const newWindow = args['new-window']
+  let executedFrom = null
+  if (args['executed-from'] && args['executed-from'].toString()) {
+    executedFrom = args['executed-from'].toString()
+  } else {
+    executedFrom = process.cwd()
+  }
+
+  let pidToKillWhenClosed = null
+  if (args['wait']) {
+    pidToKillWhenClosed = args['pid']
+  }
+
+  const logFile = args['log-file']
+  const socketPath = args['socket-path']
+  const userDataDir = args['user-data-dir']
+  const profileStartup = args['profile-startup']
+  const clearWindowState = args['clear-window-state']
+  const urlsToOpen = []
+  const setPortable = args.portable
+  let devMode = args['dev']
+  let devResourcePath = process.env.ATOM_DEV_RESOURCE_PATH || path.join(app.getPath('home'), 'github', 'atom')
+  let resourcePath = null
+
+  if (args['resource-path']) {
+    devMode = true
+    resourcePath = args['resource-path']
+  }
+
+  if (test) {
+    devMode = true
+  }
+
+  if (devMode && !resourcePath) {
+    resourcePath = devResourcePath
+  }
+
+  if (!fs.statSyncNoException(resourcePath)) {
+    resourcePath = path.dirname(path.dirname(__dirname))
+  }
+
+  if (args['path-environment']) {
+    // On Yosemite the $PATH is not inherited by the "open" command, so we have to
+    // explicitly pass it by command line, see http://git.io/YC8_Ew.
+    process.env.PATH = args['path-environment']
+  }
+
+  resourcePath = normalizeDriveLetterName(resourcePath)
+  devResourcePath = normalizeDriveLetterName(devResourcePath)
+
+  return {
+    resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
+    version, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, socketPath,
+    userDataDir, profileStartup, timeout, setPortable, clearWindowState,
+    addToLastWindow, mainProcess
+  }
+}
+
+function normalizeDriveLetterName (filePath) {
+  if (process.platform === 'win32') {
+    return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
+  } else {
+    return filePath
+  }
+}
