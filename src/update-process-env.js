@@ -8,7 +8,7 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'ATOM_HOME'
 ])
 
-const OSX_SHELLS_TO_PATCH = new Set([
+const OSX_SHELLS = new Set([
   '/sh',
   '/bash',
   '/zsh',
@@ -40,14 +40,13 @@ function updateProcessEnv (launchEnv) {
   }
 }
 
-function shellShouldBePatched () {
-  let shell = process.env.SHELL
-  if (!shell) {
+function envShouldBePatched (shell) {
+  if (!shell || shell.trim() === '') {
     return false
   }
-  for (let s of OSX_SHELLS_TO_PATCH) {
+  for (let s of OSX_SHELLS) {
     if (shell.endsWith(s)) {
-      return shell
+      return true
     }
   }
 
@@ -55,22 +54,24 @@ function shellShouldBePatched () {
 }
 
 function getEnvFromShell () {
-  let shell = shellShouldBePatched()
-  if (shell) {
-    let {stdout} = spawnSync(shell, ['-ilc', 'command env'], {encoding: 'utf8'})
-    if (stdout) {
-      let result = {}
-      for (let line of stdout.split('\n')) {
-        if (line.includes('=')) {
-          let components = line.split('=')
-          let key = components.shift()
-          let value = components.join('=')
-          result[key] = value
-        }
+  let shell = process.env.SHELL
+  if (!envShouldBePatched(shell)) {
+    return
+  }
+
+  let {stdout} = spawnSync(shell, ['-ilc', 'command env'], {encoding: 'utf8'})
+  if (stdout) {
+    let result = {}
+    for (let line of stdout.split('\n')) {
+      if (line.includes('=')) {
+        let components = line.split('=')
+        let key = components.shift()
+        let value = components.join('=')
+        result[key] = value
       }
-      return result
     }
+    return result
   }
 }
 
-export default { updateProcessEnv, shellShouldBePatched }
+export default { updateProcessEnv, envShouldBePatched }
