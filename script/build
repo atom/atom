@@ -6,7 +6,16 @@
 require('coffee-script/register')
 require('colors')
 
-const argv = require('yargs').argv
+const argv = require('yargs')
+  .usage('Usage: $0 [options]')
+  .help('help')
+  .describe('skip-rebuild',  'Skip rebuilding steps (to perform other optional steps)')
+  .describe('code-sign',  'Sign the executables (key specified in env vars)')
+  .describe('create-installer', 'Create an installer (Windows only)')
+  .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
+  .describe('install', 'Install the built version of Atom')
+  .argv
+
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const compressArtifacts = require('./lib/compress-artifacts')
@@ -30,17 +39,19 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-cleanOutputDirectory()
-copyAssets()
-transpileBabelPaths()
-transpileCoffeeScriptPaths()
-transpileCsonPaths()
-transpilePegJsPaths()
-generateModuleCache()
-prebuildLessCache()
-generateMetadata()
-generateAPIDocs()
-downloadChromedriver()
+if (!argv.skipRebuild) {
+  cleanOutputDirectory()
+  copyAssets()
+  transpileBabelPaths()
+  transpileCoffeeScriptPaths()
+  transpileCsonPaths()
+  transpilePegJsPaths()
+  generateModuleCache()
+  prebuildLessCache()
+  generateMetadata()
+  generateAPIDocs()
+  downloadChromedriver()
+}
 dumpSymbols()
   .then(packageApplication)
   .then(packagedAppPath => {
@@ -52,7 +63,12 @@ dumpSymbols()
       }
       return Promise.resolve(packagedAppPath)
     } else if (process.platform === 'win32') {
-      return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
+      if (argv.createInstaller) {
+        return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
+      }
+      else {
+        console.log('Skipping installer. Specify the --create-installer option to create a Squirrel-based Windows installer.'.gray)
+      }
     } else {
       return Promise.resolve(packagedAppPath)
     }
