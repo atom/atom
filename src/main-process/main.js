@@ -27,6 +27,7 @@ function start () {
   if (handleStartupEventWithSquirrel()) {
     return
   } else if (args.test && args.mainProcess) {
+    app.setPath('userData', temp.mkdirSync('atom-user-data-dir-for-main-process-tests'))
     console.log = previousConsoleLog
     app.on('ready', function () {
       const testRunner = require(path.join(args.resourcePath, 'spec/main-process/mocha-test-runner'))
