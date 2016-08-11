@@ -3,6 +3,7 @@ machine:
     XCODE_SCHEME: test
     XCODE_WORKSPACE: test
     XCODE_PROJECT: test
+    ATOM_INTEGRATION_TESTS_ENABLED: true
 
   xcode:
     version: 7.3
