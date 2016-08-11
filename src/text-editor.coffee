@@ -123,7 +123,7 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
       @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
@@ -147,7 +147,7 @@ class TextEditor extends Model
     @scrollPastEnd ?= true
     @showInvisibles ?= true
     @softTabs ?= true
-    @tabLength ?= 2
+    tabLength ?= 2
     @backUpBeforeSaving ?= false
     @autoIndent ?= true
     @autoIndentOnPaste ?= true
@@ -156,7 +156,7 @@ class TextEditor extends Model
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
-      grammar, @tabLength, @buffer, @largeFileMode, @assert
+      grammar, tabLength, @buffer, @largeFileMode, @assert
     })
     @displayLayer ?= @buffer.addDisplayLayer()
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
@@ -188,46 +188,103 @@ class TextEditor extends Model
       visible: lineNumberGutterVisible
 
   update: (params) ->
-    {
-      softTabs, tabLength, softWrapped, mini, placeholderText, lineNumberGutterVisible,
-      showInvisibles, editorWidthInChars, scrollPastEnd, autoHeight
-    } = params
-
     resetDisplayLayer = false
 
-    if softTabs? and softTabs isnt @softTabs
-      @setSoftTabs(softTabs)
+    for param in Object.keys(params)
+      value = params[param]
 
-    if tabLength? and tabLength isnt @tabLength
-      @setTabLength(tabLength, false)
-      resetDisplayLayer = true
+      switch param
+        when 'softTabs'
+          if value isnt @softTabs
+            @softTabs = value
 
-    if softWrapped? and softWrapped isnt @softWrapped
-      @setSoftWrapped(softWrapped, false)
-      resetDisplayLayer = true
+        when 'atomicSoftTabs'
+          if value isnt @atomicSoftTabs
+            @atomicSoftTabs = value
+            resetDisplayLayer = true
 
-    if mini? and mini isnt @mini
-      @setMini(mini)
+        when 'tabLength'
+          if value isnt @tokenizedBuffer.getTabLength()
+            @tokenizedBuffer.setTabLength(value)
+            resetDisplayLayer = true
 
-    if placeholderText? and placeholderText isnt @placeholderText
-      @setPlaceholderText(placeholderText)
+        when 'softWrapped'
+          if value isnt @softWrapped
+            @softWrapped = value
+            @emitter.emit 'did-change-soft-wrapped', @isSoftWrapped()
+            resetDisplayLayer = true
 
-    if lineNumberGutterVisible? and lineNumberGutterVisible isnt @lineNumberGutterVisible
-      @setLineNumberGutterVisible(lineNumberGutterVisible)
+        when 'softWrapHangingIndentLength'
+          if value isnt @softWrapHangingIndentLength
+            @softWrapHangingIndentLength = value
+            resetDisplayLayer = true
 
-    if showInvisibles? and showInvisibles isnt @showInvisibles
-      @showInvisibles = showInvisibles
-      resetDisplayLayer = true
+        when 'softWrapAtPreferredLineLength'
+          if value isnt @softWrapAtPreferredLineLength
+            @softWrapAtPreferredLineLength = value
+            resetDisplayLayer = true
 
-    if editorWidthInChars? and editorWidthInChars isnt @editorWidthInChars
-      @setEditorWidthInChars(editorWidthInChars, false)
-      resetDisplayLayer = true
+        when 'preferredLineLength'
+          if value isnt @preferredLineLength
+            @preferredLineLength = value
+            resetDisplayLayer = true
 
-    if scrollPastEnd? and scrollPastEnd isnt @scrollPastEnd
-      @setScrollPastEnd(scrollPastEnd)
+        when 'mini'
+          if value isnt @mini
+            @mini = value
+            @emitter.emit 'did-change-mini', value
+            resetDisplayLayer = true
 
-    if autoHeight? and autoHeight isnt @autoHeight
-      @setAutoHeight(autoHeight)
+        when 'placeholderText'
+          if value isnt @placeholderText
+            @placeholderText = value
+            @emitter.emit 'did-change-placeholder-text', value
+
+        when 'lineNumberGutterVisible'
+          if value isnt @lineNumberGutterVisible
+            if value
+              @lineNumberGutter.show()
+            else
+              @lineNumberGutter.hide()
+            @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutter.isVisible()
+
+        when 'showIndentGuide'
+          if value isnt @showIndentGuide
+            @showIndentGuide = value
+            resetDisplayLayer = true
+
+        when 'showLineNumbers'
+          if value isnt @showLineNumbers
+            @showLineNumbers = value
+            @presenter?.didChangeShowLineNumbers()
+
+        when 'showInvisibles'
+          if value isnt @showInvisibles
+            @showInvisibles = value
+            resetDisplayLayer = true
+
+        when 'invisibles'
+          if value isnt @invisibles
+            @invisibles = value
+            resetDisplayLayer = true
+
+        when 'editorWidthInChars'
+          if value > 0 and value isnt @editorWidthInChars
+            @editorWidthInChars = value
+            resetDisplayLayer = true if @isSoftWrapped()
+
+        when 'scrollPastEnd'
+          if value isnt @scrollPastEnd
+            @scrollPastEnd = value
+            @presenter?.didChangeScrollPastEnd()
+
+        when 'autoHeight'
+          if value isnt @autoHeight
+            @autoHeight = value
+            @editorElement?.didChangeAutoHeight()
+
+        else
+          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
     if resetDisplayLayer
       @resetDisplayLayer()
@@ -615,10 +672,7 @@ class TextEditor extends Model
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
   setMini: (mini) ->
-    if mini isnt @mini
-      @mini = mini
-      @resetDisplayLayer()
-      @emitter.emit 'did-change-mini', @mini
+    @update({mini})
     @mini
 
   isMini: -> @mini
@@ -629,14 +683,7 @@ class TextEditor extends Model
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
 
-  setLineNumberGutterVisible: (lineNumberGutterVisible) ->
-    unless lineNumberGutterVisible is @lineNumberGutter.isVisible()
-      if lineNumberGutterVisible
-        @lineNumberGutter.show()
-      else
-        @lineNumberGutter.hide()
-      @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutter.isVisible()
-    @lineNumberGutter.isVisible()
+  setLineNumberGutterVisible: (lineNumberGutterVisible) -> @update({lineNumberGutterVisible})
 
   isLineNumberGutterVisible: -> @lineNumberGutter.isVisible()
 
@@ -676,12 +723,7 @@ class TextEditor extends Model
   #
   # * `editorWidthInChars` A {Number} representing the width of the
   # {TextEditorElement} in characters.
-  setEditorWidthInChars: (editorWidthInChars, resetDisplayLayer=true) ->
-    if editorWidthInChars > 0
-      previousWidthInChars = @editorWidthInChars
-      @editorWidthInChars = editorWidthInChars
-      if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
-        @resetDisplayLayer() if resetDisplayLayer
+  setEditorWidthInChars: (editorWidthInChars) -> @update({editorWidthInChars})
 
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
@@ -2744,7 +2786,7 @@ class TextEditor extends Model
   # Essential: Enable or disable soft tabs for this editor.
   #
   # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @softTabs
+  setSoftTabs: (@softTabs) -> @update({softTabs})
 
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
   hasAtomicSoftTabs: -> @atomicSoftTabs
@@ -2752,10 +2794,7 @@ class TextEditor extends Model
   # Enable or disable atomic soft tabs for this editor.
   #
   # * `atomicSoftTabs` A {Boolean}
-  setAtomicSoftTabs: (atomicSoftTabs) ->
-    return if atomicSoftTabs is @atomicSoftTabs
-    @atomicSoftTabs = atomicSoftTabs
-    @resetDisplayLayer()
+  setAtomicSoftTabs: (atomicSoftTabs) -> @update({atomicSoftTabs})
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
@@ -2763,19 +2802,14 @@ class TextEditor extends Model
   # Essential: Get the on-screen length of tab characters.
   #
   # Returns a {Number}.
-  getTabLength: -> @tabLength
+  getTabLength: -> @tokenizedBuffer.getTabLength()
 
   # Essential: Set the on-screen length of tab characters. Setting this to a
   # {Number} This will override the `editor.tabLength` setting.
   #
   # * `tabLength` {Number} length of a single tab. Setting to `null` will
   #   fallback to using the `editor.tabLength` config setting
-  setTabLength: (tabLength, resetDisplayLayer=true) ->
-    return if tabLength is @tabLength
-
-    @tabLength = tabLength
-    @tokenizedBuffer.setTabLength(@tabLength)
-    @resetDisplayLayer() if resetDisplayLayer
+  setTabLength: (tabLength) -> @update({tabLength})
 
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
   doesShowInvisibles: -> @showInvisibles
@@ -2783,10 +2817,7 @@ class TextEditor extends Model
   # Enable or disable invisible character substitution for this editor.
   #
   # * `showInvisibles` A {Boolean}
-  setShowInvisibles: (showInvisibles) ->
-    return if showInvisibles is @showInvisibles
-    @showInvisibles = showInvisibles
-    @resetDisplayLayer()
+  setShowInvisibles: (showInvisibles) -> @update({showInvisibles})
 
   # Returns an {Object} representing the current invisible character
   # substitutions for this editor. See {::setInvisibles}.
@@ -2801,24 +2832,15 @@ class TextEditor extends Model
   # * `invisibles` An {Object} whose keys are names of invisible characters
   #   and whose values are 1-character {Strings}s to display in place of those
   #   invisble characters
-  setInvisibles: (invisibles) ->
-    return if invisibles is @invisibles
-    @invisibles = invisibles
-    @resetDisplayLayer()
+  setInvisibles: (invisibles) -> @update({invisibles})
 
   doesShowIndentGuide: -> @showIndentGuide
 
-  setShowIndentGuide: (showIndentGuide) ->
-    return if showIndentGuide is @showIndentGuide
-    @showIndentGuide = showIndentGuide
-    @resetDisplayLayer()
+  setShowIndentGuide: (showIndentGuide) -> @update({showIndentGuide})
 
-  setSoftWrapIndentLength: (softWrapIndentLength) ->
-    return if softWrapIndentLength is @softWrapIndentLength
-    @softWrapIndentLength = softWrapIndentLength
-    @resetDisplayLayer()
+  setSoftWrapIndentLength: (softWrapHangingIndentLength) -> @update({softWrapHangingIndentLength})
 
-  getSoftWrapIndentLength: -> @softWrapIndentLength
+  getSoftWrapIndentLength: -> @softWrapHangingIndentLength
 
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
@@ -2869,27 +2891,15 @@ class TextEditor extends Model
   # * `softWrapped` A {Boolean}
   #
   # Returns a {Boolean}.
-  setSoftWrapped: (softWrapped, resetDisplayLayer=true) ->
-    if softWrapped isnt @softWrapped
-      @softWrapped = softWrapped
-      @resetDisplayLayer() if resetDisplayLayer
-      softWrapped = @isSoftWrapped()
-      @emitter.emit 'did-change-soft-wrapped', softWrapped
-      softWrapped
-    else
-      @isSoftWrapped()
+  setSoftWrapped: (softWrapped) ->
+    @update({softWrapped})
+    @isSoftWrapped()
 
-  setSoftWrapAtPreferredLineLength: (softWrapAtPreferredLineLength) ->
-    return if softWrapAtPreferredLineLength is @softWrapAtPreferredLineLength
-    @softWrapAtPreferredLineLength = softWrapAtPreferredLineLength
-    @resetDisplayLayer()
+  setSoftWrapAtPreferredLineLength: (softWrapAtPreferredLineLength) -> @update({softWrapAtPreferredLineLength})
 
   doesSoftWrapAtPreferredLineLength: -> @softWrapAtPreferredLineLength
 
-  setPreferredLineLength: (preferredLineLength) ->
-    return if preferredLineLength is @preferredLineLength
-    @preferredLineLength = preferredLineLength
-    @resetDisplayLayer()
+  setPreferredLineLength: (preferredLineLength) -> @update({preferredLineLength})
 
   getPreferredLineLength: -> @preferredLineLength
 
@@ -3424,10 +3434,7 @@ class TextEditor extends Model
   #
   # * `scrollPastEnd` a {Boolean} indicating whether to enable or disable
   #   scrolling past the end.
-  setScrollPastEnd: (scrollPastEnd) ->
-    if scrollPastEnd isnt @scrollPastEnd
-      @scrollPastEnd = scrollPastEnd
-      @presenter?.didChangeScrollPastEnd()
+  setScrollPastEnd: (scrollPastEnd) -> @update({scrollPastEnd})
 
   # Experimental: Does this editor allow scrolling past the last line?
   #
@@ -3448,10 +3455,7 @@ class TextEditor extends Model
   # Experimental: Show or hide the line numbers in the editor's gutter.
   #
   # * `showLineNumbers` a {Boolean} indicating whether to show the line numbers.
-  setShowLineNumbers: (showLineNumbers) ->
-    if showLineNumbers isnt @showLineNumbers
-      @showLineNumbers = showLineNumbers
-      @presenter?.didChangeShowLineNumbers()
+  setShowLineNumbers: (showLineNumbers) -> @update({showLineNumbers})
 
   # Experimental: Are line numbers enabled for this editor?
   #
@@ -3517,17 +3521,13 @@ class TextEditor extends Model
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
   # Returns a {String}.
-  getPlaceholderText: ->
-    @placeholderText
+  getPlaceholderText: -> @placeholderText
 
   # Essential: Set the greyed out placeholder of a mini editor. Placeholder text
   # will be displayed when the editor has no content.
   #
   # * `placeholderText` {String} text that is displayed when the editor has no content.
-  setPlaceholderText: (placeholderText) ->
-    return if @placeholderText is placeholderText
-    @placeholderText = placeholderText
-    @emitter.emit 'did-change-placeholder-text', @placeholderText
+  setPlaceholderText: (placeholderText) -> @update({placeholderText})
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
@@ -3589,10 +3589,7 @@ class TextEditor extends Model
 
   getAutoHeight: -> @autoHeight
 
-  setAutoHeight: (autoHeight) ->
-    if autoHeight isnt @autoHeight
-      @autoHeight = autoHeight
-      @editorElement?.didChangeAutoHeight()
+  setAutoHeight: (autoHeight) -> @update({autoHeight})
 
   setWidth: (width, reentrant=false) ->
     if reentrant
