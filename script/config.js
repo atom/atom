@@ -13,7 +13,7 @@ const buildOutputPath = path.join(repositoryRootPath, 'out')
 const docsOutputPath = path.join(repositoryRootPath, 'docs', 'output')
 const intermediateAppPath = path.join(buildOutputPath, 'app')
 const symbolsPath = path.join(buildOutputPath, 'symbols')
-const cachePath = path.join(repositoryRootPath, 'cache')
+const electronDownloadPath = path.join(repositoryRootPath, 'electron')
 const homeDirPath = process.env.HOME || process.env.USERPROFILE
 
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
@@ -27,7 +27,7 @@ module.exports = {
   appMetadata, apmMetadata, channel,
   repositoryRootPath, apmRootPath, scriptRootPath,
   buildOutputPath, docsOutputPath, intermediateAppPath, symbolsPath,
-  cachePath, homeDirPath,
+  electronDownloadPath, homeDirPath,
   apmBinPath, npmBinPath
 }
 

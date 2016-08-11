@@ -22,7 +22,7 @@ module.exports = function () {
     'arch': arch,
     'asar': {unpack: buildAsarUnpackGlobExpression()},
     'build-version': CONFIG.appMetadata.version,
-    'download': {cache: CONFIG.cachePath},
+    'download': {cache: CONFIG.electronDownloadPath},
     'dir': CONFIG.intermediateAppPath,
     'extend-info': path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
     'helper-bundle-id': 'com.github.atom.helper',

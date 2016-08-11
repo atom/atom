@@ -11,9 +11,8 @@ debug.log
 /tags
 /atom-shell/
 /out/
-/cache/
 docs/output
 docs/includes
 spec/fixtures/evil-files/
 out/
-electron/
+/electron/
