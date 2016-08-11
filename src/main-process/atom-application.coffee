@@ -100,6 +100,8 @@ class AtomApplication
 
   destroy: ->
     @disposable.dispose()
+    for window in @windows
+      window.close()
 
   openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env}) ->
     if test
