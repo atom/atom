@@ -5,7 +5,6 @@ import dedent from 'dedent'
 import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
-import temp from 'temp'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
 
@@ -367,7 +366,7 @@ describe('AtomApplication', function () {
   }
 
   function makeTempDir (name) {
-    return fs.realpathSync(temp.mkdirSync(name))
+    return fs.realpathSync(require('temp').mkdirSync(name))
   }
 
   let channelIdCounter = 0
