@@ -136,13 +136,13 @@ module.exports = (grunt) ->
       else
         async.parallel
 
-    specs = [runMainProcessSpecs, runRendererProcessSpecs, runPackageSpecs]
+    specs = [runRendererProcessSpecs, runMainProcessSpecs, runPackageSpecs]
 
     method specs, (error, results) ->
       failedPackages = []
       coreSpecFailed = null
 
-      [mainProcessSpecsFailed, rendererProcessSpecsFailed, failedPackages] = results
+      [rendererProcessSpecsFailed, mainProcessSpecsFailed, failedPackages] = results
 
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
