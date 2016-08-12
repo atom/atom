@@ -66,7 +66,12 @@ module.exports = function parseCommandLine (processArgs) {
   }
 
   if (args.version) {
-    writeFullVersion()
+    process.stdout.write(
+      `Atom    : ${app.getVersion()}\n` +
+      `Electron: ${process.versions.electron}\n` +
+      `Chrome  : ${process.versions.chrome}\n` +
+      `Node    : ${process.versions.node}\n`
+    )
     process.exit(0)
   }
 

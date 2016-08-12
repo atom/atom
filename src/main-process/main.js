@@ -116,13 +116,4 @@ function setupCompileCache () {
   CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
 }
 
-function writeFullVersion () {
-  process.stdout.write(
-    `Atom    : ${app.getVersion()}\n` +
-    `Electron: ${process.versions.electron}\n` +
-    `Chrome  : ${process.versions.chrome}\n` +
-    `Node    : ${process.versions.node}\n`
-  )
-}
-
 start()
