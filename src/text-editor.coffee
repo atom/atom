@@ -286,7 +286,7 @@ class TextEditor extends Model
             resetDisplayLayer = true
 
         when 'invisibles'
-          if value isnt @invisibles
+          if not _.isEqual(value, @invisibles)
             @invisibles = value
             resetDisplayLayer = true
 
