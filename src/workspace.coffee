@@ -561,10 +561,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      new TextEditor(Object.assign(
-        {@clipboard, @assert, buffer, largeFileMode},
-        options
-      ))
+      @textEditorRegistry.build(Object.assign({buffer, largeFileMode}, options))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
@@ -581,7 +578,7 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    editor = new TextEditor(Object.assign({@clipboard, @assert}, params))
+    editor = @textEditorRegistry.build(params)
     subscriptions = new CompositeDisposable(
       @textEditorRegistry.maintainGrammar(editor)
       @textEditorRegistry.maintainConfig(editor),

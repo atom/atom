@@ -190,7 +190,9 @@ class AtomEnvironment extends Model
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
-    @textEditors = new TextEditorRegistry({@config, grammarRegistry: @grammars})
+    @textEditors = new TextEditorRegistry({
+      @config, grammarRegistry: @grammars, assert: @assert.bind(this), @clipboard
+    })
 
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,

@@ -2,6 +2,7 @@
 
 import TextEditorRegistry from '../src/text-editor-registry'
 import TextEditor from '../src/text-editor'
+import TextBuffer from 'text-buffer'
 import {it, fit, ffit, fffit} from './async-spec-helpers'
 import dedent from 'dedent'
 
@@ -10,7 +11,9 @@ describe('TextEditorRegistry', function () {
 
   beforeEach(function () {
     registry = new TextEditorRegistry({
+      assert: atom.assert,
       config: atom.config,
+      clipboard: atom.clipboard,
       grammarRegistry: atom.grammars
     })
 
@@ -58,6 +61,19 @@ describe('TextEditorRegistry', function () {
 
       registry.add(editor3)
       expect(spy.calls.length).toBe(2)
+    })
+  })
+
+  describe('.build', function () {
+    it('constructs a TextEditor with the right parameters based on its path and text', async function () {
+      await atom.packages.activatePackage('language-javascript')
+      await atom.packages.activatePackage('language-c')
+
+      atom.config.set('editor.tabLength', 8, {scope: '.source.js'})
+
+      const editor = registry.build({buffer: new TextBuffer({filePath: 'test.js'})})
+      expect(editor.getGrammar().name).toBe("JavaScript")
+      expect(editor.getTabLength()).toBe(8)
     })
   })
 
@@ -573,7 +589,9 @@ describe('TextEditorRegistry', function () {
       const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
 
       const registryCopy = new TextEditorRegistry({
+        assert: atom.assert,
         config: atom.config,
+        clipboard: atom.clipboard,
         grammarRegistry: atom.grammars
       })
       registryCopy.deserialize(JSON.parse(JSON.stringify(registry.serialize())))

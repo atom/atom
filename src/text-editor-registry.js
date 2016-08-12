@@ -2,7 +2,8 @@
 
 import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
 import {Point, Range} from 'atom'
-import NullGrammar from './null-grammar'
+import TextEditor from './text-editor'
+import ScopeDescriptor from './scope-descriptor'
 
 const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['core.fileEncoding', 'encoding'],
@@ -38,7 +39,9 @@ const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
 export default class TextEditorRegistry {
-  constructor ({config, grammarRegistry}) {
+  constructor ({config, grammarRegistry, clipboard, assert}) {
+    this.assert = assert
+    this.clipboard = clipboard
     this.config = config
     this.grammarRegistry = grammarRegistry
     this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
@@ -93,6 +96,25 @@ export default class TextEditorRegistry {
     this.emitter.emit('did-add-editor', editor)
 
     return new Disposable(() => this.remove(editor))
+  }
+
+  build (params) {
+    params = Object.assign({
+      clipboard: this.clipboard,
+      assert: this.assert
+    }, params)
+
+    let scope = null
+    if (params.buffer) {
+      const filePath = params.buffer.getPath()
+      const headContent = params.buffer.getTextInRange(GRAMMAR_SELECTION_RANGE)
+      params.grammar = this.grammarRegistry.selectGrammar(filePath, headContent)
+      scope = new ScopeDescriptor({scopes: [params.grammar.scopeName]})
+    }
+
+    Object.assign(params, this.textEditorParamsForScope(scope))
+
+    return new TextEditor(params)
   }
 
   // Remove a `TextEditor`.
@@ -174,8 +196,16 @@ export default class TextEditorRegistry {
     }
 
     this.editorsWithMaintainedGrammar.add(editor)
-    if (editor.getGrammar() !== NullGrammar) {
-      this.editorGrammarOverrides[editor.id] = editor.getGrammar().scopeName
+
+    const buffer = editor.getBuffer()
+    for (let existingEditor of this.editorsWithMaintainedGrammar) {
+      if (existingEditor.getBuffer() === buffer) {
+        const existingOverride = this.editorGrammarOverrides[existingEditor.id]
+        if (existingOverride) {
+          this.editorGrammarOverrides[editor.id] = existingOverride
+        }
+        break
+      }
     }
 
     this.selectGrammarForEditor(editor)
@@ -285,17 +315,12 @@ export default class TextEditorRegistry {
   subscribeToSettingsForEditorScope (editor) {
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
-    const configOptions = {scope: scopeDescriptor}
 
-    const params = {}
-    for (const [settingKey, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
-      params[paramName] = this.config.get(settingKey, configOptions)
-    }
-
-    editor.update(params)
+    editor.update(this.textEditorParamsForScope(scopeDescriptor))
 
     if (!this.scopesWithConfigSubscriptions.has(scopeChain)) {
       this.scopesWithConfigSubscriptions.add(scopeChain)
+      const configOptions = {scope: scopeDescriptor}
 
       for (const [settingKey, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
         this.subscriptions.add(
@@ -324,6 +349,15 @@ export default class TextEditorRegistry {
         this.config.onDidChange('editor.softTabs', configOptions, updateTabTypes)
       )
     }
+  }
+
+  textEditorParamsForScope (scopeDescriptor) {
+    const result = {}
+    const configOptions = {scope: scopeDescriptor}
+    for (const [settingKey, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
+      result[paramName] = this.config.get(settingKey, configOptions)
+    }
+    return result
   }
 }
 
