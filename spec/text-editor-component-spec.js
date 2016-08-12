@@ -1350,6 +1350,37 @@ describe('TextEditorComponent', function () {
     })
   })
 
+  fdescribe('cursor visibility', function () {
+    describe('when the font size changes', function () {
+      it("scrolls to the most recent cursor's position", async function () {
+        let newHeight = editor.getLineHeightInPixels() + 'px'
+        wrapperNode.style.height = newHeight
+
+        await nextViewUpdatePromise()
+
+        expect(editor.getCursorBufferPosition()).toEqual([0, 0])
+        atom.config.set('editor.fontSize', 14)
+        editor.setCursorBufferPosition([wrapperNode.getLastVisibleScreenRow() + 1, 0], {
+          autoscroll: false
+        })
+
+        let firstRow = wrapperNode.getFirstVisibleScreenRow()
+        let lastRow = wrapperNode.getLastVisibleScreenRow()
+        let cursorRow = editor.getCursorScreenPosition().row
+
+        expect(firstRow <= cursorRow <= lastRow).toBe(false)
+
+        atom.config.set('editor.fontSize', 16)
+
+        firstRow = wrapperNode.getFirstVisibleScreenRow()
+        lastRow = wrapperNode.getLastVisibleScreenRow()
+        cursorRow = editor.getCursorScreenPosition().row
+
+        expect(firstRow <= cursorRow <= lastRow).toBe(true)
+      })
+    })
+  })
+
   describe('selection rendering', function () {
     let scrollViewClientLeft, scrollViewNode
 

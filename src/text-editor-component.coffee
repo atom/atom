@@ -336,12 +336,17 @@ class TextEditorComponent
     @disposables.add @config.onDidChange 'editor.fontSize', =>
       @sampleFontStyling()
       @invalidateMeasurements()
+      @editor.scrollToCursorPosition()
+
     @disposables.add @config.onDidChange 'editor.fontFamily', =>
       @sampleFontStyling()
       @invalidateMeasurements()
+      @editor.scrollToCursorPosition()
+
     @disposables.add @config.onDidChange 'editor.lineHeight', =>
       @sampleFontStyling()
       @invalidateMeasurements()
+      @editor.scrollToCursorPosition()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
