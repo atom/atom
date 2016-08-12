@@ -12,6 +12,7 @@ class WindowEventHandler
 
     @previousOnbeforeunloadHandler = @window.onbeforeunload
     @window.onbeforeunload = @handleWindowBeforeunload
+    @addEventListener(@window, 'unload', @handleWindowUnload)
     @addEventListener(@window, 'focus', @handleWindowFocus)
     @addEventListener(@window, 'blur', @handleWindowBlur)
 
