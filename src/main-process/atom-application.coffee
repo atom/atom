@@ -93,15 +93,18 @@ class AtomApplication
     @setupJavaScriptArguments()
     @setupDockMenu()
 
-    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
-      @openWithOptions(options)
-    else
-      @loadState(options) or @openPath(options)
+    @launch(options)
 
   destroy: ->
     @disposable.dispose()
     for window in @windows
       window.close()
+
+  launch: (options) ->
+    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
+      @openWithOptions(options)
+    else
+      @loadState(options) or @openPath(options)
 
   openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env}) ->
     if test

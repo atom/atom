@@ -32,7 +32,7 @@ describe('AtomApplication', function () {
     }
   })
 
-  describe('openWithOptions', function () {
+  describe('launch', function () {
     this.timeout(20000)
 
     it('can open to a specific line number of a file', async function () {
@@ -40,7 +40,7 @@ describe('AtomApplication', function () {
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
       const atomApplication = buildAtomApplication()
 
-      const window = atomApplication.openWithOptions(parseCommandLine([filePath + ':3']))
+      const window = atomApplication.launch(parseCommandLine([filePath + ':3']))
       await window.loadedPromise
 
       const cursorRow = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -57,7 +57,7 @@ describe('AtomApplication', function () {
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
       const atomApplication = buildAtomApplication()
 
-      const window = atomApplication.openWithOptions(parseCommandLine([filePath + ':2:2']))
+      const window = atomApplication.launch(parseCommandLine([filePath + ':2:2']))
       await window.loadedPromise
 
       const cursorPosition = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -74,7 +74,7 @@ describe('AtomApplication', function () {
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
       const atomApplication = buildAtomApplication()
 
-      const window = atomApplication.openWithOptions(parseCommandLine([filePath + '::   ']))
+      const window = atomApplication.launch(parseCommandLine([filePath + '::   ']))
       await window.loadedPromise
 
       const openedPath = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -89,11 +89,11 @@ describe('AtomApplication', function () {
     it('positions new windows at an offset distance from the previous window', async function () {
       const atomApplication = buildAtomApplication()
 
-      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      const window1 = atomApplication.launch(parseCommandLine([]))
       await window1.loadedPromise
       window1.browserWindow.setBounds({width: 400, height: 400, x: 0, y: 0})
 
-      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
+      const window2 = atomApplication.launch(parseCommandLine([]))
       await window2.loadedPromise
 
       window1Dimensions = window1.getDimensions()
@@ -110,7 +110,7 @@ describe('AtomApplication', function () {
       fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
 
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
       await window1.loadedPromise
 
       let activeEditorPath
@@ -123,7 +123,7 @@ describe('AtomApplication', function () {
 
       // Reuses the window when opening *files*, even if they're in a different directory
       // Does not change the project paths when doing so.
-      const reusedWindow = atomApplication.openWithOptions(parseCommandLine([existingDirCFilePath]))
+      const reusedWindow = atomApplication.launch(parseCommandLine([existingDirCFilePath]))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -135,7 +135,7 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath])
 
       // Opens new windows when opening directories
-      const window2 = atomApplication.openWithOptions(parseCommandLine([dirCPath]))
+      const window2 = atomApplication.launch(parseCommandLine([dirCPath]))
       assert.notEqual(window2, window1)
       await window2.loadedPromise
       assert.deepEqual(await getTreeViewRootDirectories(window2), [dirCPath])
@@ -149,7 +149,7 @@ describe('AtomApplication', function () {
       fs.writeFileSync(existingDirCFilePath, 'this is an existing file')
 
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([path.join(dirAPath, 'new-file')]))
+      const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
       await window1.loadedPromise
 
       let activeEditorPath
@@ -162,7 +162,7 @@ describe('AtomApplication', function () {
 
       // When opening *files* with --add, reuses an existing window and adds
       // parent directory to the project
-      let reusedWindow = atomApplication.openWithOptions(parseCommandLine([existingDirCFilePath, '--add']))
+      let reusedWindow = atomApplication.launch(parseCommandLine([existingDirCFilePath, '--add']))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -175,7 +175,7 @@ describe('AtomApplication', function () {
 
       // When opening *directories* with add reuses an existing window and adds
       // the directory to the project
-      reusedWindow = atomApplication.openWithOptions(parseCommandLine([dirBPath, '-a']))
+      reusedWindow = atomApplication.launch(parseCommandLine([dirBPath, '-a']))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath, dirBPath])
@@ -184,7 +184,7 @@ describe('AtomApplication', function () {
     it('persists window state based on the project directories', async function () {
       const tempDirPath = makeTempDir()
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([path.join(tempDirPath, 'new-file')]))
+      const window1 = atomApplication.launch(parseCommandLine([path.join(tempDirPath, 'new-file')]))
       await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           textEditor.insertText('Hello World!')
@@ -194,7 +194,7 @@ describe('AtomApplication', function () {
       window1.close()
       await window1.closedPromise
 
-      const window2 = atomApplication.openWithOptions(parseCommandLine([path.join(tempDirPath)]))
+      const window2 = atomApplication.launch(parseCommandLine([path.join(tempDirPath)]))
       const window2Text = await evalInWebContents(window2.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.onDidChangeActivePaneItem(function (textEditor) {
           sendBackToMainProcess(textEditor.getText())
@@ -211,7 +211,7 @@ describe('AtomApplication', function () {
       fs.mkdirSync(dirBSubdirPath)
 
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([dirAPath, dirBPath]))
+      const window1 = atomApplication.launch(parseCommandLine([dirAPath, dirBPath]))
       await window1.loadedPromise
 
       await new Promise(function (resolve) {
@@ -231,24 +231,24 @@ describe('AtomApplication', function () {
     it('reuses windows with no project paths to open directories', async function () {
       const tempDirPath = makeTempDir()
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      const window1 = atomApplication.launch(parseCommandLine([]))
       await window1.loadedPromise
 
-      const reusedWindow = atomApplication.openWithOptions(parseCommandLine([tempDirPath]))
+      const reusedWindow = atomApplication.launch(parseCommandLine([tempDirPath]))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(await getTreeViewRootDirectories(window1), [tempDirPath])
     })
 
     it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      const window1 = atomApplication.launch(parseCommandLine([]))
       await window1.loadedPromise
       const window1EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
       assert.equal(window1EditorTitle, 'untitled')
 
-      const window2 = atomApplication.openWithOptions(parseCommandLine([]))
+      const window2 = atomApplication.launch(parseCommandLine([]))
       await window2.loadedPromise
       const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
@@ -266,7 +266,7 @@ describe('AtomApplication', function () {
       season.writeFileSync(configPath, config)
 
       const atomApplication = buildAtomApplication()
-      const window1 = atomApplication.openWithOptions(parseCommandLine([]))
+      const window1 = atomApplication.launch(parseCommandLine([]))
       await window1.loadedPromise
 
      // wait a bit just to make sure we don't pass due to querying the render process before it loads
@@ -281,7 +281,7 @@ describe('AtomApplication', function () {
     it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path', async function () {
       const atomApplication = buildAtomApplication()
       const newFilePath = path.join(makeTempDir(), 'new-file')
-      const window = atomApplication.openWithOptions(parseCommandLine([newFilePath]))
+      const window = atomApplication.launch(parseCommandLine([newFilePath]))
       await window.loadedPromise
       const {editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.onDidChangeActivePaneItem(function (editor) {
