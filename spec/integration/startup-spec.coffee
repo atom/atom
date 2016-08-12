@@ -23,11 +23,3 @@ describe "Starting Atom", ->
 
     tempDirPath = temp.mkdirSync("empty-dir")
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
-
-  describe "opening a remote directory", ->
-    it "opens the parent directory and creates an empty text editor", ->
-      remoteDirectory = 'remote://server:3437/some/directory/path'
-      runAtom [remoteDirectory], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([remoteDirectory])

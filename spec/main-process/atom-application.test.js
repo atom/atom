@@ -293,6 +293,22 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
 
+    it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path in a remote directory', async function () {
+      const atomApplication = buildAtomApplication()
+      const newFilePath = 'remote://server:3437/some/directory/path'
+      const window = atomApplication.launch(parseCommandLine([newFilePath]))
+      window.toggleDevTools()
+      await window.loadedPromise
+      const {editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (editor) {
+          sendBackToMainProcess({editorTitle: editor.getTitle(), editorText: editor.getText()})
+        })
+      })
+      assert.equal(editorTitle, path.basename(newFilePath))
+      assert.equal(editorText, '')
+      assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
+    })
+
     it('reopens any previously opened windows when launched with no path', async function () {
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
