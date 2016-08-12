@@ -24,22 +24,6 @@ describe "Starting Atom", ->
     tempDirPath = temp.mkdirSync("empty-dir")
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
 
-  describe "opening a new file", ->
-    it "opens the parent directory and creates an empty text editor", ->
-      runAtom [path.join(tempDirPath, "new-file")], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .treeViewRootDirectories()
-          .then ({value}) -> expect(value).toEqual([tempDirPath])
-
-          .waitForExist("atom-text-editor", 5000)
-          .then (exists) -> expect(exists).toBe true
-          .waitForPaneItemCount(1, 1000)
-          .click("atom-text-editor")
-          .keys("Hello!")
-          .execute -> atom.workspace.getActiveTextEditor().getText()
-          .then ({value}) -> expect(value).toBe "Hello!"
-          .dispatchCommand("editor:delete-line")
-
   describe "launching with no path", ->
     it "reopens any previously opened windows", ->
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->

@@ -277,6 +277,21 @@ describe('AtomApplication', function () {
       })
       assert.equal(itemCount, 0)
     })
+
+    it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path', async function () {
+      const atomApplication = buildAtomApplication()
+      const newFilePath = path.join(makeTempDir(), 'new-file')
+      const window = atomApplication.openWithOptions(parseCommandLine([newFilePath]))
+      await window.loadedPromise
+      const {editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        atom.workspace.onDidChangeActivePaneItem(function (editor) {
+          sendBackToMainProcess({editorTitle: editor.getTitle(), editorText: editor.getText()})
+        })
+      })
+      assert.equal(editorTitle, path.basename(newFilePath))
+      assert.equal(editorText, '')
+      assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
+    })
   })
 
   function buildAtomApplication () {
@@ -287,6 +302,7 @@ describe('AtomApplication', function () {
     atomApplicationsToDestroy.push(atomApplication)
     return atomApplication
   }
+
   function makeTempDir (name) {
     return fs.realpathSync(temp.mkdirSync(name))
   }
