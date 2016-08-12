@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import {dialog} from 'electron'
 import FileRecoveryService from '../../src/main-process/file-recovery-service'

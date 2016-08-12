@@ -15,10 +15,13 @@ class AtomWindow
   loaded: null
   isSpec: null
 
-  constructor: (@fileRecoveryService, settings={}) ->
+  constructor: (@atomApplication, @fileRecoveryService, settings={}) ->
     {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
+
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @closedPromise = new Promise((@resolveClosedPromise) =>)
 
     options =
       show: false
@@ -44,7 +47,7 @@ class AtomWindow
       options.titleBarStyle = 'hidden'
 
     @browserWindow = new BrowserWindow options
-    global.atomApplication.addWindow(this)
+    @atomApplication.addWindow(this)
 
     @handleEvents()
 
@@ -72,8 +75,9 @@ class AtomWindow
     @browserWindow.loadSettings = loadSettings
 
     @browserWindow.once 'window:loaded', =>
-      @emit 'window:loaded'
       @loaded = true
+      @emit 'window:loaded'
+      @resolveLoadedPromise()
 
     @setLoadSettings(loadSettings)
     @env = loadSettings.env if loadSettings.env?
@@ -124,12 +128,13 @@ class AtomWindow
         false
 
   handleEvents: ->
-    @browserWindow.on 'close', ->
-      global.atomApplication.saveState(false)
+    @browserWindow.on 'close', =>
+      @atomApplication.saveState(false)
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
-      global.atomApplication.removeWindow(this)
+      @atomApplication.removeWindow(this)
+      @resolveClosedPromise()
 
     @browserWindow.on 'unresponsive', =>
       return if @isSpec
@@ -142,7 +147,7 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      global.atomApplication.exit(100) if @headless
+      @atomApplication.exit(100) if @headless
 
       @fileRecoveryService.didCrashWindow(this)
       chosen = dialog.showMessageBox @browserWindow,
@@ -182,7 +187,7 @@ class AtomWindow
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()
-      unless global.atomApplication.sendCommandToFirstResponder(command)
+      unless @atomApplication.sendCommandToFirstResponder(command)
         switch command
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
@@ -190,7 +195,7 @@ class AtomWindow
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else
-      unless global.atomApplication.sendCommandToFirstResponder(command)
+      unless @atomApplication.sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
 
   sendCommandToBrowserWindow: (command, args...) ->
@@ -205,7 +210,7 @@ class AtomWindow
   shouldHideTitleBar: ->
     not @isSpec and
     process.platform is 'darwin' and
-    global.atomApplication.config.get('core.useCustomTitleBar')
+    @atomApplication.config.get('core.useCustomTitleBar')
 
   close: -> @browserWindow.close()
 

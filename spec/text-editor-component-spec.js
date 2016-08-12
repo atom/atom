@@ -1,6 +1,6 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
 import TextEditorElement from '../src/text-editor-element'
 import _, {extend, flatten, last, toArray} from 'underscore-plus'
 
