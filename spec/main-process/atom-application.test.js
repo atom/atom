@@ -12,6 +12,8 @@ import parseCommandLine from '../../src/main-process/parse-command-line'
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
 describe('AtomApplication', function () {
+  this.timeout(20000)
+
   let originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
@@ -25,16 +27,15 @@ describe('AtomApplication', function () {
     atomApplicationsToDestroy = []
   })
 
-  afterEach(function () {
+  afterEach(async function () {
     process.env.ATOM_HOME = originalAtomHome
     for (let atomApplication of atomApplicationsToDestroy) {
-      atomApplication.destroy()
+      await atomApplication.destroy()
     }
+    await clearElectronSession()
   })
 
   describe('launch', function () {
-    this.timeout(20000)
-
     it('can open to a specific line number of a file', async function () {
       const filePath = path.join(makeTempDir(), 'new-file')
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
@@ -401,6 +402,17 @@ describe('AtomApplication', function () {
   function getTimeoutPromise (timeout) {
     return new Promise(function (resolve) {
       global.setTimeout(resolve, timeout)
+    })
+  }
+
+  function clearElectronSession () {
+    return new Promise(function (resolve) {
+      electron.session.defaultSession.clearStorageData(function () {
+        // Resolve promise on next tick, otherwise the process stalls. This
+        // might be a bug in Electron, but it's probably fixed on the newer
+        // versions.
+        process.nextTick(resolve)
+      })
     })
   }
 })

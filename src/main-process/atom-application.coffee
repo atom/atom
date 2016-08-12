@@ -97,8 +97,10 @@ class AtomApplication
 
   destroy: ->
     @disposable.dispose()
-    for window in @windows
+    windowsClosePromises = @windows.map (window) ->
       window.close()
+      window.closedPromise
+    Promise.all(windowsClosePromises)
 
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
