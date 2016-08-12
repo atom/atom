@@ -136,7 +136,7 @@ module.exports = (grunt) ->
       else
         async.parallel
 
-    specs = [runRendererProcessSpecs, runMainProcessSpecs, runPackageSpecs]
+    specs = [runMainProcessSpecs]
 
     method specs, (error, results) ->
       failedPackages = []
