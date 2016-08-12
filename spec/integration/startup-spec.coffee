@@ -13,11 +13,15 @@ runAtom = require './helpers/start-atom'
 CSON = require 'season'
 
 describe "Starting Atom", ->
-  atomHome = temp.mkdirSync('atom-home')
-  [tempDirPath, otherTempDirPath] = []
+  [atomHome, tempDirPath, otherTempDirPath] = []
 
   beforeEach ->
     jasmine.useRealClock()
+
+    atomHome = temp.mkdirSync('atom-home')
+    # Symlinking the compile cache into the temporary home dir makes the windows load much faster
+    fs.symlinkSync(path.join(process.env.ATOM_HOME, 'compile-cache'), path.join(atomHome, 'compile-cache'))
+
     fs.writeFileSync(path.join(atomHome, 'config.cson'), fs.readFileSync(path.join(__dirname, 'fixtures', 'atom-home', 'config.cson')))
     fs.removeSync(path.join(atomHome, 'storage'))
 
