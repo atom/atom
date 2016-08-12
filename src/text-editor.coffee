@@ -847,8 +847,6 @@ class TextEditor extends Model
   Section: File Operations
   ###
 
-  setBackUpBeforeSaving: (@backUpBeforeSaving) ->
-
   doesBackUpBeforeSaving: -> @backUpBeforeSaving
 
   # Essential: Saves the editor's text buffer.
@@ -2839,9 +2837,6 @@ class TextEditor extends Model
   #   fallback to using the `editor.tabLength` config setting
   setTabLength: (tabLength) -> @update({tabLength})
 
-  # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
-  doesShowInvisibles: -> @showInvisibles
-
   # Enable or disable invisible character substitution for this editor.
   #
   # * `showInvisibles` A {Boolean}
@@ -2921,8 +2916,6 @@ class TextEditor extends Model
 
   setSoftWrapAtPreferredLineLength: (softWrapAtPreferredLineLength) -> @update({softWrapAtPreferredLineLength})
 
-  doesSoftWrapAtPreferredLineLength: -> @softWrapAtPreferredLineLength
-
   setPreferredLineLength: (preferredLineLength) -> @update({preferredLineLength})
 
   getPreferredLineLength: -> @preferredLineLength
@@ -2934,7 +2927,6 @@ class TextEditor extends Model
 
   # Essential: Gets the column at which column will soft wrap
   getSoftWrapColumn: ->
-    scopeDescriptor = @getRootScopeDescriptor()
     if @isSoftWrapped()
       if @softWrapAtPreferredLineLength
         Math.min(@getEditorWidthInChars(), @preferredLineLength)

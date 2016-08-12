@@ -377,18 +377,6 @@ describe('TextEditorRegistry', function () {
       expect(editor.hasAtomicSoftTabs()).toBe(true)
     })
 
-    it('enables or disables invisible based on the config', function () {
-      editor.update({showInvisibles: true})
-      expect(editor.doesShowInvisibles()).toBe(true)
-
-      atom.config.set('editor.showInvisibles', false)
-      registry.maintainConfig(editor)
-      expect(editor.doesShowInvisibles()).toBe(false)
-
-      atom.config.set('editor.showInvisibles', true)
-      expect(editor.doesShowInvisibles()).toBe(true)
-    })
-
     it('sets the invisibles based on the config', function () {
       const invisibles1 = {'tab': 'a', 'cr': false, eol: false, space: false}
       const invisibles2 = {'tab': 'b', 'cr': false, eol: false, space: false}
@@ -406,6 +394,9 @@ describe('TextEditorRegistry', function () {
 
       atom.config.set('editor.invisibles', invisibles1)
       expect(editor.getInvisibles()).toEqual(invisibles1)
+
+      atom.config.set('editor.showInvisibles', false)
+      expect(editor.getInvisibles()).toEqual({})
     })
 
     it('enables or disables the indent guide based on the config', function () {
@@ -445,15 +436,22 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables preferred line length-based soft wrap based on the config', function () {
-      editor.update({softWrapAtPreferredLineLength: true})
-      expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(true)
+      editor.update({
+        softWrapped: true,
+        preferredLineLength: 80,
+        editorWidthInChars: 120,
+        softWrapAtPreferredLineLength: true,
+      })
 
+      expect(editor.getSoftWrapColumn()).toBe(80)
+
+      atom.config.set('editor.softWrap', true)
       atom.config.set('editor.softWrapAtPreferredLineLength', false)
       registry.maintainConfig(editor)
-      expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(false)
+      expect(editor.getSoftWrapColumn()).toBe(120)
 
       atom.config.set('editor.softWrapAtPreferredLineLength', true)
-      expect(editor.doesSoftWrapAtPreferredLineLength()).toBe(true)
+      expect(editor.getSoftWrapColumn()).toBe(80)
     })
 
     it('sets the preferred line length based on the config', function () {
