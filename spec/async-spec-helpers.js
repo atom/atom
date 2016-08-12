@@ -29,6 +29,25 @@ export function afterEach (fn) {
   }
 })
 
+export function conditionPromise (condition)  {
+  const timeoutError = new Error("Timed out waiting on condition")
+  Error.captureStackTrace(timeoutError, conditionPromise)
+
+  return new Promise(function (resolve, reject) {
+    const interval = global.setInterval(function () {
+      if (condition()) {
+        global.clearInterval(interval)
+        global.clearTimeout(timeout)
+        resolve()
+      }
+    }, 100)
+    const timeout = global.setTimeout(function () {
+      global.clearInterval(interval)
+      reject(timeoutError)
+    }, 5000)
+  })
+}
+
 function waitsForPromise (fn) {
   const promise = fn()
   // This timeout is 3 minutes. We need to bump it back down once we fix

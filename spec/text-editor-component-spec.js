@@ -1,6 +1,6 @@
 /** @babel */
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
 import TextEditorElement from '../src/text-editor-element'
 import _, {extend, flatten, last, toArray} from 'underscore-plus'
 
@@ -5083,25 +5083,6 @@ describe('TextEditorComponent', function () {
     } else {
       return [node]
     }
-  }
-
-  function conditionPromise (condition)  {
-    let timeoutError = new Error("Timed out waiting on condition")
-    Error.captureStackTrace(timeoutError, conditionPromise)
-
-    return new Promise(function (resolve, reject) {
-      let interval = window.setInterval(function () {
-        if (condition()) {
-          window.clearInterval(interval)
-          window.clearTimeout(timeout)
-          resolve()
-        }
-      }, 100)
-      let timeout = window.setTimeout(function () {
-        window.clearInterval(interval)
-        reject(timeoutError)
-      }, 5000)
-    })
   }
 
   function timeoutPromise (timeout) {
