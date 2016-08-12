@@ -11,7 +11,7 @@ import parseCommandLine from '../../src/main-process/parse-command-line'
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
 describe('AtomApplication', function () {
-  this.timeout(20000)
+  this.timeout(60 * 1000)
 
   let originalAtomHome, atomApplicationsToDestroy
 
