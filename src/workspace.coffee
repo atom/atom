@@ -166,8 +166,8 @@ class Workspace extends Model
       if item instanceof TextEditor
         subscriptions = new CompositeDisposable(
           @textEditorRegistry.add(item)
-          @textEditorRegistry.maintainConfig(item)
           @textEditorRegistry.maintainGrammar(item)
+          @textEditorRegistry.maintainConfig(item)
           item.observeGrammar(@handleGrammarUsed.bind(this))
         )
         item.onDidDestroy -> subscriptions.dispose()
@@ -583,8 +583,8 @@ class Workspace extends Model
   buildTextEditor: (params) ->
     editor = new TextEditor(Object.assign({@clipboard, @assert}, params))
     subscriptions = new CompositeDisposable(
-      @textEditorRegistry.maintainConfig(editor),
       @textEditorRegistry.maintainGrammar(editor)
+      @textEditorRegistry.maintainConfig(editor),
     )
     editor.onDidDestroy -> subscriptions.dispose()
     editor
