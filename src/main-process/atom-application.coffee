@@ -561,9 +561,8 @@ class AtomApplication
           devMode: @devMode
           safeMode: @safeMode
         }))
-      true
     else
-      false
+      null
 
   # Open an atom:// url.
   #
