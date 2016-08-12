@@ -90,13 +90,14 @@ describe('AtomApplication', function () {
     it('positions new windows at an offset distance from the previous window', async function () {
       const atomApplication = buildAtomApplication()
 
-      const window1 = atomApplication.launch(parseCommandLine([]))
+      const window1 = atomApplication.launch(parseCommandLine([makeTempDir()]))
       await window1.loadedPromise
       window1.browserWindow.setBounds({width: 400, height: 400, x: 0, y: 0})
 
-      const window2 = atomApplication.launch(parseCommandLine([]))
+      const window2 = atomApplication.launch(parseCommandLine([makeTempDir()]))
       await window2.loadedPromise
 
+      assert.notEqual(window1, window2)
       window1Dimensions = window1.getDimensions()
       window2Dimensions = window2.getDimensions()
       assert.isAbove(window2Dimensions.x, window1Dimensions.x)
