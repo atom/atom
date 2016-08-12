@@ -820,11 +820,13 @@ describe "Workspace", ->
 
       waitsForPromise ->
         workspace.open('a').then (editor) ->
-          editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+          atom.textEditors.setGrammarOverride(editor, 'source.js')
+          expect(editor.getGrammar().name).toBe('JavaScript')
+
           workspace.getActivePane().splitRight(copyActiveItem: true)
           newEditor = workspace.getActiveTextEditor()
           expect(newEditor).not.toBe(editor)
-          expect(newEditor.getGrammar().name).toBe(editor.getGrammar().name)
+          expect(newEditor.getGrammar().name).toBe('JavaScript')
 
   it "stores the active grammars used by all the open editors", ->
     waitsForPromise ->
