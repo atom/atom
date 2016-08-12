@@ -7,11 +7,11 @@ import {assert} from 'chai'
 export default function (testPaths) {
   global.assert = assert
 
-  const mocha = new Mocha({reporter: 'dot'})
+  const mocha = new Mocha({reporter: 'spec'})
   for (let testPath of testPaths) {
     if (fs.isDirectorySync(testPath)) {
       for (let testFilePath of fs.listTreeSync(testPath)) {
-        if (/\.spec\.(coffee|js)$/.test(testFilePath)) {
+        if (/\.test\.(coffee|js)$/.test(testFilePath)) {
           mocha.addFile(testFilePath)
         }
       }
