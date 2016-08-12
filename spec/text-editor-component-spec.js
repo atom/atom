@@ -5085,12 +5085,6 @@ describe('TextEditorComponent', function () {
     }
   }
 
-  function timeoutPromise (timeout) {
-    return new Promise(function (resolve) {
-      window.setTimeout(resolve, timeout)
-    })
-  }
-
   function nextAnimationFramePromise () {
     return new Promise(function (resolve) {
       window.requestAnimationFrame(resolve)

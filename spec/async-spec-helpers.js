@@ -48,6 +48,12 @@ export function conditionPromise (condition)  {
   })
 }
 
+export function timeoutPromise (timeout) {
+  return new Promise(function (resolve) {
+    global.setTimeout(resolve, timeout)
+  })
+}
+
 function waitsForPromise (fn) {
   const promise = fn()
   // This timeout is 3 minutes. We need to bump it back down once we fix

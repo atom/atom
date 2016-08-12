@@ -7,6 +7,7 @@ import fs from 'fs-plus'
 import path from 'path'
 import AtomApplication from '../../src/main-process/atom-application'
 import parseCommandLine from '../../src/main-process/parse-command-line'
+import {timeoutPromise} from '../async-spec-helpers'
 
 const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 
@@ -271,7 +272,7 @@ describe('AtomApplication', function () {
       await window1.loadedPromise
 
      // wait a bit just to make sure we don't pass due to querying the render process before it loads
-      await getTimeoutPromise(1000)
+      await timeoutPromise(1000)
 
       const itemCount = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActivePane().getItems().length)
@@ -396,12 +397,6 @@ describe('AtomApplication', function () {
           .from(document.querySelectorAll('.tree-view .project-root > .header .name'))
           .map(element => element.dataset.path)
       )
-    })
-  }
-
-  function getTimeoutPromise (timeout) {
-    return new Promise(function (resolve) {
-      global.setTimeout(resolve, timeout)
     })
   }
 
