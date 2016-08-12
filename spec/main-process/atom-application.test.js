@@ -42,7 +42,7 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
 
       const window = atomApplication.launch(parseCommandLine([filePath + ':3']))
-      await windowFocusedPromise(window)
+      await focusWindow(window)
 
       const cursorRow = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
@@ -59,7 +59,7 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
 
       const window = atomApplication.launch(parseCommandLine([filePath + ':2:2']))
-      await windowFocusedPromise(window)
+      await focusWindow(window)
 
       const cursorPosition = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
@@ -76,7 +76,7 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
 
       const window = atomApplication.launch(parseCommandLine([filePath + '::   ']))
-      await windowFocusedPromise(window)
+      await focusWindow(window)
 
       const openedPath = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (textEditor) {
@@ -91,11 +91,11 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
 
       const window1 = atomApplication.launch(parseCommandLine([makeTempDir()]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
       window1.browserWindow.setBounds({width: 400, height: 400, x: 0, y: 0})
 
       const window2 = atomApplication.launch(parseCommandLine([makeTempDir()]))
-      await windowFocusedPromise(window2)
+      await focusWindow(window2)
 
       assert.notEqual(window1, window2)
       window1Dimensions = window1.getDimensions()
@@ -113,7 +113,7 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
 
       let activeEditorPath
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -139,7 +139,7 @@ describe('AtomApplication', function () {
       // Opens new windows when opening directories
       const window2 = atomApplication.launch(parseCommandLine([dirCPath]))
       assert.notEqual(window2, window1)
-      await windowFocusedPromise(window2)
+      await focusWindow(window2)
       assert.deepEqual(await getTreeViewRootDirectories(window2), [dirCPath])
     })
 
@@ -152,7 +152,7 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'new-file')]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
 
       let activeEditorPath
       activeEditorPath = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
@@ -216,7 +216,7 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([dirAPath, dirBPath]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
 
       await new Promise(function (resolve) {
         setTimeout(resolve, 1000)
@@ -236,7 +236,7 @@ describe('AtomApplication', function () {
       const tempDirPath = makeTempDir()
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
 
       const reusedWindow = atomApplication.launch(parseCommandLine([tempDirPath]))
       assert.equal(reusedWindow, window1)
@@ -246,14 +246,14 @@ describe('AtomApplication', function () {
     it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
       const window1EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
       assert.equal(window1EditorTitle, 'untitled')
 
       const window2 = atomApplication.launch(parseCommandLine([]))
-      await windowFocusedPromise(window2)
+      await focusWindow(window2)
       const window2EditorTitle = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.workspace.getActiveTextEditor().getTitle())
       })
@@ -271,7 +271,7 @@ describe('AtomApplication', function () {
 
       const atomApplication = buildAtomApplication()
       const window1 = atomApplication.launch(parseCommandLine([]))
-      await windowFocusedPromise(window1)
+      await focusWindow(window1)
 
      // wait a bit just to make sure we don't pass due to querying the render process before it loads
       await timeoutPromise(1000)
@@ -286,7 +286,7 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
       const newFilePath = path.join(makeTempDir(), 'new-file')
       const window = atomApplication.launch(parseCommandLine([newFilePath]))
-      await windowFocusedPromise(window)
+      await focusWindow(window)
       const {editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (editor) {
           if (editor) sendBackToMainProcess({editorTitle: editor.getTitle(), editorText: editor.getText()})
@@ -309,7 +309,7 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
       const newRemoteFilePath = 'remote://server:3437/some/directory/path'
       const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
-      await windowFocusedPromise(window)
+      await focusWindow(window)
       const {projectPaths, editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.observeActivePaneItem(function (editor) {
           if (editor) {
@@ -348,9 +348,9 @@ describe('AtomApplication', function () {
     it('does not reopen any previously opened windows when launched with no path and `core.restorePreviousWindowsOnStart` is false', async function () {
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
-      await windowFocusedPromise(app1Window1)
+      await focusWindow(app1Window1)
       const app1Window2 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
-      await windowFocusedPromise(app1Window2)
+      await focusWindow(app1Window2)
 
       const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
       const config = season.readFileSync(configPath)
@@ -360,7 +360,7 @@ describe('AtomApplication', function () {
 
       const atomApplication2 = buildAtomApplication()
       const app2Window = atomApplication2.launch(parseCommandLine([]))
-      await windowFocusedPromise(app2Window)
+      await focusWindow(app2Window)
       assert.deepEqual(await getTreeViewRootDirectories(app2Window), [])
     })
   })
@@ -374,7 +374,8 @@ describe('AtomApplication', function () {
     return atomApplication
   }
 
-  async function windowFocusedPromise (window) {
+  async function focusWindow (window) {
+    window.focus()
     await window.loadedPromise
     await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
   }
