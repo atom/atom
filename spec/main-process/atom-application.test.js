@@ -292,6 +292,21 @@ describe('AtomApplication', function () {
       assert.equal(editorText, '')
       assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
+
+    it('reopens any previously opened windows when launched with no path', async function () {
+      const atomApplication1 = buildAtomApplication()
+      const app1Window1 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
+      await app1Window1.loadedPromise
+      const app1Window2 = atomApplication1.launch(parseCommandLine([makeTempDir()]))
+      await app1Window2.loadedPromise
+
+      const atomApplication2 = buildAtomApplication()
+      const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
+      await app2Window1.loadedPromise
+      await app2Window2.loadedPromise
+      assert.deepEqual(await getTreeViewRootDirectories(app2Window1), await getTreeViewRootDirectories(app1Window1))
+      assert.deepEqual(await getTreeViewRootDirectories(app2Window2), await getTreeViewRootDirectories(app1Window2))
+    })
   })
 
   function buildAtomApplication () {

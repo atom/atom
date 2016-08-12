@@ -25,33 +25,6 @@ describe "Starting Atom", ->
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
 
   describe "launching with no path", ->
-    it "reopens any previously opened windows", ->
-      runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForNewWindow(->
-            @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
-          , 5000)
-
-      runAtom [], {ATOM_HOME: atomHome}, (client) ->
-        windowProjectPaths = []
-
-        client
-          .waitForWindowCount(2, 10000)
-          .then ({value: windowHandles}) ->
-            @window(windowHandles[0])
-            .treeViewRootDirectories()
-            .then ({value: directories}) -> windowProjectPaths.push(directories)
-
-            .window(windowHandles[1])
-            .treeViewRootDirectories()
-            .then ({value: directories}) -> windowProjectPaths.push(directories)
-
-            .call ->
-              expect(windowProjectPaths.sort()).toEqual [
-                [tempDirPath]
-                [otherTempDirPath]
-              ].sort()
-
     it "doesn't reopen any previously opened windows if restorePreviousWindowsOnStart is disabled", ->
       runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
         client
