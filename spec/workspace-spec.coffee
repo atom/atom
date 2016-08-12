@@ -1618,20 +1618,35 @@ describe "Workspace", ->
         expect(pane.getPendingItem()).toBeFalsy()
 
   describe "grammar activation", ->
-    beforeEach ->
-      waitsForPromise ->
-        atom.packages.activatePackage('language-javascript')
-
     it "notifies the workspace of which grammar is used", ->
       editor = null
+      atom.packages.triggerDeferredActivationHooks()
 
-      grammarUsed = jasmine.createSpy()
-      atom.workspace.handleGrammarUsed = grammarUsed
+      javascriptGrammarUsed = jasmine.createSpy('js grammar used')
+      rubyGrammarUsed = jasmine.createSpy('ruby grammar used')
+      cGrammarUsed = jasmine.createSpy('c grammar used')
 
-      waitsForPromise -> atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
-      waitsFor -> grammarUsed.callCount is 1
+      atom.packages.onDidTriggerActivationHook('language-javascript:grammar-used', javascriptGrammarUsed)
+      atom.packages.onDidTriggerActivationHook('language-ruby:grammar-used', rubyGrammarUsed)
+      atom.packages.onDidTriggerActivationHook('language-c:grammar-used', cGrammarUsed)
+
+      waitsForPromise -> atom.packages.activatePackage('language-ruby')
+      waitsForPromise -> atom.packages.activatePackage('language-javascript')
+      waitsForPromise -> atom.packages.activatePackage('language-c')
+      waitsForPromise -> atom.workspace.open('sample-with-comments.js')
+
       runs ->
-        expect(grammarUsed.argsForCall[0][0].name).toBe 'JavaScript'
+        # Hooks are triggered when opening new editors
+        expect(javascriptGrammarUsed).toHaveBeenCalled()
+
+        # Hooks are triggered when changing existing editors grammars
+        atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.c'))
+        expect(cGrammarUsed).toHaveBeenCalled()
+
+        # Hooks are triggered when editors are added in other ways.
+        atom.workspace.getActivePane().splitRight(copyActiveItem: true)
+        atom.workspace.getActiveTextEditor().setGrammar(atom.grammars.grammarForScopeName('source.ruby'))
+        expect(rubyGrammarUsed).toHaveBeenCalled()
 
   describe ".checkoutHeadRevision()", ->
     editor = null
