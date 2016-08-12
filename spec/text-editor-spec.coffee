@@ -5760,13 +5760,13 @@ describe "TextEditor", ->
       editor.setText("  foo")
       editor.setTabLength(2)
 
-      editor.setShowIndentGuide(false)
+      editor.update({showIndentGuide: false})
       expect(editor.tokensForScreenRow(0)).toEqual [
         {text: '  ', scopes: ['source.js', 'leading-whitespace']},
         {text: 'foo', scopes: ['source.js']}
       ]
 
-      editor.setShowIndentGuide(true)
+      editor.update({showIndentGuide: true})
       expect(editor.tokensForScreenRow(0)).toEqual [
         {text: '  ', scopes: ['source.js', 'leading-whitespace indent-guide']},
         {text: 'foo', scopes: ['source.js']}

@@ -109,8 +109,9 @@ class TextEditor extends Model
         throw error
 
     state.buffer = state.tokenizedBuffer.buffer
-    state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId) ? state.buffer.addDisplayLayer()
-    state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
+    if state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId)
+      state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
+
     state.clipboard = atomEnvironment.clipboard
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     editor = new this(state)
@@ -127,7 +128,8 @@ class TextEditor extends Model
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
       @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
-      @tokenizedBuffer, @displayLayer
+      @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide, @softWrapHangingIndentLength,
+      @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
     } = params
 
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
@@ -153,21 +155,32 @@ class TextEditor extends Model
     @autoIndentOnPaste ?= true
     @undoGroupingInterval ?= 300
     @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
+    @softWrapped ?= false
     @softWrapHangingIndentLength ?= 0
+    @softWrapAtPreferredLineLength ?= false
+    @preferredLineLength ?= 80
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
-    @displayLayer ?= @buffer.addDisplayLayer()
+    @displayLayer ?= @buffer.addDisplayLayer({
+      invisibles: @getInvisibles(),
+      softWrapColumn: @getSoftWrapColumn(),
+      showIndentGuides: not @isMini() and @doesShowIndentGuide(),
+      atomicSoftTabs: @hasAtomicSoftTabs(),
+      tabLength: @getTabLength(),
+      ratioForCharacter: @ratioForCharacter.bind(this),
+      isWrapBoundary: isWrapBoundary,
+      foldCharacter: ZERO_WIDTH_NBSP,
+      softWrapHangingIndent: @getSoftWrapHangingIndentLength()
+    })
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
 
     @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
-
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
-    @resetDisplayLayer()
 
     for marker in @selectionsMarkerLayer.getMarkers()
       @addSelection(marker)
@@ -189,7 +202,7 @@ class TextEditor extends Model
       visible: lineNumberGutterVisible
 
   update: (params) ->
-    resetDisplayLayer = false
+    displayLayerParams = {}
 
     for param in Object.keys(params)
       value = params[param]
@@ -223,39 +236,40 @@ class TextEditor extends Model
         when 'atomicSoftTabs'
           if value isnt @atomicSoftTabs
             @atomicSoftTabs = value
-            resetDisplayLayer = true
+            displayLayerParams.atomicSoftTabs = value
 
         when 'tabLength'
           if value isnt @tokenizedBuffer.getTabLength()
             @tokenizedBuffer.setTabLength(value)
-            resetDisplayLayer = true
+            displayLayerParams.tabLength = value
 
         when 'softWrapped'
           if value isnt @softWrapped
             @softWrapped = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
             @emitter.emit 'did-change-soft-wrapped', @isSoftWrapped()
-            resetDisplayLayer = true
 
         when 'softWrapHangingIndentLength'
           if value isnt @softWrapHangingIndentLength
             @softWrapHangingIndentLength = value
-            resetDisplayLayer = true
+            displayLayerParams.softWrapHangingIndent = value
 
         when 'softWrapAtPreferredLineLength'
           if value isnt @softWrapAtPreferredLineLength
             @softWrapAtPreferredLineLength = value
-            resetDisplayLayer = true
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
 
         when 'preferredLineLength'
           if value isnt @preferredLineLength
             @preferredLineLength = value
-            resetDisplayLayer = true
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
 
         when 'mini'
           if value isnt @mini
             @mini = value
             @emitter.emit 'did-change-mini', value
-            resetDisplayLayer = true
+            displayLayerParams.invisibles = @getInvisibles()
+            displayLayerParams.showIndentGuides = @doesShowIndentGuide()
 
         when 'placeholderText'
           if value isnt @placeholderText
@@ -273,7 +287,7 @@ class TextEditor extends Model
         when 'showIndentGuide'
           if value isnt @showIndentGuide
             @showIndentGuide = value
-            resetDisplayLayer = true
+            displayLayerParams.showIndentGuides = @doesShowIndentGuide()
 
         when 'showLineNumbers'
           if value isnt @showLineNumbers
@@ -283,17 +297,22 @@ class TextEditor extends Model
         when 'showInvisibles'
           if value isnt @showInvisibles
             @showInvisibles = value
-            resetDisplayLayer = true
+            displayLayerParams.invisibles = @getInvisibles()
 
         when 'invisibles'
           if not _.isEqual(value, @invisibles)
             @invisibles = value
-            resetDisplayLayer = true
+            displayLayerParams.invisibles = @getInvisibles()
 
         when 'editorWidthInChars'
           if value > 0 and value isnt @editorWidthInChars
             @editorWidthInChars = value
-            resetDisplayLayer = true if @isSoftWrapped()
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+
+        when 'width'
+          if value isnt @width
+            @width = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
 
         when 'scrollPastEnd'
           if value isnt @scrollPastEnd
@@ -308,8 +327,8 @@ class TextEditor extends Model
         else
           throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
-    if resetDisplayLayer
-      @resetDisplayLayer()
+    if Object.keys(displayLayerParams).length > 0
+      @displayLayer.reset(displayLayerParams)
 
     if @editorElement?
       @editorElement.views.getNextUpdatePromise()
@@ -361,19 +380,6 @@ class TextEditor extends Model
     @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
-
-  resetDisplayLayer: ->
-    @displayLayer.reset({
-      invisibles: @getInvisibles(),
-      softWrapColumn: @getSoftWrapColumn(),
-      showIndentGuides: not @isMini() and @doesShowIndentGuide(),
-      atomicSoftTabs: @hasAtomicSoftTabs(),
-      tabLength: @getTabLength(),
-      ratioForCharacter: @ratioForCharacter.bind(this),
-      isWrapBoundary: isWrapBoundary,
-      foldCharacter: ZERO_WIDTH_NBSP,
-      softWrapHangingIndent: @getSoftWrapHangingIndentLength()
-    })
 
   destroyed: ->
     @disposables.dispose()
@@ -2856,9 +2862,7 @@ class TextEditor extends Model
   #   invisble characters
   setInvisibles: (invisibles) -> @update({invisibles})
 
-  doesShowIndentGuide: -> @showIndentGuide
-
-  setShowIndentGuide: (showIndentGuide) -> @update({showIndentGuide})
+  doesShowIndentGuide: -> @showIndentGuide and not @mini
 
   getSoftWrapHangingIndentLength: -> @softWrapHangingIndentLength
 
@@ -3556,7 +3560,7 @@ class TextEditor extends Model
       @doubleWidthCharWidth = doubleWidthCharWidth
       @halfWidthCharWidth = halfWidthCharWidth
       @koreanCharWidth = koreanCharWidth
-      @resetDisplayLayer() if @isSoftWrapped() and @getEditorWidthInChars()?
+      @displayLayer.reset({}) if @isSoftWrapped() and @getEditorWidthInChars()?
     defaultCharWidth
 
   setHeight: (height, reentrant=false) ->
@@ -3576,9 +3580,7 @@ class TextEditor extends Model
 
   setWidth: (width, reentrant=false) ->
     if reentrant
-      oldWidth = @width
-      @width = width
-      @resetDisplayLayer() if width isnt oldWidth and @isSoftWrapped()
+      @update({width})
       @width
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")

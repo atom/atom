@@ -514,7 +514,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('interleaves invisible line-ending characters with indent guides on empty lines', async function () {
-        editor.setShowIndentGuide(true)
+        editor.update({showIndentGuide: true})
 
         await nextViewUpdatePromise()
 
@@ -559,7 +559,7 @@ describe('TextEditorComponent', function () {
 
     describe('when indent guides are enabled', function () {
       beforeEach(async function () {
-        editor.setShowIndentGuide(true)
+        editor.update({showIndentGuide: true})
         await nextViewUpdatePromise()
       })
 
