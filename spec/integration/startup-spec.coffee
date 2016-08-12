@@ -24,37 +24,6 @@ describe "Starting Atom", ->
     tempDirPath = temp.mkdirSync("empty-dir")
     otherTempDirPath = temp.mkdirSync("another-temp-dir")
 
-  describe "launching with no path", ->
-    it "doesn't reopen any previously opened windows if restorePreviousWindowsOnStart is disabled", ->
-      runAtom [tempDirPath], {ATOM_HOME: atomHome}, (client) ->
-        client
-          .waitForExist("atom-workspace")
-          .waitForNewWindow(->
-            @startAnotherAtom([otherTempDirPath], ATOM_HOME: atomHome)
-          , 5000)
-          .waitForExist("atom-workspace")
-
-      configPath = path.join(atomHome, 'config.cson')
-      config = CSON.readFileSync(configPath)
-      config['*'].core = {restorePreviousWindowsOnStart: false}
-      CSON.writeFileSync(configPath, config)
-
-      runAtom [], {ATOM_HOME: atomHome}, (client) ->
-        windowProjectPaths = []
-
-        client
-          .waitForWindowCount(1, 10000)
-          .then ({value: windowHandles}) ->
-            @window(windowHandles[0])
-            .waitForExist("atom-workspace")
-            .treeViewRootDirectories()
-            .then ({value: directories}) -> windowProjectPaths.push(directories)
-
-            .call ->
-              expect(windowProjectPaths).toEqual [
-                []
-              ]
-
   describe "opening a remote directory", ->
     it "opens the parent directory and creates an empty text editor", ->
       remoteDirectory = 'remote://server:3437/some/directory/path'
