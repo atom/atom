@@ -69,6 +69,7 @@ class AtomApplication
 
     @config = new Config({configDirPath: process.env.ATOM_HOME, @resourcePath, enablePersistence: true})
     @config.setSchema null, {type: 'object', properties: _.clone(require('../config-schema'))}
+    @config.load()
     @fileRecoveryService = new FileRecoveryService(path.join(process.env.ATOM_HOME, "recovery"))
     @storageFolder = new StorageFolder(process.env.ATOM_HOME)
 
@@ -82,7 +83,6 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-    @config.load()
     @config.onDidChange 'core.useCustomTitleBar', @promptForRelaunch
 
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
