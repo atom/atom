@@ -294,19 +294,30 @@ describe('AtomApplication', function () {
     })
 
     it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path in a remote directory', async function () {
+      // Disable the tree-view because it will try to enumerate the contents of
+      // the remote directory and, since it doesn't exist, throw an error.
+      const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
+      const config = season.readFileSync(configPath)
+      if (!config['*'].core) config['*'].core = {}
+      config['*'].core.disabledPackages = ['tree-view']
+      season.writeFileSync(configPath, config)
+
       const atomApplication = buildAtomApplication()
-      const newFilePath = 'remote://server:3437/some/directory/path'
-      const window = atomApplication.launch(parseCommandLine([newFilePath]))
-      window.toggleDevTools()
+      const newRemoteFilePath = 'remote://server:3437/some/directory/path'
+      const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
       await window.loadedPromise
-      const {editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+      const {projectPaths, editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         atom.workspace.onDidChangeActivePaneItem(function (editor) {
-          sendBackToMainProcess({editorTitle: editor.getTitle(), editorText: editor.getText()})
+          sendBackToMainProcess({
+            projectPaths: atom.project.getPaths(),
+            editorTitle: editor.getTitle(),
+            editorText: editor.getText()
+          })
         })
       })
-      assert.equal(editorTitle, path.basename(newFilePath))
+      assert.deepEqual(projectPaths, [newRemoteFilePath])
+      assert.equal(editorTitle, path.basename(newRemoteFilePath))
       assert.equal(editorText, '')
-      assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
