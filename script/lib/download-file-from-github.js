@@ -1,4 +1,7 @@
+'use strict'
+
 const fs = require('fs-extra')
+const path = require('path')
 const syncRequest = require('sync-request')
 
 module.exports = function (downloadURL, destinationPath) {
@@ -8,6 +11,7 @@ module.exports = function (downloadURL, destinationPath) {
   })
 
   if (response.statusCode === 200) {
+    fs.mkdirpSync(path.dirname(destinationPath))
     fs.writeFileSync(destinationPath, response.body)
   } else {
     throw new Error('Error downloading file. HTTP Status ' + response.statusCode + '.')

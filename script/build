@@ -49,7 +49,6 @@ prebuildLessCache()
 generateMetadata()
 generateAPIDocs()
 downloadChromedriver()
-
 dumpSymbols()
   .then(packageApplication)
   .then(packagedAppPath => {
