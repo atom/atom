@@ -34,4 +34,4 @@ dependencies:
 
 test:
   override:
-    - script/test
+    - caffeinate -s script/test
