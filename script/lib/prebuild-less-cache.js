@@ -35,7 +35,7 @@ module.exports = function () {
       // Build a LessCache instance with import paths based on the current theme combination
       const lessCache = new LessCache({
         cacheDir: cacheDirPath,
-        fallbackDir: path.join(CONFIG.homeDirPath, '.atom', 'compile-cache', 'prebuild-less', LESS_CACHE_VERSION),
+        fallbackDir: path.join(CONFIG.atomHomeDirPath, 'compile-cache', 'prebuild-less', LESS_CACHE_VERSION),
         syncCaches: true,
         resourcePath: CONFIG.intermediateAppPath,
         importPaths: [

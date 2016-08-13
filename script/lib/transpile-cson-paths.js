@@ -1,6 +1,6 @@
 'use strict'
 
-const CSON = require('season')
+const CompileCache = require('../../src/compile-cache')
 const fs = require('fs')
 const glob = require('glob')
 const path = require('path')
@@ -26,8 +26,7 @@ function getPathsToTranspile () {
 }
 
 function transpileCsonPath (csonPath) {
-  const jsonContent = CSON.readFileSync(csonPath)
   const jsonPath = csonPath.replace(/cson$/g, 'json')
-  fs.writeFileSync(jsonPath, JSON.stringify(jsonContent))
+  fs.writeFileSync(jsonPath, JSON.stringify(CompileCache.addPathToCache(csonPath, CONFIG.atomHomeDirPath)))
   fs.unlinkSync(csonPath)
 }

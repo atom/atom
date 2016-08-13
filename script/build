@@ -6,6 +6,7 @@
 require('coffee-script/register')
 require('colors')
 
+const fs = require('fs-extra')
 const argv = require('yargs')
   .usage('Usage: $0 [options]')
   .help('help')
@@ -33,10 +34,14 @@ const transpileCoffeeScriptPaths = require('./lib/transpile-coffee-script-paths'
 const transpileCsonPaths = require('./lib/transpile-cson-paths')
 const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
 
+const CONFIG = require('./config')
+
 process.on('unhandledRejection', function (e) {
   console.error(e)
   process.exit(1)
 })
+
+fs.mkdirpSync(CONFIG.atomHomeDirPath)
 
 cleanOutputDirectory()
 copyAssets()

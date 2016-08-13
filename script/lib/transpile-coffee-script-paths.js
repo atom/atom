@@ -1,6 +1,6 @@
 'use strict'
 
-const coffee = require('coffee-script')
+const CompileCache = require('../../src/compile-cache')
 const fs = require('fs')
 const glob = require('glob')
 const path = require('path')
@@ -28,8 +28,7 @@ function getPathsToTranspile () {
 }
 
 function transpileCoffeeScriptPath (coffeePath) {
-  const inputCode = fs.readFileSync(coffeePath, 'utf8')
   const jsPath = coffeePath.replace(/coffee$/g, 'js')
-  fs.writeFileSync(jsPath, coffee.compile(inputCode))
+  fs.writeFileSync(jsPath, CompileCache.addPathToCache(coffeePath, CONFIG.atomHomeDirPath))
   fs.unlinkSync(coffeePath)
 }

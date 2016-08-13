@@ -1,6 +1,6 @@
 'use strict'
 
-const babel = require('babel-core')
+const CompileCache = require('../../src/compile-cache')
 const fs = require('fs')
 const glob = require('glob')
 const path = require('path')
@@ -19,9 +19,7 @@ const BUFFER = Buffer(PREFIX_LENGTH)
 module.exports = function () {
   console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`)
   for (let path of getPathsToTranspile()) {
-    if (usesBabel(path)) {
-      transpileBabelPath(path)
-    }
+    transpileBabelPath(path)
   }
 }
 
@@ -38,16 +36,6 @@ function getPathsToTranspile () {
   return paths
 }
 
-function usesBabel (path) {
-  const file = fs.openSync(path, 'r')
-  fs.readSync(file, BUFFER, 0, PREFIX_LENGTH)
-  fs.closeSync(file)
-  const filePrefix = BUFFER.toString('utf8', 0, PREFIX_LENGTH).trim()
-  return BABEL_PREFIXES.indexOf(filePrefix) !== -1
-}
-
 function transpileBabelPath (path) {
-  const options = Object.assign({}, BABEL_OPTIONS)
-  options.sourceMap = null
-  fs.writeFileSync(path, babel.transformFileSync(path, options).code)
+  fs.writeFileSync(path, CompileCache.addPathToCache(path, CONFIG.atomHomeDirPath))
 }
