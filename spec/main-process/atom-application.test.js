@@ -2,6 +2,7 @@
 
 import season from 'season'
 import dedent from 'dedent'
+import childProcess from 'child_process'
 import electron from 'electron'
 import fs from 'fs-plus'
 import path from 'path'
@@ -380,9 +381,12 @@ describe('AtomApplication', function () {
     await window.loadedPromise
     await conditionPromise(() => {
       console.log('polling condition, current focused window is ' + (window.atomApplication.lastFocusedWindow ? window.atomApplication.lastFocusedWindow.id : 'NULL') + ' and new window is ' + window.id);
-
       const f = electron.BrowserWindow.getFocusedWindow()
       console.log('BrowserWindow.getFocusedWindow()', f ? f.id : 'NULL');
+
+      const foregroundApp = childProcess.spawnSync('/usr/bin/osascript', ['-e', 'tell application "System Events"', '-e', 'set frontApp to name of first application process whose frontmost is true', '-e', 'end tell']).stdout.toString()
+      console.log('app in foreground: ', foregroundApp);
+
       return window.atomApplication.lastFocusedWindow === window
     })
     console.log('<<< focused window');
