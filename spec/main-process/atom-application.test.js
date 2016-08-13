@@ -380,7 +380,9 @@ describe('AtomApplication', function () {
     await window.loadedPromise
     await conditionPromise(() => {
       console.log('polling condition, current focused window is ' + (window.atomApplication.lastFocusedWindow ? window.atomApplication.lastFocusedWindow.id : 'NULL') + ' and new window is ' + window.id);
-      console.log('BrowserWindow.getFocusedWindow()', electron.BrowserWindow.getFocusedWindow().id);
+
+      const f = electron.BrowserWindow.getFocusedWindow()
+      console.log('BrowserWindow.getFocusedWindow()', f ? f.id : 'NULL');
       return window.atomApplication.lastFocusedWindow === window
     })
     console.log('<<< focused window');

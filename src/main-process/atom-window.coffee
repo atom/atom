@@ -47,6 +47,7 @@ class AtomWindow
       options.titleBarStyle = 'hidden'
 
     @browserWindow = new BrowserWindow options
+    @id = @browserWindow.id
     @atomApplication.addWindow(this)
 
     @handleEvents()
