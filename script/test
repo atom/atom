@@ -68,7 +68,8 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   })
 }
 
-const testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+// const testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+const testSuitesToRun = [runCoreMainProcessTests]
 
 async.series(testSuitesToRun, function (err, exitCodes) {
   if (err) {
