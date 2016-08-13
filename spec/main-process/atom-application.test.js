@@ -387,9 +387,19 @@ describe('AtomApplication', function () {
       console.log('BrowserWindow.getFocusedWindow()', f ? f.id : 'NULL');
 
       const foregroundApp = childProcess.spawnSync('/usr/bin/osascript', ['-e', 'tell application "System Events"', '-e', 'set frontApp to name of first application process whose frontmost is true', '-e', 'end tell']).stdout.toString()
-      console.log('app in foreground: ', foregroundApp);
+      if (foregroundApp !== 'Atom') {
+        console.error('An app other than Atom is in the foreground! ' + foregroundApp);
 
-      childProcess.spawnSync('/usr/sbin/screencapture', [path.join(process.env.CIRCLE_ARTIFACTS || process.env.HOME, 'screenshot-' + idCounter++ + '.jpg')]).stdout.toString()
+        const screenshotPath = path.join(process.env.CIRCLE_ARTIFACTS || process.env.HOME, 'screenshot-' + idCounter++ + '.jpg')
+        console.log('Writing a screenshot to ' + screenshotPath)
+        const captureResult = childProcess.spawnSync('/usr/sbin/screencapture', [screenshotPath])
+
+        if (foregroundApp === 'Finder') {
+          console.log('Finder is in the foreground. Trying to kill it...');
+          childProcess.spawnSync('/usr/bin/killall', ['Finder'])
+        } else {
+        }
+      }
 
       return window.atomApplication.lastFocusedWindow === window
     })
