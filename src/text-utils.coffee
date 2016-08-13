@@ -57,6 +57,50 @@ isPairedCharacter = (string, index=0) ->
   isVariationSequence(charCodeA, charCodeB) or
   isCombinedCharacter(charCodeA, charCodeB)
 
+IsJapaneseKanaCharacter = (charCode) ->
+  0x3000 <= charCode <= 0x30FF
+
+isCJKUnifiedIdeograph = (charCode) ->
+  0x4E00 <= charCode <= 0x9FFF
+
+isFullWidthForm = (charCode) ->
+  0xFF01 <= charCode <= 0xFF5E or
+  0xFFE0 <= charCode <= 0xFFE6
+
+isDoubleWidthCharacter = (character) ->
+  charCode = character.charCodeAt(0)
+
+  IsJapaneseKanaCharacter(charCode) or
+  isCJKUnifiedIdeograph(charCode) or
+  isFullWidthForm(charCode)
+
+isHalfWidthCharacter = (character) ->
+  charCode = character.charCodeAt(0)
+
+  0xFF65 <= charCode <= 0xFFDC or
+  0xFFE8 <= charCode <= 0xFFEE
+
+isKoreanCharacter = (character) ->
+  charCode = character.charCodeAt(0)
+
+  0xAC00 <= charCode <= 0xD7A3 or
+  0x1100 <= charCode <= 0x11FF or
+  0x3130 <= charCode <= 0x318F or
+  0xA960 <= charCode <= 0xA97F or
+  0xD7B0 <= charCode <= 0xD7FF
+
+isCJKCharacter = (character) ->
+  isDoubleWidthCharacter(character) or
+  isHalfWidthCharacter(character) or
+  isKoreanCharacter(character)
+
+isWordStart = (previousCharacter, character) ->
+  (previousCharacter is ' ' or previousCharacter is '\t') and
+  (character isnt ' '  and character isnt '\t')
+
+isWrapBoundary = (previousCharacter, character) ->
+  isWordStart(previousCharacter, character) or isCJKCharacter(character)
+
 # Does the given string contain at least surrogate pair, variation sequence,
 # or combined character?
 #
@@ -70,4 +114,8 @@ hasPairedCharacter = (string) ->
     index++
   false
 
-module.exports = {isPairedCharacter, hasPairedCharacter}
+module.exports = {
+  isPairedCharacter, hasPairedCharacter,
+  isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter,
+  isWrapBoundary
+}

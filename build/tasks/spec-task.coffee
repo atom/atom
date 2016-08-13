@@ -1,13 +1,12 @@
 fs = require 'fs'
 path = require 'path'
+temp = require('temp').track()
 
 _ = require 'underscore-plus'
 async = require 'async'
 
-# TODO: This should really be parallel on every platform, however:
-# - On Windows, our fixtures step on each others toes.
-# - On Travis, Mac workers haven't enough horsepower.
-if process.env.TRAVIS or process.platform is 'win32'
+# Run specs serially on CircleCI
+if process.env.CIRCLECI
   concurrency = 1
 else
   concurrency = 2
@@ -16,20 +15,6 @@ module.exports = (grunt) ->
   {isAtomPackage, spawn} = require('./task-helpers')(grunt)
 
   packageSpecQueue = null
-
-  logDeprecations = (label, {stderr}={}) ->
-    return unless process.env.JANKY_SHA1 or process.env.CI
-    stderr ?= ''
-    deprecatedStart = stderr.indexOf('Calls to deprecated functions')
-    return if deprecatedStart is -1
-
-    grunt.log.error(label)
-    stderr = stderr.substring(deprecatedStart)
-    stderr = stderr.replace(/^\s*\[[^\]]+\]\s+/gm, '')
-    stderr = stderr.replace(/source: .*$/gm, '')
-    stderr = stderr.replace(/^"/gm, '')
-    stderr = stderr.replace(/",\s*$/gm, '')
-    grunt.log.error(stderr)
 
   getAppPath = ->
     contentsDir = grunt.config.get('atom.contentsDir')
@@ -54,17 +39,17 @@ module.exports = (grunt) ->
       if process.platform in ['darwin', 'linux']
         options =
           cmd: appPath
-          args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}"]
+          args: ['--test', "--resource-path=#{resourcePath}", path.join(packagePath, 'spec')]
           opts:
             cwd: packagePath
-            env: _.extend({}, process.env, ATOM_PATH: rootDir)
+            env: _.extend({}, process.env, ELECTRON_ENABLE_LOGGING: true, ATOM_PATH: rootDir)
       else if process.platform is 'win32'
         options =
           cmd: process.env.comspec
-          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{path.join(packagePath, 'spec')}", "--log-file=ci.log"]
+          args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--log-file=ci.log", path.join(packagePath, 'spec')]
           opts:
             cwd: packagePath
-            env: _.extend({}, process.env, ATOM_PATH: rootDir)
+            env: _.extend({}, process.env, ELECTRON_ENABLE_LOGGING: true, ATOM_PATH: rootDir)
 
       grunt.log.ok "Launching #{path.basename(packagePath)} specs."
       spawn options, (error, results, code) ->
@@ -74,7 +59,6 @@ module.exports = (grunt) ->
           fs.unlinkSync(path.join(packagePath, 'ci.log'))
 
         failedPackages.push path.basename(packagePath) if error
-        logDeprecations("#{path.basename(packagePath)} Specs", results)
         callback()
 
     modulesDirectory = path.resolve('node_modules')
@@ -87,7 +71,7 @@ module.exports = (grunt) ->
     packageSpecQueue.concurrency = Math.max(1, concurrency - 1)
     packageSpecQueue.drain = -> callback(null, failedPackages)
 
-  runCoreSpecs = (callback) ->
+  runRendererProcessSpecs = (callback) ->
     appPath = getAppPath()
     resourcePath = process.cwd()
     coreSpecsPath = path.resolve('spec')
@@ -95,22 +79,20 @@ module.exports = (grunt) ->
     if process.platform in ['darwin', 'linux']
       options =
         cmd: appPath
-        args: ['--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}"]
+        args: ['--test', "--resource-path=#{resourcePath}", coreSpecsPath, "--user-data-dir=#{temp.mkdirSync('atom-user-data-dir')}"]
         opts:
-          env: _.extend({}, process.env,
-            ATOM_INTEGRATION_TESTS_ENABLED: true
-          )
+          env: _.extend({}, process.env, {ELECTRON_ENABLE_LOGGING: true, ATOM_INTEGRATION_TESTS_ENABLED: true})
+          stdio: 'inherit'
 
     else if process.platform is 'win32'
       options =
         cmd: process.env.comspec
-        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", "--spec-directory=#{coreSpecsPath}", '--log-file=ci.log']
+        args: ['/c', appPath, '--test', "--resource-path=#{resourcePath}", '--log-file=ci.log', coreSpecsPath]
         opts:
-          env: _.extend({}, process.env,
-            ATOM_INTEGRATION_TESTS_ENABLED: true
-          )
+          env: _.extend({}, process.env, {ELECTRON_ENABLE_LOGGING: true, ATOM_INTEGRATION_TESTS_ENABLED: true})
+          stdio: 'inherit'
 
-    grunt.log.ok "Launching core specs."
+    grunt.log.ok "Launching core specs (renderer process)."
     spawn options, (error, results, code) ->
       if process.platform is 'win32'
         process.stderr.write(fs.readFileSync('ci.log')) if error
@@ -118,8 +100,31 @@ module.exports = (grunt) ->
       else
         # TODO: Restore concurrency on Windows
         packageSpecQueue?.concurrency = concurrency
-        logDeprecations('Core Specs', results)
 
+      callback(null, error)
+
+  runMainProcessSpecs = (callback) ->
+    appPath = getAppPath()
+    resourcePath = process.cwd()
+    mainProcessSpecsPath = path.resolve('spec/main-process')
+
+    if process.platform in ['darwin', 'linux']
+      options =
+        cmd: appPath
+        args: ["--test", "--main-process", "--resource-path=#{resourcePath}", mainProcessSpecsPath]
+        opts:
+          env: process.env
+          stdio: 'inherit'
+    else if process.platform is 'win32'
+      options =
+        cmd: process.env.comspec
+        args: ['/c', appPath, "--test", "--main-process", "--resource-path=#{resourcePath}", mainProcessSpecsPath]
+        opts:
+          env: process.env
+          stdio: 'inherit'
+
+    grunt.log.ok "Launching core specs (main process)."
+    spawn options, (error, results, code) ->
       callback(null, error)
 
   grunt.registerTask 'run-specs', 'Run the specs', ->
@@ -131,33 +136,23 @@ module.exports = (grunt) ->
       else
         async.parallel
 
-    specs =
-      if process.env.ATOM_SPECS_TASK is 'packages'
-        [runPackageSpecs]
-      else if process.env.ATOM_SPECS_TASK is 'core'
-        [runCoreSpecs]
-      else
-        [runCoreSpecs, runPackageSpecs]
+    specs = [runRendererProcessSpecs, runMainProcessSpecs, runPackageSpecs]
 
     method specs, (error, results) ->
       failedPackages = []
       coreSpecFailed = null
 
-      if process.env.ATOM_SPECS_TASK is 'packages'
-        [failedPackages] = results
-      else if process.env.ATOM_SPECS_TASK is 'core'
-        [coreSpecFailed] = results
-      else
-        [coreSpecFailed, failedPackages] = results
+      [rendererProcessSpecsFailed, mainProcessSpecsFailed, failedPackages] = results
 
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
       failures = failedPackages
-      failures.push "atom core" if coreSpecFailed
+      failures.push "atom core (renderer process)" if rendererProcessSpecsFailed
+      failures.push "atom core (main process)" if mainProcessSpecsFailed
 
       grunt.log.error("[Error]".red + " #{failures.join(', ')} spec(s) failed") if failures.length > 0
 
       if process.platform is 'win32' and process.env.JANKY_SHA1
         done()
       else
-        done(not coreSpecFailed and failedPackages.length is 0)
+        done(failures.length is 0)

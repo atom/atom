@@ -1,7 +1,7 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
@@ -59,12 +59,12 @@ platformMenu = require('../package.json')?._atomMenu?.menu
 # See {::add} for more info about adding menu's directly.
 module.exports =
 class MenuManager
-  constructor: ({@resourcePath}) ->
+  constructor: ({@resourcePath, @keymapManager, @packageManager}) ->
     @pendingUpdateOperation = null
     @template = []
-    atom.keymaps.onDidLoadBundledKeymaps => @loadPlatformItems()
-    atom.keymaps.onDidReloadKeymap => @update()
-    atom.packages.onDidActivateInitialPackages => @sortPackagesMenu()
+    @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
+    @keymapManager.onDidReloadKeymap => @update()
+    @packageManager.onDidActivateInitialPackages => @sortPackagesMenu()
 
   # Public: Adds the given items to the application menu.
   #
@@ -94,6 +94,10 @@ class MenuManager
 
   remove: (items) ->
     @unmerge(@template, item) for item in items
+    @update()
+
+  clear: ->
+    @template = []
     @update()
 
   # Should the binding for the given selector be included in the menu
@@ -143,7 +147,7 @@ class MenuManager
       includedBindings = []
       unsetKeystrokes = new Set
 
-      for binding in atom.keymaps.getKeyBindings() when @includeSelector(binding.selector)
+      for binding in @keymapManager.getKeyBindings() when @includeSelector(binding.selector)
         includedBindings.push(binding)
         if binding.command is 'unset!'
           unsetKeystrokes.add(binding.keystrokes)
@@ -172,7 +176,7 @@ class MenuManager
   unmerge: (menu, item) ->
     MenuHelpers.unmerge(menu, item)
 
-  # OSX can't handle displaying accelerators for multiple keystrokes.
+  # macOS can't handle displaying accelerators for multiple keystrokes.
   # If they are sent across, it will stop processing accelerators for the rest
   # of the menu items.
   filterMultipleKeystroke: (keystrokesByCommand) ->
@@ -187,11 +191,14 @@ class MenuManager
 
   sendToBrowserProcess: (template, keystrokesByCommand) ->
     keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
-    ipc.send 'update-application-menu', template, keystrokesByCommand
+    ipcRenderer.send 'update-application-menu', template, keystrokesByCommand
 
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->
-    element?.classList.toString().split(' ') ? []
+    if classList = element?.classList
+      Array::slice.apply(classList)
+    else
+      []
 
   sortPackagesMenu: ->
     packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'

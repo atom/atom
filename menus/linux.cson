@@ -49,6 +49,13 @@
         ]
       }
       {
+        label: 'Columns',
+        submenu: [
+          { label: 'Move Selection &Left', command: 'editor:move-selection-left' }
+          { label: 'Move Selection &Right', command: 'editor:move-selection-right' }
+        ]
+      }
+      {
         label: 'Text',
         submenu: [
           { label: '&Upper Case', command: 'editor:upper-case' }
@@ -83,11 +90,12 @@
       }
       { type: 'separator' }
       { label: '&Preferences', command: 'application:show-settings' }
-      { label: 'Open Your Config', command: 'application:open-your-config' }
-      { label: 'Open Your Init Script', command: 'application:open-your-init-script' }
-      { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
-      { label: 'Open Your Snippets', command: 'application:open-your-snippets' }
-      { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
+      { type: 'separator' }
+      { label: 'Config…', command: 'application:open-your-config' }
+      { label: 'Init Script…', command: 'application:open-your-init-script' }
+      { label: 'Keymap…', command: 'application:open-your-keymap' }
+      { label: 'Snippets…', command: 'application:open-your-snippets' }
+      { label: 'Stylesheet…', command: 'application:open-your-stylesheet' }
       { type: 'separator' }
     ]
   }
@@ -95,16 +103,15 @@
   {
     label: '&View'
     submenu: [
-      { label: '&Reload', command: 'window:reload' }
       { label: 'Toggle &Full Screen', command: 'window:toggle-full-screen' }
       { label: 'Toggle Menu Bar', command: 'window:toggle-menu-bar' }
       {
         label: 'Panes'
         submenu: [
-          { label: 'Split Up', command: 'pane:split-up' }
-          { label: 'Split Down', command: 'pane:split-down' }
-          { label: 'Split Left', command: 'pane:split-left' }
-          { label: 'Split Right', command: 'pane:split-right' }
+          { label: 'Split Up', command: 'pane:split-up-and-copy-active-item' }
+          { label: 'Split Down', command: 'pane:split-down-and-copy-active-item' }
+          { label: 'Split Left', command: 'pane:split-left-and-copy-active-item' }
+          { label: 'Split Right', command: 'pane:split-right-and-copy-active-item' }
           { type: 'separator' }
           { label: 'Focus Next Pane', command: 'window:focus-next-pane' }
           { label: 'Focus Previous Pane', command: 'window:focus-previous-pane' }
@@ -121,7 +128,7 @@
         label: 'Developer'
         submenu: [
           { label: 'Open In &Dev Mode…', command: 'application:open-dev' }
-          { label: 'Run &Atom Specs', command: 'application:run-all-specs' }
+          { label: '&Reload Window', command: 'window:reload' }
           { label: 'Run Package &Specs', command: 'window:run-package-specs' }
           { label: 'Toggle Developer &Tools', command: 'window:toggle-dev-tools' }
         ]
@@ -174,7 +181,6 @@
       { label: "VERSION", enabled: false }
       { type: 'separator' }
       { label: '&Documentation', command: 'application:open-documentation' }
-      { label: 'Roadmap', command: 'application:open-roadmap' }
       { label: 'Frequently Asked Questions', command: 'application:open-faq' }
       { type: 'separator' }
       { label: 'Community Discussions', command: 'application:open-discussions' }
@@ -198,10 +204,10 @@
     {label: 'Delete', command: 'core:delete'}
     {label: 'Select All', command: 'core:select-all'}
     {type: 'separator'}
-    {label: 'Split Up', command: 'pane:split-up'}
-    {label: 'Split Down', command: 'pane:split-down'}
-    {label: 'Split Left', command: 'pane:split-left'}
-    {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Split Up', command: 'pane:split-up-and-copy-active-item'}
+    {label: 'Split Down', command: 'pane:split-down-and-copy-active-item'}
+    {label: 'Split Left', command: 'pane:split-left-and-copy-active-item'}
+    {label: 'Split Right', command: 'pane:split-right-and-copy-active-item'}
     {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]

@@ -7,7 +7,7 @@ describe "CustomGutterComponent", ->
   beforeEach ->
     mockGutterContainer = {}
     gutter = new Gutter(mockGutterContainer, {name: 'test-gutter'})
-    gutterComponent = new CustomGutterComponent({gutter})
+    gutterComponent = new CustomGutterComponent({gutter, views: atom.views})
 
   it "creates a gutter DOM node with only an empty 'custom-decorations' child node when it is initialized", ->
     expect(gutterComponent.getDomNode().classList.contains('gutter')).toBe true

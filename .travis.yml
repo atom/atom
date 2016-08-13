@@ -14,13 +14,7 @@ compiler: clang
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=0.12
-    - os: linux
       env: NODE_VERSION=4
-    - os: osx
-      env: ATOM_SPECS_TASK=core NODE_VERSION=0.12
-    - os: osx
-      env: ATOM_SPECS_TASK=packages NODE_VERSION=0.12
 
 sudo: false
 
@@ -28,9 +22,15 @@ install:
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
-  - nvm use $NODE_VERSION
+  - nvm use --delete-prefix $NODE_VERSION
 
 script: script/cibuild
+
+cache:
+  directories:
+    - node_modules
+    - apm/node_modules
+    - build/node_modules
 
 notifications:
   email:
@@ -39,8 +39,11 @@ notifications:
 
 addons:
   apt:
+    sources:
+    - ubuntu-toolchain-r-test
     packages:
     - build-essential
     - git
     - libgnome-keyring-dev
     - fakeroot
+    - gcc-multilib

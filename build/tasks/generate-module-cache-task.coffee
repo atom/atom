@@ -22,7 +22,7 @@ module.exports = (grunt) ->
           'exports'
           'spec'
           'src'
-          'src/browser'
+          'src/main-process'
           'static'
           'vendor'
         ]

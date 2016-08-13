@@ -4,7 +4,6 @@ Babel = require 'babel-core'
 CoffeeScript = require 'coffee-script'
 {TypeScriptSimple} = require 'typescript-simple'
 CSON = require 'season'
-CSONParser = require 'season/node_modules/cson-parser'
 CompileCache = require '../src/compile-cache'
 
 describe 'CompileCache', ->
@@ -18,9 +17,8 @@ describe 'CompileCache', ->
     CompileCache.resetCacheStats()
 
     spyOn(Babel, 'transform').andReturn {code: 'the-babel-code'}
-    spyOn(CoffeeScript, 'compile').andReturn {js: 'the-coffee-code', v3SourceMap: {}}
+    spyOn(CoffeeScript, 'compile').andReturn {js: 'the-coffee-code', v3SourceMap: "{}"}
     spyOn(TypeScriptSimple::, 'compile').andReturn 'the-typescript-code'
-    spyOn(CSONParser, 'parse').andReturn {the: 'cson-data'}
 
   afterEach ->
     CSON.setCacheDir(CompileCache.getCacheDirectory())
@@ -64,8 +62,51 @@ describe 'CompileCache', ->
 
     describe 'when the given file is CSON', ->
       it 'compiles the file to JSON and caches it', ->
-        CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome)
-        expect(CSONParser.parse.callCount).toBe 1
+        spyOn(CSON, 'setCacheDir').andCallThrough()
+        spyOn(CSON, 'readFileSync').andCallThrough()
 
         CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome)
-        expect(CSONParser.parse.callCount).toBe 1
+        expect(CSON.readFileSync).toHaveBeenCalledWith(path.join(fixtures, 'cson.cson'))
+        expect(CSON.setCacheDir).toHaveBeenCalledWith(path.join(atomHome, '/compile-cache'))
+
+        CSON.readFileSync.reset()
+        CSON.setCacheDir.reset()
+        CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome)
+        expect(CSON.readFileSync).toHaveBeenCalledWith(path.join(fixtures, 'cson.cson'))
+        expect(CSON.setCacheDir).not.toHaveBeenCalled()
+
+  describe 'overriding Error.prepareStackTrace', ->
+    it 'removes the override on the next tick, and always assigns the raw stack', ->
+      Error.prepareStackTrace = -> 'a-stack-trace'
+
+      error = new Error("Oops")
+      expect(error.stack).toBe 'a-stack-trace'
+      expect(Array.isArray(error.getRawStack())).toBe true
+
+      waits(1)
+      runs ->
+        error = new Error("Oops again")
+        expect(error.stack).toContain('compile-cache-spec.coffee')
+        expect(Array.isArray(error.getRawStack())).toBe true
+
+    it 'does not infinitely loop when the original prepareStackTrace value is reassigned', ->
+      originalPrepareStackTrace = Error.prepareStackTrace
+
+      Error.prepareStackTrace = -> 'a-stack-trace'
+      Error.prepareStackTrace = originalPrepareStackTrace
+
+      error = new Error('Oops')
+      expect(error.stack).toContain('compile-cache-spec.coffee')
+      expect(Array.isArray(error.getRawStack())).toBe true
+
+    it 'does not infinitely loop when the assigned prepareStackTrace calls the original prepareStackTrace', ->
+      originalPrepareStackTrace = Error.prepareStackTrace
+
+      Error.prepareStackTrace = (error, stack) ->
+        error.foo = 'bar'
+        originalPrepareStackTrace(error, stack)
+
+      error = new Error('Oops')
+      expect(error.stack).toContain('compile-cache-spec.coffee')
+      expect(error.foo).toBe('bar')
+      expect(Array.isArray(error.getRawStack())).toBe true

@@ -1,8 +1,10 @@
 path = require 'path'
+normalizePackageData = null
 
 _ = require 'underscore-plus'
 {Emitter} = require 'event-kit'
 fs = require 'fs-plus'
+CSON = require 'season'
 
 ServiceHub = require 'service-hub'
 Package = require './package'
@@ -26,22 +28,43 @@ ThemePackage = require './theme-package'
 # settings and also by calling `enablePackage()/disablePackage()`.
 module.exports =
 class PackageManager
-  constructor: ({configDirPath, @devMode, safeMode, @resourcePath}) ->
+  constructor: (params) ->
+    {
+      configDirPath, @devMode, safeMode, @resourcePath, @config, @styleManager,
+      @notificationManager, @keymapManager, @commandRegistry, @grammarRegistry,
+      @deserializerManager, @viewRegistry
+    } = params
+
     @emitter = new Emitter
     @activationHookEmitter = new Emitter
     @packageDirPaths = []
-    unless safeMode
+    @deferredActivationHooks = []
+    if configDirPath? and not safeMode
       if @devMode
         @packageDirPaths.push(path.join(configDirPath, "dev", "packages"))
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
+    @packagesCache = require('../package.json')?._atomPackages ? {}
     @loadedPackages = {}
     @activePackages = {}
+    @activatingPackages = {}
     @packageStates = {}
     @serviceHub = new ServiceHub
 
     @packageActivators = []
     @registerPackageActivator(this, ['atom', 'textmate'])
+
+  setContextMenuManager: (@contextMenuManager) ->
+
+  setMenuManager: (@menuManager) ->
+
+  setThemeManager: (@themeManager) ->
+
+  reset: ->
+    @serviceHub.clear()
+    @deactivatePackages()
+    @loadedPackages = {}
+    @packageStates = {}
 
   ###
   Section: Event Subscription
@@ -105,8 +128,12 @@ class PackageManager
 
   # Public: Get the path to the apm command.
   #
+  # Uses the value of the `core.apmPath` config setting if it exists.
+  #
   # Return a {String} file path to apm.
   getApmPath: ->
+    configPath = atom.config.get('core.apmPath')
+    return configPath if configPath
     return @apmPath if @apmPath?
 
     commandName = 'apm'
@@ -176,7 +203,10 @@ class PackageManager
   # Returns the {Package} that was disabled or null if it isn't loaded.
   disablePackage: (name) ->
     pack = @loadPackage(name)
-    pack?.disable()
+
+    unless @isPackageDisabled(name)
+      pack?.disable()
+
     pack
 
   # Public: Is the package with the given name disabled?
@@ -185,7 +215,7 @@ class PackageManager
   #
   # Returns a {Boolean}.
   isPackageDisabled: (name) ->
-    _.include(atom.config.get('core.disabledPackages') ? [], name)
+    _.include(@config.get('core.disabledPackages') ? [], name)
 
   ###
   Section: Accessing active packages
@@ -269,7 +299,7 @@ class PackageManager
     packages = []
     for packagePath in @getAvailablePackagePaths()
       name = path.basename(packagePath)
-      metadata = @getLoadedPackage(name)?.metadata ? Package.loadMetadata(packagePath, true)
+      metadata = @getLoadedPackage(name)?.metadata ? @loadPackageMetadata(packagePath, true)
       packages.push(metadata)
     packages
 
@@ -292,7 +322,7 @@ class PackageManager
     @packageDependencies
 
   hasAtomEngine: (packagePath) ->
-    metadata = Package.loadMetadata(packagePath, true)
+    metadata = @loadPackageMetadata(packagePath, true)
     metadata?.engines?.atom?
 
   unobserveDisabledPackages: ->
@@ -300,7 +330,7 @@ class PackageManager
     @disabledPackagesSubscription = null
 
   observeDisabledPackages: ->
-    @disabledPackagesSubscription ?= atom.config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
+    @disabledPackagesSubscription ?= @config.onDidChange 'core.disabledPackages', ({newValue, oldValue}) =>
       packagesToEnable = _.difference(oldValue, newValue)
       packagesToDisable = _.difference(newValue, oldValue)
 
@@ -313,12 +343,14 @@ class PackageManager
     @packagesWithKeymapsDisabledSubscription = null
 
   observePackagesWithKeymapsDisabled: ->
-    @packagesWithKeymapsDisabledSubscription ?= atom.config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
+    @packagesWithKeymapsDisabledSubscription ?= @config.onDidChange 'core.packagesWithKeymapsDisabled', ({newValue, oldValue}) =>
       keymapsToEnable = _.difference(oldValue, newValue)
       keymapsToDisable = _.difference(newValue, oldValue)
 
-      @getLoadedPackage(packageName).deactivateKeymaps() for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
-      @getLoadedPackage(packageName).activateKeymaps() for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+      for packageName in keymapsToDisable when not @isPackageDisabled(packageName)
+        @getLoadedPackage(packageName)?.deactivateKeymaps()
+      for packageName in keymapsToEnable when not @isPackageDisabled(packageName)
+        @getLoadedPackage(packageName)?.activateKeymaps()
       null
 
   loadPackages: ->
@@ -329,10 +361,14 @@ class PackageManager
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
-    @loadPackage(packagePath) for packagePath in packagePaths
+    @config.transact =>
+      @loadPackage(packagePath) for packagePath in packagePaths
+      return
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
+    return null if path.basename(nameOrPath)[0].match /^\./ # primarily to skip .git folder
+
     return pack if pack = @getLoadedPackage(nameOrPath)
 
     if packagePath = @resolvePackagePath(nameOrPath)
@@ -340,7 +376,7 @@ class PackageManager
       return pack if pack = @getLoadedPackage(name)
 
       try
-        metadata = Package.loadMetadata(packagePath) ? {}
+        metadata = @loadPackageMetadata(packagePath) ? {}
       catch error
         @handleMetadataError(error, packagePath)
         return null
@@ -350,10 +386,16 @@ class PackageManager
           console.warn "Could not load #{metadata.name}@#{metadata.version} because it uses deprecated APIs that have been removed."
           return null
 
+      options = {
+        path: packagePath, metadata, packageManager: this, @config, @styleManager,
+        @commandRegistry, @keymapManager, @devMode, @notificationManager,
+        @grammarRegistry, @themeManager, @menuManager, @contextMenuManager,
+        @deserializerManager, @viewRegistry
+      }
       if metadata.theme
-        pack = new ThemePackage(packagePath, metadata)
+        pack = new ThemePackage(options)
       else
-        pack = new Package(packagePath, metadata)
+        pack = new Package(options)
       pack.load()
       @loadedPackages[pack.name] = pack
       @emitter.emit 'did-load-package', pack
@@ -383,6 +425,7 @@ class PackageManager
       packages = @getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     Promise.all(promises).then =>
+      @triggerDeferredActivationHooks()
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.
@@ -392,11 +435,11 @@ class PackageManager
 
   activatePackages: (packages) ->
     promises = []
-    atom.config.transact =>
+    @config.transactAsync =>
       for pack in packages
         promise = @activatePackage(pack.name)
-        promises.push(promise) unless pack.hasActivationCommands()
-      return
+        promises.push(promise) unless pack.activationShouldBeDeferred()
+      Promise.all(promises)
     @observeDisabledPackages()
     @observePackagesWithKeymapsDisabled()
     promises
@@ -406,24 +449,43 @@ class PackageManager
     if pack = @getActivePackage(name)
       Promise.resolve(pack)
     else if pack = @loadPackage(name)
+      @activatingPackages[pack.name] = pack
       pack.activate().then =>
-        @activePackages[pack.name] = pack
-        @emitter.emit 'did-activate-package', pack
+        if @activatingPackages[pack.name]?
+          delete @activatingPackages[pack.name]
+          @activePackages[pack.name] = pack
+          @emitter.emit 'did-activate-package', pack
         pack
     else
       Promise.reject(new Error("Failed to load package '#{name}'"))
 
+  triggerDeferredActivationHooks: ->
+    return unless @deferredActivationHooks?
+    @activationHookEmitter.emit(hook) for hook in @deferredActivationHooks
+    @deferredActivationHooks = null
+
   triggerActivationHook: (hook) ->
     return new Error("Cannot trigger an empty activation hook") unless hook? and _.isString(hook) and hook.length > 0
-    @activationHookEmitter.emit(hook)
+    if @deferredActivationHooks?
+      @deferredActivationHooks.push hook
+    else
+      @activationHookEmitter.emit(hook)
 
   onDidTriggerActivationHook: (hook, callback) ->
     return unless hook? and _.isString(hook) and hook.length > 0
     @activationHookEmitter.on(hook, callback)
 
+  serialize: ->
+    for pack in @getActivePackages()
+      @serializePackage(pack)
+    @packageStates
+
+  serializePackage: (pack) ->
+    @setPackageState(pack.name, state) if state = pack.serialize?()
+
   # Deactivate all packages
   deactivatePackages: ->
-    atom.config.transact =>
+    @config.transact =>
       @deactivatePackage(pack.name) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
@@ -432,10 +494,10 @@ class PackageManager
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
     pack = @getLoadedPackage(name)
-    if @isPackageActive(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
+    @serializePackage(pack) if @isPackageActive(pack.name)
     pack.deactivate()
     delete @activePackages[pack.name]
+    delete @activatingPackages[pack.name]
     @emitter.emit 'did-deactivate-package', pack
 
   handleMetadataError: (error, packagePath) ->
@@ -443,7 +505,7 @@ class PackageManager
     detail = "#{error.message} in #{metadataPath}"
     stack = "#{error.stack}\n  at #{metadataPath}:1:1"
     message = "Failed to load the #{path.basename(packagePath)} package"
-    atom.notifications.addError(message, {stack, detail, dismissable: true})
+    @notificationManager.addError(message, {stack, detail, packageName: path.basename(packagePath), dismissable: true})
 
   uninstallDirectory: (directory) ->
     symlinkPromise = new Promise (resolve) ->
@@ -456,3 +518,41 @@ class PackageManager
       [isSymLink, isDir] = values
       if not isSymLink and isDir
         fs.remove directory, ->
+
+  reloadActivePackageStyleSheets: ->
+    for pack in @getActivePackages() when pack.getType() isnt 'theme'
+      pack.reloadStylesheets?()
+    return
+
+  isBundledPackagePath: (packagePath) ->
+    if @devMode
+      return false unless @resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
+
+    @resourcePathWithTrailingSlash ?= "#{@resourcePath}#{path.sep}"
+    packagePath?.startsWith(@resourcePathWithTrailingSlash)
+
+  loadPackageMetadata: (packagePath, ignoreErrors=false) ->
+    packageName = path.basename(packagePath)
+    if @isBundledPackagePath(packagePath)
+      metadata = @packagesCache[packageName]?.metadata
+    unless metadata?
+      if metadataPath = CSON.resolve(path.join(packagePath, 'package'))
+        try
+          metadata = CSON.readFileSync(metadataPath)
+          @normalizePackageMetadata(metadata)
+        catch error
+          throw error unless ignoreErrors
+
+    metadata ?= {}
+    unless typeof metadata.name is 'string' and metadata.name.length > 0
+      metadata.name = packageName
+
+    if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+      metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
+
+    metadata
+
+  normalizePackageMetadata: (metadata) ->
+    unless metadata?._id
+      normalizePackageData ?= require 'normalize-package-data'
+      normalizePackageData(metadata)

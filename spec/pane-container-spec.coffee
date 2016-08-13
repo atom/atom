@@ -2,6 +2,16 @@ PaneContainer = require '../src/pane-container'
 Pane = require '../src/pane'
 
 describe "PaneContainer", ->
+  [confirm, params] = []
+
+  beforeEach ->
+    confirm = spyOn(atom.applicationDelegate, 'confirm').andReturn(0)
+    params = {
+      config: atom.config,
+      deserializerManager: atom.deserializers
+      applicationDelegate: atom.applicationDelegate
+    }
+
   describe "serialization", ->
     [containerA, pane1A, pane2A, pane3A] = []
 
@@ -12,8 +22,9 @@ describe "PaneContainer", ->
         @deserialize: -> new this
         serialize: -> deserializer: 'Item'
 
-      pane1A = new Pane(items: [new Item])
-      containerA = new PaneContainer(root: pane1A)
+      containerA = new PaneContainer(params)
+      pane1A = containerA.getActivePane()
+      pane1A.addItem(new Item)
       pane2A = pane1A.splitRight(items: [new Item])
       pane3A = pane2A.splitDown(items: [new Item])
       pane3A.focus()
@@ -21,7 +32,8 @@ describe "PaneContainer", ->
     it "preserves the focused pane across serialization", ->
       expect(pane3A.focused).toBe true
 
-      containerB = PaneContainer.deserialize(containerA.serialize())
+      containerB = new PaneContainer(params)
+      containerB.deserialize(containerA.serialize(), atom.deserializers)
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(pane3B.focused).toBe true
 
@@ -29,7 +41,8 @@ describe "PaneContainer", ->
       pane3A.activate()
       expect(containerA.getActivePane()).toBe pane3A
 
-      containerB = PaneContainer.deserialize(containerA.serialize())
+      containerB = new PaneContainer(params)
+      containerB.deserialize(containerA.serialize(), atom.deserializers)
       [pane1B, pane2B, pane3B] = containerB.getPanes()
       expect(containerB.getActivePane()).toBe pane3B
 
@@ -37,7 +50,8 @@ describe "PaneContainer", ->
       pane3A.activate()
       state = containerA.serialize()
       state.activePaneId = -22
-      containerB = atom.deserializers.deserialize(state)
+      containerB = new PaneContainer(params)
+      containerB.deserialize(state, atom.deserializers)
       expect(containerB.getActivePane()).toBe containerB.getPanes()[0]
 
     describe "if there are empty panes after deserialization", ->
@@ -47,7 +61,8 @@ describe "PaneContainer", ->
       describe "if the 'core.destroyEmptyPanes' config option is false (the default)", ->
         it "leaves the empty panes intact", ->
           state = containerA.serialize()
-          containerB = atom.deserializers.deserialize(state)
+          containerB = new PaneContainer(params)
+          containerB.deserialize(state, atom.deserializers)
           [leftPane, column] = containerB.getRoot().getChildren()
           [topPane, bottomPane] = column.getChildren()
 
@@ -60,14 +75,15 @@ describe "PaneContainer", ->
           atom.config.set('core.destroyEmptyPanes', true)
 
           state = containerA.serialize()
-          containerB = atom.deserializers.deserialize(state)
+          containerB = new PaneContainer(params)
+          containerB.deserialize(state, atom.deserializers)
           [leftPane, rightPane] = containerB.getRoot().getChildren()
 
           expect(leftPane.getItems().length).toBe 1
           expect(rightPane.getItems().length).toBe 1
 
   it "does not allow the root pane to be destroyed", ->
-    container = new PaneContainer
+    container = new PaneContainer(params)
     container.getRoot().destroy()
     expect(container.getRoot()).toBeDefined()
     expect(container.getRoot().isDestroyed()).toBe false
@@ -76,7 +92,7 @@ describe "PaneContainer", ->
     [container, pane1, pane2] = []
 
     beforeEach ->
-      container = new PaneContainer
+      container = new PaneContainer(params)
       pane1 = container.getRoot()
 
     it "returns the first pane if no pane has been made active", ->
@@ -105,7 +121,8 @@ describe "PaneContainer", ->
     [container, pane1, pane2, observed] = []
 
     beforeEach ->
-      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container = new PaneContainer(params)
+      container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object, new Object])
       [pane1, pane2] = container.getPanes()
 
@@ -122,9 +139,32 @@ describe "PaneContainer", ->
       pane2.activate()
       expect(observed).toEqual [pane1.itemAtIndex(0), pane2.itemAtIndex(0)]
 
+  describe "::onDidStopChangingActivePaneItem()", ->
+    [container, pane1, pane2, observed] = []
+
+    beforeEach ->
+      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container.getRoot().splitRight(items: [new Object, new Object])
+      [pane1, pane2] = container.getPanes()
+
+      observed = []
+      container.onDidStopChangingActivePaneItem (item) -> observed.push(item)
+
+    it "invokes observers when the active item of the active pane stops changing", ->
+      pane2.activateNextItem()
+      pane2.activateNextItem()
+      advanceClock(100)
+      expect(observed).toEqual [pane2.itemAtIndex(0)]
+
+    it "invokes observers when the active pane stops changing", ->
+      pane1.activate()
+      pane2.activate()
+      advanceClock(100)
+      expect(observed).toEqual [pane2.itemAtIndex(0)]
+
   describe "::observePanes()", ->
     it "invokes observers with all current and future panes", ->
-      container = new PaneContainer
+      container = new PaneContainer(params)
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
 
@@ -138,7 +178,8 @@ describe "PaneContainer", ->
 
   describe "::observePaneItems()", ->
     it "invokes observers with all current and future pane items", ->
-      container = new PaneContainer(root: new Pane(items: [new Object, new Object]))
+      container = new PaneContainer(params)
+      container.getRoot().addItems([new Object, new Object])
       container.getRoot().splitRight(items: [new Object])
       [pane1, pane2] = container.getPanes()
       observed = []
@@ -157,27 +198,27 @@ describe "PaneContainer", ->
         shouldPromptToSave: -> true
         getURI: -> 'test'
 
-      container = new PaneContainer
+      container = new PaneContainer(params)
       container.getRoot().splitRight()
       [pane1, pane2] = container.getPanes()
       pane1.addItem(new TestItem)
       pane2.addItem(new TestItem)
 
     it "returns true if the user saves all modified files when prompted", ->
-      spyOn(atom, "confirm").andReturn(0)
+      confirm.andReturn(0)
       saved = container.confirmClose()
       expect(saved).toBeTruthy()
-      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirm).toHaveBeenCalled()
 
     it "returns false if the user cancels saving any modified file", ->
-      spyOn(atom, "confirm").andReturn(1)
+      confirm.andReturn(1)
       saved = container.confirmClose()
       expect(saved).toBeFalsy()
-      expect(atom.confirm).toHaveBeenCalled()
+      expect(confirm).toHaveBeenCalled()
 
   describe "::onDidAddPane(callback)", ->
     it "invokes the given callback when panes are added", ->
-      container = new PaneContainer
+      container = new PaneContainer(params)
       events = []
       container.onDidAddPane (event) -> events.push(event)
 
@@ -194,7 +235,7 @@ describe "PaneContainer", ->
         destroy: -> @_isDestroyed = true
         isDestroyed: -> @_isDestroyed
 
-      container = new PaneContainer
+      container = new PaneContainer(params)
       events = []
       container.onWillDestroyPane (event) ->
         itemsDestroyed = (item.isDestroyed() for item in event.pane.getItems())
@@ -210,7 +251,7 @@ describe "PaneContainer", ->
 
   describe "::onDidDestroyPane(callback)", ->
     it "invokes the given callback when panes are destroyed", ->
-      container = new PaneContainer
+      container = new PaneContainer(params)
       events = []
       container.onDidDestroyPane (event) -> events.push(event)
 
@@ -225,7 +266,7 @@ describe "PaneContainer", ->
 
   describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
-      container = new PaneContainer
+      container = new PaneContainer(params)
       pane1 = container.getRoot()
       item1 = new Object
       item2 = new Object
@@ -251,17 +292,60 @@ describe "PaneContainer", ->
       ]
 
   describe "::saveAll()", ->
-    it "saves all open pane items", ->
-      container = new PaneContainer
+    it "saves all modified pane items", ->
+      container = new PaneContainer(params)
       pane1 = container.getRoot()
       pane2 = pane1.splitRight()
 
-      pane1.addItem(item1 = {getURI: (-> ''), save: -> @saved = true})
-      pane1.addItem(item2 = {getURI: (-> ''), save: -> @saved = true})
-      pane2.addItem(item3 = {getURI: (-> ''), save: -> @saved = true})
+      item1 = {
+        saved: false
+        getURI: -> ''
+        isModified: -> true,
+        save: -> @saved = true
+      }
+      item2 = {
+        saved: false
+        getURI: -> ''
+        isModified: -> false,
+        save: -> @saved = true
+      }
+      item3 = {
+        saved: false
+        getURI: -> ''
+        isModified: -> true,
+        save: -> @saved = true
+      }
+
+      pane1.addItem(item1)
+      pane1.addItem(item2)
+      pane1.addItem(item3)
 
       container.saveAll()
 
       expect(item1.saved).toBe true
-      expect(item2.saved).toBe true
+      expect(item2.saved).toBe false
       expect(item3.saved).toBe true
+
+  describe "::moveActiveItemToPane(destPane) and ::copyActiveItemToPane(destPane)", ->
+    [container, pane1, pane2, item1] = []
+
+    beforeEach ->
+      class TestItem
+        constructor: (id) -> @id = id
+        copy: -> new TestItem(@id)
+
+      container = new PaneContainer(params)
+      pane1 = container.getRoot()
+      item1 = new TestItem('1')
+      pane2 = pane1.splitRight(items: [item1])
+
+    describe "::::moveActiveItemToPane(destPane)", ->
+      it "moves active item to given pane and focuses it", ->
+        container.moveActiveItemToPane(pane1)
+        expect(pane1.getActiveItem()).toBe item1
+
+    describe "::::copyActiveItemToPane(destPane)", ->
+      it "copies active item to given pane and focuses it", ->
+        container.copyActiveItemToPane(pane1)
+        expect(container.paneForItem(item1)).toBe pane2
+        expect(pane1.getActiveItem().id).toBe item1.id

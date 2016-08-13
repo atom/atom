@@ -26,7 +26,7 @@ describe "GutterContainerComponent", ->
     domElementPool = new DOMElementPool
     mockEditor = {}
     mockMouseDown = ->
-    gutterContainerComponent = new GutterContainerComponent({editor: mockEditor, onMouseDown: mockMouseDown, domElementPool})
+    gutterContainerComponent = new GutterContainerComponent({editor: mockEditor, onMouseDown: mockMouseDown, domElementPool, views: atom.views})
 
   it "creates a DOM node with no child gutter nodes when it is initialized", ->
     expect(gutterContainerComponent.getDomNode() instanceof HTMLElement).toBe true

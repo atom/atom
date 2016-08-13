@@ -71,21 +71,18 @@ class Gutter
   isVisible: ->
     @visible
 
-  # Essential: Add a decoration that tracks a {Marker}. When the marker moves,
+  # Essential: Add a decoration that tracks a {DisplayMarker}. When the marker moves,
   # is invalidated, or is destroyed, the decoration will be updated to reflect
   # the marker's state.
   #
   # ## Arguments
   #
-  # * `marker` A {Marker} you want this decoration to follow.
-  # * `decorationParams` An {Object} representing the decoration
-  #   * `class` This CSS class will be applied to the decorated line number.
-  #   * `onlyHead` (optional) If `true`, the decoration will only be applied to
-  #     the head of the marker.
-  #   * `onlyEmpty` (optional) If `true`, the decoration will only be applied if
-  #     the associated marker is empty.
-  #   * `onlyNonEmpty` (optional) If `true`, the decoration will only be applied
-  #     if the associated marker is non-empty.
+  # * `marker` A {DisplayMarker} you want this decoration to follow.
+  # * `decorationParams` An {Object} representing the decoration. It is passed
+  #   to {TextEditor::decorateMarker} as its `decorationParams` and so supports
+  #   all options documented there.
+  #   * `type` __Caveat__: set to `'line-number'` if this is the line-number
+  #     gutter, `'gutter'` otherwise. This cannot be overridden.
   #
   # Returns a {Decoration} object
   decorateMarker: (marker, options) ->

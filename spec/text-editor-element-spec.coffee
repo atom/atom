@@ -1,5 +1,6 @@
 TextEditorElement = require '../src/text-editor-element'
 TextEditor = require '../src/text-editor'
+{Disposable} = require 'event-kit'
 
 # The rest of text-editor-component-spec will be moved to this file when React
 # is eliminated. This covers only concerns related to the wrapper element for now
@@ -33,7 +34,7 @@ describe "TextEditorElement", ->
   describe "when the model is assigned", ->
     it "adds the 'mini' attribute if .isMini() returns true on the model", ->
       element = new TextEditorElement
-      model = new TextEditor(mini: true)
+      model = atom.workspace.buildTextEditor(mini: true)
       element.setModel(model)
       expect(element.hasAttribute('mini')).toBe true
 
@@ -67,7 +68,7 @@ describe "TextEditorElement", ->
 
   describe "when the editor is detached from the DOM and then reattached", ->
     it "does not render duplicate line numbers", ->
-      editor = new TextEditor
+      editor = atom.workspace.buildTextEditor()
       editor.setText('1\n2\n3')
       element = atom.views.getView(editor)
 
@@ -80,7 +81,7 @@ describe "TextEditorElement", ->
       expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
 
     it "does not render duplicate decorations in custom gutters", ->
-      editor = new TextEditor
+      editor = atom.workspace.buildTextEditor()
       editor.setText('1\n2\n3')
       editor.addGutter({name: 'test-gutter'})
       marker = editor.markBufferRange([[0, 0], [2, 0]])
@@ -159,6 +160,7 @@ describe "TextEditorElement", ->
         initialThemeLoadComplete
       spyOn(atom.themes, 'onDidChangeActiveThemes').andCallFake (fn) ->
         themeReloadCallback = fn
+        new Disposable
 
       atom.config.set("editor.useShadowDOM", false)
 
@@ -234,6 +236,27 @@ describe "TextEditorElement", ->
       jasmine.attachToDOM(element)
       expect(element.getDefaultCharacterWidth()).toBeGreaterThan(0)
 
+  describe "::getMaxScrollTop", ->
+    it "returns the maximum scroll top that can be applied to the element", ->
+      editor = atom.workspace.buildTextEditor()
+      editor.setText('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16')
+      element = atom.views.getView(editor)
+      element.style.lineHeight = "10px"
+      element.style.width = "200px"
+
+      expect(element.getMaxScrollTop()).toBe(0)
+
+      jasmine.attachToDOM(element)
+
+      element.setHeight(100)
+      expect(element.getMaxScrollTop()).toBe(60)
+
+      element.setHeight(120)
+      expect(element.getMaxScrollTop()).toBe(40)
+
+      element.setHeight(200)
+      expect(element.getMaxScrollTop()).toBe(0)
+
   describe "on TextEditor::setMini", ->
     it "changes the element's 'mini' attribute", ->
       element = new TextEditorElement
@@ -243,3 +266,61 @@ describe "TextEditorElement", ->
       expect(element.hasAttribute('mini')).toBe true
       element.getModel().setMini(false)
       expect(element.hasAttribute('mini')).toBe false
+
+  describe "events", ->
+    element = null
+
+    beforeEach ->
+      element = new TextEditorElement
+      element.getModel().setText("lorem\nipsum\ndolor\nsit\namet")
+      element.setUpdatedSynchronously(true)
+      element.setHeight(20)
+      element.setWidth(20)
+
+    describe "::onDidChangeScrollTop(callback)", ->
+      it "triggers even when subscribing before attaching the element", ->
+        positions = []
+        subscription1 = element.onDidChangeScrollTop (p) -> positions.push(p)
+        jasmine.attachToDOM(element)
+        subscription2 = element.onDidChangeScrollTop (p) -> positions.push(p)
+
+        positions.length = 0
+        element.setScrollTop(10)
+        expect(positions).toEqual([10, 10])
+
+        element.remove()
+        jasmine.attachToDOM(element)
+
+        positions.length = 0
+        element.setScrollTop(20)
+        expect(positions).toEqual([20, 20])
+
+        subscription1.dispose()
+
+        positions.length = 0
+        element.setScrollTop(30)
+        expect(positions).toEqual([30])
+
+    describe "::onDidChangeScrollLeft(callback)", ->
+      it "triggers even when subscribing before attaching the element", ->
+        positions = []
+        subscription1 = element.onDidChangeScrollLeft (p) -> positions.push(p)
+        jasmine.attachToDOM(element)
+        subscription2 = element.onDidChangeScrollLeft (p) -> positions.push(p)
+
+        positions.length = 0
+        element.setScrollLeft(10)
+        expect(positions).toEqual([10, 10])
+
+        element.remove()
+        jasmine.attachToDOM(element)
+
+        positions.length = 0
+        element.setScrollLeft(20)
+        expect(positions).toEqual([20, 20])
+
+        subscription1.dispose()
+
+        positions.length = 0
+        element.setScrollLeft(30)
+        expect(positions).toEqual([30])

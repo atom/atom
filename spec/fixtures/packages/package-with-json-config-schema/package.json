@@ -1,0 +1,13 @@
+{
+  "name": "package-with-json-config-schema",
+  "configSchema": {
+    "a": {
+      "type": "number",
+      "default": 5
+    },
+    "b": {
+      "type": "string",
+      "default": "five"
+    }
+  }
+}

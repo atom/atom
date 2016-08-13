@@ -1,0 +1,42 @@
+version: "{build}"
+
+skip_tags: true
+clone_folder: c:\projects\atom
+clone_depth: 10
+
+platform:
+  - x86
+
+environment:
+  global:
+    ATOM_DEV_RESOURCE_PATH: c:\projects\atom
+    ATOM_ACCESS_TOKEN:
+      secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
+    ATOM_NOISY_BUILD: 1
+
+  matrix:
+  - NODE_VERSION: 4.4.5
+
+install:
+  - SET PATH=C:\Program Files\Atom\resources\cli;%PATH%
+  - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
+
+build_script:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - C:\projects\atom\script\cibuild.cmd
+
+test: off
+deploy: off
+artifacts:
+  - path: out\**\AtomSetup.exe
+    name: AtomSetup.exe
+  - path: out\**\AtomSetup.msi
+    name: AtomSetup.msi
+
+cache:
+  - '%APPVEYOR_BUILD_FOLDER%\build\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\apm\node_modules'
+  - '%APPVEYOR_BUILD_FOLDER%\node_modules'
+  - '%USERPROFILE%\.atom\.apm'
+  - '%USERPROFILE%\.atom\.node-gyp\.atom'
+  - '%USERPROFILE%\.atom\.npm'

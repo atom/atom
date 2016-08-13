@@ -5,18 +5,18 @@ module.exports = (grunt) ->
   {spawn} = require('./task-helpers')(grunt)
 
   getVersion = (callback) ->
-    onBuildMachine = process.env.JANKY_SHA1 and process.env.JANKY_BRANCH in ['stable', 'beta']
+    shouldUseCommitHash = grunt.config.get('atom.channel') is 'dev'
     inRepository = fs.existsSync(path.resolve(__dirname, '..', '..', '.git'))
     {version} = require(path.join(grunt.config.get('atom.appDir'), 'package.json'))
-    if onBuildMachine or not inRepository
-      callback(null, version)
-    else
+    if shouldUseCommitHash and inRepository
       cmd = 'git'
       args = ['rev-parse', '--short', 'HEAD']
       spawn {cmd, args}, (error, {stdout}={}, code) ->
         commitHash = stdout?.trim?()
         combinedVersion = "#{version}-#{commitHash}"
         callback(error, combinedVersion)
+    else
+      callback(null, version)
 
   grunt.registerTask 'set-version', 'Set the version in the plist and package.json', ->
     done = @async()
@@ -27,6 +27,7 @@ module.exports = (grunt) ->
         return
 
       appDir = grunt.config.get('atom.appDir')
+      shellAppDir = grunt.config.get('atom.shellAppDir')
 
       # Replace version field of package.json.
       packageJsonPath = path.join(appDir, 'package.json')
@@ -37,7 +38,7 @@ module.exports = (grunt) ->
 
       if process.platform is 'darwin'
         cmd = 'script/set-version'
-        args = [grunt.config.get('atom.buildDir'), version]
+        args = [shellAppDir, version]
         spawn {cmd, args}, (error, result, code) -> done(error)
       else if process.platform is 'win32'
         shellAppDir = grunt.config.get('atom.shellAppDir')

@@ -4,11 +4,13 @@ fs = require 'fs-plus'
 temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
+{ipcRenderer} = require 'electron'
 
-describe "Window", ->
+describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
 
   beforeEach ->
+    atom.uninstallWindowEventHandler()
     spyOn(atom, 'hide')
     initialPath = atom.project.getPaths()[0]
     spyOn(atom, 'getLoadSettings').andCallFake ->
@@ -16,12 +18,12 @@ describe "Window", ->
       loadSettings.initialPath = initialPath
       loadSettings
     atom.project.destroy()
-    atom.windowEventHandler.unsubscribe()
-    windowEventHandler = new WindowEventHandler
+    windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate, window, document})
     projectPath = atom.project.getPaths()[0]
 
   afterEach ->
     windowEventHandler.unsubscribe()
+    atom.installWindowEventHandler()
 
   describe "when the window is loaded", ->
     it "doesn't have .is-blurred on the body tag", ->
@@ -51,68 +53,29 @@ describe "Window", ->
   describe "beforeunload event", ->
     beforeEach ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
+      spyOn(ipcRenderer, 'send')
 
     describe "when pane items are modified", ->
-      it "prompts user to save and calls atom.workspace.confirmClose", ->
-        editor = null
-        spyOn(atom.workspace, 'confirmClose').andCallThrough()
-        spyOn(atom, "confirm").andReturn(2)
+      editor = null
+      beforeEach ->
+        waitsForPromise -> atom.workspace.open("sample.js").then (o) -> editor = o
+        runs -> editor.insertText("I look different, I feel different.")
 
-        waitsForPromise ->
-          atom.workspace.open("sample.js").then (o) -> editor = o
+      it "prompts the user to save them, and allows the unload to continue if they confirm", ->
+        spyOn(atom.workspace, 'confirmClose').andReturn(true)
+        window.dispatchEvent(new CustomEvent('beforeunload'))
+        expect(atom.workspace.confirmClose).toHaveBeenCalled()
+        expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
 
-        runs ->
-          editor.insertText("I look different, I feel different.")
-          window.dispatchEvent(new CustomEvent('beforeunload'))
-          expect(atom.workspace.confirmClose).toHaveBeenCalled()
-          expect(atom.confirm).toHaveBeenCalled()
-
-      it "prompts user to save and handler returns true if don't save", ->
-        editor = null
-        spyOn(atom, "confirm").andReturn(2)
-
-        waitsForPromise ->
-          atom.workspace.open("sample.js").then (o) -> editor = o
-
-        runs ->
-          editor.insertText("I look different, I feel different.")
-          window.dispatchEvent(new CustomEvent('beforeunload'))
-          expect(atom.confirm).toHaveBeenCalled()
-
-      it "prompts user to save and handler returns false if dialog is canceled", ->
-        editor = null
-        spyOn(atom, "confirm").andReturn(1)
-        waitsForPromise ->
-          atom.workspace.open("sample.js").then (o) -> editor = o
-
-        runs ->
-          editor.insertText("I look different, I feel different.")
-          window.dispatchEvent(new CustomEvent('beforeunload'))
-          expect(atom.confirm).toHaveBeenCalled()
-
-      describe "when the same path is modified in multiple panes", ->
-        it "prompts to save the item", ->
-          return
-          editor = null
-          filePath = path.join(temp.mkdirSync('atom-file'), 'file.txt')
-          fs.writeFileSync(filePath, 'hello')
-          spyOn(atom.workspace, 'confirmClose').andCallThrough()
-          spyOn(atom, 'confirm').andReturn(0)
-
-          waitsForPromise ->
-            atom.workspace.open(filePath).then (o) -> editor = o
-
-          runs ->
-            atom.workspace.getActivePane().splitRight(copyActiveItem: true)
-            editor.setText('world')
-            window.dispatchEvent(new CustomEvent('beforeunload'))
-            expect(atom.workspace.confirmClose).toHaveBeenCalled()
-            expect(atom.confirm.callCount).toBe 1
-            expect(fs.readFileSync(filePath, 'utf8')).toBe 'world'
+      it "cancels the unload if the user selects cancel", ->
+        spyOn(atom.workspace, 'confirmClose').andReturn(false)
+        window.dispatchEvent(new CustomEvent('beforeunload'))
+        expect(atom.workspace.confirmClose).toHaveBeenCalled()
+        expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
-      shell = require 'shell'
+      {shell} = require 'electron'
       spyOn(shell, 'openExternal')
 
       link = document.createElement('a')
@@ -225,62 +188,6 @@ describe "Window", ->
         elements.dispatchEvent(new CustomEvent("core:focus-previous", bubbles: true))
         expect(document.activeElement.tabIndex).toBe 7
 
-  describe "the window:open-locations event", ->
-    beforeEach ->
-      spyOn(atom.workspace, 'open')
-      atom.project.setPaths([])
-
-    describe "when the opened path exists", ->
-      it "adds it to the project's paths", ->
-        pathToOpen = __filename
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.project.getPaths().length is 1
-
-        runs ->
-          expect(atom.project.getPaths()[0]).toBe __dirname
-
-    describe "when the opened path does not exist but its parent directory does", ->
-      it "adds the parent directory to the project paths", ->
-        pathToOpen = path.join(__dirname, 'this-path-does-not-exist.txt')
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.project.getPaths().length is 1
-
-        runs ->
-          expect(atom.project.getPaths()[0]).toBe __dirname
-
-    describe "when the opened path is a file", ->
-      it "opens it in the workspace", ->
-        pathToOpen = __filename
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.workspace.open.callCount is 1
-
-        runs ->
-          expect(atom.workspace.open.mostRecentCall.args[0]).toBe __filename
-
-
-    describe "when the opened path is a directory", ->
-      it "does not open it in the workspace", ->
-        pathToOpen = __dirname
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-        expect(atom.workspace.open.callCount).toBe 0
-
-    describe "when the opened path is a uri", ->
-      it "adds it to the project's paths as is", ->
-        pathToOpen = 'remote://server:7644/some/dir/path'
-        atom.getCurrentWindow().send 'message', 'open-locations', [{pathToOpen}]
-
-        waitsFor ->
-          atom.project.getPaths().length is 1
-
-        runs ->
-          expect(atom.project.getPaths()[0]).toBe pathToOpen
-
   describe "when keydown events occur on the document", ->
     it "dispatches the event via the KeymapManager and CommandRegistry", ->
       dispatchedCommands = []
@@ -293,3 +200,35 @@ describe "Window", ->
 
       expect(dispatchedCommands.length).toBe 1
       expect(dispatchedCommands[0].type).toBe 'foo-command'
+
+  describe "native key bindings", ->
+    it "correctly dispatches them to active elements with the '.native-key-bindings' class", ->
+      webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
+      spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
+        webContents: webContentsSpy
+        on: ->
+      })
+
+      nativeKeyBindingsInput = document.createElement("input")
+      nativeKeyBindingsInput.classList.add("native-key-bindings")
+      jasmine.attachToDOM(nativeKeyBindingsInput)
+      nativeKeyBindingsInput.focus()
+
+      atom.dispatchApplicationMenuCommand("core:copy")
+      atom.dispatchApplicationMenuCommand("core:paste")
+
+      expect(webContentsSpy.copy).toHaveBeenCalled()
+      expect(webContentsSpy.paste).toHaveBeenCalled()
+
+      webContentsSpy.copy.reset()
+      webContentsSpy.paste.reset()
+
+      normalInput = document.createElement("input")
+      jasmine.attachToDOM(normalInput)
+      normalInput.focus()
+
+      atom.dispatchApplicationMenuCommand("core:copy")
+      atom.dispatchApplicationMenuCommand("core:paste")
+
+      expect(webContentsSpy.copy).not.toHaveBeenCalled()
+      expect(webContentsSpy.paste).not.toHaveBeenCalled()

@@ -44,15 +44,23 @@ SequenceCount = 0
 # ```
 module.exports =
 class CommandRegistry
-  constructor: (@rootNode) ->
+  constructor: ->
+    @rootNode = null
+    @clear()
+
+  clear: ->
     @registeredCommands = {}
     @selectorBasedListenersByCommandName = {}
     @inlineListenersByCommandName = {}
     @emitter = new Emitter
 
+  attach: (@rootNode) ->
+    @commandRegistered(command) for command of @selectorBasedListenersByCommandName
+    @commandRegistered(command) for command of @inlineListenersByCommandName
+
   destroy: ->
     for commandName of @registeredCommands
-      window.removeEventListener(commandName, @handleCommandEvent, true)
+      @rootNode.removeEventListener(commandName, @handleCommandEvent, true)
     return
 
   # Public: Add one or more command listeners associated with a selector.
@@ -236,11 +244,14 @@ class CommandRegistry
           (@selectorBasedListenersByCommandName[event.type] ? [])
             .filter (listener) -> currentTarget.webkitMatchesSelector(listener.selector)
             .sort (a, b) -> a.compare(b)
-        listeners = listeners.concat(selectorBasedListeners)
+        listeners = selectorBasedListeners.concat(listeners)
 
       matched = true if listeners.length > 0
 
-      for listener in listeners
+      # Call inline listeners first in reverse registration order,
+      # and selector-based listeners by specificity and reverse
+      # registration order.
+      for listener in listeners by -1
         break if immediatePropagationStopped
         listener.callback.call(currentTarget, dispatchedEvent)
 
@@ -253,8 +264,8 @@ class CommandRegistry
     matched
 
   commandRegistered: (commandName) ->
-    unless @registeredCommands[commandName]
-      window.addEventListener(commandName, @handleCommandEvent, true)
+    if @rootNode? and not @registeredCommands[commandName]
+      @rootNode.addEventListener(commandName, @handleCommandEvent, true)
       @registeredCommands[commandName] = true
 
 class SelectorBasedListener
@@ -263,8 +274,8 @@ class SelectorBasedListener
     @sequenceNumber = SequenceCount++
 
   compare: (other) ->
-    other.specificity - @specificity  or
-      other.sequenceNumber - @sequenceNumber
+    @specificity - other.specificity or
+      @sequenceNumber - other.sequenceNumber
 
 class InlineListener
   constructor: (@callback) ->

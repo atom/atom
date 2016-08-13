@@ -5,7 +5,9 @@ class PanelElement extends HTMLElement
   createdCallback: ->
     @subscriptions = new CompositeDisposable
 
-  initialize: (@model) ->
+  initialize: (@model, {@views}) ->
+    throw new Error("Must pass a views parameter when initializing PanelElements") unless @views?
+
     @appendChild(@getItemView())
 
     @classList.add(@model.getClassName().split(' ')...) if @model.getClassName()?
@@ -17,7 +19,7 @@ class PanelElement extends HTMLElement
     @model ?= new Panel
 
   getItemView: ->
-    atom.views.getView(@getModel().getItem())
+    @views.getView(@getModel().getItem())
 
   attachedCallback: ->
     @visibleChanged(@getModel().isVisible())
@@ -30,6 +32,6 @@ class PanelElement extends HTMLElement
 
   destroyed: ->
     @subscriptions.dispose()
-    @parentNode?.removeChild(this)
+    @remove()
 
 module.exports = PanelElement = document.registerElement 'atom-panel', prototype: PanelElement.prototype

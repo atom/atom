@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 var cp = require('./utils/child-process-wrapper.js');
+var crypto = require('crypto')
+var fingerprint = require('./utils/fingerprint')
 var fs = require('fs');
 var path = require('path');
 
@@ -22,12 +24,18 @@ function loadEnvironmentVariables(filePath) {
 }
 
 function readEnvironmentVariables() {
-  if (process.platform === 'win32') {
-    loadEnvironmentVariables(path.resolve('/jenkins/config/atomcredentials'));
-  } else if (process.platform === 'darwin') {
-    loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
-    loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
-  } else if (process.platform === 'linux') {
+  if (process.env.JANKY_SHA1) {
+    if (process.platform === 'win32') {
+      loadEnvironmentVariables(path.resolve('/jenkins/config/atomcredentials'));
+    } else if (process.platform === 'darwin') {
+      loadEnvironmentVariables('/var/lib/jenkins/config/atomcredentials');
+      loadEnvironmentVariables('/var/lib/jenkins/config/xcodekeychain');
+    }
+  }
+}
+
+function setEnvironmentVariables() {
+  if (process.platform === 'linux') {
     // Use Clang for building native code, the GCC on Precise is too old.
     process.env.CC = 'clang';
     process.env.CXX = 'clang++';
@@ -36,6 +44,11 @@ function readEnvironmentVariables() {
 }
 
 function removeNodeModules() {
+  if (fingerprint.fingerprintMatches()) {
+    console.log('node_modules matches current fingerprint ' + fingerprint.fingerprint() + ' - not removing')
+    return
+  }
+
   var fsPlus;
   try {
     fsPlus = require('fs-plus');
@@ -45,6 +58,7 @@ function removeNodeModules() {
 
   try {
     fsPlus.removeSync(path.resolve(__dirname, '..', 'node_modules'));
+    fsPlus.removeSync(path.resolve(__dirname, '..', 'apm', 'node_modules'));
   } catch (error) {
     console.error(error.message);
     process.exit(1);
@@ -81,6 +95,7 @@ function removeTempFolders() {
 }
 
 readEnvironmentVariables();
+setEnvironmentVariables();
 removeNodeModules();
 removeTempFolders();
 cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(__dirname, '..', 'build')}, function() {
@@ -91,8 +106,8 @@ cp.safeExec.bind(global, 'npm install npm --loglevel error', {cwd: path.resolve(
     var async = require('async');
     var gruntPath = path.join('build', 'node_modules', '.bin', 'grunt') + (process.platform === 'win32' ? '.cmd' : '');
     var tasks = [
-      cp.safeExec.bind(global, 'git clean -dff'),
-      cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color'),
+      cp.safeExec.bind(global, 'git clean -dff -e node_modules'), // If we left them behind in removeNodeModules() they are OK to use
+      cp.safeExec.bind(global, gruntPath + ' ci --gruntfile build/Gruntfile.coffee --stack --no-color')
     ]
     async.series(tasks, function(error) {
       process.exit(error ? 1 : 0);

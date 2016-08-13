@@ -16,13 +16,26 @@ module.exports = (grunt) ->
     {description} = grunt.config.get('atom.metadata')
 
     if process.platform is 'win32'
+      done = @async()
+      grunt.log.ok("Installing into \"#{installDir}\" from \"#{shellAppDir}\"")
+      parentInstallDir = path.resolve(installDir, '..')
+      adminRequired = false
+      try
+        rm installDir
+        mkdir installDir
+      catch err
+        grunt.log.ok("Admin elevation required for write access to \"#{installDir}\"")
+        adminRequired = true
+
       runas ?= require 'runas'
       copyFolder = path.resolve 'script', 'copy-folder.cmd'
-      if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: true) isnt 0
-        grunt.log.error("Failed to copy #{shellAppDir} to #{installDir}")
+      if runas('cmd', ['/c', copyFolder, shellAppDir, installDir], admin: adminRequired) isnt 0
+        grunt.fail.fatal("Unable to copy files.")
+      else
+        grunt.log.ok("Completed successfully.")
 
-      createShortcut = path.resolve 'script', 'create-shortcut.cmd'
-      runas('cmd', ['/c', createShortcut, path.join(installDir, 'atom.exe'), appName])
+      done()
+
     else if process.platform is 'darwin'
       rm installDir
       mkdir path.dirname(installDir)

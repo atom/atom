@@ -1,5 +1,5 @@
 TooltipManager = require '../src/tooltip-manager'
-_ = require "underscore-plus"
+_ = require 'underscore-plus'
 
 describe "TooltipManager", ->
   [manager, element] = []
@@ -8,7 +8,7 @@ describe "TooltipManager", ->
   ctrlY = _.humanizeKeystroke("ctrl-y")
 
   beforeEach ->
-    manager = new TooltipManager
+    manager = new TooltipManager(keymapManager: atom.keymaps)
     element = document.createElement('div')
     element.classList.add('foo')
     jasmine.attachToDOM(element)
@@ -27,6 +27,12 @@ describe "TooltipManager", ->
       manager.add element, title: "Title"
       hover element, ->
         expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+
+    it "creates a tooltip immediately if the trigger type is manual", ->
+      disposable = manager.add element, title: "Title", trigger: "manual"
+      expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+      disposable.dispose()
+      expect(document.body.querySelector(".tooltip")).toBeNull()
 
     it "allows jQuery elements to be passed as the target", ->
       element2 = document.createElement('div')

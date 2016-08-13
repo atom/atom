@@ -1,55 +1,74 @@
 path = require 'path'
 Package = require '../src/package'
 ThemePackage = require '../src/theme-package'
+{mockLocalStorage} = require './spec-helper'
 
 describe "Package", ->
+  build = (constructor, path) ->
+    new constructor(
+      path: path, packageManager: atom.packages, config: atom.config,
+      styleManager: atom.styles, notificationManager: atom.notifications,
+      keymapManager: atom.keymaps, commandRegistry: atom.command,
+      grammarRegistry: atom.grammars, themeManager: atom.themes,
+      menuManager: atom.menu, contextMenuManager: atom.contextMenu,
+      deserializerManager: atom.deserializers, viewRegistry: atom.views,
+      devMode: false
+    )
+
+  buildPackage = (packagePath) -> build(Package, packagePath)
+
+  buildThemePackage = (themePath) -> build(ThemePackage, themePath)
+
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
-      spyOn(atom, 'inDevMode').andReturn(false)
-      items = {}
-      spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
-      spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
-      spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
+      mockLocalStorage()
 
     it "does not activate it", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
-      pack = new Package(packagePath)
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
+      pack = buildPackage(packagePath)
       expect(pack.isCompatible()).toBe false
       expect(pack.incompatibleModules[0].name).toBe 'native-module'
       expect(pack.incompatibleModules[0].path).toBe path.join(packagePath, 'node_modules', 'native-module')
 
     it "utilizes _atomModuleCache if present to determine the package's native dependencies", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-ignored-incompatible-native-module')
-      pack = new Package(packagePath)
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-ignored-incompatible-native-module')
+      pack = buildPackage(packagePath)
       expect(pack.getNativeModuleDependencyPaths().length).toBe(1) # doesn't see the incompatible module
       expect(pack.isCompatible()).toBe true
 
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-cached-incompatible-native-module')
-      pack = new Package(packagePath)
+      pack = buildPackage(packagePath)
       expect(pack.isCompatible()).toBe false
 
     it "caches the incompatible native modules in local storage", ->
-      packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
-
-      expect(new Package(packagePath).isCompatible()).toBe false
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
+      expect(buildPackage(packagePath).isCompatible()).toBe false
       expect(global.localStorage.getItem.callCount).toBe 1
       expect(global.localStorage.setItem.callCount).toBe 1
 
-      expect(new Package(packagePath).isCompatible()).toBe false
+      expect(buildPackage(packagePath).isCompatible()).toBe false
       expect(global.localStorage.getItem.callCount).toBe 2
       expect(global.localStorage.setItem.callCount).toBe 1
 
+    it "logs an error to the console describing the problem", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
+
+      spyOn(console, 'warn')
+      spyOn(atom.notifications, 'addFatalError')
+
+      buildPackage(packagePath).activateNow()
+
+      expect(atom.notifications.addFatalError).not.toHaveBeenCalled()
+      expect(console.warn.callCount).toBe(1)
+      expect(console.warn.mostRecentCall.args[0]).toContain('it requires one or more incompatible native modules (native-module)')
+
   describe "::rebuild()", ->
     beforeEach ->
-      spyOn(atom, 'inDevMode').andReturn(false)
-      items = {}
-      spyOn(global.localStorage, 'setItem').andCallFake (key, item) -> items[key] = item; undefined
-      spyOn(global.localStorage, 'getItem').andCallFake (key) -> items[key] ? null
-      spyOn(global.localStorage, 'removeItem').andCallFake (key) -> delete items[key]; undefined
+      mockLocalStorage()
 
     it "returns a promise resolving to the results of `apm rebuild`", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
-      pack = new Package(packagePath)
+      pack = buildPackage(packagePath)
       rebuildCallbacks = []
       spyOn(pack, 'runRebuildProcess').andCallFake ((callback) -> rebuildCallbacks.push(callback))
 
@@ -63,7 +82,7 @@ describe "Package", ->
 
     it "persists build failures in local storage", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
-      pack = new Package(packagePath)
+      pack = buildPackage(packagePath)
 
       expect(pack.isCompatible()).toBe true
       expect(pack.getBuildFailureOutput()).toBeNull()
@@ -79,7 +98,7 @@ describe "Package", ->
       expect(pack.isCompatible()).toBe false
 
       # A different package instance has the same failure output (simulates reload)
-      pack2 = new Package(packagePath)
+      pack2 = buildPackage(packagePath)
       expect(pack2.getBuildFailureOutput()).toBe 'It is broken'
       expect(pack2.isCompatible()).toBe false
 
@@ -92,7 +111,7 @@ describe "Package", ->
 
     it "sets cached incompatible modules to an empty array when the rebuild completes (there may be a build error, but rebuilding *deletes* native modules)", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-incompatible-native-module')
-      pack = new Package(packagePath)
+      pack = buildPackage(packagePath)
 
       expect(pack.getIncompatibleNativeModules().length).toBeGreaterThan(0)
 
@@ -118,14 +137,14 @@ describe "Package", ->
       it "loads and applies css", ->
         expect(getComputedStyle(editorElement).paddingBottom).not.toBe "1234px"
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-index-css')
-        theme = new ThemePackage(themePath)
+        theme = buildThemePackage(themePath)
         theme.activate()
         expect(getComputedStyle(editorElement).paddingTop).toBe "1234px"
 
       it "parses, loads and applies less", ->
         expect(getComputedStyle(editorElement).paddingBottom).not.toBe "1234px"
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-index-less')
-        theme = new ThemePackage(themePath)
+        theme = buildThemePackage(themePath)
         theme.activate()
         expect(getComputedStyle(editorElement).paddingTop).toBe "4321px"
 
@@ -136,7 +155,7 @@ describe "Package", ->
         expect(getComputedStyle(editorElement).paddingBottom).not.toBe("103px")
 
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-package-file')
-        theme = new ThemePackage(themePath)
+        theme = buildThemePackage(themePath)
         theme.activate()
         expect(getComputedStyle(editorElement).paddingTop).toBe("101px")
         expect(getComputedStyle(editorElement).paddingRight).toBe("102px")
@@ -149,7 +168,7 @@ describe "Package", ->
         expect(getComputedStyle(editorElement).paddingBottom).not.toBe "30px"
 
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-without-package-file')
-        theme = new ThemePackage(themePath)
+        theme = buildThemePackage(themePath)
         theme.activate()
         expect(getComputedStyle(editorElement).paddingTop).toBe "10px"
         expect(getComputedStyle(editorElement).paddingRight).toBe "20px"
@@ -158,7 +177,7 @@ describe "Package", ->
     describe "reloading a theme", ->
       beforeEach ->
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-package-file')
-        theme = new ThemePackage(themePath)
+        theme = buildThemePackage(themePath)
         theme.activate()
 
       it "reloads without readding to the stylesheets list", ->
@@ -169,7 +188,7 @@ describe "Package", ->
     describe "events", ->
       beforeEach ->
         themePath = atom.project.getDirectories()[0]?.resolve('packages/theme-with-package-file')
-        theme = new ThemePackage(themePath)
+        theme = buildThemePackage(themePath)
         theme.activate()
 
       it "deactivated event fires on .deactivate()", ->
@@ -182,7 +201,7 @@ describe "Package", ->
 
     beforeEach ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-different-directory-name')
-      metadata = Package.loadMetadata(packagePath, true)
+      metadata = atom.packages.loadPackageMetadata(packagePath, true)
 
     it "uses the package name defined in package.json", ->
       expect(metadata.name).toBe 'package-with-a-totally-different-name'

@@ -5,11 +5,12 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ## Requirements
 
   * OS with 64-bit or 32-bit architecture
-  * C++ toolchain
-  * [Git](http://git-scm.com/)
-  * [node.js](http://nodejs.org/download/) (0.10.x or 0.12.x) or [io.js](https://iojs.org) (1.x or 2.x)
-  * [npm](https://www.npmjs.com/) v1.4.x (bundled with Node.js)
+  * C++11 toolchain
+  * [Git](https://git-scm.com/)
+  * Node.js (4.x or above) (Can be installed via [nvm](https://github.com/creationix/nvm)).
+  * [npm](https://www.npmjs.com/) v3.10.5 or above (automatically bundled with Node.js)
     * `npm -v` to check the version.
+    * `npm install -g npm` to upgrade if necessary.
     * `npm config set python /usr/bin/python2 -g` to ensure that gyp uses python2.
       * You might need to run this command as `sudo`, depending on how you have set up [npm](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager#ubuntu-mint-elementary-os).
   * development headers for [GNOME Keyring](https://wiki.gnome.org/Projects/GnomeKeyring)
@@ -17,15 +18,23 @@ Ubuntu LTS 12.04 64-bit is the recommended platform.
 ### Ubuntu / Debian
 
 * `sudo apt-get install build-essential git libgnome-keyring-dev fakeroot`
-* Instructions for  [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#debian-and-ubuntu-based-linux-distributions).
-  * Make sure the command `node` is available after Node.js installation (some systems install it as `nodejs`).
-  * Use `which node` to check if it is available.
-  * Use `sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10` to update it.
+* Install Node.js and npm:
+  * Install [nvm](https://github.com/creationix/nvm).
+  * Run `nvm install 4` to install Node 4.x.
+  * Run `npm install -g npm` to upgrade to the latest npm.
+  * You may need to install a newer C++ compiler with C++11 support if script/bootstrap has errors:
+    ```sh
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    sudo apt-get update
+    sudo apt-get install gcc-5 g++-5
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 80 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+    sudo update-alternatives --config gcc # choose gcc-5 from the list
+    ```
 
 ### Fedora / CentOS / RHEL
 
 * `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
-* Instructions for [Node.js](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager#enterprise-linux-and-fedora).
+* Instructions for [Node.js](https://nodejs.org/en/download/package-manager/#enterprise-linux-and-fedora).
 
 ### Arch
 
@@ -64,7 +73,7 @@ If you have problems with permissions don't forget to prefix with `sudo`
   script/build
   ```
 
-  This will create the atom application at `$TMPDIR/atom-build/Atom`.
+  This will create the atom application at `out/Atom`.
 
 4. Install the `atom` and `apm` commands to `/usr/local/bin` by executing:
 
@@ -74,30 +83,44 @@ If you have problems with permissions don't forget to prefix with `sudo`
 
   To use the newly installed Atom, quit and restart all running Atom instances.
 
-5. *Optionally*, you may generate distributable packages of Atom at `$TMPDIR/atom-build`. Currently, `.deb` and `.rpm` package types are supported. To create a `.deb` package run:
+5. *Optionally*, you may generate distributable packages of Atom at `out`. Currently, `.deb` and `.rpm` package types are supported, as well as a `.tar.gz` archive. To create a `.deb` package run:
 
   ```sh
   script/grunt mkdeb
   ```
 
-  To create an `.rpm` package run
+  To create a `.rpm` package run
 
   ```sh
   script/grunt mkrpm
   ```
 
+  To create a `.tar.gz` archive run
+
+  ```sh
+  script/grunt mktar
+  ```
+
 ## Advanced Options
-
-### Custom install directory
-
-```sh
-sudo script/grunt install --install-dir /install/atom/here
-```
 
 ### Custom build directory
 
 ```sh
 script/build --build-dir /build/atom/here
+```
+
+### Custom install directory
+
+To install to a custom location from the standard build directory:
+
+```sh
+sudo script/grunt install --install-dir /install/atom/here
+```
+
+If you customized your build directory as described above:
+
+```sh
+sudo script/grunt install --build-dir /build/atom/here --install-dir /install/atom/here
 ```
 
 ## Troubleshooting

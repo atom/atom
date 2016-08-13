@@ -6,12 +6,16 @@ GitRepository = require '../src/git-repository'
 GitRepositoryProvider = require '../src/git-repository-provider'
 
 describe "GitRepositoryProvider", ->
+  provider = null
+
+  beforeEach ->
+    provider = new GitRepositoryProvider(atom.project, atom.config, atom.confirm)
+
   describe ".repositoryForDirectory(directory)", ->
     describe "when specified a Directory with a Git repository", ->
       it "returns a Promise that resolves to a GitRepository", ->
         waitsForPromise ->
-          provider = new GitRepositoryProvider atom.project
-          directory = new Directory path.join(__dirname, 'fixtures/git/master.git')
+          directory = new Directory path.join(__dirname, 'fixtures', 'git', 'master.git')
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBeInstanceOf GitRepository
             expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
@@ -19,16 +23,15 @@ describe "GitRepositoryProvider", ->
             expect(result.getType()).toBe 'git'
 
       it "returns the same GitRepository for different Directory objects in the same repo", ->
-        provider = new GitRepositoryProvider atom.project
         firstRepo = null
         secondRepo = null
 
         waitsForPromise ->
-          directory = new Directory path.join(__dirname, 'fixtures/git/master.git')
+          directory = new Directory path.join(__dirname, 'fixtures', 'git', 'master.git')
           provider.repositoryForDirectory(directory).then (result) -> firstRepo = result
 
         waitsForPromise ->
-          directory = new Directory path.join(__dirname, 'fixtures/git/master.git/objects')
+          directory = new Directory path.join(__dirname, 'fixtures', 'git', 'master.git', 'objects')
           provider.repositoryForDirectory(directory).then (result) -> secondRepo = result
 
         runs ->
@@ -38,7 +41,6 @@ describe "GitRepositoryProvider", ->
     describe "when specified a Directory without a Git repository", ->
       it "returns a Promise that resolves to null", ->
         waitsForPromise ->
-          provider = new GitRepositoryProvider atom.project
           directory = new Directory temp.mkdirSync('dir')
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBe null
@@ -46,7 +48,6 @@ describe "GitRepositoryProvider", ->
     describe "when specified a Directory with an invalid Git repository", ->
       it "returns a Promise that resolves to null", ->
         waitsForPromise ->
-          provider = new GitRepositoryProvider atom.project
           dirPath = temp.mkdirSync('dir')
           fs.writeFileSync(path.join(dirPath, '.git', 'objects'), '')
           fs.writeFileSync(path.join(dirPath, '.git', 'HEAD'), '')
@@ -56,12 +57,24 @@ describe "GitRepositoryProvider", ->
           provider.repositoryForDirectory(directory).then (result) ->
             expect(result).toBe null
 
+    describe "when specified a Directory with a valid gitfile-linked repository", ->
+      it "returns a Promise that resolves to a GitRepository", ->
+        waitsForPromise ->
+          gitDirPath = path.join(__dirname, 'fixtures', 'git', 'master.git')
+          workDirPath = temp.mkdirSync('git-workdir')
+          fs.writeFileSync(path.join(workDirPath, '.git'), 'gitdir: ' + gitDirPath+'\n')
+
+          directory = new Directory workDirPath
+          provider.repositoryForDirectory(directory).then (result) ->
+            expect(result).toBeInstanceOf GitRepository
+            expect(provider.pathToRepository[result.getPath()]).toBeTruthy()
+            expect(result.statusTask).toBeTruthy()
+            expect(result.getType()).toBe 'git'
+
     describe "when specified a Directory without existsSync()", ->
       directory = null
       provider = null
       beforeEach ->
-        provider = new GitRepositoryProvider atom.project
-
         # An implementation of Directory that does not implement existsSync().
         subdirectory = {}
         directory =

@@ -24,18 +24,9 @@ describe "the `grammars` global", ->
     atom.packages.deactivatePackages()
     atom.packages.unloadPackages()
 
-  describe "serialization", ->
-    it "remembers grammar overrides by path", ->
-      filePath = '/foo/bar/file.js'
-      expect(atom.grammars.selectGrammar(filePath).name).not.toBe 'Ruby'
-      atom.grammars.setGrammarOverrideForPath(filePath, 'source.ruby')
-      grammars2 = atom.deserializers.deserialize(atom.grammars.serialize())
-      grammars2.addGrammar(grammar) for grammar in atom.grammars.grammars when grammar isnt atom.grammars.nullGrammar
-      expect(grammars2.selectGrammar(filePath).name).toBe 'Ruby'
-
   describe ".selectGrammar(filePath)", ->
     it "always returns a grammar", ->
-      registry = new GrammarRegistry()
+      registry = new GrammarRegistry(config: atom.config)
       expect(registry.selectGrammar().scopeName).toBe 'text.plain.null-grammar'
 
     it "selects the text.plain grammar over the null grammar", ->
@@ -151,9 +142,13 @@ describe "the `grammars` global", ->
         expect(atom.grammars.selectGrammar('Rakefile', '').scopeName).toBe 'source.coffee'
         expect(atom.grammars.selectGrammar('Cakefile', '').scopeName).toBe 'source.ruby'
 
-      it "favors grammars with matching first-line-regexps even if custom file types match the file", ->
+      it "favors user-defined file types over grammars with matching first-line-regexps", ->
         atom.config.set('core.customFileTypes', 'source.ruby': ['bootstrap'])
-        expect(atom.grammars.selectGrammar('bootstrap', '#!/usr/bin/env node').scopeName).toBe 'source.js'
+        expect(atom.grammars.selectGrammar('bootstrap', '#!/usr/bin/env node').scopeName).toBe 'source.ruby'
+
+  describe "when there is a grammar with a first line pattern, the file type of the file is known, but from a different grammar", ->
+    it "favors file type over the matching pattern", ->
+      expect(atom.grammars.selectGrammar('foo.rb', '#!/usr/bin/env node').scopeName).toBe 'source.ruby'
 
   describe ".removeGrammar(grammar)", ->
     it "removes the grammar, so it won't be returned by selectGrammar", ->

@@ -1,7 +1,7 @@
-DefaultDirectoryProvider = require "../src/default-directory-provider"
-path = require "path"
+DefaultDirectoryProvider = require '../src/default-directory-provider'
+path = require 'path'
 fs = require 'fs-plus'
-temp = require "temp"
+temp = require 'temp'
 
 describe "DefaultDirectoryProvider", ->
   describe ".directoryForURISync(uri)", ->

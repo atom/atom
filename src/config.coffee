@@ -5,7 +5,10 @@ CSON = require 'season'
 path = require 'path'
 async = require 'async'
 pathWatcher = require 'pathwatcher'
-{pushKeyPath, splitKeyPath, getValueAtKeyPath, setValueAtKeyPath} = require 'key-path-helpers'
+{
+  getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
+  pushKeyPath, splitKeyPath,
+} = require 'key-path-helpers'
 
 Color = require './color'
 ScopedPropertyStore = require 'scoped-property-store'
@@ -77,7 +80,7 @@ ScopeDescriptor = require './scope-descriptor'
 #   # ...
 # ```
 #
-# See [package docs](https://atom.io/docs/latest/hacking-atom-package-word-count) for
+# See [package docs](http://flight-manual.atom.io/hacking-atom/sections/package-word-count/) for
 # more info.
 #
 # ## Config Schemas
@@ -200,22 +203,6 @@ ScopeDescriptor = require './scope-descriptor'
 #       maximum: 11.5
 # ```
 #
-# #### object
-#
-# Value must be an object. This allows you to nest config options. Sub options
-# must be under a `properties key`
-#
-# ```coffee
-# config:
-#   someSetting:
-#     type: 'object'
-#     properties:
-#       myChildIntOption:
-#         type: 'integer'
-#         minimum: 1.5
-#         maximum: 11.5
-# ```
-#
 # #### color
 #
 # Values will be coerced into a {Color} with `red`, `green`, `blue`, and `alpha`
@@ -231,13 +218,34 @@ ScopeDescriptor = require './scope-descriptor'
 #     default: 'white'
 # ```
 #
+# #### object / Grouping other types
+#
+# A config setting with the type `object` allows grouping a set of config
+# settings. The group will be visualy separated and has its own group headline.
+# The sub options must be listed under a `properties` key.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'object'
+#     properties:
+#       myChildIntOption:
+#         type: 'integer'
+#         minimum: 1.5
+#         maximum: 11.5
+# ```
+#
 # ### Other Supported Keys
 #
 # #### enum
 #
-# All types support an `enum` key. The enum key lets you specify all values
-# that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type. Schema:
+# All types support an `enum` key, which lets you specify all the values the
+# setting can take. `enum` may be an array of allowed values (of the specified
+# type), or an array of objects with `value` and `description` properties, where
+# the `value` is an allowed value, and the `description` is a descriptive string
+# used in the settings view.
+#
+# In this example, the setting must be one of the 4 integers:
 #
 # ```coffee
 # config:
@@ -245,6 +253,20 @@ ScopeDescriptor = require './scope-descriptor'
 #     type: 'integer'
 #     default: 4
 #     enum: [2, 4, 6, 8]
+# ```
+#
+# In this example, the setting must be either 'foo' or 'bar', which are
+# presented using the provided descriptions in the settings pane:
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'string'
+#     default: 'foo'
+#     enum: [
+#       {value: 'foo', description: 'Foo mode. You want this.'}
+#       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+#     ]
 # ```
 #
 # Usage:
@@ -271,6 +293,9 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # Descriptions will be displayed below the title in the settings view.
 #
+# For a group of config settings the humanized key or the title and the
+# description are used for the group headline.
+#
 # ```coffee
 # config:
 #   someSetting:
@@ -293,6 +318,23 @@ ScopeDescriptor = require './scope-descriptor'
 # * `code spans` - `\`code spans\``
 # * line breaks - `line breaks<br/>`
 # * ~~strikethrough~~ - `~~strikethrough~~`
+#
+# #### order
+#
+# The settings view orders your settings alphabetically. You can override this
+# ordering with the order key.
+#
+# ```coffee
+# config:
+#   zSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 1
+#   aSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 2
+# ```
 #
 # ## Best practices
 #
@@ -331,7 +373,13 @@ class Config
     value
 
   # Created during initialization, available as `atom.config`
-  constructor: ({@configDirPath, @resourcePath}={}) ->
+  constructor: ({@configDirPath, @resourcePath, @notificationManager, @enablePersistence}={}) ->
+    if @enablePersistence?
+      @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
+      @configFilePath ?= path.join(@configDirPath, 'config.cson')
+    @clear()
+
+  clear: ->
     @emitter = new Emitter
     @schema =
       type: 'object'
@@ -340,11 +388,8 @@ class Config
     @settings = {}
     @scopedSettingsStore = new ScopedPropertyStore
     @configFileHasErrors = false
-    @configFilePath = fs.resolve(@configDirPath, 'config', ['json', 'cson'])
-    @configFilePath ?= path.join(@configDirPath, 'config.cson')
     @transactDepth = 0
     @savePending = false
-
     @requestLoad = _.debounce(@loadUserConfig, 100)
     @requestSave = =>
       @savePending = true
@@ -353,6 +398,8 @@ class Config
       @savePending = false
       @save()
     debouncedSave = _.debounce(save, 100)
+
+  shouldNotAccessFileSystem: -> not @enablePersistence
 
   ###
   Section: Config Subscription
@@ -373,11 +420,11 @@ class Config
   # ```
   #
   # * `keyPath` {String} name of the key to observe
-  # * `options` {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -404,17 +451,16 @@ class Config
   #
   # * `keyPath` (optional) {String} name of the key to observe. Must be
   #   specified if `scopeDescriptor` is specified.
-  # * `optional` (optional) {Object}
-  #   * `scopeDescriptor` (optional) {ScopeDescriptor} describing a path from
+  # * `options` (optional) {Object}
+  #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
   #     * `newValue` the new value of the key
   #     * `oldValue` the prior value of the key.
-  #     * `keyPath` the keyPath of the changed key
   #
   # Returns a {Disposable} with the following keys on which you can call
   # `.dispose()` to unsubscribe.
@@ -486,7 +532,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   #
   # Returns the value from Atom's default settings, the user's configuration
@@ -561,7 +607,7 @@ class Config
   #   setting to the default value.
   # * `options` (optional) {Object}
   #   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   #   * `source` (optional) {String} The name of a file with which the setting
   #     is associated. Defaults to the user's config file.
@@ -664,16 +710,46 @@ class Config
   #
   # * `callback` {Function} to execute while suppressing calls to handlers.
   transact: (callback) ->
-    @transactDepth++
+    @beginTransaction()
     try
       callback()
     finally
-      @transactDepth--
-      @emitChangeEvent()
+      @endTransaction()
 
   ###
   Section: Internal methods used by core
   ###
+
+  # Private: Suppress calls to handler functions registered with {::onDidChange}
+  # and {::observe} for the duration of the {Promise} returned by `callback`.
+  # After the {Promise} is either resolved or rejected, handlers will be called
+  # once if the value for their key-path has changed.
+  #
+  # * `callback` {Function} that returns a {Promise}, which will be executed
+  #   while suppressing calls to handlers.
+  #
+  # Returns a {Promise} that is either resolved or rejected according to the
+  # `{Promise}` returned by `callback`. If `callback` throws an error, a
+  # rejected {Promise} will be returned instead.
+  transactAsync: (callback) ->
+    @beginTransaction()
+    try
+      endTransaction = (fn) => (args...) =>
+        @endTransaction()
+        fn(args...)
+      result = callback()
+      new Promise (resolve, reject) ->
+        result.then(endTransaction(resolve)).catch(endTransaction(reject))
+    catch error
+      @endTransaction()
+      Promise.reject(error)
+
+  beginTransaction: ->
+    @transactDepth++
+
+  endTransaction: ->
+    @transactDepth--
+    @emitChangeEvent()
 
   pushAtKeyPath: (keyPath, value) ->
     arrayValue = @get(keyPath) ? []
@@ -709,10 +785,11 @@ class Config
         properties[key] ?= {}
         rootSchema = properties[key]
 
-    _.extend rootSchema, schema
-    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
-    @setScopedDefaultsFromSchema(keyPath, schema)
-    @resetSettingsForSchemaChange()
+    Object.assign rootSchema, schema
+    @transact =>
+      @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+      @setScopedDefaultsFromSchema(keyPath, schema)
+      @resetSettingsForSchemaChange()
 
   load: ->
     @initializeConfigDirectory()
@@ -724,7 +801,7 @@ class Config
   ###
 
   initializeConfigDirectory: (done) ->
-    return if fs.existsSync(@configDirPath)
+    return if fs.existsSync(@configDirPath) or @shouldNotAccessFileSystem()
 
     fs.makeTreeSync(@configDirPath)
 
@@ -740,9 +817,16 @@ class Config
     fs.traverseTree(templateConfigDirPath, onConfigDirFile, (path) -> true)
 
   loadUserConfig: ->
-    unless fs.existsSync(@configFilePath)
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {})
+    return if @shouldNotAccessFileSystem()
+
+    try
+      unless fs.existsSync(@configFilePath)
+        fs.makeTreeSync(path.dirname(@configFilePath))
+        CSON.writeFileSync(@configFilePath, {})
+    catch error
+      @configFileHasErrors = true
+      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+      return
 
     try
       unless @savePending
@@ -763,6 +847,8 @@ class Config
       @notifyFailure(message, detail)
 
   observeUserConfig: ->
+    return if @shouldNotAccessFileSystem()
+
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
         @requestLoad() if eventType is 'change' and @watchSubscription?
@@ -779,11 +865,14 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    atom.notifications.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
+    return if @shouldNotAccessFileSystem()
+
     allSettings = {'*': @settings}
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = Object.assign allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
     catch error
@@ -832,12 +921,16 @@ class Config
 
   setRawValue: (keyPath, value) ->
     defaultValue = getValueAtKeyPath(@defaultSettings, keyPath)
-    value = undefined if _.isEqual(defaultValue, value)
-
-    if keyPath?
-      setValueAtKeyPath(@settings, keyPath, value)
+    if _.isEqual(defaultValue, value)
+      if keyPath?
+        deleteValueAtKeyPath(@settings, keyPath)
+      else
+        @settings = null
     else
-      @settings = value
+      if keyPath?
+        setValueAtKeyPath(@settings, keyPath, value)
+      else
+        @settings = value
     @emitChangeEvent()
 
   observeKeyPath: (keyPath, options, callback) ->
@@ -866,9 +959,10 @@ class Config
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
       keys = splitKeyPath(keyPath)
-      for key, childValue of defaults
-        continue unless defaults.hasOwnProperty(key)
-        @setDefaults(keys.concat([key]).join('.'), childValue)
+      @transact =>
+        for key, childValue of defaults
+          continue unless defaults.hasOwnProperty(key)
+          @setDefaults(keys.concat([key]).join('.'), childValue)
     else
       try
         defaults = @makeValueConformToSchema(keyPath, defaults)
@@ -1132,6 +1226,11 @@ Config.addSchemaEnforcers
 
     validateEnum: (keyPath, value, schema) ->
       possibleValues = schema.enum
+
+      if Array.isArray(possibleValues)
+        possibleValues = possibleValues.map (value) ->
+          if value.hasOwnProperty('value') then value.value else value
+
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
       for possibleValue in possibleValues
@@ -1142,6 +1241,13 @@ Config.addSchemaEnforcers
 
 isPlainObject = (value) ->
   _.isObject(value) and not _.isArray(value) and not _.isFunction(value) and not _.isString(value) and not (value instanceof Color)
+
+sortObject = (value) ->
+  return value unless isPlainObject(value)
+  result = {}
+  for key in Object.keys(value).sort()
+    result[key] = sortObject(value[key])
+  result
 
 withoutEmptyObjects = (object) ->
   resultObject = undefined

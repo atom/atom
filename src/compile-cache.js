@@ -1,5 +1,10 @@
 'use strict'
 
+// For now, we're not using babel or ES6 features like `let` and `const` in
+// this file, because `apm` requires this file directly in order to pre-warm
+// Atom's compile-cache when installing or updating packages, using an older
+// version of node.js
+
 var path = require('path')
 var fs = require('fs-plus')
 var CSON = null
@@ -157,6 +162,40 @@ require('source-map-support').install({
     }
   }
 })
+
+var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
+var prepareStackTrace = prepareStackTraceWithSourceMapping
+
+function prepareStackTraceWithRawStackAssignment (error, frames) {
+  if (error.rawStack) { // avoid infinite recursion
+    return prepareStackTraceWithSourceMapping(error, frames)
+  } else {
+    error.rawStack = frames
+    return prepareStackTrace(error, frames)
+  }
+}
+
+Error.stackTraceLimit = 30
+
+Object.defineProperty(Error, 'prepareStackTrace', {
+  get: function () {
+    return prepareStackTraceWithRawStackAssignment
+  },
+
+  set: function (newValue) {
+    prepareStackTrace = newValue
+    process.nextTick(function () {
+      prepareStackTrace = prepareStackTraceWithSourceMapping
+    })
+  }
+})
+
+Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+  // Access this.stack to ensure prepareStackTrace has been run on this error
+  // because it assigns this.rawStack as a side-effect
+  this.stack
+  return this.rawStack
+}
 
 Object.keys(COMPILERS).forEach(function (extension) {
   var compiler = COMPILERS[extension]

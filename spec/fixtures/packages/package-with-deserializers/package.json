@@ -1,0 +1,9 @@
+{
+  "name": "package-with-deserializers",
+  "version": "1.0.0",
+  "main": "./index",
+  "deserializers": {
+    "Deserializer1": "deserializeMethod1",
+    "Deserializer2": "deserializeMethod2"
+  }
+}

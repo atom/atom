@@ -54,14 +54,11 @@ module.exports = (grunt) ->
     # so that it doesn't becomes larger than it needs to be.
     ignoredPaths = [
       path.join('git-utils', 'deps')
+      path.join('ohnogit', 'node_modules', 'nodegit', 'vendor')
+      path.join('ohnogit', 'node_modules', 'nodegit', 'node_modules', 'node-pre-gyp')
+      path.join('ohnogit', 'node_modules', 'nodegit', 'node_modules', '.bin')
       path.join('oniguruma', 'deps')
       path.join('less', 'dist')
-      path.join('bootstrap', 'docs')
-      path.join('bootstrap', 'dist')
-      path.join('bootstrap', 'fonts')
-      path.join('bootstrap', '_config.yml')
-      path.join('bootstrap', '_includes')
-      path.join('bootstrap', '_layouts')
       path.join('npm', 'doc')
       path.join('npm', 'html')
       path.join('npm', 'man')
@@ -119,6 +116,9 @@ module.exports = (grunt) ->
     # Ignore *.cc and *.h files from native modules
     ignoredPaths.push "#{_.escapeRegExp(path.join('ctags', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('git-utils', 'src') + path.sep)}.*\\.(cc|h)*"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('ohnogit', 'node_modules', 'nodegit', 'src') + path.sep)}.*\\.(cc|h)?"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('ohnogit', 'node_modules', 'nodegit', 'generate') + path.sep)}.*\\.(cc|h)?"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('ohnogit', 'node_modules', 'nodegit', 'include') + path.sep)}.*\\.(cc|h)?"
     ignoredPaths.push "#{_.escapeRegExp(path.join('keytar', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('nslog', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('oniguruma', 'src') + path.sep)}.*\\.(cc|h)*"
@@ -126,6 +126,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.join('runas', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('scrollbar-style', 'src') + path.sep)}.*\\.(cc|h)*"
     ignoredPaths.push "#{_.escapeRegExp(path.join('spellchecker', 'src') + path.sep)}.*\\.(cc|h)*"
+    ignoredPaths.push "#{_.escapeRegExp(path.join('cached-run-in-this-context', 'src') + path.sep)}.*\\.(cc|h)?"
     ignoredPaths.push "#{_.escapeRegExp(path.join('keyboard-layout', 'src') + path.sep)}.*\\.(cc|h|mm)*"
 
     # Ignore build files
@@ -134,7 +135,7 @@ module.exports = (grunt) ->
     ignoredPaths.push "#{_.escapeRegExp(path.sep)}linker\\.lock$"
     ignoredPaths.push "#{_.escapeRegExp(path.join('build', 'Release') + path.sep)}.+\\.node\\.dSYM"
 
-    # Hunspell dictionaries are only not needed on OS X.
+    # Hunspell dictionaries are only not needed on macOS.
     if process.platform is 'darwin'
       ignoredPaths.push path.join('spellchecker', 'vendor', 'hunspell_dictionaries')
     ignoredPaths = ignoredPaths.map (ignoredPath) -> "(#{ignoredPath})"
@@ -178,6 +179,7 @@ module.exports = (grunt) ->
       cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'resources', 'cli', 'atom.cmd')
       cp path.join('resources', 'win', 'atom.sh'), path.join(shellAppDir, 'resources', 'cli', 'atom.sh')
       cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
+      cp path.join('resources', 'win', 'apm.cmd'), path.join(shellAppDir, 'resources', 'cli', 'apm.cmd')
       cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
 
     if process.platform is 'linux'
@@ -186,5 +188,4 @@ module.exports = (grunt) ->
     dependencies = ['compile', 'generate-license:save', 'generate-module-cache', 'compile-packages-slug']
     dependencies.push('copy-info-plist') if process.platform is 'darwin'
     dependencies.push('set-exe-icon') if process.platform is 'win32'
-    dependencies.push('disable-autoupdate') if grunt.config.get('atom.disableAutoUpdate')
     grunt.task.run(dependencies...)

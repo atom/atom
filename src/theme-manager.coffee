@@ -9,12 +9,14 @@ fs = require 'fs-plus'
 # An instance of this class is always available as the `atom.themes` global.
 module.exports =
 class ThemeManager
-  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode}) ->
+  constructor: ({@packageManager, @resourcePath, @configDirPath, @safeMode, @config, @styleManager, @notificationManager, @viewRegistry}) ->
     @emitter = new Emitter
     @styleSheetDisposablesBySourcePath = {}
     @lessCache = null
     @initialLoadComplete = false
     @packageManager.registerPackageActivator(this, ['theme'])
+    @packageManager.onDidActivateInitialPackages =>
+      @onDidChangeActiveThemes => @packageManager.reloadActivePackageStyleSheets()
 
   ###
   Section: Event Subscription
@@ -66,21 +68,21 @@ class ThemeManager
   ###
 
   warnForNonExistentThemes: ->
-    themeNames = atom.config.get('core.themes') ? []
+    themeNames = @config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
     for themeName in themeNames
-      unless themeName and typeof themeName is 'string' and atom.packages.resolvePackagePath(themeName)
+      unless themeName and typeof themeName is 'string' and @packageManager.resolvePackagePath(themeName)
         console.warn("Enabled theme '#{themeName}' is not installed.")
 
   # Public: Get the enabled theme names from the config.
   #
   # Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames: ->
-    themeNames = atom.config.get('core.themes') ? []
+    themeNames = @config.get('core.themes') ? []
     themeNames = [themeNames] unless _.isArray(themeNames)
-    themeNames = themeNames.filter (themeName) ->
+    themeNames = themeNames.filter (themeName) =>
       if themeName and typeof themeName is 'string'
-        return true if atom.packages.resolvePackagePath(themeName)
+        return true if @packageManager.resolvePackagePath(themeName)
       false
 
     # Use a built-in syntax and UI theme any time the configured themes are not
@@ -139,7 +141,7 @@ class ThemeManager
   loadUserStylesheet: ->
     @unwatchUserStylesheet()
 
-    userStylesheetPath = atom.styles.getUserStyleSheetPath()
+    userStylesheetPath = @styleManager.getUserStyleSheetPath()
     return unless fs.isFileSync(userStylesheetPath)
 
     try
@@ -158,17 +160,16 @@ class ThemeManager
         [this document][watches] for more info.
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path
       """
-      atom.notifications.addError(message, dismissable: true)
+      @notificationManager.addError(message, dismissable: true)
 
     try
       userStylesheetContents = @loadStylesheet(userStylesheetPath, true)
     catch
       return
 
-    @userStyleSheetDisposable = atom.styles.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
+    @userStyleSheetDisposable = @styleManager.addStyleSheet(userStylesheetContents, sourcePath: userStylesheetPath, priority: 2)
 
   loadBaseStylesheets: ->
-    @requireStylesheet('../static/bootstrap')
     @reloadBaseStylesheets()
 
   reloadBaseStylesheets: ->
@@ -221,22 +222,22 @@ class ThemeManager
         message = "Error loading Less stylesheet: `#{lessStylesheetPath}`"
         detail = error.message
 
-      atom.notifications.addError(message, {detail, dismissable: true})
+      @notificationManager.addError(message, {detail, dismissable: true})
       throw error
 
   removeStylesheet: (stylesheetPath) ->
     @styleSheetDisposablesBySourcePath[stylesheetPath]?.dispose()
 
   applyStylesheet: (path, text) ->
-    @styleSheetDisposablesBySourcePath[path] = atom.styles.addStyleSheet(text, sourcePath: path)
+    @styleSheetDisposablesBySourcePath[path] = @styleManager.addStyleSheet(text, sourcePath: path)
 
   stringToId: (string) ->
     string.replace(/\\/g, '/')
 
   activateThemes: ->
     new Promise (resolve) =>
-      # atom.config.observe runs the callback once, then on subsequent changes.
-      atom.config.observe 'core.themes', =>
+      # @config.observe runs the callback once, then on subsequent changes.
+      @config.observe 'core.themes', =>
         @deactivateThemes()
 
         @warnForNonExistentThemes()
@@ -268,13 +269,13 @@ class ThemeManager
   isInitialLoadComplete: -> @initialLoadComplete
 
   addActiveThemeClasses: ->
-    if workspaceElement = atom.views.getView(atom.workspace)
+    if workspaceElement = @viewRegistry.getView(@workspace)
       for pack in @getActiveThemes()
         workspaceElement.classList.add("theme-#{pack.name}")
       return
 
   removeActiveThemeClasses: ->
-    workspaceElement = atom.views.getView(atom.workspace)
+    workspaceElement = @viewRegistry.getView(@workspace)
     for pack in @getActiveThemes()
       workspaceElement.classList.remove("theme-#{pack.name}")
     return

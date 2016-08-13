@@ -11,7 +11,7 @@ translateDecorationParamsOldToNew = (decorationParams) ->
     decorationParams.gutterName = 'line-number'
   decorationParams
 
-# Essential: Represents a decoration that follows a {Marker}. A decoration is
+# Essential: Represents a decoration that follows a {DisplayMarker}. A decoration is
 # basically a visual representation of a marker. It allows you to add CSS
 # classes to line numbers in the gutter, lines, and add selection-line regions
 # around marked ranges of text.
@@ -25,7 +25,7 @@ translateDecorationParamsOldToNew = (decorationParams) ->
 # decoration = editor.decorateMarker(marker, {type: 'line', class: 'my-line-class'})
 # ```
 #
-# Best practice for destroying the decoration is by destroying the {Marker}.
+# Best practice for destroying the decoration is by destroying the {DisplayMarker}.
 #
 # ```coffee
 # marker.destroy()
@@ -35,7 +35,6 @@ translateDecorationParamsOldToNew = (decorationParams) ->
 # the marker.
 module.exports =
 class Decoration
-
   # Private: Check if the `decorationProperties.type` matches `type`
   #
   # * `decorationProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
@@ -63,24 +62,23 @@ class Decoration
   Section: Construction and Destruction
   ###
 
-  constructor: (@marker, @displayBuffer, properties) ->
+  constructor: (@marker, @decorationManager, properties) ->
     @emitter = new Emitter
     @id = nextId()
     @setProperties properties
-    @properties.id = @id
-    @flashQueue = null
     @destroyed = false
     @markerDestroyDisposable = @marker.onDidDestroy => @destroy()
 
-  # Essential: Destroy this marker.
+  # Essential: Destroy this marker decoration.
   #
-  # If you own the marker, you should use {Marker::destroy} which will destroy
-  # this decoration.
+  # You can also destroy the marker if you own it, which will destroy this
+  # decoration.
   destroy: ->
     return if @destroyed
     @markerDestroyDisposable.dispose()
     @markerDestroyDisposable = null
     @destroyed = true
+    @decorationManager.didDestroyMarkerDecoration(this)
     @emitter.emit 'did-destroy'
     @emitter.dispose()
 
@@ -150,10 +148,17 @@ class Decoration
     return if @destroyed
     oldProperties = @properties
     @properties = translateDecorationParamsOldToNew(newProperties)
-    @properties.id = @id
     if newProperties.type?
-      @displayBuffer.decorationDidChangeType(this)
+      @decorationManager.decorationDidChangeType(this)
+    @decorationManager.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-change-properties', {oldProperties, newProperties}
+
+  ###
+  Section: Utility
+  ###
+
+  inspect: ->
+    "<Decoration #{@id}>"
 
   ###
   Section: Private methods
@@ -165,15 +170,10 @@ class Decoration
       return false if @properties[key] isnt value
     true
 
-  onDidFlash: (callback) ->
-    @emitter.on 'did-flash', callback
-
   flash: (klass, duration=500) ->
-    flashObject = {class: klass, duration}
-    @flashQueue ?= []
-    @flashQueue.push(flashObject)
+    @properties.flashCount ?= 0
+    @properties.flashCount++
+    @properties.flashClass = klass
+    @properties.flashDuration = duration
+    @decorationManager.scheduleUpdateDecorationsEvent()
     @emitter.emit 'did-flash'
-
-  consumeNextFlash: ->
-    return @flashQueue.shift() if @flashQueue?.length > 0
-    null

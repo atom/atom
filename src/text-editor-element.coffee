@@ -1,9 +1,10 @@
-{Emitter} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 Path = require 'path'
 {defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
+StylesElement = require './styles-element'
 
 ShadowStyleSheet = null
 
@@ -15,30 +16,46 @@ class TextEditorElement extends HTMLElement
   tileSize: null
   focusOnAttach: false
   hasTiledRendering: true
+  logicalDisplayBuffer: true
+  scrollPastEnd: true
+  autoHeight: true
 
   createdCallback: ->
+    # Use globals when the following instance variables aren't set.
+    @config = atom.config
+    @themes = atom.themes
+    @workspace = atom.workspace
+    @assert = atom.assert
+    @views = atom.views
+    @styles = atom.styles
+    @grammars = atom.grammars
+
     @emitter = new Emitter
-    @initializeContent()
+    @subscriptions = new CompositeDisposable
+
     @addEventListener 'focus', @focused.bind(this)
     @addEventListener 'blur', @blurred.bind(this)
 
-  initializeContent: (attributes) ->
     @classList.add('editor')
     @setAttribute('tabindex', -1)
 
-    if atom.config.get('editor.useShadowDOM')
+  initializeContent: (attributes) ->
+    unless @autoHeight
+      @style.height = "100%"
+
+    if @config.get('editor.useShadowDOM')
       @useShadowDOM = true
 
       unless ShadowStyleSheet?
         ShadowStyleSheet = document.createElement('style')
-        ShadowStyleSheet.textContent = atom.themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+        ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
 
       @createShadowRoot()
 
       @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-      @stylesElement = document.createElement('atom-styles')
+      @stylesElement = new StylesElement
+      @stylesElement.initialize(@styles)
       @stylesElement.setAttribute('context', 'atom-text-editor')
-      @stylesElement.initialize()
 
       @rootElement = document.createElement('div')
       @rootElement.classList.add('editor--private')
@@ -54,8 +71,9 @@ class TextEditorElement extends HTMLElement
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
-    atom.assert(@model.isAlive(), "Attaching a view for a destroyed editor")
+    @assert(@model.isAlive(), "Attaching a view for a destroyed editor")
     @mountComponent() unless @component?
+    @listenForComponentEvents()
     @component.checkForVisibilityChange()
     if this is document.activeElement
       @focused()
@@ -63,9 +81,25 @@ class TextEditorElement extends HTMLElement
 
   detachedCallback: ->
     @unmountComponent()
+    @subscriptions.dispose()
+    @subscriptions = new CompositeDisposable
     @emitter.emit("did-detach")
 
-  initialize: (model) ->
+  listenForComponentEvents: ->
+    @subscriptions.add @component.onDidChangeScrollTop =>
+      @emitter.emit("did-change-scroll-top", arguments...)
+    @subscriptions.add @component.onDidChangeScrollLeft =>
+      @emitter.emit("did-change-scroll-left", arguments...)
+
+  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}, @autoHeight = true, @scrollPastEnd = true) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
+    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
+    throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
+    throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
+    throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
+    throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
+    throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
+
     @setModel(model)
     this
 
@@ -74,6 +108,8 @@ class TextEditorElement extends HTMLElement
     return if model.isDestroyed()
 
     @model = model
+    @model.setUpdatedSynchronously(@isUpdatedSynchronously())
+    @initializeContent()
     @mountComponent()
     @addGrammarScopeAttribute()
     @addMiniAttribute() if @model.isMini()
@@ -88,7 +124,7 @@ class TextEditorElement extends HTMLElement
     @model ? @buildModel()
 
   buildModel: ->
-    @setModel(new TextEditor(
+    @setModel(@workspace.buildTextEditor(
       buffer: new TextBuffer(@textContent)
       softWrapped: false
       tabLength: 2
@@ -106,6 +142,13 @@ class TextEditorElement extends HTMLElement
       editor: @model
       tileSize: @tileSize
       useShadowDOM: @useShadowDOM
+      views: @views
+      themes: @themes
+      config: @config
+      workspace: @workspace
+      assert: @assert
+      grammars: @grammars
+      scrollPastEnd: @scrollPastEnd
     )
     @rootElement.appendChild(@component.getDomNode())
 
@@ -158,7 +201,9 @@ class TextEditorElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-  setUpdatedSynchronously: (@updatedSynchronously) -> @updatedSynchronously
+  setUpdatedSynchronously: (@updatedSynchronously) ->
+    @model?.setUpdatedSynchronously(@updatedSynchronously)
+    @updatedSynchronously
 
   isUpdatedSynchronously: -> @updatedSynchronously
 
@@ -173,6 +218,12 @@ class TextEditorElement extends HTMLElement
   # Returns a {Number} of pixels.
   getDefaultCharacterWidth: ->
     @getModel().getDefaultCharWidth()
+
+  # Extended: Get the maximum scroll top that can be applied to this element.
+  #
+  # Returns a {Number} of pixels.
+  getMaxScrollTop: ->
+    @component?.getMaxScrollTop()
 
   # Extended: Converts a buffer position to a pixel position.
   #
@@ -219,10 +270,10 @@ class TextEditorElement extends HTMLElement
     @emitter.on("did-detach", callback)
 
   onDidChangeScrollTop: (callback) ->
-    @component.onDidChangeScrollTop(callback)
+    @emitter.on("did-change-scroll-top", callback)
 
   onDidChangeScrollLeft: (callback) ->
-    @component.onDidChangeScrollLeft(callback)
+    @emitter.on("did-change-scroll-left", callback)
 
   setScrollLeft: (scrollLeft) ->
     @component.setScrollLeft(scrollLeft)
@@ -245,31 +296,31 @@ class TextEditorElement extends HTMLElement
     @setScrollBottom(Infinity)
 
   getScrollTop: ->
-    @component.getScrollTop()
+    @component?.getScrollTop() or 0
 
   getScrollLeft: ->
-    @component.getScrollLeft()
+    @component?.getScrollLeft() or 0
 
   getScrollRight: ->
-    @component.getScrollRight()
+    @component?.getScrollRight() or 0
 
   getScrollBottom: ->
-    @component.getScrollBottom()
+    @component?.getScrollBottom() or 0
 
   getScrollHeight: ->
-    @component.getScrollHeight()
+    @component?.getScrollHeight() or 0
 
   getScrollWidth: ->
-    @component.getScrollWidth()
+    @component?.getScrollWidth() or 0
 
   getVerticalScrollbarWidth: ->
-    @component.getVerticalScrollbarWidth()
+    @component?.getVerticalScrollbarWidth() or 0
 
   getHorizontalScrollbarHeight: ->
-    @component.getHorizontalScrollbarHeight()
+    @component?.getHorizontalScrollbarHeight() or 0
 
   getVisibleRowRange: ->
-    @component.getVisibleRowRange()
+    @component?.getVisibleRowRange() or [0, 0]
 
   intersectsVisibleRowRange: (startRow, endRow) ->
     [visibleStart, visibleEnd] = @getVisibleRowRange()
@@ -302,141 +353,13 @@ class TextEditorElement extends HTMLElement
   getHeight: ->
     @offsetHeight
 
-stopEventPropagation = (commandListeners) ->
-  newCommandListeners = {}
-  for commandName, commandListener of commandListeners
-    do (commandListener) ->
-      newCommandListeners[commandName] = (event) ->
-        event.stopPropagation()
-        commandListener.call(@getModel(), event)
-  newCommandListeners
-
-stopEventPropagationAndGroupUndo = (commandListeners) ->
-  newCommandListeners = {}
-  for commandName, commandListener of commandListeners
-    do (commandListener) ->
-      newCommandListeners[commandName] = (event) ->
-        event.stopPropagation()
-        model = @getModel()
-        model.transact atom.config.get('editor.undoGroupingInterval'), ->
-          commandListener.call(model, event)
-  newCommandListeners
-
-atom.commands.add 'atom-text-editor', stopEventPropagation(
-  'core:undo': -> @undo()
-  'core:redo': -> @redo()
-  'core:move-left': -> @moveLeft()
-  'core:move-right': -> @moveRight()
-  'core:select-left': -> @selectLeft()
-  'core:select-right': -> @selectRight()
-  'core:select-up': -> @selectUp()
-  'core:select-down': -> @selectDown()
-  'core:select-all': -> @selectAll()
-  'editor:select-word': -> @selectWordsContainingCursors()
-  'editor:consolidate-selections': (event) -> event.abortKeyBinding() unless @consolidateSelections()
-  'editor:move-to-beginning-of-next-paragraph': -> @moveToBeginningOfNextParagraph()
-  'editor:move-to-beginning-of-previous-paragraph': -> @moveToBeginningOfPreviousParagraph()
-  'editor:move-to-beginning-of-screen-line': -> @moveToBeginningOfScreenLine()
-  'editor:move-to-beginning-of-line': -> @moveToBeginningOfLine()
-  'editor:move-to-end-of-screen-line': -> @moveToEndOfScreenLine()
-  'editor:move-to-end-of-line': -> @moveToEndOfLine()
-  'editor:move-to-first-character-of-line': -> @moveToFirstCharacterOfLine()
-  'editor:move-to-beginning-of-word': -> @moveToBeginningOfWord()
-  'editor:move-to-end-of-word': -> @moveToEndOfWord()
-  'editor:move-to-beginning-of-next-word': -> @moveToBeginningOfNextWord()
-  'editor:move-to-previous-word-boundary': -> @moveToPreviousWordBoundary()
-  'editor:move-to-next-word-boundary': -> @moveToNextWordBoundary()
-  'editor:move-to-previous-subword-boundary': -> @moveToPreviousSubwordBoundary()
-  'editor:move-to-next-subword-boundary': -> @moveToNextSubwordBoundary()
-  'editor:select-to-beginning-of-next-paragraph': -> @selectToBeginningOfNextParagraph()
-  'editor:select-to-beginning-of-previous-paragraph': -> @selectToBeginningOfPreviousParagraph()
-  'editor:select-to-end-of-line': -> @selectToEndOfLine()
-  'editor:select-to-beginning-of-line': -> @selectToBeginningOfLine()
-  'editor:select-to-end-of-word': -> @selectToEndOfWord()
-  'editor:select-to-beginning-of-word': -> @selectToBeginningOfWord()
-  'editor:select-to-beginning-of-next-word': -> @selectToBeginningOfNextWord()
-  'editor:select-to-next-word-boundary': -> @selectToNextWordBoundary()
-  'editor:select-to-previous-word-boundary': -> @selectToPreviousWordBoundary()
-  'editor:select-to-next-subword-boundary': -> @selectToNextSubwordBoundary()
-  'editor:select-to-previous-subword-boundary': -> @selectToPreviousSubwordBoundary()
-  'editor:select-to-first-character-of-line': -> @selectToFirstCharacterOfLine()
-  'editor:select-line': -> @selectLinesContainingCursors()
-)
-
-atom.commands.add 'atom-text-editor', stopEventPropagationAndGroupUndo(
-  'core:backspace': -> @backspace()
-  'core:delete': -> @delete()
-  'core:cut': -> @cutSelectedText()
-  'core:copy': -> @copySelectedText()
-  'core:paste': -> @pasteText()
-  'editor:delete-to-previous-word-boundary': -> @deleteToPreviousWordBoundary()
-  'editor:delete-to-next-word-boundary': -> @deleteToNextWordBoundary()
-  'editor:delete-to-beginning-of-word': -> @deleteToBeginningOfWord()
-  'editor:delete-to-beginning-of-line': -> @deleteToBeginningOfLine()
-  'editor:delete-to-end-of-line': -> @deleteToEndOfLine()
-  'editor:delete-to-end-of-word': -> @deleteToEndOfWord()
-  'editor:delete-to-beginning-of-subword': -> @deleteToBeginningOfSubword()
-  'editor:delete-to-end-of-subword': -> @deleteToEndOfSubword()
-  'editor:delete-line': -> @deleteLine()
-  'editor:cut-to-end-of-line': -> @cutToEndOfLine()
-  'editor:cut-to-end-of-buffer-line': -> @cutToEndOfBufferLine()
-  'editor:transpose': -> @transpose()
-  'editor:upper-case': -> @upperCase()
-  'editor:lower-case': -> @lowerCase()
-  'editor:copy-selection': -> @copyOnlySelectedText()
-)
-
-atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagation(
-  'core:move-up': -> @moveUp()
-  'core:move-down': -> @moveDown()
-  'core:move-to-top': -> @moveToTop()
-  'core:move-to-bottom': -> @moveToBottom()
-  'core:page-up': -> @pageUp()
-  'core:page-down': -> @pageDown()
-  'core:select-to-top': -> @selectToTop()
-  'core:select-to-bottom': -> @selectToBottom()
-  'core:select-page-up': -> @selectPageUp()
-  'core:select-page-down': -> @selectPageDown()
-  'editor:add-selection-below': -> @addSelectionBelow()
-  'editor:add-selection-above': -> @addSelectionAbove()
-  'editor:split-selections-into-lines': -> @splitSelectionsIntoLines()
-  'editor:toggle-soft-tabs': -> @toggleSoftTabs()
-  'editor:toggle-soft-wrap': -> @toggleSoftWrapped()
-  'editor:fold-all': -> @foldAll()
-  'editor:unfold-all': -> @unfoldAll()
-  'editor:fold-current-row': -> @foldCurrentRow()
-  'editor:unfold-current-row': -> @unfoldCurrentRow()
-  'editor:fold-selection': -> @foldSelectedLines()
-  'editor:fold-at-indent-level-1': -> @foldAllAtIndentLevel(0)
-  'editor:fold-at-indent-level-2': -> @foldAllAtIndentLevel(1)
-  'editor:fold-at-indent-level-3': -> @foldAllAtIndentLevel(2)
-  'editor:fold-at-indent-level-4': -> @foldAllAtIndentLevel(3)
-  'editor:fold-at-indent-level-5': -> @foldAllAtIndentLevel(4)
-  'editor:fold-at-indent-level-6': -> @foldAllAtIndentLevel(5)
-  'editor:fold-at-indent-level-7': -> @foldAllAtIndentLevel(6)
-  'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
-  'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
-  'editor:log-cursor-scope': -> @logCursorScope()
-  'editor:copy-path': -> @copyPathToClipboard()
-  'editor:toggle-indent-guide': -> atom.config.set('editor.showIndentGuide', not atom.config.get('editor.showIndentGuide'))
-  'editor:toggle-line-numbers': -> atom.config.set('editor.showLineNumbers', not atom.config.get('editor.showLineNumbers'))
-  'editor:scroll-to-cursor': -> @scrollToCursorPosition()
-)
-
-atom.commands.add 'atom-text-editor:not([mini])', stopEventPropagationAndGroupUndo(
-  'editor:indent': -> @indent()
-  'editor:auto-indent': -> @autoIndentSelectedRows()
-  'editor:indent-selected-rows': -> @indentSelectedRows()
-  'editor:outdent-selected-rows': -> @outdentSelectedRows()
-  'editor:newline': -> @insertNewline()
-  'editor:newline-below': -> @insertNewlineBelow()
-  'editor:newline-above': -> @insertNewlineAbove()
-  'editor:toggle-line-comments': -> @toggleLineCommentsInSelection()
-  'editor:checkout-head-revision': -> @checkoutHeadRevision()
-  'editor:move-line-up': -> @moveLineUp()
-  'editor:move-line-down': -> @moveLineDown()
-  'editor:duplicate-lines': -> @duplicateLines()
-  'editor:join-lines': -> @joinLines()
-)
+  # Experimental: Invalidate the passed block {Decoration} dimensions, forcing
+  # them to be recalculated and the surrounding content to be adjusted on the
+  # next animation frame.
+  #
+  # * {blockDecoration} A {Decoration} representing the block decoration you
+  # want to update the dimensions of.
+  invalidateBlockDecorationDimensions: ->
+    @component.invalidateBlockDecorationDimensions(arguments...)
 
 module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype

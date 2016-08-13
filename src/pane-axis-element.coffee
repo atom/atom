@@ -2,18 +2,18 @@
 PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
-  createdCallback: ->
-    @subscriptions = new CompositeDisposable
+  attachedCallback: ->
+    @subscriptions ?= @subscribeToModel()
+    @childAdded({child, index}) for child, index in @model.getChildren()
 
   detachedCallback: ->
     @subscriptions.dispose()
+    @subscriptions = null
+    @childRemoved({child}) for child in @model.getChildren()
 
-  initialize: (@model) ->
-    @subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
-    @subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
-    @subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
-    @subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
-
+  initialize: (@model, {@views}) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
+    @subscriptions ?= @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
     switch @model.getOrientation()
@@ -23,11 +23,19 @@ class PaneAxisElement extends HTMLElement
         @classList.add('vertical', 'pane-column')
     this
 
+  subscribeToModel: ->
+    subscriptions = new CompositeDisposable
+    subscriptions.add @model.onDidAddChild(@childAdded.bind(this))
+    subscriptions.add @model.onDidRemoveChild(@childRemoved.bind(this))
+    subscriptions.add @model.onDidReplaceChild(@childReplaced.bind(this))
+    subscriptions.add @model.observeFlexScale(@flexScaleChanged.bind(this))
+    subscriptions
+
   isPaneResizeHandleElement: (element) ->
     element?.nodeName.toLowerCase() is 'atom-pane-resize-handle'
 
   childAdded: ({child, index}) ->
-    view = atom.views.getView(child)
+    view = @views.getView(child)
     @insertBefore(view, @children[index * 2])
 
     prevElement = view.previousSibling
@@ -43,7 +51,7 @@ class PaneAxisElement extends HTMLElement
       @insertBefore(resizeHandle, nextElement)
 
   childRemoved: ({child}) ->
-    view = atom.views.getView(child)
+    view = @views.getView(child)
     siblingView = view.previousSibling
     # make sure next sibling view is pane resize view
     if siblingView? and @isPaneResizeHandleElement(siblingView)

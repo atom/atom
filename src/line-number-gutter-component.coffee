@@ -7,12 +7,12 @@ module.exports =
 class LineNumberGutterComponent extends TiledComponent
   dummyLineNumberNode: null
 
-  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool}) ->
+  constructor: ({@onMouseDown, @editor, @gutter, @domElementPool, @views}) ->
     @visible = true
 
     @dummyLineNumberComponent = LineNumbersTileComponent.createDummy(@domElementPool)
 
-    @domNode = atom.views.getView(@gutter)
+    @domNode = @views.getView(@gutter)
     @lineNumbersNode = @domNode.firstChild
     @lineNumbersNode.innerHTML = ''
 
@@ -93,9 +93,9 @@ class LineNumberGutterComponent extends TiledComponent
     {target} = event
     lineNumber = target.parentNode
 
-    if target.classList.contains('icon-right') and lineNumber.classList.contains('foldable')
+    if target.classList.contains('icon-right')
       bufferRow = parseInt(lineNumber.getAttribute('data-buffer-row'))
       if lineNumber.classList.contains('folded')
         @editor.unfoldBufferRow(bufferRow)
-      else
+      else if lineNumber.classList.contains('foldable')
         @editor.foldBufferRow(bufferRow)

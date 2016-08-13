@@ -10,7 +10,8 @@ var babelVersionDirectory = null
 var PREFIXES = [
   '/** @babel */',
   '"use babel"',
-  '\'use babel\''
+  '\'use babel\'',
+  '/* @flow */'
 ]
 
 var PREFIX_LENGTH = Math.max.apply(Math, PREFIXES.map(function (prefix) {
@@ -42,6 +43,10 @@ exports.getCachePath = function (sourceCode) {
 exports.compile = function (sourceCode, filePath) {
   if (!babel) {
     babel = require('babel-core')
+    var Logger = require('babel-core/lib/transformation/file/logger')
+    var noop = function () {}
+    Logger.prototype.debug = noop
+    Logger.prototype.verbose = noop
   }
 
   var options = {filename: filePath}

@@ -11,15 +11,16 @@
       { label: 'Downloading Update', enabled: false, visible: false}
       { type: 'separator' }
       { label: 'Preferences…', command: 'application:show-settings' }
-      { label: 'Open Your Config', command: 'application:open-your-config' }
-      { label: 'Open Your Init Script', command: 'application:open-your-init-script' }
-      { label: 'Open Your Keymap', command: 'application:open-your-keymap' }
-      { label: 'Open Your Snippets', command: 'application:open-your-snippets' }
-      { label: 'Open Your Stylesheet', command: 'application:open-your-stylesheet' }
+      { type: 'separator' }
+      { label: 'Config…', command: 'application:open-your-config' }
+      { label: 'Init Script…', command: 'application:open-your-init-script' }
+      { label: 'Keymap…', command: 'application:open-your-keymap' }
+      { label: 'Snippets…', command: 'application:open-your-snippets' }
+      { label: 'Stylesheet…', command: 'application:open-your-stylesheet' }
       { type: 'separator' }
       { label: 'Install Shell Commands', command: 'window:install-shell-commands' }
       { type: 'separator' }
-      { label: 'Services', submenu: [] }
+      { label: 'Services', role: 'services', submenu: [] }
       { type: 'separator' }
       { label: 'Hide Atom', command: 'application:hide' }
       { label: 'Hide Others', command: 'application:hide-other-applications' }
@@ -75,6 +76,13 @@
         ]
       }
       {
+        label: 'Columns',
+        submenu: [
+          { label: 'Move Selection Left', command: 'editor:move-selection-left' }
+          { label: 'Move Selection Right', command: 'editor:move-selection-right' }
+        ]
+      }
+      {
         label: 'Text',
         submenu: [
           { label: 'Upper Case', command: 'editor:upper-case' }
@@ -111,6 +119,47 @@
   }
 
   {
+    label: 'View'
+    submenu: [
+      { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
+      {
+        label: 'Panes'
+        submenu: [
+          { label: 'Split Up', command: 'pane:split-up-and-copy-active-item' }
+          { label: 'Split Down', command: 'pane:split-down-and-copy-active-item' }
+          { label: 'Split Left', command: 'pane:split-left-and-copy-active-item' }
+          { label: 'Split Right', command: 'pane:split-right-and-copy-active-item' }
+          { type: 'separator' }
+          { label: 'Focus Next Pane', command: 'window:focus-next-pane' }
+          { label: 'Focus Previous Pane', command: 'window:focus-previous-pane' }
+          { type: 'separator' }
+          { label: 'Focus Pane Above', command: 'window:focus-pane-above' }
+          { label: 'Focus Pane Below', command: 'window:focus-pane-below' }
+          { label: 'Focus Pane On Left', command: 'window:focus-pane-on-left' }
+          { label: 'Focus Pane On Right', command: 'window:focus-pane-on-right' }
+          { type: 'separator' }
+          { label: 'Close Pane', command: 'pane:close' }
+        ]
+      }
+      {
+        label: 'Developer'
+        submenu: [
+          { label: 'Open In Dev Mode…', command: 'application:open-dev' }
+          { label: 'Reload Window', command: 'window:reload' }
+          { label: 'Run Package Specs', command: 'window:run-package-specs' }
+          { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
+        ]
+      }
+      { type: 'separator' }
+      { label: 'Increase Font Size', command: 'window:increase-font-size' }
+      { label: 'Decrease Font Size', command: 'window:decrease-font-size' }
+      { label: 'Reset Font Size', command: 'window:reset-font-size' }
+      { type: 'separator' }
+      { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
+    ]
+  }
+
+  {
     label: 'Selection'
     submenu: [
       { label: 'Add Selection Above', command: 'editor:add-selection-above' }
@@ -137,54 +186,13 @@
   }
 
   {
-    label: 'View'
-    submenu: [
-      { label: 'Reload', command: 'window:reload' }
-      { label: 'Toggle Full Screen', command: 'window:toggle-full-screen' }
-      {
-        label: 'Panes'
-        submenu: [
-          { label: 'Split Up', command: 'pane:split-up' }
-          { label: 'Split Down', command: 'pane:split-down' }
-          { label: 'Split Left', command: 'pane:split-left' }
-          { label: 'Split Right', command: 'pane:split-right' }
-          { type: 'separator' }
-          { label: 'Focus Next Pane', command: 'window:focus-next-pane' }
-          { label: 'Focus Previous Pane', command: 'window:focus-previous-pane' }
-          { type: 'separator' }
-          { label: 'Focus Pane Above', command: 'window:focus-pane-above' }
-          { label: 'Focus Pane Below', command: 'window:focus-pane-below' }
-          { label: 'Focus Pane On Left', command: 'window:focus-pane-on-left' }
-          { label: 'Focus Pane On Right', command: 'window:focus-pane-on-right' }
-          { type: 'separator' }
-          { label: 'Close Pane', command: 'pane:close' }
-        ]
-      }
-      {
-        label: 'Developer'
-        submenu: [
-          { label: 'Open In Dev Mode…', command: 'application:open-dev' }
-          { label: 'Run Atom Specs', command: 'application:run-all-specs' }
-          { label: 'Run Package Specs', command: 'window:run-package-specs' }
-          { label: 'Toggle Developer Tools', command: 'window:toggle-dev-tools' }
-        ]
-      }
-      { type: 'separator' }
-      { label: 'Increase Font Size', command: 'window:increase-font-size' }
-      { label: 'Decrease Font Size', command: 'window:decrease-font-size' }
-      { label: 'Reset Font Size', command: 'window:reset-font-size' }
-      { type: 'separator' }
-      { label: 'Toggle Soft Wrap', command: 'editor:toggle-soft-wrap' }
-    ]
-  }
-
-  {
     label: 'Packages'
     submenu: []
   }
 
   {
     label: 'Window'
+    role: 'window'
     submenu: [
       { label: 'Minimize', command: 'application:minimize' }
       { label: 'Zoom', command: 'application:zoom' }
@@ -195,10 +203,10 @@
 
   {
     label: 'Help'
+    role: 'help'
     submenu: [
       { label: 'Terms of Use', command: 'application:open-terms-of-use' }
       { label: 'Documentation', command: 'application:open-documentation' }
-      { label: 'Roadmap', command: 'application:open-roadmap' }
       { label: 'Frequently Asked Questions', command: 'application:open-faq' }
       { type: 'separator' }
       { label: 'Community Discussions', command: 'application:open-discussions' }
@@ -220,10 +228,10 @@
     {label: 'Delete', command: 'core:delete'}
     {label: 'Select All', command: 'core:select-all'}
     {type: 'separator'}
-    {label: 'Split Up', command: 'pane:split-up'}
-    {label: 'Split Down', command: 'pane:split-down'}
-    {label: 'Split Left', command: 'pane:split-left'}
-    {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Split Up', command: 'pane:split-up-and-copy-active-item'}
+    {label: 'Split Down', command: 'pane:split-down-and-copy-active-item'}
+    {label: 'Split Left', command: 'pane:split-left-and-copy-active-item'}
+    {label: 'Split Right', command: 'pane:split-right-and-copy-active-item'}
     {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]

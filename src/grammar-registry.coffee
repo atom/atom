@@ -14,18 +14,8 @@ PathSplitRegex = new RegExp("[/.]")
 # language-specific comment regexes. See {::getProperty} for more details.
 module.exports =
 class GrammarRegistry extends FirstMate.GrammarRegistry
-  @deserialize: ({grammarOverridesByPath}) ->
-    grammarRegistry = new GrammarRegistry()
-    grammarRegistry.grammarOverridesByPath = grammarOverridesByPath
-    grammarRegistry
-
-  atom.deserializers.add(this)
-
-  constructor: ->
+  constructor: ({@config}={}) ->
     super(maxTokensPerLine: 100)
-
-  serialize: ->
-    {deserializer: @constructor.name, @grammarOverridesByPath}
 
   createToken: (value, scopes) -> new Token({value, scopes})
 
@@ -46,21 +36,21 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
       if score > highestScore or not bestMatch?
         bestMatch = grammar
         highestScore = score
-      else if score is highestScore and bestMatch?.bundledPackage
-        bestMatch = grammar unless grammar.bundledPackage
     bestMatch
 
   # Extended: Returns a {Number} representing how well the grammar matches the
   # `filePath` and `contents`.
   getGrammarScore: (grammar, filePath, contents) ->
+    return Infinity if @grammarOverrideForPath(filePath) is grammar.scopeName
+
     contents = fs.readFileSync(filePath, 'utf8') if not contents? and fs.isFileSync(filePath)
 
-    if @grammarOverrideForPath(filePath) is grammar.scopeName
-      2 + (filePath?.length ? 0)
-    else if @grammarMatchesContents(grammar, contents)
-      1 + (filePath?.length ? 0)
-    else
-      @getGrammarPathScore(grammar, filePath)
+    score = @getGrammarPathScore(grammar, filePath)
+    if score > 0 and not grammar.bundledPackage
+      score += 0.25
+    if @grammarMatchesContents(grammar, contents)
+      score += 0.125
+    score
 
   getGrammarPathScore: (grammar, filePath) ->
     return -1 unless filePath
@@ -70,7 +60,7 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
     pathScore = -1
 
     fileTypes = grammar.fileTypes
-    if customFileTypes = atom.config.get('core.customFileTypes')?[grammar.scopeName]
+    if customFileTypes = @config.get('core.customFileTypes')?[grammar.scopeName]
       fileTypes = fileTypes.concat(customFileTypes)
 
     for fileType, i in fileTypes
@@ -133,6 +123,3 @@ class GrammarRegistry extends FirstMate.GrammarRegistry
   clearGrammarOverrides: ->
     @grammarOverridesByPath = {}
     undefined
-
-  clearObservers: ->
-    @emitter = new Emitter

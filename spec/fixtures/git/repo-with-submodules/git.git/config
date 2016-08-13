@@ -1,0 +1,17 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[remote "origin"]
+	url = git@github.com:atom/some-repo-i-guess.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[submodule "jstips"]
+	url = https://github.com/loverajoel/jstips
+[submodule "You-Dont-Need-jQuery"]
+	url = https://github.com/oneuijs/You-Dont-Need-jQuery

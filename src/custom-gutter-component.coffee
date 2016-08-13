@@ -6,12 +6,12 @@
 module.exports =
 class CustomGutterComponent
 
-  constructor: ({@gutter}) ->
+  constructor: ({@gutter, @views}) ->
     @decorationNodesById = {}
     @decorationItemsById = {}
     @visible = true
 
-    @domNode = atom.views.getView(@gutter)
+    @domNode = @views.getView(@gutter)
     @decorationsNode = @domNode.firstChild
     # Clear the contents in case the domNode is being reused.
     @decorationsNode.innerHTML = ''

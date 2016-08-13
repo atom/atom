@@ -1,8 +1,7 @@
 Task = require './task'
 
-# Public: Searches local files for lines matching a specified regex.
-#
-# Implements thenable so it can be used with `Promise.all()`.
+# Searches local files for lines matching a specified regex. Implements `.then()`
+# so that it can be used with `Promise.all()`.
 class DirectorySearch
   constructor: (rootPaths, regex, options) ->
     scanHandlerOptions =
@@ -22,31 +21,25 @@ class DirectorySearch
         @task.terminate()
         resolve()
 
-  # Public: Implementation of `then()` to satisfy the *thenable* contract.
-  # This makes it possible to use a `DirectorySearch` with `Promise.all()`.
-  #
-  # Returns `Promise`.
   then: (args...) ->
     @promise.then.apply(@promise, args)
 
-  # Public: Cancels the search.
   cancel: ->
     # This will cause @promise to reject.
     @task.cancel()
     null
 
-
 # Default provider for the `atom.directory-searcher` service.
 module.exports =
 class DefaultDirectorySearcher
-  # Public: Determines whether this object supports search for a `Directory`.
+  # Determines whether this object supports search for a `Directory`.
   #
   # * `directory` {Directory} whose search needs might be supported by this object.
   #
   # Returns a `boolean` indicating whether this object can search this `Directory`.
   canSearchDirectory: (directory) -> true
 
-  # Public: Performs a text search for files in the specified `Directory`, subject to the
+  # Performs a text search for files in the specified `Directory`, subject to the
   # specified parameters.
   #
   # Results are streamed back to the caller by invoking methods on the specified `options`,

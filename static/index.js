@@ -1,9 +1,11 @@
 (function () {
-  var fs = require('fs')
   var path = require('path')
+  var FileSystemBlobStore = require('../src/file-system-blob-store')
+  var NativeCompileCache = require('../src/native-compile-cache')
 
   var loadSettings = null
   var loadSettingsError = null
+  var blobStore = null
 
   window.onload = function () {
     try {
@@ -13,8 +15,12 @@
         console.error('Unhandled promise rejection %o with error: %o', promise, error)
       })
 
-      // Ensure ATOM_HOME is always set before anything else is required
-      setupAtomHome()
+      blobStore = FileSystemBlobStore.load(
+        path.join(process.env.ATOM_HOME, 'blob-store/')
+      )
+      NativeCompileCache.setCacheStore(blobStore)
+      NativeCompileCache.setV8Version(process.versions.v8)
+      NativeCompileCache.install()
 
       // Normalize to make sure drive letter case is consistent on Windows
       process.resourcesPath = path.normalize(process.resourcesPath)
@@ -48,7 +54,7 @@
   }
 
   function handleSetupError (error) {
-    var currentWindow = require('remote').getCurrentWindow()
+    var currentWindow = require('electron').remote.getCurrentWindow()
     currentWindow.setSize(800, 600)
     currentWindow.center()
     currentWindow.show()
@@ -64,38 +70,18 @@
     ModuleCache.register(loadSettings)
     ModuleCache.add(loadSettings.resourcePath)
 
-    // Start the crash reporter before anything else.
-    require('crash-reporter').start({
-      productName: 'Atom',
-      companyName: 'GitHub',
-      // By explicitly passing the app version here, we could save the call
-      // of "require('remote').require('app').getVersion()".
-      extra: {_version: loadSettings.appVersion}
-    })
+    // By explicitly passing the app version here, we could save the call
+    // of "require('remote').require('app').getVersion()".
+    var startCrashReporter = require('../src/crash-reporter-start')
+    startCrashReporter({_version: loadSettings.appVersion})
 
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())
 
-    require(loadSettings.bootstrapScript)
-    require('ipc').sendChannel('window-command', 'window:loaded')
-  }
-
-  function setupAtomHome () {
-    if (!process.env.ATOM_HOME) {
-      var home
-      if (process.platform === 'win32') {
-        home = process.env.USERPROFILE
-      } else {
-        home = process.env.HOME
-      }
-      var atomHome = path.join(home, '.atom')
-      try {
-        atomHome = fs.realpathSync(atomHome)
-      } catch (error) {
-        // Ignore since the path might just not exist yet.
-      }
-      process.env.ATOM_HOME = atomHome
-    }
+    var initialize = require(loadSettings.windowInitializationScript)
+    return initialize({blobStore: blobStore}).then(function () {
+      require('electron').ipcRenderer.send('window-command', 'window:loaded')
+    })
   }
 
   function setupCsonCache (cacheDir) {
@@ -114,7 +100,7 @@
     if (!metadata._deprecatedPackages) {
       try {
         metadata._deprecatedPackages = require('../build/deprecated-packages.json')
-      } catch(requireError) {
+      } catch (requireError) {
         console.error('Failed to setup deprecated packages list', requireError.stack)
       }
     }
@@ -123,25 +109,21 @@
   function profileStartup (loadSettings, initialTime) {
     function profile () {
       console.profile('startup')
-      try {
-        var startTime = Date.now()
-        setupWindow(loadSettings)
+      var startTime = Date.now()
+      setupWindow(loadSettings).then(function () {
         setLoadTime(Date.now() - startTime + initialTime)
-      } catch (error) {
-        handleSetupError(error)
-      } finally {
         console.profileEnd('startup')
         console.log('Switch to the Profiles tab to view the created startup profile')
-      }
+      })
     }
 
-    var currentWindow = require('remote').getCurrentWindow()
+    var currentWindow = require('electron').remote.getCurrentWindow()
     if (currentWindow.devToolsWebContents) {
       profile()
     } else {
       currentWindow.openDevTools()
       currentWindow.once('devtools-opened', function () {
-        setTimeout(profile, 100)
+        setTimeout(profile, 1000)
       })
     }
   }
@@ -156,31 +138,19 @@
     }
   }
 
-  function setupWindowBackground () {
-    if (loadSettings && loadSettings.isSpec) {
+  var setupAtomHome = function () {
+    if (process.env.ATOM_HOME) {
       return
     }
 
-    var backgroundColor = window.localStorage.getItem('atom:window-background-color')
-    if (!backgroundColor) {
-      return
+    // Ensure ATOM_HOME is always set before anything else is required
+    // This is because of a difference in Linux not inherited between browser and render processes
+    // https://github.com/atom/atom/issues/5412
+    if (loadSettings && loadSettings.atomHome) {
+      process.env.ATOM_HOME = loadSettings.atomHome
     }
-
-    var backgroundStylesheet = document.createElement('style')
-    backgroundStylesheet.type = 'text/css'
-    backgroundStylesheet.innerText = 'html, body { background: ' + backgroundColor + '; }'
-    document.head.appendChild(backgroundStylesheet)
-
-    // Remove once the page loads
-    window.addEventListener('load', function loadWindow () {
-      window.removeEventListener('load', loadWindow, false)
-      setTimeout(function () {
-        backgroundStylesheet.remove()
-        backgroundStylesheet = null
-      }, 1000)
-    }, false)
   }
 
   parseLoadSettings()
-  setupWindowBackground()
+  setupAtomHome()
 })()

@@ -1,17 +1,13 @@
-{SoftTab, HardTab, PairedCharacter, SoftWrapIndent} = require './special-token-symbols'
-
 module.exports =
 class TokenIterator
-  constructor: (line) ->
+  constructor: ({@grammarRegistry}, line) ->
     @reset(line) if line?
 
   reset: (@line) ->
     @index = null
-    @bufferStart = @line.startBufferColumn
-    @bufferEnd = @bufferStart
-    @screenStart = 0
-    @screenEnd = 0
-    @scopes = @line.openScopes.map (id) -> atom.grammars.scopeForId(id)
+    @startColumn = 0
+    @endColumn = 0
+    @scopes = @line.openScopes.map (id) => @grammarRegistry.scopeForId(id)
     @scopeStarts = @scopes.slice()
     @scopeEnds = []
     this
@@ -20,18 +16,17 @@ class TokenIterator
     {tags} = @line
 
     if @index?
-      @index++
+      @startColumn = @endColumn
       @scopeEnds.length = 0
       @scopeStarts.length = 0
-      @bufferStart = @bufferEnd
-      @screenStart = @screenEnd
+      @index++
     else
       @index = 0
 
     while @index < tags.length
       tag = tags[@index]
       if tag < 0
-        scope = atom.grammars.scopeForId(tag)
+        scope = @grammarRegistry.scopeForId(tag)
         if tag % 2 is 0
           if @scopeStarts[@scopeStarts.length - 1] is scope
             @scopeStarts.pop()
@@ -43,44 +38,20 @@ class TokenIterator
           @scopes.push(scope)
         @index++
       else
-        if @isHardTab()
-          @screenEnd = @screenStart + tag
-          @bufferEnd = @bufferStart + 1
-        else if @isSoftWrapIndentation()
-          @screenEnd = @screenStart + tag
-          @bufferEnd = @bufferStart + 0
-        else
-          @screenEnd = @screenStart + tag
-          @bufferEnd = @bufferStart + tag
+        @endColumn += tag
+        @text = @line.text.substring(@startColumn, @endColumn)
         return true
 
     false
 
-  getBufferStart: -> @bufferStart
-  getBufferEnd: -> @bufferEnd
-
-  getScreenStart: -> @screenStart
-  getScreenEnd: -> @screenEnd
-
-  getScopeStarts: -> @scopeStarts
-  getScopeEnds: -> @scopeEnds
-
   getScopes: -> @scopes
 
-  getText: ->
-    @line.text.substring(@screenStart, @screenEnd)
+  getScopeStarts: -> @scopeStarts
 
-  isSoftTab: ->
-    @line.specialTokens[@index] is SoftTab
+  getScopeEnds: -> @scopeEnds
 
-  isHardTab: ->
-    @line.specialTokens[@index] is HardTab
+  getText: -> @text
 
-  isSoftWrapIndentation: ->
-    @line.specialTokens[@index] is SoftWrapIndent
+  getBufferStart: -> @startColumn
 
-  isPairedCharacter: ->
-    @line.specialTokens[@index] is PairedCharacter
-
-  isAtomic: ->
-    @isSoftTab() or @isHardTab() or @isSoftWrapIndentation() or @isPairedCharacter()
+  getBufferEnd: -> @endColumn

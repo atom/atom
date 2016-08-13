@@ -9,12 +9,13 @@
   'ctrl-alt-r': 'window:reload'
   'ctrl-shift-i': 'window:toggle-dev-tools'
   'ctrl-alt-p': 'window:run-package-specs'
-  'ctrl-alt-s': 'application:run-all-specs'
   'ctrl-shift-o': 'application:open-folder'
   'ctrl-alt-o': 'application:add-project-folder'
   'ctrl-shift-pageup': 'pane:move-item-left'
   'ctrl-shift-pagedown': 'pane:move-item-right'
-  'F11': 'window:toggle-full-screen'
+  'f11': 'window:toggle-full-screen'
+  'alt-shift-left': 'editor:move-selection-left'
+  'alt-shift-right': 'editor:move-selection-right'
 
   # Sublime Parity
   'ctrl-,': 'application:show-settings'
@@ -26,6 +27,7 @@
   'ctrl-n': 'application:new-file'
   'ctrl-s': 'core:save'
   'ctrl-S': 'core:save-as'
+  'ctrl-f4': 'core:close'
   'ctrl-w': 'core:close'
   'ctrl-z': 'core:undo'
   'ctrl-y': 'core:redo'
@@ -47,8 +49,10 @@
   'pagedown': 'core:page-down'
   'backspace': 'core:backspace'
   'shift-backspace': 'core:backspace'
-  'ctrl-tab': 'pane:show-next-item'
-  'ctrl-shift-tab': 'pane:show-previous-item'
+  'ctrl-tab': 'pane:show-next-recently-used-item'
+  'ctrl-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
+  'ctrl-shift-tab': 'pane:show-previous-recently-used-item'
+  'ctrl-shift-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
   'ctrl-pageup': 'pane:show-previous-item'
   'ctrl-pagedown': 'pane:show-next-item'
   'ctrl-up': 'core:move-up'
@@ -61,10 +65,10 @@
   'ctrl-_': 'window:decrease-font-size'
   'ctrl-0': 'window:reset-font-size'
 
-  'ctrl-k up': 'pane:split-up' # Atom Specific
-  'ctrl-k down': 'pane:split-down' # Atom Specific
-  'ctrl-k left': 'pane:split-left' # Atom Specific
-  'ctrl-k right': 'pane:split-right' # Atom Specific
+  'ctrl-k up': 'pane:split-up-and-copy-active-item' # Atom Specific
+  'ctrl-k down': 'pane:split-down-and-copy-active-item' # Atom Specific
+  'ctrl-k left': 'pane:split-left-and-copy-active-item' # Atom Specific
+  'ctrl-k right': 'pane:split-right-and-copy-active-item' # Atom Specific
   'ctrl-k ctrl-w': 'pane:close' # Atom Specific
   'ctrl-k alt-ctrl-w': 'pane:close-other-items' # Atom Specific
   'ctrl-k ctrl-p': 'window:focus-previous-pane'

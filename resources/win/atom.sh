@@ -1,24 +1,16 @@
-#!/bin/sh
-
-while getopts ":fhtvw-:" opt; do
-  case "$opt" in
-    -)
-      case "${OPTARG}" in
-        foreground|help|test|version|wait)
-          EXPECT_OUTPUT=1
-        ;;
-      esac
-      ;;
-    f|h|t|v|w)
-      EXPECT_OUTPUT=1
-      ;;
-  esac
-done
-
-directory=$(dirname "$0")
-
-if [ $EXPECT_OUTPUT ]; then
-  "$directory/../../atom.exe" "$@"
+#!/bin/bash
+# Get current path in Windows format
+if command -v "cygpath" > /dev/null; then
+  # We have cygpath to do the conversion
+  ATOMCMD=$(cygpath "$(dirname "$0")/atom.cmd" -a -w)
 else
-  "$directory/../app/apm/bin/node.exe" "$directory/atom.js" "$@"
+  # We don't have cygpath so try pwd -W
+  pushd "$(dirname "$0")" > /dev/null
+  ATOMCMD="$(pwd -W)/atom.cmd"
+  popd > /dev/null
+fi
+if [ "$(uname -o)" == "Msys" ]; then
+  cmd.exe //C "$ATOMCMD" "$@" # Msys thinks /C is a Windows path...
+else
+  cmd.exe /C "$ATOMCMD" "$@" # Cygwin does not
 fi

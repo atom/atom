@@ -1,11 +1,14 @@
 PaneContainer = require '../src/pane-container'
 
 describe "PaneElement", ->
-  [paneElement, container, pane] = []
+  [paneElement, container, containerElement, pane] = []
 
   beforeEach ->
-    container = new PaneContainer
-    pane = container.getRoot()
+    spyOn(atom.applicationDelegate, "open")
+
+    container = new PaneContainer(config: atom.config, confirm: atom.confirm.bind(atom))
+    containerElement = atom.views.getView(container)
+    pane = container.getActivePane()
     paneElement = atom.views.getView(pane)
 
   describe "when the pane's active status changes", ->
@@ -183,15 +186,28 @@ describe "PaneElement", ->
 
     describe "when a file is dragged to the pane", ->
       it "opens it", ->
-        spyOn(atom, "open")
         event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
         paneElement.dispatchEvent(event)
-        expect(atom.open.callCount).toBe 1
-        expect(atom.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
+        expect(atom.applicationDelegate.open.callCount).toBe 1
+        expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
 
     describe "when a non-file is dragged to the pane", ->
       it "does nothing", ->
-        spyOn(atom, "open")
         event = buildDragEvent("drop", [])
         paneElement.dispatchEvent(event)
-        expect(atom.open).not.toHaveBeenCalled()
+        expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
+
+  describe "resize", ->
+    it "shrinks independently of its contents' width", ->
+      jasmine.attachToDOM(containerElement)
+      item = document.createElement('div')
+      item.style.width = "2000px"
+      item.style.height = "30px"
+      paneElement.insertBefore(item, paneElement.children[0])
+
+      paneElement.style.flexGrow = 0.1
+      expect(paneElement.getBoundingClientRect().width).toBeGreaterThan(0)
+      expect(paneElement.getBoundingClientRect().width).toBeLessThan(item.getBoundingClientRect().width)
+
+      paneElement.style.flexGrow = 0
+      expect(paneElement.getBoundingClientRect().width).toBe(0)

@@ -18,8 +18,8 @@ describe "PanelElement", ->
   beforeEach ->
     jasmineContent = document.body.querySelector('#jasmine-content')
 
-    atom.views.addViewProvider Panel, (model) ->
-      new PanelElement().initialize(model)
+    atom.views.addViewProvider Panel, (model, env) ->
+      new PanelElement().initialize(model, env)
     atom.views.addViewProvider TestPanelItem, (model) ->
       new TestPanelItemElement().initialize(model)
 

@@ -7,13 +7,14 @@ class ThemePackage extends Package
   getStyleSheetPriority: -> 1
 
   enable: ->
-    atom.config.unshiftAtKeyPath('core.themes', @name)
+    @config.unshiftAtKeyPath('core.themes', @name)
 
   disable: ->
-    atom.config.removeAtKeyPath('core.themes', @name)
+    @config.removeAtKeyPath('core.themes', @name)
 
   load: ->
     @loadTime = 0
+    @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
     this
 
   activate: ->

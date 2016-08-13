@@ -16,6 +16,7 @@ describe "CommandRegistry", ->
     document.querySelector('#jasmine-content').appendChild(parent)
 
     registry = new CommandRegistry
+    registry.attach(parent)
 
   afterEach ->
     registry.destroy()
@@ -72,6 +73,13 @@ describe "CommandRegistry", ->
 
       grandchild.dispatchEvent(new CustomEvent('command', bubbles: true))
       expect(calls).toEqual ['.foo.bar', '.bar', '.foo']
+
+    it "orders inline listeners by reverse registration order", ->
+      calls = []
+      registry.add child, 'command', -> calls.push('child1')
+      registry.add child, 'command', -> calls.push('child2')
+      child.dispatchEvent(new CustomEvent('command', bubbles: true))
+      expect(calls).toEqual ['child2', 'child1']
 
     it "stops bubbling through ancestors when .stopPropagation() is called on the event", ->
       calls = []
@@ -277,3 +285,18 @@ describe "CommandRegistry", ->
         {name: 'namespace:command-2', displayName: 'Namespace: Command 2'}
         {name: 'namespace:command-1', displayName: 'Namespace: Command 1'}
       ]
+
+  describe "::attach(rootNode)", ->
+    it "adds event listeners for any previously-added commands", ->
+      registry2 = new CommandRegistry
+
+      commandSpy = jasmine.createSpy('command-callback')
+      registry2.add '.grandchild', 'command-1', commandSpy
+
+      grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+      expect(commandSpy).not.toHaveBeenCalled()
+
+      registry2.attach(parent)
+
+      grandchild.dispatchEvent(new CustomEvent('command-1', bubbles: true))
+      expect(commandSpy).toHaveBeenCalled()

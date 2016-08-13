@@ -1,44 +1,49 @@
 path = require 'path'
 {Disposable, CompositeDisposable} = require 'event-kit'
-ipc = require 'ipc'
-shell = require 'shell'
 fs = require 'fs-plus'
 listen = require './delegated-listener'
 
-# Handles low-level events related to the window.
+# Handles low-level events related to the @window.
 module.exports =
 class WindowEventHandler
-  constructor: ->
+  constructor: ({@atomEnvironment, @applicationDelegate, @window, @document}) ->
     @reloadRequested = false
     @subscriptions = new CompositeDisposable
 
-    @on(ipc, 'message', @handleIPCMessage)
-    @on(ipc, 'command', @handleIPCCommand)
-    @on(ipc, 'context-command', @handleIPCContextCommand)
+    @previousOnbeforeunloadHandler = @window.onbeforeunload
+    @window.onbeforeunload = @handleWindowBeforeunload
+    @addEventListener(@window, 'unload', @handleWindowUnload)
+    @addEventListener(@window, 'focus', @handleWindowFocus)
+    @addEventListener(@window, 'blur', @handleWindowBlur)
 
-    @addEventListener(window, 'focus', @handleWindowFocus)
-    @addEventListener(window, 'blur', @handleWindowBlur)
-    @addEventListener(window, 'beforeunload', @handleWindowBeforeunload)
-    @addEventListener(window, 'unload', @handleWindowUnload)
+    @addEventListener(@document, 'keyup', @handleDocumentKeyEvent)
+    @addEventListener(@document, 'keydown', @handleDocumentKeyEvent)
+    @addEventListener(@document, 'drop', @handleDocumentDrop)
+    @addEventListener(@document, 'dragover', @handleDocumentDragover)
+    @addEventListener(@document, 'contextmenu', @handleDocumentContextmenu)
+    @subscriptions.add listen(@document, 'click', 'a', @handleLinkClick)
+    @subscriptions.add listen(@document, 'submit', 'form', @handleFormSubmit)
 
-    @addEventListener(document, 'keydown', @handleDocumentKeydown)
-    @addEventListener(document, 'drop', @handleDocumentDrop)
-    @addEventListener(document, 'dragover', @handleDocumentDragover)
-    @addEventListener(document, 'contextmenu', @handleDocumentContextmenu)
-    @subscriptions.add listen(document, 'click', 'a', @handleLinkClick)
-    @subscriptions.add listen(document, 'submit', 'form', @handleFormSubmit)
+    browserWindow = @applicationDelegate.getCurrentWindow()
+    browserWindow.on 'enter-full-screen', @handleEnterFullScreen
+    @subscriptions.add new Disposable =>
+      browserWindow.removeListener('enter-full-screen', @handleEnterFullScreen)
 
-    @subscriptions.add atom.commands.add window,
+    browserWindow.on 'leave-full-screen', @handleLeaveFullScreen
+    @subscriptions.add new Disposable =>
+      browserWindow.removeListener('leave-full-screen', @handleLeaveFullScreen)
+
+    @subscriptions.add @atomEnvironment.commands.add @window,
       'window:toggle-full-screen': @handleWindowToggleFullScreen
       'window:close': @handleWindowClose
       'window:reload': @handleWindowReload
       'window:toggle-dev-tools': @handleWindowToggleDevTools
 
     if process.platform in ['win32', 'linux']
-      @subscriptions.add atom.commands.add window,
+      @subscriptions.add @atomEnvironment.commands.add @window,
         'window:toggle-menu-bar': @handleWindowToggleMenuBar
 
-    @subscriptions.add atom.commands.add document,
+    @subscriptions.add @atomEnvironment.commands.add @document,
       'core:focus-next': @handleFocusNext
       'core:focus-previous': @handleFocusPrevious
 
@@ -48,9 +53,8 @@ class WindowEventHandler
   # `.native-key-bindings` class.
   handleNativeKeybindings: ->
     bindCommandToAction = (command, action) =>
-      @addEventListener document, command, (event) ->
-        if event.target.webkitMatchesSelector('.native-key-bindings')
-          atom.getCurrentWindow().webContents[action]()
+      @subscriptions.add @atomEnvironment.commands.add '.native-key-bindings', command, (event) =>
+        @applicationDelegate.getCurrentWindow().webContents[action]()
 
     bindCommandToAction('core:copy', 'copy')
     bindCommandToAction('core:paste', 'paste')
@@ -60,6 +64,7 @@ class WindowEventHandler
     bindCommandToAction('core:cut', 'cut')
 
   unsubscribe: ->
+    @window.onbeforeunload = @previousOnbeforeunloadHandler
     @subscriptions.dispose()
 
   on: (target, eventName, handler) ->
@@ -72,28 +77,28 @@ class WindowEventHandler
     target.addEventListener(eventName, handler)
     @subscriptions.add(new Disposable(-> target.removeEventListener(eventName, handler)))
 
-  handleDocumentKeydown: (event) ->
-    atom.keymaps.handleKeyboardEvent(event)
+  handleDocumentKeyEvent: (event) =>
+    @atomEnvironment.keymaps.handleKeyboardEvent(event)
     event.stopImmediatePropagation()
 
-  handleDrop: (evenDocumentt) ->
+  handleDrop: (event) ->
     event.preventDefault()
     event.stopPropagation()
 
-  handleDragover: (Documentevent) ->
+  handleDragover: (event) ->
     event.preventDefault()
     event.stopPropagation()
     event.dataTransfer.dropEffect = 'none'
 
   eachTabIndexedElement: (callback) ->
-    for element in document.querySelectorAll('[tabindex]')
+    for element in @document.querySelectorAll('[tabindex]')
       continue if element.disabled
       continue unless element.tabIndex >= 0
       callback(element, element.tabIndex)
     return
 
   handleFocusNext: =>
-    focusedTabIndex = document.activeElement.tabIndex ? -Infinity
+    focusedTabIndex = @document.activeElement.tabIndex ? -Infinity
 
     nextElement = null
     nextTabIndex = Infinity
@@ -114,7 +119,7 @@ class WindowEventHandler
       lowestElement.focus()
 
   handleFocusPrevious: =>
-    focusedTabIndex = document.activeElement.tabIndex ? Infinity
+    focusedTabIndex = @document.activeElement.tabIndex ? Infinity
 
     previousElement = null
     previousTabIndex = -Infinity
@@ -134,91 +139,66 @@ class WindowEventHandler
     else if highestElement?
       highestElement.focus()
 
-  handleIPCMessage: (message, detail) ->
-    switch message
-      when 'open-locations'
-        needsProjectPaths = atom.project?.getPaths().length is 0
-
-        for {pathToOpen, initialLine, initialColumn} in detail
-          if pathToOpen? and needsProjectPaths
-            if fs.existsSync(pathToOpen)
-              atom.project.addPath(pathToOpen)
-            else if fs.existsSync(path.dirname(pathToOpen))
-              atom.project.addPath(path.dirname(pathToOpen))
-            else
-              atom.project.addPath(pathToOpen)
-
-          unless fs.isDirectorySync(pathToOpen)
-            atom.workspace?.open(pathToOpen, {initialLine, initialColumn})
-        return
-      when 'update-available'
-        atom.updateAvailable(detail)
-
-  handleIPCCommand: (command, args...) ->
-    activeElement = document.activeElement
-    # Use the workspace element view if body has focus
-    if activeElement is document.body and workspaceElement = atom.views.getView(atom.workspace)
-      activeElement = workspaceElement
-
-    atom.commands.dispatch(activeElement, command, args[0])
-
-  handleIPCContextCommand: (command, args...) ->
-    atom.commands.dispatch(atom.contextMenu.activeElement, command, args)
-
   handleWindowFocus: ->
-    document.body.classList.remove('is-blurred')
+    @document.body.classList.remove('is-blurred')
 
-  handleWindowBlur: ->
-    document.body.classList.add('is-blurred')
-    atom.storeDefaultWindowDimensions()
+  handleWindowBlur: =>
+    @document.body.classList.add('is-blurred')
+    @atomEnvironment.storeWindowDimensions()
+
+  handleEnterFullScreen: =>
+    @document.body.classList.add("fullscreen")
+
+  handleLeaveFullScreen: =>
+    @document.body.classList.remove("fullscreen")
 
   handleWindowBeforeunload: =>
-    confirmed = atom.workspace?.confirmClose(windowCloseRequested: true)
-    atom.hide() if confirmed and not @reloadRequested and atom.getCurrentWindow().isWebViewFocused()
+    confirmed = @atomEnvironment.workspace?.confirmClose(windowCloseRequested: true)
+    if confirmed and not @reloadRequested and not @atomEnvironment.inSpecMode() and @atomEnvironment.getCurrentWindow().isWebViewFocused()
+      @atomEnvironment.hide()
     @reloadRequested = false
 
-    atom.storeDefaultWindowDimensions()
-    atom.storeWindowDimensions()
+    @atomEnvironment.storeWindowDimensions()
     if confirmed
-      atom.unloadEditorWindow()
+      @atomEnvironment.unloadEditorWindow()
     else
-      ipc.send('cancel-window-close')
+      @applicationDelegate.didCancelWindowUnload()
 
     confirmed
 
-  handleWindowUnload: ->
-    atom.removeEditorWindow()
+  handleWindowUnload: =>
+    @atomEnvironment.destroy()
 
-  handleWindowToggleFullScreen: ->
-    atom.toggleFullScreen()
+  handleWindowToggleFullScreen: =>
+    @atomEnvironment.toggleFullScreen()
 
-  handleWindowClose: ->
-    atom.close()
+  handleWindowClose: =>
+    @atomEnvironment.close()
 
-  handleWindowReload: ->
+  handleWindowReload: =>
     @reloadRequested = true
-    atom.reload()
+    @atomEnvironment.reload()
 
-  handleWindowToggleDevTools: ->
-    atom.toggleDevTools()
+  handleWindowToggleDevTools: =>
+    @atomEnvironment.toggleDevTools()
 
-  handleWindowToggleMenuBar: ->
-    atom.config.set('core.autoHideMenuBar', not atom.config.get('core.autoHideMenuBar'))
+  handleWindowToggleMenuBar: =>
+    @atomEnvironment.config.set('core.autoHideMenuBar', not @atomEnvironment.config.get('core.autoHideMenuBar'))
 
-    if atom.config.get('core.autoHideMenuBar')
+    if @atomEnvironment.config.get('core.autoHideMenuBar')
       detail = "To toggle, press the Alt key or execute the window:toggle-menu-bar command"
-      atom.notifications.addInfo('Menu bar hidden', {detail})
+      @atomEnvironment.notifications.addInfo('Menu bar hidden', {detail})
 
-  handleLinkClick: (event) ->
+  handleLinkClick: (event) =>
     event.preventDefault()
-    location = event.currentTarget?.getAttribute('href')
-    if location and location[0] isnt '#' and /^https?:\/\//.test(location)
-      shell.openExternal(location)
+    uri = event.currentTarget?.getAttribute('href')
+    if uri and uri[0] isnt '#' and /^https?:\/\//.test(uri)
+      @applicationDelegate.openExternal(uri)
 
   handleFormSubmit: (event) ->
     # Prevent form submits from changing the current window's URL
     event.preventDefault()
 
-  handleDocumentContextmenu: (event) ->
+  handleDocumentContextmenu: (event) =>
     event.preventDefault()
-    atom.contextMenu.showForEvent(event)
+    @atomEnvironment.contextMenu.showForEvent(event)

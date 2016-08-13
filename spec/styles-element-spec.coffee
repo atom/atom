@@ -6,6 +6,7 @@ describe "StylesElement", ->
 
   beforeEach ->
     element = new StylesElement
+    element.initialize(atom.styles)
     document.querySelector('#jasmine-content').appendChild(element)
     addedStyleElements = []
     removedStyleElements = []
@@ -99,8 +100,8 @@ describe "StylesElement", ->
 
     it "defers selector upgrade until the element is attached", ->
       element = new StylesElement
+      element.initialize(atom.styles)
       element.setAttribute('context', 'atom-text-editor')
-      element.initialize()
 
       atom.styles.addStyleSheet ".editor {background: black;}", context: 'atom-text-editor'
       expect(element.firstChild.sheet).toBeNull()

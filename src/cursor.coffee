@@ -3,11 +3,13 @@
 _ = require 'underscore-plus'
 Model = require './model'
 
+EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
+
 # Extended: The `Cursor` class represents the little blinking line identifying
 # where text can be inserted.
 #
 # Cursors belong to {TextEditor}s and have some metadata attached in the form
-# of a {Marker}.
+# of a {DisplayMarker}.
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -16,7 +18,7 @@ class Cursor extends Model
   visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, id}) ->
+  constructor: ({@editor, @marker, @config, id}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -75,7 +77,7 @@ class Cursor extends Model
     @changePosition options, =>
       @marker.setHeadScreenPosition(screenPosition, options)
 
-  # Public: Returns the screen position of the cursor as an Array.
+  # Public: Returns the screen position of the cursor as a {Point}.
   getScreenPosition: ->
     @marker.getHeadScreenPosition()
 
@@ -127,7 +129,7 @@ class Cursor extends Model
   Section: Cursor Position Details
   ###
 
-  # Public: Returns the underlying {Marker} for the cursor.
+  # Public: Returns the underlying {DisplayMarker} for the cursor.
   # Useful with overlay {Decoration}s.
   getMarker: -> @marker
 
@@ -158,7 +160,7 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
+    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
     _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
 
   # Public: Returns whether this cursor is between a word's start and end.
@@ -259,11 +261,11 @@ class Cursor extends Model
 
       while columnCount > column and row > 0
         columnCount -= column
-        column = @editor.lineTextForScreenRow(--row).length
+        column = @editor.lineLengthForScreenRow(--row)
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column}, clip: 'backward')
+      @setScreenPosition({row, column}, clipDirection: 'backward')
 
   # Public: Moves the cursor right one screen column.
   #
@@ -278,7 +280,7 @@ class Cursor extends Model
     else
       {row, column} = @getScreenPosition()
       maxLines = @editor.getScreenLineCount()
-      rowLength = @editor.lineTextForScreenRow(row).length
+      rowLength = @editor.lineLengthForScreenRow(row)
       columnsRemainingInLine = rowLength - column
 
       while columnCount > columnsRemainingInLine and row < maxLines - 1
@@ -286,11 +288,11 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
         column = 0
-        rowLength = @editor.lineTextForScreenRow(++row).length
+        rowLength = @editor.lineLengthForScreenRow(++row)
         columnsRemainingInLine = rowLength
 
       column = column + columnCount
-      @setScreenPosition({row, column}, clip: 'forward', wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      @setScreenPosition({row, column}, clipDirection: 'forward')
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
@@ -467,10 +469,13 @@ class Cursor extends Model
     scanRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = null
-    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
-        beginningOfWordPosition = range.start
-      if not beginningOfWordPosition?.isEqual(currentBufferPosition)
+    @editor.backwardsScanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, matchText, stop}) ->
+      # Ignore 'empty line' matches between '\r' and '\n'
+      return if matchText is '' and range.start.column isnt 0
+
+      if range.start.isLessThan(currentBufferPosition)
+        if range.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+          beginningOfWordPosition = range.start
         stop()
 
     if beginningOfWordPosition?
@@ -496,13 +501,12 @@ class Cursor extends Model
     scanRange = [currentBufferPosition, @editor.getEofBufferPosition()]
 
     endOfWordPosition = null
-    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, stop}) ->
-      if allowNext
-        if range.end.isGreaterThan(currentBufferPosition)
-          endOfWordPosition = range.end
-          stop()
-      else
-        if range.start.isLessThanOrEqual(currentBufferPosition)
+    @editor.scanInBufferRange (options.wordRegex ? @wordRegExp(options)), scanRange, ({range, matchText, stop}) ->
+      # Ignore 'empty line' matches between '\r' and '\n'
+      return if matchText is '' and range.start.column isnt 0
+
+      if range.end.isGreaterThan(currentBufferPosition)
+        if allowNext or range.start.isLessThanOrEqual(currentBufferPosition)
           endOfWordPosition = range.end
         stop()
 
@@ -533,8 +537,8 @@ class Cursor extends Model
   #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
   #     (default: {::wordRegExp}).
   getCurrentWordBufferRange: (options={}) ->
-    startOptions = _.extend(_.clone(options), allowPrevious: false)
-    endOptions = _.extend(_.clone(options), allowNext: false)
+    startOptions = Object.assign(_.clone(options), allowPrevious: false)
+    endOptions = Object.assign(_.clone(options), allowNext: false)
     new Range(@getBeginningOfCurrentWordBufferPosition(startOptions), @getEndOfCurrentWordBufferPosition(endOptions))
 
   # Public: Returns the buffer Range for the current line.
@@ -547,7 +551,7 @@ class Cursor extends Model
 
   # Public: Retrieves the range for the current paragraph.
   #
-  # A paragraph is defined as a block of text surrounded by empty lines.
+  # A paragraph is defined as a block of text surrounded by empty lines or comments.
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
@@ -603,14 +607,14 @@ class Cursor extends Model
   #     non-word characters in the regex. (default: true)
   #
   # Returns a {RegExp}.
-  wordRegExp: ({includeNonWordCharacters}={}) ->
-    includeNonWordCharacters ?= true
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
-    segments = ["^[\t ]*$"]
-    segments.push("[^\\s#{_.escapeRegExp(nonWordCharacters)}]+")
-    if includeNonWordCharacters
-      segments.push("[#{_.escapeRegExp(nonWordCharacters)}]+")
-    new RegExp(segments.join("|"), "g")
+  wordRegExp: (options) ->
+    scope = @getScopeDescriptor()
+    nonWordCharacters = _.escapeRegExp(@config.get('editor.nonWordCharacters', {scope}))
+
+    source = "^[\t ]*$|[^\\s#{nonWordCharacters}]+"
+    if options?.includeNonWordCharacters ? true
+      source += "|" + "[#{nonWordCharacters}]+"
+    new RegExp(source, "g")
 
   # Public: Get the RegExp used by the cursor to determine what a "subword" is.
   #
@@ -620,7 +624,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
-    nonWordCharacters = atom.config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
     lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
     uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
     snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
@@ -666,10 +670,9 @@ class Cursor extends Model
     {row, column} = eof
     position = new Point(row, column - 1)
 
-    @editor.scanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      unless range.start.isEqual(start)
-        position = range.start
-        stop()
+    @editor.scanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
+      position = range.start.traverse(Point(1, 0))
+      stop() unless position.isEqual(start)
     position
 
   getBeginningOfPreviousParagraphBufferPosition: ->
@@ -679,8 +682,7 @@ class Cursor extends Model
     scanRange = [[row-1, column], [0, 0]]
     position = new Point(0, 0)
     zero = new Point(0, 0)
-    @editor.backwardsScanInBufferRange /^\n*$/g, scanRange, ({range, stop}) ->
-      unless range.start.isEqual(zero)
-        position = range.start
-        stop()
+    @editor.backwardsScanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
+      position = range.start.traverse(Point(1, 0))
+      stop() unless position.isEqual(start)
     position

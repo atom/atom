@@ -8,13 +8,12 @@ semver = require 'semver'
 OtherPlatforms = ['darwin', 'freebsd', 'linux', 'sunos', 'win32'].filter (platform) -> platform isnt process.platform
 
 module.exports = (grunt) ->
-  {spawn, rm} = require('./task-helpers')(grunt)
+  {spawn} = require('./task-helpers')(grunt)
 
   getMenu = (appDir) ->
     menusPath = path.join(appDir, 'menus')
     menuPath = path.join(menusPath, "#{process.platform}.json")
     menu = CSON.readFileSync(menuPath) if fs.isFileSync(menuPath)
-    rm menusPath
     menu
 
   getKeymaps = (appDir) ->
@@ -26,7 +25,6 @@ module.exports = (grunt) ->
 
       keymap = CSON.readFileSync(keymapPath)
       keymaps[path.basename(keymapPath)] = keymap
-    rm keymapsPath
     keymaps
 
   grunt.registerTask 'compile-packages-slug', 'Add bundled package metadata information to the main package.json file', ->
@@ -40,6 +38,8 @@ module.exports = (grunt) ->
       continue if path.basename(moduleDirectory) is '.bin'
 
       metadataPath = path.join(moduleDirectory, 'package.json')
+      continue unless fs.existsSync(metadataPath)
+
       metadata = grunt.file.readJSON(metadataPath)
       continue unless metadata?.engines?.atom?
 
@@ -52,7 +52,6 @@ module.exports = (grunt) ->
 
       moduleCache = metadata._atomModuleCache ? {}
 
-      rm metadataPath
       _.remove(moduleCache.extensions?['.json'] ? [], 'package.json')
 
       for property in ['_from', '_id', 'dist', 'readme', 'readmeFilename']
@@ -68,15 +67,11 @@ module.exports = (grunt) ->
       for keymapPath in fs.listSync(keymapsPath, ['.cson', '.json'])
         relativePath = path.relative(appDir, keymapPath)
         pack.keymaps[relativePath] = CSON.readFileSync(keymapPath)
-        rm keymapPath
-      rm keymapsPath if fs.listSync(keymapsPath).length is 0
 
       menusPath = path.join(moduleDirectory, 'menus')
       for menuPath in fs.listSync(menusPath, ['.cson', '.json'])
         relativePath = path.relative(appDir, menuPath)
         pack.menus[relativePath] = CSON.readFileSync(menuPath)
-        rm menuPath
-      rm menusPath if fs.listSync(menusPath).length is 0
 
       packages[metadata.name] = pack
 
