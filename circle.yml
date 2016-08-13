@@ -7,6 +7,9 @@ machine:
   xcode:
     version: 7.3
 
+  post:
+    - defaults -currentHost write com.apple.screensaver idleTime 0
+
 general:
   artifacts:
     - out/atom-mac.zip
@@ -15,6 +18,7 @@ general:
 
 dependencies:
   pre:
+    - screencapture $CIRCLE_ARTIFACTS/before-dependencies.jpg
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
     - nvm install 4.4.7
     - nvm use 4.4.7
@@ -34,5 +38,7 @@ dependencies:
 
 test:
   override:
+    - screencapture $CIRCLE_ARTIFACTS/before-tests.jpg
     - caffeinate -u -t 1
+    - screencapture $CIRCLE_ARTIFACTS/after-caffeinate.jpg
     - caffeinate -s script/test
