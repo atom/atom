@@ -18,9 +18,9 @@ general:
 
 dependencies:
   pre:
-    - screencapture $CIRCLE_ARTIFACTS/before-killall.jpg
-    - killall ScreenSaverEngine
-    - screencapture $CIRCLE_ARTIFACTS/after-killall.jpg
+    - screencapture $CIRCLE_ARTIFACTS/before-keystrokes.jpg
+    - osascript -e 'tell application "System Events" to keystroke "x"'
+    - screencapture $CIRCLE_ARTIFACTS/after-keystrokes.jpg
     - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
     - nvm install 4.4.7
     - nvm use 4.4.7
