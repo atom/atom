@@ -37,7 +37,7 @@ describe('AtomApplication', function () {
   })
 
   describe('launch', function () {
-    it('can open to a specific line number of a file', async function () {
+    it.only('can open to a specific line number of a file', async function () {
       const filePath = path.join(makeTempDir(), 'new-file')
       fs.writeFileSync(filePath, '1\n2\n3\n4\n')
       const atomApplication = buildAtomApplication()
