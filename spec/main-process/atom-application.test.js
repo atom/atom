@@ -387,6 +387,7 @@ describe('AtomApplication', function () {
       console.log('BrowserWindow.getFocusedWindow()', f ? f.id : 'NULL');
 
       const foregroundApp = childProcess.spawnSync('/usr/bin/osascript', ['-e', 'tell application "System Events"', '-e', 'set frontApp to name of first application process whose frontmost is true', '-e', 'end tell']).stdout.toString().trim()
+      console.log('Foreground app is ' + foregroundApp);
       if (foregroundApp !== 'Atom') {
         console.error('An app other than Atom is in the foreground! ' + foregroundApp);
 
