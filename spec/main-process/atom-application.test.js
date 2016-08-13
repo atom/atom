@@ -375,9 +375,14 @@ describe('AtomApplication', function () {
   }
 
   async function focusWindow (window) {
+    console.log('>>> focusing window');
     window.focus()
     await window.loadedPromise
-    await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
+    await conditionPromise(() => {
+      console.log('polling condition, current focused window is ' + (window.atomApplication.lastFocusedWindow ? window.atomApplication.lastFocusedWindow.id : 'NULL') + ' and new window is ' + window.id);
+      return window.atomApplication.lastFocusedWindow === window
+    })
+    console.log('<<< focused window');
   }
 
   function makeTempDir (name) {
