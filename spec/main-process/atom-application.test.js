@@ -379,14 +379,14 @@ describe('AtomApplication', function () {
   let idCounter = 1
   async function focusWindow (window) {
     console.log('>>> focusing window');
-    // window.focus()
+    window.focus()
     await window.loadedPromise
     await conditionPromise(() => {
       console.log('polling condition, current focused window is ' + (window.atomApplication.lastFocusedWindow ? window.atomApplication.lastFocusedWindow.id : 'NULL') + ' and new window is ' + window.id);
       const f = electron.BrowserWindow.getFocusedWindow()
       console.log('BrowserWindow.getFocusedWindow()', f ? f.id : 'NULL');
 
-      const foregroundApp = childProcess.spawnSync('/usr/bin/osascript', ['-e', 'tell application "System Events"', '-e', 'set frontApp to name of first application process whose frontmost is true', '-e', 'end tell']).stdout.toString()
+      const foregroundApp = childProcess.spawnSync('/usr/bin/osascript', ['-e', 'tell application "System Events"', '-e', 'set frontApp to name of first application process whose frontmost is true', '-e', 'end tell']).stdout.toString().trim()
       if (foregroundApp !== 'Atom') {
         console.error('An app other than Atom is in the foreground! ' + foregroundApp);
 
@@ -397,7 +397,6 @@ describe('AtomApplication', function () {
         if (foregroundApp === 'Finder') {
           console.log('Finder is in the foreground. Trying to kill it...');
           childProcess.spawnSync('/usr/bin/killall', ['Finder'])
-        } else {
         }
       }
 
