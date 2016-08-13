@@ -375,6 +375,8 @@ describe('AtomApplication', function () {
     return atomApplication
   }
 
+
+  let idCounter = 1
   async function focusWindow (window) {
     console.log('>>> focusing window');
     // window.focus()
@@ -386,6 +388,8 @@ describe('AtomApplication', function () {
 
       const foregroundApp = childProcess.spawnSync('/usr/bin/osascript', ['-e', 'tell application "System Events"', '-e', 'set frontApp to name of first application process whose frontmost is true', '-e', 'end tell']).stdout.toString()
       console.log('app in foreground: ', foregroundApp);
+
+      childProcess.spawnSync('/usr/sbin/screencapture', [path.join(process.env.CIRCLE_ARTIFACTS || process.env.HOME, 'screenshot-' + idCounter++ + '.jpg')]).stdout.toString()
 
       return window.atomApplication.lastFocusedWindow === window
     })
