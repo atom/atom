@@ -376,7 +376,7 @@ describe('AtomApplication', function () {
 
   async function focusWindow (window) {
     console.log('>>> focusing window');
-    window.focus()
+    // window.focus()
     await window.loadedPromise
     await conditionPromise(() => {
       console.log('polling condition, current focused window is ' + (window.atomApplication.lastFocusedWindow ? window.atomApplication.lastFocusedWindow.id : 'NULL') + ' and new window is ' + window.id);
