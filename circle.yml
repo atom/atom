@@ -7,6 +7,9 @@ machine:
   xcode:
     version: 7.3
 
+  post:
+    - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+
 general:
   artifacts:
     - out/Atom.zip
@@ -33,7 +36,7 @@ dependencies:
 
 test:
   override:
-    - script/grunt ci
+    - caffeinate -s script/grunt ci # Run with caffeinate to prevent screen saver
 
   post:
     - zip -r out/Atom.zip out/Atom.app
