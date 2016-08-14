@@ -46,6 +46,8 @@ class TextEditorPresenter
 
     @scrollPastEndOverride = scrollPastEnd ? true
 
+    @overlayBounds = {bottom: 0, right: 0}
+
   setLinesYardstick: (@linesYardstick) ->
 
   getLinesYardstick: -> @linesYardstick
@@ -457,6 +459,9 @@ class TextEditorPresenter
 
     visibleDecorationIds = {}
 
+    oldBounds = @overlayBounds
+    @overlayBounds = {bottom: 0, right: 0}
+
     for decoration in @model.getOverlayDecorations()
       continue unless decoration.getMarker().isValid()
 
@@ -474,6 +479,11 @@ class TextEditorPresenter
 
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
+
+        lowerBound = pixelPosition.top + @scrollTop + @lineHeight + itemHeight
+        rightBound = pixelPosition.left + @scrollLeft + @gutterWidth + itemWidth
+        @overlayBounds.bottom = Math.max(@overlayBounds.bottom, lowerBound)
+        @overlayBounds.right  = Math.max(@overlayBounds.right, rightBound)
 
         rightDiff = left + itemWidth + contentMargin - @windowWidth
         left -= rightDiff if rightDiff > 0
@@ -498,6 +508,12 @@ class TextEditorPresenter
 
     for id of @overlayDimensions
       delete @overlayDimensions[id] unless visibleDecorationIds[id]
+
+    if @overlayBounds.bottom isnt oldBounds.bottom
+      @updateScrollHeight()
+
+    if @overlayBounds.right isnt oldBounds.right
+      @updateScrollWidth()
 
     return
 
@@ -642,7 +658,7 @@ class TextEditorPresenter
   updateScrollWidth: ->
     return unless @contentWidth? and @clientWidth?
 
-    scrollWidth = Math.max(@contentWidth, @clientWidth)
+    scrollWidth = Math.max(@contentWidth, @clientWidth, @overlayBounds.right)
     unless @scrollWidth is scrollWidth
       @scrollWidth = scrollWidth
       @updateScrollLeft(@scrollLeft)
@@ -654,7 +670,7 @@ class TextEditorPresenter
     if @scrollPastEnd and @scrollPastEndOverride
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
-    scrollHeight = Math.max(contentHeight, @height)
+    scrollHeight = Math.max(contentHeight, @height, @overlayBounds.bottom)
 
     unless @scrollHeight is scrollHeight
       @scrollHeight = scrollHeight
