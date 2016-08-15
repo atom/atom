@@ -35,6 +35,7 @@ cache:
     - node_modules
     - apm/node_modules
     - script/node_modules
+    - ~/.atom/compile-cache
 
 notifications:
   email:
