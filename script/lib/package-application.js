@@ -42,6 +42,9 @@ module.exports = function () {
     if (process.platform === 'darwin') {
       bundledResourcesPath = path.join(packagedAppPath, 'Contents', 'Resources')
       setAtomHelperVersion(packagedAppPath)
+    } else if (process.platform == 'linux') {
+      bundledResourcesPath = path.join(packagedAppPath, 'resources')
+      chmodNodeFiles(packagedAppPath)
     } else {
       bundledResourcesPath = path.join(packagedAppPath, 'resources')
     }
@@ -90,6 +93,11 @@ function setAtomHelperVersion (packagedAppPath) {
   console.log(`Setting Atom Helper Version for ${helperPListPath}`)
   childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
   childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.appMetadata.version, helperPListPath])
+}
+
+function chmodNodeFiles (packagedAppPath) {
+  console.log(`Changing permissions for node files in ${packagedAppPath}`)
+  childProcess.spawnSync('find', [packagedAppPath, '-type', 'f', '-name', '*.node', '-exec chmod a-x {};'])
 }
 
 function buildAsarUnpackGlobExpression () {
