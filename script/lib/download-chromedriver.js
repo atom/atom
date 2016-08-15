@@ -21,7 +21,7 @@ module.exports = function () {
     assert(chromedriverAssets.length === 1, 'Found more than one chrome driver asset to download!')
     const chromedriverAsset = chromedriverAssets[0]
 
-    const chromedriverZipPath = path.join(CONFIG.electronDownloadPath, chromedriverAsset.name)
+    const chromedriverZipPath = path.join(CONFIG.electronDownloadPath, `electron-${electronVersionWithChromedriver}-${chromedriverAsset.name}`)
     if (!fs.existsSync(chromedriverZipPath)) {
       downloadFileFromGithub(chromedriverAsset.url, chromedriverZipPath)
     }
