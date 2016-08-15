@@ -13,6 +13,7 @@
     "glob": "7.0.3",
     "joanna": "0.0.6",
     "legal-eagle": "0.13.0",
+    "lodash.template": "4.4.0",
     "minidump": "0.9.0",
     "mkdirp": "0.5.1",
     "normalize-package-data": "2.3.5",
@@ -22,7 +23,7 @@
     "semver": "5.3.0",
     "sync-request": "3.0.1",
     "tello": "1.0.5",
-    "yargs": "4.8.1",
-    "webdriverio": "2.4.5"
+    "webdriverio": "2.4.5",
+    "yargs": "4.8.1"
   }
 }

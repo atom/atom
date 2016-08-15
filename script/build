@@ -11,6 +11,7 @@ const argv = require('yargs')
   .help('help')
   .describe('code-sign',  'Code-sign executables (key specified in env vars)')
   .describe('create-installer', 'Create installer (Windows only)')
+  .describe('create-debian-package', 'Create .deb package (Windows only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
   .describe('install', 'Install Atom')
   .argv
@@ -19,6 +20,7 @@ const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
 const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
+const createDebianPackage = require('./lib/create-debian-package')
 const createWindowsInstaller = require('./lib/create-windows-installer')
 const downloadChromedriver = require('./lib/download-chromedriver')
 const dumpSymbols = require('./lib/dump-symbols')
@@ -58,7 +60,6 @@ dumpSymbols()
       } else {
         console.log('Skipping code-signing. Specify the --code-sign option to perform code-signing'.gray)
       }
-      return Promise.resolve(packagedAppPath)
     } else if (process.platform === 'win32') {
       if (argv.createInstaller) {
         return createWindowsInstaller(packagedAppPath, argv.codeSign).then(() => packagedAppPath)
@@ -66,9 +67,15 @@ dumpSymbols()
       else {
         console.log('Skipping creating installer. Specify the --create-installer option to create a Squirrel-based Windows installer.'.gray)
       }
-    } else {
-      return Promise.resolve(packagedAppPath)
+    } else if (process.platform === 'linux') {
+      if (argv.createDebianPackage) {
+        createDebianPackage(packagedAppPath)
+      } else {
+        console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
+      }
     }
+
+    return Promise.resolve(packagedAppPath)
   }).then(packagedAppPath => {
     if (argv.compressArtifacts) {
       compressArtifacts(packagedAppPath)

@@ -3,7 +3,7 @@ Name=<%= appName %>
 Comment=<%= description %>
 GenericName=Text Editor
 Exec=<%= installDir %>/share/<%= appFileName %>/atom %F
-Icon=<%= iconPath %>
+Icon=<%= iconName %>
 Type=Application
 StartupNotify=true
 Categories=GNOME;GTK;Utility;TextEditor;Development;

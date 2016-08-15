@@ -25,7 +25,7 @@ install:
   - nvm use --delete-prefix $NODE_VERSION
   - npm install -g npm
   - script/bootstrap
-  - script/build --compress-artifacts
+  - script/build --create-debian-package --compress-artifacts
 
 script: false
 
