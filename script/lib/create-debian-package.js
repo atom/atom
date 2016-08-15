@@ -74,7 +74,7 @@ module.exports = function (packagedAppPath) {
   )
 
   console.log(`Writing control file into "${debianPackageConfigPath}"`)
-  const packageSizeInKilobytes = childProcess.spawnSync('du', ['-sk']).stdout.toString().split(/\s+/)[0]
+  const packageSizeInKilobytes = childProcess.spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
   const controlFileTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'debian', 'control.in'))
   const controlFileContents = template(controlFileTemplate)({
     appFileName: atomExecutableName, version: CONFIG.appMetadata.version, arch: arch,
