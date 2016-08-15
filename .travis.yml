@@ -27,7 +27,7 @@ install:
   - script/bootstrap
   - script/build --create-debian-package --compress-artifacts
 
-script: false
+script: true
 
 cache:
   directories:
