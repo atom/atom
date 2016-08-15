@@ -26,8 +26,7 @@ module.exports = function (packagedAppPath) {
     arch = process.arch
   }
 
-  const debianPackageName = `${atomExecutableName}-${CONFIG.appMetadata.version}-${arch}`
-  const debianPackageDirPath = path.join(os.tmpdir(), debianPackageName)
+  const debianPackageDirPath = path.join(os.tmpdir(), `${atomExecutableName}-${CONFIG.appMetadata.version}-${arch}`)
   const debianPackageConfigPath = path.join(debianPackageDirPath, 'DEBIAN')
   const debianPackageInstallDirPath = path.join(debianPackageDirPath, 'usr')
   const debianPackageShareDirPath = path.join(debianPackageInstallDirPath, 'share')
@@ -102,5 +101,5 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Generating .deb file from ${debianPackageDirPath}`)
   childProcess.spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
-  copySync(`${debianPackageDirPath}.deb`, path.join(CONFIG.buildOutputPath, `${debianPackageName}.deb`))
+  copySync(`${debianPackageDirPath}.deb`, path.join(CONFIG.buildOutputPath, `atom-amd64.deb`))
 }
