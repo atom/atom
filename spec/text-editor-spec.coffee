@@ -38,6 +38,29 @@ describe "TextEditor", ->
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
 
+    it "restores the editor's layout configuration", ->
+      editor.update({
+        softTabs: true
+        atomicSoftTabs: true
+        tabLength: 12
+        softWrapped: true
+        softWrapAtPreferredLineLength: true
+        softWrapHangingIndentLength: 8
+        invisibles: {space: 'S'}
+        showInvisibles: true
+        editorWidthInChars: 120
+      })
+
+      editor2 = TextEditor.deserialize(editor.serialize(), atom)
+
+      expect(editor2.getSoftTabs()).toBe(editor.getSoftTabs())
+      expect(editor2.hasAtomicSoftTabs()).toBe(editor.hasAtomicSoftTabs())
+      expect(editor2.getTabLength()).toBe(editor.getTabLength())
+      expect(editor2.getSoftWrapColumn()).toBe(editor.getSoftWrapColumn())
+      expect(editor2.getSoftWrapHangingIndentLength()).toBe(editor.getSoftWrapHangingIndentLength())
+      expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
+      expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
+
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
       editor = null

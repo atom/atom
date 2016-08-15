@@ -338,21 +338,25 @@ class TextEditor extends Model
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 
-    deserializer: 'TextEditor'
-    version: @serializationVersion
-    id: @id
-    softTabs: @softTabs
-    firstVisibleScreenRow: @getFirstVisibleScreenRow()
-    firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
-    selectionsMarkerLayerId: @selectionsMarkerLayer.id
-    softWrapped: @isSoftWrapped()
-    editorWidthInChars: @editorWidthInChars
-    # TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
-    displayBuffer: {tokenizedBuffer: tokenizedBufferState}
-    tokenizedBuffer: tokenizedBufferState
-    largeFileMode: @largeFileMode
-    displayLayerId: @displayLayer.id
-    registered: @registered
+    {
+      deserializer: 'TextEditor'
+      version: @serializationVersion
+
+      # TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
+      displayBuffer: {tokenizedBuffer: tokenizedBufferState}
+
+      tokenizedBuffer: tokenizedBufferState
+      displayLayerId: @displayLayer.id
+      selectionsMarkerLayerId: @selectionsMarkerLayer.id
+
+      firstVisibleScreenRow: @getFirstVisibleScreenRow()
+      firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
+
+      @id, @softTabs, @atomicSoftTabs, @tabLength, @softWrapped,
+      @softWrapHangingIndentLength, @softWrapAtPreferredLineLength,
+      @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
+      @registered, @invisibles, @showInvisibles, @showIndentGuide
+    }
 
   subscribeToBuffer: ->
     @buffer.retain()
