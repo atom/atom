@@ -29,13 +29,13 @@ module.exports = function (packagedAppPath) {
   const debianPackageDirPath = path.join(os.tmpdir(), `${atomExecutableName}-${CONFIG.appMetadata.version}-${arch}`)
   const debianPackageConfigPath = path.join(debianPackageDirPath, 'DEBIAN')
   const debianPackageInstallDirPath = path.join(debianPackageDirPath, 'usr')
+  const debianPackageBinDirPath = path.join(debianPackageInstallDirPath, 'bin')
   const debianPackageShareDirPath = path.join(debianPackageInstallDirPath, 'share')
   const debianPackageAtomDirPath = path.join(debianPackageShareDirPath, atomExecutableName)
   const debianPackageApplicationsDirPath = path.join(debianPackageShareDirPath, 'applications')
-  const debianPackageIconsDirPath = path.join(debianPackageInstallDirPath, 'pixmaps')
-  const debianPackageLintianOverridesDirPath = path.join(debianPackageInstallDirPath, 'lintian', 'overrides')
-  const debianPackageDocsDirPath = path.join(debianPackageInstallDirPath, 'doc', atomExecutableName)
-  const debianPackageBinDirPath = path.join(debianPackageInstallDirPath, 'bin')
+  const debianPackageIconsDirPath = path.join(debianPackageShareDirPath, 'pixmaps')
+  const debianPackageLintianOverridesDirPath = path.join(debianPackageShareDirPath, 'lintian', 'overrides')
+  const debianPackageDocsDirPath = path.join(debianPackageShareDirPath, 'doc', atomExecutableName)
 
   if (fs.existsSync(debianPackageDirPath)) {
     console.log(`Deleting existing build dir for Debian package at "${debianPackageDirPath}"`)
@@ -101,5 +101,8 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Generating .deb file from ${debianPackageDirPath}`)
   childProcess.spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
-  copySync(`${debianPackageDirPath}.deb`, path.join(CONFIG.buildOutputPath, `atom-amd64.deb`))
+
+  const outputDebianPackageFilePath = path.join(CONFIG.buildOutputPath, `atom-amd64.deb`)
+  console.log(`Copying generated package into "${outputDebianPackageFilePath}"`)
+  copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath)
 }
