@@ -12,6 +12,7 @@ const argv = require('yargs')
   .describe('code-sign',  'Code-sign executables (macOS and Windows only)')
   .describe('create-windows-installer', 'Create installer (Windows only)')
   .describe('create-debian-package', 'Create .deb package (Linux only)')
+  .describe('create-rpm-package', 'Create .rpm package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
   .describe('install', 'Install Atom')
   .argv
@@ -21,6 +22,7 @@ const codeSignOnMac = require('./lib/code-sign-on-mac')
 const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
 const createDebianPackage = require('./lib/create-debian-package')
+const createRpmPackage = require('./lib/create-rpm-package')
 const createWindowsInstaller = require('./lib/create-windows-installer')
 const downloadChromedriver = require('./lib/download-chromedriver')
 const dumpSymbols = require('./lib/dump-symbols')
@@ -72,6 +74,12 @@ dumpSymbols()
         createDebianPackage(packagedAppPath)
       } else {
         console.log('Skipping creating debian package. Specify the --create-debian-package option to create it.'.gray)
+      }
+
+      if (argv.createRpmPackage) {
+        createRpmPackage(packagedAppPath)
+      } else {
+        console.log('Skipping creating rpm package. Specify the --create-rpm-package option to create it.'.gray)
       }
     }
 
