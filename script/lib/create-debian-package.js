@@ -26,6 +26,7 @@ module.exports = function (packagedAppPath) {
     arch = process.arch
   }
 
+  const outputDebianPackageFilePath = path.join(CONFIG.buildOutputPath, `atom-amd64.deb`)
   const debianPackageDirPath = path.join(os.tmpdir(), `${atomExecutableName}-${CONFIG.appMetadata.version}-${arch}`)
   const debianPackageConfigPath = path.join(debianPackageDirPath, 'DEBIAN')
   const debianPackageInstallDirPath = path.join(debianPackageDirPath, 'usr')
@@ -39,6 +40,14 @@ module.exports = function (packagedAppPath) {
 
   if (fs.existsSync(debianPackageDirPath)) {
     console.log(`Deleting existing build dir for Debian package at "${debianPackageDirPath}"`)
+    fs.removeSync(debianPackageDirPath)
+  }
+  if (fs.existsSync(`${debianPackageDirPath}.deb`)) {
+    console.log(`Deleting existing Debian package at "${debianPackageDirPath}.deb"`)
+    fs.removeSync(`${debianPackageDirPath}.deb`)
+  }
+  if (fs.existsSync(debianPackageDirPath)) {
+    console.log(`Deleting existing Debian package at "${outputDebianPackageFilePath}"`)
     fs.removeSync(debianPackageDirPath)
   }
 
@@ -102,7 +111,6 @@ module.exports = function (packagedAppPath) {
   console.log(`Generating .deb file from ${debianPackageDirPath}`)
   childProcess.spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
 
-  const outputDebianPackageFilePath = path.join(CONFIG.buildOutputPath, `atom-amd64.deb`)
   console.log(`Copying generated package into "${outputDebianPackageFilePath}"`)
   copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath)
 }
