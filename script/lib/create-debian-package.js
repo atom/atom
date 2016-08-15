@@ -15,6 +15,7 @@ module.exports = function (packagedAppPath) {
   const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
   const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
   const appDescription = CONFIG.appMetadata.description
+  const appVersion = CONFIG.appMetadata.version
   let arch
   if (process.arch === 'ia32') {
     arch = 'i386'
@@ -49,7 +50,7 @@ module.exports = function (packagedAppPath) {
     fs.removeSync(debianPackageDirPath)
   }
 
-  console.log('Creating Debian package structure')
+  console.log(`Creating Debian package directory structure at "${debianPackageDirPath}"`)
   fs.mkdirpSync(debianPackageDirPath)
   fs.mkdirpSync(debianPackageConfigPath)
   fs.mkdirpSync(debianPackageInstallDirPath)
@@ -75,7 +76,7 @@ module.exports = function (packagedAppPath) {
   const packageSizeInKilobytes = childProcess.spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
   const controlFileTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'debian', 'control.in'))
   const controlFileContents = template(controlFileTemplate)({
-    appFileName: atomExecutableName, version: CONFIG.appMetadata.version, arch: arch,
+    appFileName: atomExecutableName, version: appVersion, arch: arch,
     installedSize: packageSizeInKilobytes, description: appDescription
   })
   fs.writeFileSync(path.join(debianPackageConfigPath, 'control'), controlFileContents)
