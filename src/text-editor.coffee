@@ -2821,11 +2821,6 @@ class TextEditor extends Model
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
   hasAtomicSoftTabs: -> @atomicSoftTabs
 
-  # Enable or disable atomic soft tabs for this editor.
-  #
-  # * `atomicSoftTabs` A {Boolean}
-  setAtomicSoftTabs: (atomicSoftTabs) -> @update({atomicSoftTabs})
-
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
 
@@ -2841,11 +2836,6 @@ class TextEditor extends Model
   #   fallback to using the `editor.tabLength` config setting
   setTabLength: (tabLength) -> @update({tabLength})
 
-  # Enable or disable invisible character substitution for this editor.
-  #
-  # * `showInvisibles` A {Boolean}
-  setShowInvisibles: (showInvisibles) -> @update({showInvisibles})
-
   # Returns an {Object} representing the current invisible character
   # substitutions for this editor. See {::setInvisibles}.
   getInvisibles: ->
@@ -2853,13 +2843,6 @@ class TextEditor extends Model
       @invisibles
     else
       {}
-
-  # Set the invisible character substitutions for this editor.
-  #
-  # * `invisibles` An {Object} whose keys are names of invisible characters
-  #   and whose values are 1-character {Strings}s to display in place of those
-  #   invisble characters
-  setInvisibles: (invisibles) -> @update({invisibles})
 
   doesShowIndentGuide: -> @showIndentGuide and not @mini
 
@@ -2917,10 +2900,6 @@ class TextEditor extends Model
   setSoftWrapped: (softWrapped) ->
     @update({softWrapped})
     @isSoftWrapped()
-
-  setSoftWrapAtPreferredLineLength: (softWrapAtPreferredLineLength) -> @update({softWrapAtPreferredLineLength})
-
-  setPreferredLineLength: (preferredLineLength) -> @update({preferredLineLength})
 
   getPreferredLineLength: -> @preferredLineLength
 
@@ -3441,11 +3420,6 @@ class TextEditor extends Model
   # Returns a {Boolean}.
   getScrollPastEnd: -> @scrollPastEnd
 
-  # Experimental: Set the speed that the editor scrolls on mouse wheel movement.
-  #
-  # * `scrollSensitivity` a positive {Number}.
-  setScrollSensitivity: (@scrollSensitivity) ->
-
   # Experimental: How fast does the editor scroll in response to mouse wheel
   # movements?
   #
@@ -3571,8 +3545,6 @@ class TextEditor extends Model
     @height
 
   getAutoHeight: -> @autoHeight
-
-  setAutoHeight: (autoHeight) -> @update({autoHeight})
 
   setWidth: (width, reentrant=false) ->
     if reentrant

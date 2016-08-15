@@ -460,8 +460,10 @@ describe('TextEditorComponent', function () {
       }
 
       beforeEach(function () {
-        editor.setShowInvisibles(true)
-        editor.setInvisibles(invisibles)
+        editor.update({
+          showInvisibles: true,
+          invisibles: invisibles
+        })
         runAnimationFrames()
       })
 
@@ -471,12 +473,12 @@ describe('TextEditorComponent', function () {
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
 
-        editor.setShowInvisibles(false)
+        editor.update({showInvisibles: false})
         runAnimationFrames()
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe(' a line with tabs and spaces ')
 
-        editor.setShowInvisibles(true)
+        editor.update({showInvisibles: true})
         runAnimationFrames()
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
@@ -511,17 +513,13 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders a placeholder space on empty lines when the line-ending character is an empty string', function () {
-        editor.setInvisibles({
-          eol: ''
-        })
+        editor.update({invisibles: {eol: ''}})
         runAnimationFrames()
         expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
       it('renders an placeholder space on empty lines when the line-ending character is false', function () {
-        editor.setInvisibles({
-          eol: false
-        })
+        editor.update({invisibles: {eol: false}})
         runAnimationFrames()
         expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
@@ -3584,7 +3582,7 @@ describe('TextEditorComponent', function () {
 
   describe('mousewheel events', function () {
     beforeEach(function () {
-      editor.setScrollSensitivity(100)
+      editor.update({scrollSensitivity: 100})
     })
 
     describe('updating scrollTop and scrollLeft', function () {
@@ -3617,7 +3615,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('updates the scrollLeft or scrollTop according to the scroll sensitivity', function () {
-        editor.setScrollSensitivity(50)
+        editor.update({scrollSensitivity: 50})
         componentNode.dispatchEvent(new WheelEvent('mousewheel', {
           wheelDeltaX: -5,
           wheelDeltaY: -10
@@ -4389,10 +4387,10 @@ describe('TextEditorComponent', function () {
     })
 
     it('does not render invisible characters', function () {
-      editor.setInvisibles({
-        eol: 'E'
+      editor.update({
+        showInvisibles: true,
+        invisibles: {eol: 'E'}
       })
-      editor.setShowInvisibles(true)
       expect(component.lineNodeForScreenRow(0).textContent).toBe('var quicksort = function () {')
     })
 

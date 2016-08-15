@@ -105,7 +105,7 @@ describe "TextEditor", ->
   describe ".update()", ->
     it "updates the editor with the supplied config parameters", ->
       element = editor.element # force element initialization
-      editor.setShowInvisibles(true)
+      editor.update({showInvisibles: true})
       editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
 
       updatePromise = editor.update({
@@ -698,7 +698,7 @@ describe "TextEditor", ->
 
         describe "when invisible characters are enabled with soft tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
-            editor.setShowInvisibles(true)
+            editor.update({showInvisibles: true})
             editor.setCursorScreenPosition [1, 7]
             editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual [1, 2]
@@ -707,7 +707,7 @@ describe "TextEditor", ->
 
         describe "when invisible characters are enabled with hard tabs", ->
           it "moves to the first character of the current line without being confused by the invisible characters", ->
-            editor.setShowInvisibles(true)
+            editor.update({showInvisibles: true})
             buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', normalizeLineEndings: false)
 
             editor.setCursorScreenPosition [1, 7]
@@ -5022,17 +5022,16 @@ describe "TextEditor", ->
 
   describe "atomic soft tabs", ->
     it "skips tab-length runs of leading whitespace when moving the cursor", ->
-      editor.setTabLength(4)
-      editor.setAtomicSoftTabs(true)
+      editor.update({tabLength: 4, atomicSoftTabs: true})
 
       editor.setCursorScreenPosition([2, 3])
       expect(editor.getCursorScreenPosition()).toEqual [2, 4]
 
-      editor.setAtomicSoftTabs(false)
+      editor.update({atomicSoftTabs: false})
       editor.setCursorScreenPosition([2, 3])
       expect(editor.getCursorScreenPosition()).toEqual [2, 3]
 
-      editor.setAtomicSoftTabs(true)
+      editor.update({atomicSoftTabs: true})
       editor.setCursorScreenPosition([2, 3])
       expect(editor.getCursorScreenPosition()).toEqual [2, 4]
 
@@ -5512,9 +5511,9 @@ describe "TextEditor", ->
   describe "auto height", ->
     it "returns true by default but can be customized", ->
       expect(editor.getAutoHeight()).toBe(true)
-      editor.setAutoHeight(false)
+      editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
-      editor.setAutoHeight(true)
+      editor.update({autoHeight: true})
       expect(editor.getAutoHeight()).toBe(true)
 
   describe '.get/setPlaceholderText()', ->
@@ -5762,20 +5761,20 @@ describe "TextEditor", ->
 
   describe "invisibles", ->
     beforeEach ->
-      editor.setShowInvisibles(true)
+      editor.update({showInvisibles: true})
 
     it "substitutes invisible characters according to the given rules", ->
       previousLineText = editor.lineTextForScreenRow(0)
-      editor.setInvisibles(eol: '?')
+      editor.update({invisibles: {eol: '?'}})
       expect(editor.lineTextForScreenRow(0)).not.toBe(previousLineText)
       expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(true)
       expect(editor.getInvisibles()).toEqual(eol: '?')
 
     it "does not use invisibles if showInvisibles is set to false", ->
-      editor.setInvisibles(eol: '?')
+      editor.update({invisibles: {eol: '?'}})
       expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(true)
 
-      editor.setShowInvisibles(false)
+      editor.update({showInvisibles: false})
       expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(false)
 
   describe "indent guides", ->
@@ -5814,24 +5813,28 @@ describe "TextEditor", ->
 
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
-  describe "::setSoftWrapAtPreferredLineLength", ->
+  describe "softWrapAtPreferredLineLength", ->
     it "soft wraps the editor at the preferred line length unless the editor is narrower", ->
-      editor.setEditorWidthInChars(30)
-      editor.setSoftWrapped(true)
-      editor.setSoftWrapAtPreferredLineLength(true)
-      editor.setPreferredLineLength(20)
+      editor.update({
+        editorWidthInChars: 30
+        softWrapped: true
+        softWrapAtPreferredLineLength: true
+        preferredLineLength: 20
+      })
 
       expect(editor.lineTextForScreenRow(0)).toBe 'var quicksort = '
 
-      editor.setEditorWidthInChars(10)
+      editor.update({editorWidthInChars: 10})
       expect(editor.lineTextForScreenRow(0)).toBe 'var '
 
   describe "softWrapHangingIndentLength", ->
     it "controls how much extra indentation is applied to soft-wrapped lines", ->
       editor.setText('123456789')
-      editor.setEditorWidthInChars(8)
-      editor.setSoftWrapped(true)
-      editor.update({softWrapHangingIndentLength: 2})
+      editor.update({
+        editorWidthInChars: 8
+        softWrapped: true
+        softWrapHangingIndentLength: 2
+      })
       expect(editor.lineTextForScreenRow(1)).toEqual '  9'
 
       editor.update({softWrapHangingIndentLength: 4})
