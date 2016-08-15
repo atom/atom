@@ -39,7 +39,7 @@ const GRAMMAR_SELECTION_RANGE = Range(Point.ZERO, Point(10, 0)).freeze()
 // done using your editor, be sure to call `dispose` on the returned disposable
 // to avoid leaking editors.
 export default class TextEditorRegistry {
-  constructor ({config, grammarRegistry, clipboard, assert}) {
+  constructor ({config, grammarRegistry, clipboard, assert, packageManager}) {
     this.assert = assert
     this.clipboard = clipboard
     this.config = config
@@ -47,6 +47,16 @@ export default class TextEditorRegistry {
     this.scopedSettingsDelegate = new ScopedSettingsDelegate(config)
     this.grammarAddedOrUpdated = this.grammarAddedOrUpdated.bind(this)
     this.clear()
+
+    this.initialPackageActivationPromise = new Promise((resolve) => {
+      // TODO: Remove this usage of a private property of PackageManager.
+      // Should PackageManager just expose a promise-based API like this?
+      if (packageManager.deferredActivationHooks) {
+        packageManager.onDidActivateInitialPackages(resolve)
+      } else {
+        resolve()
+      }
+    })
   }
 
   deserialize (state) {
@@ -312,7 +322,9 @@ export default class TextEditorRegistry {
     }
   }
 
-  subscribeToSettingsForEditorScope (editor) {
+  async subscribeToSettingsForEditorScope (editor) {
+    await this.initialPackageActivationPromise
+
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
 
