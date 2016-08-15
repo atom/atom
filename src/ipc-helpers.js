@@ -1,6 +1,16 @@
-var ipcRenderer = null
-var ipcMain = null
-var BrowserWindow = null
+'use strict'
+
+const Disposable = require('event-kit').Disposable
+let ipcRenderer = null
+let ipcMain = null
+let BrowserWindow = null
+
+exports.on = function (emitter, eventName, callback) {
+  emitter.on(eventName, callback)
+  return new Disposable(function () {
+    emitter.removeListener(eventName, callback)
+  })
+}
 
 exports.call = function (methodName, ...args) {
   if (!ipcRenderer) {
@@ -28,7 +38,7 @@ exports.respondTo = function (methodName, callback) {
 
   var responseChannel = getResponseChannel(methodName)
 
-  ipcMain.on(methodName, function (event, ...args) {
+  return exports.on(ipcMain, methodName, function (event, ...args) {
     var browserWindow = BrowserWindow.fromWebContents(event.sender)
     var result = callback(browserWindow, ...args)
     event.sender.send(responseChannel, result)

@@ -5,9 +5,8 @@ temp = require('temp').track()
 _ = require 'underscore-plus'
 async = require 'async'
 
-# TODO: This should really be parallel on every platform, however:
-# - On Windows, our fixtures step on each others toes.
-if process.platform is 'win32'
+# Run specs serially on CircleCI
+if process.env.CIRCLECI
   concurrency = 1
 else
   concurrency = 2
@@ -137,24 +136,13 @@ module.exports = (grunt) ->
       else
         async.parallel
 
-    specs =
-      if process.env.ATOM_SPECS_TASK is 'packages'
-        [runPackageSpecs]
-      else if process.env.ATOM_SPECS_TASK is 'core'
-        [runRendererProcessSpecs, runMainProcessSpecs]
-      else
-        [runRendererProcessSpecs, runMainProcessSpecs, runPackageSpecs]
+    specs = [runRendererProcessSpecs, runMainProcessSpecs, runPackageSpecs]
 
     method specs, (error, results) ->
       failedPackages = []
       coreSpecFailed = null
 
-      if process.env.ATOM_SPECS_TASK is 'packages'
-        [failedPackages] = results
-      else if process.env.ATOM_SPECS_TASK is 'core'
-        [rendererProcessSpecsFailed, mainProcessSpecsFailed] = results
-      else
-        [rendererProcessSpecsFailed, mainProcessSpecsFailed, failedPackages] = results
+      [rendererProcessSpecsFailed, mainProcessSpecsFailed, failedPackages] = results
 
       elapsedTime = Math.round((Date.now() - startTime) / 100) / 10
       grunt.log.ok("Total spec time: #{elapsedTime}s using #{concurrency} cores")
