@@ -1852,7 +1852,7 @@ class TextEditor extends Model
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    @buffer.getMarkerCount()
+    @defaultMarkerLayer.getMarkerCount()
 
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
