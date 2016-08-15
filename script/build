@@ -11,7 +11,7 @@ const argv = require('yargs')
   .help('help')
   .describe('code-sign',  'Code-sign executables (key specified in env vars)')
   .describe('create-installer', 'Create installer (Windows only)')
-  .describe('create-debian-package', 'Create .deb package (Windows only)')
+  .describe('create-debian-package', 'Create .deb package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
   .describe('install', 'Install Atom')
   .argv

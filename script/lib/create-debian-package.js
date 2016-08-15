@@ -10,8 +10,6 @@ const template = require('lodash.template')
 const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath) {
-  // TODO: this logic here is duplicated (see package-application.js). Pull it
-  // up in config.
   console.log(`Creating Debian package for "${packagedAppPath}"`)
   const atomExecutableName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
   const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
@@ -27,7 +25,7 @@ module.exports = function (packagedAppPath) {
   }
 
   const outputDebianPackageFilePath = path.join(CONFIG.buildOutputPath, `atom-amd64.deb`)
-  const debianPackageDirPath = path.join(os.tmpdir(), `${atomExecutableName}-${CONFIG.appMetadata.version}-${arch}`)
+  const debianPackageDirPath = path.join(os.tmpdir(), path.basename(packagedAppPath))
   const debianPackageConfigPath = path.join(debianPackageDirPath, 'DEBIAN')
   const debianPackageInstallDirPath = path.join(debianPackageDirPath, 'usr')
   const debianPackageBinDirPath = path.join(debianPackageInstallDirPath, 'bin')
