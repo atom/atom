@@ -16,12 +16,9 @@ module.exports = function (packagedAppPath) {
   const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
   const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
   const appDescription = CONFIG.appMetadata.description
-  // RPM versions can't have dashes in them.
-  // * http://www.rpm.org/max-rpm/ch-rpm-file-format.html
-  // * https://github.com/mojombo/semver/issues/145
-  const appVersion = CONFIG.appMetadata.version
-    .replace(/-/, '~') // replaces the first dash with ~ (`-beta0` -> `~beta0`)
-    .replace(/-/, '.') // replaces the second dash with . (`~dev-bca231` -> `~dev.bca231`)
+  // RPM versions can't have dashes or tildes in them.
+  // (Ref.: https://twiki.cern.ch/twiki/bin/view/Main/RPMAndDebVersioning)
+  const appVersion = CONFIG.appMetadata.version.replace(/-/g, '.')
   let arch
   if (process.arch === 'ia32') {
     arch = 'i386'
