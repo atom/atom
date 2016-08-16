@@ -2,7 +2,7 @@
 
 import {Disposable} from 'event-kit'
 
-module.exports = Object.freeze({
+export default Object.freeze({
   name: 'Null Grammar',
   scopeName: 'text.plain',
   onDidUpdate (callback) {
