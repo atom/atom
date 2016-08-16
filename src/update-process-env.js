@@ -1,5 +1,6 @@
 /** @babel */
 
+import fs from 'fs'
 import {spawnSync} from 'child_process'
 
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
@@ -36,6 +37,10 @@ function updateProcessEnv (launchEnv) {
       if (!ENVIRONMENT_VARIABLES_TO_PRESERVE.has(key)) {
         process.env[key] = envToAssign[key]
       }
+    }
+
+    if (envToAssign.ATOM_HOME && fs.existsSync(envToAssign.ATOM_HOME)) {
+      process.env.ATOM_HOME = envToAssign.ATOM_HOME
     }
   }
 }
