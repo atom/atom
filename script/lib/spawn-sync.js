@@ -11,8 +11,8 @@ module.exports = function () {
   if (result.error) {
     throw result.error
   } else if (result.status !== 0) {
-    console.error(result.stdout.toString())
-    console.error(result.stderr.toString())
+    if (result.stdout) console.error(result.stdout.toString())
+    if (result.stderr) console.error(result.stderr.toString())
     throw new Error(`Command ${result.args.join(' ')} exited with code "${result.status}"`)
   } else {
     return result
