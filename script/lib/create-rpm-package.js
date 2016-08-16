@@ -19,7 +19,9 @@ module.exports = function (packagedAppPath) {
   // RPM versions can't have dashes in them.
   // * http://www.rpm.org/max-rpm/ch-rpm-file-format.html
   // * https://github.com/mojombo/semver/issues/145
-  const appVersion = CONFIG.appMetadata.version.replace(/-/g, '~')
+  const appVersion = CONFIG.appMetadata.version
+    .replace(/-/, '~') // replaces the first dash with ~ (`-beta0` -> `~beta0`)
+    .replace(/-/, '.') // replaces the second dash with . (`~dev-bca231` -> `~dev.bca231`)
   let arch
   if (process.arch === 'ia32') {
     arch = 'i386'
