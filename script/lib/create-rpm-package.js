@@ -1,10 +1,10 @@
 'use strict'
 
-const childProcess = require('child_process')
 const copySync = require('./copy-sync')
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
+const spawnSync = require('./spawn-sync')
 const template = require('lodash.template')
 
 const CONFIG = require('../config')
@@ -80,7 +80,7 @@ module.exports = function (packagedAppPath) {
   )
 
   console.log(`Generating .rpm package from "${rpmPackageDirPath}"`)
-  childProcess.spawnSync('rpmbuild', ['-ba', '--clean', rpmPackageSpecFilePath])
+  spawnSync('rpmbuild', ['-ba', '--clean', rpmPackageSpecFilePath])
 
   // TODO: copy generated package into out/
   // console.log(`Copying generated package into "${outputRpmPackageFilePath}"`)

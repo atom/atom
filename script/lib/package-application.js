@@ -2,12 +2,12 @@
 
 const assert = require('assert')
 const copySync = require('./copy-sync')
-const fs = require('fs-extra')
-const path = require('path')
-const childProcess = require('child_process')
 const electronPackager = require('electron-packager')
+const fs = require('fs-extra')
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
 const getLicenseText = require('./get-license-text')
+const path = require('path')
+const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
 
@@ -90,13 +90,13 @@ function setAtomHelperVersion (packagedAppPath) {
   const frameworksPath = path.join(packagedAppPath, 'Contents', 'Frameworks')
   const helperPListPath = path.join(frameworksPath, 'Atom Helper.app', 'Contents', 'Info.plist')
   console.log(`Setting Atom Helper Version for ${helperPListPath}`)
-  childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleVersion', CONFIG.appMetadata.version, helperPListPath])
-  childProcess.spawnSync('/usr/libexec/PlistBuddy', ['-c', 'Set CFBundleShortVersionString', CONFIG.appMetadata.version, helperPListPath])
+  spawnSync('/usr/libexec/PlistBuddy', ['-c', `Add CFBundleVersion string ${CONFIG.appMetadata.version}`, helperPListPath])
+  spawnSync('/usr/libexec/PlistBuddy', ['-c', `Add CFBundleShortVersionString string ${CONFIG.appMetadata.version}`, helperPListPath])
 }
 
 function chmodNodeFiles (packagedAppPath) {
   console.log(`Changing permissions for node files in ${packagedAppPath}`)
-  childProcess.spawnSync('find', [packagedAppPath, '-type', 'f', '-name', '*.node', '-exec chmod a-x {};'])
+  spawnSync('find', [packagedAppPath, '-type', 'f', '-name', '*.node', '-exec chmod a-x {};'])
 }
 
 function buildAsarUnpackGlobExpression () {

@@ -1,11 +1,11 @@
 'use strict'
 
 const assert = require('assert')
-const childProcess = require('child_process')
 const downloadFileFromGithub = require('./download-file-from-github')
 const fs = require('fs-extra')
 const path = require('path')
 const semver = require('semver')
+const spawnSync = require('./spawn-sync')
 const syncRequest = require('sync-request')
 
 const CONFIG = require('../config')
@@ -52,5 +52,5 @@ function unzipPath (inputPath, outputPath) {
   }
 
   console.log(`Unzipping "${inputPath}" to "${outputPath}"`)
-  childProcess.spawnSync('unzip', [inputPath, '-d', outputPath])
+  spawnSync('unzip', [inputPath, '-d', outputPath])
 }

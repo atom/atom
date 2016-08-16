@@ -1,8 +1,8 @@
 'use strict'
 
-const childProcess = require('child_process')
 const fs = require('fs-extra')
 const path = require('path')
+const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
 
@@ -43,5 +43,5 @@ function compress (inputDirPath, outputArchivePath) {
     compressArguments = ['caf']
   }
   compressArguments.push(outputArchivePath, path.basename(inputDirPath))
-  childProcess.spawnSync(compressCommand, compressArguments, {cwd: path.dirname(inputDirPath)})
+  spawnSync(compressCommand, compressArguments, {cwd: path.dirname(inputDirPath)})
 }

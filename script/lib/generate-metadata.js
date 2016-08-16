@@ -1,12 +1,12 @@
 'use strict'
 
-const childProcess = require('child_process')
-const path = require('path')
 const CSON = require('season')
+const deprecatedPackagesMetadata = require('../deprecated-packages')
 const fs = require('fs-extra')
 const normalizePackageData = require('normalize-package-data')
-const deprecatedPackagesMetadata = require('../deprecated-packages')
+const path = require('path')
 const semver = require('semver')
+const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
 
@@ -126,7 +126,7 @@ function checkDeprecatedPackagesMetadata () {
 function computeAppVersion () {
   let version = CONFIG.appMetadata.version
   if (CONFIG.channel === 'dev') {
-    const result = childProcess.spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: CONFIG.repositoryRootPath})
+    const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: CONFIG.repositoryRootPath})
     const commitHash = result.stdout.toString().trim()
     version += '-' + commitHash
   }

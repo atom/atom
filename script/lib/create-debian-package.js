@@ -1,10 +1,10 @@
 'use strict'
 
-const childProcess = require('child_process')
 const copySync = require('./copy-sync')
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
+const spawnSync = require('./spawn-sync')
 const template = require('lodash.template')
 
 const CONFIG = require('../config')
@@ -73,7 +73,7 @@ module.exports = function (packagedAppPath) {
   )
 
   console.log(`Writing control file into "${debianPackageConfigPath}"`)
-  const packageSizeInKilobytes = childProcess.spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
+  const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath]).stdout.toString().split(/\s+/)[0]
   const controlFileTemplate = fs.readFileSync(path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'debian', 'control.in'))
   const controlFileContents = template(controlFileTemplate)({
     appFileName: atomExecutableName, version: appVersion, arch: arch,
@@ -108,7 +108,7 @@ module.exports = function (packagedAppPath) {
   )
 
   console.log(`Generating .deb file from ${debianPackageDirPath}`)
-  childProcess.spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
+  spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
 
   console.log(`Copying generated package into "${outputDebianPackageFilePath}"`)
   copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath)
