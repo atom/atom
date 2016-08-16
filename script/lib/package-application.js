@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const childProcess = require('child_process')
 const copySync = require('./copy-sync')
 const electronPackager = require('electron-packager')
 const fs = require('fs-extra')
@@ -96,7 +97,7 @@ function setAtomHelperVersion (packagedAppPath) {
 
 function chmodNodeFiles (packagedAppPath) {
   console.log(`Changing permissions for node files in ${packagedAppPath}`)
-  spawnSync('find', [packagedAppPath, '-type', 'f', '-name', '*.node', '-exec chmod a-x {};'])
+  childProcess.execSync(`find "${packagedAppPath}" -type f -name *.node -exec chmod a-x {} \\;`)
 }
 
 function buildAsarUnpackGlobExpression () {
