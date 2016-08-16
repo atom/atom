@@ -41,7 +41,7 @@ module.exports = function () {
     if (process.platform === 'darwin') {
       bundledResourcesPath = path.join(packagedAppPath, 'Contents', 'Resources')
       setAtomHelperVersion(packagedAppPath)
-    } else if (process.platform == 'linux') {
+    } else if (process.platform === 'linux') {
       bundledResourcesPath = path.join(packagedAppPath, 'resources')
       chmodNodeFiles(packagedAppPath)
     } else {
