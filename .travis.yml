@@ -48,7 +48,8 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - build-essential
-    - git
-    - libgnome-keyring-dev
     - fakeroot
     - gcc-multilib
+    - git
+    - libgnome-keyring-dev
+    - rpm
