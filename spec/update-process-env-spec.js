@@ -1,6 +1,8 @@
 /** @babel */
 /* eslint-env jasmine */
 
+import path from 'path'
+import temp from 'temp'
 import child_process from 'child_process'
 import {updateProcessEnv, shouldGetEnvFromShell} from '../src/update-process-env'
 import dedent from 'dedent'
@@ -43,6 +45,42 @@ describe('updateProcessEnv(launchEnv)', function () {
       // case-insensitive environment variable matching, so we cannot replace it
       // with another object.
       expect(process.env).toBe(initialProcessEnv)
+    })
+
+    it('allows ATOM_HOME to be overwritten only if the new value is a valid path', function () {
+      newAtomHomePath = temp.mkdirSync('atom-home')
+
+      process.env = {
+        WILL_BE_DELETED: 'hi',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      updateProcessEnv({PWD: '/the/dir'})
+      expect(process.env).toEqual({
+        PWD: '/the/dir',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+      updateProcessEnv({PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      expect(process.env).toEqual({
+        PWD: '/the/dir',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+
+      updateProcessEnv({PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
+      expect(process.env).toEqual({
+        PWD: '/the/dir',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: newAtomHomePath
+      })
     })
   })
 
