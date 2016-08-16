@@ -1,6 +1,5 @@
 'use strict'
 
-const copySync = require('./copy-sync')
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
@@ -62,11 +61,11 @@ module.exports = function (packagedAppPath) {
   fs.mkdirpSync(debianPackageBinDirPath)
 
   console.log(`Copying "${packagedAppPath}" to "${debianPackageAtomDirPath}"`)
-  copySync(packagedAppPath, debianPackageAtomDirPath)
+  fs.copySync(packagedAppPath, debianPackageAtomDirPath)
   fs.chmodSync(debianPackageAtomDirPath, '755')
 
   console.log(`Copying binaries into "${debianPackageBinDirPath}"`)
-  copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(debianPackageBinDirPath, atomExecutableName))
+  fs.copySync(path.join(CONFIG.repositoryRootPath, 'atom.sh'), path.join(debianPackageBinDirPath, atomExecutableName))
   fs.symlinkSync(
     path.join('..', 'share', atomExecutableName, 'resources', 'app', 'apm', 'node_modules', '.bin', 'apm'),
     path.join(debianPackageBinDirPath, apmExecutableName)
@@ -90,19 +89,19 @@ module.exports = function (packagedAppPath) {
   fs.writeFileSync(path.join(debianPackageApplicationsDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 
   console.log(`Copying icon into "${debianPackageIconsDirPath}"`)
-  copySync(
+  fs.copySync(
     path.join(packagedAppPath, 'resources', 'app.asar.unpacked', 'resources', 'atom.png'),
     path.join(debianPackageIconsDirPath, `${atomExecutableName}.png`)
   )
 
   console.log(`Copying license into "${debianPackageDocsDirPath}"`)
-  copySync(
+  fs.copySync(
     path.join(packagedAppPath, 'resources', 'LICENSE.md'),
     path.join(debianPackageDocsDirPath, 'copyright')
   )
 
   console.log(`Copying lintian overrides into "${debianPackageLintianOverridesDirPath}"`)
-  copySync(
+  fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'debian', 'lintian-overrides'),
     path.join(debianPackageLintianOverridesDirPath, atomExecutableName)
   )
@@ -111,5 +110,5 @@ module.exports = function (packagedAppPath) {
   spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
 
   console.log(`Copying generated package into "${outputDebianPackageFilePath}"`)
-  copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath)
+  fs.copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath)
 }

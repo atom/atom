@@ -1,7 +1,6 @@
 'use strict'
 
 const assert = require('assert')
-const copySync = require('./copy-sync')
 const fs = require('fs-extra')
 const os = require('os')
 const path = require('path')
@@ -48,10 +47,10 @@ module.exports = function (packagedAppPath) {
   fs.mkdirpSync(rpmPackageSpecsDirPath)
 
   console.log(`Copying "${packagedAppPath}" to "${rpmPackageApplicationDirPath}"`)
-  copySync(packagedAppPath, rpmPackageApplicationDirPath)
+  fs.copySync(packagedAppPath, rpmPackageApplicationDirPath)
 
   console.log(`Copying icons into "${rpmPackageIconsDirPath}"`)
-  copySync(
+  fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png'),
     rpmPackageIconsDirPath
   )
@@ -74,7 +73,7 @@ module.exports = function (packagedAppPath) {
   fs.writeFileSync(path.join(rpmPackageBuildDirPath, `${atomExecutableName}.desktop`), desktopEntryContents)
 
   console.log(`Copying atom.sh into "${rpmPackageBuildDirPath}"`)
-  copySync(
+  fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'atom.sh'),
     path.join(rpmPackageBuildDirPath, 'atom.sh')
   )
@@ -88,6 +87,6 @@ module.exports = function (packagedAppPath) {
     const generatedPackageFilePath = path.join(generatedArchDirPath, generatedPackageFileNames[0])
     const outputRpmPackageFilePath = path.join(CONFIG.buildOutputPath, `atom.${generatedArch}.rpm`)
     console.log(`Copying "${generatedPackageFilePath}" into "${outputRpmPackageFilePath}"`)
-    copySync(generatedPackageFilePath, outputRpmPackageFilePath)
+    fs.copySync(generatedPackageFilePath, outputRpmPackageFilePath)
   }
 }

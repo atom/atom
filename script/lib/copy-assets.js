@@ -4,7 +4,7 @@
 'use strict'
 
 const path = require('path')
-const copySync = require('./copy-sync')
+const fs = require('fs-extra')
 const CONFIG = require('../config')
 const glob = require('glob')
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
@@ -22,10 +22,10 @@ module.exports = function () {
   ]
   srcPaths = srcPaths.concat(glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {ignore: path.join('**', '*-spec.*')}))
   for (let srcPath of srcPaths) {
-    copySync(srcPath, computeDestinationPath(srcPath), {filter: includePathInPackagedApp})
+    fs.copySync(srcPath, computeDestinationPath(srcPath), {filter: includePathInPackagedApp})
   }
 
-  copySync(
+  fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'png', '1024.png'),
     path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
   )
