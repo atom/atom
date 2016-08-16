@@ -520,19 +520,6 @@ describe('TextEditorRegistry', function () {
       expect(editor.getPreferredLineLength()).toBe(80)
     })
 
-    it('enables or disables back-up-before-save based on the config', async function () {
-      editor.update({backUpBeforeSaving: true})
-      expect(editor.doesBackUpBeforeSaving()).toBe(true)
-
-      atom.config.set('editor.backUpBeforeSaving', false)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.doesBackUpBeforeSaving()).toBe(false)
-
-      atom.config.set('editor.backUpBeforeSaving', true)
-      expect(editor.doesBackUpBeforeSaving()).toBe(true)
-    })
-
     it('enables or disables auto-indent based on the config', async function () {
       editor.update({autoIndent: true})
       expect(editor.shouldAutoIndent()).toBe(true)

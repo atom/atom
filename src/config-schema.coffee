@@ -232,10 +232,6 @@ module.exports =
         default: true
         title: 'Confirm Checkout HEAD Revision'
         description: 'Show confirmation dialog when checking out the HEAD revision and discarding changes to current file since last commit.'
-      backUpBeforeSaving:
-        type: 'boolean'
-        default: false
-        description: 'Ensure file contents aren\'t lost if there is an I/O error during save by making a temporary backup copy.'
       invisibles:
         type: 'object'
         description: 'A hash of characters Atom will use to render whitespace characters. Keys are whitespace character types, values are rendered characters (use value false to turn off individual whitespace character types).'

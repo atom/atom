@@ -150,7 +150,6 @@ class TextEditor extends Model
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
-    @backUpBeforeSaving ?= false
     @autoIndent ?= true
     @autoIndentOnPaste ?= true
     @undoGroupingInterval ?= 300
@@ -219,9 +218,6 @@ class TextEditor extends Model
 
         when 'nonWordCharacters'
           @nonWordCharacters = value
-
-        when 'backUpBeforeSaving'
-          @backUpBeforeSaving = value
 
         when 'scrollSensitivity'
           @scrollSensitivity = value
@@ -851,19 +847,17 @@ class TextEditor extends Model
   Section: File Operations
   ###
 
-  doesBackUpBeforeSaving: -> @backUpBeforeSaving
-
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save(backup: @backUpBeforeSaving)
+  save: -> @buffer.save()
 
   # Essential: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: @backUpBeforeSaving)
+  saveAs: (filePath) -> @buffer.saveAs(filePath)
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
