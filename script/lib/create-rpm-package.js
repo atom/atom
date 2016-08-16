@@ -37,12 +37,13 @@ module.exports = function (packagedAppPath) {
   const rpmPackageApplicationDirPath = path.join(rpmPackageBuildDirPath, appName)
   const rpmPackageIconsDirPath = path.join(rpmPackageBuildDirPath, 'icons')
 
-  if (fs.existsSync(rpmPackageBuildDirPath)) {
-    console.log(`Deleting existing rpm build directory at "${rpmPackageBuildDirPath}"`)
-    fs.removeSync(rpmPackageBuildDirPath)
+  if (fs.existsSync(rpmPackageDirPath)) {
+    console.log(`Deleting existing rpm build directory at "${rpmPackageDirPath}"`)
+    fs.removeSync(rpmPackageDirPath)
   }
 
   console.log(`Creating rpm package directory structure at "${rpmPackageDirPath}"`)
+  fs.mkdirpSync(rpmPackageDirPath)
   fs.mkdirpSync(rpmPackageBuildDirPath)
   fs.mkdirpSync(rpmPackageSourcesDirPath)
   fs.mkdirpSync(rpmPackageSpecsDirPath)
