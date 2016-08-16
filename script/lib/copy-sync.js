@@ -5,26 +5,26 @@ const path = require('path')
 
 module.exports = copySync
 
-function copySync(src, dest, options) {
-  if (fs.existsSync(src)) {
-    options = options || {}
-    options.filter = options.filter || () => true
-
-    const destFolder = path.dirname(dest)
-    const stat = fs.statSync(src)
-
-    if (options.filter(src)) {
-      if (stat.isFile()) {
-        if (!fs.existsSync(destFolder)) fs.mkdirsSync(destFolder)
-        copyFileSync(src, dest, options)
-      } else if (stat.isDirectory()) {
-        fs.readdirSync(src).forEach(content => {
-          copySync(path.join(src, content), path.join(dest, content), options)
-        })
+function copySync(src, dest, opts) {
+  const options = Object.assign({filter: () => true}, opts || {})
+  const stat = fs.lstatSync(src)
+  if (options.filter(src)) {
+    if (stat.isFile()) {
+      const destDirPath = path.dirname(dest)
+      if (!fs.existsSync(destDirPath)) {
+        fs.mkdirpSync(destDirPath)
       }
+      copyFileSync(src, dest, options)
+    } else if (stat.isDirectory()) {
+      if (!fs.existsSync(dest)) {
+        fs.mkdirpSync(dest)
+      }
+      fs.readdirSync(src).forEach(content => {
+        copySync(path.join(src, content), path.join(dest, content), options)
+      })
+    } else if (stat.isSymbolicLink()) {
+      fs.symlinkSync(fs.readlinkSync(src), dest)
     }
-  } else {
-    console.log(`Skipping copy of "${src}" because it doesn't exist`.gray)
   }
 }
 
