@@ -1,6 +1,6 @@
 'use strict'
 
-const spawnSync = require('./spawn-sync')
+const childProcess = require('child_process')
 const path = require('path')
 
 const CONFIG = require('../config')
