@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require('assert')
 const copySync = require('./copy-sync')
 const fs = require('fs-extra')
 const os = require('os')
@@ -28,7 +29,6 @@ module.exports = function (packagedAppPath) {
     arch = process.arch
   }
 
-  const outputRpmPackageFilePath = path.join(CONFIG.buildOutputPath, 'atom.x86_64.rpm')
   const rpmPackageDirPath = path.join(CONFIG.homeDirPath, 'rpmbuild')
   const rpmPackageBuildDirPath = path.join(rpmPackageDirPath, 'BUILD')
   const rpmPackageSourcesDirPath = path.join(rpmPackageDirPath, 'SOURCES')
@@ -82,7 +82,13 @@ module.exports = function (packagedAppPath) {
 
   console.log(`Generating .rpm package from "${rpmPackageDirPath}"`)
   spawnSync('rpmbuild', ['-ba', '--clean', rpmPackageSpecFilePath])
-
-  // TODO: copy generated package into out/
-  // console.log(`Copying generated package into "${outputRpmPackageFilePath}"`)
+  for (let generatedArch of fs.readdirSync(rpmPackageRpmsDirPath)) {
+    const generatedArchDirPath = path.join(rpmPackageRpmsDirPath, generatedArch)
+    const generatedPackageFileNames = fs.readdirSync(generatedArchDirPath)
+    assert(generatedPackageFileNames.length === 1, 'Generated more than one rpm package')
+    const generatedPackageFilePath = path.join(generatedArchDirPath, generatedPackageFileNames[0])
+    const outputRpmPackageFilePath = path.join(CONFIG.buildOutputPath, `atom.${generatedArch}.rpm`)
+    console.log(`Copying "${generatedPackageFilePath}" into "${outputRpmPackageFilePath}"`)
+    copySync(generatedPackageFilePath, outputRpmPackageFilePath)
+  }
 }
