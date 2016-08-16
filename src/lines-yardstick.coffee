@@ -3,7 +3,7 @@
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @lineNodesProvider, @lineTopIndex, grammarRegistry) ->
+  constructor: (@model, @lineNodesProvider, @lineTopIndex) ->
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
 

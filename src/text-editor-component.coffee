@@ -18,7 +18,6 @@ LineTopIndex = require 'line-top-index'
 
 module.exports =
 class TextEditorComponent
-  scrollSensitivity: 0.4
   cursorBlinkPeriod: 800
   cursorBlinkResumeDelay: 100
   tileSize: 12
@@ -43,12 +42,9 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars, scrollPastEnd}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, tileSize, @views, @themes, @assert}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
-
-    @observeConfig()
-    @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
 
     lineTopIndex = new LineTopIndex({
       defaultLineHeight: @editor.getLineHeightInPixels()
@@ -59,25 +55,19 @@ class TextEditorComponent
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
-      config: @config
       lineTopIndex: lineTopIndex
-      scrollPastEnd: scrollPastEnd
 
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
     @domNode = document.createElement('div')
-    if @useShadowDOM
-      @domNode.classList.add('editor-contents--private')
+    @domNode.classList.add('editor-contents--private')
 
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', 'atom-overlay')
-      @domNode.appendChild(insertionPoint)
-      @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
-      @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
-    else
-      @domNode.classList.add('editor-contents')
-      @overlayManager = new OverlayManager(@presenter, @domNode, @views)
+    insertionPoint = document.createElement('content')
+    insertionPoint.setAttribute('select', 'atom-overlay')
+    @domNode.appendChild(insertionPoint)
+    @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+    @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -86,13 +76,13 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     if @blockDecorationsComponent?
       @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex, @grammars)
+    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -332,17 +322,6 @@ class TextEditorComponent
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
 
-  observeConfig: ->
-    @disposables.add @config.onDidChange 'editor.fontSize', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-    @disposables.add @config.onDidChange 'editor.fontFamily', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-    @disposables.add @config.onDidChange 'editor.lineHeight', =>
-      @sampleFontStyling()
-      @invalidateMeasurements()
-
   onGrammarChanged: =>
     if @scopedConfigDisposables?
       @scopedConfigDisposables.dispose()
@@ -352,7 +331,6 @@ class TextEditorComponent
     @disposables.add(@scopedConfigDisposables)
 
     scope = @editor.getRootScopeDescriptor()
-    @scopedConfigDisposables.add @config.observe 'editor.scrollSensitivity', {scope}, @setScrollSensitivity
 
   focused: ->
     if @mounted
@@ -413,19 +391,10 @@ class TextEditorComponent
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
 
-    # Ctrl+MouseWheel adjusts font size.
-    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling')
-      if wheelDeltaY > 0
-        @workspace.increaseFontSize()
-      else if wheelDeltaY < 0
-        @workspace.decreaseFontSize()
-      event.preventDefault()
-      return
-
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
       previousScrollLeft = @presenter.getScrollLeft()
-      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity)
+      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @editor.getScrollSensitivity() / 100)
 
       event.preventDefault() if @presenter.canScrollLeftTo(updatedScrollLeft)
       @presenter.setScrollLeft(updatedScrollLeft)
@@ -433,7 +402,7 @@ class TextEditorComponent
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
-      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity)
+      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @editor.getScrollSensitivity() / 100)
 
       event.preventDefault() if @presenter.canScrollTopTo(updatedScrollTop)
       @presenter.setScrollTop(updatedScrollTop)
@@ -942,13 +911,6 @@ class TextEditorComponent
   invalidateMeasurements: ->
     @linesYardstick.invalidateCache()
     @presenter.measurementsChanged()
-
-  setShowIndentGuide: (showIndentGuide) ->
-    @config.set("editor.showIndentGuide", showIndentGuide)
-
-  setScrollSensitivity: (scrollSensitivity) =>
-    if scrollSensitivity = parseInt(scrollSensitivity)
-      @scrollSensitivity = Math.abs(scrollSensitivity) / 100
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)

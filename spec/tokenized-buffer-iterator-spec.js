@@ -13,20 +13,20 @@ describe('TokenizedBufferIterator', () => {
             text: 'foo',
             openScopes: []
           }
+        },
+
+        grammar: {
+          scopeForId (id) {
+            return {
+              '-1': 'foo', '-2': 'foo',
+              '-3': 'bar', '-4': 'bar',
+              '-5': 'baz', '-6': 'baz'
+            }[id]
+          }
         }
       }
 
-      const grammarRegistry = {
-        scopeForId (id) {
-          return {
-            '-1': 'foo', '-2': 'foo',
-            '-3': 'bar', '-4': 'bar',
-            '-5': 'baz', '-6': 'baz'
-          }[id]
-        }
-      }
-
-      const iterator = new TokenizedBufferIterator(tokenizedBuffer, grammarRegistry)
+      const iterator = new TokenizedBufferIterator(tokenizedBuffer)
 
       expect(iterator.seek(Point(0, 0))).toEqual([])
       expect(iterator.getCloseTags()).toEqual([])
@@ -63,16 +63,16 @@ describe('TokenizedBufferIterator', () => {
             text: '',
             openScopes: []
           }
+        },
+
+        grammar: {
+          scopeForId () {
+            return 'foo'
+          }
         }
       }
 
-      const grammarRegistry = {
-        scopeForId () {
-          return 'foo'
-        }
-      }
-
-      const iterator = new TokenizedBufferIterator(tokenizedBuffer, grammarRegistry)
+      const iterator = new TokenizedBufferIterator(tokenizedBuffer)
 
       iterator.seek(Point(0, 0))
       expect(iterator.getPosition()).toEqual(Point(0, 0))
@@ -111,20 +111,20 @@ describe('TokenizedBufferIterator', () => {
               openScopes: [-1]
             }
           }
-        }
-      }
+        },
 
-      const grammarRegistry = {
-        scopeForId (id) {
-          if (id === -2 || id === -1) {
-            return 'foo'
-          } else if (id === -3) {
-            return 'qux'
+        grammar: {
+          scopeForId (id) {
+            if (id === -2 || id === -1) {
+              return 'foo'
+            } else if (id === -3) {
+              return 'qux'
+            }
           }
         }
       }
 
-      const iterator = new TokenizedBufferIterator(tokenizedBuffer, grammarRegistry)
+      const iterator = new TokenizedBufferIterator(tokenizedBuffer)
 
       iterator.seek(Point(0, 0))
       expect(iterator.getPosition()).toEqual(Point(0, 0))

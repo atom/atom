@@ -227,11 +227,6 @@ module.exports =
         default: 300
         minimum: 0
         description: 'Time interval in milliseconds within which text editing operations will be grouped together in the undo history.'
-      useShadowDOM:
-        type: 'boolean'
-        default: true
-        title: 'Use Shadow DOM'
-        description: 'Disable if you experience styling issues with packages or themes. Be sure to open an issue on the relevant package or theme, because this option is going away eventually.'
       confirmCheckoutHeadRevision:
         type: 'boolean'
         default: true

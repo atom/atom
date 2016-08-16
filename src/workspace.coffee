@@ -31,7 +31,7 @@ class Workspace extends Model
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
       @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
-      @deserializerManager
+      @deserializerManager, @textEditorRegistry
     } = params
 
     @emitter = new Emitter
@@ -164,8 +164,13 @@ class Workspace extends Model
   subscribeToAddedItems: ->
     @onDidAddPaneItem ({item, pane, index}) =>
       if item instanceof TextEditor
-        grammarSubscription = item.observeGrammar(@handleGrammarUsed.bind(this))
-        item.onDidDestroy -> grammarSubscription.dispose()
+        subscriptions = new CompositeDisposable(
+          @textEditorRegistry.add(item)
+          @textEditorRegistry.maintainGrammar(item)
+          @textEditorRegistry.maintainConfig(item)
+          item.observeGrammar(@handleGrammarUsed.bind(this))
+        )
+        item.onDidDestroy -> subscriptions.dispose()
         @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is
@@ -556,10 +561,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
-      disposable = atom.textEditors.add(editor)
-      editor.onDidDestroy -> disposable.dispose()
-      editor
+      @textEditorRegistry.build(Object.assign({buffer, largeFileMode}, options))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
@@ -576,10 +578,13 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = Object.assign({
-      @config, @clipboard, @grammarRegistry, @assert
-    }, params)
-    new TextEditor(params)
+    editor = @textEditorRegistry.build(params)
+    subscriptions = new CompositeDisposable(
+      @textEditorRegistry.maintainGrammar(editor)
+      @textEditorRegistry.maintainConfig(editor),
+    )
+    editor.onDidDestroy -> subscriptions.dispose()
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

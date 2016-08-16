@@ -13,7 +13,8 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @config, @lineTopIndex, scrollPastEnd} = params
+    {@model, @lineTopIndex} = params
+    @model.presenter = this
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
     {@displayLayer} = @model
@@ -37,14 +38,11 @@ class TextEditorPresenter
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
     @observeModel()
-    @observeConfig()
     @buildState()
     @invalidateState()
     @startBlinkingCursors() if @focused
     @startReflowing() if @continuousReflow
     @updating = false
-
-    @scrollPastEndOverride = scrollPastEnd ? true
 
   setLinesYardstick: (@linesYardstick) ->
 
@@ -170,30 +168,14 @@ class TextEditorPresenter
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
     return
 
-  observeConfig: ->
-    configParams = {scope: @model.getRootScopeDescriptor()}
+  didChangeScrollPastEnd: ->
+    @updateScrollHeight()
+    @emitDidUpdateState()
 
-    @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
-    @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
-
-    if @configDisposables?
-      @configDisposables?.dispose()
-      @disposables.remove(@configDisposables)
-
-    @configDisposables = new CompositeDisposable
-    @disposables.add(@configDisposables)
-
-    @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
-      @scrollPastEnd = newValue
-      @updateScrollHeight()
-
-      @emitDidUpdateState()
-    @configDisposables.add @config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
-      @showLineNumbers = newValue
-      @emitDidUpdateState()
+  didChangeShowLineNumbers: ->
+    @emitDidUpdateState()
 
   didChangeGrammar: ->
-    @observeConfig()
     @emitDidUpdateState()
 
   buildState: ->
@@ -594,7 +576,7 @@ class TextEditorPresenter
   gutterIsVisible: (gutterModel) ->
     isVisible = gutterModel.isVisible()
     if gutterModel.name is 'line-number'
-      isVisible = isVisible and @showLineNumbers
+      isVisible = isVisible and @model.doesShowLineNumbers()
     isVisible
 
   updateLineNumbersState: (tileState, screenRows) ->
@@ -651,7 +633,7 @@ class TextEditorPresenter
     return unless @contentHeight? and @clientHeight?
 
     contentHeight = @contentHeight
-    if @scrollPastEnd and @scrollPastEndOverride
+    if @model.getScrollPastEnd()
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
     scrollHeight = Math.max(contentHeight, @height)

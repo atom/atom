@@ -259,6 +259,30 @@ describe "AtomEnvironment", ->
         expect(atom.project.serialize.calls.length).toBe(1)
         expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
 
+    it "serializes the text editor registry", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (e) -> editor = e
+
+      runs ->
+        atom.textEditors.setGrammarOverride(editor, 'text.plain')
+
+        atom2 = new AtomEnvironment({
+          applicationDelegate: atom.applicationDelegate,
+          window: document.createElement('div'),
+          document: Object.assign(
+            document.createElement('div'),
+            {
+              body: document.createElement('div'),
+              head: document.createElement('div'),
+            }
+          )
+        })
+        atom2.deserialize(atom.serialize())
+
+        expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
+
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
       beforeEach ->
