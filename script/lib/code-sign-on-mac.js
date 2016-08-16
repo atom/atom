@@ -15,11 +15,12 @@ module.exports = function (packagedAppPath) {
     downloadFileFromGithub(process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL, certPath)
 
     console.log(`Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`)
-    const unlockArgs = ['unlock-keychain', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN]
+    const unlockArgs = ['unlock-keychain']
     // For signing on local workstations, password could be entered interactively
     if (process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD) {
       unlockArgs.push('-p', process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
     }
+    unlockArgs.push(process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN)
     spawnSync('security', unlockArgs, {stdio: 'inherit'})
 
     console.log(`Importing certificate at ${certPath} into ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN} keychain`)
