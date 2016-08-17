@@ -105,29 +105,27 @@ describe "TextEditor", ->
   describe ".update()", ->
     it "updates the editor with the supplied config parameters", ->
       element = editor.element # force element initialization
+      element.setUpdatedSynchronously(false)
       editor.update({showInvisibles: true})
       editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
 
-      updatePromise = editor.update({
+      returnedPromise = editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
         showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
         autoHeight: false
       })
 
-      waitsForPromise ->
-        updatePromise
-
-      runs ->
-        expect(changeSpy.callCount).toBe(1)
-        expect(editor.getTabLength()).toBe(6)
-        expect(editor.getSoftTabs()).toBe(false)
-        expect(editor.isSoftWrapped()).toBe(true)
-        expect(editor.getEditorWidthInChars()).toBe(40)
-        expect(editor.getInvisibles()).toEqual({})
-        expect(editor.isMini()).toBe(false)
-        expect(editor.isLineNumberGutterVisible()).toBe(false)
-        expect(editor.getScrollPastEnd()).toBe(true)
-        expect(editor.getAutoHeight()).toBe(false)
+      expect(returnedPromise).toBe(atom.views.getNextUpdatePromise())
+      expect(changeSpy.callCount).toBe(1)
+      expect(editor.getTabLength()).toBe(6)
+      expect(editor.getSoftTabs()).toBe(false)
+      expect(editor.isSoftWrapped()).toBe(true)
+      expect(editor.getEditorWidthInChars()).toBe(40)
+      expect(editor.getInvisibles()).toEqual({})
+      expect(editor.isMini()).toBe(false)
+      expect(editor.isLineNumberGutterVisible()).toBe(false)
+      expect(editor.getScrollPastEnd()).toBe(true)
+      expect(editor.getAutoHeight()).toBe(false)
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -5509,8 +5507,8 @@ describe "TextEditor", ->
       expect(editor.getScrollPastEnd()).toBe(false)
 
   describe "auto height", ->
-    it "returns true by default but can be customized", ->
-      expect(editor.getAutoHeight()).toBe(true)
+    it "returns undefined by default but can be customized", ->
+      expect(editor.getAutoHeight()).toBeUndefined()
       editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
       editor.update({autoHeight: true})

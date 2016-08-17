@@ -3,6 +3,7 @@ scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
 {ipcRenderer} = require 'electron'
+Grim = require 'grim'
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
@@ -56,6 +57,7 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
       lineTopIndex: lineTopIndex
+      autoHeight: @editor.getAutoHeight() ? true
 
     @presenter.onDidUpdateState(@requestUpdate)
 
@@ -753,19 +755,24 @@ class TextEditorComponent
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
   measureDimensions: ->
-    return unless @mounted
+    # If we don't assign autoHeight explicitly, we try to automatically disable
+    # auto-height in certain circumstances. This is legacy behavior that we
+    # would rather not implement, but we can't remove it without risking
+    # breakage currently.
+    unless @editor.getAutoHeight()?
+      {position, top, bottom} = getComputedStyle(@hostElement)
+      hasExplicitTopAndBottom = (position is 'absolute' and top isnt 'auto' and bottom isnt 'auto')
 
-    {position} = getComputedStyle(@hostElement)
-    {height} = @hostElement.style
+      if @hostElement.style.height.length > 0 or hasExplicitTopAndBottom
+        Grim.deprecate("Automatically assigning `autoHeight` to `false` on editor #{@editor.id}.\nYou should explicitly pass the `autoHeight` property to this editor to retain this behavior in the future.")
+        @presenter.setAutoHeight(false)
+      else
+        @presenter.setAutoHeight(true)
 
-    if position is 'absolute' or height
-      @presenter.setAutoHeight(false)
-      height =  @hostElement.offsetHeight
-      if height > 0
-        @presenter.setExplicitHeight(height)
-    else
-      @presenter.setAutoHeight(true)
+    if @presenter.autoHeight
       @presenter.setExplicitHeight(null)
+    else if @hostElement.offsetHeight > 0
+      @presenter.setExplicitHeight(@hostElement.offsetHeight)
 
     clientWidth = @scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(@scrollViewNode).paddingLeft)

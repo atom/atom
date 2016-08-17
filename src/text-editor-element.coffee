@@ -36,9 +36,6 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    unless @getModel().getAutoHeight()
-      @style.height = "100%"
-
     unless ShadowStyleSheet?
       ShadowStyleSheet = document.createElement('style')
       ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
@@ -165,13 +162,6 @@ class TextEditorElement extends HTMLElement
 
   removeMiniAttribute: ->
     @removeAttribute("mini")
-
-  didChangeAutoHeight: ->
-    @views.updateDocument =>
-      if @getModel().getAutoHeight()
-        @style.height = ""
-      else
-        @style.height = "100%"
 
   addEncodingAttribute: ->
     @dataset.encoding = @model.getEncoding()
@@ -319,14 +309,12 @@ class TextEditorElement extends HTMLElement
 
   setWidth: (width) ->
     @style.width = (@component.getGutterWidth() + width) + "px"
-    @component.measureDimensions()
 
   getWidth: ->
     @offsetWidth - @component.getGutterWidth()
 
   setHeight: (height) ->
     @style.height = height + "px"
-    @component.measureDimensions()
 
   getHeight: ->
     @offsetHeight

@@ -145,7 +145,6 @@ class TextEditor extends Model
     @hasTerminatedPendingState = false
 
     @autoWidth ?= false
-    @autoHeight ?= true
     @mini ?= false
     @scrollPastEnd ?= true
     @showInvisibles ?= true
@@ -319,7 +318,7 @@ class TextEditor extends Model
         when 'autoHeight'
           if value isnt @autoHeight
             @autoHeight = value
-            @editorElement?.didChangeAutoHeight()
+            @presenter?.setAutoHeight(@autoHeight)
 
         when 'autoWidth'
           if value isnt @autoWidth

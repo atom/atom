@@ -128,6 +128,7 @@ describe "TextEditorElement", ->
 
       element = new TextEditorElement()
       element.style.height = '200px'
+      element.getModel().update({autoHeight: false})
       element.getModel().setText [0..20].join("\n")
 
     it "re-renders the scrollbar", ->
@@ -205,18 +206,21 @@ describe "TextEditorElement", ->
       element = atom.views.getView(editor)
       element.style.lineHeight = "10px"
       element.style.width = "200px"
+      jasmine.attachToDOM(element)
 
       expect(element.getMaxScrollTop()).toBe(0)
 
-      jasmine.attachToDOM(element)
-
-      element.setHeight(100)
+      element.style.height = '100px'
+      editor.update({autoHeight: false})
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(60)
 
-      element.setHeight(120)
+      element.style.height = '120px'
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(40)
 
-      element.setHeight(200)
+      element.style.height = '200px'
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(0)
 
   describe "on TextEditor::setMini", ->
@@ -229,24 +233,6 @@ describe "TextEditorElement", ->
       element.getModel().setMini(false)
       expect(element.hasAttribute('mini')).toBe false
 
-  describe "when the editor's autoHeight parameter changes", ->
-    it "changes the element's height", ->
-      editor = atom.workspace.buildTextEditor()
-      jasmine.attachToDOM(editor.element)
-      expect(editor.element.style.height).toBe('')
-
-      waitsForPromise ->
-        editor.update({autoHeight: false})
-
-      runs ->
-        expect(editor.element.style.height).toBe('100%')
-
-      waitsForPromise ->
-        editor.update({autoHeight: true})
-
-      runs ->
-        expect(editor.element.style.height).toBe('')
-
   describe "events", ->
     element = null
 
@@ -256,6 +242,7 @@ describe "TextEditorElement", ->
       element.setUpdatedSynchronously(true)
       element.setHeight(20)
       element.setWidth(20)
+      element.getModel().update({autoHeight: false})
 
     describe "::onDidChangeScrollTop(callback)", ->
       it "triggers even when subscribing before attaching the element", ->
