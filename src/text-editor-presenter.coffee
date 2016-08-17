@@ -741,21 +741,23 @@ class TextEditorPresenter
     clientHeightWithoutHorizontalScrollbar = clientHeightWithHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
+      not @model.isMini() and
         (@contentWidth > clientWidthWithVerticalScrollbar or
          @contentWidth > clientWidthWithoutVerticalScrollbar and @contentHeight > clientHeightWithHorizontalScrollbar)
 
     verticalScrollbarVisible =
+      not @model.isMini() and
         (@contentHeight > clientHeightWithHorizontalScrollbar or
          @contentHeight > clientHeightWithoutHorizontalScrollbar and @contentWidth > clientWidthWithVerticalScrollbar)
 
     horizontalScrollbarHeight =
-      if horizontalScrollbarVisible and not @model.isMini()
+      if horizontalScrollbarVisible
         @measuredHorizontalScrollbarHeight
       else
         0
 
     verticalScrollbarWidth =
-      if verticalScrollbarVisible and not @model.isMini()
+      if verticalScrollbarVisible
         @measuredVerticalScrollbarWidth
       else
         0
