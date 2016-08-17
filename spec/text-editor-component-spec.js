@@ -4376,7 +4376,6 @@ describe('TextEditorComponent', function () {
       runAnimationFrames()
       expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
 
-      global.debug = true
       editor.update({autoWidth: true})
       runAnimationFrames()
       const editorWidth1 = wrapperNode.offsetWidth
