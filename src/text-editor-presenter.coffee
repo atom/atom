@@ -727,20 +727,20 @@ class TextEditorPresenter
     return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
     return unless @contentWidth? and @contentHeight?
 
-    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
-    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @measuredVerticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @height
-    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
+    clientWidthWithVerticalScrollbar = @contentFrameWidth
+    clientWidthWithoutVerticalScrollbar = clientWidthWithVerticalScrollbar - @measuredVerticalScrollbarWidth
+    clientHeightWithHorizontalScrollbar = @height
+    clientHeightWithoutHorizontalScrollbar = clientHeightWithHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
       not @model.isMini() and
-        (@contentWidth > clientWidthWithoutVerticalScrollbar or
-         @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
+        (@contentWidth > clientWidthWithVerticalScrollbar or
+         @contentWidth > clientWidthWithoutVerticalScrollbar and @contentHeight > clientHeightWithHorizontalScrollbar)
 
     verticalScrollbarVisible =
       not @model.isMini() and
-        (@contentHeight > clientHeightWithoutHorizontalScrollbar or
-         @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
+        (@contentHeight > clientHeightWithHorizontalScrollbar or
+         @contentHeight > clientHeightWithoutHorizontalScrollbar and @contentWidth > clientWidthWithVerticalScrollbar)
 
     horizontalScrollbarHeight =
       if horizontalScrollbarVisible
