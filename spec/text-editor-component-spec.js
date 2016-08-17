@@ -4370,6 +4370,33 @@ describe('TextEditorComponent', function () {
     })
   })
 
+  describe('width', function () {
+    it('sizes the editor element according to the content width when auto width is true, or according to the container width otherwise', function () {
+      contentNode.style.width = '600px'
+      component.measureDimensions()
+      editor.setText("abcdefghi")
+      runAnimationFrames()
+      expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
+
+      editor.update({autoWidth: true})
+      runAnimationFrames()
+      const editorWidth1 = wrapperNode.offsetWidth
+      expect(editorWidth1).toBeGreaterThan(0)
+      expect(editorWidth1).toBeLessThan(contentNode.offsetWidth)
+
+      editor.setText("abcdefghijkl")
+      editor.update({autoWidth: true})
+      runAnimationFrames()
+      const editorWidth2 = wrapperNode.offsetWidth
+      expect(editorWidth2).toBeGreaterThan(editorWidth1)
+      expect(editorWidth2).toBeLessThan(contentNode.offsetWidth)
+
+      editor.update({autoWidth: false})
+      runAnimationFrames()
+      expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
+    })
+  })
+
   describe('when the "mini" property is true', function () {
     beforeEach(async function () {
       editor.setMini(true)

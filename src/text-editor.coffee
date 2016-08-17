@@ -124,7 +124,7 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config, @clipboard, @grammarRegistry,
-      @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @ignoreInvisibles, @displayLayer
     } = params
 
@@ -141,6 +141,7 @@ class TextEditor extends Model
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
+    @autoWidth ?= false
     @autoHeight ?= true
     @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
@@ -3422,6 +3423,9 @@ class TextEditor extends Model
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @width
+
+  getAutoWidth: ->
+    @autoWidth
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.
