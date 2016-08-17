@@ -433,7 +433,7 @@ describe "Workspace", ->
           expect(editor.largeFileMode).toBe true
 
     describe "when the file is over user-defined limit", ->
-      test = (size, shouldPrompt) ->
+      shouldPromptForFileOfSize = (size, shouldPrompt) ->
         spyOn(fs, 'getSizeSync').andReturn size * 1048577
         atom.applicationDelegate.confirm.andCallFake -> selectedButtonIndex
         atom.applicationDelegate.confirm()
@@ -454,15 +454,19 @@ describe "Workspace", ->
         runs ->
           expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
           expect(editor.largeFileMode).toBe true
+
       it "prompts the user to make sure they want to open a file this big", ->
         atom.config.set "core.warnOnLargeFileLimit", 20
-        test 20, true
+        shouldPromptForFileOfSize 20, true
+
       it "doesn't prompt on files below the limit", ->
         atom.config.set "core.warnOnLargeFileLimit", 30
-        test 20, false
+        shouldPromptForFileOfSize 20, false
+
       it "prompts for smaller files with a lower limit", ->
         atom.config.set "core.warnOnLargeFileLimit", 5
-        test 10, true
+        shouldPromptForFileOfSize 10, true
+
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
