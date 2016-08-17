@@ -57,7 +57,7 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
       lineTopIndex: lineTopIndex
-      autoHeight: @editor.getAutoHeight() ? true
+      autoHeight: @editor.getAutoHeight()
 
     @presenter.onDidUpdateState(@requestUpdate)
 
@@ -759,7 +759,7 @@ class TextEditorComponent
     # auto-height in certain circumstances. This is legacy behavior that we
     # would rather not implement, but we can't remove it without risking
     # breakage currently.
-    unless @editor.getAutoHeight()?
+    unless @editor.autoHeight?
       {position, top, bottom} = getComputedStyle(@hostElement)
       hasExplicitTopAndBottom = (position is 'absolute' and top isnt 'auto' and bottom isnt 'auto')
 

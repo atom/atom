@@ -5507,8 +5507,8 @@ describe "TextEditor", ->
       expect(editor.getScrollPastEnd()).toBe(false)
 
   describe "auto height", ->
-    it "returns undefined by default but can be customized", ->
-      expect(editor.getAutoHeight()).toBeUndefined()
+    it "returns true by default but can be customized", ->
+      expect(editor.getAutoHeight()).toBe(true)
       editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
       editor.update({autoHeight: true})

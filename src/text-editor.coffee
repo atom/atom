@@ -3542,7 +3542,7 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
     @height
 
-  getAutoHeight: -> @autoHeight
+  getAutoHeight: -> @autoHeight ? true
 
   setWidth: (width, reentrant=false) ->
     if reentrant
