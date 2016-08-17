@@ -144,7 +144,6 @@ class TextEditor extends Model
     @selections = []
     @hasTerminatedPendingState = false
 
-    @autoWidth ?= false
     @mini ?= false
     @scrollPastEnd ?= true
     @showInvisibles ?= true
@@ -3544,6 +3543,8 @@ class TextEditor extends Model
 
   getAutoHeight: -> @autoHeight ? true
 
+  getAutoWidth: -> @autoWidth ? false
+
   setWidth: (width, reentrant=false) ->
     if reentrant
       @update({width})
@@ -3555,9 +3556,6 @@ class TextEditor extends Model
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @width
-
-  getAutoWidth: ->
-    @autoWidth
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.
