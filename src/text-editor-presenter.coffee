@@ -669,6 +669,7 @@ class TextEditorPresenter
 
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
+      @updateClientWidth()
       @updateScrollWidth()
 
   updateClientHeight: ->
@@ -685,7 +686,11 @@ class TextEditorPresenter
   updateClientWidth: ->
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
 
-    clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    if @model.getAutoWidth()
+      clientWidth = @contentWidth
+    else
+      clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+
     @model.setWidth(clientWidth, true) unless @editorWidthInChars
 
     unless @clientWidth is clientWidth
@@ -727,29 +732,30 @@ class TextEditorPresenter
     return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
     return unless @contentWidth? and @contentHeight?
 
-    clientWidthWithVerticalScrollbar = @contentFrameWidth
+    if @model.getAutoWidth()
+      clientWidthWithVerticalScrollbar = @contentWidth + @measuredVerticalScrollbarWidth
+    else
+      clientWidthWithVerticalScrollbar = @contentFrameWidth
     clientWidthWithoutVerticalScrollbar = clientWidthWithVerticalScrollbar - @measuredVerticalScrollbarWidth
     clientHeightWithHorizontalScrollbar = @height
     clientHeightWithoutHorizontalScrollbar = clientHeightWithHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
-      not @model.isMini() and
         (@contentWidth > clientWidthWithVerticalScrollbar or
          @contentWidth > clientWidthWithoutVerticalScrollbar and @contentHeight > clientHeightWithHorizontalScrollbar)
 
     verticalScrollbarVisible =
-      not @model.isMini() and
         (@contentHeight > clientHeightWithHorizontalScrollbar or
          @contentHeight > clientHeightWithoutHorizontalScrollbar and @contentWidth > clientWidthWithVerticalScrollbar)
 
     horizontalScrollbarHeight =
-      if horizontalScrollbarVisible
+      if horizontalScrollbarVisible and not @model.isMini()
         @measuredHorizontalScrollbarHeight
       else
         0
 
     verticalScrollbarWidth =
-      if verticalScrollbarVisible
+      if verticalScrollbarVisible and not @model.isMini()
         @measuredVerticalScrollbarWidth
       else
         0
