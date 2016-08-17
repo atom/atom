@@ -762,10 +762,21 @@ class TextEditorComponent
     unless @editor.autoHeight?
       {position, top, bottom} = getComputedStyle(@hostElement)
       hasExplicitTopAndBottom = (position is 'absolute' and top isnt 'auto' and bottom isnt 'auto')
+      hasInlineHeight = @hostElement.style.height.length > 0
 
-      if @hostElement.style.height.length > 0 or hasExplicitTopAndBottom
-        Grim.deprecate("Automatically assigning `autoHeight` to `false` on editor #{@editor.id}.\nYou should explicitly pass the `autoHeight` property to this editor to retain this behavior in the future.")
-        @presenter.setAutoHeight(false)
+      if hasInlineHeight or hasExplicitTopAndBottom
+        if @presenter.autoHeight
+          @presenter.setAutoHeight(false)
+          if hasExplicitTopAndBottom
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via `position: 'absolute'` and an assigned `top` and `bottom` implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+          else if hasInlineHeight
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via an inline style implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
       else
         @presenter.setAutoHeight(true)
 
