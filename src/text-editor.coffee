@@ -164,7 +164,8 @@ class TextEditor extends Model
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
-    @displayLayer ?= @buffer.addDisplayLayer({
+
+    displayLayerParams = {
       invisibles: @getInvisibles(),
       softWrapColumn: @getSoftWrapColumn(),
       showIndentGuides: not @isMini() and @doesShowIndentGuide(),
@@ -174,7 +175,13 @@ class TextEditor extends Model
       isWrapBoundary: isWrapBoundary,
       foldCharacter: ZERO_WIDTH_NBSP,
       softWrapHangingIndent: @getSoftWrapHangingIndentLength()
-    })
+    }
+
+    if @displayLayer?
+      @displayLayer.reset(displayLayerParams)
+    else
+      @displayLayer = @buffer.addDisplayLayer(displayLayerParams)
+
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
