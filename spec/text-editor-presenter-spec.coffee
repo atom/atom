@@ -2676,7 +2676,7 @@ describe "TextEditorPresenter", ->
             expect(getState(presenter).content.width).toBe(3 * 10 + 27 + 1)
 
         describe "when `editor.autoWidth` is true", ->
-          it "equals to the width of the content + the vertical scrollbar width", ->
+          it "equals to the content width + the vertical scrollbar width", ->
             editor.setText('abc\ndef\nghi\njkl')
             presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 300, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
             expectStateUpdate presenter, -> editor.update({autoWidth: true})
