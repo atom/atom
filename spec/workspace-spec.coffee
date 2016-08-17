@@ -432,9 +432,9 @@ describe "Workspace", ->
         runs ->
           expect(editor.largeFileMode).toBe true
 
-    describe "when the file is over 20MB", ->
+    describe "when the file is over user-defined limit", ->
       it "prompts the user to make sure they want to open a file this big", ->
-        spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
+        spyOn(fs, 'getSizeSync').andReturn atom.config.get('core.warnOnLargeFileLimit') * 1048577 # 20MB
         atom.applicationDelegate.confirm.andCallFake -> selectedButtonIndex
         atom.applicationDelegate.confirm()
         selectedButtonIndex = 1 # cancel
