@@ -433,30 +433,36 @@ describe "Workspace", ->
           expect(editor.largeFileMode).toBe true
 
     describe "when the file is over user-defined limit", ->
-      it "prompts the user to make sure they want to open a file this big", ->
-        spyOn(fs, 'getSizeSync').andReturn atom.config.get('core.warnOnLargeFileLimit') * 1048577 # 20MB
+      test = (size, shouldPrompt) ->
+        spyOn(fs, 'getSizeSync').andReturn size * 1048577
         atom.applicationDelegate.confirm.andCallFake -> selectedButtonIndex
         atom.applicationDelegate.confirm()
-        selectedButtonIndex = 1 # cancel
-
         editor = null
         waitsForPromise ->
           workspace.open('sample.js').then (e) -> editor = e
+        if shouldPrompt
+          runs ->
+            expect(editor).toBeUndefined()
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
 
-        runs ->
-          expect(editor).toBeUndefined()
-          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            atom.applicationDelegate.confirm.reset()
+            selectedButtonIndex = 0 # open the file
 
-          atom.applicationDelegate.confirm.reset()
-          selectedButtonIndex = 0 # open the file
-
-        waitsForPromise ->
-          workspace.open('sample.js').then (e) -> editor = e
+          waitsForPromise ->
+            workspace.open('sample.js').then (e) -> editor = e
 
         runs ->
           expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
           expect(editor.largeFileMode).toBe true
-
+      it "prompts the user to make sure they want to open a file this big", ->
+        atom.config.set "core.warnOnLargeFileLimit", 20
+        test 20, true
+      it "doesn't prompt on files below the limit", ->
+        atom.config.set "core.warnOnLargeFileLimit", 30
+        test 20, false
+      it "prompts for smaller files with a lower limit", ->
+        atom.config.set "core.warnOnLargeFileLimit", 5
+        test 10, true
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
         fooOpener = (pathToOpen, options) -> {foo: pathToOpen, options} if pathToOpen?.match(/\.foo/)
