@@ -896,6 +896,9 @@ class TextEditorPresenter
       @updateScrollHeight()
       @updateEndRow()
 
+  didChangeAutoWidth: ->
+    @emitDidUpdateState()
+
   setContentFrameWidth: (contentFrameWidth) ->
     if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
       oldContentFrameWidth = @contentFrameWidth

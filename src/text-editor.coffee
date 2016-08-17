@@ -127,7 +127,7 @@ class TextEditor extends Model
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
-      @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide, @softWrapHangingIndentLength,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
     } = params
@@ -144,6 +144,7 @@ class TextEditor extends Model
     @selections = []
     @hasTerminatedPendingState = false
 
+    @autoWidth ?= false
     @autoHeight ?= true
     @mini ?= false
     @scrollPastEnd ?= true
@@ -320,6 +321,10 @@ class TextEditor extends Model
             @autoHeight = value
             @editorElement?.didChangeAutoHeight()
 
+        when 'autoWidth'
+          if value isnt @autoWidth
+            @autoWidth = value
+            @presenter?.didChangeAutoWidth()
         else
           throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
@@ -3551,6 +3556,9 @@ class TextEditor extends Model
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @width
+
+  getAutoWidth: ->
+    @autoWidth
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.

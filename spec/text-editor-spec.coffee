@@ -5516,6 +5516,14 @@ describe "TextEditor", ->
       editor.update({autoHeight: true})
       expect(editor.getAutoHeight()).toBe(true)
 
+  describe "auto width", ->
+    it "returns false by default but can be customized", ->
+      expect(editor.getAutoWidth()).toBe(false)
+      editor.update({autoWidth: true})
+      expect(editor.getAutoWidth()).toBe(true)
+      editor.update({autoWidth: false})
+      expect(editor.getAutoWidth()).toBe(false)
+
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
       newEditor = atom.workspace.buildTextEditor(
