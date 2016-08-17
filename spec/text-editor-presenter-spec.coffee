@@ -426,6 +426,13 @@ describe "TextEditorPresenter", ->
           editor.setMini(false)
           expect(getState(presenter).horizontalScrollbar.visible).toBe true
 
+        it "is false when `editor.autoWidth` is true", ->
+          editor.update({autoWidth: true})
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 30, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+          getState(presenter) # trigger a state update to store state in the presenter
+          editor.setText('abcdefghijklm')
+          expect(getState(presenter).horizontalScrollbar.visible).toBe(false)
+
       describe ".height", ->
         it "tracks the value of ::horizontalScrollbarHeight", ->
           presenter = buildPresenter(horizontalScrollbarHeight: 10)
@@ -538,6 +545,21 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).content.scrollLeft).toBe 0
           presenter.setScrollLeft(10)
           expect(getState(presenter).content.scrollLeft).toBe 0
+
+        it "is always 0 when `editor.autoWidth` is true", ->
+          editor.update({autoWidth: true})
+          editor.setText('abcdefghijklm')
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 30, verticalScrollbarWidth: 15, baseCharacterWidth: 10)
+          getState(presenter) # trigger a state update to store state in the presenter
+
+          editor.setCursorBufferPosition([0, Infinity])
+          editor.insertText('n')
+          expect(getState(presenter).content.scrollLeft).toBe(0)
+
+          editor.setText('abcdefghijklm\nnopqrstuvwxy') # make the vertical scrollbar appear
+          editor.setCursorBufferPosition([1, Infinity])
+          editor.insertText('z')
+          expect(getState(presenter).content.scrollLeft).toBe(0)
 
     describe ".verticalScrollbar", ->
       describe ".visible", ->
@@ -767,6 +789,39 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).hiddenInput.width).toBe 2
 
     describe ".content", ->
+      describe '.width', ->
+        describe "when `editor.autoWidth` is false (the default)", ->
+          it "equals to the max width between the content frame width and the content width + the vertical scrollbar width", ->
+            editor.setText('abc\ndef\nghi\njkl')
+            presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 33, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+            expect(getState(presenter).content.width).toBe(3 * 10 + 7 + 1)
+            presenter.setContentFrameWidth(50)
+            expect(getState(presenter).content.width).toBe(50)
+            presenter.setVerticalScrollbarWidth(27)
+            expect(getState(presenter).content.width).toBe(3 * 10 + 27 + 1)
+
+        describe "when `editor.autoWidth` is true", ->
+          it "equals to the content width + the vertical scrollbar width", ->
+            editor.setText('abc\ndef\nghi\njkl')
+            presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 300, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+            expectStateUpdate presenter, -> editor.update({autoWidth: true})
+            expect(getState(presenter).content.width).toBe(3 * 10 + 7 + 1)
+            editor.setText('abcdefghi\n')
+            expect(getState(presenter).content.width).toBe(9 * 10 + 7 + 1)
+
+        it "ignores the vertical scrollbar width when it is unset", ->
+          editor.setText('abcdef\nghijkl')
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 33, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+          presenter.setVerticalScrollbarWidth(null)
+          expect(getState(presenter).content.width).toBe(6 * 10 + 1)
+
+        it "ignores the content frame width when it is unset", ->
+          editor.setText('abc\ndef\nghi\njkl')
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 33, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+          getState(presenter) # trigger a state update, causing verticalScrollbarWidth to be stored in the presenter
+          presenter.setContentFrameWidth(null)
+          expect(getState(presenter).content.width).toBe(3 * 10 + 7 + 1)
+
       describe ".maxHeight", ->
         it "changes based on boundingClientRect", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
@@ -2675,6 +2730,17 @@ describe "TextEditorPresenter", ->
                 item: item
                 pixelPosition: {top: 10, left: 0}
               }
+
+    describe ".width", ->
+      it "is null when `editor.autoWidth` is false (the default)", ->
+        presenter = buildPresenter(explicitHeight: 50, gutterWidth: 20, contentFrameWidth: 300, baseCharacterWidth: 10)
+        expect(getState(presenter).width).toBeNull()
+
+      it "equals to sum of .content.width and the width of the gutter when `editor.autoWidth` is true", ->
+        editor.setText('abcdef')
+        editor.update({autoWidth: true})
+        presenter = buildPresenter(explicitHeight: 50, gutterWidth: 20, contentFrameWidth: 300, baseCharacterWidth: 10)
+        expect(getState(presenter).width).toBe(20 + 6 * 10 + 1)
 
     describe ".height", ->
       it "updates model's rows per page when it changes", ->
