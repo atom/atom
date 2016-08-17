@@ -451,9 +451,13 @@ describe "Workspace", ->
           waitsForPromise ->
             workspace.open('sample.js').then (e) -> editor = e
 
-        runs ->
-          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-          expect(editor.largeFileMode).toBe true
+          runs ->
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            expect(editor.largeFileMode).toBe true
+        else
+          runs ->
+            expect(atom.applicationDelegate.confirm).not.toHaveBeenCalled()
+            expect(editor).not.toBeUndefined()
 
       it "prompts the user to make sure they want to open a file this big", ->
         atom.config.set "core.warnOnLargeFileLimit", 20
