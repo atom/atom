@@ -152,7 +152,7 @@ class TextEditorComponent
       if (@newState.content.autoWidth isnt @oldState.content.autoWidth) or (@newState.content.width isnt @oldState.content.width)
         if @newState.content.autoWidth
           @hostElement.style.width = @newState.content.width + 'px'
-        else
+        else if @oldState.content.autoWidth
           @hostElement.style.width = ''
 
         @oldState.content.width = @newState.content.width
