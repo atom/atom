@@ -110,13 +110,14 @@ class TextEditorPresenter
 
     @updateLines()
 
-    @updateFocusedState()
-    @updateHeightState()
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
     @updateScrollbarsState()
     @updateHiddenInputState()
     @updateContentState()
+    @updateFocusedState()
+    @updateHeightState()
+    @updateWidthState()
     @updateHighlightDecorations() if @shouldUpdateDecorations
     @updateTilesState()
     @updateCursorsState()
@@ -224,6 +225,12 @@ class TextEditorPresenter
     else
       @state.height = null
 
+  updateWidthState: ->
+    if @model.getAutoWidth()
+      @state.width = @state.content.width + @gutterWidth
+    else
+      @state.width = null
+
   updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
     @sharedGutterStyles.scrollHeight = @scrollHeight
@@ -269,7 +276,13 @@ class TextEditorPresenter
       @sharedGutterStyles.maxHeight = @boundingClientRect.height
       @state.content.maxHeight = @boundingClientRect.height
 
-    @state.content.width = Math.max(@contentWidth + @verticalScrollbarWidth, @contentFrameWidth)
+    verticalScrollbarWidth = @verticalScrollbarWidth ? 0
+    contentFrameWidth = @contentFrameWidth ? 0
+    contentWidth = @contentWidth ? 0
+    if @model.getAutoWidth()
+      @state.content.width = contentWidth + verticalScrollbarWidth
+    else
+      @state.content.width = Math.max(contentWidth + verticalScrollbarWidth, contentFrameWidth)
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
@@ -662,6 +675,7 @@ class TextEditorPresenter
 
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
+      @updateClientWidth()
       @updateScrollWidth()
 
   updateClientHeight: ->
@@ -678,7 +692,11 @@ class TextEditorPresenter
   updateClientWidth: ->
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
 
-    clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    if @model.getAutoWidth()
+      clientWidth = @contentWidth
+    else
+      clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+
     @model.setWidth(clientWidth, true) unless @editorWidthInChars
 
     unless @clientWidth is clientWidth
@@ -720,20 +738,23 @@ class TextEditorPresenter
     return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
     return unless @contentWidth? and @contentHeight?
 
-    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
-    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @measuredVerticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @height
-    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
+    if @model.getAutoWidth()
+      clientWidthWithVerticalScrollbar = @contentWidth + @measuredVerticalScrollbarWidth
+    else
+      clientWidthWithVerticalScrollbar = @contentFrameWidth
+    clientWidthWithoutVerticalScrollbar = clientWidthWithVerticalScrollbar - @measuredVerticalScrollbarWidth
+    clientHeightWithHorizontalScrollbar = @height
+    clientHeightWithoutHorizontalScrollbar = clientHeightWithHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
       not @model.isMini() and
-        (@contentWidth > clientWidthWithoutVerticalScrollbar or
-         @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
+        (@contentWidth > clientWidthWithVerticalScrollbar or
+         @contentWidth > clientWidthWithoutVerticalScrollbar and @contentHeight > clientHeightWithHorizontalScrollbar)
 
     verticalScrollbarVisible =
       not @model.isMini() and
-        (@contentHeight > clientHeightWithoutHorizontalScrollbar or
-         @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
+        (@contentHeight > clientHeightWithHorizontalScrollbar or
+         @contentHeight > clientHeightWithoutHorizontalScrollbar and @contentWidth > clientWidthWithVerticalScrollbar)
 
     horizontalScrollbarHeight =
       if horizontalScrollbarVisible
@@ -895,6 +916,9 @@ class TextEditorPresenter
       @updateClientHeight()
       @updateScrollHeight()
       @updateEndRow()
+
+  didChangeAutoWidth: ->
+    @emitDidUpdateState()
 
   setContentFrameWidth: (contentFrameWidth) ->
     if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
