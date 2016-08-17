@@ -269,7 +269,14 @@ class TextEditorPresenter
       @sharedGutterStyles.maxHeight = @boundingClientRect.height
       @state.content.maxHeight = @boundingClientRect.height
 
-    @state.content.width = Math.max(@contentWidth + @verticalScrollbarWidth, @contentFrameWidth)
+    verticalScrollbarWidth = @verticalScrollbarWidth ? 0
+    contentFrameWidth = @contentFrameWidth ? 0
+    contentWidth = @contentWidth ? 0
+    if @model.getAutoWidth()
+      @state.content.width = contentWidth + verticalScrollbarWidth
+    else
+      @state.content.width = Math.max(contentWidth + verticalScrollbarWidth, contentFrameWidth)
+    @state.content.autoWidth = @model.getAutoWidth()
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
