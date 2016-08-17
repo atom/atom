@@ -4371,28 +4371,30 @@ describe('TextEditorComponent', function () {
   })
 
   describe('width', function () {
-    it('sizes the editor element according to the content width when auto width is true, or according to the container width otherwise', function () {
+    it('sizes the editor element according to the content width when auto width is true, or according to the container width otherwise', async function () {
+      await nextViewUpdatePromise()
+
       contentNode.style.width = '600px'
       component.measureDimensions()
       editor.setText("abcdefghi")
-      runAnimationFrames()
+      await nextViewUpdatePromise()
       expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
 
       editor.update({autoWidth: true})
-      runAnimationFrames()
+      await nextViewUpdatePromise()
       const editorWidth1 = wrapperNode.offsetWidth
       expect(editorWidth1).toBeGreaterThan(0)
       expect(editorWidth1).toBeLessThan(contentNode.offsetWidth)
 
       editor.setText("abcdefghijkl")
       editor.update({autoWidth: true})
-      runAnimationFrames()
+      await nextViewUpdatePromise()
       const editorWidth2 = wrapperNode.offsetWidth
       expect(editorWidth2).toBeGreaterThan(editorWidth1)
       expect(editorWidth2).toBeLessThan(contentNode.offsetWidth)
 
       editor.update({autoWidth: false})
-      runAnimationFrames()
+      await nextViewUpdatePromise()
       expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
     })
   })

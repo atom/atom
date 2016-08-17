@@ -188,6 +188,13 @@ class TextEditor extends Model
     if grammar?
       @setGrammar(grammar)
 
+  # This was added on 1.9-releases so we could backport the autoWidth feature
+  # without changing a bunch of tests.
+  update: ({autoWidth}) ->
+    if autoWidth isnt @autoWidth
+      @autoWidth = autoWidth
+      @presenter?.didChangeAutoWidth()
+
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 

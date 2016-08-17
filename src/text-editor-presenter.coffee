@@ -17,6 +17,7 @@ class TextEditorPresenter
     {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
     {@contentFrameWidth} = params
     {@displayLayer} = @model
+    @model.presenter = this
 
     @gutterWidth = 0
     @tileSize ?= 6
