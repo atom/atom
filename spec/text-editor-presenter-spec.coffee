@@ -2719,6 +2719,17 @@ describe "TextEditorPresenter", ->
                 pixelPosition: {top: 10, left: 0}
               }
 
+    describe ".width", ->
+      it "is null when `editor.autoWidth` is false (the default)", ->
+        presenter = buildPresenter(explicitHeight: 50, gutterWidth: 20, contentFrameWidth: 300, baseCharacterWidth: 10)
+        expect(getState(presenter).width).toBeNull()
+
+      it "equals to sum of .content.width and the width of the gutter when `editor.autoWidth` is true", ->
+        editor.setText('abcdef')
+        editor.update({autoWidth: true})
+        presenter = buildPresenter(explicitHeight: 50, gutterWidth: 20, contentFrameWidth: 300, baseCharacterWidth: 10)
+        expect(getState(presenter).width).toBe(20 + 6 * 10 + 1)
+
     describe ".height", ->
       it "updates model's rows per page when it changes", ->
         presenter = buildPresenter(explicitHeight: 50, lineHeightInPixels: 10, horizontalScrollbarHeight: 10)

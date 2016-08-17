@@ -110,13 +110,14 @@ class TextEditorPresenter
 
     @updateLines()
 
-    @updateFocusedState()
-    @updateHeightState()
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
     @updateScrollbarsState()
     @updateHiddenInputState()
     @updateContentState()
+    @updateFocusedState()
+    @updateHeightState()
+    @updateWidthState()
     @updateHighlightDecorations() if @shouldUpdateDecorations
     @updateTilesState()
     @updateCursorsState()
@@ -224,6 +225,12 @@ class TextEditorPresenter
     else
       @state.height = null
 
+  updateWidthState: ->
+    if @model.getAutoWidth()
+      @state.width = @state.content.width + @gutterWidth
+    else
+      @state.width = null
+
   updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
     @sharedGutterStyles.scrollHeight = @scrollHeight
@@ -276,7 +283,6 @@ class TextEditorPresenter
       @state.content.width = contentWidth + verticalScrollbarWidth
     else
       @state.content.width = Math.max(contentWidth + verticalScrollbarWidth, contentFrameWidth)
-    @state.content.autoWidth = @model.getAutoWidth()
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor

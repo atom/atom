@@ -129,7 +129,7 @@ class TextEditorComponent
   updateSync: ->
     @updateSyncPreMeasurement()
 
-    @oldState ?= {content: {}}
+    @oldState ?= {width: null}
     @newState = @presenter.getPostMeasurementState()
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
@@ -149,14 +149,12 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
-      if (@newState.content.autoWidth isnt @oldState.content.autoWidth) or (@newState.content.width isnt @oldState.content.width)
-        if @newState.content.autoWidth
-          @hostElement.style.width = @newState.content.width + 'px'
-        else if @oldState.content.autoWidth
+      if @newState.width isnt @oldState.width
+        if @newState.width?
+          @hostElement.style.width = @newState.width + 'px'
+        else
           @hostElement.style.width = ''
-
-        @oldState.content.width = @newState.content.width
-        @oldState.content.autoWidth = @newState.content.autoWidth
+        @oldState.width = @newState.width
 
     if @newState.gutters.length
       @mountGutterContainerComponent() unless @gutterContainerComponent?
