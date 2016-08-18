@@ -128,7 +128,7 @@ class TextEditor extends Model
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
       @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
-      @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide, @softWrapHangingIndentLength,
+      @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
     } = params
 
@@ -156,7 +156,6 @@ class TextEditor extends Model
     @undoGroupingInterval ?= 300
     @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
     @softWrapped ?= false
-    @softWrapHangingIndentLength ?= 0
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
@@ -169,12 +168,12 @@ class TextEditor extends Model
       invisibles: @getInvisibles(),
       softWrapColumn: @getSoftWrapColumn(),
       showIndentGuides: not @isMini() and @doesShowIndentGuide(),
-      atomicSoftTabs: @hasAtomicSoftTabs(),
-      tabLength: @getTabLength(),
+      atomicSoftTabs: params.atomicSoftTabs ? true,
+      tabLength: tabLength,
       ratioForCharacter: @ratioForCharacter.bind(this),
       isWrapBoundary: isWrapBoundary,
       foldCharacter: ZERO_WIDTH_NBSP,
-      softWrapHangingIndent: @getSoftWrapHangingIndentLength()
+      softWrapHangingIndent: params.softWrapHangingIndentLength ? 0
     }
 
     if @displayLayer?
@@ -238,8 +237,7 @@ class TextEditor extends Model
             @softTabs = value
 
         when 'atomicSoftTabs'
-          if value isnt @atomicSoftTabs
-            @atomicSoftTabs = value
+          if value isnt @displayLayer.atomicSoftTabs
             displayLayerParams.atomicSoftTabs = value
 
         when 'tabLength'
@@ -254,8 +252,7 @@ class TextEditor extends Model
             @emitter.emit 'did-change-soft-wrapped', @isSoftWrapped()
 
         when 'softWrapHangingIndentLength'
-          if value isnt @softWrapHangingIndentLength
-            @softWrapHangingIndentLength = value
+          if value isnt @displayLayer.softWrapHangingIndent
             displayLayerParams.softWrapHangingIndent = value
 
         when 'softWrapAtPreferredLineLength'
@@ -360,8 +357,10 @@ class TextEditor extends Model
       firstVisibleScreenRow: @getFirstVisibleScreenRow()
       firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
 
-      @id, @softTabs, @atomicSoftTabs, @tabLength, @softWrapped,
-      @softWrapHangingIndentLength, @softWrapAtPreferredLineLength,
+      atomicSoftTabs: @displayLayer.atomicSoftTabs
+      softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
+
+      @id, @softTabs, @tabLength, @softWrapped, @softWrapAtPreferredLineLength,
       @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
       @registered, @invisibles, @showInvisibles, @showIndentGuide
     }
@@ -2825,7 +2824,7 @@ class TextEditor extends Model
   setSoftTabs: (@softTabs) -> @update({softTabs})
 
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
-  hasAtomicSoftTabs: -> @atomicSoftTabs
+  hasAtomicSoftTabs: -> @displayLayer.atomicSoftTabs
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
@@ -2852,7 +2851,7 @@ class TextEditor extends Model
 
   doesShowIndentGuide: -> @showIndentGuide and not @mini
 
-  getSoftWrapHangingIndentLength: -> @softWrapHangingIndentLength
+  getSoftWrapHangingIndentLength: -> @displayLayer.softWrapHangingIndent
 
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
