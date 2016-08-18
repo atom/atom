@@ -1,6 +1,7 @@
 /** @babel */
 
 import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
+import Grim from 'grim'
 import TextEditorElement from '../src/text-editor-element'
 import _, {extend, flatten, last, toArray} from 'underscore-plus'
 
@@ -4393,6 +4394,29 @@ describe('TextEditorComponent', function () {
   })
 
   describe('height', function () {
+    describe('when autoHeight is true', function () {
+      it('assigns the editor\'s height to based on its contents', function () {
+        jasmine.attachToDOM(wrapperNode)
+        expect(editor.getAutoHeight()).toBe(true)
+        expect(wrapperNode.offsetHeight).toBe(editor.getLineHeightInPixels() * editor.getScreenLineCount())
+        editor.insertText('\n\n\n')
+        runAnimationFrames()
+        expect(wrapperNode.offsetHeight).toBe(editor.getLineHeightInPixels() * editor.getScreenLineCount())
+      })
+    })
+
+    describe('when autoHeight is false', function () {
+      it('does not assign the height of the editor, instead allowing content to scroll', function () {
+        jasmine.attachToDOM(wrapperNode)
+        editor.update({autoHeight: false})
+        wrapperNode.style.height = '200px'
+        expect(wrapperNode.offsetHeight).toBe(200)
+        editor.insertText('\n\n\n')
+        runAnimationFrames()
+        expect(wrapperNode.offsetHeight).toBe(200)
+      })
+    })
+
     describe('when the wrapper view has an explicit height', function () {
       it('does not assign a height on the component node', function () {
         wrapperNode.style.height = '200px'
