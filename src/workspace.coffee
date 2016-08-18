@@ -550,7 +550,7 @@ class Workspace extends Model
     fileSize = fs.getSizeSync(filePath)
 
     largeFileMode = fileSize >= 2 * 1048576 # 2MB
-    if fileSize >= 20 * 1048576 # 20MB
+    if fileSize >= @config.get('core.warnOnLargeFileLimit') * 1048576 # 20MB by default
       choice = @applicationDelegate.confirm
         message: 'Atom will be unresponsive during the loading of very large files.'
         detailedMessage: "Do you still want to load this file?"
