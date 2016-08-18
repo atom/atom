@@ -5508,11 +5508,13 @@ describe "TextEditor", ->
 
   describe "auto height", ->
     it "returns true by default but can be customized", ->
+      editor = atom.workspace.buildTextEditor()
       expect(editor.getAutoHeight()).toBe(true)
       editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
       editor.update({autoHeight: true})
       expect(editor.getAutoHeight()).toBe(true)
+      editor.destroy()
 
   describe "auto width", ->
     it "returns false by default but can be customized", ->
