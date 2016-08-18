@@ -437,6 +437,8 @@ describe "Workspace", ->
         spyOn(fs, 'getSizeSync').andReturn size * 1048577
         atom.applicationDelegate.confirm.andCallFake -> selectedButtonIndex
         atom.applicationDelegate.confirm()
+        selectedButtonIndex = 1 # cancel
+
         editor = null
         waitsForPromise ->
           workspace.open('sample.js').then (e) -> editor = e
@@ -456,7 +458,6 @@ describe "Workspace", ->
             expect(editor.largeFileMode).toBe true
         else
           runs ->
-            expect(atom.applicationDelegate.confirm).not.toHaveBeenCalled()
             expect(editor).not.toBeUndefined()
 
       it "prompts the user to make sure they want to open a file this big", ->
