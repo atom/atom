@@ -3,6 +3,7 @@ path = require 'path'
 temp = require 'temp'
 clipboard = require '../src/safe-clipboard'
 TextEditor = require '../src/text-editor'
+TextBuffer = require 'text-buffer'
 
 describe "TextEditor", ->
   [buffer, editor, lineLengths] = []
@@ -41,7 +42,7 @@ describe "TextEditor", ->
     it "restores the editor's layout configuration", ->
       editor.update({
         softTabs: true
-        atomicSoftTabs: true
+        atomicSoftTabs: false
         tabLength: 12
         softWrapped: true
         softWrapAtPreferredLineLength: true
@@ -51,7 +52,16 @@ describe "TextEditor", ->
         editorWidthInChars: 120
       })
 
-      editor2 = TextEditor.deserialize(editor.serialize(), atom)
+      # Force buffer and display layer to be deserialized as well, rather than
+      # reusing the same buffer instance
+      editor2 = TextEditor.deserialize(editor.serialize(), {
+        assert: atom.assert,
+        clipboard: atom.clipboard,
+        textEditors: atom.textEditors,
+        project: {
+          bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
+        }
+      })
 
       expect(editor2.getSoftTabs()).toBe(editor.getSoftTabs())
       expect(editor2.hasAtomicSoftTabs()).toBe(editor.hasAtomicSoftTabs())
