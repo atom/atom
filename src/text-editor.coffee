@@ -353,8 +353,9 @@ class TextEditor extends Model
 
       @id, @softTabs, @atomicSoftTabs, @tabLength, @softWrapped,
       @softWrapHangingIndentLength, @softWrapAtPreferredLineLength,
-      @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
-      @registered, @invisibles, @showInvisibles, @showIndentGuide
+      @preferredLineLength, @mini, @editorWidthInChars, @width, @largeFileMode,
+      @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight,
+      @autoWidth
     }
 
   subscribeToBuffer: ->
