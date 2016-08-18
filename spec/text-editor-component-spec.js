@@ -4417,6 +4417,46 @@ describe('TextEditorComponent', function () {
       })
     })
 
+    describe('when autoHeight is not assigned on the editor', function () {
+      it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via an inline style', function () {
+        editor = atom.workspace.buildTextEditor()
+        element = editor.getElement()
+        element.setUpdatedSynchronously(false)
+        element.style.height = '200px'
+
+        spyOn(Grim, 'deprecate')
+        jasmine.attachToDOM(element)
+
+        expect(element.offsetHeight).toBe(200)
+        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(Grim.deprecate.callCount).toBe(1)
+        expect(Grim.deprecate.argsForCall[0][0]).toMatch(/inline style/)
+      })
+
+      it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via position absolute with an assigned top and bottom', function () {
+        editor = atom.workspace.buildTextEditor()
+        element = editor.getElement()
+        element.setUpdatedSynchronously(false)
+        parentElement = document.createElement('div')
+        parentElement.style.position = 'absolute'
+        parentElement.style.height = '200px'
+        element.style.position = 'absolute'
+        element.style.top = '0px'
+        element.style.bottom = '0px'
+        parentElement.appendChild(element)
+
+        spyOn(Grim, 'deprecate')
+
+        jasmine.attachToDOM(parentElement)
+        element.component.measureDimensions()
+
+        expect(element.offsetHeight).toBe(200)
+        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(Grim.deprecate.callCount).toBe(1)
+        expect(Grim.deprecate.argsForCall[0][0]).toMatch(/absolute/)
+      })
+    })
+
     describe('when the wrapper view has an explicit height', function () {
       it('does not assign a height on the component node', function () {
         wrapperNode.style.height = '200px'
