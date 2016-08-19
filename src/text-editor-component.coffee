@@ -3,6 +3,7 @@ scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
 {ipcRenderer} = require 'electron'
+Grim = require 'grim'
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
@@ -56,6 +57,7 @@ class TextEditorComponent
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
       lineTopIndex: lineTopIndex
+      autoHeight: @editor.getAutoHeight()
 
     @presenter.onDidUpdateState(@requestUpdate)
 
@@ -753,19 +755,35 @@ class TextEditorComponent
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
   measureDimensions: ->
-    return unless @mounted
+    # If we don't assign autoHeight explicitly, we try to automatically disable
+    # auto-height in certain circumstances. This is legacy behavior that we
+    # would rather not implement, but we can't remove it without risking
+    # breakage currently.
+    unless @editor.autoHeight?
+      {position, top, bottom} = getComputedStyle(@hostElement)
+      hasExplicitTopAndBottom = (position is 'absolute' and top isnt 'auto' and bottom isnt 'auto')
+      hasInlineHeight = @hostElement.style.height.length > 0
 
-    {position} = getComputedStyle(@hostElement)
-    {height} = @hostElement.style
+      if hasInlineHeight or hasExplicitTopAndBottom
+        if @presenter.autoHeight
+          @presenter.setAutoHeight(false)
+          if hasExplicitTopAndBottom
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via `position: 'absolute'` and an assigned `top` and `bottom` implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+          else if hasInlineHeight
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via an inline style implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+      else
+        @presenter.setAutoHeight(true)
 
-    if position is 'absolute' or height
-      @presenter.setAutoHeight(false)
-      height =  @hostElement.offsetHeight
-      if height > 0
-        @presenter.setExplicitHeight(height)
-    else
-      @presenter.setAutoHeight(true)
+    if @presenter.autoHeight
       @presenter.setExplicitHeight(null)
+    else if @hostElement.offsetHeight > 0
+      @presenter.setExplicitHeight(@hostElement.offsetHeight)
 
     clientWidth = @scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(@scrollViewNode).paddingLeft)

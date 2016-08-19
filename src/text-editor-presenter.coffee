@@ -15,7 +15,7 @@ class TextEditorPresenter
   constructor: (params) ->
     {@model, @lineTopIndex} = params
     @model.presenter = this
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize, @autoHeight} = params
     {@contentFrameWidth} = params
     {@displayLayer} = @model
 
