@@ -1119,6 +1119,20 @@ describe "Pane", ->
       newPane = Pane.deserialize(pane.serialize(), atom)
       expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
 
+    it "restores the active item when it doesn't implement getURI()", ->
+      pane.items[1].getURI = null
+      pane.activateItemAtIndex(1)
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
+
+    it "restores the correct item when it doesn't implement getURI() and some items weren't deserialized", ->
+      unserializable = {}
+      pane.addItem(unserializable, {index: 0})
+      pane.items[2].getURI = null
+      pane.activateItemAtIndex(2)
+      newPane = Pane.deserialize(pane.serialize(), atom)
+      expect(newPane.getActiveItem()).toEqual newPane.itemAtIndex(1)
+
     it "does not include items that cannot be deserialized", ->
       spyOn(console, 'warn')
       unserializable = {}
