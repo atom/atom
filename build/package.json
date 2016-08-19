@@ -46,5 +46,8 @@
     "unzip": "~0.1.9",
     "vm-compatibility-layer": "~0.1.0",
     "webdriverio": "^2.4.5"
+  },
+  "scripts": {
+    "lint": "grunt --gruntfile Gruntfile.coffee lint"
   }
 }

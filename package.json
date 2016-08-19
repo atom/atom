@@ -158,6 +158,7 @@
   "private": true,
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
+    "lint": "cd build && npm run lint",
     "test": "node script/test"
   },
   "standard": {
