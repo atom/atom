@@ -102,6 +102,7 @@ class TextEditor extends Model
 
     try
       state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      state.tabLength = state.tokenizedBuffer.getTabLength()
     catch error
       if error.syscall is 'read'
         return # Error reading the file, don't deserialize an editor for it
@@ -360,7 +361,7 @@ class TextEditor extends Model
       atomicSoftTabs: @displayLayer.atomicSoftTabs
       softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
 
-      @id, @softTabs, @tabLength, @softWrapped, @softWrapAtPreferredLineLength,
+      @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
       @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
       @registered, @invisibles, @showInvisibles, @showIndentGuide
     }
@@ -701,8 +702,9 @@ class TextEditor extends Model
     selectionsMarkerLayer = displayLayer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
     new TextEditor({
-      @buffer, selectionsMarkerLayer, @tabLength, softTabs,
+      @buffer, selectionsMarkerLayer, softTabs,
       suppressCursorCreation: true,
+      tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
       @clipboard, @assert, displayLayer, grammar: @getGrammar()
     })
