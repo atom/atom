@@ -704,7 +704,8 @@ class TextEditor extends Model
       suppressCursorCreation: true,
       tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @assert, displayLayer, grammar: @getGrammar()
+      @clipboard, @assert, displayLayer, grammar: @getGrammar(),
+      @autoWidth, @autoHeight
     })
 
   # Controls visibility based on the given {Boolean}.
