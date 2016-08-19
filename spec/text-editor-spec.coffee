@@ -70,6 +70,7 @@ describe "TextEditor", ->
       expect(editor2.getSoftWrapHangingIndentLength()).toBe(editor.getSoftWrapHangingIndentLength())
       expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
       expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
+      expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
