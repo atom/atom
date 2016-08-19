@@ -92,6 +92,7 @@ describe "TextEditor", ->
 
   describe ".copy()", ->
     it "returns a different editor with the same initial state", ->
+      editor.update({autoHeight: false, autoWidth: true})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
       editor.firstVisibleScreenRow = 5
@@ -106,6 +107,8 @@ describe "TextEditor", ->
       expect(editor2.getFirstVisibleScreenRow()).toBe 5
       expect(editor2.getFirstVisibleScreenColumn()).toBe 5
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
+      expect(editor2.getAutoWidth()).toBeTruthy()
+      expect(editor2.getAutoHeight()).toBeFalsy()
 
       # editor2 can now diverge from its origin edit session
       editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]])
