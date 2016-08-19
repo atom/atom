@@ -1127,7 +1127,7 @@ describe "Pane", ->
 
     it "restores the correct item when it doesn't implement getURI() and some items weren't deserialized", ->
       unserializable = {}
-      pane.addItem(unserializable, 0)
+      pane.addItem(unserializable, {index: 0})
       pane.items[2].getURI = null
       pane.activateItemAtIndex(2)
       newPane = Pane.deserialize(pane.serialize(), atom)
