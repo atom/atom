@@ -122,6 +122,10 @@ module.exports =
           {value: 'no', description: 'Do not send any telemetry data'}
           {value: 'undecided', description: 'Undecided (Atom will ask again next time it is launched)'}
         ]
+      warnOnLargeFileLimit:
+        description: 'Warn before opening files larger than this number of megabytes.'
+        type: 'number'
+        default: 20
   editor:
     type: 'object'
     properties:

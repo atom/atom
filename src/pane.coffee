@@ -21,13 +21,16 @@ class Pane extends Model
   focused: false
 
   @deserialize: (state, {deserializers, applicationDelegate, config, notifications}) ->
-    {items, itemStackIndices, activeItemURI, activeItemUri} = state
+    {items, itemStackIndices, activeItemIndex, activeItemURI, activeItemUri} = state
     activeItemURI ?= activeItemUri
-    state.items = compact(items.map (itemState) -> deserializers.deserialize(itemState))
-    state.activeItem = find state.items, (item) ->
-      if typeof item.getURI is 'function'
-        itemURI = item.getURI()
-      itemURI is activeItemURI
+    items = items.map (itemState) -> deserializers.deserialize(itemState)
+    state.activeItem = items[activeItemIndex]
+    state.items = compact(items)
+    if activeItemURI?
+      state.activeItem ?= find state.items, (item) ->
+        if typeof item.getURI is 'function'
+          itemURI = item.getURI()
+        itemURI is activeItemURI
     new Pane(extend(state, {
       deserializerManager: deserializers,
       notificationManager: notifications,
@@ -53,16 +56,15 @@ class Pane extends Model
     @setFlexScale(params?.flexScale ? 1)
 
   serialize: ->
-    if typeof @activeItem?.getURI is 'function'
-      activeItemURI = @activeItem.getURI()
     itemsToBeSerialized = compact(@items.map((item) -> item if typeof item.serialize is 'function'))
     itemStackIndices = (itemsToBeSerialized.indexOf(item) for item in @itemStack when typeof item.serialize is 'function')
+    activeItemIndex = itemsToBeSerialized.indexOf(@activeItem)
 
     deserializer: 'Pane'
     id: @id
     items: itemsToBeSerialized.map((item) -> item.serialize())
     itemStackIndices: itemStackIndices
-    activeItemURI: activeItemURI
+    activeItemIndex: activeItemIndex
     focused: @focused
     flexScale: @flexScale
 
