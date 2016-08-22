@@ -518,6 +518,54 @@ describe "Project", ->
       atom.project.removePath(ftpURI)
       expect(atom.project.getPaths()).toEqual []
 
+  describe ".onDidAddBuffer()", ->
+    it "invokes the callback with added text buffers", ->
+      buffers = []
+      added = []
+
+      waitsForPromise ->
+        atom.project.buildBuffer(require.resolve('./fixtures/dir/a'))
+          .then (o) -> buffers.push(o)
+
+      runs ->
+        expect(buffers.length).toBe 1
+        atom.project.onDidAddBuffer (buffer) -> added.push(buffer)
+
+      waitsForPromise ->
+        atom.project.buildBuffer(require.resolve('./fixtures/dir/b'))
+          .then (o) -> buffers.push(o)
+
+      runs ->
+        expect(buffers.length).toBe 2
+        expect(added).toEqual [buffers[1]]
+
+  describe ".observeBuffers()", ->
+    it "invokes the observer with current and future text buffers", ->
+      buffers = []
+      observed = []
+
+      waitsForPromise ->
+        atom.project.buildBuffer(require.resolve('./fixtures/dir/a'))
+          .then (o) -> buffers.push(o)
+
+      waitsForPromise ->
+        atom.project.buildBuffer(require.resolve('./fixtures/dir/b'))
+          .then (o) -> buffers.push(o)
+
+      runs ->
+        expect(buffers.length).toBe 2
+        atom.project.observeBuffers (buffer) -> observed.push(buffer)
+        expect(observed).toEqual buffers
+
+      waitsForPromise ->
+        atom.project.buildBuffer(require.resolve('./fixtures/dir/b'))
+          .then (o) -> buffers.push(o)
+
+      runs ->
+        expect(observed.length).toBe 3
+        expect(buffers.length).toBe 3
+        expect(observed).toEqual buffers
+
   describe ".relativize(path)", ->
     it "returns the path, relative to whichever root directory it is inside of", ->
       atom.project.addPath(temp.mkdirSync("another-path"))
