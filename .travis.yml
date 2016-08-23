@@ -14,7 +14,7 @@ compiler: clang
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4
+      env: NODE_VERSION=4.4.7
 
 sudo: false
 
