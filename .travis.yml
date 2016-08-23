@@ -44,6 +44,7 @@ addons:
       - out/atom-amd64.deb
       - out/atom.x86_64.rpm
       - out/atom-amd64.tar.gz
+    target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
     sources:
     - ubuntu-toolchain-r-test
