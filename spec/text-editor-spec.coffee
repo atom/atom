@@ -92,6 +92,7 @@ describe "TextEditor", ->
 
   describe ".copy()", ->
     it "returns a different editor with the same initial state", ->
+      editor.update({autoHeight: false, autoWidth: true})
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
       editor.addSelectionForBufferRange([[5, 6], [7, 8]], reversed: true)
       editor.firstVisibleScreenRow = 5
@@ -106,6 +107,8 @@ describe "TextEditor", ->
       expect(editor2.getFirstVisibleScreenRow()).toBe 5
       expect(editor2.getFirstVisibleScreenColumn()).toBe 5
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
+      expect(editor2.getAutoWidth()).toBeTruthy()
+      expect(editor2.getAutoHeight()).toBeFalsy()
 
       # editor2 can now diverge from its origin edit session
       editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]])
@@ -116,29 +119,27 @@ describe "TextEditor", ->
   describe ".update()", ->
     it "updates the editor with the supplied config parameters", ->
       element = editor.element # force element initialization
+      element.setUpdatedSynchronously(false)
       editor.update({showInvisibles: true})
       editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
 
-      updatePromise = editor.update({
+      returnedPromise = editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
         showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
         autoHeight: false
       })
 
-      waitsForPromise ->
-        updatePromise
-
-      runs ->
-        expect(changeSpy.callCount).toBe(1)
-        expect(editor.getTabLength()).toBe(6)
-        expect(editor.getSoftTabs()).toBe(false)
-        expect(editor.isSoftWrapped()).toBe(true)
-        expect(editor.getEditorWidthInChars()).toBe(40)
-        expect(editor.getInvisibles()).toEqual({})
-        expect(editor.isMini()).toBe(false)
-        expect(editor.isLineNumberGutterVisible()).toBe(false)
-        expect(editor.getScrollPastEnd()).toBe(true)
-        expect(editor.getAutoHeight()).toBe(false)
+      expect(returnedPromise).toBe(atom.views.getNextUpdatePromise())
+      expect(changeSpy.callCount).toBe(1)
+      expect(editor.getTabLength()).toBe(6)
+      expect(editor.getSoftTabs()).toBe(false)
+      expect(editor.isSoftWrapped()).toBe(true)
+      expect(editor.getEditorWidthInChars()).toBe(40)
+      expect(editor.getInvisibles()).toEqual({})
+      expect(editor.isMini()).toBe(false)
+      expect(editor.isLineNumberGutterVisible()).toBe(false)
+      expect(editor.getScrollPastEnd()).toBe(true)
+      expect(editor.getAutoHeight()).toBe(false)
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -5521,11 +5522,13 @@ describe "TextEditor", ->
 
   describe "auto height", ->
     it "returns true by default but can be customized", ->
+      editor = atom.workspace.buildTextEditor()
       expect(editor.getAutoHeight()).toBe(true)
       editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
       editor.update({autoHeight: true})
       expect(editor.getAutoHeight()).toBe(true)
+      editor.destroy()
 
   describe "auto width", ->
     it "returns false by default but can be customized", ->

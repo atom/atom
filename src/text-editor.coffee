@@ -145,8 +145,6 @@ class TextEditor extends Model
     @selections = []
     @hasTerminatedPendingState = false
 
-    @autoWidth ?= false
-    @autoHeight ?= true
     @mini ?= false
     @scrollPastEnd ?= true
     @showInvisibles ?= true
@@ -324,7 +322,7 @@ class TextEditor extends Model
         when 'autoHeight'
           if value isnt @autoHeight
             @autoHeight = value
-            @editorElement?.didChangeAutoHeight()
+            @presenter?.setAutoHeight(@autoHeight)
 
         when 'autoWidth'
           if value isnt @autoWidth
@@ -363,7 +361,7 @@ class TextEditor extends Model
 
       @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
       @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
-      @registered, @invisibles, @showInvisibles, @showIndentGuide
+      @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
     }
 
   subscribeToBuffer: ->
@@ -706,7 +704,8 @@ class TextEditor extends Model
       suppressCursorCreation: true,
       tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @assert, displayLayer, grammar: @getGrammar()
+      @clipboard, @assert, displayLayer, grammar: @getGrammar(),
+      @autoWidth, @autoHeight
     })
 
   # Controls visibility based on the given {Boolean}.
@@ -1972,7 +1971,7 @@ class TextEditor extends Model
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    @buffer.getMarkerCount()
+    @defaultMarkerLayer.getMarkerCount()
 
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
@@ -3551,7 +3550,9 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
     @height
 
-  getAutoHeight: -> @autoHeight
+  getAutoHeight: -> @autoHeight ? true
+
+  getAutoWidth: -> @autoWidth ? false
 
   setWidth: (width, reentrant=false) ->
     if reentrant
@@ -3564,9 +3565,6 @@ class TextEditor extends Model
   getWidth: ->
     Grim.deprecate("This is now a view method. Call TextEditorElement::getWidth instead.")
     @width
-
-  getAutoWidth: ->
-    @autoWidth
 
   # Experimental: Scroll the editor such that the given screen row is at the
   # top of the visible area.

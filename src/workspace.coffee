@@ -561,7 +561,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      @textEditorRegistry.build(Object.assign({buffer, largeFileMode}, options))
+      @textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
