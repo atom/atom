@@ -10,7 +10,7 @@ compiler: clang
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4.4.7
+      env: NODE_VERSION=4.4.7 CXX=g++-5
 
 sudo: false
 
@@ -51,6 +51,8 @@ addons:
     - build-essential
     - fakeroot
     - gcc-multilib
+    - gcc-5
+    - g++-5
     - git
     - libgnome-keyring-dev
     - rpm
