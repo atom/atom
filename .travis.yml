@@ -39,6 +39,11 @@ notifications:
     on_failure: change
 
 addons:
+  artifacts:
+    paths:
+      - out/atom-amd64.deb
+      - out/atom.x86_64.rpm
+      - out/atom-amd64.tar.gz
   apt:
     sources:
     - ubuntu-toolchain-r-test
