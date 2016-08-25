@@ -3,6 +3,7 @@
 const downloadFileFromGithub = require('./download-file-from-github')
 const electronInstaller = require('electron-winstaller')
 const fs = require('fs-extra')
+const glob = require('glob')
 const os = require('os')
 const path = require('path')
 
@@ -28,15 +29,22 @@ module.exports = function (packagedAppPath, codeSign) {
     console.log('Skipping code-signing. Specify the --code-sign option and provide a WIN_P12KEY_URL environment variable to perform code-signing'.gray)
   }
 
-  const deleteCertificate = function () {
+  const cleanUp = function () {
     if (fs.existsSync(certPath)) {
       console.log(`Deleting certificate at ${certPath}`)
       fs.removeSync(certPath)
     }
+
+    for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*.nupkg`)) {
+      if (!nupkgPath.includes(CONFIG.appMetadata.version)) {
+        console.log(`Deleting downloaded nupkg for previous version at ${nupkgPath} to prevent it from being stored as an artifact`)
+        fs.removeSync(nupkgPath)
+      }
+    }
   }
   console.log(`Creating Windows Installer for ${packagedAppPath}`)
-  return electronInstaller.createWindowsInstaller(options).then(deleteCertificate, function (error) {
+  return electronInstaller.createWindowsInstaller(options).then(cleanUp, function (error) {
     console.log(`Windows installer creation failed:\n${error}`)
-    deleteCertificate()
+    cleanUp()
   })
 }
