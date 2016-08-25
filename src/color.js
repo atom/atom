@@ -85,6 +85,10 @@ export default class Color {
     return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`
   }
 
+  toJSON () {
+    return this.alpha === 1 ? this.toHexString() : this.toRGBAString()
+  }
+
   isEqual (color) {
     if (this === color) {
       return true
