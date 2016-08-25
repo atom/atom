@@ -145,11 +145,22 @@ class ContextMenuManager
 
       currentTarget = currentTarget.parentElement
 
-    # Remove trailing separator
-    if template.length > 0 and template[template.length - 1].type is 'separator'
-      template.splice(template.length-1, 1)
+    @pruneRedundantSeparators(template)
 
     template
+
+  pruneRedundantSeparators: (menu) ->
+    keepNextItemIfSeparator = false
+    index = 0
+    while index < menu.length
+      if menu[index].type is 'separator'
+        if not keepNextItemIfSeparator or index is menu.length - 1
+          menu.splice(index, 1)
+        else
+          index++
+      else
+        keepNextItemIfSeparator = true
+        index++
 
   # Returns an object compatible with `::add()` or `null`.
   cloneItemForEvent: (item, event) ->
