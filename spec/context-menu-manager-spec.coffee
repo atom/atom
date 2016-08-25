@@ -149,6 +149,17 @@ describe "ContextMenuManager", ->
       shouldDisplay = false
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual []
 
+    it "prunes a trailing separator", ->
+      contextMenu.add
+        '.grandchild': [
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'},
+          {type: 'separator'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
     it "throws an error when the selector is invalid", ->
       addError = null
       try

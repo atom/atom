@@ -145,6 +145,10 @@ class ContextMenuManager
 
       currentTarget = currentTarget.parentElement
 
+    # Remove trailing separator
+    if template.length > 0 and template[template.length - 1].type is 'separator'
+      template.splice(template.length-1, 1)
+
     template
 
   # Returns an object compatible with `::add()` or `null`.
