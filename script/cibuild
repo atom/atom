@@ -1,0 +1,2 @@
+echo "Builds for this version of Atom no longer run on Janky."
+echo "See https://github.com/atom/atom/pull/12410 for more information."
