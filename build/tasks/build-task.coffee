@@ -176,11 +176,8 @@ module.exports = (grunt) ->
       cp path.join('resources', 'mac', 'speakeasy.pem'), path.resolve(appDir, '..', 'speakeasy.pem')
 
     if process.platform is 'win32'
-      cp path.join('resources', 'win', 'atom.cmd'), path.join(shellAppDir, 'resources', 'cli', 'atom.cmd')
-      cp path.join('resources', 'win', 'atom.sh'), path.join(shellAppDir, 'resources', 'cli', 'atom.sh')
-      cp path.join('resources', 'win', 'atom.js'), path.join(shellAppDir, 'resources', 'cli', 'atom.js')
-      cp path.join('resources', 'win', 'apm.cmd'), path.join(shellAppDir, 'resources', 'cli', 'apm.cmd')
-      cp path.join('resources', 'win', 'apm.sh'), path.join(shellAppDir, 'resources', 'cli', 'apm.sh')
+      [ 'atom.cmd', 'atom.sh', 'atom.js', 'apm.cmd', 'apm.sh', 'file.ico' ]
+        .forEach (file) -> cp path.join('resources', 'win', file), path.join(shellAppDir, 'resources', 'cli', file)
 
     if process.platform is 'linux'
       cp path.join('resources', 'app-icons', channel, 'png'), path.join(buildDir, 'icons')
