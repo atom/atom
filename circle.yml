@@ -37,3 +37,9 @@ dependencies:
 test:
   override:
     - caffeinate -s script/test # Run with caffeinate to prevent screen saver
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master

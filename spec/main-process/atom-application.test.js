@@ -22,7 +22,10 @@ describe('AtomApplication', function () {
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
     fs.symlinkSync(path.join(originalAtomHome, 'compile-cache'), path.join(process.env.ATOM_HOME, 'compile-cache'))
     season.writeFileSync(path.join(process.env.ATOM_HOME, 'config.cson'), {
-      '*': {welcome: {showOnStartup: false}}
+      '*': {
+        welcome: {showOnStartup: false},
+        core: {telemetryConsent: 'no'}
+      }
     })
     atomApplicationsToDestroy = []
   })
