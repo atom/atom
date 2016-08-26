@@ -149,7 +149,7 @@ describe "ContextMenuManager", ->
       shouldDisplay = false
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual []
 
-    fit "prunes a trailing separator", ->
+    it "prunes a trailing separator", ->
       contextMenu.add
         '.grandchild': [
           {label: 'A', command: 'a'},
@@ -160,7 +160,7 @@ describe "ContextMenuManager", ->
 
       expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
 
-    fit "prunes a leading separator", ->
+    it "prunes a leading separator", ->
       contextMenu.add
         '.grandchild': [
           {type: 'separator'},
@@ -171,7 +171,7 @@ describe "ContextMenuManager", ->
 
       expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
 
-    fit "prunes duplicate separators", ->
+    it "prunes duplicate separators", ->
       contextMenu.add
         '.grandchild': [
           {label: 'A', command: 'a'},
@@ -182,7 +182,7 @@ describe "ContextMenuManager", ->
 
       expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
 
-    fit "prunes all redundant separators", ->
+    it "prunes all redundant separators", ->
       contextMenu.add
         '.grandchild': [
           {type: 'separator'},
