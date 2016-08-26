@@ -165,7 +165,10 @@ class Workspace extends Model
     @onDidAddPaneItem ({item, pane, index}) =>
       if item instanceof TextEditor
         grammarSubscription = item.observeGrammar(@handleGrammarUsed.bind(this))
-        item.onDidDestroy -> grammarSubscription.dispose()
+        editorRegistrySubscription = atom.textEditors.add(item)
+        item.onDidDestroy ->
+          grammarSubscription.dispose()
+          editorRegistrySubscription.dispose()
         @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
 
   # Updates the application's title and proxy icon based on whichever file is
@@ -556,10 +559,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
-      disposable = atom.textEditors.add(editor)
-      editor.onDidDestroy -> disposable.dispose()
-      editor
+      @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
