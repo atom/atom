@@ -40,3 +40,9 @@ test:
 
   post:
     - zip -r out/Atom.zip out/Atom.app
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master
