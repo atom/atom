@@ -149,6 +149,55 @@ describe "ContextMenuManager", ->
       shouldDisplay = false
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual []
 
+    fit "prunes a trailing separator", ->
+      contextMenu.add
+        '.grandchild': [
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'},
+          {type: 'separator'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
+    fit "prunes a leading separator", ->
+      contextMenu.add
+        '.grandchild': [
+          {type: 'separator'},
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
+    fit "prunes duplicate separators", ->
+      contextMenu.add
+        '.grandchild': [
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
+    fit "prunes all redundant separators", ->
+      contextMenu.add
+        '.grandchild': [
+          {type: 'separator'},
+          {type: 'separator'},
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+          {type: 'separator'},
+          {type: 'separator'},
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(4)
+
     it "throws an error when the selector is invalid", ->
       addError = null
       try
