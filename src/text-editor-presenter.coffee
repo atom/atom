@@ -466,7 +466,7 @@ class TextEditorPresenter
       if overlayDimensions = @overlayDimensions[decoration.id]
         {itemWidth, itemHeight, contentMargin} = overlayDimensions
 
-        if !stable
+        if not stable
 
           rightDiff = left + itemWidth + contentMargin - @windowWidth
           left -= rightDiff if rightDiff > 0
