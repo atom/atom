@@ -13,8 +13,9 @@ class TextEditorPresenter
   minimumReflowInterval: 200
 
   constructor: (params) ->
-    {@model, @config, @lineTopIndex, scrollPastEnd} = params
-    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize} = params
+    {@model, @lineTopIndex} = params
+    @model.presenter = this
+    {@cursorBlinkPeriod, @cursorBlinkResumeDelay, @stoppedScrollingDelay, @tileSize, @autoHeight} = params
     {@contentFrameWidth} = params
     {@displayLayer} = @model
 
@@ -37,14 +38,11 @@ class TextEditorPresenter
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
     @observeModel()
-    @observeConfig()
     @buildState()
     @invalidateState()
     @startBlinkingCursors() if @focused
     @startReflowing() if @continuousReflow
     @updating = false
-
-    @scrollPastEndOverride = scrollPastEnd ? true
 
   setLinesYardstick: (@linesYardstick) ->
 
@@ -112,13 +110,14 @@ class TextEditorPresenter
 
     @updateLines()
 
-    @updateFocusedState()
-    @updateHeightState()
     @updateVerticalScrollState()
     @updateHorizontalScrollState()
     @updateScrollbarsState()
     @updateHiddenInputState()
     @updateContentState()
+    @updateFocusedState()
+    @updateHeightState()
+    @updateWidthState()
     @updateHighlightDecorations() if @shouldUpdateDecorations
     @updateTilesState()
     @updateCursorsState()
@@ -170,30 +169,14 @@ class TextEditorPresenter
     @disposables.add @model.onDidAddGutter(@didAddGutter.bind(this))
     return
 
-  observeConfig: ->
-    configParams = {scope: @model.getRootScopeDescriptor()}
+  didChangeScrollPastEnd: ->
+    @updateScrollHeight()
+    @emitDidUpdateState()
 
-    @scrollPastEnd = @config.get('editor.scrollPastEnd', configParams)
-    @showLineNumbers = @config.get('editor.showLineNumbers', configParams)
-
-    if @configDisposables?
-      @configDisposables?.dispose()
-      @disposables.remove(@configDisposables)
-
-    @configDisposables = new CompositeDisposable
-    @disposables.add(@configDisposables)
-
-    @configDisposables.add @config.onDidChange 'editor.scrollPastEnd', configParams, ({newValue}) =>
-      @scrollPastEnd = newValue
-      @updateScrollHeight()
-
-      @emitDidUpdateState()
-    @configDisposables.add @config.onDidChange 'editor.showLineNumbers', configParams, ({newValue}) =>
-      @showLineNumbers = newValue
-      @emitDidUpdateState()
+  didChangeShowLineNumbers: ->
+    @emitDidUpdateState()
 
   didChangeGrammar: ->
-    @observeConfig()
     @emitDidUpdateState()
 
   buildState: ->
@@ -242,6 +225,12 @@ class TextEditorPresenter
     else
       @state.height = null
 
+  updateWidthState: ->
+    if @model.getAutoWidth()
+      @state.width = @state.content.width + @gutterWidth
+    else
+      @state.width = null
+
   updateVerticalScrollState: ->
     @state.content.scrollHeight = @scrollHeight
     @sharedGutterStyles.scrollHeight = @scrollHeight
@@ -287,7 +276,13 @@ class TextEditorPresenter
       @sharedGutterStyles.maxHeight = @boundingClientRect.height
       @state.content.maxHeight = @boundingClientRect.height
 
-    @state.content.width = Math.max(@contentWidth + @verticalScrollbarWidth, @contentFrameWidth)
+    verticalScrollbarWidth = @verticalScrollbarWidth ? 0
+    contentFrameWidth = @contentFrameWidth ? 0
+    contentWidth = @contentWidth ? 0
+    if @model.getAutoWidth()
+      @state.content.width = contentWidth + verticalScrollbarWidth
+    else
+      @state.content.width = Math.max(contentWidth + verticalScrollbarWidth, contentFrameWidth)
     @state.content.scrollWidth = @scrollWidth
     @state.content.scrollLeft = @scrollLeft
     @state.content.backgroundColor = if @model.isMini() then null else @backgroundColor
@@ -594,7 +589,7 @@ class TextEditorPresenter
   gutterIsVisible: (gutterModel) ->
     isVisible = gutterModel.isVisible()
     if gutterModel.name is 'line-number'
-      isVisible = isVisible and @showLineNumbers
+      isVisible = isVisible and @model.doesShowLineNumbers()
     isVisible
 
   updateLineNumbersState: (tileState, screenRows) ->
@@ -651,7 +646,7 @@ class TextEditorPresenter
     return unless @contentHeight? and @clientHeight?
 
     contentHeight = @contentHeight
-    if @scrollPastEnd and @scrollPastEndOverride
+    if @model.getScrollPastEnd()
       extraScrollHeight = @clientHeight - (@lineHeight * 3)
       contentHeight += extraScrollHeight if extraScrollHeight > 0
     scrollHeight = Math.max(contentHeight, @height)
@@ -680,6 +675,7 @@ class TextEditorPresenter
 
     if @contentWidth isnt oldContentWidth
       @updateScrollbarDimensions()
+      @updateClientWidth()
       @updateScrollWidth()
 
   updateClientHeight: ->
@@ -696,7 +692,11 @@ class TextEditorPresenter
   updateClientWidth: ->
     return unless @contentFrameWidth? and @verticalScrollbarWidth?
 
-    clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+    if @model.getAutoWidth()
+      clientWidth = @contentWidth
+    else
+      clientWidth = @contentFrameWidth - @verticalScrollbarWidth
+
     @model.setWidth(clientWidth, true) unless @editorWidthInChars
 
     unless @clientWidth is clientWidth
@@ -738,20 +738,23 @@ class TextEditorPresenter
     return unless @measuredVerticalScrollbarWidth? and @measuredHorizontalScrollbarHeight?
     return unless @contentWidth? and @contentHeight?
 
-    clientWidthWithoutVerticalScrollbar = @contentFrameWidth
-    clientWidthWithVerticalScrollbar = clientWidthWithoutVerticalScrollbar - @measuredVerticalScrollbarWidth
-    clientHeightWithoutHorizontalScrollbar = @height
-    clientHeightWithHorizontalScrollbar = clientHeightWithoutHorizontalScrollbar - @measuredHorizontalScrollbarHeight
+    if @model.getAutoWidth()
+      clientWidthWithVerticalScrollbar = @contentWidth + @measuredVerticalScrollbarWidth
+    else
+      clientWidthWithVerticalScrollbar = @contentFrameWidth
+    clientWidthWithoutVerticalScrollbar = clientWidthWithVerticalScrollbar - @measuredVerticalScrollbarWidth
+    clientHeightWithHorizontalScrollbar = @height
+    clientHeightWithoutHorizontalScrollbar = clientHeightWithHorizontalScrollbar - @measuredHorizontalScrollbarHeight
 
     horizontalScrollbarVisible =
       not @model.isMini() and
-        (@contentWidth > clientWidthWithoutVerticalScrollbar or
-         @contentWidth > clientWidthWithVerticalScrollbar and @contentHeight > clientHeightWithoutHorizontalScrollbar)
+        (@contentWidth > clientWidthWithVerticalScrollbar or
+         @contentWidth > clientWidthWithoutVerticalScrollbar and @contentHeight > clientHeightWithHorizontalScrollbar)
 
     verticalScrollbarVisible =
       not @model.isMini() and
-        (@contentHeight > clientHeightWithoutHorizontalScrollbar or
-         @contentHeight > clientHeightWithHorizontalScrollbar and @contentWidth > clientWidthWithoutVerticalScrollbar)
+        (@contentHeight > clientHeightWithHorizontalScrollbar or
+         @contentHeight > clientHeightWithoutHorizontalScrollbar and @contentWidth > clientWidthWithVerticalScrollbar)
 
     horizontalScrollbarHeight =
       if horizontalScrollbarVisible
@@ -913,6 +916,9 @@ class TextEditorPresenter
       @updateClientHeight()
       @updateScrollHeight()
       @updateEndRow()
+
+  didChangeAutoWidth: ->
+    @emitDidUpdateState()
 
   setContentFrameWidth: (contentFrameWidth) ->
     if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?

@@ -48,7 +48,6 @@ describe "TextEditorPresenter", ->
       })
       _.defaults params,
         model: editor
-        config: atom.config
         contentFrameWidth: 500
         lineTopIndex: lineTopIndex
       presenter = new TextEditorPresenter(params)
@@ -247,7 +246,7 @@ describe "TextEditorPresenter", ->
           expect(stateFn(presenter).tiles[10].top).toBe(10 * 10 + 10 + 20 + 30)
           expect(stateFn(presenter).tiles[12].top).toBe(12 * 10 + 10 + 20 + 30)
 
-          editor.setSoftWrapped(true)
+          editor.update({softWrapped: true})
           presenter.setContentFrameWidth(5 * 25)
 
           expect(stateFn(presenter).tiles[0].top).toBe(0 * 10)
@@ -266,7 +265,7 @@ describe "TextEditorPresenter", ->
           expect(stateFn(presenter).tiles[26].top).toBe(26 * 10 + 10 + 20 + 30)
           expect(stateFn(presenter).tiles[28].top).toBe(28 * 10 + 10 + 20 + 30)
 
-          editor.setSoftWrapped(false)
+          editor.update({softWrapped: false})
 
           expect(stateFn(presenter).tiles[0].top).toBe(0 * 10)
           expect(stateFn(presenter).tiles[2].top).toBe(2 * 10 + 10)
@@ -426,6 +425,13 @@ describe "TextEditorPresenter", ->
           editor.setMini(false)
           expect(getState(presenter).horizontalScrollbar.visible).toBe true
 
+        it "is false when `editor.autoWidth` is true", ->
+          editor.update({autoWidth: true})
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 30, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+          getState(presenter) # trigger a state update to store state in the presenter
+          editor.setText('abcdefghijklm')
+          expect(getState(presenter).horizontalScrollbar.visible).toBe(false)
+
       describe ".height", ->
         it "tracks the value of ::horizontalScrollbarHeight", ->
           presenter = buildPresenter(horizontalScrollbarHeight: 10)
@@ -481,9 +487,9 @@ describe "TextEditorPresenter", ->
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
-          expectStateUpdate presenter, -> editor.setSoftWrapped(true)
+          expectStateUpdate presenter, -> editor.update({softWrapped: true})
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
-          expectStateUpdate presenter, -> editor.setSoftWrapped(false)
+          expectStateUpdate presenter, -> editor.update({softWrapped: false})
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
@@ -530,14 +536,29 @@ describe "TextEditorPresenter", ->
         it "is always 0 when soft wrapping is enabled", ->
           presenter = buildPresenter(scrollLeft: 0, verticalScrollbarWidth: 0, contentFrameWidth: 85, baseCharacterWidth: 10)
 
-          editor.setSoftWrapped(false)
+          editor.update({softWrapped: false})
           presenter.setScrollLeft(Infinity)
           expect(getState(presenter).content.scrollLeft).toBeGreaterThan 0
 
-          editor.setSoftWrapped(true)
+          editor.update({softWrapped: true})
           expect(getState(presenter).content.scrollLeft).toBe 0
           presenter.setScrollLeft(10)
           expect(getState(presenter).content.scrollLeft).toBe 0
+
+        it "is always 0 when `editor.autoWidth` is true", ->
+          editor.update({autoWidth: true})
+          editor.setText('abcdefghijklm')
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 30, verticalScrollbarWidth: 15, baseCharacterWidth: 10)
+          getState(presenter) # trigger a state update to store state in the presenter
+
+          editor.setCursorBufferPosition([0, Infinity])
+          editor.insertText('n')
+          expect(getState(presenter).content.scrollLeft).toBe(0)
+
+          editor.setText('abcdefghijklm\nnopqrstuvwxy') # make the vertical scrollbar appear
+          editor.setCursorBufferPosition([1, Infinity])
+          editor.insertText('z')
+          expect(getState(presenter).content.scrollLeft).toBe(0)
 
     describe ".verticalScrollbar", ->
       describe ".visible", ->
@@ -636,26 +657,15 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).verticalScrollbar.scrollHeight).toBe 500
 
         describe "scrollPastEnd", ->
-          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          it "adds the computed clientHeight to the computed scrollHeight if scrollPastEnd is enabled", ->
             presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
             expectStateUpdate presenter, -> presenter.setScrollTop(300)
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: true})
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
-            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
-
-          it "doesn't add the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true but the presenter is created with scrollPastEnd as false", ->
-            presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10, scrollPastEnd: false)
-            expectStateUpdate presenter, -> presenter.setScrollTop(300)
-            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
-
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
-            expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
-
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
             expect(getState(presenter).verticalScrollbar.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollTop", ->
@@ -689,16 +699,16 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe 0
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+        it "adds the computed clientHeight to the computed scrollHeight if scrollPastEnd is enabled", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
-          atom.config.set("editor.scrollPastEnd", true)
+          editor.update({scrollPastEnd: true})
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
           expect(getState(presenter).verticalScrollbar.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
     describe ".hiddenInput", ->
@@ -767,6 +777,39 @@ describe "TextEditorPresenter", ->
           expect(getState(presenter).hiddenInput.width).toBe 2
 
     describe ".content", ->
+      describe '.width', ->
+        describe "when `editor.autoWidth` is false (the default)", ->
+          it "equals to the max width between the content frame width and the content width + the vertical scrollbar width", ->
+            editor.setText('abc\ndef\nghi\njkl')
+            presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 33, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+            expect(getState(presenter).content.width).toBe(3 * 10 + 7 + 1)
+            presenter.setContentFrameWidth(50)
+            expect(getState(presenter).content.width).toBe(50)
+            presenter.setVerticalScrollbarWidth(27)
+            expect(getState(presenter).content.width).toBe(3 * 10 + 27 + 1)
+
+        describe "when `editor.autoWidth` is true", ->
+          it "equals to the content width + the vertical scrollbar width", ->
+            editor.setText('abc\ndef\nghi\njkl')
+            presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 300, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+            expectStateUpdate presenter, -> editor.update({autoWidth: true})
+            expect(getState(presenter).content.width).toBe(3 * 10 + 7 + 1)
+            editor.setText('abcdefghi\n')
+            expect(getState(presenter).content.width).toBe(9 * 10 + 7 + 1)
+
+        it "ignores the vertical scrollbar width when it is unset", ->
+          editor.setText('abcdef\nghijkl')
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 33, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+          presenter.setVerticalScrollbarWidth(null)
+          expect(getState(presenter).content.width).toBe(6 * 10 + 1)
+
+        it "ignores the content frame width when it is unset", ->
+          editor.setText('abc\ndef\nghi\njkl')
+          presenter = buildPresenter(explicitHeight: 10, contentFrameWidth: 33, verticalScrollbarWidth: 7, baseCharacterWidth: 10)
+          getState(presenter) # trigger a state update, causing verticalScrollbarWidth to be stored in the presenter
+          presenter.setContentFrameWidth(null)
+          expect(getState(presenter).content.width).toBe(3 * 10 + 7 + 1)
+
       describe ".maxHeight", ->
         it "changes based on boundingClientRect", ->
           presenter = buildPresenter(scrollTop: 0, lineHeight: 10)
@@ -828,15 +871,15 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setExplicitHeight(500)
           expect(getState(presenter).content.scrollHeight).toBe 500
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+        it "adds the computed clientHeight to the computed scrollHeight if scrollPastEnd is enabled", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: true})
           expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
           expect(getState(presenter).content.scrollHeight).toBe presenter.contentHeight
 
       describe ".scrollWidth", ->
@@ -887,9 +930,9 @@ describe "TextEditorPresenter", ->
         it "updates when ::softWrapped changes on the editor", ->
           presenter = buildPresenter(contentFrameWidth: 470, baseCharacterWidth: 10)
           expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
-          expectStateUpdate presenter, -> editor.setSoftWrapped(true)
+          expectStateUpdate presenter, -> editor.update({softWrapped: true})
           expect(getState(presenter).horizontalScrollbar.scrollWidth).toBe presenter.clientWidth
-          expectStateUpdate presenter, -> editor.setSoftWrapped(false)
+          expectStateUpdate presenter, -> editor.update({softWrapped: false})
           expect(getState(presenter).content.scrollWidth).toBe 10 * editor.getMaxScreenLineLength() + 1
 
         it "updates when the longest line changes", ->
@@ -1031,16 +1074,16 @@ describe "TextEditorPresenter", ->
           expectStateUpdate presenter, -> presenter.setScrollTop(-100)
           expect(getState(presenter).content.scrollTop).toBe 0
 
-        it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+        it "adds the computed clientHeight to the computed scrollHeight if scrollPastEnd is enabled", ->
           presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
-          atom.config.set("editor.scrollPastEnd", true)
+          editor.update({scrollPastEnd: true})
           expectStateUpdate presenter, -> presenter.setScrollTop(300)
           expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
-          expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+          expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
           expect(getState(presenter).content.scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
       describe ".scrollLeft", ->
@@ -1227,7 +1270,7 @@ describe "TextEditorPresenter", ->
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).not.toContain('invisible-character eol')
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).not.toContain('invisible-character eol')
 
-            atom.config.set('editor.showInvisibles', true)
+            editor.update({showInvisibles: true})
             presenter = buildPresenter(explicitHeight: 25, scrollTop: 0, lineHeight: 10)
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 0).tagCodes).openTags).toContain('invisible-character eol')
             expect(tagsForCodes(presenter, lineStateForScreenRow(presenter, 1).tagCodes).openTags).toContain('invisible-character eol')
@@ -1507,7 +1550,7 @@ describe "TextEditorPresenter", ->
 
             it "only applies decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
               editor.setText("a line that wraps, ok")
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(16)
               marker = editor.markBufferRange([[0, 0], [0, 2]])
@@ -1963,7 +2006,7 @@ describe "TextEditorPresenter", ->
 
         it "does not include highlights that end before the first visible row", ->
           editor.setText("Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.")
-          editor.setSoftWrapped(true)
+          editor.update({softWrapped: true})
           editor.setWidth(100, true)
           editor.setDefaultCharWidth(10)
 
@@ -2676,6 +2719,17 @@ describe "TextEditorPresenter", ->
                 pixelPosition: {top: 10, left: 0}
               }
 
+    describe ".width", ->
+      it "is null when `editor.autoWidth` is false (the default)", ->
+        presenter = buildPresenter(explicitHeight: 50, gutterWidth: 20, contentFrameWidth: 300, baseCharacterWidth: 10)
+        expect(getState(presenter).width).toBeNull()
+
+      it "equals to sum of .content.width and the width of the gutter when `editor.autoWidth` is true", ->
+        editor.setText('abcdef')
+        editor.update({autoWidth: true})
+        presenter = buildPresenter(explicitHeight: 50, gutterWidth: 20, contentFrameWidth: 300, baseCharacterWidth: 10)
+        expect(getState(presenter).width).toBe(20 + 6 * 10 + 1)
+
     describe ".height", ->
       it "updates model's rows per page when it changes", ->
         presenter = buildPresenter(explicitHeight: 50, lineHeightInPixels: 10, horizontalScrollbarHeight: 10)
@@ -2762,40 +2816,26 @@ describe "TextEditorPresenter", ->
             return description if gutter.name is 'line-number'
 
         describe ".visible", ->
-          it "is true iff the editor isn't mini, ::isLineNumberGutterVisible is true on the editor, and the 'editor.showLineNumbers' config is enabled", ->
+          it "is true iff the editor isn't mini and has ::isLineNumberGutterVisible and ::doesShowLineNumbers set to true", ->
             presenter = buildPresenter()
 
             expect(editor.isLineNumberGutterVisible()).toBe true
             expect(getLineNumberGutterState(presenter).visible).toBe true
 
-            expectStateUpdate presenter, -> editor.setMini(true)
+            expectStateUpdate presenter, -> editor.update({mini: true})
             expect(getLineNumberGutterState(presenter)).toBeUndefined()
 
-            expectStateUpdate presenter, -> editor.setMini(false)
+            expectStateUpdate presenter, -> editor.update({mini: false})
             expect(getLineNumberGutterState(presenter).visible).toBe true
 
-            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(false)
+            expectStateUpdate presenter, -> editor.update({lineNumberGutterVisible: false})
             expect(getLineNumberGutterState(presenter).visible).toBe false
 
-            expectStateUpdate presenter, -> editor.setLineNumberGutterVisible(true)
+            expectStateUpdate presenter, -> editor.update({lineNumberGutterVisible: true})
             expect(getLineNumberGutterState(presenter).visible).toBe true
 
-            expectStateUpdate presenter, -> atom.config.set('editor.showLineNumbers', false)
+            expectStateUpdate presenter, -> editor.update({showLineNumbers: false})
             expect(getLineNumberGutterState(presenter).visible).toBe false
-
-          it "gets updated when the editor's grammar changes", ->
-            presenter = buildPresenter()
-
-            atom.config.set('editor.showLineNumbers', false, scopeSelector: '.source.js')
-            expect(getLineNumberGutterState(presenter).visible).toBe true
-            stateUpdated = false
-            presenter.onDidUpdateState -> stateUpdated = true
-
-            waitsForPromise -> atom.packages.activatePackage('language-javascript')
-
-            runs ->
-              expect(stateUpdated).toBe true
-              expect(getLineNumberGutterState(presenter).visible).toBe false
 
         describe ".content.maxLineNumberDigits", ->
           it "is set to the number of digits used by the greatest line number", ->
@@ -2817,7 +2857,7 @@ describe "TextEditorPresenter", ->
           describe ".lineNumbers[id]", ->
             it "contains states for line numbers that are visible on screen", ->
               editor.foldBufferRow(4)
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(51)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 30, lineHeight: 10, tileSize: 3)
@@ -2837,7 +2877,7 @@ describe "TextEditorPresenter", ->
 
             it "updates when the editor's content changes", ->
               editor.foldBufferRow(4)
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(50)
               presenter = buildPresenter(explicitHeight: 35, scrollTop: 30, tileSize: 2)
@@ -2868,7 +2908,7 @@ describe "TextEditorPresenter", ->
               expect(lineNumberStateForScreenRow(presenter, 10)).toBeUndefined()
 
             it "correctly handles the first screen line being soft-wrapped", ->
-              editor.setSoftWrapped(true)
+              editor.update({softWrapped: true})
               editor.setDefaultCharWidth(1)
               editor.setEditorWidthInChars(30)
               presenter = buildPresenter(explicitHeight: 25, scrollTop: 50, tileSize: 2)
@@ -3073,7 +3113,7 @@ describe "TextEditorPresenter", ->
 
               it "only applies line-number decorations to screen rows that are spanned by their marker when lines are soft-wrapped", ->
                 editor.setText("a line that wraps, ok")
-                editor.setSoftWrapped(true)
+                editor.update({softWrapped: true})
                 editor.setDefaultCharWidth(1)
                 editor.setEditorWidthInChars(16)
                 marker = editor.markBufferRange([[0, 0], [0, 2]])
@@ -3090,7 +3130,7 @@ describe "TextEditorPresenter", ->
 
               describe "when a fold spans a single soft-wrapped buffer row", ->
                 it "applies the 'folded' decoration only to its initial screen row", ->
-                  editor.setSoftWrapped(true)
+                  editor.update({softWrapped: true})
                   editor.setDefaultCharWidth(1)
                   editor.setEditorWidthInChars(20)
                   editor.foldBufferRange([[0, 20], [0, 22]])
@@ -3102,7 +3142,7 @@ describe "TextEditorPresenter", ->
 
               describe "when a fold is at the end of a soft-wrapped buffer row", ->
                 it "applies the 'folded' decoration only to its initial screen row", ->
-                  editor.setSoftWrapped(true)
+                  editor.update({softWrapped: true})
                   editor.setDefaultCharWidth(1)
                   editor.setEditorWidthInChars(25)
                   editor.foldBufferRow(1)
@@ -3513,17 +3553,17 @@ describe "TextEditorPresenter", ->
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe 500
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe 500
 
-          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          it "adds the computed clientHeight to the computed scrollHeight if scrollPastEnd is enabled", ->
             presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
             expectStateUpdate presenter, -> presenter.setScrollTop(300)
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight
 
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", true)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: true})
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight + presenter.clientHeight - (presenter.lineHeight * 3)
 
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollHeight).toBe presenter.contentHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollHeight).toBe presenter.contentHeight
 
@@ -3566,18 +3606,18 @@ describe "TextEditorPresenter", ->
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe 0
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe 0
 
-          it "adds the computed clientHeight to the computed scrollHeight if editor.scrollPastEnd is true", ->
+          it "adds the computed clientHeight to the computed scrollHeight if scrollPastEnd is enabled", ->
             presenter = buildPresenter(scrollTop: 10, explicitHeight: 50, horizontalScrollbarHeight: 10)
             expectStateUpdate presenter, -> presenter.setScrollTop(300)
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
-            atom.config.set("editor.scrollPastEnd", true)
+            editor.update({scrollPastEnd: true})
             expectStateUpdate presenter, -> presenter.setScrollTop(300)
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - (presenter.lineHeight * 3)
 
-            expectStateUpdate presenter, -> atom.config.set("editor.scrollPastEnd", false)
+            expectStateUpdate presenter, -> editor.update({scrollPastEnd: false})
             expect(getStylesForGutterWithName(presenter, 'line-number').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
             expect(getStylesForGutterWithName(presenter, 'test-gutter').scrollTop).toBe presenter.contentHeight - presenter.clientHeight
 
@@ -3766,7 +3806,7 @@ describe "TextEditorPresenter", ->
     toggleSoftWrap = (log) ->
       softWrapped = not editor.isSoftWrapped()
       log "editor.setSoftWrapped(#{softWrapped})"
-      editor.setSoftWrapped(softWrapped)
+      editor.update({softWrapped: softWrapped})
 
     insertText = (log) ->
       range = buildRandomRange()

@@ -122,6 +122,10 @@ module.exports =
           {value: 'no', description: 'Do not send any telemetry data'}
           {value: 'undecided', description: 'Undecided (Atom will ask again next time it is launched)'}
         ]
+      warnOnLargeFileLimit:
+        description: 'Warn before opening files larger than this number of megabytes.'
+        type: 'number'
+        default: 20
   editor:
     type: 'object'
     properties:
@@ -227,11 +231,6 @@ module.exports =
         default: 300
         minimum: 0
         description: 'Time interval in milliseconds within which text editing operations will be grouped together in the undo history.'
-      useShadowDOM:
-        type: 'boolean'
-        default: true
-        title: 'Use Shadow DOM'
-        description: 'Disable if you experience styling issues with packages or themes. Be sure to open an issue on the relevant package or theme, because this option is going away eventually.'
       confirmCheckoutHeadRevision:
         type: 'boolean'
         default: true

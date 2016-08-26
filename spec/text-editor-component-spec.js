@@ -1,6 +1,7 @@
 /** @babel */
 
 import {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise} from './async-spec-helpers'
+import Grim from 'grim'
 import TextEditorElement from '../src/text-editor-element'
 import _, {extend, flatten, last, toArray} from 'underscore-plus'
 
@@ -30,6 +31,7 @@ describe('TextEditorComponent', function () {
 
     await atom.packages.activatePackage('language-javascript')
     editor = await atom.workspace.open('sample.js')
+    editor.update({autoHeight: true})
 
     contentNode = document.querySelector('#jasmine-content')
     contentNode.style.width = '1000px'
@@ -95,11 +97,13 @@ describe('TextEditorComponent', function () {
     it('gives the lines container the same height as the wrapper node', function () {
       let linesNode = componentNode.querySelector('.lines')
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
       expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
       wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
 
       runAnimationFrames()
@@ -109,6 +113,7 @@ describe('TextEditorComponent', function () {
 
     it('renders higher tiles in front of lower ones', function () {
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
 
       runAnimationFrames()
@@ -130,6 +135,7 @@ describe('TextEditorComponent', function () {
 
     it('renders the currently-visible lines in a tiled fashion', function () {
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
 
       runAnimationFrames()
@@ -222,6 +228,7 @@ describe('TextEditorComponent', function () {
 
     it('updates the top position of subsequent tiles when lines are inserted or removed', function () {
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       editor.getBuffer().deleteRows(0, 1)
 
@@ -291,6 +298,7 @@ describe('TextEditorComponent', function () {
 
     it('updates the lines when lines are inserted or removed above the rendered row range', function () {
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -337,6 +345,7 @@ describe('TextEditorComponent', function () {
     it('renders the .lines div at the full height of the editor if there are not enough lines to scroll vertically', function () {
       editor.setText('')
       wrapperNode.style.height = '300px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
       let linesNode = componentNode.querySelector('.lines')
@@ -370,8 +379,8 @@ describe('TextEditorComponent', function () {
       }
     })
 
-    it('renders an placeholder space on empty lines when no line-ending character is defined', function () {
-      atom.config.set('editor.showInvisibles', false)
+    it('renders a placeholder space on empty lines when no line-ending character is defined', function () {
+      editor.update({showInvisibles: false})
       expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
     })
 
@@ -460,8 +469,10 @@ describe('TextEditorComponent', function () {
       }
 
       beforeEach(function () {
-        atom.config.set('editor.showInvisibles', true)
-        atom.config.set('editor.invisibles', invisibles)
+        editor.update({
+          showInvisibles: true,
+          invisibles: invisibles
+        })
         runAnimationFrames()
       })
 
@@ -471,12 +482,12 @@ describe('TextEditorComponent', function () {
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
 
-        atom.config.set('editor.showInvisibles', false)
+        editor.update({showInvisibles: false})
         runAnimationFrames()
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe(' a line with tabs and spaces ')
 
-        atom.config.set('editor.showInvisibles', true)
+        editor.update({showInvisibles: true})
         runAnimationFrames()
 
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
@@ -511,23 +522,19 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders a placeholder space on empty lines when the line-ending character is an empty string', function () {
-        atom.config.set('editor.invisibles', {
-          eol: ''
-        })
+        editor.update({invisibles: {eol: ''}})
         runAnimationFrames()
         expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
       it('renders an placeholder space on empty lines when the line-ending character is false', function () {
-        atom.config.set('editor.invisibles', {
-          eol: false
-        })
+        editor.update({invisibles: {eol: false}})
         runAnimationFrames()
         expect(component.lineNodeForScreenRow(10).textContent).toBe(' ')
       })
 
       it('interleaves invisible line-ending characters with indent guides on empty lines', function () {
-        atom.config.set('editor.showIndentGuide', true)
+        editor.update({showIndentGuide: true})
 
         runAnimationFrames()
 
@@ -572,7 +579,7 @@ describe('TextEditorComponent', function () {
 
     describe('when indent guides are enabled', function () {
       beforeEach(function () {
-        atom.config.set('editor.showIndentGuide', true)
+        editor.update({showIndentGuide: true})
         runAnimationFrames()
       })
 
@@ -617,10 +624,12 @@ describe('TextEditorComponent', function () {
       })
 
       it('renders indent guides correctly on lines containing only whitespace when invisibles are enabled', function () {
-        atom.config.set('editor.showInvisibles', true)
-        atom.config.set('editor.invisibles', {
-          space: '-',
-          eol: 'x'
+        editor.update({
+          showInvisibles: true,
+          invisibles: {
+            space: '-',
+            eol: 'x'
+          }
         })
         editor.getBuffer().insert([1, Infinity], '\n      ')
 
@@ -737,6 +746,7 @@ describe('TextEditorComponent', function () {
 
     it('renders higher tiles in front of lower ones', function () {
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames(true)
 
@@ -758,12 +768,14 @@ describe('TextEditorComponent', function () {
     it('gives the line numbers container the same height as the wrapper node', function () {
       let linesNode = componentNode.querySelector('.line-numbers')
       wrapperNode.style.height = 6.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
 
       runAnimationFrames()
 
       expect(linesNode.getBoundingClientRect().height).toBe(6.5 * lineHeightInPixels)
       wrapperNode.style.height = 3.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
 
       runAnimationFrames()
@@ -773,6 +785,7 @@ describe('TextEditorComponent', function () {
 
     it('renders the currently-visible line numbers in a tiled fashion', function () {
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -907,6 +920,7 @@ describe('TextEditorComponent', function () {
       editor.setSoftWrapped(true)
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 30 * charWidth + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
 
       runAnimationFrames()
@@ -954,6 +968,7 @@ describe('TextEditorComponent', function () {
 
     it('renders the .line-numbers div at the full height of the editor even if it\'s taller than its content', function () {
       wrapperNode.style.height = componentNode.offsetHeight + 100 + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
       expect(componentNode.querySelector('.line-numbers').offsetHeight).toBe(componentNode.offsetHeight)
@@ -984,7 +999,7 @@ describe('TextEditorComponent', function () {
       runAnimationFrames()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
-      atom.config.set('editor.showLineNumbers', false)
+      editor.update({showLineNumbers: false})
       runAnimationFrames()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
@@ -992,7 +1007,7 @@ describe('TextEditorComponent', function () {
       runAnimationFrames()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('none')
-      atom.config.set('editor.showLineNumbers', true)
+      editor.update({showLineNumbers: true})
       runAnimationFrames()
 
       expect(componentNode.querySelector('.gutter').style.display).toBe('')
@@ -1179,6 +1194,7 @@ describe('TextEditorComponent', function () {
       })
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -1229,7 +1245,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('accounts for character widths when positioning cursors', function () {
-      atom.config.set('editor.fontFamily', 'sans-serif')
+      component.setFontFamily('sans-serif')
       editor.setCursorScreenPosition([0, 16])
       runAnimationFrames()
 
@@ -1245,7 +1261,7 @@ describe('TextEditorComponent', function () {
     })
 
     it('accounts for the width of paired characters when positioning cursors', function () {
-      atom.config.set('editor.fontFamily', 'sans-serif')
+      component.setFontFamily('sans-serif')
       editor.setText('he\u0301y')
       editor.setCursorBufferPosition([0, 3])
       runAnimationFrames()
@@ -1273,14 +1289,14 @@ describe('TextEditorComponent', function () {
     })
 
     it('positions cursors correctly after character widths are changed via a stylesheet change', function () {
-      atom.config.set('editor.fontFamily', 'sans-serif')
+      component.setFontFamily('sans-serif')
       editor.setCursorScreenPosition([0, 16])
-      runAnimationFrames()
+      runAnimationFrames(true)
 
       atom.styles.addStyleSheet('.function.js {\n  font-weight: bold;\n}', {
         context: 'atom-text-editor'
       })
-      runAnimationFrames()
+      runAnimationFrames(true)
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
@@ -1537,6 +1553,7 @@ describe('TextEditorComponent', function () {
       expect(lineAndLineNumberHaveClass(2, 'a')).toBe(true)
       expect(lineAndLineNumberHaveClass(3, 'a')).toBe(true)
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -1739,6 +1756,7 @@ describe('TextEditorComponent', function () {
 
     beforeEach(function () {
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
     })
@@ -1949,6 +1967,7 @@ describe('TextEditorComponent', function () {
 
     it('does not render highlights for off-screen lines until they come on-screen', async function () {
       wrapperNode.style.height = 2.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -2220,6 +2239,7 @@ describe('TextEditorComponent', function () {
         item.style.height = itemHeight + 'px'
         wrapperNode.style.width = windowWidth + 'px'
         wrapperNode.style.height = windowHeight + 'px'
+        editor.update({autoHeight: false})
         await atom.setWindowDimensions({
           width: windowWidth,
           height: windowHeight
@@ -2291,6 +2311,7 @@ describe('TextEditorComponent', function () {
       let inputNode = componentNode.querySelector('.hidden-input')
       wrapperNode.style.height = 5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -2355,6 +2376,7 @@ describe('TextEditorComponent', function () {
         height = 4.5 * lineHeightInPixels
         wrapperNode.style.height = height + 'px'
         wrapperNode.style.width = 10 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -2374,6 +2396,7 @@ describe('TextEditorComponent', function () {
         let height = 4.5 * lineHeightInPixels
         wrapperNode.style.height = height + 'px'
         wrapperNode.style.width = 10 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -2392,6 +2415,7 @@ describe('TextEditorComponent', function () {
         it('moves the cursor to the nearest screen position', function () {
           wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
           wrapperNode.style.width = 10 * charWidth + 'px'
+          editor.update({autoHeight: false})
           component.measureDimensions()
           wrapperNode.setScrollTop(3.5 * lineHeightInPixels)
           wrapperNode.setScrollLeft(2 * charWidth)
@@ -2577,6 +2601,7 @@ describe('TextEditorComponent', function () {
       it('autoscrolls when the cursor approaches the boundaries of the editor', function () {
         wrapperNode.style.height = '100px'
         wrapperNode.style.width = '100px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -2763,6 +2788,7 @@ describe('TextEditorComponent', function () {
       it('expands the selection over the nearest word as the cursor moves', function () {
         jasmine.attachToDOM(wrapperNode)
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -2799,6 +2825,7 @@ describe('TextEditorComponent', function () {
       it('expands the selection over the nearest line as the cursor moves', function () {
         jasmine.attachToDOM(wrapperNode)
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -2995,6 +3022,7 @@ describe('TextEditorComponent', function () {
 
       it('autoscrolls when the cursor approaches the top or bottom of the editor', function () {
         wrapperNode.style.height = 6 * lineHeightInPixels + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -3421,6 +3449,7 @@ describe('TextEditorComponent', function () {
   describe('scrolling', function () {
     it('updates the vertical scrollbar when the scrollTop is changed in the model', function () {
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
       expect(verticalScrollbarNode.scrollTop).toBe(0)
@@ -3467,6 +3496,7 @@ describe('TextEditorComponent', function () {
     it('does not obscure the last line with the horizontal scrollbar', function () {
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       wrapperNode.setScrollBottom(wrapperNode.getScrollHeight())
       runAnimationFrames()
@@ -3487,6 +3517,7 @@ describe('TextEditorComponent', function () {
     it('does not obscure the last character of the longest line with the vertical scrollbar', function () {
       wrapperNode.style.height = 7 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       wrapperNode.setScrollLeft(Infinity)
 
@@ -3501,6 +3532,7 @@ describe('TextEditorComponent', function () {
       expect(horizontalScrollbarNode.style.display).toBe('none')
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -3513,6 +3545,7 @@ describe('TextEditorComponent', function () {
       expect(verticalScrollbarNode.style.display).toBe('')
       expect(horizontalScrollbarNode.style.display).toBe('')
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -3523,6 +3556,7 @@ describe('TextEditorComponent', function () {
     it('makes the dummy scrollbar divs only as tall/wide as the actual scrollbars', function () {
       wrapperNode.style.height = 4 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 10 * charWidth + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -3547,6 +3581,7 @@ describe('TextEditorComponent', function () {
       expect(horizontalScrollbarNode.style.right).toBe('0px')
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = '1000px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -3561,6 +3596,7 @@ describe('TextEditorComponent', function () {
       expect(horizontalScrollbarNode.style.right).toBe(verticalScrollbarNode.offsetWidth + 'px')
       expect(scrollbarCornerNode.style.display).toBe('')
       wrapperNode.style.height = 20 * lineHeightInPixels + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -3582,13 +3618,14 @@ describe('TextEditorComponent', function () {
 
   describe('mousewheel events', function () {
     beforeEach(function () {
-      atom.config.set('editor.scrollSensitivity', 100)
+      editor.update({scrollSensitivity: 100})
     })
 
     describe('updating scrollTop and scrollLeft', function () {
       beforeEach(function () {
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
       })
@@ -3615,7 +3652,7 @@ describe('TextEditorComponent', function () {
       })
 
       it('updates the scrollLeft or scrollTop according to the scroll sensitivity', function () {
-        atom.config.set('editor.scrollSensitivity', 50)
+        editor.update({scrollSensitivity: 50})
         componentNode.dispatchEvent(new WheelEvent('mousewheel', {
           wheelDeltaX: -5,
           wheelDeltaY: -10
@@ -3632,26 +3669,6 @@ describe('TextEditorComponent', function () {
         expect(verticalScrollbarNode.scrollTop).toBe(5)
         expect(horizontalScrollbarNode.scrollLeft).toBe(7)
       })
-
-      it('uses the previous scrollSensitivity when the value is not an int', function () {
-        atom.config.set('editor.scrollSensitivity', 'nope')
-        componentNode.dispatchEvent(new WheelEvent('mousewheel', {
-          wheelDeltaX: 0,
-          wheelDeltaY: -10
-        }))
-        runAnimationFrames()
-        expect(verticalScrollbarNode.scrollTop).toBe(10)
-      })
-
-      it('parses negative scrollSensitivity values at the minimum', function () {
-        atom.config.set('editor.scrollSensitivity', -50)
-        componentNode.dispatchEvent(new WheelEvent('mousewheel', {
-          wheelDeltaX: 0,
-          wheelDeltaY: -10
-        }))
-        runAnimationFrames()
-        expect(verticalScrollbarNode.scrollTop).toBe(1)
-      })
     })
 
     describe('when the mousewheel event\'s target is a line', function () {
@@ -3659,6 +3676,7 @@ describe('TextEditorComponent', function () {
         component.presenter.stoppedScrollingDelay = 3000 // account for slower build machines
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -3681,6 +3699,7 @@ describe('TextEditorComponent', function () {
       it('does not set the mouseWheelScreenRow if scrolling horizontally', function () {
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -3747,6 +3766,7 @@ describe('TextEditorComponent', function () {
       it('keeps the line number on the DOM if it is scrolled off-screen', function () {
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -3771,6 +3791,7 @@ describe('TextEditorComponent', function () {
       it('keeps it on the DOM if it is scrolled off-screen', function () {
         wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
         wrapperNode.style.width = 20 * charWidth + 'px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
 
@@ -3805,6 +3826,7 @@ describe('TextEditorComponent', function () {
       spyOn(WheelEvent.prototype, 'preventDefault').andCallThrough()
       wrapperNode.style.height = 4.5 * lineHeightInPixels + 'px'
       wrapperNode.style.width = 20 * charWidth + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -3937,7 +3959,7 @@ describe('TextEditorComponent', function () {
       spyOn(Date, 'now').andCallFake(function () {
         return currentTime
       })
-      atom.config.set('editor.undoGroupingInterval', 100)
+      editor.update({undoGroupingInterval: 100})
       editor.setText('')
       componentNode.dispatchEvent(buildTextInputEvent({
         data: 'x',
@@ -4293,6 +4315,7 @@ describe('TextEditorComponent', function () {
       let newHeight = 4 * editor.getLineHeightInPixels() + 'px'
       expect(parseInt(newHeight)).toBeLessThan(wrapperNode.offsetHeight)
       wrapperNode.style.height = newHeight
+      editor.update({autoHeight: false})
       atom.views.performDocumentPoll()
       runAnimationFrames()
 
@@ -4371,9 +4394,73 @@ describe('TextEditorComponent', function () {
   })
 
   describe('height', function () {
+    describe('when autoHeight is true', function () {
+      it('assigns the editor\'s height to based on its contents', function () {
+        jasmine.attachToDOM(wrapperNode)
+        expect(editor.getAutoHeight()).toBe(true)
+        expect(wrapperNode.offsetHeight).toBe(editor.getLineHeightInPixels() * editor.getScreenLineCount())
+        editor.insertText('\n\n\n')
+        runAnimationFrames()
+        expect(wrapperNode.offsetHeight).toBe(editor.getLineHeightInPixels() * editor.getScreenLineCount())
+      })
+    })
+
+    describe('when autoHeight is false', function () {
+      it('does not assign the height of the editor, instead allowing content to scroll', function () {
+        jasmine.attachToDOM(wrapperNode)
+        editor.update({autoHeight: false})
+        wrapperNode.style.height = '200px'
+        expect(wrapperNode.offsetHeight).toBe(200)
+        editor.insertText('\n\n\n')
+        runAnimationFrames()
+        expect(wrapperNode.offsetHeight).toBe(200)
+      })
+    })
+
+    describe('when autoHeight is not assigned on the editor', function () {
+      it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via an inline style', function () {
+        editor = atom.workspace.buildTextEditor()
+        element = editor.getElement()
+        element.setUpdatedSynchronously(false)
+        element.style.height = '200px'
+
+        spyOn(Grim, 'deprecate')
+        jasmine.attachToDOM(element)
+
+        expect(element.offsetHeight).toBe(200)
+        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(Grim.deprecate.callCount).toBe(1)
+        expect(Grim.deprecate.argsForCall[0][0]).toMatch(/inline style/)
+      })
+
+      it('implicitly assigns autoHeight to true and emits a deprecation warning if the editor has its height assigned via position absolute with an assigned top and bottom', function () {
+        editor = atom.workspace.buildTextEditor()
+        element = editor.getElement()
+        element.setUpdatedSynchronously(false)
+        parentElement = document.createElement('div')
+        parentElement.style.position = 'absolute'
+        parentElement.style.height = '200px'
+        element.style.position = 'absolute'
+        element.style.top = '0px'
+        element.style.bottom = '0px'
+        parentElement.appendChild(element)
+
+        spyOn(Grim, 'deprecate')
+
+        jasmine.attachToDOM(parentElement)
+        element.component.measureDimensions()
+
+        expect(element.offsetHeight).toBe(200)
+        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(Grim.deprecate.callCount).toBe(1)
+        expect(Grim.deprecate.argsForCall[0][0]).toMatch(/absolute/)
+      })
+    })
+
     describe('when the wrapper view has an explicit height', function () {
       it('does not assign a height on the component node', function () {
         wrapperNode.style.height = '200px'
+        editor.update({autoHeight: false})
         component.measureDimensions()
         runAnimationFrames()
         expect(componentNode.style.height).toBe('')
@@ -4385,6 +4472,33 @@ describe('TextEditorComponent', function () {
         expect(wrapperNode.style.height).toBe('')
         expect(componentNode.style.height).toBe(editor.getScreenLineCount() * lineHeightInPixels + 'px')
       })
+    })
+  })
+
+  describe('width', function () {
+    it('sizes the editor element according to the content width when auto width is true, or according to the container width otherwise', function () {
+      contentNode.style.width = '600px'
+      component.measureDimensions()
+      editor.setText("abcdefghi")
+      runAnimationFrames()
+      expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
+
+      editor.update({autoWidth: true})
+      runAnimationFrames()
+      const editorWidth1 = wrapperNode.offsetWidth
+      expect(editorWidth1).toBeGreaterThan(0)
+      expect(editorWidth1).toBeLessThan(contentNode.offsetWidth)
+
+      editor.setText("abcdefghijkl")
+      editor.update({autoWidth: true})
+      runAnimationFrames()
+      const editorWidth2 = wrapperNode.offsetWidth
+      expect(editorWidth2).toBeGreaterThan(editorWidth1)
+      expect(editorWidth2).toBeLessThan(contentNode.offsetWidth)
+
+      editor.update({autoWidth: false})
+      runAnimationFrames()
+      expect(wrapperNode.offsetWidth).toBe(contentNode.offsetWidth)
     })
   })
 
@@ -4407,10 +4521,10 @@ describe('TextEditorComponent', function () {
     })
 
     it('does not render invisible characters', function () {
-      atom.config.set('editor.invisibles', {
-        eol: 'E'
+      editor.update({
+        showInvisibles: true,
+        invisibles: {eol: 'E'}
       })
-      atom.config.set('editor.showInvisibles', true)
       expect(component.lineNodeForScreenRow(0).textContent).toBe('var quicksort = function () {')
     })
 
@@ -4463,194 +4577,6 @@ describe('TextEditorComponent', function () {
     })
   })
 
-  describe('scoped config settings', function () {
-    let coffeeComponent, coffeeEditor
-
-    beforeEach(async function () {
-      await atom.packages.activatePackage('language-coffee-script')
-      coffeeEditor = await atom.workspace.open('coffee.coffee', {autoIndent: false})
-    })
-
-    afterEach(function () {
-      atom.packages.deactivatePackages()
-      atom.packages.unloadPackages()
-    })
-
-    describe('soft wrap settings', function () {
-      beforeEach(function () {
-        atom.config.set('editor.softWrap', true, {
-          scopeSelector: '.source.coffee'
-        })
-        atom.config.set('editor.preferredLineLength', 17, {
-          scopeSelector: '.source.coffee'
-        })
-        atom.config.set('editor.softWrapAtPreferredLineLength', true, {
-          scopeSelector: '.source.coffee'
-        })
-        editor.setDefaultCharWidth(1)
-        editor.setEditorWidthInChars(20)
-        coffeeEditor.setDefaultCharWidth(1)
-        coffeeEditor.setEditorWidthInChars(20)
-      })
-
-      it('wraps lines when editor.softWrap is true for a matching scope', function () {
-        expect(editor.lineTextForScreenRow(2)).toEqual('    if (items.length <= 1) return items;')
-        expect(coffeeEditor.lineTextForScreenRow(3)).toEqual('    return items ')
-      })
-
-      it('updates the wrapped lines when editor.preferredLineLength changes', function () {
-        atom.config.set('editor.preferredLineLength', 20, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual('    return items if ')
-      })
-
-      it('updates the wrapped lines when editor.softWrapAtPreferredLineLength changes', function () {
-        atom.config.set('editor.softWrapAtPreferredLineLength', false, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual('    return items if ')
-      })
-
-      it('updates the wrapped lines when editor.softWrap changes', function () {
-        atom.config.set('editor.softWrap', false, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(2)).toEqual('    return items if items.length <= 1')
-        atom.config.set('editor.softWrap', true, {
-          scopeSelector: '.source.coffee'
-        })
-        expect(coffeeEditor.lineTextForScreenRow(3)).toEqual('    return items ')
-      })
-
-      it('updates the wrapped lines when the grammar changes', function () {
-        editor.setGrammar(coffeeEditor.getGrammar())
-        expect(editor.isSoftWrapped()).toBe(true)
-        expect(editor.lineTextForScreenRow(0)).toEqual('var quicksort = ')
-      })
-
-      describe('::isSoftWrapped()', function () {
-        it('returns the correct value based on the scoped settings', function () {
-          expect(editor.isSoftWrapped()).toBe(false)
-          expect(coffeeEditor.isSoftWrapped()).toBe(true)
-        })
-      })
-    })
-
-    describe('invisibles settings', function () {
-      const jsInvisibles = {
-        eol: 'J',
-        space: 'A',
-        tab: 'V',
-        cr: 'A'
-      }
-      const coffeeInvisibles = {
-        eol: 'C',
-        space: 'O',
-        tab: 'F',
-        cr: 'E'
-      }
-
-      beforeEach(function () {
-        atom.config.set('editor.showInvisibles', true, {
-          scopeSelector: '.source.js'
-        })
-        atom.config.set('editor.invisibles', jsInvisibles, {
-          scopeSelector: '.source.js'
-        })
-        atom.config.set('editor.showInvisibles', false, {
-          scopeSelector: '.source.coffee'
-        })
-        atom.config.set('editor.invisibles', coffeeInvisibles, {
-          scopeSelector: '.source.coffee'
-        })
-        editor.setText(' a line with tabs\tand spaces \n')
-        runAnimationFrames()
-      })
-
-      it('renders the invisibles when editor.showInvisibles is true for a given grammar', function () {
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + jsInvisibles.space + 'a line with tabs' + jsInvisibles.tab + 'and spaces' + jsInvisibles.space + jsInvisibles.eol)
-      })
-
-      it('does not render the invisibles when editor.showInvisibles is false for a given grammar', function () {
-        editor.setGrammar(coffeeEditor.getGrammar())
-        runAnimationFrames()
-        expect(component.lineNodeForScreenRow(0).textContent).toBe(' a line with tabs and spaces ')
-      })
-
-      it('re-renders the invisibles when the invisible settings change', function () {
-        let jsGrammar = editor.getGrammar()
-        editor.setGrammar(coffeeEditor.getGrammar())
-        atom.config.set('editor.showInvisibles', true, {
-          scopeSelector: '.source.coffee'
-        })
-        runAnimationFrames()
-
-        let newInvisibles = {
-          eol: 'N',
-          space: 'E',
-          tab: 'W',
-          cr: 'I'
-        }
-
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + coffeeInvisibles.space + 'a line with tabs' + coffeeInvisibles.tab + 'and spaces' + coffeeInvisibles.space + coffeeInvisibles.eol)
-        atom.config.set('editor.invisibles', newInvisibles, {
-          scopeSelector: '.source.coffee'
-        })
-        runAnimationFrames()
-
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + newInvisibles.space + 'a line with tabs' + newInvisibles.tab + 'and spaces' + newInvisibles.space + newInvisibles.eol)
-        editor.setGrammar(jsGrammar)
-        runAnimationFrames()
-
-        expect(component.lineNodeForScreenRow(0).textContent).toBe('' + jsInvisibles.space + 'a line with tabs' + jsInvisibles.tab + 'and spaces' + jsInvisibles.space + jsInvisibles.eol)
-      })
-    })
-
-    describe('editor.showIndentGuide', function () {
-      beforeEach(function () {
-        atom.config.set('editor.showIndentGuide', true, {
-          scopeSelector: '.source.js'
-        })
-        atom.config.set('editor.showIndentGuide', false, {
-          scopeSelector: '.source.coffee'
-        })
-        runAnimationFrames()
-      })
-
-      it('has an "indent-guide" class when scoped editor.showIndentGuide is true, but not when scoped editor.showIndentGuide is false', function () {
-        let line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(true)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-        editor.setGrammar(coffeeEditor.getGrammar())
-        runAnimationFrames()
-
-        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(false)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-      })
-
-      it('removes the "indent-guide" class when editor.showIndentGuide to false', function () {
-        let line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(true)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-        atom.config.set('editor.showIndentGuide', false, {
-          scopeSelector: '.source.js'
-        })
-        runAnimationFrames()
-
-        line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
-        expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(false)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
-      })
-    })
-  })
-
   describe('autoscroll', function () {
     beforeEach(function () {
       editor.setVerticalScrollMargin(2)
@@ -4660,8 +4586,9 @@ describe('TextEditorComponent', function () {
       component.measureDimensions()
       runAnimationFrames()
 
-      wrapperNode.setWidth(55)
-      wrapperNode.setHeight(55)
+      wrapperNode.style.width = 55 + component.getGutterWidth() + 'px'
+      wrapperNode.style.height = '55px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 
@@ -4948,6 +4875,7 @@ describe('TextEditorComponent', function () {
   describe('::getVisibleRowRange()', function () {
     beforeEach(function () {
       wrapperNode.style.height = lineHeightInPixels * 8 + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
     })
@@ -4960,6 +4888,7 @@ describe('TextEditorComponent', function () {
 
     it('ends at last buffer row even if there\'s more space available', function () {
       wrapperNode.style.height = lineHeightInPixels * 13 + 'px'
+      editor.update({autoHeight: false})
       component.measureDimensions()
       runAnimationFrames()
 

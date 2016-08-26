@@ -47,3 +47,11 @@ class ScopeDescriptor
 
   toString: ->
     @getScopeChain()
+
+  isEqual: (other) ->
+    if @scopes.length isnt other.scopes.length
+      return false
+    for scope, i in @scopes
+      if scope isnt other.scopes[i]
+        return false
+    true

@@ -27,7 +27,7 @@ describe "WorkspaceElement", ->
       expect(workspaceElement).toHaveClass 'scrollbars-visible-when-scrolling'
 
   describe "editor font styling", ->
-    [editor, editorElement] = []
+    [editor, editorElement, workspaceElement] = []
 
     beforeEach ->
       waitsForPromise -> atom.workspace.open('sample.js')
@@ -62,6 +62,44 @@ describe "WorkspaceElement", ->
       atom.config.set('editor.lineHeight', '30px')
       expect(getComputedStyle(editorElement).lineHeight).toBe atom.config.get('editor.lineHeight')
       expect(editor.getLineHeightInPixels()).not.toBe initialLineHeight
+
+    it "increases or decreases the font size when a ctrl-mousewheel event occurs", ->
+      atom.config.set('editor.zoomFontWhenCtrlScrolling', true)
+      atom.config.set('editor.fontSize', 12)
+
+      # Zoom out
+      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: -10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(11)
+
+      # Zoom in
+      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
+
+      # Not on an atom-text-editor
+      workspaceElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
+
+      # No ctrl key
+      workspaceElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
+
+      atom.config.set('editor.zoomFontWhenCtrlScrolling', false)
+      editorElement.dispatchEvent(new WheelEvent('mousewheel', {
+        wheelDeltaY: 10,
+        ctrlKey: true
+      }))
+      expect(atom.config.get('editor.fontSize')).toBe(12)
 
   describe 'panel containers', ->
     it 'inserts panel container elements in the correct places in the DOM', ->

@@ -3,6 +3,7 @@ Path = require 'path'
 
 exeName = Path.basename(process.execPath)
 appPath = "\"#{process.execPath}\""
+fileIconPath = "\"#{Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}\""
 isBeta = appPath.includes(' Beta')
 appName = exeName.replace('atom', (if isBeta then 'Atom Beta' else 'Atom' )).replace('.exe', '')
 
@@ -40,7 +41,11 @@ class ShellOption
 exports.appName = appName
 
 exports.fileHandler = new ShellOption("\\Software\\Classes\\Applications\\#{exeName}",
-  [{key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""}]
+  [
+    {key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""},
+    {key: 'shell\\open', name: 'FriendlyAppName', value: "#{appName}"},
+    {key: 'DefaultIcon', name: '', value: "#{fileIconPath}"}
+  ]
 )
 
 contextParts = [

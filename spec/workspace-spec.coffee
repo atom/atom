@@ -33,6 +33,7 @@ describe "Workspace", ->
         notificationManager: atom.notifications, clipboard: atom.clipboard,
         applicationDelegate: atom.applicationDelegate,
         viewRegistry: atom.views, assert: atom.assert.bind(atom),
+        textEditorRegistry: atom.textEditors
       })
       atom.workspace.deserialize(workspaceState, atom.deserializers)
 
@@ -431,9 +432,9 @@ describe "Workspace", ->
         runs ->
           expect(editor.largeFileMode).toBe true
 
-    describe "when the file is over 20MB", ->
-      it "prompts the user to make sure they want to open a file this big", ->
-        spyOn(fs, 'getSizeSync').andReturn 20 * 1048577 # 20MB
+    describe "when the file is over user-defined limit", ->
+      shouldPromptForFileOfSize = (size, shouldPrompt) ->
+        spyOn(fs, 'getSizeSync').andReturn size * 1048577
         atom.applicationDelegate.confirm.andCallFake -> selectedButtonIndex
         atom.applicationDelegate.confirm()
         selectedButtonIndex = 1 # cancel
@@ -441,20 +442,35 @@ describe "Workspace", ->
         editor = null
         waitsForPromise ->
           workspace.open('sample.js').then (e) -> editor = e
+        if shouldPrompt
+          runs ->
+            expect(editor).toBeUndefined()
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
 
-        runs ->
-          expect(editor).toBeUndefined()
-          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            atom.applicationDelegate.confirm.reset()
+            selectedButtonIndex = 0 # open the file
 
-          atom.applicationDelegate.confirm.reset()
-          selectedButtonIndex = 0 # open the file
+          waitsForPromise ->
+            workspace.open('sample.js').then (e) -> editor = e
 
-        waitsForPromise ->
-          workspace.open('sample.js').then (e) -> editor = e
+          runs ->
+            expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
+            expect(editor.largeFileMode).toBe true
+        else
+          runs ->
+            expect(editor).not.toBeUndefined()
 
-        runs ->
-          expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
-          expect(editor.largeFileMode).toBe true
+      it "prompts the user to make sure they want to open a file this big", ->
+        atom.config.set "core.warnOnLargeFileLimit", 20
+        shouldPromptForFileOfSize 20, true
+
+      it "doesn't prompt on files below the limit", ->
+        atom.config.set "core.warnOnLargeFileLimit", 30
+        shouldPromptForFileOfSize 20, false
+
+      it "prompts for smaller files with a lower limit", ->
+        atom.config.set "core.warnOnLargeFileLimit", 5
+        shouldPromptForFileOfSize 10, true
 
     describe "when passed a path that matches a custom opener", ->
       it "returns the resource returned by the custom opener", ->
@@ -652,6 +668,34 @@ describe "Workspace", ->
           expect(rightPane.getPendingItem()).toBe editor2
           expect(rightPane.destroyed.callCount).toBe 0
 
+  describe 'the grammar-used hook', ->
+    it 'fires when opening a file or changing the grammar of an open file', ->
+      editor = null
+      javascriptGrammarUsed = false
+      coffeescriptGrammarUsed = false
+
+      atom.packages.triggerDeferredActivationHooks()
+
+      runs ->
+        atom.packages.onDidTriggerActivationHook 'language-javascript:grammar-used', -> javascriptGrammarUsed = true
+        atom.packages.onDidTriggerActivationHook 'language-coffee-script:grammar-used', -> coffeescriptGrammarUsed = true
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js', autoIndent: false).then (o) -> editor = o
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+      waitsFor -> javascriptGrammarUsed
+
+      waitsForPromise ->
+        atom.packages.activatePackage('language-coffee-script')
+
+      runs ->
+        editor.setGrammar(atom.grammars.selectGrammar('.coffee'))
+
+      waitsFor -> coffeescriptGrammarUsed
+
   describe "::reopenItem()", ->
     it "opens the uri associated with the last closed pane that isn't currently open", ->
       pane = workspace.getActivePane()
@@ -784,6 +828,21 @@ describe "Workspace", ->
         editor.destroy()
         expect(workspace.getTextEditors()).toHaveLength 0
 
+  describe "when an editor is copied because its pane is split", ->
+    it "sets up the new editor to be configured by the text editor registry", ->
+      waitsForPromise ->
+        atom.packages.activatePackage('language-javascript')
+
+      waitsForPromise ->
+        workspace.open('a').then (editor) ->
+          atom.textEditors.setGrammarOverride(editor, 'source.js')
+          expect(editor.getGrammar().name).toBe('JavaScript')
+
+          workspace.getActivePane().splitRight(copyActiveItem: true)
+          newEditor = workspace.getActiveTextEditor()
+          expect(newEditor).not.toBe(editor)
+          expect(newEditor.getGrammar().name).toBe('JavaScript')
+
   it "stores the active grammars used by all the open editors", ->
     waitsForPromise ->
       atom.packages.activatePackage('language-javascript')
@@ -814,7 +873,8 @@ describe "Workspace", ->
         config: atom.config, project: atom.project, packageManager: atom.packages,
         notificationManager: atom.notifications, deserializerManager: atom.deserializers,
         clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-        applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
+        applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
+        textEditorRegistry: atom.textEditors
       })
       workspace2.deserialize(state, atom.deserializers)
       expect(jsPackage.loadGrammarsSync.callCount).toBe 1
@@ -876,7 +936,8 @@ describe "Workspace", ->
           config: atom.config, project: atom.project, packageManager: atom.packages,
           notificationManager: atom.notifications, deserializerManager: atom.deserializers,
           clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
-          applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom)
+          applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
+          textEditorRegistry: atom.textEditors
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = workspace2.getActivePaneItem()

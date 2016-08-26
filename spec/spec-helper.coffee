@@ -87,7 +87,6 @@ beforeEach ->
   atom.config.set "editor.autoIndent", false
   atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
 
