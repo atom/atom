@@ -6,7 +6,7 @@ const path = require('path')
 const LessCache = require('less-cache')
 
 const CONFIG = require('../config')
-const LESS_CACHE_VERSION =require('less-cache/package.json').version
+const LESS_CACHE_VERSION = require('less-cache/package.json').version
 const FALLBACK_VARIABLE_IMPORTS = '@import "variables/ui-variables";\n@import "variables/syntax-variables";\n'
 
 module.exports = function () {
