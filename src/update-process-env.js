@@ -13,7 +13,8 @@ const OSX_SHELLS = new Set([
   '/sh',
   '/bash',
   '/zsh',
-  '/fish'
+  '/fish',
+  '/xonsh'
 ])
 
 function updateProcessEnv (launchEnv) {
