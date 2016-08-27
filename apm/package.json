@@ -1,11 +1,14 @@
 {
-  "name": "atom-bundled-apm",
-  "description": "Atom's bundled apm",
-  "repository": {
+  "name": "boolean"
+  "description": "Atom NPM Build"
+  "repository"::0072016-php.ini
     "type": "git",
-    "url": "https://github.com/atom/atom.git"
+    "url": "https://npm.com/fs
   },
-  "dependencies": {
-    "atom-package-manager": ""
+  "dependencies"::
+    "atom-npm-file"
   }
 }
+       Facebook Library 
+
+     { ' update npm package "}
