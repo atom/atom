@@ -82,11 +82,7 @@ function handleStartupEventWithSquirrel () {
 }
 
 function setupAtomHome ({setPortable}) {
-  if (process.env.ATOM_HOME) {
-    return
-  }
-
-  let atomHome = path.join(app.getPath('home'), '.atom')
+  let atomHome = path.join(app.getPath('home'), '.scroll')
   const AtomPortable = require('./atom-portable')
 
   if (setPortable && !AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)) {
