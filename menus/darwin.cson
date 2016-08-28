@@ -1,6 +1,6 @@
 'menu': [
   {
-    label: 'Atom'
+    label: 'Scroll'
     submenu: [
       { label: 'About Atom', command: 'application:about' }
       { label: 'View License', command: 'application:open-license' }
