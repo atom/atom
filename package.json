@@ -150,7 +150,7 @@
     "language-source": "0.9.0",
     "language-sql": "0.24.0",
     "language-text": "0.7.1",
-    "language-todo": "0.28.0",
+    "language-todo": "0.29.0",
     "language-toml": "0.18.0",
     "language-xml": "0.34.10",
     "language-yaml": "0.27.0"
