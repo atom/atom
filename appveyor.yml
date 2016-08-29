@@ -10,9 +10,6 @@ platform:
 environment:
   global:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
-    ATOM_ACCESS_TOKEN:
-      secure: Q7vxmSq0bVCLTTRPzXw5ZhPTe7XYhWxX0tQV6neEkddTH6pZkOYNmSCG6VnMX2f+
-    ATOM_NOISY_BUILD: 1
 
   matrix:
   - NODE_VERSION: 4.4.5
