@@ -3,21 +3,26 @@
 ## Requirements
 
   * macOS 10.8 or later
-  * [Node.js](https://nodejs.org/en/download/) (0.10.x or above)
+  * Node.js 4.4.x or later (we recommend installing it via [nvm](https://github.com/creationix/nvm))
+  * npm 3.10.x or later (run `npm install -g npm`)
   * Command Line Tools for [Xcode](https://developer.apple.com/xcode/downloads/) (run `xcode-select --install` to install)
 
 ## Instructions
 
-  ```sh
-  git clone https://github.com/atom/atom.git
-  cd atom
-  script/build # Creates application at /Applications/Atom.app
-  ```
+```sh
+git clone https://github.com/atom/atom.git
+cd atom
+script/bootstrap
+script/build
+```
+
+To also install the newly built application, use `script/build --install`.
 
 ### `script/build` Options
-  * `--install-dir` - The full path to the final built application (must include `.app` in the path), e.g. `script/build --install-dir /Users/username/full/path/to/Atom.app`
-  * `--build-dir` - Build the application in this directory.
-  * `--verbose` - Verbose mode. A lot more information output.
+
+* `--code-sign`: signs the application with the GitHub certificate specified in `$ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL`.
+* `--compress-artifacts`: zips the generated application as `out/atom-mac.zip`.
+* `--install`: installs the application at `/Applications/Atom.app`.
 
 ## Troubleshooting
 
