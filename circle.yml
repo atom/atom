@@ -36,6 +36,7 @@ dependencies:
 
 test:
   override:
+    - script/lint
     - caffeinate -s script/test # Run with caffeinate to prevent screen saver
 
 experimental:
