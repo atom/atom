@@ -34,8 +34,6 @@
 	<string>AtomApplication</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
-	<key>SUPublicDSAKeyFile</key>
-	<string>speakeasy.pem</string>
 	<key>SUScheduledCheckInterval</key>
 	<string>3600</string>
 	<key>CFBundleURLTypes</key>

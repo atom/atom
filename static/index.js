@@ -99,7 +99,7 @@
     var metadata = require('../package.json')
     if (!metadata._deprecatedPackages) {
       try {
-        metadata._deprecatedPackages = require('../build/deprecated-packages.json')
+        metadata._deprecatedPackages = require('../script/deprecated-packages.json')
       } catch (requireError) {
         console.error('Failed to setup deprecated packages list', requireError.stack)
       }
