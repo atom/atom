@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Atom Helper</string>
+	<string>Scroll Helper</string>
 	<key>CFBundleExecutable</key>
-	<string>Atom Helper</string>
+	<string>Scroll Helper</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.github.atom.helper</string>
+	<string>com.some-atom.scroll.helper</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Atom Helper</string>
+	<string>Scroll Helper</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

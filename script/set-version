@@ -6,7 +6,7 @@ SHELL_APP_DIR=$1
 VERSION=$2
 
 PLIST_PATH="$SHELL_APP_DIR/Contents/Info.plist"
-HELPER_PLIST_PATH="$SHELL_APP_DIR/Contents/Frameworks/Atom Helper.app/Contents/Info.plist"
+HELPER_PLIST_PATH="$SHELL_APP_DIR/Contents/Frameworks/Scroll Helper.app/Contents/Info.plist"
 
 # Update version
 /usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $VERSION" "$PLIST_PATH"

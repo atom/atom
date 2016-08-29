@@ -17,8 +17,8 @@ module.exports = (grunt) ->
     if process.platform is 'darwin'
       cp 'electron/Electron.app', shellAppDir, filter: /default_app/
       fs.renameSync path.join(shellAppDir, 'Contents', 'MacOS', 'Electron'), path.join(shellAppDir, 'Contents', 'MacOS', 'Atom')
-      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Electron Helper.app'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app')
-      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Electron Helper'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Electron Helper.app'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Scroll Helper.app')
+      fs.renameSync path.join(shellAppDir, 'Contents', 'Frameworks', 'Scroll Helper.app', 'Contents', 'MacOS', 'Electron Helper'), path.join(shellAppDir, 'Contents', 'Frameworks', 'Scroll Helper.app', 'Contents', 'MacOS', 'Scroll Helper')
     else
       cp 'electron', shellAppDir, filter: /default_app/
 

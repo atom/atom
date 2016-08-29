@@ -79,7 +79,7 @@ class TextEditor extends Model
   registered: false
   atomicSoftTabs: true
   invisibles: null
-  showLineNumbers: true
+  showLineNumbers: false
   scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",

@@ -6,7 +6,7 @@ module.exports = (grunt) ->
   grunt.registerTask 'copy-info-plist', 'Copy plist', ->
     contentsDir = grunt.config.get('atom.contentsDir')
     plistPath = path.join(contentsDir, 'Info.plist')
-    helperPlistPath = path.join(contentsDir, 'Frameworks/Atom Helper.app/Contents/Info.plist')
+    helperPlistPath = path.join(contentsDir, 'Frameworks/Scroll Helper.app/Contents/Info.plist')
 
     # Copy custom plist files
     cp 'resources/mac/atom-Info.plist', plistPath

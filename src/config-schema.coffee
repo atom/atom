@@ -166,7 +166,7 @@ module.exports =
         description: 'Show indentation indicators in the editor.'
       showLineNumbers:
         type: 'boolean'
-        default: true
+        default: false
         description: 'Show line numbers in the editor\'s gutter.'
       atomicSoftTabs:
         type: 'boolean'

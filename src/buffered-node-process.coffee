@@ -40,7 +40,7 @@ class BufferedNodeProcess extends BufferedProcess
       if process.platform is 'darwin'
         # Use a helper to prevent an icon from appearing on the Dock
         path.resolve(process.resourcesPath, '..', 'Frameworks',
-                     'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
+                     'Scroll Helper.app', 'Contents', 'MacOS', 'Scroll Helper')
       else
         process.execPath
 
