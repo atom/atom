@@ -129,7 +129,7 @@ class AtomApplication
         app.quit()
         return
     @windows.splice(@windows.indexOf(window), 1)
-    @saveState(true) unless window.isSpec
+    @saveState(false) unless window.isSpec
 
   # Public: Adds the {AtomWindow} to the global window list.
   addWindow: (window) ->
@@ -192,7 +192,15 @@ class AtomApplication
       safeMode: @focusedWindow()?.safeMode
 
     @on 'application:quit', -> app.quit()
-    @on 'application:new-window', -> @openPath(getLoadSettings())
+    @on 'application:new-window', ->
+      loadSettings = getLoadSettings()
+      if @windows.length is 0
+        restorePreviousState = @config.get('core.restorePreviousWindowsOnStart') ? true
+        if restorePreviousState and (states = @storageFolder.load('application.json'))?.length > 0
+          loadSettings.pathsToOpen = states[0].initialPaths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
+        @openPaths(loadSettings)
+      else
+        @openPath(loadSettings)
     @on 'application:new-file', -> (@focusedWindow() ? this).openPath()
     @on 'application:open-dev', -> @promptForPathToOpen('all', devMode: true)
     @on 'application:open-safe', -> @promptForPathToOpen('all', safeMode: true)
