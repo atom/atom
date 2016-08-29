@@ -109,6 +109,8 @@ class AtomApplication
       @loadState(options) or @openPath(options)
 
   openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env}) ->
+    app.focus()
+
     if test
       @runTests({headless: true, devMode, @resourcePath, executedFrom, pathsToOpen, logFile, timeout, env})
     else if pathsToOpen.length > 0
