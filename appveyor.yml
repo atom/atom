@@ -21,7 +21,6 @@ install:
 
 build_script:
   - cd %APPVEYOR_BUILD_FOLDER%
-  - script\bootstrap.cmd
   - script\build.cmd --code-sign --create-windows-installer --compress-artifacts
 
 test: off
