@@ -99,7 +99,7 @@
     "git-diff": "1.1.0",
     "go-to-line": "0.31.0",
     "grammar-selector": "0.48.2",
-    "image-view": "0.58.3",
+    "image-view": "0.59.0",
     "incompatible-packages": "0.26.1",
     "keybinding-resolver": "0.35.0",
     "line-ending-selector": "0.5.0",
