@@ -13,7 +13,15 @@ module.exports = function (packagedAppPath) {
   } else if (process.platform === 'win32') {
     appArchiveName = 'atom-windows.zip'
   } else {
-    appArchiveName = 'atom-amd64.tar.gz'
+    let arch
+    if (process.arch === 'ia32') {
+      arch = 'i386'
+    } else if (process.arch === 'x64') {
+      arch = 'amd64'
+    } else {
+      arch = process.arch
+    }
+    appArchiveName = `atom-${arch}.tar.gz`
   }
   const appArchivePath = path.join(CONFIG.buildOutputPath, appArchiveName)
   compress(packagedAppPath, appArchivePath)

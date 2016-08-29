@@ -24,7 +24,7 @@ module.exports = function (packagedAppPath) {
     arch = process.arch
   }
 
-  const outputDebianPackageFilePath = path.join(CONFIG.buildOutputPath, `atom-amd64.deb`)
+  const outputDebianPackageFilePath = path.join(CONFIG.buildOutputPath, `atom-${arch}.deb`)
   const debianPackageDirPath = path.join(os.tmpdir(), path.basename(packagedAppPath))
   const debianPackageConfigPath = path.join(debianPackageDirPath, 'DEBIAN')
   const debianPackageInstallDirPath = path.join(debianPackageDirPath, 'usr')
