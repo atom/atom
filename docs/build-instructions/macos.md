@@ -22,7 +22,7 @@ To also install the newly built application, use `script/build --install`.
 
 * `--code-sign`: signs the application with the GitHub certificate specified in `$ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL`.
 * `--compress-artifacts`: zips the generated application as `out/atom-mac.zip`.
-* `--install`: installs the application at `/Applications/Atom.app`.
+* `--install`: installs the application at `/Applications/Atom.app` for dev and stable versions or at `/Applications/Atom-Beta.app` for beta versions.
 
 ## Troubleshooting
 

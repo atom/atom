@@ -29,7 +29,7 @@ script\bootstrap
 script\build
 ```
 
-To also install the newly built application, use `script/build --create-windows-installer` and launch the generated installers.
+To also install the newly built application, use `script\build --create-windows-installer` and launch the generated installers.
 
 ### `script\build` Options
 * `--code-sign`: signs the application with the GitHub certificate specified in `$WIN_P12KEY_URL`.
@@ -77,10 +77,10 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\build` (re-open your command prompt or Powershell window if you set it using the GUI)
+  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\bootstrap` (re-open your command prompt or Powershell window if you set it using the GUI)
 
 * `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
-  * Try running `npm install -g node-gyp`, and run `script/build` again.
+  * Try running `npm install -g node-gyp`, and run `script\bootstrap` again.
 
 * Other `node-gyp` errors on first build attempt, even though the right Node.js and Python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.

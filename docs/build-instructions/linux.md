@@ -34,10 +34,13 @@ To also install the newly built application, use `--create-debian-package` or `-
 ### Ubuntu / Debian
 
 * Install GNOME headers and other basic prerequisites:
+
   ```sh
   sudo apt-get install build-essential git libgnome-keyring-dev fakeroot rpm
   ```
+
 * If `script/bootstrap` exits with an error, you may need to install a newer C++ compiler with C++11:
+
   ```sh
   sudo add-apt-repository ppa:ubuntu-toolchain-r/test
   sudo apt-get update
