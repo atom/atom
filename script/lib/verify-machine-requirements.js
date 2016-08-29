@@ -25,7 +25,7 @@ function verifyNode () {
 }
 
 function verifyNpm () {
-  const stdout = childProcess.execFileSync(CONFIG.npmBinPath, ['--version'], {env: process.env})
+  const stdout = childProcess.execFileSync(CONFIG.getNpmBinPath(), ['--version'], {env: process.env})
   const fullVersion = stdout.toString().trim()
   const majorVersion = fullVersion.split('.')[0]
   if (majorVersion >= 3) {

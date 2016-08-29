@@ -17,7 +17,7 @@ module.exports = function () {
     installEnv.npm_config_target_arch = 'ia32'
   }
   childProcess.execFileSync(
-    CONFIG.apmBinPath,
+    CONFIG.getApmBinPath(),
     ['--loglevel=error', 'install'],
     {env: installEnv, cwd: CONFIG.repositoryRootPath, stdio: 'inherit'}
   )
