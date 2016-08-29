@@ -38,7 +38,7 @@ const transpileCsonPaths = require('./lib/transpile-cson-paths')
 const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
 
 process.on('unhandledRejection', function (e) {
-  console.error(e)
+  console.error(e.stack || e)
   process.exit(1)
 })
 

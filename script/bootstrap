@@ -10,6 +10,11 @@ const installAtomDependencies = require('./lib/install-atom-dependencies')
 const installScriptDependencies = require('./lib/install-script-dependencies')
 const verifyMachineRequirements = require('./lib/verify-machine-requirements')
 
+process.on('unhandledRejection', function (e) {
+  console.error(e.stack || e)
+  process.exit(1)
+})
+
 verifyMachineRequirements()
 
 if (dependenciesFingerprint.isOutdated()) {
