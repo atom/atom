@@ -42,6 +42,8 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+require('./bootstrap')
+
 cleanOutputDirectory()
 copyAssets()
 transpileBabelPaths()
