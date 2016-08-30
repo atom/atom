@@ -2,6 +2,10 @@
 
 'use strict'
 
+// Run bootstrap first to ensure all the dependencies used later in this script
+// are installed.
+require('./bootstrap')
+
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')
 require('colors')
@@ -41,8 +45,6 @@ process.on('unhandledRejection', function (e) {
   console.error(e.stack || e)
   process.exit(1)
 })
-
-require('./bootstrap')
 
 cleanOutputDirectory()
 copyAssets()
