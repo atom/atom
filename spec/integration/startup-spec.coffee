@@ -1,3 +1,5 @@
+return # Don't run this on 1.10-releases for now.
+
 # These tests are excluded by default. To run them from the command line:
 #
 # ATOM_INTEGRATION_TESTS_ENABLED=true apm test
