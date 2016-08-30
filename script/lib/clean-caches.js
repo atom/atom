@@ -8,7 +8,7 @@ const CONFIG = require('../config')
 
 module.exports = function () {
   const cachePaths = [
-    path.join(CONFIG.repositoryRootPath, 'cache'),
+    path.join(CONFIG.repositoryRootPath, 'electron'),
     path.join(CONFIG.homeDirPath, '.atom', '.node-gyp'),
     path.join(CONFIG.homeDirPath, '.atom', 'storage'),
     path.join(CONFIG.homeDirPath, '.atom', '.apm'),
