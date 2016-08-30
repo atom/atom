@@ -9,21 +9,25 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'ATOM_HOME'
 ])
 
-const OSX_SHELLS = new Set([
+const SHELLS_KNOWN_TO_WORK = new Set([
   '/sh',
   '/bash',
   '/zsh',
   '/fish'
 ])
 
+const PLATFORMS_KNOWN_TO_WORK = new Set([
+  'darwin',
+  'linux'
+])
+
 function updateProcessEnv (launchEnv) {
   let envToAssign
-  if (launchEnv && launchEnv.PWD) {
+
+  if (launchEnv && shouldGetEnvFromShell(launchEnv)) {
+    envToAssign = getEnvFromShell(launchEnv)
+  } else if (launchEnv && launchEnv.PWD) { // Launched from shell
     envToAssign = launchEnv
-  } else {
-    if (process.platform === 'darwin') {
-      envToAssign = getEnvFromShell()
-    }
   }
 
   if (envToAssign) {
@@ -45,12 +49,25 @@ function updateProcessEnv (launchEnv) {
   }
 }
 
-function shouldGetEnvFromShell (shell) {
-  if (!shell || shell.trim() === '') {
+function shouldGetEnvFromShell (env) {
+  if (!PLATFORMS_KNOWN_TO_WORK.has(process.platform)) { // Untested platforms
     return false
   }
-  for (let s of OSX_SHELLS) {
-    if (shell.endsWith(s)) {
+
+  if (!env || !env.SHELL || env.SHELL.trim() === '') { // Nothing to launch
+    return false
+  }
+
+  if (process.platform === 'linux' && env.TERM) { // Launched from shell
+    return false
+  }
+
+  if (process.platform === 'darwin' && env.PWD) { // Launched from shell
+    return false
+  }
+
+  for (let s of SHELLS_KNOWN_TO_WORK) {
+    if (env.SHELL.endsWith(s)) {
       return true
     }
   }
@@ -58,13 +75,12 @@ function shouldGetEnvFromShell (shell) {
   return false
 }
 
-function getEnvFromShell () {
-  let shell = process.env.SHELL
-  if (!shouldGetEnvFromShell(shell)) {
+function getEnvFromShell (env) {
+  if (!shouldGetEnvFromShell(env)) {
     return
   }
 
-  let {stdout} = spawnSync(shell, ['-ilc', 'command env'], {encoding: 'utf8'})
+  let {stdout} = spawnSync(env.SHELL, ['-ilc', 'command env'], {encoding: 'utf8'})
   if (stdout) {
     let result = {}
     for (let line of stdout.split('\n')) {

@@ -31,9 +31,10 @@ describe('updateProcessEnv(launchEnv)', function () {
       }
       const initialProcessEnv = process.env
 
-      updateProcessEnv({PWD: '/the/dir', KEY1: 'value1', KEY2: 'value2'})
+      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
       expect(process.env).toEqual({
         PWD: '/the/dir',
+        TERM: 'xterm-something',
         KEY1: 'value1',
         KEY2: 'value2',
         NODE_ENV: 'the-node-env',
@@ -57,26 +58,29 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({PWD: '/the/dir'})
+      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something'})
       expect(process.env).toEqual({
         PWD: '/the/dir',
+        TERM: 'xterm-something',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
       expect(process.env).toEqual({
         PWD: '/the/dir',
+        TERM: 'xterm-something',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
 
-      updateProcessEnv({PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
+      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something', ATOM_HOME: newAtomHomePath})
       expect(process.env).toEqual({
         PWD: '/the/dir',
+        TERM: 'xterm-something',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: newAtomHomePath
@@ -89,6 +93,33 @@ describe('updateProcessEnv(launchEnv)', function () {
       it('updates process.env to match the environment in the user\'s login shell', function () {
         process.platform = 'darwin'
         process.env.SHELL = '/my/custom/bash'
+
+        spyOn(child_process, 'spawnSync').andReturn({
+          stdout: dedent`
+            FOO=BAR=BAZ=QUUX
+            TERM=xterm-something
+            PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
+          `
+        })
+
+        updateProcessEnv(process.env)
+        expect(child_process.spawnSync.mostRecentCall.args[0]).toBe('/my/custom/bash')
+        expect(process.env).toEqual({
+          FOO: 'BAR=BAZ=QUUX',
+          TERM: 'xterm-something',
+          PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'
+        })
+
+        // Doesn't error
+        updateProcessEnv(null)
+      })
+    })
+
+    describe('on linux', function () {
+      it('updates process.env to match the environment in the user\'s login shell', function () {
+        process.platform = 'linux'
+        process.env.SHELL = '/my/custom/bash'
+        delete process.env.TERM
 
         spyOn(child_process, 'spawnSync').andReturn({
           stdout: dedent`
@@ -124,30 +155,49 @@ describe('updateProcessEnv(launchEnv)', function () {
     })
 
     describe('shouldGetEnvFromShell()', function () {
-      it('returns the shell when the shell should be patched', function () {
+      it('indicates when the environment should be fetched from the shell', function () {
         process.platform = 'darwin'
-        expect(shouldGetEnvFromShell('/bin/sh')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/sh')).toBe(true)
-        expect(shouldGetEnvFromShell('/bin/bash')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/bash')).toBe(true)
-        expect(shouldGetEnvFromShell('/bin/zsh')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/zsh')).toBe(true)
-        expect(shouldGetEnvFromShell('/bin/fish')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/fish')).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
+        process.platform = 'linux'
+        expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
       })
 
       it('returns false when the shell should not be patched', function () {
         process.platform = 'darwin'
-        expect(shouldGetEnvFromShell('/bin/unsupported')).toBe(false)
-        expect(shouldGetEnvFromShell('/bin/shh')).toBe(false)
-        expect(shouldGetEnvFromShell('/bin/tcsh')).toBe(false)
-        expect(shouldGetEnvFromShell('/usr/csh')).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/unsupported'})).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/shh'})).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/tcsh'})).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/csh'})).toBe(false)
+
+        process.platform = 'linux'
+        expect(shouldGetEnvFromShell({SHELL: '/bin/unsupported'})).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/shh'})).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/tcsh'})).toBe(false)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/csh'})).toBe(false)
       })
 
       it('returns false when the shell is undefined or empty', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell(undefined)).toBe(false)
-        expect(shouldGetEnvFromShell('')).toBe(false)
+        expect(shouldGetEnvFromShell({})).toBe(false)
+
+        process.platform = 'linux'
+        expect(shouldGetEnvFromShell(undefined)).toBe(false)
+        expect(shouldGetEnvFromShell({})).toBe(false)
       })
     })
   })
