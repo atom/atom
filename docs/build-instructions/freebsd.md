@@ -15,6 +15,5 @@ FreeBSD -RELEASE 64-bit is the recommended platform.
 ```sh
 git clone https://github.com/atom/atom
 cd atom
-script/bootstrap
 script/build
 ```
