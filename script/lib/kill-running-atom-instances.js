@@ -1,4 +1,4 @@
-const spawnSync = require('./spawn-sync')
+const childProcess = require('child_process')
 
 const CONFIG = require('../config.js')
 
