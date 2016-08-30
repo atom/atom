@@ -128,7 +128,6 @@ class ApplicationDelegate
     setWindowLoadSettings(loadSettings)
     ipcRenderer.send("did-change-paths")
 
-
   setAutoHideWindowMenuBar: (autoHide) ->
     ipcRenderer.send("call-window-method", "setAutoHideMenuBar", autoHide)
 
