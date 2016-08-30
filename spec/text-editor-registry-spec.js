@@ -425,6 +425,19 @@ describe('TextEditorRegistry', function () {
       expect(editor.hasAtomicSoftTabs()).toBe(true)
     })
 
+    it('enables or disables line numbers based on the config', async function () {
+      editor.update({showLineNumbers: true})
+      expect(editor.showLineNumbers).toBe(true)
+
+      atom.config.set('editor.showLineNumbers', false)
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+      expect(editor.showLineNumbers).toBe(false)
+
+      atom.config.set('editor.showLineNumbers', true)
+      expect(editor.showLineNumbers).toBe(true)
+    })
+
     it('sets the invisibles based on the config', async function () {
       const invisibles1 = {'tab': 'a', 'cr': false, eol: false, space: false}
       const invisibles2 = {'tab': 'b', 'cr': false, eol: false, space: false}

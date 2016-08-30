@@ -12,6 +12,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.tabLength', 'tabLength'],
   ['editor.invisibles', 'invisibles'],
   ['editor.showIndentGuide', 'showIndentGuide'],
+  ['editor.showLineNumbers', 'showLineNumbers'],
   ['editor.softWrap', 'softWrapped'],
   ['editor.softWrapHangingIndent', 'softWrapHangingIndentLength'],
   ['editor.softWrapAtPreferredLineLength', 'softWrapAtPreferredLineLength'],
