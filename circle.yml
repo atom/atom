@@ -24,7 +24,6 @@ dependencies:
     - npm install -g npm
 
   override:
-    - script/bootstrap
     - script/build --code-sign --compress-artifacts
 
   cache_directories:

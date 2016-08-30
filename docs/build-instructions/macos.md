@@ -12,7 +12,6 @@
 ```sh
 git clone https://github.com/atom/atom.git
 cd atom
-script/bootstrap
 script/build
 ```
 

@@ -25,7 +25,6 @@ You can run these commands using Command Prompt, PowerShell or Git Shell via [Gi
 cd C:\
 git clone https://github.com/atom/atom.git
 cd atom
-script\bootstrap
 script\build
 ```
 
@@ -56,10 +55,10 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 * `msbuild.exe failed with exit code: 1`
    * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
 
-* `script\bootstrap` or `script\build` stop with no error or warning shortly after displaying the versions of node, npm and Python
+* `script\build` stop with no error or warning shortly after displaying the versions of node, npm and Python
   * Make sure that the path where you have checked out Atom does not include a space. e.g. use `c:\atom` and not `c:\my stuff\atom`
 
-* `script\bootstrap` or `script\build` outputs only the Node.js and Python versions before returning
+* `script\build` outputs only the Node.js and Python versions before returning
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
     See [issue #2200](https://github.com/atom/atom/issues/2200).
 
@@ -73,14 +72,14 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
 * `'node_modules\.bin\npm' is not recognized as an internal or external command, operable program or batch file.`
    * This occurs if the previous build left things in a bad state. Run `script\clean` and then `script\build` again.
 
-* `script\bootstrap` stops at installing runas with `Failed at the runas@x.y.z install script.`
+* `script\build` stops at installing runas with `Failed at the runas@x.y.z install script.`
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\bootstrap` (re-open your command prompt or Powershell window if you set it using the GUI)
+  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\build` (re-open your command prompt or Powershell window if you set it using the GUI)
 
 * `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
-  * Try running `npm install -g node-gyp`, and run `script\bootstrap` again.
+  * Try running `npm install -g node-gyp`, and run `script\build` again.
 
 * Other `node-gyp` errors on first build attempt, even though the right Node.js and Python versions are installed.
   * Do try the build command one more time, as experience shows it often works on second try in many of these cases.
