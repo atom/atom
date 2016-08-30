@@ -29,6 +29,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 * `--compress-artifacts`: zips the generated application as `out/atom-{arch}.tar.gz`.
 * `--create-debian-package`: creates a .deb package as `out/atom-{arch}.deb`
 * `--create-rpm-package`: creates a .rpm package as `out/atom-{arch}.rpm`
+* `--install`: installs the application in `/usr/local/`.
 
 ### Ubuntu / Debian
 

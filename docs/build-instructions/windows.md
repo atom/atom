@@ -34,6 +34,7 @@ To also install the newly built application, use `script\build --create-windows-
 * `--code-sign`: signs the application with the GitHub certificate specified in `$WIN_P12KEY_URL`.
 * `--compress-artifacts`: zips the generated application as `out/atom-windows.zip` (requires 7-zip).
 * `--create-windows-installer`: creates an `.msi`, an `.exe` and a `.nupkg` installer in the `out/` directory.
+* `--install`: installs the application in `C:\Users\<user name>\AppData\Local\`.
 
 ## Do I have to use GitHub Desktop?
 
