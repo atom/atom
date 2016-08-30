@@ -126,7 +126,7 @@ class ApplicationDelegate
     loadSettings = getWindowLoadSettings()
     loadSettings['initialPaths'] = paths
     setWindowLoadSettings(loadSettings)
-    ipcRenderer.send("did-save-state")
+    ipcRenderer.send("did-change-paths")
 
 
   setAutoHideWindowMenuBar: (autoHide) ->

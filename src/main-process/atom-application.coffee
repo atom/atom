@@ -351,7 +351,7 @@ class AtomApplication
       @fileRecoveryService.didSavePath(@windowForEvent(event), path)
       event.returnValue = true
 
-    @disposable.add ipcHelpers.on ipcMain, 'did-save-state', =>
+    @disposable.add ipcHelpers.on ipcMain, 'did-change-paths', =>
       @saveState(false)
 
   setupDockMenu: ->
