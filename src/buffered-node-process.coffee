@@ -1,5 +1,4 @@
 BufferedProcess = require './buffered-process'
-electron = require 'electron'
 path = require 'path'
 
 # Extended: Like {BufferedProcess}, but accepts a Node script as the command
