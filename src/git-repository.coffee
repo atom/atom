@@ -316,7 +316,7 @@ class GitRepository
 
   # Public: Get the status of a single path in the repository.
   #
-  # `path` A {String} repository-relative path.
+  # * `path` A {String} repository-relative path.
   #
   # Returns a {Number} representing the status. This value can be passed to
   # {::isStatusModified} or {::isStatusNew} to get more information.
