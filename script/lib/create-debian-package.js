@@ -20,6 +20,8 @@ module.exports = function (packagedAppPath) {
     arch = 'i386'
   } else if (process.arch === 'x64') {
     arch = 'amd64'
+  } else if (process.arch === 'ppc') {
+    arch = 'powerpc'
   } else {
     arch = process.arch
   }
