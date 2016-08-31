@@ -185,6 +185,8 @@ class Workspace extends Model
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
     projectPath ?= projectPaths[0]
+    if projectPath?
+      projectPath = fs.tildify(projectPath)
 
     titleParts = []
     if item? and projectPath?
