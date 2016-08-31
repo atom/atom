@@ -51,7 +51,7 @@ describe('updateProcessEnv(launchEnv)', function () {
     })
 
     it('allows ATOM_HOME to be overwritten only if the new value is a valid path', function () {
-      newAtomHomePath = temp.mkdirSync('atom-home')
+      let newAtomHomePath = temp.mkdirSync('atom-home')
 
       process.env = {
         WILL_BE_DELETED: 'hi',
@@ -89,8 +89,6 @@ describe('updateProcessEnv(launchEnv)', function () {
     })
 
     it('allows ATOM_SUPPRESS_ENV_PATCHING to be preserved if set', function () {
-      newAtomHomePath = temp.mkdirSync('atom-home')
-
       process.env = {
         WILL_BE_DELETED: 'hi',
         NODE_ENV: 'the-node-env',
@@ -187,8 +185,22 @@ describe('updateProcessEnv(launchEnv)', function () {
       it('indicates when the environment should be fetched from the shell', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
         process.platform = 'linux'
         expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
       })
 
       it('returns false when the shell should not be patched', function () {
