@@ -39,7 +39,7 @@
     "key-path-helpers": "^0.4.0",
     "less-cache": "0.23",
     "line-top-index": "0.2.0",
-    "marked": "^0.3.5",
+    "marked": "^0.3.6",
     "mocha": "2.5.1",
     "normalize-package-data": "^2.0.0",
     "nslog": "^3",
