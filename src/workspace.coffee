@@ -2,6 +2,7 @@ _ = require 'underscore-plus'
 url = require 'url'
 path = require 'path'
 {join} = path
+tildify = require 'tildify'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'
 fs = require 'fs-plus'
 {Directory} = require 'pathwatcher'
@@ -185,6 +186,8 @@ class Workspace extends Model
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
     projectPath ?= projectPaths[0]
+    if projectPath?
+      projectPath = tildify(projectPath)
 
     titleParts = []
     if item? and projectPath?
