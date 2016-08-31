@@ -29,10 +29,12 @@ describe('updateProcessEnv(launchEnv)', function () {
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       }
+
       const initialProcessEnv = process.env
 
-      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
+      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
       expect(process.env).toEqual({
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
         PWD: '/the/dir',
         TERM: 'xterm-something',
         KEY1: 'value1',
@@ -58,32 +60,60 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something'})
+      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir'})
       expect(process.env).toEqual({
         PWD: '/the/dir',
-        TERM: 'xterm-something',
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
       expect(process.env).toEqual({
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
         PWD: '/the/dir',
-        TERM: 'xterm-something',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-
-      updateProcessEnv({PWD: '/the/dir', TERM: 'xterm-something', ATOM_HOME: newAtomHomePath})
+      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
       expect(process.env).toEqual({
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
         PWD: '/the/dir',
-        TERM: 'xterm-something',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: newAtomHomePath
+      })
+    })
+
+    it('allows ATOM_SUPPRESS_ENV_PATCHING to be preserved if set', function () {
+      newAtomHomePath = temp.mkdirSync('atom-home')
+
+      process.env = {
+        WILL_BE_DELETED: 'hi',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir'})
+      expect(process.env).toEqual({
+        PWD: '/the/dir',
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+      updateProcessEnv({PWD: '/the/dir'})
+      expect(process.env).toEqual({
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        PWD: '/the/dir',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
       })
     })
   })
@@ -119,7 +149,6 @@ describe('updateProcessEnv(launchEnv)', function () {
       it('updates process.env to match the environment in the user\'s login shell', function () {
         process.platform = 'linux'
         process.env.SHELL = '/my/custom/bash'
-        delete process.env.TERM
 
         spyOn(child_process, 'spawnSync').andReturn({
           stdout: dedent`
@@ -142,7 +171,7 @@ describe('updateProcessEnv(launchEnv)', function () {
       })
     })
 
-    describe('not on osx', function () {
+    describe('on windows', function () {
       it('does not update process.env', function () {
         process.platform = 'win32'
         spyOn(child_process, 'spawnSync')
@@ -158,36 +187,15 @@ describe('updateProcessEnv(launchEnv)', function () {
       it('indicates when the environment should be fetched from the shell', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
         process.platform = 'linux'
         expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
       })
 
       it('returns false when the shell should not be patched', function () {
         process.platform = 'darwin'
-        expect(shouldGetEnvFromShell({SHELL: '/bin/unsupported'})).toBe(false)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/shh'})).toBe(false)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/tcsh'})).toBe(false)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/csh'})).toBe(false)
-
+        expect(shouldGetEnvFromShell({ATOM_SUPPRESS_ENV_PATCHING: 'true', SHELL: '/bin/sh'})).toBe(false)
         process.platform = 'linux'
-        expect(shouldGetEnvFromShell({SHELL: '/bin/unsupported'})).toBe(false)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/shh'})).toBe(false)
-        expect(shouldGetEnvFromShell({SHELL: '/bin/tcsh'})).toBe(false)
-        expect(shouldGetEnvFromShell({SHELL: '/usr/csh'})).toBe(false)
+        expect(shouldGetEnvFromShell({ATOM_SUPPRESS_ENV_PATCHING: 'true', SHELL: '/bin/sh'})).toBe(false)
       })
 
       it('returns false when the shell is undefined or empty', function () {

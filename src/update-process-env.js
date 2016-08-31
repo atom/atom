@@ -6,14 +6,8 @@ import {spawnSync} from 'child_process'
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
   'NODE_PATH',
-  'ATOM_HOME'
-])
-
-const SHELLS_KNOWN_TO_WORK = new Set([
-  '/sh',
-  '/bash',
-  '/zsh',
-  '/fish'
+  'ATOM_HOME',
+  'ATOM_SUPPRESS_ENV_PATCHING'
 ])
 
 const PLATFORMS_KNOWN_TO_WORK = new Set([
@@ -23,10 +17,9 @@ const PLATFORMS_KNOWN_TO_WORK = new Set([
 
 function updateProcessEnv (launchEnv) {
   let envToAssign
-
   if (launchEnv && shouldGetEnvFromShell(launchEnv)) {
     envToAssign = getEnvFromShell(launchEnv)
-  } else if (launchEnv && launchEnv.PWD) { // Launched from shell
+  } else if (launchEnv && launchEnv.PWD) {
     envToAssign = launchEnv
   }
 
@@ -40,6 +33,10 @@ function updateProcessEnv (launchEnv) {
     for (let key in envToAssign) {
       if (!ENVIRONMENT_VARIABLES_TO_PRESERVE.has(key)) {
         process.env[key] = envToAssign[key]
+      } else {
+        if (!process.env[key] && envToAssign[key]) {
+          process.env[key] = envToAssign[key]
+        }
       }
     }
 
@@ -50,29 +47,19 @@ function updateProcessEnv (launchEnv) {
 }
 
 function shouldGetEnvFromShell (env) {
-  if (!PLATFORMS_KNOWN_TO_WORK.has(process.platform)) { // Untested platforms
+  if (!PLATFORMS_KNOWN_TO_WORK.has(process.platform)) {
     return false
   }
 
-  if (!env || !env.SHELL || env.SHELL.trim() === '') { // Nothing to launch
+  if (!env || !env.SHELL || env.SHELL.trim() === '') {
     return false
   }
 
-  if (process.platform === 'linux' && env.TERM) { // Launched from shell
+  if (env.ATOM_SUPPRESS_ENV_PATCHING || process.env.ATOM_SUPPRESS_ENV_PATCHING) {
     return false
   }
 
-  if (process.platform === 'darwin' && env.PWD) { // Launched from shell
-    return false
-  }
-
-  for (let s of SHELLS_KNOWN_TO_WORK) {
-    if (env.SHELL.endsWith(s)) {
-      return true
-    }
-  }
-
-  return false
+  return true
 }
 
 function getEnvFromShell (env) {

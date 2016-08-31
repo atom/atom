@@ -15,6 +15,8 @@ else
   BETA_VERSION=
 fi
 
+export ATOM_SUPPRESS_ENV_PATCHING=true
+
 while getopts ":wtfvh-:" opt; do
   case "$opt" in
     -)
