@@ -30,21 +30,13 @@ module.exports = {
 }
 
 function getChannel () {
-  if (appMetadata.version.match(/dev/) || isBuildingPR()) {
+  if (appMetadata.version.match(/dev/)) {
     return 'dev'
   } else if (appMetadata.version.match(/beta/)) {
     return 'beta'
   } else {
     return 'stable'
   }
-}
-
-function isBuildingPR () {
-  return (
-    process.env.APPVEYOR_PULL_REQUEST_NUMBER ||
-    process.env.TRAVIS_PULL_REQUEST ||
-    process.env.CI_PULL_REQUEST
-  )
 }
 
 function getApmBinPath () {
