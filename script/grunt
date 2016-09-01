@@ -1,6 +1,0 @@
-#!/usr/bin/env node
-var runGrunt = require('./utils/run-grunt.js');
-
-// build/node_modules/.bin/grunt "$@"
-var args = process.argv.slice(2);
-runGrunt(args, process.exit);

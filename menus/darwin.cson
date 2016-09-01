@@ -237,10 +237,10 @@
   ]
   'atom-pane': [
     {type: 'separator'}
-    {label: 'Split Up', command: 'pane:split-up'}
-    {label: 'Split Down', command: 'pane:split-down'}
-    {label: 'Split Left', command: 'pane:split-left'}
-    {label: 'Split Right', command: 'pane:split-right'}
+    {label: 'Split Up', command: 'pane:split-up-and-copy-active-item'}
+    {label: 'Split Down', command: 'pane:split-down-and-copy-active-item'}
+    {label: 'Split Left', command: 'pane:split-left-and-copy-active-item'}
+    {label: 'Split Right', command: 'pane:split-right-and-copy-active-item'}
     {label: 'Close Pane', command: 'pane:close'}
     {type: 'separator'}
   ]

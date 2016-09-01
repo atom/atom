@@ -12,7 +12,9 @@ machine:
 
 general:
   artifacts:
-    - out/Atom.zip
+    - out/atom-mac.zip
+    - out/atom-mac-symbols.zip
+    - docs/output/atom-api.json
 
 dependencies:
   pre:
@@ -20,26 +22,21 @@ dependencies:
     - nvm install 4.4.7
     - nvm use 4.4.7
     - npm install -g npm
-    - script/fingerprint-clean
 
   override:
-    - script/bootstrap
-
-  post:
-    - script/fingerprint-write
+    - script/build --code-sign --compress-artifacts
 
   cache_directories:
+    - electron
     - apm/node_modules
-    - build/node_modules
+    - script/node_modules
     - node_modules
     - ~/.atom/compile-cache
 
 test:
   override:
-    - caffeinate -s script/grunt ci # Run with caffeinate to prevent screen saver
-
-  post:
-    - zip -r out/Atom.zip out/Atom.app
+    - script/lint
+    - caffeinate -s script/test # Run with caffeinate to prevent screen saver
 
 experimental:
   notify:

@@ -55,8 +55,10 @@ fi
 if [ $OS == 'Mac' ]; then
   if [ -n "$BETA_VERSION" ]; then
     ATOM_APP_NAME="Atom Beta.app"
+    ATOM_EXECUTABLE_NAME="Atom Beta"
   else
     ATOM_APP_NAME="Atom.app"
+    ATOM_EXECUTABLE_NAME="Atom"
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
@@ -78,7 +80,7 @@ if [ $OS == 'Mac' ]; then
   fi
 
   if [ $EXPECT_OUTPUT ]; then
-    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
+    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/$ATOM_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
