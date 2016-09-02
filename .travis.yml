@@ -1,12 +1,10 @@
 git:
   depth: 10
 
-compiler: clang
-
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4.4.7 CXX=g++-5
+      env: NODE_VERSION=4.4.7 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: false
 
@@ -41,14 +39,10 @@ addons:
       - out/atom-amd64.tar.gz
     target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
     - build-essential
+    - clang-3.3
     - fakeroot
-    - gcc-multilib
-    - gcc-5
-    - g++-5
     - git
     - libgnome-keyring-dev
     - rpm
