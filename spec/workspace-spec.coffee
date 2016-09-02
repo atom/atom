@@ -1,5 +1,6 @@
 path = require 'path'
 temp = require 'temp'
+tildify = require 'tildify'
 Workspace = require '../src/workspace'
 Project = require '../src/project'
 Pane = require '../src/pane'
@@ -81,7 +82,7 @@ describe "Workspace", ->
           expect(untitledEditor.getText()).toBe("An untitled editor.")
 
           expect(atom.workspace.getActiveTextEditor().getPath()).toBe editor3.getPath()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{path.basename(editor3.getLongTitle())}\ \u2014\ #{pathEscaped}///
 
     describe "where there are no open panes or editors", ->
@@ -894,28 +895,28 @@ describe "Workspace", ->
       describe "when there is an active pane item", ->
         it "sets the title to the pane item's title plus the project path", ->
           item = atom.workspace.getActivePaneItem()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the title of the active pane item changes", ->
         it "updates the window title based on the item's new title", ->
           editor = atom.workspace.getActivePaneItem()
           editor.buffer.setPath(path.join(temp.dir, 'hi'))
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{editor.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the active pane's item changes", ->
         it "updates the title to the new item's title plus the project path", ->
           atom.workspace.getActivePane().activateNextItem()
           item = atom.workspace.getActivePaneItem()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{item.getTitle()}\ \u2014\ #{pathEscaped}///
 
       describe "when the last pane item is removed", ->
         it "updates the title to contain the project's path", ->
           atom.workspace.getActivePane().destroy()
           expect(atom.workspace.getActivePaneItem()).toBeUndefined()
-          pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+          pathEscaped = tildify(escapeStringRegex(atom.project.getPaths()[0]))
           expect(document.title).toMatch ///^#{pathEscaped}///
 
       describe "when an inactive pane's item changes", ->
@@ -941,7 +942,7 @@ describe "Workspace", ->
         })
         workspace2.deserialize(atom.workspace.serialize(), atom.deserializers)
         item = workspace2.getActivePaneItem()
-        pathEscaped = escapeStringRegex(atom.project.getPaths()[0])
+        pathEscaped = tildify(escapeStringRegex(atom.project.getPaths()[0]))
         expect(document.title).toMatch ///^#{item.getLongTitle()}\ \u2014\ #{pathEscaped}///
         workspace2.destroy()
 
