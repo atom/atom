@@ -223,9 +223,7 @@ describe('AtomApplication', function () {
       const window1 = atomApplication.launch(parseCommandLine([dirAPath, dirBPath]))
       await focusWindow(window1)
 
-      await new Promise(function (resolve) {
-        setTimeout(resolve, 1000)
-      })
+      await timeoutPromise(1000)
 
       let treeViewPaths = await evalInWebContents(window1.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(
