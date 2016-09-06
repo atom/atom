@@ -21,21 +21,18 @@ class TokenizedBufferIterator
 
     for tag, index in @currentTags
       if tag >= 0
-        if currentColumn is position.column
+        if currentColumn >= position.column
           @tagIndex = index
           break
         else
           currentColumn += tag
           @containingTags.pop() while @closeTags.shift()
           @containingTags.push(openTag) while openTag = @openTags.shift()
-          if currentColumn > position.column
-            @tagIndex = index
-            break
       else
         scopeName = @tokenizedBuffer.grammar.scopeForId(tag)
         if tag % 2 is 0 # close tag
           if @openTags.length > 0
-            if currentColumn is position.column
+            if currentColumn >= position.column
               @tagIndex = index
               break
             else
