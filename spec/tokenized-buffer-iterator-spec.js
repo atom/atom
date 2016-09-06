@@ -8,10 +8,14 @@ describe('TokenizedBufferIterator', () => {
     it('seeks to the leftmost tag boundary at the given position, returning the containing tags', function () {
       const tokenizedBuffer = {
         tokenizedLineForRow (row) {
-          return {
-            tags: [-1, -2, -3, -4, -5, 3, -3, -4, -6],
-            text: 'foo',
-            openScopes: []
+          if (row === 0) {
+            return {
+              tags: [-1, -2, -3, -4, -5, 3, -3, -4, -6, 4],
+              text: 'foo bar',
+              openScopes: []
+            }
+          } else {
+            return null
           }
         },
 
@@ -29,6 +33,7 @@ describe('TokenizedBufferIterator', () => {
       const iterator = new TokenizedBufferIterator(tokenizedBuffer)
 
       expect(iterator.seek(Point(0, 0))).toEqual([])
+      expect(iterator.getPosition()).toEqual(Point(0, 0))
       expect(iterator.getCloseTags()).toEqual([])
       expect(iterator.getOpenTags()).toEqual(['foo'])
 
@@ -37,19 +42,28 @@ describe('TokenizedBufferIterator', () => {
       expect(iterator.getOpenTags()).toEqual(['bar'])
 
       expect(iterator.seek(Point(0, 1))).toEqual(['baz'])
+      expect(iterator.getPosition()).toEqual(Point(0, 3))
       expect(iterator.getCloseTags()).toEqual([])
+      expect(iterator.getOpenTags()).toEqual(['bar'])
+
+      iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual(Point(0, 3))
+      expect(iterator.getCloseTags()).toEqual(['bar', 'baz'])
+      expect(iterator.getOpenTags()).toEqual([])
+
+      expect(iterator.seek(Point(0, 3))).toEqual(['baz'])
+      expect(iterator.getPosition()).toEqual(Point(0, 3))
+      expect(iterator.getCloseTags()).toEqual([])
+      expect(iterator.getOpenTags()).toEqual(['bar'])
+
+      iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual(Point(0, 3))
+      expect(iterator.getCloseTags()).toEqual(['bar', 'baz'])
       expect(iterator.getOpenTags()).toEqual([])
 
       iterator.moveToSuccessor()
+      expect(iterator.getPosition()).toEqual(Point(1, 0))
       expect(iterator.getCloseTags()).toEqual([])
-      expect(iterator.getOpenTags()).toEqual(['bar'])
-
-      expect(iterator.seek(Point(0, 3))).toEqual(['baz'])
-      expect(iterator.getCloseTags()).toEqual([])
-      expect(iterator.getOpenTags()).toEqual(['bar'])
-
-      iterator.moveToSuccessor()
-      expect(iterator.getCloseTags()).toEqual(['bar', 'baz'])
       expect(iterator.getOpenTags()).toEqual([])
     })
   })
