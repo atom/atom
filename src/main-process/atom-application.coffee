@@ -96,11 +96,10 @@ class AtomApplication
     @launch(options)
 
   destroy: ->
-    @disposable.dispose()
     windowsClosePromises = @windows.map (window) ->
       window.close()
       window.closedPromise
-    Promise.all(windowsClosePromises)
+    Promise.all(windowsClosePromises).then(=> @disposable.dispose())
 
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
@@ -233,8 +232,11 @@ class AtomApplication
     @openPathOnEvent('application:open-your-stylesheet', 'atom://.atom/stylesheet')
     @openPathOnEvent('application:open-license', path.join(process.resourcesPath, 'LICENSE.md'))
 
-    @disposable.add ipcHelpers.on app, 'before-quit', =>
-      @quitting = true
+    @disposable.add ipcHelpers.on app, 'before-quit', (event) =>
+      unless @quitting
+        event.preventDefault()
+        @quitting = true
+        Promise.all(@windows.map((window) -> window.saveState())).then(-> app.quit())
 
     @disposable.add ipcHelpers.on app, 'will-quit', =>
       @killAllProcesses()
@@ -322,6 +324,8 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'did-cancel-window-unload', =>
       @quitting = false
+      for window in @windows
+        window.didCancelWindowUnload()
 
     clipboard = require '../safe-clipboard'
     @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->

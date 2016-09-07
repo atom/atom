@@ -1,4 +1,4 @@
-{BrowserWindow, app, dialog} = require 'electron'
+{BrowserWindow, app, dialog, ipcMain} = require 'electron'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -128,8 +128,12 @@ class AtomWindow
         false
 
   handleEvents: ->
-    @browserWindow.on 'close', =>
-      @atomApplication.saveState(false)
+    @browserWindow.on 'close', (event) =>
+      unless @atomApplication.quitting or @unloading
+        event.preventDefault()
+        @unloading = true
+        @atomApplication.saveState(false)
+        @saveState().then(=> @close())
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
@@ -169,6 +173,18 @@ class AtomWindow
       # Spec window's web view should always have focus
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
+
+  didCancelWindowUnload: ->
+    @unloading = false
+
+  saveState: ->
+    new Promise (resolve) =>
+      callback = (event) =>
+        if BrowserWindow.fromWebContents(event.sender) is @browserWindow
+          ipcMain.removeListener('did-save-window-state', callback)
+          resolve()
+      ipcMain.on('did-save-window-state', callback)
+      @browserWindow.webContents.send('save-window-state')
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])

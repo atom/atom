@@ -674,6 +674,10 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+        @disposables.add @applicationDelegate.onSaveWindowState =>
+          callback = => @applicationDelegate.didSaveWindowState()
+          @saveState({isUnloading: true}).catch(callback).then(callback)
+
         @listenForUpdates()
 
         @registerDefaultTargetForKeymaps()
@@ -713,7 +717,6 @@ class AtomEnvironment extends Model
   unloadEditorWindow: ->
     return if not @project
 
-    @saveState({isUnloading: true})
     @storeWindowBackground()
     @packages.deactivatePackages()
     @saveBlobStoreSync()
@@ -851,18 +854,17 @@ class AtomEnvironment extends Model
     @blobStore.save()
 
   saveState: (options) ->
-    return Promise.resolve() unless @enablePersistence
-
     new Promise (resolve, reject) =>
-      return if not @project
-
-      state = @serialize(options)
-      savePromise =
-        if storageKey = @getStateKey(@project?.getPaths())
-          @stateStore.save(storageKey, state)
-        else
-          @applicationDelegate.setTemporaryWindowState(state)
-      savePromise.catch(reject).then(resolve)
+      if @enablePersistence and @project
+        state = @serialize(options)
+        savePromise =
+          if storageKey = @getStateKey(@project?.getPaths())
+            @stateStore.save(storageKey, state)
+          else
+            @applicationDelegate.setTemporaryWindowState(state)
+        savePromise.catch(reject).then(resolve)
+      else
+        resolve()
 
   loadState: ->
     if @enablePersistence

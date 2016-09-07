@@ -228,7 +228,7 @@ describe "AtomEnvironment", ->
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
       expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
-    it "saves state immediately when unloading the editor window, ignoring pending and successive mousedown/keydown events", ->
+    it "ignores mousedown/keydown events happening after calling unloadEditorWindow", ->
       spyOn(atom, 'saveState')
       idleCallbacks = []
       spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
@@ -236,15 +236,12 @@ describe "AtomEnvironment", ->
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       atom.unloadEditorWindow()
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
-      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalled()
 
-      atom.saveState.reset()
       advanceClock atom.saveStateDebounceInterval
       idleCallbacks.shift()()
       expect(atom.saveState).not.toHaveBeenCalled()
 
-      atom.saveState.reset()
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
