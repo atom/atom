@@ -125,11 +125,6 @@ buildAtomClient = (args, env) ->
       @execute "atom.commands.dispatch(document.activeElement, '#{command}')"
       .call(done)
 
-    .addCommand "simulateQuit", (done) ->
-      @execute -> atom.unloadEditorWindow()
-      .execute -> require("electron").remote.app.emit("before-quit")
-      .call(done)
-
 module.exports = (args, env, fn) ->
   [chromedriver, chromedriverLogs, chromedriverExit] = []
 
@@ -154,9 +149,7 @@ module.exports = (args, env, fn) ->
 
   waitsFor("tests to run", (done) ->
     finish = once ->
-      client
-        .simulateQuit()
-        .end()
+      client.end()
         .then(-> chromedriver.kill())
         .then(chromedriverExit.then(
           (errorCode) ->
