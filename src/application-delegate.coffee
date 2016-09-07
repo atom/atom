@@ -244,7 +244,7 @@ class ApplicationDelegate
     new Disposable ->
       ipcRenderer.removeListener('context-command', outerCallback)
 
-  onSaveWindowState: (callback) ->
+  onSaveWindowStateRequest: (callback) ->
     outerCallback = (event, message) ->
       callback(event)
 
