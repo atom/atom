@@ -407,7 +407,7 @@ describe "AtomEnvironment", ->
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
       subscription = atom.onUpdateAvailable updateAvailableHandler
 
-      autoUpdater = require('electron').remote.require('auto-updater')
+      autoUpdater = require('electron').remote.autoUpdater
       autoUpdater.emit 'update-downloaded', null, "notes", "version"
 
       waitsFor ->

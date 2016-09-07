@@ -37,7 +37,7 @@ if (process.platform === 'win32') {
 
 // The following classes can't be used from a Task handler and should therefore
 // only be exported when not running as a child node process
-if (!process.env.ATOM_SHELL_INTERNAL_RUN_AS_NODE) {
+if (process.type === 'renderer') {
   atomExport.Task = require('../src/task')
 
   const TextEditor = (params) => {

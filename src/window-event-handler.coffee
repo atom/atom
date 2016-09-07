@@ -164,7 +164,8 @@ class WindowEventHandler
     else
       @applicationDelegate.didCancelWindowUnload()
 
-    confirmed
+    # Returning any non-void value stops the window from unloading
+    return true unless confirmed
 
   handleWindowUnload: =>
     @atomEnvironment.destroy()
