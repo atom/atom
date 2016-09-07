@@ -14,9 +14,10 @@ const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 describe('AtomApplication', function () {
   this.timeout(60 * 1000)
 
-  let originalAtomHome, atomApplicationsToDestroy
+  let originalAppQuit, originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
+    originalAppQuit = electron.app.quit
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
@@ -31,6 +32,7 @@ describe('AtomApplication', function () {
   })
 
   afterEach(async function () {
+    electron.app.quit = originalAppQuit
     process.env.ATOM_HOME = originalAtomHome
     for (let atomApplication of atomApplicationsToDestroy) {
       await atomApplication.destroy()
@@ -368,6 +370,23 @@ describe('AtomApplication', function () {
     })
   })
 
+  describe('before quitting', function () {
+    it('waits until all the windows have saved their state and then quits', async function () {
+      mockElectronAppQuit()
+      const dirAPath = makeTempDir("a")
+      const dirBPath = makeTempDir("b")
+      const atomApplication = buildAtomApplication()
+      const window1 = atomApplication.launch(parseCommandLine([path.join(dirAPath, 'file-a')]))
+      await focusWindow(window1)
+      const window2 = atomApplication.launch(parseCommandLine([path.join(dirBPath, 'file-b')]))
+      await focusWindow(window2)
+      electron.app.quit()
+      assert(!electron.app.hasQuitted())
+      await Promise.all([window1.lastSaveStatePromise, window2.lastSaveStatePromise])
+      assert(electron.app.hasQuitted())
+    })
+  })
+
   function buildAtomApplication () {
     const atomApplication = new AtomApplication({
       resourcePath: ATOM_RESOURCE_PATH,
@@ -381,6 +400,20 @@ describe('AtomApplication', function () {
     window.focus()
     await window.loadedPromise
     await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
+  }
+
+  function mockElectronAppQuit () {
+    let quitted = false
+    electron.app.quit = function () {
+      let shouldQuit = true
+      electron.app.emit('before-quit', {preventDefault: () => { shouldQuit = false }})
+      if (shouldQuit) {
+        quitted = true
+      }
+    }
+    electron.app.hasQuitted = function () {
+      return quitted
+    }
   }
 
   function makeTempDir (name) {

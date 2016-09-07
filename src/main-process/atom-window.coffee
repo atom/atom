@@ -178,13 +178,14 @@ class AtomWindow
     @unloading = false
 
   saveState: ->
-    new Promise (resolve) =>
+    @lastSaveStatePromise = new Promise (resolve) =>
       callback = (event) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
           ipcMain.removeListener('did-save-window-state', callback)
           resolve()
       ipcMain.on('did-save-window-state', callback)
       @browserWindow.webContents.send('save-window-state')
+    @lastSaveStatePromise
 
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
