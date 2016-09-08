@@ -29,11 +29,14 @@ describe('updateProcessEnv(launchEnv)', function () {
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       }
+
       const initialProcessEnv = process.env
 
-      updateProcessEnv({PWD: '/the/dir', KEY1: 'value1', KEY2: 'value2'})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
       expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
+        TERM: 'xterm-something',
         KEY1: 'value1',
         KEY2: 'value2',
         NODE_ENV: 'the-node-env',
@@ -48,7 +51,7 @@ describe('updateProcessEnv(launchEnv)', function () {
     })
 
     it('allows ATOM_HOME to be overwritten only if the new value is a valid path', function () {
-      newAtomHomePath = temp.mkdirSync('atom-home')
+      let newAtomHomePath = temp.mkdirSync('atom-home')
 
       process.env = {
         WILL_BE_DELETED: 'hi',
@@ -57,30 +60,83 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({PWD: '/the/dir'})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir'})
       expect(process.env).toEqual({
+        PWD: '/the/dir',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
       expect(process.env).toEqual({
-        PWD: '/the/dir',
-        NODE_ENV: 'the-node-env',
-        NODE_PATH: '/the/node/path',
-        ATOM_HOME: '/the/atom/home'
-      })
-
-
-      updateProcessEnv({PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
-      expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: newAtomHomePath
       })
+    })
+
+    it('allows ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT to be preserved if set', function () {
+      process.env = {
+        WILL_BE_DELETED: 'hi',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
+      expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        PWD: '/the/dir',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+
+      updateProcessEnv({PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
+      expect(process.env).toEqual({
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        PWD: '/the/dir',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      })
+    })
+
+    it('allows an existing env variable to be updated', function () {
+      process.env = {
+        WILL_BE_UPDATED: 'old-value',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      updateProcessEnv(process.env)
+      expect(process.env).toEqual(process.env)
+
+      let updatedEnv = {
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
+        WILL_BE_UPDATED: 'new-value',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home',
+        PWD: '/the/dir'
+      }
+
+      updateProcessEnv(updatedEnv)
+      expect(process.env).toEqual(updatedEnv)
     })
   })
 
@@ -111,7 +167,33 @@ describe('updateProcessEnv(launchEnv)', function () {
       })
     })
 
-    describe('not on osx', function () {
+    describe('on linux', function () {
+      it('updates process.env to match the environment in the user\'s login shell', function () {
+        process.platform = 'linux'
+        process.env.SHELL = '/my/custom/bash'
+
+        spyOn(child_process, 'spawnSync').andReturn({
+          stdout: dedent`
+            FOO=BAR=BAZ=QUUX
+            TERM=xterm-something
+            PATH=/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path
+          `
+        })
+
+        updateProcessEnv(process.env)
+        expect(child_process.spawnSync.mostRecentCall.args[0]).toBe('/my/custom/bash')
+        expect(process.env).toEqual({
+          FOO: 'BAR=BAZ=QUUX',
+          TERM: 'xterm-something',
+          PATH: '/usr/bin:/bin:/usr/sbin:/sbin:/crazy/path'
+        })
+
+        // Doesn't error
+        updateProcessEnv(null)
+      })
+    })
+
+    describe('on windows', function () {
       it('does not update process.env', function () {
         process.platform = 'win32'
         spyOn(child_process, 'spawnSync')
@@ -124,30 +206,42 @@ describe('updateProcessEnv(launchEnv)', function () {
     })
 
     describe('shouldGetEnvFromShell()', function () {
-      it('returns the shell when the shell should be patched', function () {
+      it('indicates when the environment should be fetched from the shell', function () {
         process.platform = 'darwin'
-        expect(shouldGetEnvFromShell('/bin/sh')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/sh')).toBe(true)
-        expect(shouldGetEnvFromShell('/bin/bash')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/bash')).toBe(true)
-        expect(shouldGetEnvFromShell('/bin/zsh')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/zsh')).toBe(true)
-        expect(shouldGetEnvFromShell('/bin/fish')).toBe(true)
-        expect(shouldGetEnvFromShell('/usr/local/bin/fish')).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
+        process.platform = 'linux'
+        expect(shouldGetEnvFromShell({SHELL: '/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/sh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/bash'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/zsh'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/bin/fish'})).toBe(true)
+        expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
       })
 
-      it('returns false when the shell should not be patched', function () {
+      it('returns false when the environment indicates that Atom was launched from a shell', function () {
         process.platform = 'darwin'
-        expect(shouldGetEnvFromShell('/bin/unsupported')).toBe(false)
-        expect(shouldGetEnvFromShell('/bin/shh')).toBe(false)
-        expect(shouldGetEnvFromShell('/bin/tcsh')).toBe(false)
-        expect(shouldGetEnvFromShell('/usr/csh')).toBe(false)
+        expect(shouldGetEnvFromShell({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', SHELL: '/bin/sh'})).toBe(false)
+        process.platform = 'linux'
+        expect(shouldGetEnvFromShell({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', SHELL: '/bin/sh'})).toBe(false)
       })
 
       it('returns false when the shell is undefined or empty', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell(undefined)).toBe(false)
-        expect(shouldGetEnvFromShell('')).toBe(false)
+        expect(shouldGetEnvFromShell({})).toBe(false)
+
+        process.platform = 'linux'
+        expect(shouldGetEnvFromShell(undefined)).toBe(false)
+        expect(shouldGetEnvFromShell({})).toBe(false)
       })
     })
   })
