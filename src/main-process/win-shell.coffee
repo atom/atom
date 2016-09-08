@@ -39,7 +39,7 @@ class ShellOption
   update: (callback) =>
     new Registry({hive: 'HKCU', key: "#{@key}\\#{@parts[0].key}"})
       .get @parts[0].name, (err, val) =>
-        if err? or not val? or val.value.includes '\\' + exeName
+        if err? or not val?
           callback(err)
         else
           @register callback

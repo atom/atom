@@ -144,8 +144,9 @@ exports.handleStartupEvent = (app, squirrelCommand) ->
     when '--squirrel-updated'
       updateShortcuts ->
         addCommandsToPath ->
-          updateContextMenus ->
-            app.quit()
+          WinShell.fileHandler.update ->
+            updateContextMenus ->
+              app.quit()
       true
     when '--squirrel-uninstall'
       removeShortcuts ->
