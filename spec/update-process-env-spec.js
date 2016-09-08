@@ -32,9 +32,9 @@ describe('updateProcessEnv(launchEnv)', function () {
 
       const initialProcessEnv = process.env
 
-      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', TERM: 'xterm-something', KEY1: 'value1', KEY2: 'value2'})
       expect(process.env).toEqual({
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         TERM: 'xterm-something',
         KEY1: 'value1',
@@ -60,27 +60,27 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir'})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir'})
       expect(process.env).toEqual({
         PWD: '/the/dir',
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: path.join(newAtomHomePath, 'non-existent')})
       expect(process.env).toEqual({
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', ATOM_HOME: newAtomHomePath})
       expect(process.env).toEqual({
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
@@ -88,7 +88,7 @@ describe('updateProcessEnv(launchEnv)', function () {
       })
     })
 
-    it('allows ATOM_SUPPRESS_ENV_PATCHING to be preserved if set', function () {
+    it('allows ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT to be preserved if set', function () {
       process.env = {
         WILL_BE_DELETED: 'hi',
         NODE_ENV: 'the-node-env',
@@ -96,9 +96,9 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
+      updateProcessEnv({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
       expect(process.env).toEqual({
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
@@ -107,7 +107,7 @@ describe('updateProcessEnv(launchEnv)', function () {
 
       updateProcessEnv({PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
       expect(process.env).toEqual({
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
@@ -127,7 +127,7 @@ describe('updateProcessEnv(launchEnv)', function () {
       expect(process.env).toEqual(process.env)
 
       let updatedEnv = {
-        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true',
         WILL_BE_UPDATED: 'new-value',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
@@ -229,9 +229,9 @@ describe('updateProcessEnv(launchEnv)', function () {
 
       it('returns false when the environment indicates that Atom was launched from a shell', function () {
         process.platform = 'darwin'
-        expect(shouldGetEnvFromShell({ATOM_SUPPRESS_ENV_PATCHING: 'true', SHELL: '/bin/sh'})).toBe(false)
+        expect(shouldGetEnvFromShell({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', SHELL: '/bin/sh'})).toBe(false)
         process.platform = 'linux'
-        expect(shouldGetEnvFromShell({ATOM_SUPPRESS_ENV_PATCHING: 'true', SHELL: '/bin/sh'})).toBe(false)
+        expect(shouldGetEnvFromShell({ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT: 'true', SHELL: '/bin/sh'})).toBe(false)
       })
 
       it('returns false when the shell is undefined or empty', function () {

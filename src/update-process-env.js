@@ -7,7 +7,7 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
   'NODE_PATH',
   'ATOM_HOME',
-  'ATOM_SUPPRESS_ENV_PATCHING'
+  'ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT'
 ])
 
 const PLATFORMS_KNOWN_TO_WORK = new Set([
@@ -51,7 +51,7 @@ function shouldGetEnvFromShell (env) {
     return false
   }
 
-  if (env.ATOM_SUPPRESS_ENV_PATCHING || process.env.ATOM_SUPPRESS_ENV_PATCHING) {
+  if (env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT || process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT) {
     return false
   }
 
