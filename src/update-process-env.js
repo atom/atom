@@ -31,12 +31,8 @@ function updateProcessEnv (launchEnv) {
     }
 
     for (let key in envToAssign) {
-      if (!ENVIRONMENT_VARIABLES_TO_PRESERVE.has(key)) {
+      if (!ENVIRONMENT_VARIABLES_TO_PRESERVE.has(key) || (!process.env[key] && envToAssign[key])) {
         process.env[key] = envToAssign[key]
-      } else {
-        if (!process.env[key] && envToAssign[key]) {
-          process.env[key] = envToAssign[key]
-        }
       }
     }
 
