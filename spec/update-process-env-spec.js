@@ -96,16 +96,16 @@ describe('updateProcessEnv(launchEnv)', function () {
         ATOM_HOME: '/the/atom/home'
       }
 
-      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir'})
+      updateProcessEnv({ATOM_SUPPRESS_ENV_PATCHING: 'true', PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
       expect(process.env).toEqual({
-        PWD: '/the/dir',
         ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        PWD: '/the/dir',
         NODE_ENV: 'the-node-env',
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
 
-      updateProcessEnv({PWD: '/the/dir'})
+      updateProcessEnv({PWD: '/the/dir', NODE_ENV: 'the-node-env', NODE_PATH: '/the/node/path', ATOM_HOME: '/the/atom/home'})
       expect(process.env).toEqual({
         ATOM_SUPPRESS_ENV_PATCHING: 'true',
         PWD: '/the/dir',
@@ -113,6 +113,30 @@ describe('updateProcessEnv(launchEnv)', function () {
         NODE_PATH: '/the/node/path',
         ATOM_HOME: '/the/atom/home'
       })
+    })
+
+    it('allows an existing env variable to be updated', function () {
+      process.env = {
+        WILL_BE_UPDATED: 'old-value',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home'
+      }
+
+      updateProcessEnv(process.env)
+      expect(process.env).toEqual(process.env)
+
+      let updatedEnv = {
+        ATOM_SUPPRESS_ENV_PATCHING: 'true',
+        WILL_BE_UPDATED: 'new-value',
+        NODE_ENV: 'the-node-env',
+        NODE_PATH: '/the/node/path',
+        ATOM_HOME: '/the/atom/home',
+        PWD: '/the/dir'
+      }
+
+      updateProcessEnv(updatedEnv)
+      expect(process.env).toEqual(updatedEnv)
     })
   })
 
@@ -203,7 +227,7 @@ describe('updateProcessEnv(launchEnv)', function () {
         expect(shouldGetEnvFromShell({SHELL: '/usr/local/bin/fish'})).toBe(true)
       })
 
-      it('returns false when the shell should not be patched', function () {
+      it('returns false when the environment indicates that Atom was launched from a shell', function () {
         process.platform = 'darwin'
         expect(shouldGetEnvFromShell({ATOM_SUPPRESS_ENV_PATCHING: 'true', SHELL: '/bin/sh'})).toBe(false)
         process.platform = 'linux'
