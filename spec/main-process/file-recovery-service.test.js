@@ -5,6 +5,7 @@ import FileRecoveryService from '../../src/main-process/file-recovery-service'
 import temp from 'temp'
 import fs from 'fs-plus'
 import sinon from 'sinon'
+import {escapeRegExp} from 'underscore-plus'
 
 describe("FileRecoveryService", () => {
   let recoveryService, recoveryDirectory
@@ -110,8 +111,8 @@ describe("FileRecoveryService", () => {
       let recoveryFiles = fs.listTreeSync(recoveryDirectory)
       assert.equal(recoveryFiles.length, 1)
       assert.equal(logs.length, 1)
-      assert.match(logs[0], new RegExp(filePath))
-      assert.match(logs[0], new RegExp(recoveryFiles[0]))
+      assert.match(logs[0], new RegExp(escapeRegExp(filePath)))
+      assert.match(logs[0], new RegExp(escapeRegExp(recoveryFiles[0])))
     }))
   })
 
