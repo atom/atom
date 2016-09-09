@@ -64,10 +64,6 @@ function start () {
     app.removeListener('open-url', addUrlToOpen)
     const AtomApplication = require(path.join(args.resourcePath, 'src', 'main-process', 'atom-application'))
     AtomApplication.open(args)
-
-    if (!args.test) {
-      console.log(`App load time: ${Date.now() - global.shellStartTime}ms`)
-    }
   })
 }
 
