@@ -48,8 +48,8 @@ exports.appName = appName
 
 exports.fileHandler = new ShellOption("\\Software\\Classes\\Applications\\#{exeName}",
   [
-    {key: 'shell\\open', name: 'FriendlyAppName', value: "#{appName}"},
-    {key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""}
+    {key: 'shell\\open\\command', name: '', value: "#{appPath} \"%1\""},
+    {key: 'shell\\open', name: 'FriendlyAppName', value: "#{appName}"}
   ]
 )
 
