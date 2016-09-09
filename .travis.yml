@@ -4,9 +4,12 @@ git:
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=4.4.7 CC=clang CXX=clang++ npm_config_clang=1
+      env: NODE_VERSION=4.4.7 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: false
+
+before_install:
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
 
 install:
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm
@@ -16,7 +19,7 @@ install:
   - npm install -g npm
   - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
-script: true
+script: script/test
 
 cache:
   directories:

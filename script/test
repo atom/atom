@@ -3,17 +3,26 @@
 'use strict'
 
 require('colors')
+const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
 const fs = require('fs')
+const glob = require('glob')
 const path = require('path')
 
 const CONFIG = require('./config')
 
-const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
-const packagedAppPath = path.resolve(__dirname, '..', 'out', `${appName}.app`)
-const executablePath = path.join(packagedAppPath, 'Contents', 'MacOS', appName)
 const resourcePath = CONFIG.repositoryRootPath
+let executablePath
+if (process.platform === 'darwin') {
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '*.app'))
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  executablePath = path.join(executablePaths[0], 'Contents', 'MacOS', path.basename(executablePaths[0], '.app'))
+} else if (process.platform === 'linux') {
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom'))
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  executablePath = executablePaths[0]
+}
 
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
@@ -68,7 +77,12 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   })
 }
 
-const testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+let testSuitesToRun
+if (process.platform === 'darwin') {
+  testSuitesToRun = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+} else {
+  testSuitesToRun = [runCoreMainProcessTests]
+}
 
 async.series(testSuitesToRun, function (err, exitCodes) {
   if (err) {

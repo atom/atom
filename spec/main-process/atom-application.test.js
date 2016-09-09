@@ -17,7 +17,6 @@ describe('AtomApplication', function () {
   let originalPlatform, originalAppQuit, originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
-    originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
     originalAppQuit = electron.app.quit
     mockElectronAppQuit()
     originalAtomHome = process.env.ATOM_HOME
@@ -34,13 +33,12 @@ describe('AtomApplication', function () {
   })
 
   afterEach(async function () {
-    Object.defineProperty(process, 'platform', originalPlatform)
-    electron.app.quit = originalAppQuit
     process.env.ATOM_HOME = originalAtomHome
     for (let atomApplication of atomApplicationsToDestroy) {
       await atomApplication.destroy()
     }
     await clearElectronSession()
+    electron.app.quit = originalAppQuit
   })
 
   describe('launch', function () {
@@ -95,22 +93,24 @@ describe('AtomApplication', function () {
       assert.equal(openedPath, filePath)
     })
 
-    it('positions new windows at an offset distance from the previous window', async function () {
-      const atomApplication = buildAtomApplication()
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      it('positions new windows at an offset distance from the previous window', async function () {
+        const atomApplication = buildAtomApplication()
 
-      const window1 = atomApplication.launch(parseCommandLine([makeTempDir()]))
-      await focusWindow(window1)
-      window1.browserWindow.setBounds({width: 400, height: 400, x: 0, y: 0})
+        const window1 = atomApplication.launch(parseCommandLine([makeTempDir()]))
+        await focusWindow(window1)
+        window1.browserWindow.setBounds({width: 400, height: 400, x: 0, y: 0})
 
-      const window2 = atomApplication.launch(parseCommandLine([makeTempDir()]))
-      await focusWindow(window2)
+        const window2 = atomApplication.launch(parseCommandLine([makeTempDir()]))
+        await focusWindow(window2)
 
-      assert.notEqual(window1, window2)
-      window1Dimensions = window1.getDimensions()
-      window2Dimensions = window2.getDimensions()
-      assert.isAbove(window2Dimensions.x, window1Dimensions.x)
-      assert.isAbove(window2Dimensions.y, window1Dimensions.y)
-    })
+        assert.notEqual(window1, window2)
+        const window1Dimensions = window1.getDimensions()
+        const window2Dimensions = window2.getDimensions()
+        assert.isAbove(window2Dimensions.x, window1Dimensions.x)
+        assert.isAbove(window2Dimensions.y, window1Dimensions.y)
+      })
+    }
 
     it('reuses existing windows when opening paths, but not directories', async function () {
       const dirAPath = makeTempDir("a")
