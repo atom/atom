@@ -37,6 +37,10 @@ exports.compile = function (sourceCode, filePath) {
     TypeScriptSimple = require('typescript-simple').TypeScriptSimple
   }
 
+  if (process.platform === 'win32') {
+    filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/')
+  }
+
   var options = _.defaults({filename: filePath}, defaultOptions)
   return new TypeScriptSimple(options, false).compile(sourceCode, filePath)
 }
