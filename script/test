@@ -22,6 +22,12 @@ if (process.platform === 'darwin') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom'))
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = executablePaths[0]
+} else if (process.platform === 'win32') {
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom.exe'))
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  executablePath = executablePaths[0]
+} else {
+  throw new Error('Running tests on this platform is not supported.')
 }
 
 function runCoreMainProcessTests (callback) {
