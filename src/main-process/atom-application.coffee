@@ -96,13 +96,10 @@ class AtomApplication
     @launch(options)
 
   destroy: ->
-    console.log('application-destroy\n')
     windowsClosePromises = @windows.map (window) ->
       window.close()
       window.closedPromise
-    console.log('application-destroy promising\n')
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
-    console.log('application-destroy complete\n')
 
   launch: (options) ->
     if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
@@ -326,11 +323,9 @@ class AtomApplication
       win.temporaryState = state
 
     @disposable.add ipcHelpers.on ipcMain, 'did-cancel-window-unload', =>
-      console.log('did-cancel-window-unload\n')
       @quitting = false
       for window in @windows
         window.didCancelWindowUnload()
-      console.log('did-cancel-window-unload done\n')
 
     clipboard = require '../safe-clipboard'
     @disposable.add ipcHelpers.on ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) ->

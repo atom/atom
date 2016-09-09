@@ -854,21 +854,16 @@ class AtomEnvironment extends Model
     @blobStore.save()
 
   saveState: (options) ->
-    console.log('environment.saveState\n')
     new Promise (resolve, reject) =>
       if @enablePersistence and @project
         state = @serialize(options)
-        console.log('environment.saveState serialized\n')
         savePromise =
           if storageKey = @getStateKey(@project?.getPaths())
             @stateStore.save(storageKey, state)
-            console.log('environment.saveState saved\n')
           else
             @applicationDelegate.setTemporaryWindowState(state)
-        console.log('environment.saveState caching\n')
         savePromise.catch(reject).then(resolve)
       else
-        console.log('environment.saveState resolving\n')
         resolve()
 
   loadState: ->
