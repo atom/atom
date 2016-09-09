@@ -14,10 +14,12 @@ const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 describe('AtomApplication', function () {
   this.timeout(60 * 1000)
 
-  let originalAppQuit, originalAtomHome, atomApplicationsToDestroy
+  let originalPlatform, originalAppQuit, originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
+    originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
     originalAppQuit = electron.app.quit
+    mockElectronAppQuit()
     originalAtomHome = process.env.ATOM_HOME
     process.env.ATOM_HOME = makeTempDir('atom-home')
     // Symlinking the compile cache into the temporary home dir makes the windows load much faster
@@ -32,6 +34,7 @@ describe('AtomApplication', function () {
   })
 
   afterEach(async function () {
+    Object.defineProperty(process, 'platform', originalPlatform)
     electron.app.quit = originalAppQuit
     process.env.ATOM_HOME = originalAtomHome
     for (let atomApplication of atomApplicationsToDestroy) {
@@ -366,11 +369,48 @@ describe('AtomApplication', function () {
       await focusWindow(app2Window)
       assert.deepEqual(await getTreeViewRootDirectories(app2Window), [])
     })
+
+    describe('when closing the last window', function () {
+      describe('on win32', function () {
+        it('quits the application', async function () {
+          const atomApplication = buildAtomApplication()
+          Object.defineProperty(process, 'platform', {get: () => 'win32'})
+          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          await focusWindow(window)
+          window.close()
+          await window.closedPromise
+          assert(electron.app.hasQuitted())
+        })
+      })
+
+      describe('on linux', function () {
+        it('quits the application', async function () {
+          const atomApplication = buildAtomApplication()
+          Object.defineProperty(process, 'platform', {get: () => 'linux'})
+          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          await focusWindow(window)
+          window.close()
+          await window.closedPromise
+          assert(electron.app.hasQuitted())
+        })
+      })
+
+      describe('on darwin', function () {
+        it('leaves the application open', async function () {
+          const atomApplication = buildAtomApplication()
+          Object.defineProperty(process, 'platform', {get: () => 'darwin'})
+          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
+          await focusWindow(window)
+          window.close()
+          await window.closedPromise
+          assert(!electron.app.hasQuitted())
+        })
+      })
+    })
   })
 
   describe('before quitting', function () {
     it('waits until all the windows have saved their state and then quits', async function () {
-      mockElectronAppQuit()
       const dirAPath = makeTempDir("a")
       const dirBPath = makeTempDir("b")
       const atomApplication = buildAtomApplication()
