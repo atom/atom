@@ -89,8 +89,26 @@ class Project extends Model
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
+  # Public: Invoke the given callback when a text buffer is added to the
+  # project.
+  #
+  # * `callback` {Function} to be called when a text buffer is added.
+  #   * `buffer` A {TextBuffer} item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddBuffer: (callback) ->
     @emitter.on 'did-add-buffer', callback
+
+  # Public: Invoke the given callback with all current and future text
+  # buffers in the project.
+  #
+  # * `callback` {Function} to be called with current and future text buffers.
+  #   * `buffer` A {TextBuffer} item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeBuffers: (callback) ->
+    callback(buffer) for buffer in @getBuffers()
+    @onDidAddBuffer callback
 
   ###
   Section: Accessing the git repository
