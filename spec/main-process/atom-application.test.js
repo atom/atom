@@ -14,7 +14,7 @@ const ATOM_RESOURCE_PATH = path.resolve(__dirname, '..', '..')
 describe('AtomApplication', function () {
   this.timeout(60 * 1000)
 
-  let originalPlatform, originalAppQuit, originalAtomHome, atomApplicationsToDestroy
+  let originalAppQuit, originalAtomHome, atomApplicationsToDestroy
 
   beforeEach(function () {
     originalAppQuit = electron.app.quit
@@ -371,41 +371,25 @@ describe('AtomApplication', function () {
     })
 
     describe('when closing the last window', function () {
-      describe('on win32', function () {
+      if (process.platform === 'linux' || process.platform === 'win32') {
         it('quits the application', async function () {
           const atomApplication = buildAtomApplication()
-          Object.defineProperty(process, 'platform', {get: () => 'win32'})
           const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
           await focusWindow(window)
           window.close()
           await window.closedPromise
           assert(electron.app.hasQuitted())
         })
-      })
-
-      describe('on linux', function () {
-        it('quits the application', async function () {
-          const atomApplication = buildAtomApplication()
-          Object.defineProperty(process, 'platform', {get: () => 'linux'})
-          const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
-          await focusWindow(window)
-          window.close()
-          await window.closedPromise
-          assert(electron.app.hasQuitted())
-        })
-      })
-
-      describe('on darwin', function () {
+      } else if (process.platform === 'darwin') {
         it('leaves the application open', async function () {
           const atomApplication = buildAtomApplication()
-          Object.defineProperty(process, 'platform', {get: () => 'darwin'})
           const window = atomApplication.launch(parseCommandLine([path.join(makeTempDir("a"), 'file-a')]))
           await focusWindow(window)
           window.close()
           await window.closedPromise
           assert(!electron.app.hasQuitted())
         })
-      })
+      }
     })
   })
 
