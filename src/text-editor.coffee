@@ -2822,7 +2822,7 @@ class TextEditor extends Model
   # Essential: Enable or disable soft tabs for this editor.
   #
   # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @update({softTabs})
+  setSoftTabs: (softTabs) -> @update({softTabs})
 
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
   hasAtomicSoftTabs: -> @displayLayer.atomicSoftTabs
