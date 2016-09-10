@@ -8,12 +8,14 @@ atom-pane-container {
   display: flex;
   flex: 1;
   min-width: 0;
+  min-height: 0;
 
   atom-pane-axis {
     position: relative;
     display: flex;
     flex: 1;
     min-width: 0;
+    min-height: 0;
 
     & > atom-pane-resize-handle {
       position: relative;
@@ -62,12 +64,13 @@ atom-pane-container {
     flex-direction: column;
     overflow: visible;
     min-width: 0;
+    min-height: 0;
 
     .item-views {
       flex: 1;
       display: flex;
-      min-height: 0;
       min-width: 0;
+      min-height: 0;
       position: relative;
 
       .pane-item {
