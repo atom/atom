@@ -49,7 +49,6 @@
   function setLoadTime (loadTime) {
     if (global.atom) {
       global.atom.loadTime = loadTime
-      console.log('Window load time: ' + global.atom.getWindowLoadTime() + 'ms')
     }
   }
 
