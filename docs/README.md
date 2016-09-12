@@ -4,7 +4,7 @@
 
 Most of the Atom user and developer documentation is contained in the [Atom Flight Manual](https://github.com/atom/flight-manual.atom.io) repository.
 
-In this directory you can only find very specific build and API level documentation. Some of this may eventually move to the docs repository as well.
+In this directory you can only find very specific build and API level documentation. Some of this may eventually move to the **Flight Manual** as well.
 
 ## Build documentation
 
