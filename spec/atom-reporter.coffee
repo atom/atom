@@ -173,7 +173,7 @@ class AtomReporter
     listen document, 'click', '.stack-trace', (event) ->
       event.currentTarget.classList.toggle('expanded')
 
-    @reloadButton.addEventListener('click', -> require('electron').ipcRenderer.send('call-window-method', 'restart'))
+    @reloadButton.addEventListener('click', -> require('electron').ipcRenderer.send('call-window-method', 'reload'))
 
   updateSpecCounts: ->
     if @skippedCount
