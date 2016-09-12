@@ -178,6 +178,9 @@ class AtomWindow
     @unloading = false
 
   saveState: ->
+    if @isSpecWindow()
+      return Promise.resolve()
+
     @lastSaveStatePromise = new Promise (resolve) =>
       callback = (event) =>
         if BrowserWindow.fromWebContents(event.sender) is @browserWindow
