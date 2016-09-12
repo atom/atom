@@ -94,7 +94,7 @@ repeat these steps to upgrade to future releases.
 
 ## Building
 
-* [Linux](docs/build-instructions/linux.md)
-* [macOS](docs/build-instructions/macos.md)
-* [FreeBSD](docs/build-instructions/freebsd.md)
-* [Windows](docs/build-instructions/windows.md)
+* [Linux](./docs/build-instructions/linux.md)
+* [macOS](./docs/build-instructions/macos.md)
+* [FreeBSD](./docs/build-instructions/freebsd.md)
+* [Windows](./docs/build-instructions/windows.md)
