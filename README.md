@@ -94,7 +94,7 @@ repeat these steps to upgrade to future releases.
 
 ## Building
 
-* [Linux](docs/build-instructions/linux.md)
-* [macOS](docs/build-instructions/macos.md)
-* [FreeBSD](docs/build-instructions/freebsd.md)
-* [Windows](docs/build-instructions/windows.md)
+* [Linux](https://github.com/atom/atom/tree/master/docs/build-instructions/linux.md)
+* [macOS](https://github.com/atom/atom/tree/master/docs/build-instructions/macos.md)
+* [FreeBSD](https://github.com/atom/atom/tree/master/docs/build-instructions/freebsd.md)
+* [Windows](https://github.com/atom/atom/tree/master/docs/build-instructions/windows.md)
