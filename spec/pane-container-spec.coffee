@@ -220,7 +220,9 @@ describe "PaneContainer", ->
     it "invokes the given callback when panes are added", ->
       container = new PaneContainer(params)
       events = []
-      container.onDidAddPane (event) -> events.push(event)
+      container.onDidAddPane (event) ->
+        expect(event.pane in container.getPanes()).toBe true
+        events.push(event)
 
       pane1 = container.getActivePane()
       pane2 = pane1.splitRight()
