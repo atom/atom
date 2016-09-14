@@ -231,31 +231,22 @@ describe "Project", ->
       expect(directories[1].getPath()).toBe remotePath
       expect(directories[1] instanceof DummyDirectory).toBe true
 
-      # It does not add new remote paths if their directories do not exist
-      # and they are contained by existing remote paths.
-      childRemotePath = remotePath + "/subdirectory/that/does-not-exist"
-      atom.project.addPath(childRemotePath)
+      # It does not add new remote paths that do not exist
+      nonExistentRemotePath = "ssh://another-directory:8080/does-not-exist"
+      atom.project.addPath(nonExistentRemotePath)
       expect(atom.project.getDirectories().length).toBe 2
 
-      # It does add new remote paths if their directories exist.
-      childRemotePath = remotePath + "/subdirectory/that/does-exist"
-      atom.project.addPath(childRemotePath)
+      # It adds new remote paths if their directories exist.
+      newRemotePath = "ssh://another-directory:8080/does-exist"
+      atom.project.addPath(newRemotePath)
       directories = atom.project.getDirectories()
-      expect(directories[2].getPath()).toBe childRemotePath
+      expect(directories[2].getPath()).toBe newRemotePath
       expect(directories[2] instanceof DummyDirectory).toBe true
-
-      # It does add new remote paths to be added if they are not contained by
-      # previous remote paths.
-      otherRemotePath = "ssh://other-foreign-directory:8080/"
-      atom.project.addPath(otherRemotePath)
-      directories = atom.project.getDirectories()
-      expect(directories[3].getPath()).toBe otherRemotePath
-      expect(directories[3] instanceof DummyDirectory).toBe true
 
     it "stops using the provider when the service is removed", ->
       serviceDisposable.dispose()
       atom.project.setPaths(["ssh://foreign-directory:8080/does-exist"])
-      expect(atom.project.getDirectories()[0] instanceof Directory).toBe true
+      expect(atom.project.getDirectories().length).toBe(0)
 
   describe ".open(path)", ->
     [absolutePath, newBufferHandler] = []
@@ -429,13 +420,6 @@ describe "Project", ->
       expect(atom.project.getPaths()[0]).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
       expect(atom.project.getDirectories()[0].path).toEqual path.dirname(require.resolve('./fixtures/dir/a'))
 
-    it "only normalizes the directory path if it isn't on the local filesystem", ->
-      nonLocalFsDirectory = "custom_proto://abc/def"
-      atom.project.setPaths([nonLocalFsDirectory])
-      directories = atom.project.getDirectories()
-      expect(directories.length).toBe 1
-      expect(directories[0].getPath()).toBe path.normalize(nonLocalFsDirectory)
-
   describe ".addPath(path)", ->
     it "calls callbacks registered with ::onDidChangePaths", ->
       onDidChangePathsSpy = jasmine.createSpy('onDidChangePaths spy')
@@ -469,6 +453,11 @@ describe "Project", ->
       atom.project.addPath(newPath)
       expect(atom.project.getPaths()).toEqual([oldPath, newPath])
       expect(onDidChangePathsSpy).toHaveBeenCalled()
+
+    it "doesn't add non-existent directories", ->
+      previousPaths = atom.project.getPaths()
+      atom.project.addPath('/this-definitely/does-not-exist')
+      expect(atom.project.getPaths()).toEqual(previousPaths)
 
   describe ".removePath(path)", ->
     onDidChangePathsSpy = null
