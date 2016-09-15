@@ -144,16 +144,15 @@ class MenuManager
   update: ->
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
     @pendingUpdateOperation = setImmediate =>
-      includedBindings = []
-      unsetKeystrokes = new Set
-
-      for binding in @keymapManager.getKeyBindings() when @includeSelector(binding.selector)
-        includedBindings.push(binding)
-        if binding.command is 'unset!'
-          unsetKeystrokes.add(binding.keystrokes)
+      includedBindings = @keymapManager.getKeyBindings().filter (binding) =>
+        return false unless @includeSelector(binding.selector)
+        return false if binding.command is 'unset!'
+        return false if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
+        return false if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
+        true
 
       keystrokesByCommand = {}
-      for binding in includedBindings when not unsetKeystrokes.has(binding.keystrokes)
+      for binding in includedBindings
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
 
