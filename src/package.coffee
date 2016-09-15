@@ -298,9 +298,7 @@ class Package
       for version, methodName of directoryProviderService.versions
         if typeof @mainModule[methodName] is 'function'
           servicesByVersion[version] = @mainModule[methodName]()
-
-      disposable = @packageManager.serviceHub.provide('atom.directory-provider', servicesByVersion)
-      @activationDisposables.add(disposable)
+      @packageManager.serviceHub.provide('atom.directory-provider', servicesByVersion)
 
   registerViewProviders: ->
     if @metadata.viewProviders? and not @registeredViewProviders
