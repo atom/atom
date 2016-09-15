@@ -36,28 +36,18 @@ To also install the newly built application, use `script\build --create-windows-
 * `--create-windows-installer`: creates an `.msi`, an `.exe` and a `.nupkg` installer in the `out/` directory.
 * `--install`: installs the application in `%LOCALAPPDATA%\Atom\app-dev\`.
 
-## Do I have to use GitHub Desktop?
-
-No, you can use your existing Git! GitHub Desktop's Git Shell is just easier to set up.
-
-If you _prefer_ using your existing Git installation, make sure git's cmd directory is in your PATH env variable (e.g. `C:\Program Files (x86)\Git\cmd`) before you open your PowerShell or Command Prompt.
-
-It is also recommended you open your Command Prompt or PowerShell as Administrator.
-
-If none of this works, do install Github Desktop and use its Git Shell as it makes life easier.
-
 ## Troubleshooting
 
 ### Common Errors
 * `node is not recognized`
-  * If you just installed Node.js, you'll need to restart your PowerShell/Command Prompt/Git Shell before the node
-  command is available on your Path.
+  * If you just installed Node.js, you'll need to restart Command Prompt before the `node` command is available on your Path.
 
 * `msbuild.exe failed with exit code: 1`
-   * Ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio and press Modify and then check the Visual C++ box.
+   * If you installed Visual Studio, ensure you have Visual C++ support installed. Go into Add/Remove Programs, select Visual Studio, press Modify, and then check the Visual C++ box.
+   * If you installed Visual C++ Build Tools, ensure you have Windows 8 SDK support installed.  Go into Add/Remove Programs, select Visual Studio, press Modify and then check the Windows 8 SDK box.
 
 * `script\build` stop with no error or warning shortly after displaying the versions of node, npm and Python
-  * Make sure that the path where you have checked out Atom does not include a space. e.g. use `c:\atom` and not `c:\my stuff\atom`
+  * Make sure that the path where you have checked out Atom does not include a space (use `C:\atom` and not `C:\my stuff\atom`).
 
 * `script\build` outputs only the Node.js and Python versions before returning
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
@@ -77,7 +67,7 @@ If none of this works, do install Github Desktop and use its Git Shell as it mak
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio you are running and then `script\clean` followed by `script\build` (re-open your command prompt or Powershell window if you set it using the GUI)
+  * * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio/Build Tools is installed and then `script\clean` followed by `script\build` (re-open the Command Prompt if you set the variable using the GUI)
 
 * `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
   * Try running `npm install -g node-gyp`, and run `script\build` again.
