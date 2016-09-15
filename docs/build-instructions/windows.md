@@ -19,7 +19,7 @@
 
 ## Instructions
 
-You can run these commands using Command Prompt, PowerShell or Git Shell via [GitHub Desktop](https://desktop.github.com/). These instructions will assume the use of Command Prompt.
+You can run these commands using Command Prompt, PowerShell, Git Shell, or any other terminal. These instructions will assume the use of Command Prompt.
 
 ```
 cd C:\
