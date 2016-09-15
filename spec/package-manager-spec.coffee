@@ -128,7 +128,7 @@ describe "PackageManager", ->
         providers.push(provider)
 
       atom.packages.loadPackage('package-with-directory-provider')
-      expect(providers).toEqual(['directory provider from package-with-directory-provider'])
+      expect(providers.map((p) -> p.name)).toEqual(['directory provider from package-with-directory-provider'])
 
     describe "when there are view providers specified in the package's package.json", ->
       model1 = {worksWithViewProvider1: true}

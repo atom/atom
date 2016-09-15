@@ -304,32 +304,32 @@ describe('AtomApplication', function () {
     })
 
     it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path in a remote directory', async function () {
-      // Disable the tree-view because it will try to enumerate the contents of
-      // the remote directory and, since it doesn't exist, throw an error.
-      const configPath = path.join(process.env.ATOM_HOME, 'config.cson')
-      const config = season.readFileSync(configPath)
-      if (!config['*'].core) config['*'].core = {}
-      config['*'].core.disabledPackages = ['tree-view']
-      season.writeFileSync(configPath, config)
+      const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
+      const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
+      fs.mkdirSync(packagesDirPath)
+      fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
 
       const atomApplication = buildAtomApplication()
       const newRemoteFilePath = 'remote://server:3437/some/directory/path'
       const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
       await focusWindow(window)
-      const {projectPaths, editorTitle, editorText} = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        atom.workspace.observeActivePaneItem(function (editor) {
-          if (editor) {
-            sendBackToMainProcess({
-              projectPaths: atom.project.getPaths(),
-              editorTitle: editor.getTitle(),
-              editorText: editor.getText()
-            })
-          }
-        })
+      let projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getPaths())
       })
       assert.deepEqual(projectPaths, [newRemoteFilePath])
-      assert.equal(editorTitle, path.basename(newRemoteFilePath))
-      assert.equal(editorText, '')
+
+      await window.saveState()
+
+      await new Promise((resolve) => {
+        window.browserWindow.once('window:loaded', resolve)
+        window.reload()
+      })
+
+      projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getPaths())
+      })
+
+      assert.deepEqual(projectPaths, [newRemoteFilePath])
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
