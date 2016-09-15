@@ -143,16 +143,20 @@ class MenuManager
   # Public: Refreshes the currently visible menu.
   update: ->
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
+
     @pendingUpdateOperation = setImmediate =>
-      includedBindings = @keymapManager.getKeyBindings().filter (binding) =>
-        return false unless @includeSelector(binding.selector)
-        return false if binding.command is 'unset!'
-        return false if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
-        return false if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
-        true
+      unsetKeystrokes = new Set
+      for binding in @keymapManager.getKeyBindings()
+        if binding.command is 'unset!'
+          unsetKeystrokes.add(binding.keystrokes)
 
       keystrokesByCommand = {}
-      for binding in includedBindings
+      for binding in @keymapManager.getKeyBindings()
+        continue unless @includeSelector(binding.selector)
+        continue if unsetKeystrokes.has(binding.keystrokes)
+        continue if binding.keystrokes.includes(' ')
+        continue if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
+        continue if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
 
@@ -175,21 +179,7 @@ class MenuManager
   unmerge: (menu, item) ->
     MenuHelpers.unmerge(menu, item)
 
-  # macOS can't handle displaying accelerators for multiple keystrokes.
-  # If they are sent across, it will stop processing accelerators for the rest
-  # of the menu items.
-  filterMultipleKeystroke: (keystrokesByCommand) ->
-    filtered = {}
-    for key, bindings of keystrokesByCommand
-      for binding in bindings
-        continue if binding.indexOf(' ') isnt -1
-
-        filtered[key] ?= []
-        filtered[key].push(binding)
-    filtered
-
   sendToBrowserProcess: (template, keystrokesByCommand) ->
-    keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipcRenderer.send 'update-application-menu', template, keystrokesByCommand
 
   # Get an {Array} of {String} classes for the given element.
