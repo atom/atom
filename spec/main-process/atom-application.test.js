@@ -303,7 +303,7 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
 
-    it('opens an empty text editor and loads its parent directory in the tree-view when launched with a new file path in a remote directory', async function () {
+    it('adds a remote directory to the project when launched with a remote directory', async function () {
       const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
       const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
       fs.mkdirSync(packagesDirPath)
@@ -313,13 +313,13 @@ describe('AtomApplication', function () {
       const newRemoteFilePath = 'remote://server:3437/some/directory/path'
       const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
       await focusWindow(window)
+
       let projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
       })
       assert.deepEqual(projectPaths, [newRemoteFilePath])
 
       await window.saveState()
-
       await new Promise((resolve) => {
         window.browserWindow.once('window:loaded', resolve)
         window.reload()
@@ -328,7 +328,6 @@ describe('AtomApplication', function () {
       projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
       })
-
       assert.deepEqual(projectPaths, [newRemoteFilePath])
     })
 
