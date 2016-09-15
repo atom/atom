@@ -25,7 +25,6 @@ describe "Project", ->
       deserializedProject = new Project({notificationManager: atom.notifications, packageManager: atom.packages, confirm: atom.confirm})
       state = atom.project.serialize()
       state.paths.push('/directory/that/does/not/exist')
-      state.paths.push(path.join(__dirname, 'fixtures', 'sample.js'))
       deserializedProject.deserialize(state, atom.deserializers)
       expect(deserializedProject.getPaths()).toEqual(atom.project.getPaths())
 
