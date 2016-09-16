@@ -321,11 +321,9 @@ describe('AtomApplication', function () {
       assert.deepEqual(projectPaths, [remoteDirectoryPath])
 
       await window.saveState()
+      await window.reload()
 
-      await new Promise((resolve) => {
-        window.browserWindow.once('window:loaded', resolve)
-        window.reload()
-      })
+      console.log('DONE RELOADING');
 
       projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())

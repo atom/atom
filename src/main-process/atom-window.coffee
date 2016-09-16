@@ -74,7 +74,7 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
-    @browserWindow.once 'window:loaded', =>
+    @browserWindow.on 'window:loaded', =>
       @loaded = true
       @emit 'window:loaded'
       @resolveLoadedPromise()
@@ -255,6 +255,8 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.reload()
+  reload: ->
+    @browserWindow.reload()
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
