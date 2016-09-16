@@ -310,16 +310,18 @@ describe('AtomApplication', function () {
       fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
 
       const atomApplication = buildAtomApplication()
-      const newRemoteFilePath = 'remote://server:3437/some/directory/path'
-      const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
+      const remoteDirectoryPath = 'remote://server:3437/some/directory/path'
+      const window = atomApplication.launch(parseCommandLine([remoteDirectoryPath]))
+      await window.loadedPromise
       await focusWindow(window)
 
       let projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
       })
-      assert.deepEqual(projectPaths, [newRemoteFilePath])
+      assert.deepEqual(projectPaths, [remoteDirectoryPath])
 
       await window.saveState()
+
       await new Promise((resolve) => {
         window.browserWindow.once('window:loaded', resolve)
         window.reload()
@@ -328,7 +330,7 @@ describe('AtomApplication', function () {
       projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
       })
-      assert.deepEqual(projectPaths, [newRemoteFilePath])
+      assert.deepEqual(projectPaths, [remoteDirectoryPath])
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
