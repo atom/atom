@@ -303,7 +303,7 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
 
-    it('adds a remote directory to the project when launched with a remote directory', async function () {
+    it.only('adds a remote directory to the project when launched with a remote directory', async function () {
       const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
       const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
       fs.mkdirSync(packagesDirPath)
