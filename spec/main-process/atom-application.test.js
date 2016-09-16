@@ -303,32 +303,32 @@ describe('AtomApplication', function () {
       assert.deepEqual(await getTreeViewRootDirectories(window), [path.dirname(newFilePath)])
     })
 
-    it.only('adds a remote directory to the project when launched with a remote directory', async function () {
+    it('adds a remote directory to the project when launched with a remote directory', async function () {
       const packagePath = path.join(__dirname, '..', 'fixtures', 'packages', 'package-with-directory-provider')
       const packagesDirPath = path.join(process.env.ATOM_HOME, 'packages')
       fs.mkdirSync(packagesDirPath)
       fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
 
       const atomApplication = buildAtomApplication()
-      const remoteDirectoryPath = 'remote://server:3437/some/directory/path'
-      const window = atomApplication.launch(parseCommandLine([remoteDirectoryPath]))
-      await window.loadedPromise
+      const newRemoteFilePath = 'remote://server:3437/some/directory/path'
+      const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
       await focusWindow(window)
 
       let projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
       })
-      assert.deepEqual(projectPaths, [remoteDirectoryPath])
+      assert.deepEqual(projectPaths, [newRemoteFilePath])
 
       await window.saveState()
-      await window.reload()
-
-      console.log('DONE RELOADING');
+      await new Promise((resolve) => {
+        window.browserWindow.once('window:loaded', resolve)
+        window.reload()
+      })
 
       projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
       })
-      assert.deepEqual(projectPaths, [remoteDirectoryPath])
+      assert.deepEqual(projectPaths, [newRemoteFilePath])
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
@@ -337,14 +337,14 @@ describe('AtomApplication', function () {
 
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([tempDirPath1]))
-      await app1Window1.loadedPromise
+      await app1Window1.applicationStartedPromise
       const app1Window2 = atomApplication1.launch(parseCommandLine([tempDirPath2]))
-      await app1Window2.loadedPromise
+      await app1Window2.applicationStartedPromise
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
-      await app2Window1.loadedPromise
-      await app2Window2.loadedPromise
+      await app2Window1.applicationStartedPromise
+      await app2Window2.applicationStartedPromise
 
       assert.deepEqual(await getTreeViewRootDirectories(app2Window1), [tempDirPath1])
       assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
@@ -419,7 +419,7 @@ describe('AtomApplication', function () {
 
   async function focusWindow (window) {
     window.focus()
-    await window.loadedPromise
+    await window.applicationStartedPromise
     await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
   }
 

@@ -20,9 +20,6 @@ class AtomWindow
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
-    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
-    @closedPromise = new Promise((@resolveClosedPromise) =>)
-
     options =
       show: false
       title: 'Atom'
@@ -74,10 +71,12 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
+    @closedPromise = new Promise((@resolveClosedPromise) =>)
+    @applicationStartedPromise = new Promise (resolve) =>
+      @browserWindow.once('window:application-started', resolve)
     @browserWindow.once 'window:loaded', =>
       @loaded = true
       @emit 'window:loaded'
-      @resolveLoadedPromise()
 
     @setLoadSettings(loadSettings)
     @env = loadSettings.env if loadSettings.env?
@@ -257,8 +256,7 @@ class AtomWindow
 
   reload: ->
     @browserWindow.reload()
-    new Promise((resolve) =>
-      @browserWindow.once 'editor-window-started', -> resolve()
-    )
+    @applicationStartedPromise = new Promise (resolve) =>
+      @browserWindow.once('window:application-started', resolve)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()

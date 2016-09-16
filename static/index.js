@@ -77,11 +77,8 @@
     setupVmCompatibility()
     setupCsonCache(CompileCache.getCacheDirectory())
 
-    console.log("INITIALIZING")
     var initialize = require(loadSettings.windowInitializationScript)
-    console.log("INITIALIZED")
     return initialize({blobStore: blobStore}).then(function () {
-      console.log("EMITTING WINDOW LOADED EVENT")
       require('electron').ipcRenderer.send('window-command', 'window:loaded')
     })
   }
