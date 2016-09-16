@@ -74,7 +74,7 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
-    @browserWindow.on 'window:loaded', =>
+    @browserWindow.once 'window:loaded', =>
       @loaded = true
       @emit 'window:loaded'
       @resolveLoadedPromise()
@@ -257,6 +257,8 @@ class AtomWindow
 
   reload: ->
     @browserWindow.reload()
-    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    new Promise((resolve) =>
+      @browserWindow.once 'editor-window-started', -> resolve()
+    )
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
