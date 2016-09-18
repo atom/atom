@@ -662,13 +662,13 @@ class Pane extends Model
           @handleSaveError(error, item)
 
   getDefaultSaveAsPath: (item) =>
-    itemPath = item.getPath();
+    itemPath = item.getPath()
     if itemPath
       return itemPath
 
     return unless @getActiveEditor()?
 
-    firstRowTrimmed = @getActiveEditor().getTextInRange([[0, 0],[0, 50]])
+    firstRowTrimmed = @getActiveEditor().getTextInRange([[0, 0], [0, 50]])
 
     return path.join getWindowLoadSettings().initialPaths[0], firstRowTrimmed
 
