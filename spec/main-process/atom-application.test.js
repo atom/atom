@@ -340,6 +340,9 @@ describe('AtomApplication', function () {
       const app1Window2 = atomApplication1.launch(parseCommandLine([tempDirPath2]))
       await app1Window2.applicationStartedPromise
 
+      await app1Window1.saveState()
+      await app1Window2.saveState()
+
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
       await app2Window1.applicationStartedPromise
