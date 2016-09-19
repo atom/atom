@@ -310,6 +310,8 @@ describe('AtomApplication', function () {
       fs.symlinkSync(packagePath, path.join(packagesDirPath, 'package-with-directory-provider'))
 
       const atomApplication = buildAtomApplication()
+      atomApplication.config.set('core.disabledPackages', ['fuzzy-finder'])
+
       const newRemoteFilePath = 'remote://server:3437/some/directory/path'
       const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
       await focusWindow(window)
@@ -320,10 +322,7 @@ describe('AtomApplication', function () {
       assert.deepEqual(projectPaths, [newRemoteFilePath])
 
       await window.saveState()
-      await new Promise((resolve) => {
-        window.browserWindow.once('window:loaded', resolve)
-        window.reload()
-      })
+      await window.reload()
 
       projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
         sendBackToMainProcess(atom.project.getPaths())
