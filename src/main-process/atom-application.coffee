@@ -83,7 +83,7 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-    @config.onDidChange 'core.useCustomTitleBar', @promptForRelaunch
+    @config.onDidChange 'core.useCustomTitleBar', @promptForRestart
 
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
@@ -734,7 +734,7 @@ class AtomApplication
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)
 
-  promptForRelaunch: ->
+  promptForRestart: ->
     chosen = dialog.showMessageBox BrowserWindow.getFocusedWindow(),
       type: 'warning'
       title: 'Restart required'
