@@ -255,8 +255,9 @@ class AtomWindow
   isSpecWindow: -> @isSpec
 
   reload: ->
-    @browserWindow.reload()
     @applicationStartedPromise = new Promise (resolve) =>
       @browserWindow.once('window:application-started', resolve)
+    @browserWindow.reload()
+    @applicationStartedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
