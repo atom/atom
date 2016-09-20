@@ -58,8 +58,7 @@ class ApplicationDelegate
     ipcRenderer.send("call-window-method", "reload")
 
   restartApplication: ->
-    remote.app.relaunch({args: []})
-    remote.app.quit()
+    ipcRenderer.send("restart-application")
 
   minimizeWindow: ->
     ipcRenderer.send("call-window-method", "minimize")
