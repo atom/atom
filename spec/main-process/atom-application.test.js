@@ -327,9 +327,6 @@ describe('AtomApplication', function () {
       assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
 
       await window.saveState()
-      await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.destroy())
-      })
       await window.reload()
       await focusWindow(window)
       directories = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
