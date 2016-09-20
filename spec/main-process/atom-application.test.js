@@ -312,22 +312,32 @@ describe('AtomApplication', function () {
       const atomApplication = buildAtomApplication()
       atomApplication.config.set('core.disabledPackages', ['fuzzy-finder'])
 
-      const newRemoteFilePath = 'remote://server:3437/some/directory/path'
-      const window = atomApplication.launch(parseCommandLine([newRemoteFilePath]))
-      await focusWindow(window)
+      const remotePath = 'remote://server:3437/some/directory/path'
+      let window = atomApplication.launch(parseCommandLine([remotePath]))
 
-      let projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getPaths())
+      await focusWindow(window)
+      let directories = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getDirectories().map(d => {
+          return {
+            type: d.constructor.name,
+            path: d.getPath()
+          }
+        }))
       })
-      assert.deepEqual(projectPaths, [newRemoteFilePath])
+      assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
 
       await window.saveState()
       await window.reload()
-
-      projectPaths = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getPaths())
+      await focusWindow(window)
+      directories = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+        sendBackToMainProcess(atom.project.getDirectories().map(d => {
+          return {
+            type: d.constructor.name,
+            path: d.getPath()
+          }
+        }))
       })
-      assert.deepEqual(projectPaths, [newRemoteFilePath])
+      assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
