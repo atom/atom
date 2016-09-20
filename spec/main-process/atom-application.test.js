@@ -246,7 +246,7 @@ describe('AtomApplication', function () {
 
       const reusedWindow = atomApplication.launch(parseCommandLine([tempDirPath]))
       assert.equal(reusedWindow, window1)
-      assert.deepEqual(await getTreeViewRootDirectories(window1), [tempDirPath])
+      await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length > 0)
     })
 
     it('opens a new window with a single untitled buffer when launched with no path, even if windows already exist', async function () {
