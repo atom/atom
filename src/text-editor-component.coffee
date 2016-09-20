@@ -195,6 +195,9 @@ class TextEditorComponent
 
   becameVisible: ->
     @updatesPaused = true
+    if @invalidateMeasurementsWhenVisible
+      @invalidateMeasurements()
+      @invalidateMeasurementsWhenVisible = false
     @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
     @sampleBackgroundColors()
@@ -934,8 +937,11 @@ class TextEditorComponent
     @invalidateMeasurements()
 
   invalidateMeasurements: ->
-    @linesYardstick.invalidateCache()
-    @presenter.measurementsChanged()
+    if @isVisible()
+      @linesYardstick.invalidateCache()
+      @presenter.measurementsChanged()
+    else
+      @invalidateMeasurementsWhenVisible = true
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
