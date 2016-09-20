@@ -257,7 +257,7 @@ class AtomWindow
   reload: ->
     @applicationStartedPromise = new Promise (resolve) =>
       @browserWindow.once('window:application-started', resolve)
-    @browserWindow.reload()
+    @saveState().then => @browserWindow.reload()
     @applicationStartedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
