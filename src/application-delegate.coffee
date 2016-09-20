@@ -57,6 +57,9 @@ class ApplicationDelegate
   reloadWindow: ->
     ipcRenderer.send("call-window-method", "reload")
 
+  restartApplication: ->
+    ipcRenderer.send("restart-application")
+
   minimizeWindow: ->
     ipcRenderer.send("call-window-method", "minimize")
 
