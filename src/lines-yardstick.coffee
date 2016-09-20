@@ -91,34 +91,34 @@ class LinesYardstick
     lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
     lineId = @lineNodesProvider.lineIdForScreenRow(row)
 
-    return 0 unless lineNode?
-
-    if cachedPosition = @leftPixelPositionCache[lineId]?[column]
-      return cachedPosition
-
-    textNodes = @lineNodesProvider.textNodesForScreenRow(row)
-    textNodeStartColumn = 0
-
-    for textNode in textNodes
-      textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
-      if textNodeEndColumn > column
-        indexInTextNode = column - textNodeStartColumn
-        break
+    if lineNode?
+      if @leftPixelPositionCache[lineId]?[column]?
+        @leftPixelPositionCache[lineId][column]
       else
-        textNodeStartColumn = textNodeEndColumn
+        textNodes = @lineNodesProvider.textNodesForScreenRow(row)
+        textNodeStartColumn = 0
+        for textNode in textNodes
+          textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
+          if textNodeEndColumn > column
+            indexInTextNode = column - textNodeStartColumn
+            break
+          else
+            textNodeStartColumn = textNodeEndColumn
 
-    if textNode?
-      indexInTextNode ?= textNode.textContent.length
-      lineOffset = lineNode.getBoundingClientRect().left
-      if indexInTextNode is 0
-        leftPixelPosition = @clientRectForRange(textNode, 0, 1).left
-      else
-        leftPixelPosition = @clientRectForRange(textNode, 0, indexInTextNode).right
-      leftPixelPosition -= lineOffset
+        if textNode?
+          indexInTextNode ?= textNode.textContent.length
+          lineOffset = lineNode.getBoundingClientRect().left
+          if indexInTextNode is 0
+            leftPixelPosition = @clientRectForRange(textNode, 0, 1).left
+          else
+            leftPixelPosition = @clientRectForRange(textNode, 0, indexInTextNode).right
+          leftPixelPosition -= lineOffset
 
-      @leftPixelPositionCache[lineId] ?= {}
-      @leftPixelPositionCache[lineId][column] = leftPixelPosition
-      leftPixelPosition
+          @leftPixelPositionCache[lineId] ?= {}
+          @leftPixelPositionCache[lineId][column] = leftPixelPosition
+          leftPixelPosition
+        else
+          0
     else
       0
 
