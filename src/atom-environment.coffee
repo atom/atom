@@ -545,6 +545,10 @@ class AtomEnvironment extends Model
   reload: ->
     @applicationDelegate.reloadWindow()
 
+  # Extended: Relaunch the entire application.
+  restartApplication: ->
+    @applicationDelegate.restartApplication()
+
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
     @applicationDelegate.isWindowMaximized()
