@@ -188,6 +188,8 @@ describe('AtomApplication', function () {
       reusedWindow = atomApplication.launch(parseCommandLine([dirBPath, '-a']))
       assert.equal(reusedWindow, window1)
       assert.deepEqual(atomApplication.windows, [window1])
+
+      await conditionPromise(async () => (await getTreeViewRootDirectories(reusedWindow)).length === 3)
       assert.deepEqual(await getTreeViewRootDirectories(window1), [dirAPath, dirCPath, dirBPath])
     })
 
