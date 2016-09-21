@@ -49,10 +49,7 @@ class TokenizedBuffer extends Model
     new TokenizedBufferIterator(this)
 
   getInvalidatedRanges: ->
-    if @invalidatedRange?
-      [@invalidatedRange]
-    else
-      []
+    []
 
   onDidInvalidateRange: (fn) ->
     @emitter.on 'did-invalidate-range', fn
@@ -206,8 +203,6 @@ class TokenizedBuffer extends Model
     newEndStack = @stackForRow(end + delta)
     if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
-
-    @invalidatedRange = Range(start, end)
 
   isFoldableAtRow: (row) ->
     if @largeFileMode
