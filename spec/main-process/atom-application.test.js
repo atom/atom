@@ -338,17 +338,17 @@ describe('AtomApplication', function () {
 
       const atomApplication1 = buildAtomApplication()
       const app1Window1 = atomApplication1.launch(parseCommandLine([tempDirPath1]))
-      await app1Window1.applicationStartedPromise
+      await app1Window1.loadedPromise
       const app1Window2 = atomApplication1.launch(parseCommandLine([tempDirPath2]))
-      await app1Window2.applicationStartedPromise
+      await app1Window2.loadedPromise
 
       await app1Window1.saveState()
       await app1Window2.saveState()
 
       const atomApplication2 = buildAtomApplication()
       const [app2Window1, app2Window2] = atomApplication2.launch(parseCommandLine([]))
-      await app2Window1.applicationStartedPromise
-      await app2Window2.applicationStartedPromise
+      await app2Window1.loadedPromise
+      await app2Window2.loadedPromise
 
       assert.deepEqual(await getTreeViewRootDirectories(app2Window1), [tempDirPath1])
       assert.deepEqual(await getTreeViewRootDirectories(app2Window2), [tempDirPath2])
@@ -423,7 +423,7 @@ describe('AtomApplication', function () {
 
   async function focusWindow (window) {
     window.focus()
-    await window.applicationStartedPromise
+    await window.loadedPromise
     await conditionPromise(() => window.atomApplication.lastFocusedWindow === window)
   }
 

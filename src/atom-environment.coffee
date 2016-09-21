@@ -707,7 +707,6 @@ class AtomEnvironment extends Model
         @menu.update()
 
         @openInitialEmptyEditorIfNecessary()
-        ipcRenderer.send('window-command', 'window:application-started')
 
   serialize: (options) ->
     version: @constructor.version

@@ -20,6 +20,9 @@ class AtomWindow
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @closedPromise = new Promise((@resolveClosedPromise) =>)
+
     options =
       show: false
       title: 'Atom'
@@ -71,12 +74,9 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
-    @closedPromise = new Promise((@resolveClosedPromise) =>)
-    @applicationStartedPromise = new Promise (resolve) =>
-      @browserWindow.once('window:application-started', resolve)
-    @browserWindow.once 'window:loaded', =>
-      @loaded = true
+    @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
+      @resolveLoadedPromise()
 
     @setLoadSettings(loadSettings)
     @env = loadSettings.env if loadSettings.env?
@@ -193,10 +193,7 @@ class AtomWindow
     @openLocations([{pathToOpen, initialLine, initialColumn}])
 
   openLocations: (locationsToOpen) ->
-    if @loaded
-      @sendMessage 'open-locations', locationsToOpen
-    else
-      @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+    @loadedPromise.then => @sendMessage 'open-locations', locationsToOpen
 
   replaceEnvironment: (env) ->
     @browserWindow.webContents.send 'environment', env
@@ -255,9 +252,8 @@ class AtomWindow
   isSpecWindow: -> @isSpec
 
   reload: ->
-    @applicationStartedPromise = new Promise (resolve) =>
-      @browserWindow.once('window:application-started', resolve)
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
     @saveState().then => @browserWindow.reload()
-    @applicationStartedPromise
+    @loadedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
