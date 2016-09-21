@@ -145,9 +145,10 @@ class AtomWindow
 
       chosen = dialog.showMessageBox @browserWindow,
         type: 'warning'
-        buttons: ['Close', 'Keep Waiting']
+        buttons: ['Keep Waiting', 'Force Close']
         message: 'Editor is not responding'
         detail: 'The editor is not responding. Would you like to force close it or just keep waiting?'
+        cancelId: 0 # Keep Waiting
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
