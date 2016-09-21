@@ -197,10 +197,10 @@ describe "atom.themes", ->
       expect(element.getAttribute('source-path')).toEqualPath atom.themes.stringToId(lessPath)
       expect(element.textContent).toBe """
       #header {
-        color: #4d926f;
+        color: #4D926F;
       }
       h2 {
-        color: #4d926f;
+        color: #4D926F;
       }
 
       """
