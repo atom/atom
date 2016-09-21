@@ -85,6 +85,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @registerDeserializerMethods()
+        @activateCoreStartupServices()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -289,6 +290,15 @@ class Package
             @requireMainModule()
             @mainModule[methodName](state, atomEnvironment)
       return
+
+  activateCoreStartupServices: ->
+    if directoryProviderService = @metadata.providedServices?['atom.directory-provider']
+      @requireMainModule()
+      servicesByVersion = {}
+      for version, methodName of directoryProviderService.versions
+        if typeof @mainModule[methodName] is 'function'
+          servicesByVersion[version] = @mainModule[methodName]()
+      @packageManager.serviceHub.provide('atom.directory-provider', servicesByVersion)
 
   registerViewProviders: ->
     if @metadata.viewProviders? and not @registeredViewProviders

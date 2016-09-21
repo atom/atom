@@ -392,8 +392,9 @@ describe "AtomEnvironment", ->
     describe "when the opened path is a uri", ->
       it "adds it to the project's paths as is", ->
         pathToOpen = 'remote://server:7644/some/dir/path'
+        spyOn(atom.project, 'addPath')
         atom.openLocations([{pathToOpen}])
-        expect(atom.project.getPaths()[0]).toBe pathToOpen
+        expect(atom.project.addPath).toHaveBeenCalledWith(pathToOpen)
 
   describe "::updateAvailable(info) (called via IPC from browser process)", ->
     subscription = null

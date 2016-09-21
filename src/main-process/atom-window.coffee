@@ -74,8 +74,7 @@ class AtomWindow
 
     @browserWindow.loadSettings = loadSettings
 
-    @browserWindow.once 'window:loaded', =>
-      @loaded = true
+    @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
@@ -194,10 +193,7 @@ class AtomWindow
     @openLocations([{pathToOpen, initialLine, initialColumn}])
 
   openLocations: (locationsToOpen) ->
-    if @loaded
-      @sendMessage 'open-locations', locationsToOpen
-    else
-      @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+    @loadedPromise.then => @sendMessage 'open-locations', locationsToOpen
 
   replaceEnvironment: (env) ->
     @browserWindow.webContents.send 'environment', env
@@ -255,6 +251,9 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.reload()
+  reload: ->
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @saveState().then => @browserWindow.reload()
+    @loadedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()

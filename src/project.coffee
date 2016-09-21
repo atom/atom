@@ -56,7 +56,6 @@ class Project extends Model
 
   deserialize: (state) ->
     state.paths = [state.path] if state.path? # backward compatibility
-    state.paths = state.paths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
 
     @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
@@ -181,10 +180,9 @@ class Project extends Model
       break if directory = provider.directoryForURISync?(projectPath)
     directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
 
-    directoryExists = directory.existsSync()
-    for rootDirectory in @getDirectories()
-      return if rootDirectory.getPath() is directory.getPath()
-      return if not directoryExists and rootDirectory.contains(directory.getPath())
+    return unless directory.existsSync()
+    for existingDirectory in @getDirectories()
+      return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
 

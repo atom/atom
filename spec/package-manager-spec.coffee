@@ -120,6 +120,16 @@ describe "PackageManager", ->
         state: state2
       }
 
+    it "early-activates any atom.directory-provider or atom.repository-provider services that the package provide", ->
+      jasmine.useRealClock()
+
+      providers = []
+      atom.packages.serviceHub.consume 'atom.directory-provider', '^0.1.0', (provider) ->
+        providers.push(provider)
+
+      atom.packages.loadPackage('package-with-directory-provider')
+      expect(providers.map((p) -> p.name)).toEqual(['directory provider from package-with-directory-provider'])
+
     describe "when there are view providers specified in the package's package.json", ->
       model1 = {worksWithViewProvider1: true}
       model2 = {worksWithViewProvider2: true}
