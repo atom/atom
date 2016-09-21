@@ -62,7 +62,7 @@ class AtomApplication
   exit: (status) -> app.exit(status)
 
   constructor: (options) ->
-    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, timeout, clearWindowState} = options
+    {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir, timeout, clearWindowState} = options
     @socketPath = null if options.test
     @pidsToOpenWindows = {}
     @windows = []
@@ -83,7 +83,7 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-    @config.onDidChange 'core.useCustomTitleBar', @promptForRelaunch
+    @config.onDidChange 'core.useCustomTitleBar', @promptForRestart
 
     @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
@@ -253,6 +253,9 @@ class AtomApplication
     @disposable.add ipcHelpers.on app, 'activate-with-no-open-windows', (event) =>
       event?.preventDefault()
       @emit('application:new-window')
+
+    @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
+      @restart()
 
     # A request from the associated render process to open a new render process.
     @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>
@@ -731,13 +734,24 @@ class AtomApplication
 
     dialog.showOpenDialog(parentWindow, openOptions, callback)
 
-  promptForRelaunch: ->
+  promptForRestart: ->
     chosen = dialog.showMessageBox BrowserWindow.getFocusedWindow(),
       type: 'warning'
-      title: 'Relaunch required'
-      message: "You will need to relaunch Atom for this change to take effect."
-      buttons: ['Quit Atom', 'Cancel']
+      title: 'Restart required'
+      message: "You will need to restart Atom for this change to take effect."
+      buttons: ['Restart Atom', 'Cancel']
     if chosen is 0
-      # once we're using electron v.1.2.2
-      # app.relaunch()
-      app.quit()
+      @restart()
+
+  restart: ->
+    args = []
+    args.push("--safe") if @safeMode
+    args.push("--portable") if @setPortable
+    args.push("--log-file=#{@logFile}") if @logFile?
+    args.push("--socket-path=#{@socketPath}") if @socketPath?
+    args.push("--user-data-dir=#{@userDataDir}") if @userDataDir?
+    if @devMode
+      args.push('--dev')
+      args.push("--resource-path=#{@resourcePath}")
+    app.relaunch({args})
+    app.quit()
