@@ -316,27 +316,20 @@ describe('AtomApplication', function () {
       let window = atomApplication.launch(parseCommandLine([remotePath]))
 
       await focusWindow(window)
-      let directories = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getDirectories().map(d => {
-          return {
-            type: d.constructor.name,
-            path: d.getPath()
-          }
-        }))
-      })
+      await conditionPromise(async () => (await getProjectDirectories()).length > 0)
+      let directories = await getProjectDirectories()
       assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
 
       await window.reload()
       await focusWindow(window)
-      directories = await evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
-        sendBackToMainProcess(atom.project.getDirectories().map(d => {
-          return {
-            type: d.constructor.name,
-            path: d.getPath()
-          }
-        }))
-      })
+      directories = await getProjectDirectories()
       assert.deepEqual(directories, [{type: 'FakeRemoteDirectory', path: remotePath}])
+
+      function getProjectDirectories () {
+        return evalInWebContents(window.browserWindow.webContents, function (sendBackToMainProcess) {
+          sendBackToMainProcess(atom.project.getDirectories().map(d => ({ type: d.constructor.name, path: d.getPath() })))
+        })
+      }
     })
 
     it('reopens any previously opened windows when launched with no path', async function () {
