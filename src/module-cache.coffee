@@ -196,19 +196,19 @@ resolveModulePath = (relativePath, parentModule) ->
 registerBuiltins = (devMode) ->
   if devMode or not cache.resourcePath.startsWith("#{process.resourcesPath}#{path.sep}")
     fs = require 'fs-plus'
-    atomCoffeePath = path.join(cache.resourcePath, 'exports', 'atom.coffee')
-    cache.builtins.atom = atomCoffeePath if fs.isFileSync(atomCoffeePath)
+    atomJsPath = path.join(cache.resourcePath, 'exports', 'atom.js')
+    cache.builtins.atom = atomJsPath if fs.isFileSync(atomJsPath)
   cache.builtins.atom ?= path.join(cache.resourcePath, 'exports', 'atom.js')
 
-  atomShellRoot = path.join(process.resourcesPath, 'atom.asar')
+  electronAsarRoot = path.join(process.resourcesPath, 'electron.asar')
 
-  commonRoot = path.join(atomShellRoot, 'common', 'api', 'lib')
-  commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'screen', 'shell']
+  commonRoot = path.join(electronAsarRoot, 'common', 'api')
+  commonBuiltins = ['callbacks-registry', 'clipboard', 'crash-reporter', 'shell']
   for builtin in commonBuiltins
     cache.builtins[builtin] = path.join(commonRoot, "#{builtin}.js")
 
-  rendererRoot = path.join(atomShellRoot, 'renderer', 'api', 'lib')
-  rendererBuiltins = ['ipc', 'remote']
+  rendererRoot = path.join(electronAsarRoot, 'renderer', 'api')
+  rendererBuiltins = ['ipc-renderer', 'remote', 'screen']
   for builtin in rendererBuiltins
     cache.builtins[builtin] = path.join(rendererRoot, "#{builtin}.js")
 

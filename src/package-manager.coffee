@@ -128,8 +128,12 @@ class PackageManager
 
   # Public: Get the path to the apm command.
   #
+  # Uses the value of the `core.apmPath` config setting if it exists.
+  #
   # Return a {String} file path to apm.
   getApmPath: ->
+    configPath = atom.config.get('core.apmPath')
+    return configPath if configPath
     return @apmPath if @apmPath?
 
     commandName = 'apm'
@@ -199,7 +203,10 @@ class PackageManager
   # Returns the {Package} that was disabled or null if it isn't loaded.
   disablePackage: (name) ->
     pack = @loadPackage(name)
-    pack?.disable()
+
+    unless @isPackageDisabled(name)
+      pack?.disable()
+
     pack
 
   # Public: Is the package with the given name disabled?
@@ -354,10 +361,14 @@ class PackageManager
     packagePaths = @getAvailablePackagePaths()
     packagePaths = packagePaths.filter (packagePath) => not @isPackageDisabled(path.basename(packagePath))
     packagePaths = _.uniq packagePaths, (packagePath) -> path.basename(packagePath)
-    @loadPackage(packagePath) for packagePath in packagePaths
+    @config.transact =>
+      @loadPackage(packagePath) for packagePath in packagePaths
+      return
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
+    return null if path.basename(nameOrPath)[0].match /^\./ # primarily to skip .git folder
+
     return pack if pack = @getLoadedPackage(nameOrPath)
 
     if packagePath = @resolvePackagePath(nameOrPath)
@@ -464,6 +475,14 @@ class PackageManager
     return unless hook? and _.isString(hook) and hook.length > 0
     @activationHookEmitter.on(hook, callback)
 
+  serialize: ->
+    for pack in @getActivePackages()
+      @serializePackage(pack)
+    @packageStates
+
+  serializePackage: (pack) ->
+    @setPackageState(pack.name, state) if state = pack.serialize?()
+
   # Deactivate all packages
   deactivatePackages: ->
     @config.transact =>
@@ -475,8 +494,7 @@ class PackageManager
   # Deactivate the package with the given name
   deactivatePackage: (name) ->
     pack = @getLoadedPackage(name)
-    if @isPackageActive(name)
-      @setPackageState(pack.name, state) if state = pack.serialize?()
+    @serializePackage(pack) if @isPackageActive(pack.name)
     pack.deactivate()
     delete @activePackages[pack.name]
     delete @activatingPackages[pack.name]
@@ -529,11 +547,12 @@ class PackageManager
     unless typeof metadata.name is 'string' and metadata.name.length > 0
       metadata.name = packageName
 
+    if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
+      metadata.repository.url = metadata.repository.url.replace(/(^git\+)|(\.git$)/g, '')
+
     metadata
 
   normalizePackageMetadata: (metadata) ->
     unless metadata?._id
       normalizePackageData ?= require 'normalize-package-data'
       normalizePackageData(metadata)
-      if metadata.repository?.type is 'git' and typeof metadata.repository.url is 'string'
-        metadata.repository.url = metadata.repository.url.replace(/^git\+/, '')

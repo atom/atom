@@ -1,0 +1,45 @@
+machine:
+  environment:
+    XCODE_SCHEME: test
+    XCODE_WORKSPACE: test
+    XCODE_PROJECT: test
+
+  xcode:
+    version: 7.3
+
+  post:
+    - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+
+general:
+  artifacts:
+    - out/atom-mac.zip
+    - out/atom-mac-symbols.zip
+    - docs/output/atom-api.json
+
+dependencies:
+  pre:
+    - curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.3/install.sh | bash
+    - nvm install 4.4.7
+    - nvm use 4.4.7
+    - npm install -g npm
+
+  override:
+    - script/build --code-sign --compress-artifacts
+
+  cache_directories:
+    - electron
+    - apm/node_modules
+    - script/node_modules
+    - node_modules
+    - ~/.atom/compile-cache
+
+test:
+  override:
+    - script/lint
+    - caffeinate -s script/test # Run with caffeinate to prevent screen saver
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master

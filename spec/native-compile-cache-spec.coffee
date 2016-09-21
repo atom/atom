@@ -68,12 +68,12 @@ describe "NativeCompileCache", ->
 
   describe "when a previously required and cached file changes", ->
     beforeEach ->
-      fs.writeFileSync path.resolve('./spec/fixtures/native-cache/file-5'), """
+      fs.writeFileSync path.resolve(__dirname + '/fixtures/native-cache/file-5'), """
       module.exports = function () { return "file-5" }
       """
 
     afterEach ->
-      fs.unlinkSync path.resolve('./spec/fixtures/native-cache/file-5')
+      fs.unlinkSync path.resolve(__dirname + '/fixtures/native-cache/file-5')
 
     it "removes it from the store and re-inserts it with the new cache", ->
       fn5 = require('./fixtures/native-cache/file-5')

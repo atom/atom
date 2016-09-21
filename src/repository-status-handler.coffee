@@ -1,7 +1,7 @@
 Git = require 'git-utils'
 path = require 'path'
 
-module.exports = (repoPath) ->
+module.exports = (repoPath, paths = []) ->
   repo = Git.open(repoPath)
 
   upstream = {}
@@ -12,7 +12,8 @@ module.exports = (repoPath) ->
   if repo?
     # Statuses in main repo
     workingDirectoryPath = repo.getWorkingDirectory()
-    for filePath, status of repo.getStatus()
+    repoStatus = (if paths.length > 0 then repo.getStatusForPaths(paths) else repo.getStatus())
+    for filePath, status of repoStatus
       statuses[filePath] = status
 
     # Statuses in submodules

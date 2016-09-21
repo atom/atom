@@ -872,6 +872,26 @@ describe "Config", ->
           atom.config.loadUserConfig()
           expect(atom.config.get("foo.bar")).toBe "baz"
 
+      describe "when the config file fails to load", ->
+        addErrorHandler = null
+
+        beforeEach ->
+          atom.notifications.onDidAddNotification addErrorHandler = jasmine.createSpy()
+          spyOn(fs, "existsSync").andCallFake ->
+            error = new Error()
+            error.code = 'EPERM'
+            throw error
+
+        it "creates a notification and does not try to save later changes to disk", ->
+          load = -> atom.config.loadUserConfig()
+          expect(load).not.toThrow()
+          expect(addErrorHandler.callCount).toBe 1
+
+          atom.config.set("foo.bar", "baz")
+          advanceClock(100)
+          expect(atom.config.save).not.toHaveBeenCalled()
+          expect(atom.config.get("foo.bar")).toBe "baz"
+
     describe ".observeUserConfig()", ->
       updatedHandler = null
 
@@ -1601,6 +1621,16 @@ describe "Config", ->
           expect(color.toHexString()).toBe '#ff0000'
           expect(color.toRGBAString()).toBe 'rgba(255, 0, 0, 1)'
 
+          color.red = 11
+          color.green = 11
+          color.blue = 124
+          color.alpha = 1
+          atom.config.set('foo.bar.aColor', color)
+
+          color = atom.config.get('foo.bar.aColor')
+          expect(color.toHexString()).toBe '#0b0b7c'
+          expect(color.toRGBAString()).toBe 'rgba(11, 11, 124, 1)'
+
         it 'coerces various types to a color object', ->
           atom.config.set('foo.bar.aColor', 'red')
           expect(atom.config.get('foo.bar.aColor')).toEqual {red: 255, green: 0, blue: 0, alpha: 1}
@@ -1669,6 +1699,14 @@ describe "Config", ->
                 items:
                   type: 'string'
                   enum: ['one', 'two', 'three']
+              str_options:
+                type: 'string'
+                default: 'one'
+                enum: [
+                  value: 'one', description: 'One'
+                  'two',
+                  value: 'three', description: 'Three'
+                ]
 
           atom.config.setSchema('foo.bar', schema)
 
@@ -1692,3 +1730,13 @@ describe "Config", ->
 
           expect(atom.config.set('foo.bar.arr', ['two', 'three'])).toBe true
           expect(atom.config.get('foo.bar.arr')).toEqual ['two', 'three']
+
+        it 'will honor the enum when specified as an array', ->
+          expect(atom.config.set('foo.bar.str_options', 'one')).toBe true
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'one'
+
+          expect(atom.config.set('foo.bar.str_options', 'two')).toBe true
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'two'
+
+          expect(atom.config.set('foo.bar.str_options', 'One')).toBe false
+          expect(atom.config.get('foo.bar.str_options')).toEqual 'two'

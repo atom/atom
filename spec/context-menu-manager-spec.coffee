@@ -149,6 +149,55 @@ describe "ContextMenuManager", ->
       shouldDisplay = false
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual []
 
+    it "prunes a trailing separator", ->
+      contextMenu.add
+        '.grandchild': [
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'},
+          {type: 'separator'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
+    it "prunes a leading separator", ->
+      contextMenu.add
+        '.grandchild': [
+          {type: 'separator'},
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
+    it "prunes duplicate separators", ->
+      contextMenu.add
+        '.grandchild': [
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'}
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(3)
+
+    it "prunes all redundant separators", ->
+      contextMenu.add
+        '.grandchild': [
+          {type: 'separator'},
+          {type: 'separator'},
+          {label: 'A', command: 'a'},
+          {type: 'separator'},
+          {type: 'separator'},
+          {label: 'B', command: 'b'}
+          {label: 'C', command: 'c'}
+          {type: 'separator'},
+          {type: 'separator'},
+        ]
+
+      expect(contextMenu.templateForEvent({target: grandchild}).length).toBe(4)
+
     it "throws an error when the selector is invalid", ->
       addError = null
       try
@@ -156,3 +205,28 @@ describe "ContextMenuManager", ->
       catch error
         addError = error
       expect(addError.message).toContain('<>')
+
+    it "calls `created` hooks for submenu items", ->
+      item = {
+        label: 'A',
+        command: 'B',
+        submenu: [
+          {
+            label: 'C',
+            created: (event) -> @label = 'D',
+          }
+        ]
+      }
+      contextMenu.add('.grandchild': [item])
+
+      dispatchedEvent = {target: grandchild}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual(
+        [
+          label: 'A',
+          command: 'B',
+          submenu: [
+            {
+              label: 'D',
+            }
+          ]
+        ])

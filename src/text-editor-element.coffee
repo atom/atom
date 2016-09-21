@@ -20,13 +20,11 @@ class TextEditorElement extends HTMLElement
 
   createdCallback: ->
     # Use globals when the following instance variables aren't set.
-    @config = atom.config
     @themes = atom.themes
     @workspace = atom.workspace
     @assert = atom.assert
     @views = atom.views
     @styles = atom.styles
-    @grammars = atom.grammars
 
     @emitter = new Emitter
     @subscriptions = new CompositeDisposable
@@ -38,31 +36,22 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    if @config.get('editor.useShadowDOM')
-      @useShadowDOM = true
+    unless ShadowStyleSheet?
+      ShadowStyleSheet = document.createElement('style')
+      ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
 
-      unless ShadowStyleSheet?
-        ShadowStyleSheet = document.createElement('style')
-        ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
+    @createShadowRoot()
 
-      @createShadowRoot()
+    @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
+    @stylesElement = new StylesElement
+    @stylesElement.initialize(@styles)
+    @stylesElement.setAttribute('context', 'atom-text-editor')
 
-      @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-      @stylesElement = new StylesElement
-      @stylesElement.initialize(@styles)
-      @stylesElement.setAttribute('context', 'atom-text-editor')
+    @rootElement = document.createElement('div')
+    @rootElement.classList.add('editor--private')
 
-      @rootElement = document.createElement('div')
-      @rootElement.classList.add('editor--private')
-
-      @shadowRoot.appendChild(@stylesElement)
-      @shadowRoot.appendChild(@rootElement)
-    else
-      @useShadowDOM = false
-
-      @classList.add('editor', 'editor-colors')
-      @stylesElement = document.head.querySelector('atom-styles')
-      @rootElement = this
+    @shadowRoot.appendChild(@stylesElement)
+    @shadowRoot.appendChild(@rootElement)
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
@@ -86,14 +75,12 @@ class TextEditorElement extends HTMLElement
     @subscriptions.add @component.onDidChangeScrollLeft =>
       @emitter.emit("did-change-scroll-left", arguments...)
 
-  initialize: (model, {@views, @config, @themes, @workspace, @assert, @styles, @grammars}) ->
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @views?
-    throw new Error("Must pass a config parameter when initializing TextEditorElements") unless @config?
+  initialize: (model, {@views, @themes, @workspace, @assert, @styles}) ->
+    throw new Error("Must pass a views parameter when initializing TextEditorElements") unless @views?
     throw new Error("Must pass a themes parameter when initializing TextEditorElements") unless @themes?
     throw new Error("Must pass a workspace parameter when initializing TextEditorElements") unless @workspace?
-    throw new Error("Must pass a assert parameter when initializing TextEditorElements") unless @assert?
+    throw new Error("Must pass an assert parameter when initializing TextEditorElements") unless @assert?
     throw new Error("Must pass a styles parameter when initializing TextEditorElements") unless @styles?
-    throw new Error("Must pass a grammars parameter when initializing TextEditorElements") unless @grammars?
 
     @setModel(model)
     this
@@ -136,22 +123,14 @@ class TextEditorElement extends HTMLElement
       stylesElement: @stylesElement
       editor: @model
       tileSize: @tileSize
-      useShadowDOM: @useShadowDOM
       views: @views
       themes: @themes
-      config: @config
       workspace: @workspace
       assert: @assert
-      grammars: @grammars
     )
     @rootElement.appendChild(@component.getDomNode())
 
-    if @useShadowDOM
-      @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
-    else
-      inputNode = @component.hiddenInputComponent.getDomNode()
-      inputNode.addEventListener 'focus', @focused.bind(this)
-      inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
+    @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
 
   unmountComponent: ->
     if @component?
@@ -163,11 +142,6 @@ class TextEditorElement extends HTMLElement
     @component?.focused()
 
   blurred: (event) ->
-    unless @useShadowDOM
-      if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
-        event.stopImmediatePropagation()
-        return
-
     @component?.blurred()
 
   # Work around what seems to be a bug in Chromium. Focus can be stolen from the
@@ -203,7 +177,7 @@ class TextEditorElement extends HTMLElement
 
   # Extended: Continuously reflows lines and line numbers. (Has performance overhead)
   #
-  # `continuousReflow` A {Boolean} indicating whether to keep reflowing or not.
+  # * `continuousReflow` A {Boolean} indicating whether to keep reflowing or not.
   setContinuousReflow: (continuousReflow) ->
     @component?.setContinuousReflow(continuousReflow)
 
@@ -335,16 +309,23 @@ class TextEditorElement extends HTMLElement
 
   setWidth: (width) ->
     @style.width = (@component.getGutterWidth() + width) + "px"
-    @component.measureDimensions()
 
   getWidth: ->
     @offsetWidth - @component.getGutterWidth()
 
   setHeight: (height) ->
     @style.height = height + "px"
-    @component.measureDimensions()
 
   getHeight: ->
     @offsetHeight
+
+  # Experimental: Invalidate the passed block {Decoration} dimensions, forcing
+  # them to be recalculated and the surrounding content to be adjusted on the
+  # next animation frame.
+  #
+  # * {blockDecoration} A {Decoration} representing the block decoration you
+  # want to update the dimensions of.
+  invalidateBlockDecorationDimensions: ->
+    @component.invalidateBlockDecorationDimensions(arguments...)
 
 module.exports = TextEditorElement = document.registerElement 'atom-text-editor', prototype: TextEditorElement.prototype

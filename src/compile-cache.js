@@ -43,11 +43,11 @@ exports.addPathToCache = function (filePath, atomHome) {
       CSON = require('season')
       CSON.setCacheDir(this.getCacheDirectory())
     }
-    CSON.readFileSync(filePath)
+    return CSON.readFileSync(filePath)
   } else {
     var compiler = COMPILERS[extension]
     if (compiler) {
-      compileFileAtPath(compiler, filePath, extension)
+      return compileFileAtPath(compiler, filePath, extension)
     }
   }
 }

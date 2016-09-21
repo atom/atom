@@ -75,22 +75,23 @@ describe 'text utilities', ->
 
       expect(textUtils.isKoreanCharacter("O")).toBe(false)
 
-  describe ".isCJKCharacter(character)", ->
-    it "returns true when the character is either a korean, half-width or double-width character", ->
-      expect(textUtils.isCJKCharacter("我")).toBe(true)
-      expect(textUtils.isCJKCharacter("私")).toBe(true)
-      expect(textUtils.isCJKCharacter("Ｂ")).toBe(true)
-      expect(textUtils.isCJKCharacter("，")).toBe(true)
-      expect(textUtils.isCJKCharacter("￠")).toBe(true)
-      expect(textUtils.isCJKCharacter("ﾊ")).toBe(true)
-      expect(textUtils.isCJKCharacter("ﾋ")).toBe(true)
-      expect(textUtils.isCJKCharacter("ﾬ")).toBe(true)
-      expect(textUtils.isCJKCharacter("￭")).toBe(true)
-      expect(textUtils.isCJKCharacter("우")).toBe(true)
-      expect(textUtils.isCJKCharacter("가")).toBe(true)
-      expect(textUtils.isCJKCharacter("ㅢ")).toBe(true)
-      expect(textUtils.isCJKCharacter("ㄼ")).toBe(true)
+  describe ".isWrapBoundary(previousCharacter, character)", ->
+    it "returns true when the character is CJK or when the previous character is a space/tab", ->
+      anyCharacter = 'x'
+      expect(textUtils.isWrapBoundary(anyCharacter, "我")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "私")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "Ｂ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "，")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "￠")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ﾊ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ﾋ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ﾬ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "￭")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "우")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "가")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ㅢ")).toBe(true)
+      expect(textUtils.isWrapBoundary(anyCharacter, "ㄼ")).toBe(true)
 
-      expect(textUtils.isDoubleWidthCharacter("a")).toBe(false)
-      expect(textUtils.isDoubleWidthCharacter("O")).toBe(false)
-      expect(textUtils.isDoubleWidthCharacter("z")).toBe(false)
+      expect(textUtils.isWrapBoundary(' ', 'h')).toBe(true)
+      expect(textUtils.isWrapBoundary('\t', 'h')).toBe(true)
+      expect(textUtils.isWrapBoundary('a', 'h')).toBe(false)

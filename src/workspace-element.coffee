@@ -1,5 +1,6 @@
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 path = require 'path'
+fs = require 'fs-plus'
 {Disposable, CompositeDisposable} = require 'event-kit'
 Grim = require 'grim'
 scrollbarStyle = require 'scrollbar-style'
@@ -44,14 +45,20 @@ class WorkspaceElement extends HTMLElement
     @subscriptions.add @config.onDidChange 'editor.lineHeight', @updateGlobalTextEditorStyleSheet.bind(this)
 
   updateGlobalTextEditorStyleSheet: ->
+    fontFamily = @config.get('editor.fontFamily')
+    # TODO: There is a bug in how some emojis (e.g. ❤️) are rendered on macOS.
+    # This workaround should be removed once we update to Chromium 51, where the
+    # problem was fixed.
+    fontFamily += ', "Apple Color Emoji"' if process.platform is 'darwin'
     styleSheetSource = """
       atom-text-editor {
         font-size: #{@config.get('editor.fontSize')}px;
-        font-family: #{@config.get('editor.fontFamily')};
+        font-family: #{fontFamily};
         line-height: #{@config.get('editor.lineHeight')};
       }
     """
     @styles.addStyleSheet(styleSheetSource, sourcePath: 'global-text-editor-styles')
+    @views.performDocumentPoll()
 
   initialize: (@model, {@views, @workspace, @project, @config, @styles}) ->
     throw new Error("Must pass a views parameter when initializing WorskpaceElements") unless @views?
@@ -69,11 +76,15 @@ class WorkspaceElement extends HTMLElement
     @verticalAxis.appendChild(@paneContainer)
     @addEventListener 'focus', @handleFocus.bind(this)
 
+    @addEventListener 'mousewheel', @handleMousewheel.bind(this), true
+
     @panelContainers =
       top: @views.getView(@model.panelContainers.top)
       left: @views.getView(@model.panelContainers.left)
       right: @views.getView(@model.panelContainers.right)
       bottom: @views.getView(@model.panelContainers.bottom)
+      header: @views.getView(@model.panelContainers.header)
+      footer: @views.getView(@model.panelContainers.footer)
       modal: @views.getView(@model.panelContainers.modal)
 
     @horizontalAxis.insertBefore(@panelContainers.left, @verticalAxis)
@@ -82,11 +93,23 @@ class WorkspaceElement extends HTMLElement
     @verticalAxis.insertBefore(@panelContainers.top, @paneContainer)
     @verticalAxis.appendChild(@panelContainers.bottom)
 
+    @insertBefore(@panelContainers.header, @horizontalAxis)
+    @appendChild(@panelContainers.footer)
+
     @appendChild(@panelContainers.modal)
 
     this
 
   getModel: -> @model
+
+  handleMousewheel: (event) ->
+    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling') and event.target.matches('atom-text-editor')
+      if event.wheelDeltaY > 0
+        @model.increaseFontSize()
+      else if event.wheelDeltaY < 0
+        @model.decreaseFontSize()
+      event.preventDefault()
+      event.stopPropagation()
 
   handleFocus: (event) ->
     @model.getActivePane().activate()
@@ -99,11 +122,25 @@ class WorkspaceElement extends HTMLElement
 
   focusPaneViewOnRight: -> @paneContainer.focusPaneViewOnRight()
 
+  moveActiveItemToPaneAbove: (params) -> @paneContainer.moveActiveItemToPaneAbove(params)
+
+  moveActiveItemToPaneBelow: (params) -> @paneContainer.moveActiveItemToPaneBelow(params)
+
+  moveActiveItemToPaneOnLeft: (params) -> @paneContainer.moveActiveItemToPaneOnLeft(params)
+
+  moveActiveItemToPaneOnRight: (params) -> @paneContainer.moveActiveItemToPaneOnRight(params)
+
   runPackageSpecs: ->
     if activePath = @workspace.getActivePaneItem()?.getPath?()
       [projectPath] = @project.relativizePath(activePath)
     else
       [projectPath] = @project.getPaths()
-    ipc.send('run-package-specs', path.join(projectPath, 'spec')) if projectPath
+    if projectPath
+      specPath = path.join(projectPath, 'spec')
+      testPath = path.join(projectPath, 'test')
+      if not fs.existsSync(specPath) and fs.existsSync(testPath)
+        specPath = testPath
+
+      ipcRenderer.send('run-package-specs', specPath)
 
 module.exports = WorkspaceElement = document.registerElement 'atom-workspace', prototype: WorkspaceElement.prototype

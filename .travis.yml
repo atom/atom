@@ -1,40 +1,33 @@
 git:
   depth: 10
 
-branches:
-  only:
-    - master
-
-env:
-  global:
-    - ATOM_ACCESS_TOKEN=da809a6077bb1b0aa7c5623f7b2d5f1fec2faae4
-
-compiler: clang
-
 matrix:
   include:
     - os: linux
-      env: NODE_VERSION=0.12
-    - os: linux
-      env: NODE_VERSION=4
-    - os: osx
-      env: ATOM_SPECS_TASK=core NODE_VERSION=0.12
-    - os: osx
-      env: ATOM_SPECS_TASK=packages NODE_VERSION=0.12
+      env: NODE_VERSION=4.4.7 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
 
 sudo: false
+
+before_install:
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
 
 install:
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
-  - nvm use $NODE_VERSION
+  - nvm use --delete-prefix $NODE_VERSION
+  - npm install -g npm
+  - script/build --create-debian-package --create-rpm-package --compress-artifacts
 
-script: script/cibuild
+script: script/test
 
 cache:
   directories:
+    - electron
     - node_modules
+    - apm/node_modules
+    - script/node_modules
+    - ~/.atom/compile-cache
 
 notifications:
   email:
@@ -42,9 +35,17 @@ notifications:
     on_failure: change
 
 addons:
+  artifacts:
+    paths:
+      - out/atom-amd64.deb
+      - out/atom.x86_64.rpm
+      - out/atom-amd64.tar.gz
+    target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
     packages:
     - build-essential
+    - clang-3.3
+    - fakeroot
     - git
     - libgnome-keyring-dev
-    - fakeroot
+    - rpm

@@ -21,7 +21,7 @@ class Project extends Model
   Section: Construction and Destruction
   ###
 
-  constructor: ({@notificationManager, packageManager, config}) ->
+  constructor: ({@notificationManager, packageManager, config, @applicationDelegate}) ->
     @emitter = new Emitter
     @buffers = []
     @paths = []
@@ -54,8 +54,9 @@ class Project extends Model
   Section: Serialization
   ###
 
-  deserialize: (state, deserializerManager) ->
+  deserialize: (state) ->
     state.paths = [state.path] if state.path? # backward compatibility
+    state.paths = state.paths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
 
     @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
@@ -65,15 +66,15 @@ class Project extends Model
           fs.closeSync(fs.openSync(bufferState.filePath, 'r'))
         catch error
           return unless error.code is 'ENOENT'
-      deserializerManager.deserialize(bufferState)
+      TextBuffer.deserialize(bufferState)
 
     @subscribeToBuffer(buffer) for buffer in @buffers
     @setPaths(state.paths)
 
-  serialize: ->
+  serialize: (options={}) ->
     deserializer: 'Project'
     paths: @getPaths()
-    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize() if buffer.isRetained())
+    buffers: _.compact(@buffers.map (buffer) -> buffer.serialize({markerLayers: options.isUnloading is true}) if buffer.isRetained())
 
   ###
   Section: Event Subscription
@@ -88,8 +89,26 @@ class Project extends Model
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
+  # Public: Invoke the given callback when a text buffer is added to the
+  # project.
+  #
+  # * `callback` {Function} to be called when a text buffer is added.
+  #   * `buffer` A {TextBuffer} item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddBuffer: (callback) ->
     @emitter.on 'did-add-buffer', callback
+
+  # Public: Invoke the given callback with all current and future text
+  # buffers in the project.
+  #
+  # * `callback` {Function} to be called with current and future text buffers.
+  #   * `buffer` A {TextBuffer} item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeBuffers: (callback) ->
+    callback(buffer) for buffer in @getBuffers()
+    @onDidAddBuffer callback
 
   ###
   Section: Accessing the git repository
@@ -128,6 +147,7 @@ class Project extends Model
         # registered in the future that could supply a Repository for the
         # directory.
         @repositoryPromisesByPath.delete(pathForDirectory) unless repo?
+        repo?.onDidDestroy?(=> @repositoryPromisesByPath.delete(pathForDirectory))
         repo
       @repositoryPromisesByPath.set(pathForDirectory, promise)
     promise
@@ -288,7 +308,7 @@ class Project extends Model
       'atom.repository-provider',
       '^0.1.0',
       (provider) =>
-        @repositoryProviders.push(provider)
+        @repositoryProviders.unshift(provider)
         @setPaths(@getPaths()) if null in @repositories
         new Disposable =>
           @repositoryProviders.splice(@repositoryProviders.indexOf(provider), 1)
@@ -329,7 +349,7 @@ class Project extends Model
   #
   # * `filePath` A {String} representing a path. If `null`, an "Untitled" buffer is created.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   bufferForPath: (absoluteFilePath) ->
     existingBuffer = @findBufferForPath(absoluteFilePath) if absoluteFilePath?
     if existingBuffer
@@ -349,7 +369,7 @@ class Project extends Model
   # * `absoluteFilePath` A {String} representing a path.
   # * `text` The {String} text to use as a buffer.
   #
-  # Returns a promise that resolves to the {TextBuffer}.
+  # Returns a {Promise} that resolves to the {TextBuffer}.
   buildBuffer: (absoluteFilePath) ->
     buffer = new TextBuffer({filePath: absoluteFilePath})
     @addBuffer(buffer)
@@ -359,7 +379,6 @@ class Project extends Model
 
   addBuffer: (buffer, options={}) ->
     @addBufferAtIndex(buffer, @buffers.length, options)
-    @subscribeToBuffer(buffer)
 
   addBufferAtIndex: (buffer, index, options={}) ->
     @buffers.splice(index, 0, buffer)
@@ -389,7 +408,12 @@ class Project extends Model
       @on 'buffer-created', (buffer) -> callback(buffer)
 
   subscribeToBuffer: (buffer) ->
+    buffer.onWillSave ({path}) => @applicationDelegate.emitWillSavePath(path)
+    buffer.onDidSave ({path}) => @applicationDelegate.emitDidSavePath(path)
     buffer.onDidDestroy => @removeBuffer(buffer)
+    buffer.onDidChangePath =>
+      unless @getPaths().length > 0
+        @setPaths([path.dirname(buffer.getPath())])
     buffer.onWillThrowWatchError ({error, handle}) =>
       handle()
       @notificationManager.addWarning """

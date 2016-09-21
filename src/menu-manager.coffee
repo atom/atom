@@ -1,7 +1,7 @@
 path = require 'path'
 
 _ = require 'underscore-plus'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 CSON = require 'season'
 fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
@@ -143,17 +143,20 @@ class MenuManager
   # Public: Refreshes the currently visible menu.
   update: ->
     clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
-    @pendingUpdateOperation = setImmediate =>
-      includedBindings = []
-      unsetKeystrokes = new Set
 
-      for binding in @keymapManager.getKeyBindings() when @includeSelector(binding.selector)
-        includedBindings.push(binding)
+    @pendingUpdateOperation = setImmediate =>
+      unsetKeystrokes = new Set
+      for binding in @keymapManager.getKeyBindings()
         if binding.command is 'unset!'
           unsetKeystrokes.add(binding.keystrokes)
 
       keystrokesByCommand = {}
-      for binding in includedBindings when not unsetKeystrokes.has(binding.keystrokes)
+      for binding in @keymapManager.getKeyBindings()
+        continue unless @includeSelector(binding.selector)
+        continue if unsetKeystrokes.has(binding.keystrokes)
+        continue if binding.keystrokes.includes(' ')
+        continue if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
+        continue if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
 
@@ -176,22 +179,8 @@ class MenuManager
   unmerge: (menu, item) ->
     MenuHelpers.unmerge(menu, item)
 
-  # OSX can't handle displaying accelerators for multiple keystrokes.
-  # If they are sent across, it will stop processing accelerators for the rest
-  # of the menu items.
-  filterMultipleKeystroke: (keystrokesByCommand) ->
-    filtered = {}
-    for key, bindings of keystrokesByCommand
-      for binding in bindings
-        continue if binding.indexOf(' ') isnt -1
-
-        filtered[key] ?= []
-        filtered[key].push(binding)
-    filtered
-
   sendToBrowserProcess: (template, keystrokesByCommand) ->
-    keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
-    ipc.send 'update-application-menu', template, keystrokesByCommand
+    ipcRenderer.send 'update-application-menu', template, keystrokesByCommand
 
   # Get an {Array} of {String} classes for the given element.
   classesForElement: (element) ->

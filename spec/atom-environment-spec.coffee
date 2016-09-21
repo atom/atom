@@ -1,9 +1,10 @@
-_ = require "underscore-plus"
+_ = require 'underscore-plus'
 path = require 'path'
 temp = require 'temp'
 Package = require '../src/package'
 ThemeManager = require '../src/theme-manager'
 AtomEnvironment = require '../src/atom-environment'
+StorageFolder = require '../src/storage-folder'
 
 describe "AtomEnvironment", ->
   describe 'window sizing methods', ->
@@ -27,8 +28,10 @@ describe "AtomEnvironment", ->
         atom.setSize(originalSize.width, originalSize.height)
 
       it 'sets the size of the window, and can retrieve the size just set', ->
-        atom.setSize(100, 400)
-        expect(atom.getSize()).toEqual width: 100, height: 400
+        newWidth = originalSize.width + 12
+        newHeight = originalSize.height + 23
+        atom.setSize(newWidth, newHeight)
+        expect(atom.getSize()).toEqual width: newWidth, height: newHeight
 
   describe ".isReleasedVersion()", ->
     it "returns false if the version is a SHA and true otherwise", ->
@@ -152,6 +155,8 @@ describe "AtomEnvironment", ->
       atom.enablePersistence = false
 
     it "selects the state based on the current project paths", ->
+      jasmine.useRealClock()
+
       [dir1, dir2] = [temp.mkdirSync("dir1-"), temp.mkdirSync("dir2-")]
 
       loadSettings = _.extend atom.getLoadSettings(),
@@ -159,20 +164,121 @@ describe "AtomEnvironment", ->
         windowState: null
 
       spyOn(atom, 'getLoadSettings').andCallFake -> loadSettings
-      spyOn(atom.getStorageFolder(), 'getPath').andReturn(temp.mkdirSync("storage-dir-"))
+      spyOn(atom, 'serialize').andReturn({stuff: 'cool'})
 
-      atom.state.stuff = "cool"
       atom.project.setPaths([dir1, dir2])
-      atom.saveStateSync()
+      # State persistence will fail if other Atom instances are running
+      waitsForPromise ->
+        atom.stateStore.connect().then (isConnected) ->
+          expect(isConnected).toBe true
 
-      atom.state = {}
-      atom.loadStateSync()
-      expect(atom.state.stuff).toBeUndefined()
+      waitsForPromise ->
+        atom.saveState().then ->
+          atom.loadState().then (state) ->
+            expect(state).toBeFalsy()
 
-      loadSettings.initialPaths = [dir2, dir1]
-      atom.state = {}
-      atom.loadStateSync()
-      expect(atom.state.stuff).toBe("cool")
+      waitsForPromise ->
+        loadSettings.initialPaths = [dir2, dir1]
+        atom.loadState().then (state) ->
+          expect(state).toEqual({stuff: 'cool'})
+
+    it "loads state from the storage folder when it can't be found in atom.stateStore", ->
+      jasmine.useRealClock()
+
+      storageFolderState = {foo: 1, bar: 2}
+      serializedState = {someState: 42}
+      loadSettings = _.extend(atom.getLoadSettings(), {initialPaths: [temp.mkdirSync("project-directory")]})
+      spyOn(atom, 'getLoadSettings').andReturn(loadSettings)
+      spyOn(atom, 'serialize').andReturn(serializedState)
+      spyOn(atom, 'getStorageFolder').andReturn(new StorageFolder(temp.mkdirSync("config-directory")))
+      atom.project.setPaths(atom.getLoadSettings().initialPaths)
+
+      waitsForPromise ->
+        atom.stateStore.connect()
+
+      runs ->
+        atom.getStorageFolder().storeSync(atom.getStateKey(loadSettings.initialPaths), storageFolderState)
+
+      waitsForPromise ->
+        atom.loadState().then (state) -> expect(state).toEqual(storageFolderState)
+
+      waitsForPromise ->
+        atom.saveState()
+
+      waitsForPromise ->
+        atom.loadState().then (state) -> expect(state).toEqual(serializedState)
+
+    it "saves state when the CPU is idle after a keydown or mousedown event", ->
+      spyOn(atom, 'saveState')
+      idleCallbacks = []
+      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+
+      keydown = new KeyboardEvent('keydown')
+      atom.document.dispatchEvent(keydown)
+      advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+
+      atom.saveState.reset()
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
+      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
+
+    it "ignores mousedown/keydown events happening after calling unloadEditorWindow", ->
+      spyOn(atom, 'saveState')
+      idleCallbacks = []
+      spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
+
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      atom.unloadEditorWindow()
+      expect(atom.saveState).not.toHaveBeenCalled()
+
+      advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
+      expect(atom.saveState).not.toHaveBeenCalled()
+
+      mousedown = new MouseEvent('mousedown')
+      atom.document.dispatchEvent(mousedown)
+      advanceClock atom.saveStateDebounceInterval
+      idleCallbacks.shift()()
+      expect(atom.saveState).not.toHaveBeenCalled()
+
+    it "serializes the project state with all the options supplied in saveState", ->
+      spyOn(atom.project, 'serialize').andReturn({foo: 42})
+
+      waitsForPromise -> atom.saveState({anyOption: 'any option'})
+      runs ->
+        expect(atom.project.serialize.calls.length).toBe(1)
+        expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
+
+    it "serializes the text editor registry", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (e) -> editor = e
+
+      runs ->
+        atom.textEditors.setGrammarOverride(editor, 'text.plain')
+
+        atom2 = new AtomEnvironment({
+          applicationDelegate: atom.applicationDelegate,
+          window: document.createElement('div'),
+          document: Object.assign(
+            document.createElement('div'),
+            {
+              body: document.createElement('div'),
+              head: document.createElement('div'),
+            }
+          )
+        })
+        atom2.deserialize(atom.serialize())
+
+        expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -230,23 +336,6 @@ describe "AtomEnvironment", ->
 
       atomEnvironment.destroy()
 
-    it "saves the serialized state of the window so it can be deserialized after reload", ->
-      atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document})
-      spyOn(atomEnvironment, 'saveStateSync')
-
-      workspaceState = atomEnvironment.workspace.serialize()
-      grammarsState = {grammarOverridesByPath: atomEnvironment.grammars.grammarOverridesByPath}
-      projectState = atomEnvironment.project.serialize()
-
-      atomEnvironment.unloadEditorWindow()
-
-      expect(atomEnvironment.state.workspace).toEqual workspaceState
-      expect(atomEnvironment.state.grammars).toEqual grammarsState
-      expect(atomEnvironment.state.project).toEqual projectState
-      expect(atomEnvironment.saveStateSync).toHaveBeenCalled()
-
-      atomEnvironment.destroy()
-
   describe "::destroy()", ->
     it "does not throw exceptions when unsubscribing from ipc events (regression)", ->
       configDirPath = temp.mkdirSync()
@@ -258,6 +347,7 @@ describe "AtomEnvironment", ->
       }
       atomEnvironment = new AtomEnvironment({applicationDelegate: atom.applicationDelegate, window, document: fakeDocument})
       spyOn(atomEnvironment.packages, 'getAvailablePackagePaths').andReturn []
+      spyOn(atomEnvironment, 'displayWindow').andReturn Promise.resolve()
       atomEnvironment.startEditorWindow()
       atomEnvironment.unloadEditorWindow()
       atomEnvironment.destroy()
@@ -272,6 +362,14 @@ describe "AtomEnvironment", ->
         pathToOpen = __filename
         atom.openLocations([{pathToOpen}])
         expect(atom.project.getPaths()[0]).toBe __dirname
+
+      describe "then a second path is opened with forceAddToWindow", ->
+        it "adds the second path to the project's paths", ->
+          firstPathToOpen = __dirname
+          secondPathToOpen = path.resolve(__dirname, './fixtures')
+          atom.openLocations([{pathToOpen: firstPathToOpen}])
+          atom.openLocations([{pathToOpen: secondPathToOpen, forceAddToWindow: true}])
+          expect(atom.project.getPaths()).toEqual([firstPathToOpen, secondPathToOpen])
 
     describe "when the opened path does not exist but its parent directory does", ->
       it "adds the parent directory to the project paths", ->
@@ -309,7 +407,7 @@ describe "AtomEnvironment", ->
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
       subscription = atom.onUpdateAvailable updateAvailableHandler
 
-      autoUpdater = require('remote').require('auto-updater')
+      autoUpdater = require('electron').remote.autoUpdater
       autoUpdater.emit 'update-downloaded', null, "notes", "version"
 
       waitsFor ->
@@ -318,3 +416,18 @@ describe "AtomEnvironment", ->
       runs ->
         {releaseVersion} = updateAvailableHandler.mostRecentCall.args[0]
         expect(releaseVersion).toBe 'version'
+
+  describe "::getReleaseChannel()", ->
+    [version] = []
+    beforeEach ->
+      spyOn(atom, 'getVersion').andCallFake -> version
+
+    it "returns the correct channel based on the version number", ->
+      version = '1.5.6'
+      expect(atom.getReleaseChannel()).toBe 'stable'
+
+      version = '1.5.0-beta10'
+      expect(atom.getReleaseChannel()).toBe 'beta'
+
+      version = '1.7.0-dev-5340c91'
+      expect(atom.getReleaseChannel()).toBe 'dev'

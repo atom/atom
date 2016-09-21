@@ -104,7 +104,28 @@ module.exports =
         description: 'Automatically open an empty editor on startup.'
         type: 'boolean'
         default: true
-
+      automaticallyUpdate:
+        description: 'Automatically update Atom when a new release is available.'
+        type: 'boolean'
+        default: true
+      allowPendingPaneItems:
+        description: 'Allow items to be previewed without adding them to a pane permanently, such as when single clicking files in the tree view.'
+        type: 'boolean'
+        default: true
+      telemetryConsent:
+        description: 'Allow usage statistics and exception reports to be sent to the Atom team to help improve the product.'
+        title: 'Send Telemetry to the Atom Team'
+        type: 'string'
+        default: 'undecided'
+        enum: [
+          {value: 'limited', description: 'Allow limited anonymous usage stats, exception and crash reporting'}
+          {value: 'no', description: 'Do not send any telemetry data'}
+          {value: 'undecided', description: 'Undecided (Atom will ask again next time it is launched)'}
+        ]
+      warnOnLargeFileLimit:
+        description: 'Warn before opening files larger than this number of megabytes.'
+        type: 'number'
+        default: 20
   editor:
     type: 'object'
     properties:
@@ -147,6 +168,10 @@ module.exports =
         type: 'boolean'
         default: true
         description: 'Show line numbers in the editor\'s gutter.'
+      atomicSoftTabs:
+        type: 'boolean'
+        default: true
+        description: 'Skip over tab-length runs of leading whitespace when moving the cursor.'
       autoIndent:
         type: 'boolean'
         default: true
@@ -167,7 +192,7 @@ module.exports =
       tabLength:
         type: 'integer'
         default: 2
-        enum: [1, 2, 3, 4, 6, 8]
+        minimum: 1
         description: 'Number of spaces used to represent a tab.'
       softWrap:
         type: 'boolean'
@@ -185,7 +210,7 @@ module.exports =
       softWrapAtPreferredLineLength:
         type: 'boolean'
         default: false
-        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language.'
+        description: 'Instead of wrapping lines to the window\'s width, wrap lines to the number of characters defined by the `Preferred Line Length` setting. This will only take effect when the soft wrap config setting is enabled globally or for the current language. **Note:** If you want to hide the wrap guide (the vertical line) you can disable the `wrap-guide` package.'
       softWrapHangingIndent:
         type: 'integer'
         default: 0
@@ -206,20 +231,11 @@ module.exports =
         default: 300
         minimum: 0
         description: 'Time interval in milliseconds within which text editing operations will be grouped together in the undo history.'
-      useShadowDOM:
-        type: 'boolean'
-        default: true
-        title: 'Use Shadow DOM'
-        description: 'Disable if you experience styling issues with packages or themes. Be sure to open an issue on the relevant package or theme, because this option is going away eventually.'
       confirmCheckoutHeadRevision:
         type: 'boolean'
         default: true
         title: 'Confirm Checkout HEAD Revision'
         description: 'Show confirmation dialog when checking out the HEAD revision and discarding changes to current file since last commit.'
-      backUpBeforeSaving:
-        type: 'boolean'
-        default: false
-        description: 'Ensure file contents aren\'t lost if there is an I/O error during save by making a temporary backup copy.'
       invisibles:
         type: 'object'
         description: 'A hash of characters Atom will use to render whitespace characters. Keys are whitespace character types, values are rendered characters (use value false to turn off individual whitespace character types).'
@@ -254,3 +270,9 @@ if process.platform in ['win32', 'linux']
     type: 'boolean'
     default: false
     description: 'Automatically hide the menu bar and toggle it by pressing Alt. This is only supported on Windows & Linux.'
+
+if process.platform is 'darwin'
+  module.exports.core.properties.useCustomTitleBar =
+    type: 'boolean'
+    default: false
+    description: 'Use custom, theme-aware title bar.<br>Note: This currently does not include a proxy icon.<br>This setting will require a relaunch of Atom to take effect.'

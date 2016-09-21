@@ -102,7 +102,10 @@ class PaneContainer extends Model
     @setRoot(newChild)
 
   getPanes: ->
-    @getRoot().getPanes()
+    if @alive
+      @getRoot().getPanes()
+    else
+      []
 
   getPaneItems: ->
     @getRoot().getItems()
@@ -164,6 +167,15 @@ class PaneContainer extends Model
     else
       false
 
+  moveActiveItemToPane: (destPane) ->
+    item = @activePane.getActiveItem()
+    @activePane.moveItemToPane(item, destPane)
+    destPane.setActiveItem(item)
+
+  copyActiveItemToPane: (destPane) ->
+    item = @activePane.copyActiveItem()
+    destPane.activateItem(item)
+
   destroyEmptyPanes: ->
     pane.destroy() for pane in @getPanes() when pane.items.length is 0
     return
@@ -186,7 +198,7 @@ class PaneContainer extends Model
   # Called by Model superclass when destroyed
   destroyed: ->
     @cancelStoppedChangingActivePaneItemTimeout()
-    pane.destroy() for pane in @getPanes()
+    pane.destroy() for pane in @getRoot().getPanes()
     @subscriptions.dispose()
     @emitter.dispose()
 

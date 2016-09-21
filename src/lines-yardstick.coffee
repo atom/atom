@@ -1,15 +1,14 @@
-TokenIterator = require './token-iterator'
 {Point} = require 'text-buffer'
+{isPairedCharacter} = require './text-utils'
 
 module.exports =
 class LinesYardstick
-  constructor: (@model, @lineNodesProvider, grammarRegistry) ->
-    @tokenIterator = new TokenIterator({grammarRegistry})
+  constructor: (@model, @lineNodesProvider, @lineTopIndex) ->
     @rangeForMeasurement = document.createRange()
     @invalidateCache()
 
   invalidateCache: ->
-    @pixelPositionsByLineIdAndColumn = {}
+    @leftPixelPositionCache = {}
 
   measuredRowForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
@@ -20,146 +19,110 @@ class LinesYardstick
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
     defaultCharWidth = @model.getDefaultCharWidth()
-    row = Math.floor(targetTop / @model.getLineHeightInPixels())
-    targetLeft = 0 if row < 0
+    row = @lineTopIndex.rowForPixelPosition(targetTop)
+    targetLeft = 0 if targetTop < 0 or targetLeft < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
     row = Math.min(row, @model.getLastScreenRow())
     row = Math.max(0, row)
 
-    line = @model.tokenizedLineForScreenRow(row)
-    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
+    lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
+    return Point(row, 0) unless lineNode
 
-    return Point(row, 0) unless lineNode? and line?
+    textNodes = @lineNodesProvider.textNodesForScreenRow(row)
+    lineOffset = lineNode.getBoundingClientRect().left
+    targetLeft += lineOffset
 
-    textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
-    column = 0
-    previousColumn = 0
-    previousLeft = 0
+    textNodeIndex = 0
+    low = 0
+    high = textNodes.length - 1
+    while low <= high
+      mid = low + (high - low >> 1)
+      textNode = textNodes[mid]
+      rangeRect = @clientRectForRange(textNode, 0, textNode.length)
+      if targetLeft < rangeRect.left
+        high = mid - 1
+        textNodeIndex = Math.max(0, mid - 1)
+      else if targetLeft > rangeRect.right
+        low = mid + 1
+        textNodeIndex = Math.min(textNodes.length - 1, mid + 1)
+      else
+        textNodeIndex = mid
+        break
 
-    @tokenIterator.reset(line, false)
-    while @tokenIterator.next()
-      text = @tokenIterator.getText()
-      textIndex = 0
-      while textIndex < text.length
-        if @tokenIterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          textIndex += 2
+    textNode = textNodes[textNodeIndex]
+    characterIndex = 0
+    low = 0
+    high = textNode.textContent.length - 1
+    while low <= high
+      charIndex = low + (high - low >> 1)
+      if isPairedCharacter(textNode.textContent, charIndex)
+        nextCharIndex = charIndex + 2
+      else
+        nextCharIndex = charIndex + 1
+
+      rangeRect = @clientRectForRange(textNode, charIndex, nextCharIndex)
+      if targetLeft < rangeRect.left
+        high = charIndex - 1
+        characterIndex = Math.max(0, charIndex - 1)
+      else if targetLeft > rangeRect.right
+        low = nextCharIndex
+        characterIndex = Math.min(textNode.textContent.length, nextCharIndex)
+      else
+        if targetLeft <= ((rangeRect.left + rangeRect.right) / 2)
+          characterIndex = charIndex
         else
-          char = text[textIndex]
-          charLength = 1
-          textIndex++
+          characterIndex = nextCharIndex
+        break
 
-        unless textNode?
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = 0
-          nextTextNodeIndex = textNodeLength
+    textNodeStartColumn = 0
+    textNodeStartColumn += textNodes[i].length for i in [0...textNodeIndex] by 1
+    Point(row, textNodeStartColumn + characterIndex)
 
-        while nextTextNodeIndex <= column
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = nextTextNodeIndex
-          nextTextNodeIndex = textNodeIndex + textNodeLength
-
-        indexWithinTextNode = column - textNodeIndex
-        left = @leftPixelPositionForCharInTextNode(lineNode, textNode, indexWithinTextNode)
-        charWidth = left - previousLeft
-
-        return Point(row, previousColumn) if targetLeft <= previousLeft + (charWidth / 2)
-
-        previousLeft = left
-        previousColumn = column
-        column += charLength
-
-    if targetLeft <= previousLeft + (charWidth / 2)
-      Point(row, previousColumn)
-    else
-      Point(row, column)
-
-  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
-    screenPosition = Point.fromObject(screenPosition)
-    screenPosition = @model.clipScreenPosition(screenPosition) if clip
-
+  pixelPositionForScreenPosition: (screenPosition) ->
     targetRow = screenPosition.row
     targetColumn = screenPosition.column
 
-    top = targetRow * @model.getLineHeightInPixels()
+    top = @lineTopIndex.pixelPositionAfterBlocksForRow(targetRow)
     left = @leftPixelPositionForScreenPosition(targetRow, targetColumn)
 
     {top, left}
 
   leftPixelPositionForScreenPosition: (row, column) ->
-    line = @model.tokenizedLineForScreenRow(row)
-    lineNode = @lineNodesProvider.lineNodeForLineIdAndScreenRow(line?.id, row)
+    lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
+    lineId = @lineNodesProvider.lineIdForScreenRow(row)
 
-    return 0 unless line? and lineNode?
+    return 0 unless lineNode?
 
-    if cachedPosition = @pixelPositionsByLineIdAndColumn[line.id]?[column]
+    if cachedPosition = @leftPixelPositionCache[lineId]?[column]
       return cachedPosition
 
-    textNodes = @lineNodesProvider.textNodesForLineIdAndScreenRow(line.id, row)
-    indexWithinTextNode = null
-    charIndex = 0
+    textNodes = @lineNodesProvider.textNodesForScreenRow(row)
+    textNodeStartColumn = 0
 
-    @tokenIterator.reset(line, false)
-    while @tokenIterator.next()
-      break if foundIndexWithinTextNode?
-
-      text = @tokenIterator.getText()
-
-      textIndex = 0
-      while textIndex < text.length
-        if @tokenIterator.isPairedCharacter()
-          char = text
-          charLength = 2
-          textIndex += 2
-        else
-          char = text[textIndex]
-          charLength = 1
-          textIndex++
-
-        unless textNode?
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = 0
-          nextTextNodeIndex = textNodeLength
-
-        while nextTextNodeIndex <= charIndex
-          textNode = textNodes.shift()
-          textNodeLength = textNode.textContent.length
-          textNodeIndex = nextTextNodeIndex
-          nextTextNodeIndex = textNodeIndex + textNodeLength
-
-        if charIndex is column
-          foundIndexWithinTextNode = charIndex - textNodeIndex
-          break
-
-        charIndex += charLength
+    for textNode in textNodes
+      textNodeEndColumn = textNodeStartColumn + textNode.textContent.length
+      if textNodeEndColumn > column
+        indexInTextNode = column - textNodeStartColumn
+        break
+      else
+        textNodeStartColumn = textNodeEndColumn
 
     if textNode?
-      foundIndexWithinTextNode ?= textNode.textContent.length
-      position = @leftPixelPositionForCharInTextNode(
-        lineNode, textNode, foundIndexWithinTextNode
-      )
-      @pixelPositionsByLineIdAndColumn[line.id] ?= {}
-      @pixelPositionsByLineIdAndColumn[line.id][column] = position
-      position
+      indexInTextNode ?= textNode.textContent.length
+      lineOffset = lineNode.getBoundingClientRect().left
+      if indexInTextNode is 0
+        leftPixelPosition = @clientRectForRange(textNode, 0, 1).left
+      else
+        leftPixelPosition = @clientRectForRange(textNode, 0, indexInTextNode).right
+      leftPixelPosition -= lineOffset
+
+      @leftPixelPositionCache[lineId] ?= {}
+      @leftPixelPositionCache[lineId][column] = leftPixelPosition
+      leftPixelPosition
     else
       0
 
-  leftPixelPositionForCharInTextNode: (lineNode, textNode, charIndex) ->
-    if charIndex is 0
-      width = 0
-    else
-      @rangeForMeasurement.setStart(textNode, 0)
-      @rangeForMeasurement.setEnd(textNode, charIndex)
-      width = @rangeForMeasurement.getBoundingClientRect().width
-
-    @rangeForMeasurement.setStart(textNode, 0)
-    @rangeForMeasurement.setEnd(textNode, textNode.textContent.length)
-    left = @rangeForMeasurement.getBoundingClientRect().left
-
-    offset = lineNode.getBoundingClientRect().left
-
-    left + width - offset
+  clientRectForRange: (textNode, startIndex, endIndex) ->
+    @rangeForMeasurement.setStart(textNode, startIndex)
+    @rangeForMeasurement.setEnd(textNode, endIndex)
+    @rangeForMeasurement.getClientRects()[0] ? @rangeForMeasurement.getBoundingClientRect()

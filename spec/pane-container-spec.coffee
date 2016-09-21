@@ -220,7 +220,9 @@ describe "PaneContainer", ->
     it "invokes the given callback when panes are added", ->
       container = new PaneContainer(params)
       events = []
-      container.onDidAddPane (event) -> events.push(event)
+      container.onDidAddPane (event) ->
+        expect(event.pane in container.getPanes()).toBe true
+        events.push(event)
 
       pane1 = container.getActivePane()
       pane2 = pane1.splitRight()
@@ -253,7 +255,9 @@ describe "PaneContainer", ->
     it "invokes the given callback when panes are destroyed", ->
       container = new PaneContainer(params)
       events = []
-      container.onDidDestroyPane (event) -> events.push(event)
+      container.onDidDestroyPane (event) ->
+        expect(event.pane in container.getPanes()).toBe false
+        events.push(event)
 
       pane1 = container.getActivePane()
       pane2 = pane1.splitRight()
@@ -263,6 +267,21 @@ describe "PaneContainer", ->
       pane3.destroy()
 
       expect(events).toEqual [{pane: pane2}, {pane: pane3}]
+
+    it "invokes the given callback when the container is destroyed", ->
+      container = new PaneContainer(params)
+      events = []
+      container.onDidDestroyPane (event) ->
+        expect(event.pane in container.getPanes()).toBe false
+        events.push(event)
+
+      pane1 = container.getActivePane()
+      pane2 = pane1.splitRight()
+      pane3 = pane2.splitDown()
+
+      container.destroy()
+
+      expect(events).toEqual [{pane: pane1}, {pane: pane2}, {pane: pane3}]
 
   describe "::onWillDestroyPaneItem() and ::onDidDestroyPaneItem", ->
     it "invokes the given callbacks when an item will be destroyed on any pane", ->
@@ -325,3 +344,27 @@ describe "PaneContainer", ->
       expect(item1.saved).toBe true
       expect(item2.saved).toBe false
       expect(item3.saved).toBe true
+
+  describe "::moveActiveItemToPane(destPane) and ::copyActiveItemToPane(destPane)", ->
+    [container, pane1, pane2, item1] = []
+
+    beforeEach ->
+      class TestItem
+        constructor: (id) -> @id = id
+        copy: -> new TestItem(@id)
+
+      container = new PaneContainer(params)
+      pane1 = container.getRoot()
+      item1 = new TestItem('1')
+      pane2 = pane1.splitRight(items: [item1])
+
+    describe "::::moveActiveItemToPane(destPane)", ->
+      it "moves active item to given pane and focuses it", ->
+        container.moveActiveItemToPane(pane1)
+        expect(pane1.getActiveItem()).toBe item1
+
+    describe "::::copyActiveItemToPane(destPane)", ->
+      it "copies active item to given pane and focuses it", ->
+        container.copyActiveItemToPane(pane1)
+        expect(container.paneForItem(item1)).toBe pane2
+        expect(pane1.getActiveItem().id).toBe item1.id

@@ -2,7 +2,8 @@ _ = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
+Grim = require 'grim'
 
 TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
@@ -13,10 +14,11 @@ ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
+BlockDecorationsComponent = require './block-decorations-component'
+LineTopIndex = require 'line-top-index'
 
 module.exports =
 class TextEditorComponent
-  scrollSensitivity: 0.4
   cursorBlinkPeriod: 800
   cursorBlinkResumeDelay: 100
   tileSize: 12
@@ -41,36 +43,33 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, @useShadowDOM, tileSize, @views, @themes, @config, @workspace, @assert, @grammars}) ->
+  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, tileSize, @views, @themes, @assert}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
-    @observeConfig()
-    @setScrollSensitivity(@config.get('editor.scrollSensitivity'))
-
+    lineTopIndex = new LineTopIndex({
+      defaultLineHeight: @editor.getLineHeightInPixels()
+    })
     @presenter = new TextEditorPresenter
       model: @editor
       tileSize: tileSize
       cursorBlinkPeriod: @cursorBlinkPeriod
       cursorBlinkResumeDelay: @cursorBlinkResumeDelay
       stoppedScrollingDelay: 200
-      config: @config
+      lineTopIndex: lineTopIndex
+      autoHeight: @editor.getAutoHeight()
 
     @presenter.onDidUpdateState(@requestUpdate)
 
     @domElementPool = new DOMElementPool
-
     @domNode = document.createElement('div')
-    if @useShadowDOM
-      @domNode.classList.add('editor-contents--private')
+    @domNode.classList.add('editor-contents--private')
 
-      insertionPoint = document.createElement('content')
-      insertionPoint.setAttribute('select', 'atom-overlay')
-      @domNode.appendChild(insertionPoint)
-      @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
-    else
-      @domNode.classList.add('editor-contents')
-      @overlayManager = new OverlayManager(@presenter, @domNode, @views)
+    insertionPoint = document.createElement('content')
+    insertionPoint.setAttribute('select', 'atom-overlay')
+    @domNode.appendChild(insertionPoint)
+    @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+    @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -79,10 +78,13 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @useShadowDOM, @domElementPool, @assert, @grammars})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesYardstick = new LinesYardstick(@editor, @linesComponent, @grammars)
+    if @blockDecorationsComponent?
+      @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
+
+    @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex)
     @presenter.setLinesYardstick(@linesYardstick)
 
     @horizontalScrollbarComponent = new ScrollbarComponent({orientation: 'horizontal', onScroll: @onHorizontalScroll})
@@ -129,7 +131,7 @@ class TextEditorComponent
   updateSync: ->
     @updateSyncPreMeasurement()
 
-    @oldState ?= {}
+    @oldState ?= {width: null}
     @newState = @presenter.getPostMeasurementState()
 
     if @editor.getLastSelection()? and not @editor.getLastSelection().isEmpty()
@@ -149,6 +151,13 @@ class TextEditorComponent
         else
           @domNode.style.height = ''
 
+      if @newState.width isnt @oldState.width
+        if @newState.width?
+          @hostElement.style.width = @newState.width + 'px'
+        else
+          @hostElement.style.width = ''
+        @oldState.width = @newState.width
+
     if @newState.gutters.length
       @mountGutterContainerComponent() unless @gutterContainerComponent?
       @gutterContainerComponent.updateSync(@newState)
@@ -158,6 +167,7 @@ class TextEditorComponent
 
     @hiddenInputComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
+    @blockDecorationsComponent?.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -177,6 +187,7 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
+    @blockDecorationsComponent?.measureBlockDecorations() if @isVisible()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
@@ -235,8 +246,49 @@ class TextEditorComponent
     @scrollViewNode.addEventListener 'mousedown', @onMouseDown
     @scrollViewNode.addEventListener 'scroll', @onScrollViewScroll
 
+    @detectAccentedCharacterMenu()
     @listenForIMEEvents()
     @trackSelectionClipboard() if process.platform is 'linux'
+
+  detectAccentedCharacterMenu: ->
+    # We need to get clever to detect when the accented character menu is
+    # opened on macOS. Usually, every keydown event that could cause input is
+    # followed by a corresponding keypress. However, pressing and holding
+    # long enough to open the accented character menu causes additional keydown
+    # events to fire that aren't followed by their own keypress and textInput
+    # events.
+    #
+    # Therefore, we assume the accented character menu has been deployed if,
+    # before observing any keyup event, we observe events in the following
+    # sequence:
+    #
+    # keydown(keyCode: X), keypress, keydown(keyCode: X)
+    #
+    # The keyCode X must be the same in the keydown events that bracket the
+    # keypress, meaning we're *holding* the _same_ key we intially pressed.
+    # Got that?
+    lastKeydown = null
+    lastKeydownBeforeKeypress = null
+
+    @domNode.addEventListener 'keydown', (event) =>
+      if lastKeydownBeforeKeypress
+        if lastKeydownBeforeKeypress.keyCode is event.keyCode
+          @openedAccentedCharacterMenu = true
+        lastKeydownBeforeKeypress = null
+      else
+        lastKeydown = event
+
+    @domNode.addEventListener 'keypress', =>
+      lastKeydownBeforeKeypress = lastKeydown
+      lastKeydown = null
+
+      # This cancels the accented character behavior if we type a key normally
+      # with the menu open.
+      @openedAccentedCharacterMenu = false
+
+    @domNode.addEventListener 'keyup', ->
+      lastKeydownBeforeKeypress = null
+      lastKeydown = null
 
   listenForIMEEvents: ->
     # The IME composition events work like this:
@@ -254,6 +306,9 @@ class TextEditorComponent
 
     checkpoint = null
     @domNode.addEventListener 'compositionstart', =>
+      if @openedAccentedCharacterMenu
+        @editor.selectLeft()
+        @openedAccentedCharacterMenu = false
       checkpoint = @editor.createCheckpoint()
     @domNode.addEventListener 'compositionupdate', (event) =>
       @editor.insertText(event.data, select: true)
@@ -268,24 +323,13 @@ class TextEditorComponent
     writeSelectedTextToSelectionClipboard = =>
       return if @editor.isDestroyed()
       if selectedText = @editor.getSelectedText()
-        # This uses ipc.send instead of clipboard.writeText because
-        # clipboard.writeText is a sync ipc call on Linux and that
+        # This uses ipcRenderer.send instead of clipboard.writeText because
+        # clipboard.writeText is a sync ipcRenderer call on Linux and that
         # will slow down selections.
-        ipc.send('write-text-to-selection-clipboard', selectedText)
+        ipcRenderer.send('write-text-to-selection-clipboard', selectedText)
     @disposables.add @editor.onDidChangeSelectionRange ->
       clearTimeout(timeoutId)
       timeoutId = setTimeout(writeSelectedTextToSelectionClipboard)
-
-  observeConfig: ->
-    @disposables.add @config.onDidChange 'editor.fontSize', =>
-      @sampleFontStyling()
-      @invalidateCharacterWidths()
-    @disposables.add @config.onDidChange 'editor.fontFamily', =>
-      @sampleFontStyling()
-      @invalidateCharacterWidths()
-    @disposables.add @config.onDidChange 'editor.lineHeight', =>
-      @sampleFontStyling()
-      @invalidateCharacterWidths()
 
   onGrammarChanged: =>
     if @scopedConfigDisposables?
@@ -296,7 +340,6 @@ class TextEditorComponent
     @disposables.add(@scopedConfigDisposables)
 
     scope = @editor.getRootScopeDescriptor()
-    @scopedConfigDisposables.add @config.observe 'editor.scrollSensitivity', {scope}, @setScrollSensitivity
 
   focused: ->
     if @mounted
@@ -310,23 +353,25 @@ class TextEditorComponent
   onTextInput: (event) =>
     event.stopPropagation()
 
-    # If we prevent the insertion of a space character, then the browser
-    # interprets the spacebar keypress as a page-down command.
-    event.preventDefault() unless event.data is ' '
+    # WARNING: If we call preventDefault on the input of a space character,
+    # then the browser interprets the spacebar keypress as a page-down command,
+    # causing spaces to scroll elements containing editors. This is impossible
+    # to test.
+    event.preventDefault() if event.data isnt ' '
 
     return unless @isInputEnabled()
 
-    inputNode = event.target
+    # Workaround of the accented character suggestion feature in macOS.
+    # This will only occur when the user is not composing in IME mode.
+    # When the user selects a modified character from the macOS menu, `textInput`
+    # will occur twice, once for the initial character, and once for the
+    # modified character. However, only a single keypress will have fired. If
+    # this is the case, select backward to replace the original character.
+    if @openedAccentedCharacterMenu
+      @editor.selectLeft()
+      @openedAccentedCharacterMenu = false
 
-    # Work around of the accented character suggestion feature in OS X.
-    # Text input fires before a character is inserted, and if the browser is
-    # replacing the previous un-accented character with an accented variant, it
-    # will select backward over it.
-    selectedLength = inputNode.selectionEnd - inputNode.selectionStart
-    @editor.selectLeft() if selectedLength is 1
-
-    insertedRange = @editor.insertText(event.data, groupUndo: true)
-    inputNode.value = event.data if insertedRange
+    @editor.insertText(event.data, groupUndo: true)
 
   onVerticalScroll: (scrollTop) =>
     return if @updateRequested or scrollTop is @presenter.getScrollTop()
@@ -355,19 +400,10 @@ class TextEditorComponent
     # Only scroll in one direction at a time
     {wheelDeltaX, wheelDeltaY} = event
 
-    # Ctrl+MouseWheel adjusts font size.
-    if event.ctrlKey and @config.get('editor.zoomFontWhenCtrlScrolling')
-      if wheelDeltaY > 0
-        @workspace.increaseFontSize()
-      else if wheelDeltaY < 0
-        @workspace.decreaseFontSize()
-      event.preventDefault()
-      return
-
     if Math.abs(wheelDeltaX) > Math.abs(wheelDeltaY)
       # Scrolling horizontally
       previousScrollLeft = @presenter.getScrollLeft()
-      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @scrollSensitivity)
+      updatedScrollLeft = previousScrollLeft - Math.round(wheelDeltaX * @editor.getScrollSensitivity() / 100)
 
       event.preventDefault() if @presenter.canScrollLeftTo(updatedScrollLeft)
       @presenter.setScrollLeft(updatedScrollLeft)
@@ -375,7 +411,7 @@ class TextEditorComponent
       # Scrolling vertically
       @presenter.setMouseWheelScreenRow(@screenRowForNode(event.target))
       previousScrollTop = @presenter.getScrollTop()
-      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @scrollSensitivity)
+      updatedScrollTop = previousScrollTop - Math.round(wheelDeltaY * @editor.getScrollSensitivity() / 100)
 
       event.preventDefault() if @presenter.canScrollTopTo(updatedScrollTop)
       @presenter.setScrollTop(updatedScrollTop)
@@ -434,18 +470,23 @@ class TextEditorComponent
   getVisibleRowRange: ->
     @presenter.getVisibleRowRange()
 
-  pixelPositionForScreenPosition: (screenPosition, clip) ->
-    unless @presenter.isRowVisible(screenPosition.row)
+  pixelPositionForScreenPosition: (screenPosition, clip=true) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = @editor.clipScreenPosition(screenPosition) if clip
+
+    unless @presenter.isRowRendered(screenPosition.row)
       @presenter.setScreenRowsToMeasure([screenPosition.row])
+
+    unless @linesComponent.lineNodeForScreenRow(screenPosition.row)?
       @updateSyncPreMeasurement()
 
-    pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition, clip)
+    pixelPosition = @linesYardstick.pixelPositionForScreenPosition(screenPosition)
     @presenter.clearScreenRowsToMeasure()
     pixelPosition
 
   screenPositionForPixelPosition: (pixelPosition) ->
     row = @linesYardstick.measuredRowForPixelPosition(pixelPosition)
-    if row? and not @presenter.isRowVisible(row)
+    if row? and not @presenter.isRowRendered(row)
       @presenter.setScreenRowsToMeasure([row])
       @updateSyncPreMeasurement()
 
@@ -455,9 +496,9 @@ class TextEditorComponent
 
   pixelRectForScreenRange: (screenRange) ->
     rowsToMeasure = []
-    unless @presenter.isRowVisible(screenRange.start.row)
+    unless @presenter.isRowRendered(screenRange.start.row)
       rowsToMeasure.push(screenRange.start.row)
-    unless @presenter.isRowVisible(screenRange.end.row)
+    unless @presenter.isRowRendered(screenRange.end.row)
       rowsToMeasure.push(screenRange.end.row)
 
     if rowsToMeasure.length > 0
@@ -480,6 +521,9 @@ class TextEditorComponent
       @editor.screenPositionForBufferPosition(bufferPosition)
     )
 
+  invalidateBlockDecorationDimensions: ->
+    @presenter.invalidateBlockDecorationDimensions(arguments...)
+
   onMouseDown: (event) =>
     unless event.button is 0 or (event.button is 1 and process.platform is 'linux')
       # Only handle mouse down events for left mouse button on all platforms
@@ -490,7 +534,7 @@ class TextEditorComponent
 
     {detail, shiftKey, metaKey, ctrlKey} = event
 
-    # CTRL+click brings up the context menu on OSX, so don't handle those either
+    # CTRL+click brings up the context menu on macOS, so don't handle those either
     return if ctrlKey and process.platform is 'darwin'
 
     # Prevent focusout event on hidden input if editor is already focused
@@ -499,8 +543,8 @@ class TextEditorComponent
     screenPosition = @screenPositionForMouseEvent(event)
 
     if event.target?.classList.contains('fold-marker')
-      bufferRow = @editor.bufferRowForScreenRow(screenPosition.row)
-      @editor.unfoldBufferRow(bufferRow)
+      bufferPosition = @editor.bufferPositionForScreenPosition(screenPosition)
+      @editor.destroyFoldsIntersectingBufferRange([bufferPosition, bufferPosition])
       return
 
     switch detail
@@ -546,7 +590,7 @@ class TextEditorComponent
     clickedScreenRow = @screenPositionForMouseEvent(event).row
     clickedBufferRow = @editor.bufferRowForScreenRow(clickedScreenRow)
     initialScreenRange = @editor.screenRangeForBufferRange([[clickedBufferRow, 0], [clickedBufferRow + 1, 0]])
-    @editor.addSelectionForScreenRange(initialScreenRange, preserveFolds: true, autoscroll: false)
+    @editor.addSelectionForScreenRange(initialScreenRange, autoscroll: false)
     @handleGutterDrag(initialScreenRange)
 
   onGutterShiftClick: (event) =>
@@ -597,7 +641,7 @@ class TextEditorComponent
   handleStylingChange: =>
     @sampleFontStyling()
     @sampleBackgroundColors()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   handleDragUntilMouseUp: (dragHandler) ->
     dragging = false
@@ -691,6 +735,7 @@ class TextEditorComponent
   pollDOM: =>
     unless @checkForVisibilityChange()
       @sampleBackgroundColors()
+      @measureWindowSize()
       @measureDimensions()
       @sampleFontStyling()
       @overlayManager?.measureOverlays()
@@ -710,19 +755,35 @@ class TextEditorComponent
   # and use the scrollHeight / scrollWidth as its height and width in
   # calculations.
   measureDimensions: ->
-    return unless @mounted
+    # If we don't assign autoHeight explicitly, we try to automatically disable
+    # auto-height in certain circumstances. This is legacy behavior that we
+    # would rather not implement, but we can't remove it without risking
+    # breakage currently.
+    unless @editor.autoHeight?
+      {position, top, bottom} = getComputedStyle(@hostElement)
+      hasExplicitTopAndBottom = (position is 'absolute' and top isnt 'auto' and bottom isnt 'auto')
+      hasInlineHeight = @hostElement.style.height.length > 0
 
-    {position} = getComputedStyle(@hostElement)
-    {height} = @hostElement.style
+      if hasInlineHeight or hasExplicitTopAndBottom
+        if @presenter.autoHeight
+          @presenter.setAutoHeight(false)
+          if hasExplicitTopAndBottom
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via `position: 'absolute'` and an assigned `top` and `bottom` implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+          else if hasInlineHeight
+            Grim.deprecate("""
+              Assigning editor #{@editor.id}'s height explicitly via an inline style implicitly assigns the `autoHeight` property to false on the editor.
+              This behavior is deprecated and will not be supported in the future. Please explicitly assign `autoHeight` on this editor.
+            """)
+      else
+        @presenter.setAutoHeight(true)
 
-    if position is 'absolute' or height
-      @presenter.setAutoHeight(false)
-      height =  @hostElement.offsetHeight
-      if height > 0
-        @presenter.setExplicitHeight(height)
-    else
-      @presenter.setAutoHeight(true)
+    if @presenter.autoHeight
       @presenter.setExplicitHeight(null)
+    else if @hostElement.offsetHeight > 0
+      @presenter.setExplicitHeight(@hostElement.offsetHeight)
 
     clientWidth = @scrollViewNode.clientWidth
     paddingLeft = parseInt(getComputedStyle(@scrollViewNode).paddingLeft)
@@ -751,11 +812,10 @@ class TextEditorComponent
     if @fontSize isnt oldFontSize or @fontFamily isnt oldFontFamily or @lineHeight isnt oldLineHeight
       @clearPoolAfterUpdate = true
       @measureLineHeightAndDefaultCharWidth()
-      @invalidateCharacterWidths()
+      @invalidateMeasurements()
 
   sampleBackgroundColors: (suppressUpdate) ->
     {backgroundColor} = getComputedStyle(@hostElement)
-
     @presenter.setBackgroundColor(backgroundColor)
 
     lineNumberGutter = @gutterContainerComponent?.getLineNumberGutterComponent()
@@ -829,10 +889,7 @@ class TextEditorComponent
     e.abortKeyBinding() unless @editor.consolidateSelections()
 
   lineNodeForScreenRow: (screenRow) ->
-    tileRow = @presenter.tileForRow(screenRow)
-    tileComponent = @linesComponent.getComponentForTile(tileRow)
-
-    tileComponent?.lineNodeForScreenRow(screenRow)
+    @linesComponent.lineNodeForScreenRow(screenRow)
 
   lineNumberNodeForScreenRow: (screenRow) ->
     tileRow = @presenter.tileForRow(screenRow)
@@ -861,7 +918,7 @@ class TextEditorComponent
   setFontSize: (fontSize) ->
     @getTopmostDOMNode().style.fontSize = fontSize + 'px'
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   getFontFamily: ->
     getComputedStyle(@getTopmostDOMNode()).fontFamily
@@ -869,27 +926,20 @@ class TextEditorComponent
   setFontFamily: (fontFamily) ->
     @getTopmostDOMNode().style.fontFamily = fontFamily
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
   setLineHeight: (lineHeight) ->
     @getTopmostDOMNode().style.lineHeight = lineHeight
     @sampleFontStyling()
-    @invalidateCharacterWidths()
+    @invalidateMeasurements()
 
-  invalidateCharacterWidths: ->
+  invalidateMeasurements: ->
     @linesYardstick.invalidateCache()
-    @presenter.characterWidthsChanged()
-
-  setShowIndentGuide: (showIndentGuide) ->
-    @config.set("editor.showIndentGuide", showIndentGuide)
-
-  setScrollSensitivity: (scrollSensitivity) =>
-    if scrollSensitivity = parseInt(scrollSensitivity)
-      @scrollSensitivity = Math.abs(scrollSensitivity) / 100
+    @presenter.measurementsChanged()
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
-    @screenPositionForPixelPosition(pixelPosition, true)
+    @screenPositionForPixelPosition(pixelPosition)
 
   pixelPositionForMouseEvent: (event, linesClientRect) ->
     {clientX, clientY} = event

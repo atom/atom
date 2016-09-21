@@ -80,7 +80,7 @@ ScopeDescriptor = require './scope-descriptor'
 #   # ...
 # ```
 #
-# See [package docs](https://atom.io/docs/latest/hacking-atom-package-word-count) for
+# See [package docs](http://flight-manual.atom.io/hacking-atom/sections/package-word-count/) for
 # more info.
 #
 # ## Config Schemas
@@ -203,22 +203,6 @@ ScopeDescriptor = require './scope-descriptor'
 #       maximum: 11.5
 # ```
 #
-# #### object
-#
-# Value must be an object. This allows you to nest config options. Sub options
-# must be under a `properties key`
-#
-# ```coffee
-# config:
-#   someSetting:
-#     type: 'object'
-#     properties:
-#       myChildIntOption:
-#         type: 'integer'
-#         minimum: 1.5
-#         maximum: 11.5
-# ```
-#
 # #### color
 #
 # Values will be coerced into a {Color} with `red`, `green`, `blue`, and `alpha`
@@ -234,13 +218,34 @@ ScopeDescriptor = require './scope-descriptor'
 #     default: 'white'
 # ```
 #
+# #### object / Grouping other types
+#
+# A config setting with the type `object` allows grouping a set of config
+# settings. The group will be visualy separated and has its own group headline.
+# The sub options must be listed under a `properties` key.
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'object'
+#     properties:
+#       myChildIntOption:
+#         type: 'integer'
+#         minimum: 1.5
+#         maximum: 11.5
+# ```
+#
 # ### Other Supported Keys
 #
 # #### enum
 #
-# All types support an `enum` key. The enum key lets you specify all values
-# that the config setting can possibly be. `enum` _must_ be an array of values
-# of your specified type. Schema:
+# All types support an `enum` key, which lets you specify all the values the
+# setting can take. `enum` may be an array of allowed values (of the specified
+# type), or an array of objects with `value` and `description` properties, where
+# the `value` is an allowed value, and the `description` is a descriptive string
+# used in the settings view.
+#
+# In this example, the setting must be one of the 4 integers:
 #
 # ```coffee
 # config:
@@ -248,6 +253,20 @@ ScopeDescriptor = require './scope-descriptor'
 #     type: 'integer'
 #     default: 4
 #     enum: [2, 4, 6, 8]
+# ```
+#
+# In this example, the setting must be either 'foo' or 'bar', which are
+# presented using the provided descriptions in the settings pane:
+#
+# ```coffee
+# config:
+#   someSetting:
+#     type: 'string'
+#     default: 'foo'
+#     enum: [
+#       {value: 'foo', description: 'Foo mode. You want this.'}
+#       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+#     ]
 # ```
 #
 # Usage:
@@ -274,6 +293,9 @@ ScopeDescriptor = require './scope-descriptor'
 #
 # Descriptions will be displayed below the title in the settings view.
 #
+# For a group of config settings the humanized key or the title and the
+# description are used for the group headline.
+#
 # ```coffee
 # config:
 #   someSetting:
@@ -296,6 +318,23 @@ ScopeDescriptor = require './scope-descriptor'
 # * `code spans` - `\`code spans\``
 # * line breaks - `line breaks<br/>`
 # * ~~strikethrough~~ - `~~strikethrough~~`
+#
+# #### order
+#
+# The settings view orders your settings alphabetically. You can override this
+# ordering with the order key.
+#
+# ```coffee
+# config:
+#   zSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 1
+#   aSetting:
+#     type: 'integer'
+#     default: 4
+#     order: 2
+# ```
 #
 # ## Best practices
 #
@@ -385,7 +424,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `value` the new value of the key
@@ -416,7 +455,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}. See {::get} for examples.
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   # * `callback` {Function} to call when the value of the key changes.
   #   * `event` {Object}
@@ -493,7 +532,7 @@ class Config
   #   * `scope` (optional) {ScopeDescriptor} describing a path from
   #     the root of the syntax tree to a token. Get one by calling
   #     {editor.getLastCursor().getScopeDescriptor()}
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   #
   # Returns the value from Atom's default settings, the user's configuration
@@ -568,7 +607,7 @@ class Config
   #   setting to the default value.
   # * `options` (optional) {Object}
   #   * `scopeSelector` (optional) {String}. eg. '.source.ruby'
-  #     See [the scopes docs](https://atom.io/docs/latest/behind-atom-scoped-settings-scopes-and-scope-descriptors)
+  #     See [the scopes docs](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
   #     for more information.
   #   * `source` (optional) {String} The name of a file with which the setting
   #     is associated. Defaults to the user's config file.
@@ -746,10 +785,11 @@ class Config
         properties[key] ?= {}
         rootSchema = properties[key]
 
-    _.extend rootSchema, schema
-    @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
-    @setScopedDefaultsFromSchema(keyPath, schema)
-    @resetSettingsForSchemaChange()
+    Object.assign rootSchema, schema
+    @transact =>
+      @setDefaults(keyPath, @extractDefaultsFromSchema(schema))
+      @setScopedDefaultsFromSchema(keyPath, schema)
+      @resetSettingsForSchemaChange()
 
   load: ->
     @initializeConfigDirectory()
@@ -779,9 +819,14 @@ class Config
   loadUserConfig: ->
     return if @shouldNotAccessFileSystem()
 
-    unless fs.existsSync(@configFilePath)
-      fs.makeTreeSync(path.dirname(@configFilePath))
-      CSON.writeFileSync(@configFilePath, {})
+    try
+      unless fs.existsSync(@configFilePath)
+        fs.makeTreeSync(path.dirname(@configFilePath))
+        CSON.writeFileSync(@configFilePath, {})
+    catch error
+      @configFileHasErrors = true
+      @notifyFailure("Failed to initialize `#{path.basename(@configFilePath)}`", error.stack)
+      return
 
     try
       unless @savePending
@@ -820,13 +865,13 @@ class Config
     @watchSubscription = null
 
   notifyFailure: (errorMessage, detail) ->
-    @notificationManager.addError(errorMessage, {detail, dismissable: true})
+    @notificationManager?.addError(errorMessage, {detail, dismissable: true})
 
   save: ->
     return if @shouldNotAccessFileSystem()
 
     allSettings = {'*': @settings}
-    allSettings = _.extend allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
+    allSettings = Object.assign allSettings, @scopedSettingsStore.propertiesForSource(@getUserConfigPath())
     allSettings = sortObject(allSettings)
     try
       CSON.writeFileSync(@configFilePath, allSettings)
@@ -914,9 +959,10 @@ class Config
   setDefaults: (keyPath, defaults) ->
     if defaults? and isPlainObject(defaults)
       keys = splitKeyPath(keyPath)
-      for key, childValue of defaults
-        continue unless defaults.hasOwnProperty(key)
-        @setDefaults(keys.concat([key]).join('.'), childValue)
+      @transact =>
+        for key, childValue of defaults
+          continue unless defaults.hasOwnProperty(key)
+          @setDefaults(keys.concat([key]).join('.'), childValue)
     else
       try
         defaults = @makeValueConformToSchema(keyPath, defaults)
@@ -1180,6 +1226,11 @@ Config.addSchemaEnforcers
 
     validateEnum: (keyPath, value, schema) ->
       possibleValues = schema.enum
+
+      if Array.isArray(possibleValues)
+        possibleValues = possibleValues.map (value) ->
+          if value.hasOwnProperty('value') then value.value else value
+
       return value unless possibleValues? and Array.isArray(possibleValues) and possibleValues.length
 
       for possibleValue in possibleValues

@@ -64,7 +64,9 @@ Tooltip.prototype.init = function (element, options) {
 
     if (trigger === 'click') {
       this.disposables.add(listen(this.element, 'click', this.options.selector, this.toggle.bind(this)))
-    } else if (trigger !== 'manual') {
+    } else if (trigger === 'manual') {
+      this.show()
+    } else {
       var eventIn, eventOut
 
       if (trigger === 'hover') {
@@ -85,9 +87,9 @@ Tooltip.prototype.init = function (element, options) {
     }
   }
 
-  this.options.selector ?
-    (this._options = extend({}, this.options, { trigger: 'manual', selector: '' })) :
-    this.fixTitle()
+  this.options.selector
+    ? (this._options = extend({}, this.options, { trigger: 'manual', selector: '' }))
+    : this.fixTitle()
 }
 
 Tooltip.prototype.getDefaults = function () {
@@ -190,9 +192,9 @@ Tooltip.prototype.show = function () {
 
     if (this.options.animation) tip.classList.add('fade')
 
-    var placement = typeof this.options.placement === 'function' ?
-      this.options.placement.call(this, tip, this.element) :
-      this.options.placement
+    var placement = typeof this.options.placement === 'function'
+      ? this.options.placement.call(this, tip, this.element)
+      : this.options.placement
 
     var autoToken = /\s?auto?\s?/i
     var autoPlace = autoToken.test(placement)
@@ -214,11 +216,11 @@ Tooltip.prototype.show = function () {
       var orgPlacement = placement
       var viewportDim = this.viewport.getBoundingClientRect()
 
-      placement = placement === 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top' :
-                  placement === 'top' && pos.top - actualHeight < viewportDim.top ? 'bottom' :
-                  placement === 'right' && pos.right + actualWidth > viewportDim.width ? 'left' :
-                  placement === 'left' && pos.left - actualWidth < viewportDim.left ? 'right' :
-                  placement
+      placement = placement === 'bottom' && pos.bottom + actualHeight > viewportDim.bottom ? 'top'
+                : placement === 'top' && pos.top - actualHeight < viewportDim.top ? 'bottom'
+                : placement === 'right' && pos.right + actualWidth > viewportDim.width ? 'left'
+                : placement === 'left' && pos.left - actualWidth < viewportDim.left ? 'right'
+                : placement
 
       tip.classList.remove(orgPlacement)
       tip.classList.add(placement)
@@ -330,10 +332,10 @@ Tooltip.prototype.hasContent = function () {
 }
 
 Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
-  return placement === 'bottom' ? { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2 } :
-         placement === 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2 } :
-         placement === 'left' ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
-      /* placement === 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width }
+  return placement === 'bottom' ? { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2 }
+       : placement === 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2 }
+       : placement === 'left' ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth }
+       :/* placement === 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width }
 }
 
 Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWidth, actualHeight) {

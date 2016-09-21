@@ -2,6 +2,7 @@ path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
 GrammarRegistry = require '../src/grammar-registry'
+Grim = require 'grim'
 
 describe "the `grammars` global", ->
   beforeEach ->
@@ -85,14 +86,6 @@ describe "the `grammars` global", ->
       expect(atom.grammars.selectGrammar(filePath, filePathContents).name).toBe "Ruby"
       expect(fs.read).not.toHaveBeenCalled()
 
-    it "allows the default grammar to be overridden for a path", ->
-      filePath = '/foo/bar/file.js'
-      expect(atom.grammars.selectGrammar(filePath).name).not.toBe 'Ruby'
-      atom.grammars.setGrammarOverrideForPath(filePath, 'source.ruby')
-      expect(atom.grammars.selectGrammar(filePath).name).toBe 'Ruby'
-      atom.grammars.clearGrammarOverrideForPath(filePath)
-      expect(atom.grammars.selectGrammar(filePath).name).not.toBe 'Ruby'
-
     describe "when multiple grammars have matching fileTypes", ->
       it "selects the grammar with the longest fileType match", ->
         grammarPath1 = temp.path(suffix: '.json')
@@ -155,3 +148,27 @@ describe "the `grammars` global", ->
       grammar = atom.grammars.selectGrammar('foo.js')
       atom.grammars.removeGrammar(grammar)
       expect(atom.grammars.selectGrammar('foo.js').name).not.toBe grammar.name
+
+  describe "grammar overrides", ->
+    it "logs deprecations and uses the TextEditorRegistry", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (e) -> editor = e
+
+      runs ->
+        spyOn(Grim, 'deprecate')
+
+        atom.grammars.setGrammarOverrideForPath(editor.getPath(), 'source.ruby')
+        expect(Grim.deprecate.callCount).toBe 1
+        expect(editor.getGrammar().name).toBe 'Ruby'
+
+        expect(atom.grammars.grammarOverrideForPath(editor.getPath())).toBe('source.ruby')
+        expect(Grim.deprecate.callCount).toBe 2
+
+        atom.grammars.clearGrammarOverrideForPath(editor.getPath(), 'source.ruby')
+        expect(Grim.deprecate.callCount).toBe 3
+        expect(editor.getGrammar().name).toBe 'JavaScript'
+
+        expect(atom.grammars.grammarOverrideForPath(editor.getPath())).toBe(undefined)
+        expect(Grim.deprecate.callCount).toBe 4

@@ -1,7 +1,10 @@
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 
-module.exports = ({commandRegistry, commandInstaller, config}) ->
+module.exports = ({commandRegistry, commandInstaller, config, notificationManager, project, clipboard}) ->
   commandRegistry.add 'atom-workspace',
+    'pane:show-next-recently-used-item': -> @getModel().getActivePane().activateNextRecentlyUsedItem()
+    'pane:show-previous-recently-used-item': -> @getModel().getActivePane().activatePreviousRecentlyUsedItem()
+    'pane:move-active-item-to-top-of-stack': -> @getModel().getActivePane().moveActiveItemToTopOfStack()
     'pane:show-next-item': -> @getModel().getActivePane().activateNextItem()
     'pane:show-previous-item': -> @getModel().getActivePane().activatePreviousItem()
     'pane:show-item-1': -> @getModel().getActivePane().activateItemAtIndex(0)
@@ -18,30 +21,36 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'window:increase-font-size': -> @getModel().increaseFontSize()
     'window:decrease-font-size': -> @getModel().decreaseFontSize()
     'window:reset-font-size': -> @getModel().resetFontSize()
-    'application:about': -> ipc.send('command', 'application:about')
-    'application:show-preferences': -> ipc.send('command', 'application:show-settings')
-    'application:show-settings': -> ipc.send('command', 'application:show-settings')
-    'application:quit': -> ipc.send('command', 'application:quit')
-    'application:hide': -> ipc.send('command', 'application:hide')
-    'application:hide-other-applications': -> ipc.send('command', 'application:hide-other-applications')
-    'application:install-update': -> ipc.send('command', 'application:install-update')
-    'application:unhide-all-applications': -> ipc.send('command', 'application:unhide-all-applications')
-    'application:new-window': -> ipc.send('command', 'application:new-window')
-    'application:new-file': -> ipc.send('command', 'application:new-file')
-    'application:open': -> ipc.send('command', 'application:open')
-    'application:open-file': -> ipc.send('command', 'application:open-file')
-    'application:open-folder': -> ipc.send('command', 'application:open-folder')
-    'application:open-dev': -> ipc.send('command', 'application:open-dev')
-    'application:open-safe': -> ipc.send('command', 'application:open-safe')
+    'application:about': -> ipcRenderer.send('command', 'application:about')
+    'application:show-preferences': -> ipcRenderer.send('command', 'application:show-settings')
+    'application:show-settings': -> ipcRenderer.send('command', 'application:show-settings')
+    'application:quit': -> ipcRenderer.send('command', 'application:quit')
+    'application:hide': -> ipcRenderer.send('command', 'application:hide')
+    'application:hide-other-applications': -> ipcRenderer.send('command', 'application:hide-other-applications')
+    'application:install-update': -> ipcRenderer.send('command', 'application:install-update')
+    'application:unhide-all-applications': -> ipcRenderer.send('command', 'application:unhide-all-applications')
+    'application:new-window': -> ipcRenderer.send('command', 'application:new-window')
+    'application:new-file': -> ipcRenderer.send('command', 'application:new-file')
+    'application:open': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open', defaultPath)
+    'application:open-file': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open-file', defaultPath)
+    'application:open-folder': ->
+      defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
+      ipcRenderer.send('open-command', 'application:open-folder', defaultPath)
+    'application:open-dev': -> ipcRenderer.send('command', 'application:open-dev')
+    'application:open-safe': -> ipcRenderer.send('command', 'application:open-safe')
     'application:add-project-folder': -> atom.addProjectFolder()
-    'application:minimize': -> ipc.send('command', 'application:minimize')
-    'application:zoom': -> ipc.send('command', 'application:zoom')
-    'application:bring-all-windows-to-front': -> ipc.send('command', 'application:bring-all-windows-to-front')
-    'application:open-your-config': -> ipc.send('command', 'application:open-your-config')
-    'application:open-your-init-script': -> ipc.send('command', 'application:open-your-init-script')
-    'application:open-your-keymap': -> ipc.send('command', 'application:open-your-keymap')
-    'application:open-your-snippets': -> ipc.send('command', 'application:open-your-snippets')
-    'application:open-your-stylesheet': -> ipc.send('command', 'application:open-your-stylesheet')
+    'application:minimize': -> ipcRenderer.send('command', 'application:minimize')
+    'application:zoom': -> ipcRenderer.send('command', 'application:zoom')
+    'application:bring-all-windows-to-front': -> ipcRenderer.send('command', 'application:bring-all-windows-to-front')
+    'application:open-your-config': -> ipcRenderer.send('command', 'application:open-your-config')
+    'application:open-your-init-script': -> ipcRenderer.send('command', 'application:open-your-init-script')
+    'application:open-your-keymap': -> ipcRenderer.send('command', 'application:open-your-keymap')
+    'application:open-your-snippets': -> ipcRenderer.send('command', 'application:open-your-snippets')
+    'application:open-your-stylesheet': -> ipcRenderer.send('command', 'application:open-your-stylesheet')
     'application:open-license': -> @getModel().openLicense()
     'window:run-package-specs': -> @runPackageSpecs()
     'window:focus-next-pane': -> @getModel().activateNextPane()
@@ -50,6 +59,14 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'window:focus-pane-below': -> @focusPaneViewBelow()
     'window:focus-pane-on-left': -> @focusPaneViewOnLeft()
     'window:focus-pane-on-right': -> @focusPaneViewOnRight()
+    'window:move-active-item-to-pane-above': -> @moveActiveItemToPaneAbove()
+    'window:move-active-item-to-pane-below': -> @moveActiveItemToPaneBelow()
+    'window:move-active-item-to-pane-on-left': -> @moveActiveItemToPaneOnLeft()
+    'window:move-active-item-to-pane-on-right': -> @moveActiveItemToPaneOnRight()
+    'window:copy-active-item-to-pane-above': -> @moveActiveItemToPaneAbove(keepOriginal: true)
+    'window:copy-active-item-to-pane-below': -> @moveActiveItemToPaneBelow(keepOriginal: true)
+    'window:copy-active-item-to-pane-on-left': -> @moveActiveItemToPaneOnLeft(keepOriginal: true)
+    'window:copy-active-item-to-pane-on-right': -> @moveActiveItemToPaneOnRight(keepOriginal: true)
     'window:save-all': -> @getModel().saveAll()
     'window:toggle-invisibles': -> config.set("editor.showInvisibles", not config.get("editor.showInvisibles"))
     'window:log-deprecation-warnings': -> Grim.logDeprecations()
@@ -65,10 +82,18 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
 
   commandRegistry.add 'atom-pane',
     'pane:save-items': -> @getModel().saveItems()
-    'pane:split-left': -> @getModel().splitLeft(copyActiveItem: true)
-    'pane:split-right': -> @getModel().splitRight(copyActiveItem: true)
-    'pane:split-up': -> @getModel().splitUp(copyActiveItem: true)
-    'pane:split-down': -> @getModel().splitDown(copyActiveItem: true)
+    'pane:split-left': -> @getModel().splitLeft()
+    'pane:split-right': -> @getModel().splitRight()
+    'pane:split-up': -> @getModel().splitUp()
+    'pane:split-down': -> @getModel().splitDown()
+    'pane:split-left-and-copy-active-item': -> @getModel().splitLeft(copyActiveItem: true)
+    'pane:split-right-and-copy-active-item': -> @getModel().splitRight(copyActiveItem: true)
+    'pane:split-up-and-copy-active-item': -> @getModel().splitUp(copyActiveItem: true)
+    'pane:split-down-and-copy-active-item': -> @getModel().splitDown(copyActiveItem: true)
+    'pane:split-left-and-move-active-item': -> @getModel().splitLeft(moveActiveItem: true)
+    'pane:split-right-and-move-active-item': -> @getModel().splitRight(moveActiveItem: true)
+    'pane:split-up-and-move-active-item': -> @getModel().splitUp(moveActiveItem: true)
+    'pane:split-down-and-move-active-item': -> @getModel().splitDown(moveActiveItem: true)
     'pane:close': -> @getModel().close()
     'pane:close-other-items': -> @getModel().destroyInactiveItems()
     'pane:increase-size': -> @getModel().increaseSize()
@@ -168,8 +193,9 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'editor:fold-at-indent-level-7': -> @foldAllAtIndentLevel(6)
     'editor:fold-at-indent-level-8': -> @foldAllAtIndentLevel(7)
     'editor:fold-at-indent-level-9': -> @foldAllAtIndentLevel(8)
-    'editor:log-cursor-scope': -> @logCursorScope()
-    'editor:copy-path': -> @copyPathToClipboard()
+    'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
+    'editor:copy-path': -> copyPathToClipboard(this, project, clipboard, false)
+    'editor:copy-project-path': -> copyPathToClipboard(this, project, clipboard, true)
     'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
     'editor:toggle-line-numbers': -> config.set('editor.showLineNumbers', not config.get('editor.showLineNumbers'))
     'editor:scroll-to-cursor': -> @scrollToCursorPosition()
@@ -184,9 +210,11 @@ module.exports = ({commandRegistry, commandInstaller, config}) ->
     'editor:newline-below': -> @insertNewlineBelow()
     'editor:newline-above': -> @insertNewlineAbove()
     'editor:toggle-line-comments': -> @toggleLineCommentsInSelection()
-    'editor:checkout-head-revision': -> @checkoutHeadRevision()
+    'editor:checkout-head-revision': -> atom.workspace.checkoutHeadRevision(this)
     'editor:move-line-up': -> @moveLineUp()
     'editor:move-line-down': -> @moveLineDown()
+    'editor:move-selection-left': -> @moveSelectionLeft()
+    'editor:move-selection-right': -> @moveSelectionRight()
     'editor:duplicate-lines': -> @duplicateLines()
     'editor:join-lines': -> @joinLines()
   )
@@ -207,6 +235,18 @@ stopEventPropagationAndGroupUndo = (config, commandListeners) ->
       newCommandListeners[commandName] = (event) ->
         event.stopPropagation()
         model = @getModel()
-        model.transact config.get('editor.undoGroupingInterval'), ->
+        model.transact model.getUndoGroupingInterval(), ->
           commandListener.call(model, event)
   newCommandListeners
+
+showCursorScope = (descriptor, notificationManager) ->
+  list = descriptor.scopes.toString().split(',')
+  list = list.map (item) -> "* #{item}"
+  content = "Scopes at Cursor\n#{list.join('\n')}"
+
+  notificationManager.addInfo(content, dismissable: true)
+
+copyPathToClipboard = (editor, project, clipboard, relative) ->
+  if filePath = editor.getPath()
+    filePath = project.relativize(filePath) if relative
+    clipboard.write(filePath)

@@ -4,8 +4,6 @@ if [ "$(uname)" == 'Darwin' ]; then
   OS='Mac'
 elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
   OS='Linux'
-elif [ "$(expr substr $(uname -s) 1 10)" == 'MINGW32_NT' ]; then
-  OS='Cygwin'
 else
   echo "Your platform ($(uname -a)) is not supported."
   exit 1
@@ -16,6 +14,8 @@ if [ "$(basename $0)" == 'atom-beta' ]; then
 else
   BETA_VERSION=
 fi
+
+export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 
 while getopts ":wtfvh-:" opt; do
   case "$opt" in
@@ -57,8 +57,10 @@ fi
 if [ $OS == 'Mac' ]; then
   if [ -n "$BETA_VERSION" ]; then
     ATOM_APP_NAME="Atom Beta.app"
+    ATOM_EXECUTABLE_NAME="Atom Beta"
   else
     ATOM_APP_NAME="Atom.app"
+    ATOM_EXECUTABLE_NAME="Atom"
   fi
 
   if [ -z "${ATOM_PATH}" ]; then
@@ -80,7 +82,7 @@ if [ $OS == 'Mac' ]; then
   fi
 
   if [ $EXPECT_OUTPUT ]; then
-    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/Atom" --executed-from="$(pwd)" --pid=$$ "$@"
+    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/$ATOM_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
     exit $?
   else
     open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"

@@ -9,7 +9,7 @@ EmptyLineRegExp = /(\r\n[\t ]*\r\n)|(\n[\t ]*\n)/g
 # where text can be inserted.
 #
 # Cursors belong to {TextEditor}s and have some metadata attached in the form
-# of a {TextEditorMarker}.
+# of a {DisplayMarker}.
 module.exports =
 class Cursor extends Model
   screenPosition: null
@@ -18,7 +18,7 @@ class Cursor extends Model
   visible: true
 
   # Instantiated by a {TextEditor}
-  constructor: ({@editor, @marker, @config, id}) ->
+  constructor: ({@editor, @marker, id}) ->
     @emitter = new Emitter
 
     @assignId(id)
@@ -129,7 +129,7 @@ class Cursor extends Model
   Section: Cursor Position Details
   ###
 
-  # Public: Returns the underlying {TextEditorMarker} for the cursor.
+  # Public: Returns the underlying {DisplayMarker} for the cursor.
   # Useful with overlay {Decoration}s.
   getMarker: -> @marker
 
@@ -160,8 +160,8 @@ class Cursor extends Model
     [before, after] = @editor.getTextInBufferRange(range)
     return false if /\s/.test(before) or /\s/.test(after)
 
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor()).split('')
-    _.contains(nonWordCharacters, before) isnt _.contains(nonWordCharacters, after)
+    nonWordCharacters = @getNonWordCharacters()
+    nonWordCharacters.includes(before) isnt nonWordCharacters.includes(after)
 
   # Public: Returns whether this cursor is between a word's start and end.
   #
@@ -261,11 +261,11 @@ class Cursor extends Model
 
       while columnCount > column and row > 0
         columnCount -= column
-        column = @editor.lineTextForScreenRow(--row).length
+        column = @editor.lineLengthForScreenRow(--row)
         columnCount-- # subtract 1 for the row move
 
       column = column - columnCount
-      @setScreenPosition({row, column}, clip: 'backward')
+      @setScreenPosition({row, column}, clipDirection: 'backward')
 
   # Public: Moves the cursor right one screen column.
   #
@@ -280,7 +280,7 @@ class Cursor extends Model
     else
       {row, column} = @getScreenPosition()
       maxLines = @editor.getScreenLineCount()
-      rowLength = @editor.lineTextForScreenRow(row).length
+      rowLength = @editor.lineLengthForScreenRow(row)
       columnsRemainingInLine = rowLength - column
 
       while columnCount > columnsRemainingInLine and row < maxLines - 1
@@ -288,11 +288,11 @@ class Cursor extends Model
         columnCount-- # subtract 1 for the row move
 
         column = 0
-        rowLength = @editor.lineTextForScreenRow(++row).length
+        rowLength = @editor.lineLengthForScreenRow(++row)
         columnsRemainingInLine = rowLength
 
       column = column + columnCount
-      @setScreenPosition({row, column}, clip: 'forward', wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+      @setScreenPosition({row, column}, clipDirection: 'forward')
 
   # Public: Moves the cursor to the top of the buffer.
   moveToTop: ->
@@ -537,8 +537,8 @@ class Cursor extends Model
   #   * `wordRegex` A {RegExp} indicating what constitutes a "word"
   #     (default: {::wordRegExp}).
   getCurrentWordBufferRange: (options={}) ->
-    startOptions = _.extend(_.clone(options), allowPrevious: false)
-    endOptions = _.extend(_.clone(options), allowNext: false)
+    startOptions = Object.assign(_.clone(options), allowPrevious: false)
+    endOptions = Object.assign(_.clone(options), allowNext: false)
     new Range(@getBeginningOfCurrentWordBufferPosition(startOptions), @getEndOfCurrentWordBufferPosition(endOptions))
 
   # Public: Returns the buffer Range for the current line.
@@ -551,7 +551,7 @@ class Cursor extends Model
 
   # Public: Retrieves the range for the current paragraph.
   #
-  # A paragraph is defined as a block of text surrounded by empty lines.
+  # A paragraph is defined as a block of text surrounded by empty lines or comments.
   #
   # Returns a {Range}.
   getCurrentParagraphBufferRange: ->
@@ -608,9 +608,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   wordRegExp: (options) ->
-    scope = @getScopeDescriptor()
-    nonWordCharacters = _.escapeRegExp(@config.get('editor.nonWordCharacters', {scope}))
-
+    nonWordCharacters = _.escapeRegExp(@getNonWordCharacters())
     source = "^[\t ]*$|[^\\s#{nonWordCharacters}]+"
     if options?.includeNonWordCharacters ? true
       source += "|" + "[#{nonWordCharacters}]+"
@@ -624,7 +622,7 @@ class Cursor extends Model
   #
   # Returns a {RegExp}.
   subwordRegExp: (options={}) ->
-    nonWordCharacters = @config.get('editor.nonWordCharacters', scope: @getScopeDescriptor())
+    nonWordCharacters = @getNonWordCharacters()
     lowercaseLetters = 'a-z\\u00DF-\\u00F6\\u00F8-\\u00FF'
     uppercaseLetters = 'A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE'
     snakeCamelSegment = "[#{uppercaseLetters}]?[#{lowercaseLetters}]+"
@@ -646,6 +644,9 @@ class Cursor extends Model
   ###
   Section: Private
   ###
+
+  getNonWordCharacters: ->
+    @editor.getNonWordCharacters(@getScopeDescriptor().getScopesArray())
 
   changePosition: (options, fn) ->
     @clearSelection(autoscroll: false)

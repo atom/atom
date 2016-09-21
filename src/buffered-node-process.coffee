@@ -36,20 +36,13 @@ class BufferedNodeProcess extends BufferedProcess
   #   * `exit` The callback {Function} which receives a single argument
   #            containing the exit status (optional).
   constructor: ({command, args, options, stdout, stderr, exit}) ->
-    node =
-      if process.platform is 'darwin'
-        # Use a helper to prevent an icon from appearing on the Dock
-        path.resolve(process.resourcesPath, '..', 'Frameworks',
-                     'Atom Helper.app', 'Contents', 'MacOS', 'Atom Helper')
-      else
-        process.execPath
-
     options ?= {}
     options.env ?= Object.create(process.env)
-    options.env['ATOM_SHELL_INTERNAL_RUN_AS_NODE'] = 1
+    options.env['ELECTRON_RUN_AS_NODE'] = 1
+    options.env['ELECTRON_NO_ATTACH_CONSOLE'] = 1
 
     args = args?.slice() ? []
     args.unshift(command)
     args.unshift('--no-deprecation')
 
-    super({command: node, args, options, stdout, stderr, exit})
+    super({command: process.execPath, args, options, stdout, stderr, exit})

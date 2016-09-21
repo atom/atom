@@ -4,7 +4,7 @@ CSON = require 'season'
 fs = require 'fs-plus'
 {calculateSpecificity, validateSelector} = require 'clear-cut'
 {Disposable} = require 'event-kit'
-remote = require 'remote'
+{remote} = require 'electron'
 MenuHelpers = require './menu-helpers'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
@@ -136,19 +136,44 @@ class ContextMenuManager
 
       for itemSet in matchingItemSets
         for item in itemSet.items
-          continue if item.devMode and not @devMode
-          item = Object.create(item)
-          if typeof item.shouldDisplay is 'function'
-            continue unless item.shouldDisplay(event)
-          item.created?(event)
-          MenuHelpers.merge(currentTargetItems, item, itemSet.specificity)
+          itemForEvent = @cloneItemForEvent(item, event)
+          if itemForEvent
+            MenuHelpers.merge(currentTargetItems, itemForEvent, itemSet.specificity)
 
       for item in currentTargetItems
         MenuHelpers.merge(template, item, false)
 
       currentTarget = currentTarget.parentElement
 
+    @pruneRedundantSeparators(template)
+
     template
+
+  pruneRedundantSeparators: (menu) ->
+    keepNextItemIfSeparator = false
+    index = 0
+    while index < menu.length
+      if menu[index].type is 'separator'
+        if not keepNextItemIfSeparator or index is menu.length - 1
+          menu.splice(index, 1)
+        else
+          index++
+      else
+        keepNextItemIfSeparator = true
+        index++
+
+  # Returns an object compatible with `::add()` or `null`.
+  cloneItemForEvent: (item, event) ->
+    return null if item.devMode and not @devMode
+    item = Object.create(item)
+    if typeof item.shouldDisplay is 'function'
+      return null unless item.shouldDisplay(event)
+    item.created?(event)
+    if Array.isArray(item.submenu)
+      item.submenu = item.submenu
+        .map((submenuItem) => @cloneItemForEvent(submenuItem, event))
+        .filter((submenuItem) -> submenuItem isnt null)
+    return item
 
   convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
     itemsBySelector = {}

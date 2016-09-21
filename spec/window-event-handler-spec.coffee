@@ -4,7 +4,7 @@ fs = require 'fs-plus'
 temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
-ipc = require 'ipc'
+{ipcRenderer} = require 'electron'
 
 describe "WindowEventHandler", ->
   [projectPath, windowEventHandler] = []
@@ -53,7 +53,7 @@ describe "WindowEventHandler", ->
   describe "beforeunload event", ->
     beforeEach ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
-      spyOn(ipc, 'send')
+      spyOn(ipcRenderer, 'send')
 
     describe "when pane items are modified", ->
       editor = null
@@ -65,17 +65,17 @@ describe "WindowEventHandler", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(true)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipc.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
 
       it "cancels the unload if the user selects cancel", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(false)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
-        expect(ipc.send).toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
-      shell = require 'shell'
+      {shell} = require 'electron'
       spyOn(shell, 'openExternal')
 
       link = document.createElement('a')
@@ -206,6 +206,7 @@ describe "WindowEventHandler", ->
       webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
       spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
         webContents: webContentsSpy
+        on: ->
       })
 
       nativeKeyBindingsInput = document.createElement("input")

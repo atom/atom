@@ -1,5 +1,5 @@
 path = require 'path'
-BufferedNodeProcess  = require '../src/buffered-node-process'
+BufferedNodeProcess = require '../src/buffered-node-process'
 
 describe "BufferedNodeProcess", ->
   it "executes the script in a new process", ->

@@ -1,69 +1,82 @@
 _ = require 'underscore-plus'
-ipc = require 'ipc'
-remote = require 'remote'
-shell = require 'shell'
-webFrame = require 'web-frame'
+{screen, ipcRenderer, remote, shell, systemPreferences, webFrame} = require 'electron'
+ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
 
 module.exports =
 class ApplicationDelegate
   open: (params) ->
-    ipc.send('open', params)
+    ipcRenderer.send('open', params)
 
   pickFolder: (callback) ->
     responseChannel = "atom-pick-folder-response"
-    ipc.on responseChannel, (path) ->
-      ipc.removeAllListeners(responseChannel)
+    ipcRenderer.on responseChannel, (event, path) ->
+      ipcRenderer.removeAllListeners(responseChannel)
       callback(path)
-    ipc.send("pick-folder", responseChannel)
+    ipcRenderer.send("pick-folder", responseChannel)
 
   getCurrentWindow: ->
     remote.getCurrentWindow()
 
   closeWindow: ->
-    ipc.send("call-window-method", "close")
+    ipcRenderer.send("call-window-method", "close")
+
+  getTemporaryWindowState: ->
+    ipcHelpers.call('get-temporary-window-state').then (stateJSON) -> JSON.parse(stateJSON)
+
+  setTemporaryWindowState: (state) ->
+    ipcHelpers.call('set-temporary-window-state', JSON.stringify(state))
 
   getWindowSize: ->
     [width, height] = remote.getCurrentWindow().getSize()
     {width, height}
 
   setWindowSize: (width, height) ->
-    remote.getCurrentWindow().setSize(width, height)
+    ipcHelpers.call('set-window-size', width, height)
 
   getWindowPosition: ->
     [x, y] = remote.getCurrentWindow().getPosition()
     {x, y}
 
   setWindowPosition: (x, y) ->
-    ipc.send("call-window-method", "setPosition", x, y)
+    ipcHelpers.call('set-window-position', x, y)
 
   centerWindow: ->
-    ipc.send("call-window-method", "center")
+    ipcHelpers.call('center-window')
 
   focusWindow: ->
-    ipc.send("call-window-method", "focus")
+    ipcHelpers.call('focus-window')
 
   showWindow: ->
-    ipc.send("call-window-method", "show")
+    ipcHelpers.call('show-window')
 
   hideWindow: ->
-    ipc.send("call-window-method", "hide")
+    ipcHelpers.call('hide-window')
 
-  restartWindow: ->
-    ipc.send("call-window-method", "restart")
+  reloadWindow: ->
+    ipcRenderer.send("call-window-method", "reload")
+
+  restartApplication: ->
+    ipcRenderer.send("restart-application")
+
+  minimizeWindow: ->
+    ipcRenderer.send("call-window-method", "minimize")
 
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()
 
   maximizeWindow: ->
-    ipc.send("call-window-method", "maximize")
+    ipcRenderer.send("call-window-method", "maximize")
+
+  unmaximizeWindow: ->
+    ipcRenderer.send("call-window-method", "unmaximize")
 
   isWindowFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
 
   setWindowFullScreen: (fullScreen=false) ->
-    ipc.send("call-window-method", "setFullScreen", fullScreen)
+    ipcRenderer.send("call-window-method", "setFullScreen", fullScreen)
 
   openWindowDevTools: ->
     new Promise (resolve) ->
@@ -75,7 +88,7 @@ class ApplicationDelegate
           resolve()
         else
           remote.getCurrentWindow().once("devtools-opened", -> resolve())
-          ipc.send("call-window-method", "openDevTools")
+          ipcRenderer.send("call-window-method", "openDevTools")
 
   closeWindowDevTools: ->
     new Promise (resolve) ->
@@ -87,7 +100,7 @@ class ApplicationDelegate
           resolve()
         else
           remote.getCurrentWindow().once("devtools-closed", -> resolve())
-          ipc.send("call-window-method", "closeDevTools")
+          ipcRenderer.send("call-window-method", "closeDevTools")
 
   toggleWindowDevTools: ->
     new Promise (resolve) =>
@@ -101,16 +114,16 @@ class ApplicationDelegate
           @openWindowDevTools().then(resolve)
 
   executeJavaScriptInWindowDevTools: (code) ->
-    ipc.send("call-window-method", "executeJavaScriptInDevTools", code)
+    ipcRenderer.send("execute-javascript-in-dev-tools", code)
 
   setWindowDocumentEdited: (edited) ->
-    ipc.send("call-window-method", "setDocumentEdited", edited)
+    ipcRenderer.send("call-window-method", "setDocumentEdited", edited)
 
   setRepresentedFilename: (filename) ->
-    ipc.send("call-window-method", "setRepresentedFilename", filename)
+    ipcRenderer.send("call-window-method", "setRepresentedFilename", filename)
 
   addRecentDocument: (filename) ->
-    ipc.send("add-recent-document", filename)
+    ipcRenderer.send("add-recent-document", filename)
 
   setRepresentedDirectoryPaths: (paths) ->
     loadSettings = getWindowLoadSettings()
@@ -118,14 +131,16 @@ class ApplicationDelegate
     setWindowLoadSettings(loadSettings)
 
   setAutoHideWindowMenuBar: (autoHide) ->
-    ipc.send("call-window-method", "setAutoHideMenuBar", autoHide)
+    ipcRenderer.send("call-window-method", "setAutoHideMenuBar", autoHide)
 
   setWindowMenuBarVisibility: (visible) ->
     remote.getCurrentWindow().setMenuBarVisibility(visible)
 
   getPrimaryDisplayWorkAreaSize: ->
-    screen = remote.require 'screen'
-    screen.getPrimaryDisplay().workAreaSize
+    remote.screen.getPrimaryDisplay().workAreaSize
+
+  getUserDefault: (key, type) ->
+    remote.systemPreferences.getUserDefault(key, type)
 
   confirm: ({message, detailedMessage, buttons}) ->
     buttons ?= {}
@@ -134,8 +149,7 @@ class ApplicationDelegate
     else
       buttonLabels = Object.keys(buttons)
 
-    dialog = remote.require('dialog')
-    chosen = dialog.showMessageBox(remote.getCurrentWindow(), {
+    chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'info'
       message: message
       detail: detailedMessage
@@ -157,45 +171,127 @@ class ApplicationDelegate
       params = _.clone(params)
     params.title ?= 'Save File'
     params.defaultPath ?= getWindowLoadSettings().initialPaths[0]
-    dialog = remote.require('dialog')
-    dialog.showSaveDialog remote.getCurrentWindow(), params
+    remote.dialog.showSaveDialog remote.getCurrentWindow(), params
 
   playBeepSound: ->
     shell.beep()
 
   onDidOpenLocations: (callback) ->
-    outerCallback = (message, detail) ->
-      if message is 'open-locations'
-        callback(detail)
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'open-locations'
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
 
   onUpdateAvailable: (callback) ->
-    outerCallback = (message, detail) ->
-      if message is 'update-available'
-        callback(detail)
+    outerCallback = (event, message, detail) ->
+      # TODO: Yes, this is strange that `onUpdateAvailable` is listening for
+      # `did-begin-downloading-update`. We currently have no mechanism to know
+      # if there is an update, so begin of downloading is a good proxy.
+      callback(detail) if message is 'did-begin-downloading-update'
 
-    ipc.on('message', outerCallback)
+    ipcRenderer.on('message', outerCallback)
     new Disposable ->
-      ipc.removeListener('message', outerCallback)
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onDidBeginDownloadingUpdate: (callback) ->
+    @onUpdateAvailable(callback)
+
+  onDidBeginCheckingForUpdate: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'checking-for-update'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onDidCompleteDownloadingUpdate: (callback) ->
+    outerCallback = (event, message, detail) ->
+      # TODO: We could rename this event to `did-complete-downloading-update`
+      callback(detail) if message is 'update-available'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onUpdateNotAvailable: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'update-not-available'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
+
+  onUpdateError: (callback) ->
+    outerCallback = (event, message, detail) ->
+      callback(detail) if message is 'update-error'
+
+    ipcRenderer.on('message', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('message', outerCallback)
 
   onApplicationMenuCommand: (callback) ->
-    ipc.on('command', callback)
+    outerCallback = (event, args...) ->
+      callback(args...)
+
+    ipcRenderer.on('command', outerCallback)
     new Disposable ->
-      ipc.removeListener('command', callback)
+      ipcRenderer.removeListener('command', outerCallback)
 
   onContextMenuCommand: (callback) ->
-    ipc.on('context-command', callback)
+    outerCallback = (event, args...) ->
+      callback(args...)
+
+    ipcRenderer.on('context-command', outerCallback)
     new Disposable ->
-      ipc.removeListener('context-command', callback)
+      ipcRenderer.removeListener('context-command', outerCallback)
+
+  onSaveWindowStateRequest: (callback) ->
+    outerCallback = (event, message) ->
+      callback(event)
+
+    ipcRenderer.on('save-window-state', outerCallback)
+    new Disposable ->
+      ipcRenderer.removeListener('save-window-state', outerCallback)
+
+  didSaveWindowState: ->
+    ipcRenderer.send('did-save-window-state')
 
   didCancelWindowUnload: ->
-    ipc.send('did-cancel-window-unload')
+    ipcRenderer.send('did-cancel-window-unload')
 
   openExternal: (url) ->
     shell.openExternal(url)
 
-  disablePinchToZoom: ->
-    webFrame.setZoomLevelLimits(1, 1)
+  disableZoom: ->
+    outerCallback = ->
+      webFrame.setZoomLevelLimits(1, 1)
+
+    outerCallback()
+    # Set the limits every time a display is added or removed, otherwise the
+    # configuration gets reset to the default, which allows zooming the
+    # webframe.
+    screen.on('display-added', outerCallback)
+    screen.on('display-removed', outerCallback)
+    new Disposable ->
+      screen.removeListener('display-added', outerCallback)
+      screen.removeListener('display-removed', outerCallback)
+
+  checkForUpdate: ->
+    ipcRenderer.send('command', 'application:check-for-update')
+
+  restartAndInstallUpdate: ->
+    ipcRenderer.send('command', 'application:install-update')
+
+  getAutoUpdateManagerState: ->
+    ipcRenderer.sendSync('get-auto-update-manager-state')
+
+  getAutoUpdateManagerErrorMessage: ->
+    ipcRenderer.sendSync('get-auto-update-manager-error')
+
+  emitWillSavePath: (path) ->
+    ipcRenderer.sendSync('will-save-path', path)
+
+  emitDidSavePath: (path) ->
+    ipcRenderer.sendSync('did-save-path', path)

@@ -1,0 +1,6 @@
+[submodule "jstips"]
+	path = jstips
+	url = https://github.com/loverajoel/jstips
+[submodule "You-Dont-Need-jQuery"]
+	path = You-Dont-Need-jQuery
+	url = https://github.com/oneuijs/You-Dont-Need-jQuery
