@@ -195,9 +195,10 @@ class TextEditorComponent
 
   becameVisible: ->
     @updatesPaused = true
-    if @invalidateMeasurementsWhenVisible
-      @invalidateMeasurements()
-      @invalidateMeasurementsWhenVisible = false
+    # Always invalidate LinesYardstick measurements when the editor becomes
+    # visible again, because content might have been reflowed and measurements
+    # could be outdated.
+    @invalidateMeasurements()
     @measureScrollbars() if @measureScrollbarsWhenShown
     @sampleFontStyling()
     @sampleBackgroundColors()
@@ -937,11 +938,8 @@ class TextEditorComponent
     @invalidateMeasurements()
 
   invalidateMeasurements: ->
-    if @isVisible()
-      @linesYardstick.invalidateCache()
-      @presenter.measurementsChanged()
-    else
-      @invalidateMeasurementsWhenVisible = true
+    @linesYardstick.invalidateCache()
+    @presenter.measurementsChanged()
 
   screenPositionForMouseEvent: (event, linesClientRect) ->
     pixelPosition = @pixelPositionForMouseEvent(event, linesClientRect)
