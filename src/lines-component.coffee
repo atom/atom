@@ -34,10 +34,6 @@ class LinesComponent extends TiledComponent
     @cursorsComponent = new CursorsComponent
     @domNode.appendChild(@cursorsComponent.getDomNode())
 
-    insertionPoint = document.createElement('content')
-    insertionPoint.setAttribute('select', '.overlayer')
-    @domNode.appendChild(insertionPoint)
-
   getDomNode: ->
     @domNode
 

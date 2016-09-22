@@ -3408,8 +3408,7 @@ describe('TextEditorComponent', function () {
     it('transfers focus to the hidden input', function () {
       expect(document.activeElement).toBe(document.body)
       wrapperNode.focus()
-      expect(document.activeElement).toBe(wrapperNode)
-      expect(wrapperNode.shadowRoot.activeElement).toBe(inputNode)
+      expect(document.activeElement).toBe(inputNode)
     })
 
     it('adds the "is-focused" class to the editor when the hidden input is focused', function () {
@@ -4428,7 +4427,7 @@ describe('TextEditorComponent', function () {
         jasmine.attachToDOM(element)
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/inline style/)
       })
@@ -4451,7 +4450,7 @@ describe('TextEditorComponent', function () {
         element.component.measureDimensions()
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/absolute/)
       })
