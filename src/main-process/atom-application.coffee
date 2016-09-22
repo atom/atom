@@ -250,9 +250,10 @@ class AtomApplication
       event.preventDefault()
       @openUrl({urlToOpen, @devMode, @safeMode})
 
-    @disposable.add ipcHelpers.on app, 'activate-with-no-open-windows', (event) =>
-      event?.preventDefault()
-      @emit('application:new-window')
+    @disposable.add ipcHelpers.on app, 'activate', (event, hasVisibleWindows) =>
+      unless hasVisibleWindows
+        event?.preventDefault()
+        @emit('application:new-window')
 
     @disposable.add ipcHelpers.on ipcMain, 'restart-application', =>
       @restart()
