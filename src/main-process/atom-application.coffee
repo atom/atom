@@ -293,9 +293,8 @@ class AtomApplication
       win = BrowserWindow.fromWebContents(event.sender)
       win.emit(command, args...)
 
-    @disposable.add ipcHelpers.on ipcMain, 'call-window-method', (event, method, args...) ->
-      win = BrowserWindow.fromWebContents(event.sender)
-      win[method](args...)
+    @disposable.add ipcHelpers.on ipcMain, 'call-window-method', (event, method, args...) =>
+      @windowForEvent(event)[method](args...)
 
     @disposable.add ipcHelpers.on ipcMain, 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->

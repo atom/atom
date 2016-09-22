@@ -236,7 +236,13 @@ class AtomWindow
 
   maximize: -> @browserWindow.maximize()
 
+  unmaximize: -> @browserWindow.unmaximize()
+
   restore: -> @browserWindow.restore()
+
+  setFullScreen: (fullScreen) -> @browserWindow.setFullScreen(fullScreen)
+
+  setAutoHideMenuBar: (autoHideMenuBar) -> @browserWindow.setAutoHideMenuBar(autoHideMenuBar)
 
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
@@ -257,3 +263,13 @@ class AtomWindow
     @loadedPromise
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
+
+  openDevTools: -> @browserWindow.openDevTools()
+
+  closeDevTools: -> @browserWindow.openDevTools()
+
+  setDocumentEdited: (documentEdited) -> @browserWindow.setDocumentEdited(documentEdited)
+
+  setRepresentedFilename: (representedFilename) -> @browserWindow.setRepresentedFilename(representedFilename)
+
+  copy: -> @browserWindow.copy()
