@@ -259,7 +259,7 @@ class AtomApplication
 
     # A request from the associated render process to open a new render process.
     @disposable.add ipcHelpers.on ipcMain, 'open', (event, options) =>
-      window = @windowForEvent(event)
+      window = @atomWindowForEvent(event)
       if options?
         if typeof options.pathsToOpen is 'string'
           options.pathsToOpen = [options.pathsToOpen]
@@ -293,9 +293,8 @@ class AtomApplication
       win = BrowserWindow.fromWebContents(event.sender)
       win.emit(command, args...)
 
-    @disposable.add ipcHelpers.on ipcMain, 'call-window-method', (event, method, args...) ->
-      win = BrowserWindow.fromWebContents(event.sender)
-      win[method](args...)
+    @disposable.add ipcHelpers.respondTo 'window-method', (browserWindow, method, args...) =>
+      @atomWindowForBrowserWindow(browserWindow)?[method](args...)
 
     @disposable.add ipcHelpers.on ipcMain, 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
@@ -353,11 +352,11 @@ class AtomApplication
       event.returnValue = @autoUpdateManager.getErrorMessage()
 
     @disposable.add ipcHelpers.on ipcMain, 'will-save-path', (event, path) =>
-      @fileRecoveryService.willSavePath(@windowForEvent(event), path)
+      @fileRecoveryService.willSavePath(@atomWindowForEvent(event), path)
       event.returnValue = true
 
     @disposable.add ipcHelpers.on ipcMain, 'did-save-path', (event, path) =>
-      @fileRecoveryService.didSavePath(@windowForEvent(event), path)
+      @fileRecoveryService.didSavePath(@atomWindowForEvent(event), path)
       event.returnValue = true
 
   setupDockMenu: ->
@@ -428,9 +427,11 @@ class AtomApplication
       atomWindow.devMode is devMode and atomWindow.containsPaths(pathsToOpen)
 
   # Returns the {AtomWindow} for the given ipcMain event.
-  windowForEvent: ({sender}) ->
-    window = BrowserWindow.fromWebContents(sender)
-    _.find @windows, ({browserWindow}) -> window is browserWindow
+  atomWindowForEvent: ({sender}) ->
+    @atomWindowForBrowserWindow(BrowserWindow.fromWebContents(sender))
+
+  atomWindowForBrowserWindow: (browserWindow) ->
+    @windows.find((atomWindow) -> atomWindow.browserWindow is browserWindow)
 
   # Public: Returns the currently focused {AtomWindow} or undefined if none.
   focusedWindow: ->
