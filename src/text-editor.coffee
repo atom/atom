@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
+fs = require 'fs-plus'
 Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
@@ -803,12 +804,13 @@ class TextEditor extends Model
       allPathSegments = []
       for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
         if textEditor.getFileName() is fileName
-          allPathSegments.push(textEditor.getDirectoryPath().split(path.sep))
+          directoryPath = fs.tildify(textEditor.getDirectoryPath())
+          allPathSegments.push(directoryPath.split(path.sep))
 
       if allPathSegments.length is 0
         return fileName
 
-      ourPathSegments = @getDirectoryPath().split(path.sep)
+      ourPathSegments = fs.tildify(@getDirectoryPath()).split(path.sep)
       allPathSegments.push ourPathSegments
 
       loop
