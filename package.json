@@ -15,7 +15,7 @@
   "electronVersion": "1.3.6",
   "dependencies": {
     "async": "0.2.6",
-    "atom-keymap": "6.3.5",
+    "atom-keymap": "7.0.1",
     "atom-ui": "0.4.1",
     "babel-core": "5.8.38",
     "cached-run-in-this-context": "0.4.1",
@@ -52,7 +52,7 @@
     "scandal": "^2.2.1",
     "scoped-property-store": "^0.17.0",
     "scrollbar-style": "^3.2",
-    "season": "^5.3",
+    "season": "^5.4.1",
     "semver": "^4.3.3",
     "service-hub": "^0.7.2",
     "sinon": "1.17.4",
