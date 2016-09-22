@@ -67,7 +67,7 @@ To also install the newly built application, use `script\build --create-windows-
   * See the next item.
 
 * `error MSB8020: The build tools for Visual Studio 201? (Platform Toolset = 'v1?0') cannot be found.`
-  * * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio/Build Tools is installed and then `script\clean` followed by `script\build` (re-open the Command Prompt if you set the variable using the GUI)
+  * Try setting the `GYP_MSVS_VERSION` environment variable to 2013 or 2015 depending on what version of Visual Studio/Build Tools is installed and then `script\clean` followed by `script\build` (re-open the Command Prompt if you set the variable using the GUI)
 
 * `'node-gyp' is not recognized as an internal or external command, operable program or batch file.`
   * Try running `npm install -g node-gyp`, and run `script\build` again.
