@@ -20,7 +20,7 @@ class ApplicationDelegate
     remote.getCurrentWindow()
 
   closeWindow: ->
-    ipcRenderer.send("call-window-method", "close")
+    ipcHelpers.call('window-method', 'close')
 
   getTemporaryWindowState: ->
     ipcHelpers.call('get-temporary-window-state').then (stateJSON) -> JSON.parse(stateJSON)
@@ -55,72 +55,55 @@ class ApplicationDelegate
     ipcHelpers.call('hide-window')
 
   reloadWindow: ->
-    ipcRenderer.send("call-window-method", "reload")
+    ipcHelpers.call('window-method', 'reload')
 
   restartApplication: ->
     ipcRenderer.send("restart-application")
 
   minimizeWindow: ->
-    ipcRenderer.send("call-window-method", "minimize")
+    ipcHelpers.call('window-method', 'minimize')
 
   isWindowMaximized: ->
     remote.getCurrentWindow().isMaximized()
 
   maximizeWindow: ->
-    ipcRenderer.send("call-window-method", "maximize")
+    ipcHelpers.call('window-method', 'maximize')
 
   unmaximizeWindow: ->
-    ipcRenderer.send("call-window-method", "unmaximize")
+    ipcHelpers.call('window-method', 'unmaximize')
 
   isWindowFullScreen: ->
     remote.getCurrentWindow().isFullScreen()
 
   setWindowFullScreen: (fullScreen=false) ->
-    ipcRenderer.send("call-window-method", "setFullScreen", fullScreen)
+    ipcHelpers.call('window-method', 'setFullScreen', fullScreen)
 
   openWindowDevTools: ->
-    new Promise (resolve) ->
-      # Defer DevTools interaction to the next tick, because using them during
-      # event handling causes some wrong input events to be triggered on
-      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-      process.nextTick ->
-        if remote.getCurrentWindow().isDevToolsOpened()
-          resolve()
-        else
-          remote.getCurrentWindow().once("devtools-opened", -> resolve())
-          ipcRenderer.send("call-window-method", "openDevTools")
+    # Defer DevTools interaction to the next tick, because using them during
+    # event handling causes some wrong input events to be triggered on
+    # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+    new Promise(process.nextTick).then(-> ipcHelpers.call('window-method', 'openDevTools'))
 
   closeWindowDevTools: ->
-    new Promise (resolve) ->
-      # Defer DevTools interaction to the next tick, because using them during
-      # event handling causes some wrong input events to be triggered on
-      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-      process.nextTick ->
-        unless remote.getCurrentWindow().isDevToolsOpened()
-          resolve()
-        else
-          remote.getCurrentWindow().once("devtools-closed", -> resolve())
-          ipcRenderer.send("call-window-method", "closeDevTools")
+    # Defer DevTools interaction to the next tick, because using them during
+    # event handling causes some wrong input events to be triggered on
+    # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+    new Promise(process.nextTick).then(-> ipcHelpers.call('window-method', 'closeDevTools'))
 
   toggleWindowDevTools: ->
-    new Promise (resolve) =>
-      # Defer DevTools interaction to the next tick, because using them during
-      # event handling causes some wrong input events to be triggered on
-      # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-      process.nextTick =>
-        if remote.getCurrentWindow().isDevToolsOpened()
-          @closeWindowDevTools().then(resolve)
-        else
-          @openWindowDevTools().then(resolve)
+    # Defer DevTools interaction to the next tick, because using them during
+    # event handling causes some wrong input events to be triggered on
+    # `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
+    new Promise(process.nextTick).then(-> ipcHelpers.call('window-method', 'toggleDevTools'))
 
   executeJavaScriptInWindowDevTools: (code) ->
     ipcRenderer.send("execute-javascript-in-dev-tools", code)
 
   setWindowDocumentEdited: (edited) ->
-    ipcRenderer.send("call-window-method", "setDocumentEdited", edited)
+    ipcHelpers.call('window-method', 'setDocumentEdited', edited)
 
   setRepresentedFilename: (filename) ->
-    ipcRenderer.send("call-window-method", "setRepresentedFilename", filename)
+    ipcHelpers.call('window-method', 'setRepresentedFilename', filename)
 
   addRecentDocument: (filename) ->
     ipcRenderer.send("add-recent-document", filename)
@@ -131,7 +114,7 @@ class ApplicationDelegate
     setWindowLoadSettings(loadSettings)
 
   setAutoHideWindowMenuBar: (autoHide) ->
-    ipcRenderer.send("call-window-method", "setAutoHideMenuBar", autoHide)
+    ipcHelpers.call('window-method', 'setAutoHideMenuBar', autoHide)
 
   setWindowMenuBarVisibility: (visible) ->
     remote.getCurrentWindow().setMenuBarVisibility(visible)

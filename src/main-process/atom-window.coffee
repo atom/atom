@@ -266,7 +266,7 @@ class AtomWindow
 
   openDevTools: -> @browserWindow.openDevTools()
 
-  closeDevTools: -> @browserWindow.openDevTools()
+  closeDevTools: -> @browserWindow.closeDevTools()
 
   setDocumentEdited: (documentEdited) -> @browserWindow.setDocumentEdited(documentEdited)
 
