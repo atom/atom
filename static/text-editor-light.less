@@ -20,7 +20,6 @@ atom-overlay {
   z-index: 4;
 }
 
-// TODO: Remove the following styles when the editor shadow DOM can no longer be disabled
 atom-text-editor {
   display: flex;
 
@@ -123,12 +122,12 @@ atom-text-editor {
   .line {
     white-space: pre;
 
-    &.cursor-line .fold-marker::after {
+    &.cursor-line .syntax--fold-marker::after {
       opacity: 1;
     }
   }
 
-  .fold-marker {
+  .syntax--fold-marker {
     cursor: default;
 
     &::after {
@@ -144,12 +143,12 @@ atom-text-editor {
     color: @text-color-subtle;
   }
 
-  .invisible-character {
+  .syntax--invisible-character {
     font-weight: normal !important;
     font-style: normal !important;
   }
 
-  .indent-guide {
+  .syntax--indent-guide {
     display: inline-block;
     box-shadow: inset 1px 0;
   }
