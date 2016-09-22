@@ -294,7 +294,7 @@ class AtomApplication
       win.emit(command, args...)
 
     @disposable.add ipcHelpers.respondTo 'window-method', (browserWindow, method, args...) =>
-      @atomWindowForBrowserWindow(browserWindow)[method](args...)
+      @atomWindowForBrowserWindow(browserWindow)?[method](args...)
 
     @disposable.add ipcHelpers.on ipcMain, 'pick-folder', (event, responseChannel) =>
       @promptForPath "folder", (selectedPaths) ->
