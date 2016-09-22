@@ -232,9 +232,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 ### Pull Requests
 
 * Include screenshots and animated GIFs in your pull request whenever possible.
-* Follow the [CoffeeScript](#coffeescript-styleguide),
-  [JavaScript](https://github.com/styleguide/javascript),
-  and [CSS](https://github.com/styleguide/css) styleguides.
+* Follow the [JavaScript](#javascript-styleguide) and [CoffeeScript](#coffeescript-styleguide) styleguides.
 * Include thoughtfully-worded, well-structured
   [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`. See the [Specs Styleguide](#specs-styleguide) below.
 * Document new code based on the
