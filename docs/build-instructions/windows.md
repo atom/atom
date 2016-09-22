@@ -47,7 +47,7 @@ To also install the newly built application, use `script\build --create-windows-
    * If you installed Visual C++ Build Tools, ensure you have Windows 8 SDK support installed. Go into Add/Remove Programs, select Visual Studio, press Modify and then check the Windows 8 SDK box.
 
 * `script\build` stop with no error or warning shortly after displaying the versions of node, npm and Python
-  * Make sure that the path where you have checked out Atom does not include a space. For example, use `C:\atom` instead of `C:\my stuff\atom`).
+  * Make sure that the path where you have checked out Atom does not include a space. For example, use `C:\atom` instead of `C:\my stuff\atom`.
 
 * `script\build` outputs only the Node.js and Python versions before returning
   * Try moving the repository to `C:\atom`. Most likely, the path is too long.
