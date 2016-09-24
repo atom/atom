@@ -26,7 +26,6 @@ class AtomWindow
     options =
       show: false
       title: 'Atom'
-
       # Add an opaque backgroundColor (instead of keeping the default
       # transparent one) to prevent subpixel anti-aliasing from being disabled.
       # We believe this is a regression introduced with Electron 0.37.3, and
