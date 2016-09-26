@@ -4795,6 +4795,12 @@ describe "TextEditor", ->
         expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
         expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
+    describe "when a line is deleted", ->
+      it "preserves the current cursor position", ->
+        editor.setCursorScreenPosition([3, 4])
+        editor.deleteLine()
+        expect(editor.getCursorScreenPosition()).toEqual [3, 4]
+
   describe ".replaceSelectedText(options, fn)", ->
     describe "when no text is selected", ->
       it "inserts the text returned from the function at the cursor position", ->
