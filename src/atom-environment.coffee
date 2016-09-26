@@ -847,7 +847,7 @@ class AtomEnvironment extends Model
       @project.addPath(selectedPath) for selectedPath in selectedPaths
 
   showSaveDialog: (callback) ->
-    callback(showSaveDialogSync())
+    callback(@showSaveDialogSync())
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)
