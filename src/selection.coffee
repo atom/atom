@@ -487,6 +487,7 @@ class Selection extends Model
   deleteLine: ->
     if @isEmpty()
       start = @cursor.getScreenRow()
+      startColumn = @cursor.getScreenColumn()
       range = @editor.bufferRowsForScreenRows(start, start + 1)
       if range[1] > range[0]
         @editor.buffer.deleteRows(range[0], range[1] - 1)
@@ -496,9 +497,11 @@ class Selection extends Model
       range = @getBufferRange()
       start = range.start.row
       end = range.end.row
+      startColumn = range.start.column
       if end isnt @editor.buffer.getLastRow() and range.end.column is 0
         end--
       @editor.buffer.deleteRows(start, end)
+    @cursor.setScreenPosition({row: @cursor.getScreenRow(), column: startColumn})
 
   # Public: Joins the current line with the one below it. Lines will
   # be separated by a single space.
