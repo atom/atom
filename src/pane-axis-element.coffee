@@ -1,5 +1,6 @@
 {CompositeDisposable} = require 'event-kit'
-PaneResizeHandleElement = require './pane-resize-handle-element'
+# Needs to be required so that document.registerElement is called on atom-pane-resize-handle
+require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
   attachedCallback: ->

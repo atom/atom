@@ -32,7 +32,7 @@ describe "StyleManager", ->
 
     describe "when a sourcePath parameter is specified", ->
       it "ensures a maximum of one style element for the given source path, updating a previous if it exists", ->
-        disposable1 = manager.addStyleSheet("a {color: red;}", sourcePath: '/foo/bar')
+        manager.addStyleSheet("a {color: red;}", sourcePath: '/foo/bar')
 
         expect(addEvents.length).toBe 1
         expect(addEvents[0].getAttribute('source-path')).toBe '/foo/bar'

@@ -629,7 +629,7 @@ class Config
     unless value is undefined
       try
         value = @makeValueConformToSchema(keyPath, value)
-      catch e
+      catch
         return false
 
     if scopeSelector?
@@ -852,7 +852,7 @@ class Config
     try
       @watchSubscription ?= pathWatcher.watch @configFilePath, (eventType) =>
         @requestLoad() if eventType is 'change' and @watchSubscription?
-    catch error
+    catch
       @notifyFailure """
         Unable to watch path: `#{path.basename(@configFilePath)}`. Make sure you have permissions to
         `#{@configFilePath}`. On linux there are currently problems with watch
@@ -967,7 +967,7 @@ class Config
       try
         defaults = @makeValueConformToSchema(keyPath, defaults)
         @setRawDefault(keyPath, defaults)
-      catch e
+      catch
         console.warn("'#{keyPath}' could not set the default. Attempted default: #{JSON.stringify(defaults)}; Schema: #{JSON.stringify(@getSchema(keyPath))}")
     return
 
@@ -1033,7 +1033,7 @@ class Config
     if options?.suppressException
       try
         @makeValueConformToSchema(keyPath, value)
-      catch e
+      catch
         undefined
     else
       unless (schema = @getSchema(keyPath))?

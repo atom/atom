@@ -106,7 +106,7 @@ describe "PackageManager", ->
       expect(loadedPackage.name).toBe "package-with-main"
 
     it "registers any deserializers specified in the package's package.json", ->
-      pack = atom.packages.loadPackage("package-with-deserializers")
+      atom.packages.loadPackage("package-with-deserializers")
 
       state1 = {deserializer: 'Deserializer1', a: 'b'}
       expect(atom.deserializers.deserialize(state1)).toEqual {
@@ -146,7 +146,7 @@ describe "PackageManager", ->
         expect(-> atom.views.getView(model2)).toThrow()
 
       it "registers the view providers when the package is activated", ->
-        pack = atom.packages.loadPackage("package-with-view-providers")
+        atom.packages.loadPackage("package-with-view-providers")
 
         waitsForPromise ->
           atom.packages.activatePackage("package-with-view-providers").then ->
@@ -159,7 +159,7 @@ describe "PackageManager", ->
             expect(element2.dataset.createdBy).toBe 'view-provider-2'
 
       it "registers the view providers when any of the package's deserializers are used", ->
-        pack = atom.packages.loadPackage("package-with-view-providers")
+        atom.packages.loadPackage("package-with-view-providers")
 
         spyOn(atom.views, 'addViewProvider').andCallThrough()
         atom.deserializers.deserialize({

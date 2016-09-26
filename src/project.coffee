@@ -209,7 +209,7 @@ class Project extends Model
         break
 
     if indexToRemove?
-      [removedDirectory] = @rootDirectories.splice(indexToRemove, 1)
+      @rootDirectories.splice(indexToRemove, 1)
       [removedRepository] = @repositories.splice(indexToRemove, 1)
       removedRepository?.destroy() unless removedRepository in @repositories
       @emitter.emit "did-change-paths", @getPaths()

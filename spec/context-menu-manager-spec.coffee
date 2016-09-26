@@ -66,7 +66,7 @@ describe "ContextMenuManager", ->
         '.grandchild.foo': [{label: 'A', command: 'b'}]
       disposable3 = contextMenu.add
         '.grandchild': [{label: 'A', command: 'c'}]
-      disposable4 = contextMenu.add
+      contextMenu.add
         '.child': [{label: 'A', command: 'd'}]
 
       expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'A', command: 'b'}]
@@ -101,8 +101,7 @@ describe "ContextMenuManager", ->
       ]
 
     it "excludes items marked for display in devMode unless in dev mode", ->
-      disposable1 = contextMenu.add
-        '.grandchild': [{label: 'A', command: 'a', devMode: true}, {label: 'B', command: 'b', devMode: false}]
+      contextMenu.add '.grandchild': [{label: 'A', command: 'a', devMode: true}, {label: 'B', command: 'b', devMode: false}]
 
       expect(contextMenu.templateForElement(grandchild)).toEqual [{label: 'B', command: 'b'}]
 

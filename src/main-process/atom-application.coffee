@@ -631,7 +631,7 @@ class AtomApplication
 
     try
       windowInitializationScript = require.resolve(path.resolve(@devResourcePath, 'src', 'initialize-test-window'))
-    catch error
+    catch
       windowInitializationScript = require.resolve(path.resolve(__dirname, '..', '..', 'src', 'initialize-test-window'))
 
     testPaths = []
@@ -668,7 +668,7 @@ class AtomApplication
   resolveLegacyTestRunnerPath: ->
     try
       require.resolve(path.resolve(@devResourcePath, 'spec', 'jasmine-test-runner'))
-    catch error
+    catch
       require.resolve(path.resolve(__dirname, '..', '..', 'spec', 'jasmine-test-runner'))
 
   locationForPathToOpen: (pathToOpen, executedFrom='', forceAddToWindow) ->

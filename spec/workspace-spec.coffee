@@ -244,7 +244,7 @@ describe "Workspace", ->
           editor = null
           pane1 = workspace.getActivePane()
           pane2 = pane1.splitLeft()
-          pane3 = pane2.splitDown()
+          pane2.splitDown()
           pane1.activate()
           expect(workspace.getActivePane()).toBe pane1
 
@@ -284,7 +284,7 @@ describe "Workspace", ->
             editor = null
             pane1 = workspace.getActivePane()
             pane2 = pane1.splitRight()
-            pane3 = pane2.splitDown()
+            pane2.splitDown()
             pane1.activate()
             expect(workspace.getActivePane()).toBe pane1
             pane4 = null
@@ -329,7 +329,7 @@ describe "Workspace", ->
           editor = null
           pane1 = workspace.getActivePane()
           pane2 = pane1.splitUp()
-          pane3 = pane2.splitRight()
+          pane2.splitRight()
           pane1.activate()
           expect(workspace.getActivePane()).toBe pane1
 
@@ -1516,11 +1516,10 @@ describe "Workspace", ->
           expect(editor.isModified()).toBeFalsy()
 
       it "does not replace when the path is not specified", ->
-        editor = null
         results = []
 
         waitsForPromise ->
-          atom.workspace.open('sample-with-comments.js').then (o) -> editor = o
+          atom.workspace.open('sample-with-comments.js')
 
         waitsForPromise ->
           atom.workspace.replace /items/gi, 'items', [commentFilePath], (result) ->
@@ -1680,7 +1679,6 @@ describe "Workspace", ->
 
   describe "grammar activation", ->
     it "notifies the workspace of which grammar is used", ->
-      editor = null
       atom.packages.triggerDeferredActivationHooks()
 
       javascriptGrammarUsed = jasmine.createSpy('js grammar used')

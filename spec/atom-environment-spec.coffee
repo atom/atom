@@ -319,7 +319,6 @@ describe "AtomEnvironment", ->
 
     it "does nothing if the user dismisses the file picker", ->
       initialPaths = atom.project.getPaths()
-      tempDirectory = temp.mkdirSync("a-new-directory")
       spyOn(atom, "pickFolder").andCallFake (callback) -> callback(null)
       atom.addProjectFolder()
       expect(atom.project.getPaths()).toEqual(initialPaths)
@@ -338,7 +337,6 @@ describe "AtomEnvironment", ->
 
   describe "::destroy()", ->
     it "does not throw exceptions when unsubscribing from ipc events (regression)", ->
-      configDirPath = temp.mkdirSync()
       fakeDocument = {
         addEventListener: ->
         removeEventListener: ->

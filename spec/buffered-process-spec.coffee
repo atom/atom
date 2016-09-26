@@ -89,7 +89,6 @@ describe "BufferedProcess", ->
     exitCallback = jasmine.createSpy('exit callback')
     loremPath = require.resolve("./fixtures/lorem.txt")
     content = fs.readFileSync(loremPath).toString()
-    baseContent = content.split('\n')
     stdout = ''
     allLinesEndWithNewline = true
     new BufferedProcess
@@ -113,7 +112,6 @@ describe "BufferedProcess", ->
 
     beforeEach ->
       # Prevent any commands from actually running and affecting the host
-      originalSpawn = ChildProcess.spawn
       spyOn(ChildProcess, 'spawn')
       originalPlatform = process.platform
       Object.defineProperty process, 'platform', value: 'win32'

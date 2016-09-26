@@ -59,7 +59,7 @@ loadDependencies = (modulePath, rootPath, rootMetadata, moduleCache) ->
     if childMetadata?.version
       try
         mainPath = require.resolve(childPath)
-      catch error
+      catch
         mainPath = null
 
       if mainPath
@@ -83,7 +83,7 @@ loadFolderCompatibility = (modulePath, rootPath, rootMetadata, moduleCache) ->
   for name, version of dependencies
     try
       new Range(version)
-    catch error
+    catch
       delete dependencies[name]
 
   onDirectory = (childPath) ->
@@ -286,7 +286,7 @@ exports.add = (directoryPath, metadata) ->
   unless metadata?
     try
       metadata = require("#{directoryPath}#{path.sep}package.json")
-    catch error
+    catch
       return
 
   cacheToAdd = metadata?._atomModuleCache

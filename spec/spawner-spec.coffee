@@ -2,6 +2,8 @@ ChildProcess = require 'child_process'
 Spawner = require '../src/main-process/spawner'
 
 describe "Spawner", ->
+  [harmlessSpawn] = []
+
   beforeEach ->
     # Prevent any commands from actually running and affecting the host
     originalSpawn = ChildProcess.spawn

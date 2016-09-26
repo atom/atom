@@ -23,7 +23,7 @@ describe "StylesElement", ->
     expect(element.children[initialChildCount].textContent).toBe "a {color: red;}"
     expect(addedStyleElements).toEqual [element.children[initialChildCount]]
 
-    disposable2 = atom.styles.addStyleSheet("a {color: blue;}")
+    atom.styles.addStyleSheet("a {color: blue;}")
     expect(element.children.length).toBe initialChildCount + 2
     expect(element.children[initialChildCount + 1].textContent).toBe "a {color: blue;}"
     expect(addedStyleElements).toEqual [element.children[initialChildCount], element.children[initialChildCount + 1]]
