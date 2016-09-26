@@ -499,10 +499,7 @@ describe "TokenizedBuffer", ->
         expect(tokenizedBuffer.indentLevelForRow(10)).toBe 2 # }
 
   describe "::isFoldableAtRow(row)", ->
-    changes = null
-
     beforeEach ->
-      changes = []
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.insert [10, 0], "  // multi-line\n  // comment\n  // block\n"
       buffer.insert [0, 0], "// multi-line\n// comment\n// block\n"

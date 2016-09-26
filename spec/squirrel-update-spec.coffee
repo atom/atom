@@ -4,7 +4,6 @@ path = require 'path'
 temp = require 'temp'
 SquirrelUpdate = require '../src/main-process/squirrel-update'
 Spawner = require '../src/main-process/spawner'
-WinPowerShell = require '../src/main-process/win-powershell'
 WinShell = require '../src/main-process/win-shell'
 
 # Run passed callback as Spawner.spawn() would do

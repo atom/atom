@@ -1,7 +1,5 @@
 TiledComponent = require './tiled-component'
 LineNumbersTileComponent = require './line-numbers-tile-component'
-WrapperDiv = document.createElement('div')
-DOMElementPool = require './dom-element-pool'
 
 module.exports =
 class LineNumberGutterComponent extends TiledComponent

@@ -1,4 +1,5 @@
 {ipcRenderer} = require 'electron'
+Grim = require 'grim'
 
 module.exports = ({commandRegistry, commandInstaller, config, notificationManager, project, clipboard}) ->
   commandRegistry.add 'atom-workspace',

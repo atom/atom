@@ -682,7 +682,6 @@ class Cursor extends Model
     {row, column} = start
     scanRange = [[row-1, column], [0, 0]]
     position = new Point(0, 0)
-    zero = new Point(0, 0)
     @editor.backwardsScanInBufferRange EmptyLineRegExp, scanRange, ({range, stop}) ->
       position = range.start.traverse(Point(1, 0))
       stop() unless position.isEqual(start)

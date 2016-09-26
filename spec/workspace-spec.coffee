@@ -2,7 +2,6 @@ path = require 'path'
 temp = require 'temp'
 Workspace = require '../src/workspace'
 Project = require '../src/project'
-Pane = require '../src/pane'
 platform = require './spec-helper-platform'
 _ = require 'underscore-plus'
 fstream = require 'fstream'
@@ -1241,7 +1240,6 @@ describe "Workspace", ->
           expect(matches.length).toBe 1
 
       it "excludes values in core.ignoredNames", ->
-        projectPath = path.join(__dirname, 'fixtures', 'git', 'working-dir')
         ignoredNames = atom.config.get("core.ignoredNames")
         ignoredNames.push("a")
         atom.config.set("core.ignoredNames", ignoredNames)

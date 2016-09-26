@@ -1,5 +1,4 @@
 TextEditorElement = require '../src/text-editor-element'
-TextEditor = require '../src/text-editor'
 {Disposable} = require 'event-kit'
 
 # The rest of text-editor-component-spec will be moved to this file when React

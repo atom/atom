@@ -18,7 +18,6 @@ class LinesYardstick
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     targetLeft = pixelPosition.left
-    defaultCharWidth = @model.getDefaultCharWidth()
     row = @lineTopIndex.rowForPixelPosition(targetTop)
     targetLeft = 0 if targetTop < 0 or targetLeft < 0
     targetLeft = Infinity if row > @model.getLastScreenRow()
