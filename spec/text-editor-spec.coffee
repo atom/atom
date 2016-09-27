@@ -4717,6 +4717,39 @@ describe "TextEditor", ->
       expect(buffer.lineForRow(0)).toBe(line2)
       expect(buffer.getLineCount()).toBe(count - 2)
 
+    it "restores cursor position for multiple cursors", ->
+      line = Array(9).join('0123456789')
+      editor.setText([1..5].map(-> line).join('\n'))
+      editor.setCursorScreenPosition([0, 5])
+      editor.addCursorAtScreenPosition([2, 8])
+      editor.deleteLine()
+      expect(editor.getCursors().length).toBe 2
+      [cursor1, cursor2] = editor.getCursors()
+      pos = cursor1.getScreenPosition()
+      expect(pos.row).toBe(0)
+      expect(pos.column).toBe(5)
+      pos = cursor2.getScreenPosition()
+      expect(pos.row).toBe(1)
+      expect(pos.column).toBe(8)
+
+    it "restores cursor position for multiple selections", ->
+      line = Array(9).join('0123456789')
+      editor.setText([1..5].map(-> line).join('\n'))
+      editor.setCursorScreenPosition([0, 5])
+      editor.setSelectedBufferRanges([
+        [[0, 5], [0, 8]],
+        [[2, 4], [2, 15]]
+      ])
+      editor.deleteLine()
+      expect(editor.getCursors().length).toBe 2
+      [cursor1, cursor2] = editor.getCursors()
+      pos = cursor1.getScreenPosition()
+      expect(pos.row).toBe(0)
+      expect(pos.column).toBe(5)
+      pos = cursor2.getScreenPosition()
+      expect(pos.row).toBe(1)
+      expect(pos.column).toBe(4)
+
     it "deletes a line only once when multiple selections are on the same line", ->
       line1 = buffer.lineForRow(1)
       count = buffer.getLineCount()
