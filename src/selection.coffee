@@ -618,7 +618,10 @@ class Selection extends Model
       newLines
 
     initialNewLines = countInitialNewLines(selectionText)
-    startLevel = @editor.indentLevelForLine(@editor.lineTextForBufferRow(start.row + initialNewLines))
+    if initialNewLines > 0
+      startLevel = @editor.indentLevelForLine(@editor.lineTextForBufferRow(start.row + initialNewLines))
+    else
+      startLevel = @editor.indentLevelForLine(precedingText)
 
     if maintainClipboard
       {text: clipboardText, metadata} = @clipboard.readWithMetadata()
