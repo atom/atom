@@ -17,7 +17,7 @@ module.exports = class TokenizedBufferIterator {
     this.currentTags = currentLine.tags
     this.currentLineOpenTags = currentLine.openScopes
     this.currentLineLength = currentLine.text.length
-    this.containingTags = this.currentLineOpenTags.map(id => this.tokenizedBuffer.grammar.scopeForId(id))
+    this.containingTags = this.currentLineOpenTags.map(id => this.scopeForId(id))
 
     let currentColumn = 0
     for (let [index, tag] of this.currentTags.entries()) {
@@ -37,7 +37,7 @@ module.exports = class TokenizedBufferIterator {
           }
         }
       } else {
-        const scopeName = this.tokenizedBuffer.grammar.scopeForId(tag)
+        const scopeName = this.scopeForId(tag)
         if (tag % 2 === 0) {
           if (this.openTags.length > 0) {
             if (currentColumn >= position.column) {
@@ -83,7 +83,7 @@ module.exports = class TokenizedBufferIterator {
           break
         } else if (this.shouldMoveToNextLine) {
           this.moveToNextLine()
-          this.openTags = this.currentLineOpenTags.map(id => this.tokenizedBuffer.grammar.scopeForId(id))
+          this.openTags = this.currentLineOpenTags.map(id => this.scopeForId(id))
           this.shouldMoveToNextLine = false
         } else if (this.nextLineHasMismatchedContainingTags()) {
           this.closeTags = this.containingTags.slice().reverse()
@@ -104,7 +104,7 @@ module.exports = class TokenizedBufferIterator {
             ))
           }
         } else {
-          const scopeName = this.tokenizedBuffer.grammar.scopeForId(tag)
+          const scopeName = this.scopeForId(tag)
           if (tag % 2 === 0) {
             if (this.openTags.length > 0) {
               break
@@ -140,7 +140,7 @@ module.exports = class TokenizedBufferIterator {
     } else {
       return (
         this.containingTags.length !== line.openScopes.length ||
-        this.containingTags.some((tag, i) => tag !== this.tokenizedBuffer.grammar.scopeForId(line.openScopes[i]))
+        this.containingTags.some((tag, i) => tag !== this.scopeForId(line.openScopes[i]))
       )
     }
   }
@@ -161,5 +161,10 @@ module.exports = class TokenizedBufferIterator {
 
   isAtTagBoundary() {
     return this.closeTags.length > 0 || this.openTags.length > 0
+  }
+
+  scopeForId (id) {
+    const scope = this.tokenizedBuffer.grammar.scopeForId(id).replace(/\./g, '.syntax--')
+    return `syntax--${scope}`
   }
 }
