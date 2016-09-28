@@ -59,11 +59,11 @@ describe "TextEditorElement", ->
 
       jasmine.attachToDOM(element)
 
-      initialCount = element.shadowRoot.querySelectorAll('.line-number').length
+      initialCount = element.querySelectorAll('.line-number').length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.shadowRoot.querySelectorAll('.line-number').length).toBe initialCount
+      expect(element.querySelectorAll('.line-number').length).toBe initialCount
 
     it "does not render duplicate decorations in custom gutters", ->
       editor = atom.workspace.buildTextEditor()
@@ -74,11 +74,11 @@ describe "TextEditorElement", ->
       element = atom.views.getView(editor)
 
       jasmine.attachToDOM(element)
-      initialDecorationCount = element.shadowRoot.querySelectorAll('.decoration').length
+      initialDecorationCount = element.querySelectorAll('.decoration').length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
+      expect(element.querySelectorAll('.decoration').length).toBe initialDecorationCount
 
   describe "focus and blur handling", ->
     it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
@@ -91,8 +91,7 @@ describe "TextEditorElement", ->
       element.focus()
       expect(blurCalled).toBe false
       expect(element.hasFocus()).toBe true
-      expect(document.activeElement).toBe element
-      expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+      expect(document.activeElement).toBe element.querySelector('input')
 
       document.body.focus()
       expect(blurCalled).toBe true
@@ -111,7 +110,7 @@ describe "TextEditorElement", ->
         parentElement = document.createElement("element-that-focuses-child")
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
-        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
+        expect(document.activeElement).toBe element.querySelector('input')
 
   describe "when the themes finish loading", ->
     [themeReloadCallback, initialThemeLoadComplete, element] = []
@@ -143,7 +142,7 @@ describe "TextEditorElement", ->
       initialThemeLoadComplete = true
       themeReloadCallback()
 
-      verticalScrollbarNode = element.shadowRoot.querySelector(".vertical-scrollbar")
+      verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
 
@@ -181,13 +180,13 @@ describe "TextEditorElement", ->
       element.getModel().setText("hello")
       expect(window.requestAnimationFrame).toHaveBeenCalled()
 
-      expect(element.shadowRoot.textContent).toContain "hello"
+      expect(element.textContent).toContain "hello"
 
       window.requestAnimationFrame.reset()
       element.setUpdatedSynchronously(true)
       element.getModel().setText("goodbye")
       expect(window.requestAnimationFrame).not.toHaveBeenCalled()
-      expect(element.shadowRoot.textContent).toContain "goodbye"
+      expect(element.textContent).toContain "goodbye"
 
   describe "::getDefaultCharacterWidth", ->
     it "returns null before the element is attached", ->

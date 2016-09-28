@@ -4,9 +4,6 @@ Path = require 'path'
 TextBuffer = require 'text-buffer'
 TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
-StylesElement = require './styles-element'
-
-ShadowStyleSheet = null
 
 class TextEditorElement extends HTMLElement
   model: null
@@ -36,22 +33,7 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    unless ShadowStyleSheet?
-      ShadowStyleSheet = document.createElement('style')
-      ShadowStyleSheet.textContent = @themes.loadLessStylesheet(require.resolve('../static/text-editor-shadow.less'))
-
-    @createShadowRoot()
-
-    @shadowRoot.appendChild(ShadowStyleSheet.cloneNode(true))
-    @stylesElement = new StylesElement
-    @stylesElement.initialize(@styles)
-    @stylesElement.setAttribute('context', 'atom-text-editor')
-
-    @rootElement = document.createElement('div')
-    @rootElement.classList.add('editor--private')
-
-    @shadowRoot.appendChild(@stylesElement)
-    @shadowRoot.appendChild(@rootElement)
+    @rootElement = this
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
@@ -119,18 +101,18 @@ class TextEditorElement extends HTMLElement
   mountComponent: ->
     @component = new TextEditorComponent(
       hostElement: this
-      rootElement: @rootElement
-      stylesElement: @stylesElement
       editor: @model
       tileSize: @tileSize
       views: @views
       themes: @themes
+      styles: @styles
       workspace: @workspace
       assert: @assert
     )
-    @rootElement.appendChild(@component.getDomNode())
-
-    @shadowRoot.addEventListener('blur', @shadowRootBlurred.bind(this), true)
+    @appendChild(@component.getDomNode())
+    inputNode = @component.hiddenInputComponent.getDomNode()
+    inputNode.addEventListener 'focus', @focused.bind(this)
+    inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))
 
   unmountComponent: ->
     if @component?
@@ -142,6 +124,9 @@ class TextEditorElement extends HTMLElement
     @component?.focused()
 
   blurred: (event) ->
+    if event.relatedTarget is @component.hiddenInputComponent.getDomNode()
+      event.stopImmediatePropagation()
+      return
     @component?.blurred()
 
   # Work around what seems to be a bug in Chromium. Focus can be stolen from the
@@ -151,8 +136,8 @@ class TextEditorElement extends HTMLElement
   # focused but the hidden input isn't focused. This always refocuses the hidden
   # input if a blur event occurs in the shadow DOM that is transferring focus
   # back to the host element.
-  shadowRootBlurred: (event) ->
-    @component.focused() if event.relatedTarget is this
+  # shadowRootBlurred: (event) ->
+  #   @component.focused() if event.relatedTarget is this
 
   addGrammarScopeAttribute: ->
     @dataset.grammar = @model.getGrammar()?.scopeName?.replace(/\./g, ' ')
