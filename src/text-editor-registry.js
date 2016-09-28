@@ -121,21 +121,21 @@ module.exports = class TextEditorRegistry {
   getActiveTextEditor () {
     for (let ed of this.editors) {
       // fast path, works as long as there's a shadow DOM inside the text editor
-      if (ed.getElement() == document.activeElement) {
+      if (ed.getElement() === document.activeElement) {
         return ed
       } else {
         let editorElement = ed.getElement()
         let current = document.activeElement
-        while  (current = current.parentNode) {
-          if (current == editorElement) {
+        while (current) {
+          if (current === editorElement) {
             return ed
           }
+          current = current.parentNode
         }
       }
     }
     return null
   }
-
 
   // Invoke the given callback with all the current and future registered
   // `TextEditors`.
