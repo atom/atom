@@ -7,7 +7,7 @@ const path = require('path')
 const fs = require('fs-plus')
 
 module.exports = function parseCommandLine (processArgs) {
-  const options = yargs(processArgs).wrap(100)
+  const options = yargs(processArgs).wrap(yargs.terminalWidth())
   const version = app.getVersion()
   options.usage(
     dedent`Atom Editor v${version}
