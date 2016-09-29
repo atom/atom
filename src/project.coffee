@@ -56,7 +56,6 @@ class Project extends Model
 
   deserialize: (state) ->
     state.paths = [state.path] if state.path? # backward compatibility
-    state.paths = state.paths.filter (directoryPath) -> fs.isDirectorySync(directoryPath)
 
     @buffers = _.compact state.buffers.map (bufferState) ->
       # Check that buffer's file path is accessible
@@ -89,8 +88,26 @@ class Project extends Model
   onDidChangePaths: (callback) ->
     @emitter.on 'did-change-paths', callback
 
+  # Public: Invoke the given callback when a text buffer is added to the
+  # project.
+  #
+  # * `callback` {Function} to be called when a text buffer is added.
+  #   * `buffer` A {TextBuffer} item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddBuffer: (callback) ->
     @emitter.on 'did-add-buffer', callback
+
+  # Public: Invoke the given callback with all current and future text
+  # buffers in the project.
+  #
+  # * `callback` {Function} to be called with current and future text buffers.
+  #   * `buffer` A {TextBuffer} item.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+  observeBuffers: (callback) ->
+    callback(buffer) for buffer in @getBuffers()
+    @onDidAddBuffer callback
 
   ###
   Section: Accessing the git repository
@@ -163,10 +180,9 @@ class Project extends Model
       break if directory = provider.directoryForURISync?(projectPath)
     directory ?= @defaultDirectoryProvider.directoryForURISync(projectPath)
 
-    directoryExists = directory.existsSync()
-    for rootDirectory in @getDirectories()
-      return if rootDirectory.getPath() is directory.getPath()
-      return if not directoryExists and rootDirectory.contains(directory.getPath())
+    return unless directory.existsSync()
+    for existingDirectory in @getDirectories()
+      return if existingDirectory.getPath() is directory.getPath()
 
     @rootDirectories.push(directory)
 

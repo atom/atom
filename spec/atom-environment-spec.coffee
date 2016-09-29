@@ -228,7 +228,7 @@ describe "AtomEnvironment", ->
       expect(atom.saveState).toHaveBeenCalledWith({isUnloading: false})
       expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: true})
 
-    it "saves state immediately when unloading the editor window, ignoring pending and successive mousedown/keydown events", ->
+    it "ignores mousedown/keydown events happening after calling unloadEditorWindow", ->
       spyOn(atom, 'saveState')
       idleCallbacks = []
       spyOn(window, 'requestIdleCallback').andCallFake (callback) -> idleCallbacks.push(callback)
@@ -236,15 +236,12 @@ describe "AtomEnvironment", ->
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       atom.unloadEditorWindow()
-      expect(atom.saveState).toHaveBeenCalledWith({isUnloading: true})
-      expect(atom.saveState).not.toHaveBeenCalledWith({isUnloading: false})
+      expect(atom.saveState).not.toHaveBeenCalled()
 
-      atom.saveState.reset()
       advanceClock atom.saveStateDebounceInterval
       idleCallbacks.shift()()
       expect(atom.saveState).not.toHaveBeenCalled()
 
-      atom.saveState.reset()
       mousedown = new MouseEvent('mousedown')
       atom.document.dispatchEvent(mousedown)
       advanceClock atom.saveStateDebounceInterval
@@ -258,6 +255,30 @@ describe "AtomEnvironment", ->
       runs ->
         expect(atom.project.serialize.calls.length).toBe(1)
         expect(atom.project.serialize.mostRecentCall.args[0]).toEqual({anyOption: 'any option'})
+
+    it "serializes the text editor registry", ->
+      editor = null
+
+      waitsForPromise ->
+        atom.workspace.open('sample.js').then (e) -> editor = e
+
+      runs ->
+        atom.textEditors.setGrammarOverride(editor, 'text.plain')
+
+        atom2 = new AtomEnvironment({
+          applicationDelegate: atom.applicationDelegate,
+          window: document.createElement('div'),
+          document: Object.assign(
+            document.createElement('div'),
+            {
+              body: document.createElement('div'),
+              head: document.createElement('div'),
+            }
+          )
+        })
+        atom2.deserialize(atom.serialize())
+
+        expect(atom2.textEditors.getGrammarOverride(editor)).toBe('text.plain')
 
   describe "openInitialEmptyEditorIfNecessary", ->
     describe "when there are no paths set", ->
@@ -371,8 +392,9 @@ describe "AtomEnvironment", ->
     describe "when the opened path is a uri", ->
       it "adds it to the project's paths as is", ->
         pathToOpen = 'remote://server:7644/some/dir/path'
+        spyOn(atom.project, 'addPath')
         atom.openLocations([{pathToOpen}])
-        expect(atom.project.getPaths()[0]).toBe pathToOpen
+        expect(atom.project.addPath).toHaveBeenCalledWith(pathToOpen)
 
   describe "::updateAvailable(info) (called via IPC from browser process)", ->
     subscription = null
@@ -386,7 +408,7 @@ describe "AtomEnvironment", ->
       updateAvailableHandler = jasmine.createSpy("update-available-handler")
       subscription = atom.onUpdateAvailable updateAvailableHandler
 
-      autoUpdater = require('electron').remote.require('auto-updater')
+      autoUpdater = require('electron').remote.autoUpdater
       autoUpdater.emit 'update-downloaded', null, "notes", "version"
 
       waitsFor ->

@@ -31,6 +31,7 @@ ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
 Clipboard = require './clipboard'
 Project = require './project'
+TitleBar = require './title-bar'
 Workspace = require './workspace'
 PanelContainer = require './panel-container'
 Panel = require './panel'
@@ -189,13 +190,19 @@ class AtomEnvironment extends Model
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
+    @textEditors = new TextEditorRegistry({
+      @config, grammarRegistry: @grammars, assert: @assert.bind(this), @clipboard,
+      packageManager: @packages
+    })
+
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
-      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this)
+      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this),
+      textEditorRegistry: @textEditors,
     })
+
     @themes.workspace = @workspace
 
-    @textEditors = new TextEditorRegistry
     @autoUpdater = new AutoUpdateManager({@applicationDelegate})
 
     @config.load()
@@ -327,6 +334,8 @@ class AtomEnvironment extends Model
     @workspace.subscribeToEvents()
 
     @grammars.clear()
+
+    @textEditors.clear()
 
     @views.clear()
     @registerDefaultViewProviders()
@@ -536,6 +545,10 @@ class AtomEnvironment extends Model
   reload: ->
     @applicationDelegate.reloadWindow()
 
+  # Extended: Relaunch the entire application.
+  restartApplication: ->
+    @applicationDelegate.restartApplication()
+
   # Extended: Returns a {Boolean} that is `true` if the current window is maximized.
   isMaximized: ->
     @applicationDelegate.isWindowMaximized()
@@ -550,10 +563,6 @@ class AtomEnvironment extends Model
   # Extended: Set the full screen state of the current window.
   setFullScreen: (fullScreen=false) ->
     @applicationDelegate.setWindowFullScreen(fullScreen)
-    if fullScreen
-      @document.body.classList.add("fullscreen")
-    else
-      @document.body.classList.remove("fullscreen")
 
   # Extended: Toggle the full screen state of the current window.
   toggleFullScreen: ->
@@ -669,6 +678,10 @@ class AtomEnvironment extends Model
         @disposables.add(@applicationDelegate.onDidOpenLocations(@openLocations.bind(this)))
         @disposables.add(@applicationDelegate.onApplicationMenuCommand(@dispatchApplicationMenuCommand.bind(this)))
         @disposables.add(@applicationDelegate.onContextMenuCommand(@dispatchContextMenuCommand.bind(this)))
+        @disposables.add @applicationDelegate.onSaveWindowStateRequest =>
+          callback = => @applicationDelegate.didSaveWindowState()
+          @saveState({isUnloading: true}).catch(callback).then(callback)
+
         @listenForUpdates()
 
         @registerDefaultTargetForKeymaps()
@@ -678,6 +691,9 @@ class AtomEnvironment extends Model
         startTime = Date.now()
         @deserialize(state) if state?
         @deserializeTimings.atom = Date.now() - startTime
+
+        if process.platform is 'darwin' and @config.get('core.useCustomTitleBar')
+          @workspace.addHeaderPanel({item: new TitleBar({@workspace, @themes, @applicationDelegate})})
 
         @document.body.appendChild(@views.getView(@workspace))
         @backgroundStylesheet?.remove()
@@ -700,11 +716,11 @@ class AtomEnvironment extends Model
     grammars: {grammarOverridesByPath: @grammars.grammarOverridesByPath}
     fullScreen: @isFullScreen()
     windowDimensions: @windowDimensions
+    textEditors: @textEditors.serialize()
 
   unloadEditorWindow: ->
     return if not @project
 
-    @saveState({isUnloading: true})
     @storeWindowBackground()
     @packages.deactivatePackages()
     @saveBlobStoreSync()
@@ -842,18 +858,17 @@ class AtomEnvironment extends Model
     @blobStore.save()
 
   saveState: (options) ->
-    return Promise.resolve() unless @enablePersistence
-
     new Promise (resolve, reject) =>
-      return if not @project
-
-      state = @serialize(options)
-      savePromise =
-        if storageKey = @getStateKey(@project?.getPaths())
-          @stateStore.save(storageKey, state)
-        else
-          @applicationDelegate.setTemporaryWindowState(state)
-      savePromise.catch(reject).then(resolve)
+      if @enablePersistence and @project
+        state = @serialize(options)
+        savePromise =
+          if storageKey = @getStateKey(@project?.getPaths())
+            @stateStore.save(storageKey, state)
+          else
+            @applicationDelegate.setTemporaryWindowState(state)
+        savePromise.catch(reject).then(resolve)
+      else
+        resolve()
 
   loadState: ->
     if @enablePersistence
@@ -880,6 +895,8 @@ class AtomEnvironment extends Model
     startTime = Date.now()
     @project.deserialize(state.project, @deserializers) if state.project?
     @deserializeTimings.project = Date.now() - startTime
+
+    @textEditors.deserialize(state.textEditors) if state.textEditors
 
     startTime = Date.now()
     @workspace.deserialize(state.workspace, @deserializers) if state.workspace?

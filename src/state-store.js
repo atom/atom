@@ -20,13 +20,13 @@ class StateStore {
   }
 
   connect () {
-    return this.dbPromise.then(db => !!db)
+    return this.dbPromise.then((db) => !!db)
   }
 
   save (key, value) {
     return new Promise((resolve, reject) => {
-      this.dbPromise.then(db => {
-        if (db == null) resolve()
+      this.dbPromise.then((db) => {
+        if (db == null) return resolve()
 
         var request = db.transaction(['states'], 'readwrite')
           .objectStore('states')
@@ -39,7 +39,7 @@ class StateStore {
   }
 
   load (key) {
-    return this.dbPromise.then(db => {
+    return this.dbPromise.then((db) => {
       if (!db) return
 
       return new Promise((resolve, reject) => {
@@ -62,7 +62,7 @@ class StateStore {
   }
 
   clear () {
-    return this.dbPromise.then(db => {
+    return this.dbPromise.then((db) => {
       if (!db) return
 
       return new Promise((resolve, reject) => {
@@ -77,7 +77,7 @@ class StateStore {
   }
 
   count () {
-    return this.dbPromise.then(db => {
+    return this.dbPromise.then((db) => {
       if (!db) return
 
       return new Promise((resolve, reject) => {

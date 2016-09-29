@@ -85,6 +85,7 @@ class Package
         @loadMenus()
         @loadStylesheets()
         @registerDeserializerMethods()
+        @activateCoreStartupServices()
         @configSchemaRegisteredOnLoad = @registerConfigSchemaFromMetadata()
         @settingsPromise = @loadSettings()
         if @shouldRequireMainModuleOnLoad() and not @mainModule?
@@ -159,6 +160,7 @@ class Package
 
   # TODO: Remove. Settings view calls this method currently.
   activateConfig: ->
+    return if @configSchemaRegisteredOnLoad
     @requireMainModule()
     @registerConfigSchemaFromMainModule()
 
@@ -249,7 +251,7 @@ class Package
     if @bundledPackage and @packageManager.packagesCache[@name]?
       @keymaps = (["#{@packageManager.resourcePath}#{path.sep}#{keymapPath}", keymapObject] for keymapPath, keymapObject of @packageManager.packagesCache[@name].keymaps)
     else
-      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath) ? {}]
+      @keymaps = @getKeymapPaths().map (keymapPath) -> [keymapPath, CSON.readFileSync(keymapPath, allowDuplicateKeys: false) ? {}]
     return
 
   loadMenus: ->
@@ -288,6 +290,15 @@ class Package
             @requireMainModule()
             @mainModule[methodName](state, atomEnvironment)
       return
+
+  activateCoreStartupServices: ->
+    if directoryProviderService = @metadata.providedServices?['atom.directory-provider']
+      @requireMainModule()
+      servicesByVersion = {}
+      for version, methodName of directoryProviderService.versions
+        if typeof @mainModule[methodName] is 'function'
+          servicesByVersion[version] = @mainModule[methodName]()
+      @packageManager.serviceHub.provide('atom.directory-provider', servicesByVersion)
 
   registerViewProviders: ->
     if @metadata.viewProviders? and not @registeredViewProviders
@@ -387,6 +398,7 @@ class Package
     @activationPromise = null
     @resolveActivationPromise = null
     @activationCommandSubscriptions?.dispose()
+    @activationHookSubscriptions?.dispose()
     @configSchemaRegisteredOnActivate = false
     @deactivateResources()
     @deactivateKeymaps()
@@ -426,7 +438,7 @@ class Package
     return @mainModule if @mainModuleRequired
     unless @isCompatible()
       console.warn """
-        Failed to require the main module of '#{@name}' because it requires one or more incompatible native modules (#{_.map(@incompatibleModules, 'name').join(', ')}).
+        Failed to require the main module of '#{@name}' because it requires one or more incompatible native modules (#{_.pluck(@incompatibleModules, 'name').join(', ')}).
         Run `apm rebuild` in the package directory and restart Atom to resolve.
       """
       return

@@ -39,32 +39,17 @@ describe "TextEditorElement", ->
       expect(element.hasAttribute('mini')).toBe true
 
   describe "when the editor is attached to the DOM", ->
-    describe "when the editor.useShadowDOM config option is true", ->
-      it "mounts the react component and unmounts when removed from the dom", ->
-        atom.config.set('editor.useShadowDOM', true)
+    it "mounts the component and unmounts when removed from the dom", ->
+      element = new TextEditorElement
+      jasmine.attachToDOM(element)
 
-        element = new TextEditorElement
-        jasmine.attachToDOM(element)
+      component = element.component
+      expect(component.mounted).toBe true
+      element.remove()
+      expect(component.mounted).toBe false
 
-        component = element.component
-        expect(component.mounted).toBe true
-        element.remove()
-        expect(component.mounted).toBe false
-
-        jasmine.attachToDOM(element)
-        expect(element.component.mounted).toBe true
-
-    describe "when the editor.useShadowDOM config option is false", ->
-      it "mounts the react component and unmounts when removed from the dom", ->
-        atom.config.set('editor.useShadowDOM', false)
-
-        element = new TextEditorElement
-        jasmine.attachToDOM(element)
-
-        component = element.component
-        expect(component.mounted).toBe true
-        element.getModel().destroy()
-        expect(component.mounted).toBe false
+      jasmine.attachToDOM(element)
+      expect(element.component.mounted).toBe true
 
   describe "when the editor is detached from the DOM and then reattached", ->
     it "does not render duplicate line numbers", ->
@@ -96,42 +81,21 @@ describe "TextEditorElement", ->
       expect(element.shadowRoot.querySelectorAll('.decoration').length).toBe initialDecorationCount
 
   describe "focus and blur handling", ->
-    describe "when the editor.useShadowDOM config option is true", ->
-      it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
-        atom.config.set('editor.useShadowDOM', true)
+    it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
+      element = new TextEditorElement
+      jasmineContent.appendChild(element)
 
-        element = new TextEditorElement
-        jasmineContent.appendChild(element)
+      blurCalled = false
+      element.addEventListener 'blur', -> blurCalled = true
 
-        blurCalled = false
-        element.addEventListener 'blur', -> blurCalled = true
+      element.focus()
+      expect(blurCalled).toBe false
+      expect(element.hasFocus()).toBe true
+      expect(document.activeElement).toBe element
+      expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
 
-        element.focus()
-        expect(blurCalled).toBe false
-        expect(element.hasFocus()).toBe true
-        expect(document.activeElement).toBe element
-        expect(element.shadowRoot.activeElement).toBe element.shadowRoot.querySelector('input')
-
-        document.body.focus()
-        expect(blurCalled).toBe true
-
-    describe "when the editor.useShadowDOM config option is false", ->
-      it "proxies focus/blur events to/from the hidden input", ->
-        atom.config.set('editor.useShadowDOM', false)
-
-        element = new TextEditorElement
-        jasmineContent.appendChild(element)
-
-        blurCalled = false
-        element.addEventListener 'blur', -> blurCalled = true
-
-        element.focus()
-        expect(blurCalled).toBe false
-        expect(element.hasFocus()).toBe true
-        expect(document.activeElement).toBe element.querySelector('input')
-
-        document.body.focus()
-        expect(blurCalled).toBe true
+      document.body.focus()
+      expect(blurCalled).toBe true
 
     describe "when focused while a parent node is being attached to the DOM", ->
       class ElementThatFocusesChild extends HTMLDivElement
@@ -162,25 +126,24 @@ describe "TextEditorElement", ->
         themeReloadCallback = fn
         new Disposable
 
-      atom.config.set("editor.useShadowDOM", false)
-
       element = new TextEditorElement()
       element.style.height = '200px'
+      element.getModel().update({autoHeight: false})
       element.getModel().setText [0..20].join("\n")
 
     it "re-renders the scrollbar", ->
       jasmineContent.appendChild(element)
 
-      atom.styles.addStyleSheet """
+      atom.styles.addStyleSheet("""
         ::-webkit-scrollbar {
           width: 8px;
         }
-      """
+      """, context: 'atom-text-editor')
 
       initialThemeLoadComplete = true
       themeReloadCallback()
 
-      verticalScrollbarNode = element.querySelector(".vertical-scrollbar")
+      verticalScrollbarNode = element.shadowRoot.querySelector(".vertical-scrollbar")
       scrollbarWidth = verticalScrollbarNode.offsetWidth - verticalScrollbarNode.clientWidth
       expect(scrollbarWidth).toEqual(8)
 
@@ -243,18 +206,21 @@ describe "TextEditorElement", ->
       element = atom.views.getView(editor)
       element.style.lineHeight = "10px"
       element.style.width = "200px"
+      jasmine.attachToDOM(element)
 
       expect(element.getMaxScrollTop()).toBe(0)
 
-      jasmine.attachToDOM(element)
-
-      element.setHeight(100)
+      element.style.height = '100px'
+      editor.update({autoHeight: false})
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(60)
 
-      element.setHeight(120)
+      element.style.height = '120px'
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(40)
 
-      element.setHeight(200)
+      element.style.height = '200px'
+      element.component.measureDimensions()
       expect(element.getMaxScrollTop()).toBe(0)
 
   describe "on TextEditor::setMini", ->
@@ -276,6 +242,7 @@ describe "TextEditorElement", ->
       element.setUpdatedSynchronously(true)
       element.setHeight(20)
       element.setWidth(20)
+      element.getModel().update({autoHeight: false})
 
     describe "::onDidChangeScrollTop(callback)", ->
       it "triggers even when subscribing before attaching the element", ->

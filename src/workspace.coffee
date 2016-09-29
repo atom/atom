@@ -31,7 +31,7 @@ class Workspace extends Model
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
       @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
-      @deserializerManager
+      @deserializerManager, @textEditorRegistry
     } = params
 
     @emitter = new Emitter
@@ -88,6 +88,7 @@ class Workspace extends Model
   subscribeToEvents: ->
     @subscribeToActiveItem()
     @subscribeToFontSize()
+    @subscribeToAddedItems()
 
   consumeServices: ({serviceHub}) ->
     @directorySearchers = []
@@ -160,6 +161,18 @@ class Workspace extends Model
       @activeItemSubscriptions.add(titleSubscription) if titleSubscription?
       @activeItemSubscriptions.add(modifiedSubscription) if modifiedSubscription?
 
+  subscribeToAddedItems: ->
+    @onDidAddPaneItem ({item, pane, index}) =>
+      if item instanceof TextEditor
+        subscriptions = new CompositeDisposable(
+          @textEditorRegistry.add(item)
+          @textEditorRegistry.maintainGrammar(item)
+          @textEditorRegistry.maintainConfig(item)
+          item.observeGrammar(@handleGrammarUsed.bind(this))
+        )
+        item.onDidDestroy -> subscriptions.dispose()
+        @emitter.emit 'did-add-text-editor', {textEditor: item, pane, index}
+
   # Updates the application's title and proxy icon based on whichever file is
   # open.
   updateWindowTitle: =>
@@ -172,6 +185,8 @@ class Workspace extends Model
         itemPath is projectPath or itemPath?.startsWith(projectPath + path.sep)
     itemTitle ?= "untitled"
     projectPath ?= projectPaths[0]
+    if projectPath?
+      projectPath = fs.tildify(projectPath)
 
     titleParts = []
     if item? and projectPath?
@@ -383,8 +398,7 @@ class Workspace extends Model
   #
   # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidAddTextEditor: (callback) ->
-    @onDidAddPaneItem ({item, pane, index}) ->
-      callback({textEditor: item, pane, index}) if item instanceof TextEditor
+    @emitter.on 'did-add-text-editor', callback
 
   ###
   Section: Opening
@@ -538,7 +552,7 @@ class Workspace extends Model
     fileSize = fs.getSizeSync(filePath)
 
     largeFileMode = fileSize >= 2 * 1048576 # 2MB
-    if fileSize >= 20 * 1048576 # 20MB
+    if fileSize >= @config.get('core.warnOnLargeFileLimit') * 1048576 # 20MB by default
       choice = @applicationDelegate.confirm
         message: 'Atom will be unresponsive during the loading of very large files.'
         detailedMessage: "Do you still want to load this file?"
@@ -549,13 +563,7 @@ class Workspace extends Model
         throw error
 
     @project.bufferForPath(filePath, options).then (buffer) =>
-      editor = @buildTextEditor(Object.assign({buffer, largeFileMode}, options))
-      disposable = atom.textEditors.add(editor)
-      grammarSubscription = editor.observeGrammar(@handleGrammarUsed.bind(this))
-      editor.onDidDestroy ->
-        grammarSubscription.dispose()
-        disposable.dispose()
-      editor
+      @textEditorRegistry.build(Object.assign({buffer, largeFileMode, autoHeight: false}, options))
 
   handleGrammarUsed: (grammar) ->
     return unless grammar?
@@ -572,10 +580,13 @@ class Workspace extends Model
   #
   # Returns a {TextEditor}.
   buildTextEditor: (params) ->
-    params = Object.assign({
-      @config, @clipboard, @grammarRegistry, @assert
-    }, params)
-    new TextEditor(params)
+    editor = @textEditorRegistry.build(params)
+    subscriptions = new CompositeDisposable(
+      @textEditorRegistry.maintainGrammar(editor)
+      @textEditorRegistry.maintainConfig(editor),
+    )
+    editor.onDidDestroy -> subscriptions.dispose()
+    editor
 
   # Public: Asynchronously reopens the last-closed item's URI if it hasn't already been
   # reopened.

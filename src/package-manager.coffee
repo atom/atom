@@ -486,15 +486,15 @@ class PackageManager
   # Deactivate all packages
   deactivatePackages: ->
     @config.transact =>
-      @deactivatePackage(pack.name) for pack in @getLoadedPackages()
+      @deactivatePackage(pack.name, true) for pack in @getLoadedPackages()
       return
     @unobserveDisabledPackages()
     @unobservePackagesWithKeymapsDisabled()
 
   # Deactivate the package with the given name
-  deactivatePackage: (name) ->
+  deactivatePackage: (name, suppressSerialization) ->
     pack = @getLoadedPackage(name)
-    @serializePackage(pack) if @isPackageActive(pack.name)
+    @serializePackage(pack) if not suppressSerialization and @isPackageActive(pack.name)
     pack.deactivate()
     delete @activePackages[pack.name]
     delete @activatingPackages[pack.name]

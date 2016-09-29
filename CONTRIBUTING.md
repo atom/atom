@@ -20,6 +20,7 @@ These are just guidelines, not rules, use your best judgment and feel free to pr
 
 [Styleguides](#styleguides)
   * [Git Commit Messages](#git-commit-messages)
+  * [JavaScript Styleguide](#javascript-styleguide)
   * [CoffeeScript Styleguide](#coffeescript-styleguide)
   * [Specs Styleguide](#specs-styleguide)
   * [Documentation Styleguide](#documentation-styleguide)
@@ -231,9 +232,7 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
 ### Pull Requests
 
 * Include screenshots and animated GIFs in your pull request whenever possible.
-* Follow the [CoffeeScript](#coffeescript-styleguide),
-  [JavaScript](https://github.com/styleguide/javascript),
-  and [CSS](https://github.com/styleguide/css) styleguides.
+* Follow the [JavaScript](#javascript-styleguide) and [CoffeeScript](#coffeescript-styleguide) styleguides.
 * Include thoughtfully-worded, well-structured
   [Jasmine](http://jasmine.github.io/) specs in the `./spec` folder. Run them using `apm test`. See the [Specs Styleguide](#specs-styleguide) below.
 * Document new code based on the
@@ -279,6 +278,25 @@ If you want to read about using Atom or developing packages in Atom, the [Atom F
     * :arrow_up: `:arrow_up:` when upgrading dependencies
     * :arrow_down: `:arrow_down:` when downgrading dependencies
     * :shirt: `:shirt:` when removing linter warnings
+
+### JavaScript Styleguide
+
+All JavaScript must adhere to [JavaScript Standard Style](http://standardjs.com/).
+
+* Prefer the object spread operator (`{...anotherObj}`) to `Object.assign()`
+* Inline `export`s with expressions whenever possible
+  ```js
+  // Use this:
+  export default class ClassName {
+
+  }
+
+  // Instead of:
+  class ClassName {
+
+  }
+  export default ClassName
+  ```
 
 ### CoffeeScript Styleguide
 

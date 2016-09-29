@@ -1,5 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
+fs = require 'fs-plus'
 Grim = require 'grim'
 {CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
@@ -77,6 +78,10 @@ class TextEditor extends Model
   height: null
   width: null
   registered: false
+  atomicSoftTabs: true
+  invisibles: null
+  showLineNumbers: true
+  scrollSensitivity: 40
 
   Object.defineProperty @prototype, "element",
     get: -> @getElement()
@@ -98,6 +103,7 @@ class TextEditor extends Model
 
     try
       state.tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
+      state.tabLength = state.tokenizedBuffer.getTabLength()
     catch error
       if error.syscall is 'read'
         return # Error reading the file, don't deserialize an editor for it
@@ -105,11 +111,10 @@ class TextEditor extends Model
         throw error
 
     state.buffer = state.tokenizedBuffer.buffer
-    state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId) ? state.buffer.addDisplayLayer()
-    state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
-    state.config = atomEnvironment.config
+    if state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId)
+      state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
+
     state.clipboard = atomEnvironment.clipboard
-    state.grammarRegistry = atomEnvironment.grammars
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     editor = new this(state)
     if state.registered
@@ -121,51 +126,71 @@ class TextEditor extends Model
     super
 
     {
-      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, @tabLength,
+      @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @config, @clipboard, @grammarRegistry,
-      @assert, grammar, @showInvisibles, @autoHeight, @scrollPastEnd, @editorWidthInChars,
-      @tokenizedBuffer, @ignoreInvisibles, @displayLayer
+      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
+      @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
+      @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
+      @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
     } = params
 
-    throw new Error("Must pass a config parameter when constructing TextEditors") unless @config?
     throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
-    throw new Error("Must pass a grammarRegistry parameter when constructing TextEditors") unless @grammarRegistry?
 
     @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
     @firstVisibleScreenColumn ?= 0
-    @mini ?= false
     @emitter = new Emitter
     @disposables = new CompositeDisposable
     @cursors = []
     @cursorsByMarkerId = new Map
     @selections = []
-    @autoHeight ?= true
-    @scrollPastEnd ?= true
     @hasTerminatedPendingState = false
 
+    @mini ?= false
+    @scrollPastEnd ?= true
     @showInvisibles ?= true
+    @softTabs ?= true
+    tabLength ?= 2
+    @autoIndent ?= true
+    @autoIndentOnPaste ?= true
+    @undoGroupingInterval ?= 300
+    @nonWordCharacters ?= "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
+    @softWrapped ?= false
+    @softWrapAtPreferredLineLength ?= false
+    @preferredLineLength ?= 80
 
     @buffer ?= new TextBuffer
     @tokenizedBuffer ?= new TokenizedBuffer({
-      @tabLength, @buffer, @largeFileMode, @config, @grammarRegistry, @assert
+      grammar, tabLength, @buffer, @largeFileMode, @assert
     })
-    @displayLayer ?= @buffer.addDisplayLayer()
+
+    displayLayerParams = {
+      invisibles: @getInvisibles(),
+      softWrapColumn: @getSoftWrapColumn(),
+      showIndentGuides: not @isMini() and @doesShowIndentGuide(),
+      atomicSoftTabs: params.atomicSoftTabs ? true,
+      tabLength: tabLength,
+      ratioForCharacter: @ratioForCharacter.bind(this),
+      isWrapBoundary: isWrapBoundary,
+      foldCharacter: ZERO_WIDTH_NBSP,
+      softWrapHangingIndent: params.softWrapHangingIndentLength ? 0
+    }
+
+    if @displayLayer?
+      @displayLayer.reset(displayLayerParams)
+    else
+      @displayLayer = @buffer.addDisplayLayer(displayLayerParams)
+
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
 
     @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
-
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
-
-    @disposables.add @tokenizedBuffer.observeGrammar @subscribeToScopedConfigSettings
 
     for marker in @selectionsMarkerLayer.getMarkers()
       @addSelection(marker)
 
-    @subscribeToTabTypeConfig()
     @subscribeToBuffer()
     @subscribeToDisplayLayer()
 
@@ -174,9 +199,7 @@ class TextEditor extends Model
       initialColumn = Math.max(parseInt(initialColumn) or 0, 0)
       @addCursorAtBufferPosition([initialLine, initialColumn])
 
-    @languageMode = new LanguageMode(this, @config)
-
-    @setEncoding(@config.get('core.fileEncoding', scope: @getRootScopeDescriptor()))
+    @languageMode = new LanguageMode(this)
 
     @gutterContainer = new GutterContainer(this)
     @lineNumberGutter = @gutterContainer.addGutter
@@ -184,27 +207,163 @@ class TextEditor extends Model
       priority: 0
       visible: lineNumberGutterVisible
 
-    if grammar?
-      @setGrammar(grammar)
+  update: (params) ->
+    displayLayerParams = {}
+
+    for param in Object.keys(params)
+      value = params[param]
+
+      switch param
+        when 'autoIndent'
+          @autoIndent = value
+
+        when 'autoIndentOnPaste'
+          @autoIndentOnPaste = value
+
+        when 'undoGroupingInterval'
+          @undoGroupingInterval = value
+
+        when 'nonWordCharacters'
+          @nonWordCharacters = value
+
+        when 'scrollSensitivity'
+          @scrollSensitivity = value
+
+        when 'encoding'
+          @buffer.setEncoding(value)
+
+        when 'softTabs'
+          if value isnt @softTabs
+            @softTabs = value
+
+        when 'atomicSoftTabs'
+          if value isnt @displayLayer.atomicSoftTabs
+            displayLayerParams.atomicSoftTabs = value
+
+        when 'tabLength'
+          if value isnt @tokenizedBuffer.getTabLength()
+            @tokenizedBuffer.setTabLength(value)
+            displayLayerParams.tabLength = value
+
+        when 'softWrapped'
+          if value isnt @softWrapped
+            @softWrapped = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
+            @emitter.emit 'did-change-soft-wrapped', @isSoftWrapped()
+
+        when 'softWrapHangingIndentLength'
+          if value isnt @displayLayer.softWrapHangingIndent
+            displayLayerParams.softWrapHangingIndent = value
+
+        when 'softWrapAtPreferredLineLength'
+          if value isnt @softWrapAtPreferredLineLength
+            @softWrapAtPreferredLineLength = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+
+        when 'preferredLineLength'
+          if value isnt @preferredLineLength
+            @preferredLineLength = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+
+        when 'mini'
+          if value isnt @mini
+            @mini = value
+            @emitter.emit 'did-change-mini', value
+            displayLayerParams.invisibles = @getInvisibles()
+            displayLayerParams.showIndentGuides = @doesShowIndentGuide()
+
+        when 'placeholderText'
+          if value isnt @placeholderText
+            @placeholderText = value
+            @emitter.emit 'did-change-placeholder-text', value
+
+        when 'lineNumberGutterVisible'
+          if value isnt @lineNumberGutterVisible
+            if value
+              @lineNumberGutter.show()
+            else
+              @lineNumberGutter.hide()
+            @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutter.isVisible()
+
+        when 'showIndentGuide'
+          if value isnt @showIndentGuide
+            @showIndentGuide = value
+            displayLayerParams.showIndentGuides = @doesShowIndentGuide()
+
+        when 'showLineNumbers'
+          if value isnt @showLineNumbers
+            @showLineNumbers = value
+            @presenter?.didChangeShowLineNumbers()
+
+        when 'showInvisibles'
+          if value isnt @showInvisibles
+            @showInvisibles = value
+            displayLayerParams.invisibles = @getInvisibles()
+
+        when 'invisibles'
+          if not _.isEqual(value, @invisibles)
+            @invisibles = value
+            displayLayerParams.invisibles = @getInvisibles()
+
+        when 'editorWidthInChars'
+          if value > 0 and value isnt @editorWidthInChars
+            @editorWidthInChars = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+
+        when 'width'
+          if value isnt @width
+            @width = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn() if @isSoftWrapped()
+
+        when 'scrollPastEnd'
+          if value isnt @scrollPastEnd
+            @scrollPastEnd = value
+            @presenter?.didChangeScrollPastEnd()
+
+        when 'autoHeight'
+          if value isnt @autoHeight
+            @autoHeight = value
+            @presenter?.setAutoHeight(@autoHeight)
+
+        when 'autoWidth'
+          if value isnt @autoWidth
+            @autoWidth = value
+            @presenter?.didChangeAutoWidth()
+        else
+          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
+
+    if Object.keys(displayLayerParams).length > 0
+      @displayLayer.reset(displayLayerParams)
+
+    if @editorElement?
+      @editorElement.views.getNextUpdatePromise()
+    else
+      Promise.resolve()
 
   serialize: ->
     tokenizedBufferState = @tokenizedBuffer.serialize()
 
-    deserializer: 'TextEditor'
-    version: @serializationVersion
-    id: @id
-    softTabs: @softTabs
-    firstVisibleScreenRow: @getFirstVisibleScreenRow()
-    firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
-    selectionsMarkerLayerId: @selectionsMarkerLayer.id
-    softWrapped: @isSoftWrapped()
-    editorWidthInChars: @editorWidthInChars
-    # TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
-    displayBuffer: {tokenizedBuffer: tokenizedBufferState}
-    tokenizedBuffer: tokenizedBufferState
-    largeFileMode: @largeFileMode
-    displayLayerId: @displayLayer.id
-    registered: @registered
+    {
+      deserializer: 'TextEditor'
+      version: @serializationVersion
+
+      # TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
+      displayBuffer: {tokenizedBuffer: tokenizedBufferState}
+
+      tokenizedBuffer: tokenizedBufferState
+      displayLayerId: @displayLayer.id
+      selectionsMarkerLayerId: @selectionsMarkerLayer.id
+
+      firstVisibleScreenRow: @getFirstVisibleScreenRow()
+      firstVisibleScreenColumn: @getFirstVisibleScreenColumn()
+
+      atomicSoftTabs: @displayLayer.atomicSoftTabs
+      softWrapHangingIndentLength: @displayLayer.softWrapHangingIndent
+
+      @id, @softTabs, @softWrapped, @softWrapAtPreferredLineLength,
+      @preferredLineLength, @mini, @editorWidthInChars,  @width, @largeFileMode,
+      @registered, @invisibles, @showInvisibles, @showIndentGuide, @autoHeight, @autoWidth
+    }
 
   subscribeToBuffer: ->
     @buffer.retain()
@@ -226,55 +385,18 @@ class TextEditor extends Model
   onDidTerminatePendingState: (callback) ->
     @emitter.on 'did-terminate-pending-state', callback
 
-  subscribeToScopedConfigSettings: =>
-    @scopedConfigSubscriptions?.dispose()
-    @scopedConfigSubscriptions = subscriptions = new CompositeDisposable
-
-    scopeDescriptor = @getRootScopeDescriptor()
-    subscriptions.add @config.onDidChange 'editor.atomicSoftTabs', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.tabLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.invisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.showInvisibles', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.showIndentGuide', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.softWrap', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.softWrapHangingIndent', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.softWrapAtPreferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-    subscriptions.add @config.onDidChange 'editor.preferredLineLength', scope: scopeDescriptor, @resetDisplayLayer.bind(this)
-
-    @resetDisplayLayer()
-
   subscribeToDisplayLayer: ->
     @disposables.add @selectionsMarkerLayer.onDidCreateMarker @addSelection.bind(this)
     @disposables.add @tokenizedBuffer.onDidChangeGrammar @handleGrammarChange.bind(this)
-    @disposables.add @tokenizedBuffer.onDidTokenize @handleTokenization.bind(this)
     @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
 
-  subscribeToTabTypeConfig: ->
-    @tabTypeSubscription?.dispose()
-    @tabTypeSubscription = @config.observe 'editor.tabType', scope: @getRootScopeDescriptor(), =>
-      @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
-
-  resetDisplayLayer: ->
-    @displayLayer.reset({
-      invisibles: @getInvisibles(),
-      softWrapColumn: @getSoftWrapColumn(),
-      showIndentGuides: not @isMini() and @config.get('editor.showIndentGuide', scope: @getRootScopeDescriptor()),
-      atomicSoftTabs: @config.get('editor.atomicSoftTabs', scope: @getRootScopeDescriptor()),
-      tabLength: @getTabLength(),
-      ratioForCharacter: @ratioForCharacter.bind(this),
-      isWrapBoundary: isWrapBoundary,
-      foldCharacter: ZERO_WIDTH_NBSP
-    })
-
   destroyed: ->
     @disposables.dispose()
     @displayLayer.destroy()
-    @scopedConfigSubscriptions.dispose()
     @disposables.dispose()
     @tokenizedBuffer.destroy()
-    @tabTypeSubscription.dispose()
     selection.destroy() for selection in @selections.slice()
     @selectionsMarkerLayer.destroy()
     @buffer.release()
@@ -578,23 +700,20 @@ class TextEditor extends Model
     displayLayer = @displayLayer.copy()
     selectionsMarkerLayer = displayLayer.getMarkerLayer(@buffer.getMarkerLayer(@selectionsMarkerLayer.id).copy().id)
     softTabs = @getSoftTabs()
-    newEditor = new TextEditor({
-      @buffer, selectionsMarkerLayer, @tabLength, softTabs,
-      suppressCursorCreation: true, @config,
+    new TextEditor({
+      @buffer, selectionsMarkerLayer, softTabs,
+      suppressCursorCreation: true,
+      tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @grammarRegistry, @assert, displayLayer
+      @clipboard, @assert, displayLayer, grammar: @getGrammar(),
+      @autoWidth, @autoHeight
     })
-    newEditor
 
   # Controls visibility based on the given {Boolean}.
   setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
 
   setMini: (mini) ->
-    if mini isnt @mini
-      @mini = mini
-      @ignoreInvisibles = @mini
-      @resetDisplayLayer()
-      @emitter.emit 'did-change-mini', @mini
+    @update({mini})
     @mini
 
   isMini: -> @mini
@@ -605,14 +724,7 @@ class TextEditor extends Model
   onDidChangeMini: (callback) ->
     @emitter.on 'did-change-mini', callback
 
-  setLineNumberGutterVisible: (lineNumberGutterVisible) ->
-    unless lineNumberGutterVisible is @lineNumberGutter.isVisible()
-      if lineNumberGutterVisible
-        @lineNumberGutter.show()
-      else
-        @lineNumberGutter.hide()
-      @emitter.emit 'did-change-line-number-gutter-visible', @lineNumberGutter.isVisible()
-    @lineNumberGutter.isVisible()
+  setLineNumberGutterVisible: (lineNumberGutterVisible) -> @update({lineNumberGutterVisible})
 
   isLineNumberGutterVisible: -> @lineNumberGutter.isVisible()
 
@@ -652,12 +764,7 @@ class TextEditor extends Model
   #
   # * `editorWidthInChars` A {Number} representing the width of the
   # {TextEditorElement} in characters.
-  setEditorWidthInChars: (editorWidthInChars) ->
-    if editorWidthInChars > 0
-      previousWidthInChars = @editorWidthInChars
-      @editorWidthInChars = editorWidthInChars
-      if editorWidthInChars isnt previousWidthInChars and @isSoftWrapped()
-        @resetDisplayLayer()
+  setEditorWidthInChars: (editorWidthInChars) -> @update({editorWidthInChars})
 
   # Returns the editor width in characters.
   getEditorWidthInChars: ->
@@ -697,12 +804,13 @@ class TextEditor extends Model
       allPathSegments = []
       for textEditor in atom.workspace.getTextEditors() when textEditor isnt this
         if textEditor.getFileName() is fileName
-          allPathSegments.push(textEditor.getDirectoryPath().split(path.sep))
+          directoryPath = fs.tildify(textEditor.getDirectoryPath())
+          allPathSegments.push(directoryPath.split(path.sep))
 
       if allPathSegments.length is 0
         return fileName
 
-      ourPathSegments = @getDirectoryPath().split(path.sep)
+      ourPathSegments = fs.tildify(@getDirectoryPath()).split(path.sep)
       allPathSegments.push ourPathSegments
 
       loop
@@ -756,14 +864,14 @@ class TextEditor extends Model
   # Essential: Saves the editor's text buffer.
   #
   # See {TextBuffer::save} for more details.
-  save: -> @buffer.save(backup: @config.get('editor.backUpBeforeSaving'))
+  save: -> @buffer.save()
 
   # Essential: Saves the editor's text buffer as the given path.
   #
   # See {TextBuffer::saveAs} for more details.
   #
   # * `filePath` A {String} path.
-  saveAs: (filePath) -> @buffer.saveAs(filePath, backup: @config.get('editor.backUpBeforeSaving'))
+  saveAs: (filePath) -> @buffer.saveAs(filePath)
 
   # Determine whether the user should be prompted to save before closing
   # this editor.
@@ -827,8 +935,22 @@ class TextEditor extends Model
     return
 
   tokensForScreenRow: (screenRow) ->
-    for tagCode in @screenLineForScreenRow(screenRow).tagCodes when @displayLayer.isOpenTagCode(tagCode)
-      @displayLayer.tagForCode(tagCode)
+    tokens = []
+    lineTextIndex = 0
+    currentTokenScopes = []
+    {lineText, tagCodes} = @screenLineForScreenRow(screenRow)
+    for tagCode in tagCodes
+      if @displayLayer.isOpenTagCode(tagCode)
+        currentTokenScopes.push(@displayLayer.tagForCode(tagCode))
+      else if @displayLayer.isCloseTagCode(tagCode)
+        currentTokenScopes.pop()
+      else
+        tokens.push({
+          text: lineText.substr(lineTextIndex, tagCode)
+          scopes: currentTokenScopes.slice()
+        })
+        lineTextIndex += tagCode
+    tokens
 
   screenLineForScreenRow: (screenRow) ->
     return if screenRow < 0 or screenRow > @getLastScreenRow()
@@ -916,7 +1038,7 @@ class TextEditor extends Model
     return false unless @emitWillInsertTextEvent(text)
 
     groupingInterval = if options.groupUndo
-      @config.get('editor.undoGroupingInterval')
+      @undoGroupingInterval
     else
       0
 
@@ -1851,7 +1973,7 @@ class TextEditor extends Model
   #
   # Returns a {Number}.
   getMarkerCount: ->
-    @buffer.getMarkerCount()
+    @defaultMarkerLayer.getMarkerCount()
 
   destroyMarker: (id) ->
     @getMarker(id)?.destroy()
@@ -2111,7 +2233,7 @@ class TextEditor extends Model
 
   # Add a cursor based on the given {DisplayMarker}.
   addCursor: (marker) ->
-    cursor = new Cursor(editor: this, marker: marker, config: @config)
+    cursor = new Cursor(editor: this, marker: marker)
     @cursors.push(cursor)
     @cursorsByMarkerId.set(marker.id, cursor)
     @decorateMarker(marker, type: 'line-number', class: 'cursor-line')
@@ -2702,7 +2824,10 @@ class TextEditor extends Model
   # Essential: Enable or disable soft tabs for this editor.
   #
   # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @softTabs
+  setSoftTabs: (@softTabs) -> @update({softTabs})
+
+  # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
+  hasAtomicSoftTabs: -> @displayLayer.atomicSoftTabs
 
   # Essential: Toggle soft tabs for this editor
   toggleSoftTabs: -> @setSoftTabs(not @getSoftTabs())
@@ -2710,36 +2835,26 @@ class TextEditor extends Model
   # Essential: Get the on-screen length of tab characters.
   #
   # Returns a {Number}.
-  getTabLength: ->
-    if @tabLength?
-      @tabLength
-    else
-      @config.get('editor.tabLength', scope: @getRootScopeDescriptor())
+  getTabLength: -> @tokenizedBuffer.getTabLength()
 
   # Essential: Set the on-screen length of tab characters. Setting this to a
   # {Number} This will override the `editor.tabLength` setting.
   #
   # * `tabLength` {Number} length of a single tab. Setting to `null` will
   #   fallback to using the `editor.tabLength` config setting
-  setTabLength: (tabLength) ->
-    return if tabLength is @tabLength
+  setTabLength: (tabLength) -> @update({tabLength})
 
-    @tabLength = tabLength
-    @tokenizedBuffer.setTabLength(@tabLength)
-    @resetDisplayLayer()
-
-  setIgnoreInvisibles: (ignoreInvisibles) ->
-    return if ignoreInvisibles is @ignoreInvisibles
-
-    @ignoreInvisibles = ignoreInvisibles
-    @resetDisplayLayer()
-
+  # Returns an {Object} representing the current invisible character
+  # substitutions for this editor. See {::setInvisibles}.
   getInvisibles: ->
-    scopeDescriptor = @getRootScopeDescriptor()
-    if @config.get('editor.showInvisibles', scope: scopeDescriptor) and not @ignoreInvisibles and @showInvisibles
-      @config.get('editor.invisibles', scope: scopeDescriptor)
+    if not @mini and @showInvisibles and @invisibles?
+      @invisibles
     else
       {}
+
+  doesShowIndentGuide: -> @showIndentGuide and not @mini
+
+  getSoftWrapHangingIndentLength: -> @displayLayer.softWrapHangingIndent
 
   # Extended: Determine if the buffer uses hard or soft tabs.
   #
@@ -2772,20 +2887,6 @@ class TextEditor extends Model
     return unless @getSoftTabs()
     @scanInBufferRange /\t/g, bufferRange, ({replace}) => replace(@getTabText())
 
-  # Private: Computes whether or not this editor should use softTabs based on
-  # the `editor.tabType` setting.
-  #
-  # Returns a {Boolean}
-  shouldUseSoftTabs: ({defaultValue}) ->
-    tabType = @config.get('editor.tabType', scope: @getRootScopeDescriptor())
-    switch tabType
-      when 'auto'
-        @usesSoftTabs() ? defaultValue ? @config.get('editor.softTabs') ? true
-      when 'hard'
-        false
-      when 'soft'
-        true
-
   ###
   Section: Soft Wrap Behavior
   ###
@@ -2797,8 +2898,7 @@ class TextEditor extends Model
     if @largeFileMode
       false
     else
-      scopeDescriptor = @getRootScopeDescriptor()
-      @softWrapped ? @config.get('editor.softWrap', scope: scopeDescriptor) ? false
+      @softWrapped
 
   # Essential: Enable or disable soft wrapping for this editor.
   #
@@ -2806,14 +2906,10 @@ class TextEditor extends Model
   #
   # Returns a {Boolean}.
   setSoftWrapped: (softWrapped) ->
-    if softWrapped isnt @softWrapped
-      @softWrapped = softWrapped
-      @resetDisplayLayer()
-      softWrapped = @isSoftWrapped()
-      @emitter.emit 'did-change-soft-wrapped', softWrapped
-      softWrapped
-    else
-      @isSoftWrapped()
+    @update({softWrapped})
+    @isSoftWrapped()
+
+  getPreferredLineLength: -> @preferredLineLength
 
   # Essential: Toggle soft wrapping for this editor
   #
@@ -2822,10 +2918,9 @@ class TextEditor extends Model
 
   # Essential: Gets the column at which column will soft wrap
   getSoftWrapColumn: ->
-    scopeDescriptor = @getRootScopeDescriptor()
     if @isSoftWrapped()
-      if @config.get('editor.softWrapAtPreferredLineLength', scope: scopeDescriptor)
-        Math.min(@getEditorWidthInChars(), @config.get('editor.preferredLineLength', scope: scopeDescriptor))
+      if @softWrapAtPreferredLineLength
+        Math.min(@getEditorWidthInChars(), @preferredLineLength)
       else
         @getEditorWidthInChars()
     else
@@ -3309,22 +3404,75 @@ class TextEditor extends Model
   Section: Config
   ###
 
-  shouldAutoIndent: ->
-    @config.get("editor.autoIndent", scope: @getRootScopeDescriptor())
+  # Experimental: Supply an object that will provide the editor with settings
+  # for specific syntactic scopes. See the `ScopedSettingsDelegate` in
+  # `text-editor-registry.js` for an example implementation.
+  setScopedSettingsDelegate: (@scopedSettingsDelegate) ->
 
-  shouldAutoIndentOnPaste: ->
-    @config.get("editor.autoIndentOnPaste", scope: @getRootScopeDescriptor())
+  # Experimental: Retrieve the {Object} that provides the editor with settings
+  # for specific syntactic scopes.
+  getScopedSettingsDelegate: -> @scopedSettingsDelegate
+
+  # Experimental: Is auto-indentation enabled for this editor?
+  #
+  # Returns a {Boolean}.
+  shouldAutoIndent: -> @autoIndent
+
+  # Experimental: Is auto-indentation on paste enabled for this editor?
+  #
+  # Returns a {Boolean}.
+  shouldAutoIndentOnPaste: -> @autoIndentOnPaste
+
+  # Experimental: Does this editor allow scrolling past the last line?
+  #
+  # Returns a {Boolean}.
+  getScrollPastEnd: -> @scrollPastEnd
+
+  # Experimental: How fast does the editor scroll in response to mouse wheel
+  # movements?
+  #
+  # Returns a positive {Number}.
+  getScrollSensitivity: -> @scrollSensitivity
+
+  # Experimental: Are line numbers enabled for this editor?
+  #
+  # Returns a {Boolean}
+  doesShowLineNumbers: -> @showLineNumbers
+
+  # Experimental: Get the time interval within which text editing operations
+  # are grouped together in the editor's undo history.
+  #
+  # Returns the time interval {Number} in milliseconds.
+  getUndoGroupingInterval: -> @undoGroupingInterval
+
+  # Experimental: Get the characters that are *not* considered part of words,
+  # for the purpose of word-based cursor movements.
+  #
+  # Returns a {String} containing the non-word characters.
+  getNonWordCharacters: (scopes) ->
+    @scopedSettingsDelegate?.getNonWordCharacters?(scopes) ? @nonWordCharacters
+
+  getCommentStrings: (scopes) ->
+    @scopedSettingsDelegate?.getCommentStrings?(scopes)
+
+  getIncreaseIndentPattern: (scopes) ->
+    @scopedSettingsDelegate?.getIncreaseIndentPattern?(scopes)
+
+  getDecreaseIndentPattern: (scopes) ->
+    @scopedSettingsDelegate?.getDecreaseIndentPattern?(scopes)
+
+  getDecreaseNextIndentPattern: (scopes) ->
+    @scopedSettingsDelegate?.getDecreaseNextIndentPattern?(scopes)
+
+  getFoldEndPattern: (scopes) ->
+    @scopedSettingsDelegate?.getFoldEndPattern?(scopes)
 
   ###
   Section: Event Handlers
   ###
 
-  handleTokenization: ->
-    @softTabs = @shouldUseSoftTabs(defaultValue: @softTabs)
-
   handleGrammarChange: ->
     @unfoldAll()
-    @subscribeToTabTypeConfig()
     @emitter.emit 'did-change-grammar', @getGrammar()
 
   ###
@@ -3333,22 +3481,18 @@ class TextEditor extends Model
 
   # Get the Element for the editor.
   getElement: ->
-    @editorElement ?= new TextEditorElement().initialize(this, atom, @autoHeight, @scrollPastEnd)
+    @editorElement ?= new TextEditorElement().initialize(this, atom)
 
   # Essential: Retrieves the greyed out placeholder of a mini editor.
   #
   # Returns a {String}.
-  getPlaceholderText: ->
-    @placeholderText
+  getPlaceholderText: -> @placeholderText
 
   # Essential: Set the greyed out placeholder of a mini editor. Placeholder text
   # will be displayed when the editor has no content.
   #
   # * `placeholderText` {String} text that is displayed when the editor has no content.
-  setPlaceholderText: (placeholderText) ->
-    return if @placeholderText is placeholderText
-    @placeholderText = placeholderText
-    @emitter.emit 'did-change-placeholder-text', @placeholderText
+  setPlaceholderText: (placeholderText) -> @update({placeholderText})
 
   pixelPositionForBufferPosition: (bufferPosition) ->
     Grim.deprecate("This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead")
@@ -3394,7 +3538,7 @@ class TextEditor extends Model
       @doubleWidthCharWidth = doubleWidthCharWidth
       @halfWidthCharWidth = halfWidthCharWidth
       @koreanCharWidth = koreanCharWidth
-      @resetDisplayLayer() if @isSoftWrapped() and @getEditorWidthInChars()?
+      @displayLayer.reset({}) if @isSoftWrapped() and @getEditorWidthInChars()?
     defaultCharWidth
 
   setHeight: (height, reentrant=false) ->
@@ -3408,11 +3552,13 @@ class TextEditor extends Model
     Grim.deprecate("This is now a view method. Call TextEditorElement::getHeight instead.")
     @height
 
+  getAutoHeight: -> @autoHeight ? true
+
+  getAutoWidth: -> @autoWidth ? false
+
   setWidth: (width, reentrant=false) ->
     if reentrant
-      oldWidth = @width
-      @width = width
-      @resetDisplayLayer() if width isnt oldWidth and @isSoftWrapped()
+      @update({width})
       @width
     else
       Grim.deprecate("This is now a view method. Call TextEditorElement::setWidth instead.")
@@ -3427,7 +3573,7 @@ class TextEditor extends Model
   setFirstVisibleScreenRow: (screenRow, fromView) ->
     unless fromView
       maxScreenRow = @getScreenLineCount() - 1
-      unless @config.get('editor.scrollPastEnd') and @scrollPastEnd
+      unless @scrollPastEnd
         if @height? and @lineHeightInPixels?
           maxScreenRow -= Math.floor(@height / @lineHeightInPixels)
       screenRow = Math.max(Math.min(screenRow, maxScreenRow), 0)

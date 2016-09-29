@@ -1,7 +1,7 @@
 fs = require 'fs-plus'
 path = require 'path'
 Spawner = require './spawner'
-WinRegistry = require './win-registry'
+WinShell = require './win-shell'
 WinPowerShell = require './win-powershell'
 
 appFolder = path.resolve(process.execPath, '..')
@@ -125,26 +125,37 @@ exports.restartAtom = (app) ->
   app.once 'will-quit', -> Spawner.spawn(path.join(binFolder, 'atom.cmd'), args)
   app.quit()
 
+updateContextMenus = (callback) ->
+  WinShell.fileContextMenu.update ->
+    WinShell.folderContextMenu.update ->
+      WinShell.folderBackgroundContextMenu.update ->
+        callback()
+
 # Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = (app, squirrelCommand) ->
   switch squirrelCommand
     when '--squirrel-install'
       createShortcuts ->
-        WinRegistry.installContextMenu ->
-          addCommandsToPath ->
-            app.quit()
+        addCommandsToPath ->
+          WinShell.fileHandler.register ->
+            updateContextMenus ->
+              app.quit()
       true
     when '--squirrel-updated'
       updateShortcuts ->
-        WinRegistry.installContextMenu ->
-          addCommandsToPath ->
-            app.quit()
+        addCommandsToPath ->
+          WinShell.fileHandler.update ->
+            updateContextMenus ->
+              app.quit()
       true
     when '--squirrel-uninstall'
       removeShortcuts ->
-        WinRegistry.uninstallContextMenu ->
-          removeCommandsFromPath ->
-            app.quit()
+        removeCommandsFromPath ->
+          WinShell.fileHandler.deregister ->
+            WinShell.fileContextMenu.deregister ->
+              WinShell.folderContextMenu.deregister ->
+                WinShell.folderBackgroundContextMenu.deregister ->
+                  app.quit()
       true
     when '--squirrel-obsolete'
       app.quit()

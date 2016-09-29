@@ -87,7 +87,6 @@ beforeEach ->
   atom.config.set "editor.autoIndent", false
   atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
 
@@ -169,6 +168,13 @@ jasmine.useRealClock = ->
   jasmine.unspy(window, 'clearTimeout')
   jasmine.unspy(_._, 'now')
 
+# The clock is halfway mocked now in a sad and terrible way... only setTimeout
+# and clearTimeout are included. This method will also include setInterval. We
+# would do this everywhere if didn't cause us to break a bunch of package tests.
+jasmine.useMockClock = ->
+  spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+  spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
+
 addCustomMatchers = (spec) ->
   spec.addMatchers
     toBeInstanceOf: (expected) ->
@@ -242,7 +248,7 @@ window.resetTimeouts = ->
   window.timeouts = []
   window.intervalTimeouts = {}
 
-window.fakeSetTimeout = (callback, ms) ->
+window.fakeSetTimeout = (callback, ms=0) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])
   id

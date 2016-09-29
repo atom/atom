@@ -1,0 +1,41 @@
+@import "ui-variables";
+
+@title-bar-text-size: 13px;
+@title-bar-height: 23px;
+@title-bar-background-color: @base-background-color;
+@title-bar-border-color: @base-border-color;
+
+body.fullscreen .title-bar {
+  margin-top: -@title-bar-height;
+}
+
+.title-bar {
+  height: @title-bar-height;
+  transition: margin-top 160ms;
+
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: @title-bar-text-size;
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+
+  padding: 0 70px;
+  overflow: hidden;
+
+  .title {
+    flex: 0 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  background-color: @title-bar-background-color;
+  border-bottom: 1px solid @title-bar-border-color;
+
+  .is-blurred & {
+    color: @text-color-subtle;
+  }
+}

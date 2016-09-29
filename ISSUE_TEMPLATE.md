@@ -1,6 +1,6 @@
 ### Prerequisites
 
-* [ ] Can you reproduce the problem in [safe mode](http://flight-manual.atom.io/hacking-atom/sections/debugging/#check-if-the-problem-shows-up-in-safe-mode)?
+* [ ] Can you reproduce the problem in [safe mode](http://flight-manual.atom.io/hacking-atom/sections/debugging/#using-safe-mode)?
 * [ ] Are you running the [latest version of Atom](http://flight-manual.atom.io/hacking-atom/sections/debugging/#update-to-the-latest-version)?
 * [ ] Did you check the [debugging guide](http://flight-manual.atom.io/hacking-atom/sections/debugging/)?
 * [ ] Did you check the [FAQs on Discuss](https://discuss.atom.io/c/faq)?

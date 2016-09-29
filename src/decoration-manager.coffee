@@ -144,7 +144,7 @@ class DecorationManager extends Model
     else
       delete @overlayDecorationsById[decoration.id]
 
-  didDestroyDecoration: (decoration) ->
+  didDestroyMarkerDecoration: (decoration) ->
     {marker} = decoration
     return unless decorations = @decorationsByMarkerId[marker.id]
     index = decorations.indexOf(decoration)

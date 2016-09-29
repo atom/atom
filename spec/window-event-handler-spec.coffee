@@ -53,6 +53,7 @@ describe "WindowEventHandler", ->
   describe "beforeunload event", ->
     beforeEach ->
       jasmine.unspy(TextEditor.prototype, "shouldPromptToSave")
+      spyOn(atom, 'destroy')
       spyOn(ipcRenderer, 'send')
 
     describe "when pane items are modified", ->
@@ -66,12 +67,14 @@ describe "WindowEventHandler", ->
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
         expect(ipcRenderer.send).not.toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(atom.destroy).toHaveBeenCalled()
 
       it "cancels the unload if the user selects cancel", ->
         spyOn(atom.workspace, 'confirmClose').andReturn(false)
         window.dispatchEvent(new CustomEvent('beforeunload'))
         expect(atom.workspace.confirmClose).toHaveBeenCalled()
         expect(ipcRenderer.send).toHaveBeenCalledWith('did-cancel-window-unload')
+        expect(atom.destroy).not.toHaveBeenCalled()
 
   describe "when a link is clicked", ->
     it "opens the http/https links in an external application", ->
@@ -206,6 +209,7 @@ describe "WindowEventHandler", ->
       webContentsSpy = jasmine.createSpyObj("webContents", ["copy", "paste"])
       spyOn(atom.applicationDelegate, "getCurrentWindow").andReturn({
         webContents: webContentsSpy
+        on: ->
       })
 
       nativeKeyBindingsInput = document.createElement("input")
