@@ -3,6 +3,7 @@ _ = require 'underscore-plus'
 grim = require 'grim'
 marked = require 'marked'
 listen = require '../src/delegated-listener'
+ipcHelpers = require '../src/ipc-helpers'
 
 formatStackTrace = (spec, message='', stackTrace) ->
   return stackTrace unless stackTrace
@@ -173,7 +174,7 @@ class AtomReporter
     listen document, 'click', '.stack-trace', (event) ->
       event.currentTarget.classList.toggle('expanded')
 
-    @reloadButton.addEventListener('click', -> require('electron').ipcRenderer.send('call-window-method', 'reload'))
+    @reloadButton.addEventListener('click', -> ipcHelpers.call('window-method', 'reload'))
 
   updateSpecCounts: ->
     if @skippedCount
