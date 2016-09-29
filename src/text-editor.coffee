@@ -2930,9 +2930,9 @@ class TextEditor extends Model
   Section: Indentation
   ###
 
-  # Essential: Get the indentation level of the given a buffer row.
+  # Essential: Get the indentation level of the given buffer row.
   #
-  # Returns how deeply the given row is indented based on the soft tabs and
+  # Determines how deeply the given row is indented based on the soft tabs and
   # tab length settings of this editor. Note that if soft tabs are enabled and
   # the tab length is 2, a row with 4 leading spaces would have an indentation
   # level of 2.
@@ -2973,7 +2973,7 @@ class TextEditor extends Model
 
   # Extended: Get the indentation level of the given line of text.
   #
-  # Returns how deeply the given line is indented based on the soft tabs and
+  # Determines how deeply the given line is indented based on the soft tabs and
   # tab length settings of this editor. Note that if soft tabs are enabled and
   # the tab length is 2, a row with 4 leading spaces would have an indentation
   # level of 2.
