@@ -4878,6 +4878,11 @@ describe "TextEditor", ->
       editor.setTabLength(6)
       expect(changeHandler).not.toHaveBeenCalled()
 
+    it 'does not change its tab length when the given tab length is null', ->
+      editor.setTabLength(4)
+      editor.setTabLength(null)
+      expect(editor.getTabLength()).toBe(4)
+
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
       expect(editor.indentLevelForLine("    hello")).toBe(2)

@@ -241,7 +241,7 @@ class TextEditor extends Model
             displayLayerParams.atomicSoftTabs = value
 
         when 'tabLength'
-          if value isnt @tokenizedBuffer.getTabLength()
+          if value? and value isnt @tokenizedBuffer.getTabLength()
             @tokenizedBuffer.setTabLength(value)
             displayLayerParams.tabLength = value
 
