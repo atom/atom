@@ -16,7 +16,7 @@ class AtomWindow
   isSpec: null
 
   constructor: (@atomApplication, @fileRecoveryService, settings={}) ->
-    {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
 

@@ -15,8 +15,6 @@ DummyLineNode.children[1].textContent = '我'
 DummyLineNode.children[2].textContent = 'ﾊ'
 DummyLineNode.children[3].textContent = '세'
 
-RangeForMeasurement = document.createRange()
-
 module.exports =
 class LinesComponent extends TiledComponent
   placeholderTextDiv: null
@@ -77,7 +75,6 @@ class LinesComponent extends TiledComponent
 
   measureLineHeightAndDefaultCharWidth: ->
     @domNode.appendChild(DummyLineNode)
-    textNode = DummyLineNode.firstChild.childNodes[0]
 
     lineHeightInPixels = DummyLineNode.getBoundingClientRect().height
     defaultCharWidth = DummyLineNode.children[0].getBoundingClientRect().width

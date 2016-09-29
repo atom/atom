@@ -253,7 +253,6 @@ class LanguageMode
     iterator.next()
     scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
 
-    patterns =
     increaseIndentRegex = @increaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseIndentRegex = @decreaseIndentRegexForScopeDescriptor(scopeDescriptor)
     decreaseNextIndentRegex = @decreaseNextIndentRegexForScopeDescriptor(scopeDescriptor)

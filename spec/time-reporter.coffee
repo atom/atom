@@ -60,7 +60,7 @@ class TimeReporter extends jasmine.Reporter
         time: duration
         fullName: spec.getFullName()
 
-      if timedSuites[@suite]
+      if window.timedSuites[@suite]
         window.timedSuites[@suite] += duration
       else
         window.timedSuites[@suite] = duration

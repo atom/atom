@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-{screen, ipcRenderer, remote, shell, systemPreferences, webFrame} = require 'electron'
+{screen, ipcRenderer, remote, shell, webFrame} = require 'electron'
 ipcHelpers = require './ipc-helpers'
 {Disposable} = require 'event-kit'
 {getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'

@@ -2,7 +2,6 @@ _ = require 'underscore-plus'
 randomWords = require 'random-words'
 TextBuffer = require 'text-buffer'
 {Point, Range} = TextBuffer
-TextEditor = require '../src/text-editor'
 TextEditorPresenter = require '../src/text-editor-presenter'
 FakeLinesYardstick = require './fake-lines-yardstick'
 LineTopIndex = require 'line-top-index'
@@ -1848,7 +1847,7 @@ describe "TextEditorPresenter", ->
 
       describe ".highlights", ->
         expectUndefinedStateForHighlight = (presenter, decoration) ->
-          for tileId, tileState of getState(presenter).content.tiles
+          for tileId of getState(presenter).content.tiles
             state = stateForHighlightInTile(presenter, decoration, tileId)
             expect(state).toBeUndefined()
 
@@ -1860,7 +1859,7 @@ describe "TextEditorPresenter", ->
           stateForHighlightInTile(presenter, selection.decoration, tile)
 
         expectUndefinedStateForSelection = (presenter, selectionIndex) ->
-          for tileId, tileState of getState(presenter).content.tiles
+          for tileId of getState(presenter).content.tiles
             state = stateForSelectionInTile(presenter, selectionIndex, tileId)
             expect(state).toBeUndefined()
 

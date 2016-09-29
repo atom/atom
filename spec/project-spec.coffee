@@ -1,10 +1,7 @@
 temp = require 'temp'
-fstream = require 'fstream'
 Project = require '../src/project'
-_ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
-BufferedProcess = require '../src/buffered-process'
 {Directory} = require 'pathwatcher'
 GitRepository = require '../src/git-repository'
 

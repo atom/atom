@@ -1,6 +1,4 @@
-fs = require 'fs-plus'
 path = require 'path'
-temp = require 'temp'
 clipboard = require '../src/safe-clipboard'
 TextEditor = require '../src/text-editor'
 TextBuffer = require 'text-buffer'
@@ -4751,7 +4749,7 @@ describe "TextEditor", ->
     it "deletes the entire file from the bottom up", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
-      for line in [0...count]
+      for [0...count]
         editor.getLastCursor().moveToBottom()
         editor.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
@@ -4760,7 +4758,7 @@ describe "TextEditor", ->
     it "deletes the entire file from the top down", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
-      for line in [0...count]
+      for [0...count]
         editor.getLastCursor().moveToTop()
         editor.deleteLine()
       expect(buffer.getLineCount()).toBe(1)

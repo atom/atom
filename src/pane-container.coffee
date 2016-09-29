@@ -1,6 +1,5 @@
-{find, flatten} = require 'underscore-plus'
+{find} = require 'underscore-plus'
 {Emitter, CompositeDisposable} = require 'event-kit'
-Gutter = require './gutter'
 Model = require './model'
 Pane = require './pane'
 ItemRegistry = require './item-registry'

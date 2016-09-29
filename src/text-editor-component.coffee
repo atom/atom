@@ -1,4 +1,3 @@
-_ = require 'underscore-plus'
 scrollbarStyle = require 'scrollbar-style'
 {Range, Point} = require 'text-buffer'
 {CompositeDisposable} = require 'event-kit'
@@ -342,8 +341,6 @@ class TextEditorComponent
 
     @scopedConfigDisposables = new CompositeDisposable
     @disposables.add(@scopedConfigDisposables)
-
-    scope = @editor.getRootScopeDescriptor()
 
   focused: ->
     if @mounted

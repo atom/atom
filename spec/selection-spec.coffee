@@ -1,5 +1,3 @@
-TextEditor = require '../src/text-editor'
-
 describe "Selection", ->
   [buffer, editor, selection] = []
 

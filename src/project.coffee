@@ -1,5 +1,4 @@
 path = require 'path'
-url = require 'url'
 
 _ = require 'underscore-plus'
 fs = require 'fs-plus'
@@ -8,8 +7,6 @@ TextBuffer = require 'text-buffer'
 
 DefaultDirectoryProvider = require './default-directory-provider'
 Model = require './model'
-TextEditor = require './text-editor'
-Task = require './task'
 GitRepositoryProvider = require './git-repository-provider'
 
 # Extended: Represents a project that's opened in Atom.

@@ -1,6 +1,6 @@
 path = require 'path'
 _ = require 'underscore-plus'
-{Emitter, Disposable, CompositeDisposable} = require 'event-kit'
+{Emitter, CompositeDisposable} = require 'event-kit'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 

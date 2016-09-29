@@ -5,8 +5,6 @@ async = require "async"
 module.exports = (rootPaths, regexSource, options) ->
   callback = @async()
 
-  rootPath = rootPaths[0]
-
   PATHS_COUNTER_SEARCHED_CHUNK = 50
   pathsSearched = 0
 

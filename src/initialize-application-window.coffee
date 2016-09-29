@@ -5,7 +5,7 @@ module.exports = ({blobStore}) ->
   require './window'
   {getWindowLoadSettings} = require './window-load-settings-helpers'
   {ipcRenderer} = require 'electron'
-  {resourcePath, isSpec, devMode, env} = getWindowLoadSettings()
+  {resourcePath, devMode, env} = getWindowLoadSettings()
   require '../src/electron-shims'
 
   updateProcessEnv(env)
