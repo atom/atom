@@ -651,7 +651,8 @@ class Cursor extends Model
   changePosition: (options, fn) ->
     @clearSelection(autoscroll: false)
     fn()
-    @autoscroll() if options.autoscroll ? @isLastCursor()
+    if options.autoscroll ? @isLastCursor()
+      @autoscroll(center: ( options.autoscrollCenter or false ))
 
   getPixelRect: ->
     @editor.pixelRectForScreenRange(@getScreenRange())
