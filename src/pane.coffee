@@ -234,6 +234,17 @@ class Pane extends Model
   onDidChangeActiveItem: (callback) ->
     @emitter.on 'did-change-active-item', callback
 
+  # Ian TODO docs
+
+  onChooseNextMRUItem: (callback) ->
+    @emitter.on 'choose-next-mru-item', callback
+
+  onChooseLastMRUItem: (callback) ->
+    @emitter.on 'choose-last-mru-item', callback
+
+  onDoneChoosingMRUItem: (callback) ->
+    @emitter.on 'done-choosing-mru-item', callback
+
   # Public: Invoke the given callback with the current and future values of
   # {::getActiveItem}.
   #
@@ -334,6 +345,7 @@ class Pane extends Model
       @itemStackIndex = @itemStack.length if @itemStackIndex is 0
       @itemStackIndex = @itemStackIndex - 1
       nextRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @emitter.emit 'choose-next-mru-item', nextRecentlyUsedItem
       @setActiveItem(nextRecentlyUsedItem, modifyStack: false)
 
   # Makes the previous item in the itemStack active.
@@ -343,12 +355,15 @@ class Pane extends Model
         @itemStackIndex = -1
       @itemStackIndex = @itemStackIndex + 1
       previousRecentlyUsedItem = @itemStack[@itemStackIndex]
+      @emitter.emit 'choose-last-mru-item', previousRecentlyUsedItem
       @setActiveItem(previousRecentlyUsedItem, modifyStack: false)
 
   # Moves the active item to the end of the itemStack once the ctrl key is lifted
   moveActiveItemToTopOfStack: ->
     delete @itemStackIndex
     @addItemToStack(@activeItem)
+    @emitter.emit 'done-choosing-mru-item'
+
 
   # Public: Makes the next item active.
   activateNextItem: ->
