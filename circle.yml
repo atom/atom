@@ -7,9 +7,6 @@ machine:
   xcode:
     version: 7.3
 
-  post:
-    - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
-
 general:
   artifacts:
     - out/atom-mac.zip
@@ -36,6 +33,7 @@ dependencies:
 test:
   override:
     - script/lint
+    - osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
     - caffeinate -s script/test # Run with caffeinate to prevent screen saver
 
 experimental:

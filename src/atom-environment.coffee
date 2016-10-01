@@ -9,10 +9,9 @@ fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
-StylesElement = require './styles-element'
 StateStore = require './state-store'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = require './deserializer-manager'
@@ -51,7 +50,6 @@ PanelElement = require './panel-element'
 PaneContainerElement = require './pane-container-element'
 PaneAxisElement = require './pane-axis-element'
 PaneElement = require './pane-element'
-TextEditorElement = require './text-editor-element'
 {createGutterView} = require './gutter-component-helpers'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
@@ -847,7 +845,7 @@ class AtomEnvironment extends Model
       @project.addPath(selectedPath) for selectedPath in selectedPaths
 
   showSaveDialog: (callback) ->
-    callback(showSaveDialogSync())
+    callback(@showSaveDialogSync())
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)

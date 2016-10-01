@@ -2,7 +2,6 @@
 {Emitter} = require 'event-kit'
 Grim = require 'grim'
 Pane = require '../src/pane'
-PaneAxis = require '../src/pane-axis'
 PaneContainer = require '../src/pane-container'
 
 describe "Pane", ->

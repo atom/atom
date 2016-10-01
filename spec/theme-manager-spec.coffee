@@ -2,12 +2,7 @@ path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
 
-Package = require '../src/package'
-
 describe "atom.themes", ->
-  resourcePath = atom.getLoadSettings().resourcePath
-  configDirPath = atom.getConfigDirPath()
-
   beforeEach ->
     spyOn(console, 'warn')
 

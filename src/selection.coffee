@@ -512,7 +512,7 @@ class Selection extends Model
       joinMarker = @editor.markBufferRange(selectedRange, invalidate: 'never')
 
     rowCount = Math.max(1, selectedRange.getRowCount() - 1)
-    for row in [0...rowCount]
+    for [0...rowCount]
       @cursor.setBufferPosition([selectedRange.start.row])
       @cursor.moveToEndOfLine()
 
@@ -656,7 +656,7 @@ class Selection extends Model
   #   * `autoIndent` If `true`, the line is indented to an automatically-inferred
   #     level. Otherwise, {TextEditor::getTabText} is inserted.
   indent: ({autoIndent}={}) ->
-    {row, column} = @cursor.getBufferPosition()
+    {row} = @cursor.getBufferPosition()
 
     if @isEmpty()
       @cursor.skipLeadingWhitespace()

@@ -10,7 +10,8 @@ require('./bootstrap')
 require('coffee-script/register')
 require('colors')
 
-const argv = require('yargs')
+const yargs = require('yargs')
+const argv = yargs
   .usage('Usage: $0 [options]')
   .help('help')
   .describe('code-sign',  'Code-sign executables (macOS and Windows only)')
@@ -19,6 +20,7 @@ const argv = require('yargs')
   .describe('create-rpm-package', 'Create .rpm package (Linux only)')
   .describe('compress-artifacts', 'Compress Atom binaries (and symbols on macOS)')
   .describe('install', 'Install Atom')
+  .wrap(yargs.terminalWidth())
   .argv
 
 const cleanOutputDirectory = require('./lib/clean-output-directory')

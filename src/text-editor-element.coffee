@@ -1,8 +1,5 @@
 {Emitter, CompositeDisposable} = require 'event-kit'
-Path = require 'path'
-{defaults} = require 'underscore-plus'
 TextBuffer = require 'text-buffer'
-TextEditor = require './text-editor'
 TextEditorComponent = require './text-editor-component'
 
 class TextEditorElement extends HTMLElement

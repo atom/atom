@@ -1,3 +1,5 @@
+ipcHelpers = require './ipc-helpers'
+
 cloneObject = (object) ->
   clone = {}
   clone[key] = value for key, value of object
@@ -31,19 +33,19 @@ module.exports = ({blobStore}) ->
     handleKeydown = (event) ->
       # Reload: cmd-r / ctrl-r
       if (event.metaKey or event.ctrlKey) and event.keyCode is 82
-        ipcRenderer.send('call-window-method', 'reload')
+        ipcHelpers.call('window-method', 'reload')
 
       # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
       if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
-        ipcRenderer.send('call-window-method', 'toggleDevTools')
+        ipcHelpers.call('window-method', 'toggleDevTools')
 
       # Close: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
-        ipcRenderer.send('call-window-method', 'close')
+        ipcHelpers.call('window-method', 'close')
 
       # Copy: cmd-c / ctrl-c
       if (event.metaKey or event.ctrlKey) and event.keyCode is 67
-        ipcRenderer.send('call-window-method', 'copy')
+        ipcHelpers.call('window-method', 'copy')
 
     window.addEventListener('keydown', handleKeydown, true)
 

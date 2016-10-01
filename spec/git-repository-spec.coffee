@@ -2,7 +2,6 @@ temp = require 'temp'
 GitRepository = require '../src/git-repository'
 fs = require 'fs-plus'
 path = require 'path'
-Task = require '../src/task'
 Project = require '../src/project'
 
 copyRepository = ->
@@ -195,7 +194,7 @@ describe "GitRepository", ->
       expect(repo.isStatusModified(repo.getDirectoryStatus(directoryPath))).toBe true
 
   describe ".refreshStatus()", ->
-    [newPath, modifiedPath, cleanPath, originalModifiedPathText, workingDirectory] = []
+    [newPath, modifiedPath, cleanPath, workingDirectory] = []
 
     beforeEach ->
       workingDirectory = copyRepository()

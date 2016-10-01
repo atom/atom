@@ -96,7 +96,7 @@ class LineNumbersTileComponent
   screenRowForNode: (node) -> parseInt(node.dataset.screenRow)
 
   buildLineNumberNode: (lineNumberState) ->
-    {screenRow, bufferRow, softWrapped, top, decorationClasses, zIndex, blockDecorationsHeight} = lineNumberState
+    {screenRow, bufferRow, softWrapped, blockDecorationsHeight} = lineNumberState
 
     className = @buildLineNumberClassName(lineNumberState)
     lineNumberNode = @domElementPool.buildElement("div", className)

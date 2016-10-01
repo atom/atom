@@ -1,9 +1,4 @@
-_ = require 'underscore-plus'
-
 HighlightsComponent = require './highlights-component'
-AcceptFilter = {acceptNode: -> NodeFilter.FILTER_ACCEPT}
-TokenTextEscapeRegex = /[&"'<>]/g
-MaxTokenLength = 20000
 ZERO_WIDTH_NBSP = '\ufeff'
 
 cloneObject = (object) ->
@@ -201,7 +196,6 @@ class LinesTileComponent
         lineNode.classList.add(decorationClass)
 
     textNodes = []
-    lineLength = 0
     startIndex = 0
     openScopeNode = lineNode
     for tagCode in tagCodes when tagCode isnt 0

@@ -1,5 +1,4 @@
 Grim = require 'grim'
-_ = require 'underscore-plus'
 fs = require 'fs-plus'
 path = require 'path'
 {ipcRenderer} = require 'electron'

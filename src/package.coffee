@@ -422,8 +422,6 @@ class Package
     @settingsActivated = false
 
   reloadStylesheets: ->
-    oldSheets = _.clone(@stylesheets)
-
     try
       @loadStylesheets()
     catch error
