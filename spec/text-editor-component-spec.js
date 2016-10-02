@@ -405,49 +405,49 @@ describe('TextEditorComponent', function () {
       }
     })
 
-    it('applies .leading-whitespace for lines with leading spaces and/or tabs', function () {
+    it('applies .syntax--leading-whitespace for lines with leading spaces and/or tabs', function () {
       editor.setText(' a')
 
       runAnimationFrames()
 
       let leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(true)
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe(false)
+      expect(leafNodes[0].classList.contains('syntax--leading-whitespace')).toBe(true)
+      expect(leafNodes[0].classList.contains('syntax--trailing-whitespace')).toBe(false)
 
       editor.setText('\ta')
       runAnimationFrames()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(true)
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe(false)
+      expect(leafNodes[0].classList.contains('syntax--leading-whitespace')).toBe(true)
+      expect(leafNodes[0].classList.contains('syntax--trailing-whitespace')).toBe(false)
     })
 
-    it('applies .trailing-whitespace for lines with trailing spaces and/or tabs', function () {
+    it('applies .syntax--trailing-whitespace for lines with trailing spaces and/or tabs', function () {
       editor.setText(' ')
       runAnimationFrames()
 
       let leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe(true)
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(false)
+      expect(leafNodes[0].classList.contains('syntax--trailing-whitespace')).toBe(true)
+      expect(leafNodes[0].classList.contains('syntax--leading-whitespace')).toBe(false)
 
       editor.setText('\t')
       runAnimationFrames()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe(true)
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(false)
+      expect(leafNodes[0].classList.contains('syntax--trailing-whitespace')).toBe(true)
+      expect(leafNodes[0].classList.contains('syntax--leading-whitespace')).toBe(false)
       editor.setText('a ')
       runAnimationFrames()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe(true)
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(false)
+      expect(leafNodes[0].classList.contains('syntax--trailing-whitespace')).toBe(true)
+      expect(leafNodes[0].classList.contains('syntax--leading-whitespace')).toBe(false)
       editor.setText('a\t')
       runAnimationFrames()
 
       leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-      expect(leafNodes[0].classList.contains('trailing-whitespace')).toBe(true)
-      expect(leafNodes[0].classList.contains('leading-whitespace')).toBe(false)
+      expect(leafNodes[0].classList.contains('syntax--trailing-whitespace')).toBe(true)
+      expect(leafNodes[0].classList.contains('syntax--leading-whitespace')).toBe(false)
     })
 
     it('keeps rebuilding lines when continuous reflow is on', function () {
@@ -501,14 +501,14 @@ describe('TextEditorComponent', function () {
         expect(component.lineNodeForScreenRow(0).textContent).toBe('' + invisibles.space + 'a line with tabs' + invisibles.tab + 'and spaces' + invisibles.space + invisibles.eol)
 
         let leafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
-        expect(leafNodes[0].classList.contains('invisible-character')).toBe(true)
-        expect(leafNodes[leafNodes.length - 1].classList.contains('invisible-character')).toBe(true)
+        expect(leafNodes[0].classList.contains('syntax--invisible-character')).toBe(true)
+        expect(leafNodes[leafNodes.length - 1].classList.contains('syntax--invisible-character')).toBe(true)
       })
 
       it('displays newlines as their own token outside of the other tokens\' scopeDescriptor', function () {
         editor.setText('let\n')
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="source js"><span class="storage type var js">let</span><span class="invisible-character eol">' + invisibles.eol + '</span></span>')
+        expect(component.lineNodeForScreenRow(0).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="syntax--storage syntax--type syntax--var syntax--js">let</span><span class="syntax--invisible-character syntax--eol">' + invisibles.eol + '</span></span>')
       })
 
       it('displays trailing carriage returns using a visible, non-empty value', function () {
@@ -543,20 +543,20 @@ describe('TextEditorComponent', function () {
           normalizeLineEndings: false
         })
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="syntax--invisible-character syntax--eol syntax--indent-guide">CE</span></span>')
 
         editor.setTabLength(3)
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="syntax--invisible-character syntax--eol syntax--indent-guide">CE</span></span>')
 
         editor.setTabLength(1)
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="syntax--invisible-character syntax--eol syntax--indent-guide">CE</span></span>')
 
         editor.setTextInBufferRange([[9, 0], [9, Infinity]], ' ')
         editor.setTextInBufferRange([[11, 0], [11, Infinity]], ' ')
         runAnimationFrames()
-        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="source js"><span class="invisible-character eol indent-guide">CE</span></span>')
+        expect(component.lineNodeForScreenRow(10).innerHTML).toBe('<span class="syntax--source syntax--js"><span class="syntax--invisible-character syntax--eol syntax--indent-guide">CE</span></span>')
       })
 
       describe('when soft wrapping is enabled', function () {
@@ -583,30 +583,30 @@ describe('TextEditorComponent', function () {
         runAnimationFrames()
       })
 
-      it('adds an "indent-guide" class to spans comprising the leading whitespace', function () {
+      it('adds an "syntax--indent-guide" class to spans comprising the leading whitespace', function () {
         let line1LeafNodes = getLeafNodes(component.lineNodeForScreenRow(1))
         expect(line1LeafNodes[0].textContent).toBe('  ')
-        expect(line1LeafNodes[0].classList.contains('indent-guide')).toBe(true)
-        expect(line1LeafNodes[1].classList.contains('indent-guide')).toBe(false)
+        expect(line1LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
+        expect(line1LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(false)
 
         let line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes[0].textContent).toBe('  ')
-        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[1].textContent).toBe('  ')
-        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe(true)
-        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe(false)
+        expect(line2LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(true)
+        expect(line2LeafNodes[2].classList.contains('syntax--indent-guide')).toBe(false)
       })
 
-      it('renders leading whitespace spans with the "indent-guide" class for empty lines', function () {
+      it('renders leading whitespace spans with the "syntax--indent-guide" class for empty lines', function () {
         editor.getBuffer().insert([1, Infinity], '\n')
         runAnimationFrames()
 
         let line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe(2)
         expect(line2LeafNodes[0].textContent).toBe('  ')
-        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[1].textContent).toBe('  ')
-        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(true)
       })
 
       it('renders indent guides correctly on lines containing only whitespace', function () {
@@ -616,11 +616,11 @@ describe('TextEditorComponent', function () {
         let line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe(3)
         expect(line2LeafNodes[0].textContent).toBe('  ')
-        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[1].textContent).toBe('  ')
-        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[2].textContent).toBe('  ')
-        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[2].classList.contains('syntax--indent-guide')).toBe(true)
       })
 
       it('renders indent guides correctly on lines containing only whitespace when invisibles are enabled', function () {
@@ -638,11 +638,11 @@ describe('TextEditorComponent', function () {
         let line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe(4)
         expect(line2LeafNodes[0].textContent).toBe('--')
-        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[1].textContent).toBe('--')
-        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[2].textContent).toBe('--')
-        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe(true)
+        expect(line2LeafNodes[2].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line2LeafNodes[3].textContent).toBe('x')
       })
 
@@ -653,9 +653,9 @@ describe('TextEditorComponent', function () {
 
         let line0LeafNodes = getLeafNodes(component.lineNodeForScreenRow(0))
         expect(line0LeafNodes[0].textContent).toBe('  ')
-        expect(line0LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line0LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line0LeafNodes[1].textContent).toBe('  ')
-        expect(line0LeafNodes[1].classList.contains('indent-guide')).toBe(false)
+        expect(line0LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(false)
       })
 
       it('updates the indent guides on empty lines preceding an indentation change', function () {
@@ -667,9 +667,9 @@ describe('TextEditorComponent', function () {
 
         let line12LeafNodes = getLeafNodes(component.lineNodeForScreenRow(12))
         expect(line12LeafNodes[0].textContent).toBe('  ')
-        expect(line12LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line12LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line12LeafNodes[1].textContent).toBe('  ')
-        expect(line12LeafNodes[1].classList.contains('indent-guide')).toBe(true)
+        expect(line12LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(true)
       })
 
       it('updates the indent guides on empty lines following an indentation change', function () {
@@ -682,9 +682,9 @@ describe('TextEditorComponent', function () {
 
         let line13LeafNodes = getLeafNodes(component.lineNodeForScreenRow(13))
         expect(line13LeafNodes[0].textContent).toBe('  ')
-        expect(line13LeafNodes[0].classList.contains('indent-guide')).toBe(true)
+        expect(line13LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(true)
         expect(line13LeafNodes[1].textContent).toBe('  ')
-        expect(line13LeafNodes[1].classList.contains('indent-guide')).toBe(true)
+        expect(line13LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(true)
       })
     })
 
@@ -701,11 +701,11 @@ describe('TextEditorComponent', function () {
         let line2LeafNodes = getLeafNodes(component.lineNodeForScreenRow(2))
         expect(line2LeafNodes.length).toBe(3)
         expect(line2LeafNodes[0].textContent).toBe('  ')
-        expect(line2LeafNodes[0].classList.contains('indent-guide')).toBe(false)
+        expect(line2LeafNodes[0].classList.contains('syntax--indent-guide')).toBe(false)
         expect(line2LeafNodes[1].textContent).toBe('  ')
-        expect(line2LeafNodes[1].classList.contains('indent-guide')).toBe(false)
+        expect(line2LeafNodes[1].classList.contains('syntax--indent-guide')).toBe(false)
         expect(line2LeafNodes[2].textContent).toBe('  ')
-        expect(line2LeafNodes[2].classList.contains('indent-guide')).toBe(false)
+        expect(line2LeafNodes[2].classList.contains('syntax--indent-guide')).toBe(false)
       })
     })
 
@@ -720,19 +720,19 @@ describe('TextEditorComponent', function () {
     describe('when there is a fold', function () {
       it('renders a fold marker on the folded line', function () {
         let foldedLineNode = component.lineNodeForScreenRow(4)
-        expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+        expect(foldedLineNode.querySelector('.syntax--fold-marker')).toBeFalsy()
         editor.foldBufferRow(4)
 
         runAnimationFrames()
 
         foldedLineNode = component.lineNodeForScreenRow(4)
-        expect(foldedLineNode.querySelector('.fold-marker')).toBeTruthy()
+        expect(foldedLineNode.querySelector('.syntax--fold-marker')).toBeTruthy()
         editor.unfoldBufferRow(4)
 
         runAnimationFrames()
 
         foldedLineNode = component.lineNodeForScreenRow(4)
-        expect(foldedLineNode.querySelector('.fold-marker')).toBeFalsy()
+        expect(foldedLineNode.querySelector('.syntax--fold-marker')).toBeFalsy()
       })
     })
   })
@@ -1251,7 +1251,7 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--storage.syntax--type.syntax--function.syntax--js').firstChild
       let range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -1268,7 +1268,7 @@ describe('TextEditorComponent', function () {
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.source.js').childNodes[2]
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--source.syntax--js').childNodes[2]
       let range = document.createRange(cursorLocationTextNode)
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -1284,7 +1284,7 @@ describe('TextEditorComponent', function () {
       runAnimationFrames()
 
       let cursorRect = componentNode.querySelector('.cursor').getBoundingClientRect()
-      let foldMarkerRect = componentNode.querySelector('.fold-marker').getBoundingClientRect()
+      let foldMarkerRect = componentNode.querySelector('.syntax--fold-marker').getBoundingClientRect()
       expect(cursorRect.left).toBeCloseTo(foldMarkerRect.right, 0)
     })
 
@@ -1293,14 +1293,14 @@ describe('TextEditorComponent', function () {
       editor.setCursorScreenPosition([0, 16])
       runAnimationFrames(true)
 
-      atom.styles.addStyleSheet('.function.js {\n  font-weight: bold;\n}', {
+      atom.styles.addStyleSheet('.syntax--function.syntax--js {\n  font-weight: bold;\n}', {
         context: 'atom-text-editor'
       })
       runAnimationFrames(true)
 
       let cursor = componentNode.querySelector('.cursor')
       let cursorRect = cursor.getBoundingClientRect()
-      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.storage.type.function.js').firstChild
+      let cursorLocationTextNode = component.lineNodeForScreenRow(0).querySelector('.syntax--storage.syntax--type.syntax--function.syntax--js').firstChild
       let range = document.createRange()
       range.setStart(cursorLocationTextNode, 0)
       range.setEnd(cursorLocationTextNode, 1)
@@ -2872,19 +2872,20 @@ describe('TextEditorComponent', function () {
         editor.foldBufferRange([[4, 6], [4, 10]])
         editor.foldBufferRange([[4, 15], [4, 20]])
         runAnimationFrames()
-        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        debugger
+        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(2)
         expect(editor.isFoldedAtBufferRow(4)).toBe(true)
 
         clickElementAtPosition(foldMarkers[0], [4, 6])
         runAnimationFrames()
-        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(1)
         expect(editor.isFoldedAtBufferRow(4)).toBe(true)
 
         clickElementAtPosition(foldMarkers[0], [4, 15])
         runAnimationFrames()
-        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(0)
         expect(editor.isFoldedAtBufferRow(4)).toBe(false)
       })
@@ -2894,25 +2895,25 @@ describe('TextEditorComponent', function () {
         editor.foldBufferRange([[4, 4], [4, 5]])
         editor.foldBufferRange([[4, 4], [4, 20]])
         runAnimationFrames()
-        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        let foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(1)
         expect(editor.isFoldedAtBufferRow(4)).toBe(true)
 
         clickElementAtPosition(foldMarkers[0], [4, 4])
         runAnimationFrames()
-        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(1)
         expect(editor.isFoldedAtBufferRow(4)).toBe(true)
 
         clickElementAtPosition(foldMarkers[0], [4, 4])
         runAnimationFrames()
-        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(1)
         expect(editor.isFoldedAtBufferRow(4)).toBe(true)
 
         clickElementAtPosition(foldMarkers[0], [4, 10])
         runAnimationFrames()
-        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.fold-marker')
+        foldMarkers = component.lineNodeForScreenRow(4).querySelectorAll('.syntax--fold-marker')
         expect(foldMarkers.length).toBe(0)
         expect(editor.isFoldedAtBufferRow(4)).toBe(false)
       })
@@ -3408,8 +3409,7 @@ describe('TextEditorComponent', function () {
     it('transfers focus to the hidden input', function () {
       expect(document.activeElement).toBe(document.body)
       wrapperNode.focus()
-      expect(document.activeElement).toBe(wrapperNode)
-      expect(wrapperNode.shadowRoot.activeElement).toBe(inputNode)
+      expect(document.activeElement).toBe(inputNode)
     })
 
     it('adds the "is-focused" class to the editor when the hidden input is focused', function () {
@@ -4293,7 +4293,7 @@ describe('TextEditorComponent', function () {
         atom.config.set('editor.fontFamily', 'sans-serif')
         wrapperNode.style.display = 'none'
         component.checkForVisibilityChange()
-        atom.themes.applyStylesheet('test', '.function.js {\n  font-weight: bold;\n}')
+        atom.themes.applyStylesheet('test', '.syntax--function.syntax--js {\n  font-weight: bold;\n}')
         wrapperNode.style.display = ''
         component.checkForVisibilityChange()
         editor.setCursorBufferPosition([0, Infinity])
@@ -4428,7 +4428,7 @@ describe('TextEditorComponent', function () {
         jasmine.attachToDOM(element)
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/inline style/)
       })
@@ -4451,7 +4451,7 @@ describe('TextEditorComponent', function () {
         element.component.measureDimensions()
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.shadowRoot.querySelector('.editor-contents--private').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/absolute/)
       })

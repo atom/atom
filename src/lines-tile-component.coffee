@@ -202,8 +202,8 @@ class LinesTileComponent
       if @presenter.isCloseTagCode(tagCode)
         openScopeNode = openScopeNode.parentElement
       else if @presenter.isOpenTagCode(tagCode)
-        scope = @presenter.tagForCode(tagCode)
-        newScopeNode = @domElementPool.buildElement("span", scope.replace(/\.+/g, ' '))
+        scopes = @presenter.tagForCode(tagCode).replace(/\s+/g, '.').split('.').map((scope) -> "syntax--#{scope}")
+        newScopeNode = @domElementPool.buildElement("span", scopes.join(' '))
         openScopeNode.appendChild(newScopeNode)
         openScopeNode = newScopeNode
       else
@@ -219,7 +219,7 @@ class LinesTileComponent
 
     if lineText.endsWith(@presenter.displayLayer.foldCharacter)
       # Insert a zero-width non-breaking whitespace, so that
-      # LinesYardstick can take the fold-marker::after pseudo-element
+      # LinesYardstick can take the syntax--fold-marker::after pseudo-element
       # into account during measurements when such marker is the last
       # character on the line.
       textNode = @domElementPool.buildText(ZERO_WIDTH_NBSP)

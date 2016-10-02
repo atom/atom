@@ -42,7 +42,7 @@ class TextEditorComponent
       @assert domNode?, "TextEditorComponent::domNode was set to null."
       @domNodeValue = domNode
 
-  constructor: ({@editor, @hostElement, @rootElement, @stylesElement, tileSize, @views, @themes, @assert}) ->
+  constructor: ({@editor, @hostElement, tileSize, @views, @themes, @styles, @assert}) ->
     @tileSize = tileSize if tileSize?
     @disposables = new CompositeDisposable
 
@@ -62,12 +62,8 @@ class TextEditorComponent
 
     @domElementPool = new DOMElementPool
     @domNode = document.createElement('div')
-    @domNode.classList.add('editor-contents--private')
-
-    insertionPoint = document.createElement('content')
-    insertionPoint.setAttribute('select', 'atom-overlay')
-    @domNode.appendChild(insertionPoint)
-    @overlayManager = new OverlayManager(@presenter, @hostElement, @views)
+    @domNode.classList.add('editor-contents')
+    @overlayManager = new OverlayManager(@presenter, @domNode, @views)
     @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
@@ -80,8 +76,7 @@ class TextEditorComponent
     @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    if @blockDecorationsComponent?
-      @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
+    @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
 
     @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex)
     @presenter.setLinesYardstick(@linesYardstick)
@@ -98,9 +93,9 @@ class TextEditorComponent
     @observeEditor()
     @listenForDOMEvents()
 
-    @disposables.add @stylesElement.onDidAddStyleElement @onStylesheetsChanged
-    @disposables.add @stylesElement.onDidUpdateStyleElement @onStylesheetsChanged
-    @disposables.add @stylesElement.onDidRemoveStyleElement @onStylesheetsChanged
+    @disposables.add @styles.onDidAddStyleElement @onStylesheetsChanged
+    @disposables.add @styles.onDidUpdateStyleElement @onStylesheetsChanged
+    @disposables.add @styles.onDidRemoveStyleElement @onStylesheetsChanged
     unless @themes.isInitialLoadComplete()
       @disposables.add @themes.onDidChangeActiveThemes @onAllThemesLoaded
     @disposables.add scrollbarStyle.onDidChangePreferredScrollbarStyle @refreshScrollbars
@@ -543,7 +538,7 @@ class TextEditorComponent
 
     screenPosition = @screenPositionForMouseEvent(event)
 
-    if event.target?.classList.contains('fold-marker')
+    if event.target?.classList.contains('syntax--fold-marker')
       bufferPosition = @editor.bufferPositionForScreenPosition(screenPosition)
       @editor.destroyFoldsIntersectingBufferRange([bufferPosition, bufferPosition])
       return
@@ -969,9 +964,7 @@ class TextEditorComponent
   updateParentViewFocusedClassIfNeeded: ->
     if @oldState.focused isnt @newState.focused
       @hostElement.classList.toggle('is-focused', @newState.focused)
-      @rootElement.classList.toggle('is-focused', @newState.focused)
       @oldState.focused = @newState.focused
 
   updateParentViewMiniClass: ->
     @hostElement.classList.toggle('mini', @editor.isMini())
-    @rootElement.classList.toggle('mini', @editor.isMini())

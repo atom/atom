@@ -80,34 +80,66 @@ describe "StylesElement", ->
 
   describe "atom-text-editor shadow DOM selector upgrades", ->
     beforeEach ->
-      element.setAttribute('context', 'atom-text-editor')
       spyOn(console, 'warn')
 
-    it "upgrades selectors containing .editor-colors", ->
-      atom.styles.addStyleSheet(".editor-colors {background: black;}", context: 'atom-text-editor')
-      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
+    it "removes the ::shadow pseudo-element from atom-text-editor selectors", ->
+      atom.styles.addStyleSheet("""
+      atom-text-editor::shadow .class-1, atom-text-editor::shadow .class-2 { color: red; }
+      atom-text-editor::shadow > .class-3 { color: yellow; }
+      atom-text-editor .class-4 { color: blue; }
+      another-element::shadow .class-5 { color: white; }
+      """)
+      expect(Array.from(element.lastChild.sheet.cssRules).map((r) -> r.selectorText)).toEqual([
+        'atom-text-editor .class-1, atom-text-editor .class-2',
+        'atom-text-editor > .class-3',
+        'atom-text-editor .class-4',
+        'another-element::shadow .class-5'
+      ])
+      expect(console.warn).toHaveBeenCalled()
 
-    it "upgrades selectors containing .editor", ->
-      atom.styles.addStyleSheet """
-        .editor {background: black;}
-        .editor.mini {background: black;}
-        .editor:focus {background: black;}
-      """, context: 'atom-text-editor'
+    describe "when the context of a style sheet is 'atom-text-editor'", ->
+      it "prepends `--syntax` to selectors not contained in atom-text-editor or matching a spatial decoration", ->
+        atom.styles.addStyleSheet("""
+        .class-1 { color: red; }
+        .class-2 > .class-3, .class-4.class-5 { color: green; }
+        .class-6 atom-text-editor .class-7 { color: yellow; }
+        atom-text-editor .class-8, .class-9 { color: blue; }
+        atom-text-editor .indent-guide, atom-text-editor .leading-whitespace { background: white; }
+        .syntax--class-10 { color: gray; }
+        :host .class-11 { color: purple; }
+        #id-1 { color: gray; }
+        """, {context: 'atom-text-editor'})
+        expect(Array.from(element.lastChild.sheet.cssRules).map((r) -> r.selectorText)).toEqual([
+          '.syntax--class-1',
+          '.syntax--class-2 > .syntax--class-3, .syntax--class-4.syntax--class-5',
+          '.class-6 atom-text-editor .class-7',
+          'atom-text-editor .class-8, .syntax--class-9',
+          'atom-text-editor .syntax--indent-guide, atom-text-editor .syntax--leading-whitespace',
+          '.syntax--class-10',
+          'atom-text-editor .class-11',
+          '#id-1'
+        ])
+        expect(console.warn).toHaveBeenCalled()
 
-      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
-      expect(element.firstChild.sheet.cssRules[1].selectorText).toBe ':host(.mini)'
-      expect(element.firstChild.sheet.cssRules[2].selectorText).toBe ':host(:focus)'
-
-    it "defers selector upgrade until the element is attached", ->
-      element = new StylesElement
-      element.initialize(atom.styles)
-      element.setAttribute('context', 'atom-text-editor')
-
-      atom.styles.addStyleSheet ".editor {background: black;}", context: 'atom-text-editor'
-      expect(element.firstChild.sheet).toBeNull()
-
-      document.querySelector('#jasmine-content').appendChild(element)
-      expect(element.firstChild.sheet.cssRules[0].selectorText).toBe ':host'
+    describe "when the context of a style sheet is not 'atom-text-editor'", ->
+      it "never prepends class names with `--syntax`", ->
+        atom.styles.addStyleSheet("""
+        .class-1 { color: red; }
+        .class-2 > .class-3, .class-4.class-5 { color: green; }
+        .class-6 atom-text-editor .class-7 { color: yellow; }
+        atom-text-editor .class-8, .class-9 { color: blue; }
+        atom-text-editor .indent-guide, atom-text-editor .leading-whitespace { background: white; }
+        #id-1 { color: gray; }
+        """)
+        expect(Array.from(element.lastChild.sheet.cssRules).map((r) -> r.selectorText)).toEqual([
+          '.class-1'
+          '.class-2 > .class-3, .class-4.class-5'
+          '.class-6 atom-text-editor .class-7'
+          'atom-text-editor .class-8, .class-9'
+          'atom-text-editor .indent-guide, atom-text-editor .leading-whitespace'
+          '#id-1'
+        ])
+        expect(console.warn).not.toHaveBeenCalled()
 
     it "does not throw exceptions on rules with no selectors", ->
       atom.styles.addStyleSheet """
