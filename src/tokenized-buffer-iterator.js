@@ -1,14 +1,14 @@
 const {Point} = require('text-buffer')
 
 module.exports = class TokenizedBufferIterator {
-  constructor(tokenizedBuffer) {
+  constructor (tokenizedBuffer) {
     this.tokenizedBuffer = tokenizedBuffer
     this.openTags = null
     this.closeTags = null
     this.containingTags = null
   }
 
-  seek(position) {
+  seek (position) {
     this.openTags = []
     this.closeTags = []
     this.tagIndex = null
@@ -17,7 +17,7 @@ module.exports = class TokenizedBufferIterator {
     this.currentTags = currentLine.tags
     this.currentLineOpenTags = currentLine.openScopes
     this.currentLineLength = currentLine.text.length
-    this.containingTags = this.currentLineOpenTags.map(id => this.scopeForId(id))
+    this.containingTags = this.currentLineOpenTags.map((id) => this.scopeForId(id))
 
     let currentColumn = 0
     for (let [index, tag] of this.currentTags.entries()) {
@@ -68,8 +68,8 @@ module.exports = class TokenizedBufferIterator {
     return this.containingTags.slice()
   }
 
-  moveToSuccessor() {
-    for (let tag of this.closeTags) {
+  moveToSuccessor () {
+    for (let tag of this.closeTags) { // eslint-disable-line no-unused-vars
       this.containingTags.pop()
     }
     for (let tag of this.openTags) {
@@ -83,7 +83,7 @@ module.exports = class TokenizedBufferIterator {
           break
         } else if (this.shouldMoveToNextLine) {
           this.moveToNextLine()
-          this.openTags = this.currentLineOpenTags.map(id => this.scopeForId(id))
+          this.openTags = this.currentLineOpenTags.map((id) => this.scopeForId(id))
           this.shouldMoveToNextLine = false
         } else if (this.nextLineHasMismatchedContainingTags()) {
           this.closeTags = this.containingTags.slice().reverse()
@@ -121,19 +121,19 @@ module.exports = class TokenizedBufferIterator {
     return true
   }
 
-  getPosition() {
+  getPosition () {
     return this.position
   }
 
-  getCloseTags() {
+  getCloseTags () {
     return this.closeTags.slice()
   }
 
-  getOpenTags() {
+  getOpenTags () {
     return this.openTags.slice()
   }
 
-  nextLineHasMismatchedContainingTags() {
+  nextLineHasMismatchedContainingTags () {
     const line = this.tokenizedBuffer.tokenizedLineForRow(this.position.row + 1)
     if (line == null) {
       return false
@@ -145,7 +145,7 @@ module.exports = class TokenizedBufferIterator {
     }
   }
 
-  moveToNextLine() {
+  moveToNextLine () {
     this.position = Point(this.position.row + 1, 0)
     const tokenizedLine = this.tokenizedBuffer.tokenizedLineForRow(this.position.row)
     if (tokenizedLine == null) {
@@ -159,7 +159,7 @@ module.exports = class TokenizedBufferIterator {
     }
   }
 
-  isAtTagBoundary() {
+  isAtTagBoundary () {
     return this.closeTags.length > 0 || this.openTags.length > 0
   }
 
