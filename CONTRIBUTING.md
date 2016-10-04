@@ -3,7 +3,7 @@
 :+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
 
 The following is a set of guidelines for contributing to Atom and its packages, which are hosted in the [Atom Organization](https://github.com/atom) on GitHub.
-These are just guidelines, not rules, use your best judgment and feel free to propose changes to this document in a pull request.
+These are just guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 #### Table Of Contents
 
@@ -71,12 +71,12 @@ Here's a list of the big ones:
 There are many more, but this list should be a good starting point.
 For more information on how to work with Atom's official packages, see [Contributing to Atom Packages](https://github.com/atom/atom/blob/master/docs/contributing-to-packages.md).
 
-Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering aren't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed.
+Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering isn't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed.
 Each community package has its own repository too, and you should be able to find it in Settings > Packages for the packages you installed and contribute there.
 
 ### Design Decisions
 
-When we make a significant decision in how we maintain the project and what we can or cannot support, we will be documenting them in the [atom/design-decisions repository](https://github.com/atom/design-decisions). If you have a question around how we do things, check to see if it is documented there. If it is *not* documented there, please open a new topic on [Discuss, the official Atom message board](https://discuss.atom.io) and ask your question.
+When we make a significant decision in how we maintain the project and what we can or cannot support, we will document it in the [atom/design-decisions repository](https://github.com/atom/design-decisions). If you have a question around how we do things, check to see if it is documented there. If it is *not* documented there, please open a new topic on [Discuss, the official Atom message board](https://discuss.atom.io) and ask your question.
 
 ## How Can I Contribute?
 
