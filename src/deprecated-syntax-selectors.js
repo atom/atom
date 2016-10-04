@@ -863,7 +863,7 @@ module.exports = new Set([
   'trace', 'trace-argument', 'trace-object', 'traceback', 'tracing',
   'track_processing', 'trader', 'tradersk', 'trail', 'trailing',
   'trailing-array-separator', 'trailing-dictionary-separator', 'trailing-match',
-  'trailing-whitespace', 'trait', 'traits', 'traits-keyword', 'transaction',
+  'trait', 'traits', 'traits-keyword', 'transaction',
   'transcendental', 'transcludeblock', 'transcludeinline', 'transclusion',
   'transform', 'transformation', 'transient', 'transition',
   'transitionable-property-value', 'translation', 'transmission-filter',

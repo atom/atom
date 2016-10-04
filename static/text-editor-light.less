@@ -122,12 +122,12 @@ atom-text-editor {
   .line {
     white-space: pre;
 
-    &.cursor-line .syntax--fold-marker::after {
+    &.cursor-line .fold-marker::after {
       opacity: 1;
     }
   }
 
-  .syntax--fold-marker {
+  .fold-marker {
     cursor: default;
 
     &::after {
@@ -143,12 +143,12 @@ atom-text-editor {
     color: @text-color-subtle;
   }
 
-  .syntax--invisible-character {
+  .invisible-character {
     font-weight: normal !important;
     font-style: normal !important;
   }
 
-  .syntax--indent-guide {
+  .indent-guide {
     display: inline-block;
     box-shadow: inset 1px 0;
   }

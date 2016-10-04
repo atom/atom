@@ -1,7 +1,10 @@
+const {Emitter, Disposable} = require('event-kit')
 const fs = require('fs-plus')
 const path = require('path')
-const {Emitter, Disposable} = require('event-kit')
+const postcss = require('postcss')
+const selectorParser = require('postcss-selector-parser')
 const StylesElement = require('./styles-element')
+const DEPRECATED_SYNTAX_SELECTORS = require('./deprecated-syntax-selectors')
 
 // Extended: A singleton instance of this class available via `atom.styles`,
 // which you can use to globally query and observe the set of active style
@@ -122,7 +125,7 @@ module.exports = class StyleManager {
       }
     }
 
-    styleElement.textContent = source
+    styleElement.textContent = transformDeprecatedShadowDOMSelectors(source, params.context)
     if (updated) {
       this.emitter.emit('did-update-style-element', styleElement)
     } else {
@@ -204,4 +207,38 @@ module.exports = class StyleManager {
       }
     }
   }
+}
+
+function transformDeprecatedShadowDOMSelectors (css, context) {
+  const root = postcss.parse(css)
+  root.walkRules((rule) => {
+    rule.selector = selectorParser((selectors) => {
+      selectors.each((selector) => {
+        const firstNode = selector.nodes[0]
+        if (context === 'atom-text-editor' && firstNode.type === 'pseudo' && firstNode.value === ':host') {
+          const atomTextEditorElementNode = selectorParser.tag({value: 'atom-text-editor'})
+          firstNode.replaceWith(atomTextEditorElementNode)
+        }
+
+        let targetsAtomTextEditorShadow = context === 'atom-text-editor'
+        let previousNode
+        selector.each((node) => {
+          if (targetsAtomTextEditorShadow && node.type === 'class') {
+            if (DEPRECATED_SYNTAX_SELECTORS.has(node.value) && !node.value.startsWith('syntax--')) {
+              node.value = `syntax--${node.value}`
+            }
+          } else if (previousNode) {
+            const currentNodeIsShadowPseudoClass = node.type === 'pseudo' && node.value === '::shadow'
+            const previousNodeIsAtomTextEditor = previousNode.type === 'tag' && previousNode.value === 'atom-text-editor'
+            if (previousNodeIsAtomTextEditor && currentNodeIsShadowPseudoClass) {
+              selector.removeChild(node)
+              targetsAtomTextEditorShadow = true
+            }
+          }
+          previousNode = node
+        })
+      })
+    }).process(rule.selector).result
+  })
+  return root.toString()
 }
