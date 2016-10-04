@@ -248,6 +248,50 @@ describe "TextEditor", ->
         editor.getLastCursor().destroy()
         expect(editor.getLastCursor().getBufferPosition()).toEqual([0, 0])
 
+    describe ".getCurrentWordBufferRange()", ->
+      cursor = null
+
+      beforeEach ->
+        editor.setText('atom-+electron')
+        atom.config.set 'editor.nonWordCharacters', '-+'
+        cursor = editor.getLastCursor()
+
+      describe "when cursor is between two word characters", ->
+        beforeEach ->
+          editor.setCursorBufferPosition([0, 2]) # at|om-+electron
+
+        describe "when includeNonWordCharacters is false", ->
+          it "returns the word under the cursor, defined with word characters", ->
+            expect(cursor.getCurrentWordBufferRange({"includeNonWordCharacters": false})).toEqual [[0, 0], [0, 4]] # atom
+
+        describe "when includeNonWordCharacters is true", ->
+          it "returns the word under the cursor, defined with word characters", ->
+            expect(cursor.getCurrentWordBufferRange({"includeNonWordCharacters": true})).toEqual [[0, 0], [0, 4]] # atom
+
+      describe "when cursor is between two non-word characters", ->
+        beforeEach ->
+          editor.setCursorBufferPosition([0, 5]) # atom-|+electron
+
+        describe "when includeNonWordCharacters is false", ->
+          it "returns a zero-width range", ->
+            expect(cursor.getCurrentWordBufferRange({"includeNonWordCharacters": false})).toEqual [[0, 5], [0, 5]] # <nothing>
+
+        describe "when includeNonWordCharacters is true", ->
+          it "returns the word under the cursor, defined with non-word characters", ->
+            expect(cursor.getCurrentWordBufferRange({"includeNonWordCharacters": true})).toEqual [[0, 4], [0, 6]] # -+
+
+      describe "when cursor is between a word character and a non-word character", ->
+        beforeEach ->
+          editor.setCursorBufferPosition([0, 6]) # atom-+|electron
+
+        describe "when includeNonWordCharacters is false", ->
+          it "returns the word next to the cursor, defined with word characters", ->
+            expect(cursor.getCurrentWordBufferRange({"includeNonWordCharacters": false})).toEqual [[0, 6], [0, 14]] # electron
+
+        describe "when includeNonWordCharacters is true", ->
+          it "returns the word next to the cursor, defined with word characters", ->
+            expect(cursor.getCurrentWordBufferRange({"includeNonWordCharacters": true})).toEqual [[0, 6], [0, 14]] # electron
+
     describe ".getCursors()", ->
       it "creates a new cursor at (0, 0) if the last cursor has been destroyed", ->
         editor.getLastCursor().destroy()
