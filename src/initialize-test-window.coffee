@@ -35,9 +35,11 @@ module.exports = ({blobStore}) ->
       if (event.metaKey or event.ctrlKey) and event.keyCode is 82
         ipcHelpers.call('window-method', 'reload')
 
-      # Toggle Dev Tools: cmd-alt-i / ctrl-alt-i
-      if (event.metaKey or event.ctrlKey) and event.altKey and event.keyCode is 73
-        ipcHelpers.call('window-method', 'toggleDevTools')
+      # Toggle Dev Tools: cmd-alt-i (Mac) / ctrl-shift-i (Linux/Windows)
+      if event.keyCode is 73 and (
+        (process.platform is 'darwin' and event.metaKey and event.altKey) or
+        (process.platform isnt 'darwin' and event.ctrlKey and event.shiftKey))
+          ipcHelpers.call('window-method', 'toggleDevTools')
 
       # Close: cmd-w / ctrl-w
       if (event.metaKey or event.ctrlKey) and event.keyCode is 87
