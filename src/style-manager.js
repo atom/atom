@@ -17,6 +17,7 @@ module.exports = class StyleManager {
     this.emitter = new Emitter()
     this.styleElements = []
     this.styleElementsBySourcePath = {}
+    this.upgradedSelectorsBySourcePath = new Map()
   }
 
   /*
@@ -93,6 +94,10 @@ module.exports = class StyleManager {
     return this.emitter.on('did-update-style-element', callback)
   }
 
+  onDidUpgradeDeprecatedSelectors (callback) {
+    return this.emitter.on('did-upgrade-deprecated-selectors', callback)
+  }
+
   /*
   Section: Reading Style Elements
   */
@@ -125,7 +130,12 @@ module.exports = class StyleManager {
       }
     }
 
-    styleElement.textContent = transformDeprecatedShadowDOMSelectors(source, params.context)
+    const transformed = transformDeprecatedShadowDOMSelectors(source, params.context)
+    styleElement.textContent = transformed.source
+    if (transformed.selectors.length > 0) {
+      this.upgradedSelectorsBySourcePath.set(params.sourcePath, transformed.selectors)
+      this.emitter.emit('did-upgrade-deprecated-selectors')
+    }
     if (updated) {
       this.emitter.emit('did-update-style-element', styleElement)
     } else {
@@ -161,6 +171,10 @@ module.exports = class StyleManager {
       }
       this.emitter.emit('did-remove-style-element', styleElement)
     }
+  }
+
+  getUpgradedSelectors () {
+    return this.upgradedSelectorsBySourcePath
   }
 
   getSnapshot () {
@@ -210,9 +224,10 @@ module.exports = class StyleManager {
 }
 
 function transformDeprecatedShadowDOMSelectors (css, context) {
-  const root = postcss.parse(css)
-  root.walkRules((rule) => {
-    rule.selector = selectorParser((selectors) => {
+  const transformedSelectors = []
+  const transformedSource = postcss.parse(css)
+  transformedSource.walkRules((rule) => {
+    const transformedSelector = selectorParser((selectors) => {
       selectors.each((selector) => {
         const firstNode = selector.nodes[0]
         if (context === 'atom-text-editor' && firstNode.type === 'pseudo' && firstNode.value === ':host') {
@@ -238,7 +253,11 @@ function transformDeprecatedShadowDOMSelectors (css, context) {
           previousNode = node
         })
       })
-    }).process(rule.selector).result
+    }).process(rule.selector, {lossless: true}).result
+    if (transformedSelector !== rule.selector) {
+      transformedSelectors.push({before: rule.selector, after: transformedSelector})
+      rule.selector = transformedSelector
+    }
   })
-  return root.toString()
+  return {source: transformedSource.toString(), selectors: transformedSelectors}
 }
