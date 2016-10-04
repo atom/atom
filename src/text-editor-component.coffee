@@ -63,6 +63,11 @@ class TextEditorComponent
     @domElementPool = new DOMElementPool
     @domNode = document.createElement('div')
     @domNode.classList.add('editor-contents')
+    # TODO: Remove these backwards compatible classes once everyone has
+    # transitioned to non-shadow DOM selectors.
+    @domNode.classList.add('editor-contents--private')
+    @domNode.classList.add('editor--private')
+
     @overlayManager = new OverlayManager(@presenter, @domNode, @views)
     @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
 
