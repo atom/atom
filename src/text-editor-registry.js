@@ -157,7 +157,7 @@ export default class TextEditorRegistry {
   // configuration.
   maintainConfig (editor) {
     if (this.editorsWithMaintainedConfig.has(editor)) {
-      return
+      return new Disposable(noop)
     }
     this.editorsWithMaintainedConfig.add(editor)
 
@@ -202,7 +202,7 @@ export default class TextEditorRegistry {
   // grammar.
   maintainGrammar (editor) {
     if (this.editorsWithMaintainedGrammar.has(editor)) {
-      return
+      return new Disposable(noop)
     }
 
     this.editorsWithMaintainedGrammar.add(editor)
@@ -390,6 +390,8 @@ function shouldEditorUseSoftTabs (editor, tabType, softTabs) {
       }
   }
 }
+
+function noop () {}
 
 class ScopedSettingsDelegate {
   constructor (config) {
