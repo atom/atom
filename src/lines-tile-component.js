@@ -61,7 +61,7 @@ module.exports = class LinesTileComponent {
 
     if (this.newState.width !== this.oldState.width) {
       this.domNode.style.width = this.newState.width + 'px'
-      this.oldTileState.width = this.newTileState.width
+      this.oldState.width = this.newState.width
     }
 
     if (this.newTileState.top !== this.oldTileState.top || this.newTileState.left !== this.oldTileState.left) {
