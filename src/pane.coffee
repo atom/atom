@@ -234,14 +234,36 @@ class Pane extends Model
   onDidChangeActiveItem: (callback) ->
     @emitter.on 'did-change-active-item', callback
 
-  # Ian TODO docs
-
+  # Public: Invoke the given callback when {::activateNextRecentlyUsedItem}
+  # has been called, either initiating or continuing a forward MRU traversal of
+  # pane items.
+  #
+  # * `callback` {Function} to be called with when the active item changes.
+  #   * `nextRecentlyUsedItem` The next MRU item, now being set active
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onChooseNextMRUItem: (callback) ->
     @emitter.on 'choose-next-mru-item', callback
 
+  # Public: Invoke the given callback when {::activatePreviousRecentlyUsedItem}
+  # has been called, either initiating or continuing a reverse MRU traversal of
+  # pane items.
+  #
+  # * `callback` {Function} to be called with when the active item changes.
+  #   * `previousRecentlyUsedItem` The previous MRU item, now being set active
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onChooseLastMRUItem: (callback) ->
     @emitter.on 'choose-last-mru-item', callback
 
+  # Public: Invoke the given callback when {::moveActiveItemToTopOfStack}
+  # has been called, terminating an MRU traversal of pane items and moving the
+  # current active item to the top of the stack. Typically bound to a modifier
+  # (e.g. CTRL) key up event.
+  #
+  # * `callback` {Function} to be called with when the MRU traversal is done.
+  #
+  # Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDoneChoosingMRUItem: (callback) ->
     @emitter.on 'done-choosing-mru-item', callback
 
