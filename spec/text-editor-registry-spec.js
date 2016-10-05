@@ -125,6 +125,25 @@ describe('TextEditorRegistry', function () {
       expect(editor.getGrammar().name).toBe('Null Grammar')
       expect(retainedEditorCount(registry)).toBe(0)
     })
+
+    describe('when called twice with a given editor', function () {
+      it('does nothing the second time', async function () {
+        await atom.packages.activatePackage('language-javascript')
+        const disposable1 = registry.maintainGrammar(editor)
+        const disposable2 = registry.maintainGrammar(editor)
+
+        editor.getBuffer().setPath('test.js')
+        expect(editor.getGrammar().name).toBe('JavaScript')
+
+        disposable2.dispose()
+        editor.getBuffer().setPath('test.txt')
+        expect(editor.getGrammar().name).toBe('Null Grammar')
+
+        disposable1.dispose()
+        editor.getBuffer().setPath('test.js')
+        expect(editor.getGrammar().name).toBe('Null Grammar')
+      })
+    })
   })
 
   describe('.setGrammarOverride', function () {
@@ -624,6 +643,27 @@ describe('TextEditorRegistry', function () {
       expect(delegate.getNonWordCharacters(['a.b', 'c.d'])).toBe('(){}')
       expect(delegate.getNonWordCharacters(['e.f', 'g.h'])).toBe('(){}[]')
       expect(delegate.getNonWordCharacters(['i.j'])).toBe('()')
+    })
+
+    describe('when called twice with a given editor', function () {
+      it('does nothing the second time', async function () {
+        editor.update({scrollSensitivity: 50})
+
+        const disposable1 = registry.maintainConfig(editor)
+        const disposable2 = registry.maintainConfig(editor)
+        await initialPackageActivation
+
+        atom.config.set('editor.scrollSensitivity', 60)
+        expect(editor.getScrollSensitivity()).toBe(60)
+
+        disposable2.dispose()
+        atom.config.set('editor.scrollSensitivity', 70)
+        expect(editor.getScrollSensitivity()).toBe(70)
+
+        disposable1.dispose()
+        atom.config.set('editor.scrollSensitivity', 80)
+        expect(editor.getScrollSensitivity()).toBe(70)
+      })
     })
   })
 
