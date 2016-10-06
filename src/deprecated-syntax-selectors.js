@@ -319,7 +319,7 @@ module.exports = new Set([
   'flatbuffers', 'flex-config', 'fload', 'float', 'float-exponent', 'float_exp',
   'floating-point', 'floating_point', 'floor', 'flow', 'flow-control',
   'flowcontrol', 'flows', 'flowtype', 'flush', 'fma', 'fma4', 'fmod', 'fn',
-  'fold', 'folded', 'folder', 'folder-actions', 'following', 'font',
+  'fold', 'folder', 'folder-actions', 'following', 'font',
   'font-cache', 'font-face', 'font-name', 'font-size', 'fontface', 'fontforge',
   'foobar', 'footer', 'footnote', 'for', 'for-in-loop', 'for-loop',
   'for-quantity', 'forall', 'force', 'foreach', 'foreign', 'forever',
