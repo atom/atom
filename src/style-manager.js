@@ -1,4 +1,5 @@
 const {Emitter, Disposable} = require('event-kit')
+const crypto = require('crypto')
 const fs = require('fs-plus')
 const path = require('path')
 const postcss = require('postcss')
@@ -14,6 +15,7 @@ const DEPRECATED_SYNTAX_SELECTORS = require('./deprecated-syntax-selectors')
 module.exports = class StyleManager {
   constructor ({configDirPath}) {
     this.configDirPath = configDirPath
+    this.cacheDirPath = path.join(this.configDirPath, 'compile-cache', 'style-manager')
     this.emitter = new Emitter()
     this.styleElements = []
     this.styleElementsBySourcePath = {}
@@ -130,7 +132,20 @@ module.exports = class StyleManager {
       }
     }
 
-    const transformed = transformDeprecatedShadowDOMSelectors(source, params.context)
+    const hash = crypto.createHash('sha1')
+    if (params.context != null) {
+      hash.update(params.context)
+    }
+    hash.update(source)
+    const cacheFilePath = path.join(this.cacheDirPath, hash.digest('hex'))
+    let transformed
+    try {
+      transformed = JSON.parse(fs.readFileSync(cacheFilePath))
+    } catch (e) {
+      transformed = transformDeprecatedShadowDOMSelectors(source, params.context)
+      fs.writeFileSync(cacheFilePath, JSON.stringify(transformed))
+    }
+
     styleElement.textContent = transformed.source
     if (transformed.deprecationMessage) {
       this.deprecationsBySourcePath[params.sourcePath] = {message: transformed.deprecationMessage}

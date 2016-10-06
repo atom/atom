@@ -14,7 +14,7 @@ describe('StyleManager', () => {
   })
 
   describe('::addStyleSheet(source, params)', () => {
-    it('adds a stylesheet based on the given source and returns a disposable allowing it to be removed', () => {
+    it('adds a style sheet based on the given source and returns a disposable allowing it to be removed', () => {
       const disposable = styleManager.addStyleSheet('a {color: red}')
       expect(addEvents.length).toBe(1)
       expect(addEvents[0].textContent).toBe('a {color: red}')
@@ -82,14 +82,12 @@ describe('StyleManager', () => {
         })
       })
 
-      it('replaces ":host" with "atom-text-editor" only when the context of a stylesheet is "atom-text-editor"', () => {
+      it('replaces ":host" with "atom-text-editor" only when the context of a style sheet is "atom-text-editor"', () => {
         styleManager.addStyleSheet(':host .class-1, :host .class-2 { color: red; }')
         expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
           ':host .class-1, :host .class-2'
         ])
-        global.debug = true
         styleManager.addStyleSheet(':host .class-1, :host .class-2 { color: red; }', {context: 'atom-text-editor'})
-        global.debug = false
         expect(Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map((r) => r.selectorText)).toEqual([
           'atom-text-editor .class-1, atom-text-editor .class-2'
         ])
