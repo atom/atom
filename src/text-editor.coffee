@@ -391,6 +391,9 @@ class TextEditor extends Model
     @disposables.add @displayLayer.onDidChangeSync (e) =>
       @mergeIntersectingSelections()
       @emitter.emit 'did-change', e
+    @disposables.add @displayLayer.onDidReset =>
+      @mergeIntersectingSelections()
+      @emitter.emit 'did-change', {}
 
   destroyed: ->
     @disposables.dispose()
@@ -907,6 +910,8 @@ class TextEditor extends Model
   # editor. This accounts for folds.
   getScreenLineCount: -> @displayLayer.getScreenLineCount()
 
+  getApproximateScreenLineCount: -> @displayLayer.getApproximateScreenLineCount()
+
   # Essential: Returns a {Number} representing the last zero-indexed buffer row
   # number of the editor.
   getLastBufferRow: -> @buffer.getLastRow()
@@ -953,8 +958,8 @@ class TextEditor extends Model
     tokens
 
   screenLineForScreenRow: (screenRow) ->
-    return if screenRow < 0 or screenRow > @getLastScreenRow()
-    @displayLayer.getScreenLines(screenRow, screenRow + 1)[0]
+    result = @displayLayer.getScreenLines(screenRow, screenRow + 1)
+    result[0] if result
 
   bufferRowForScreenRow: (screenRow) ->
     @displayLayer.translateScreenPosition(Point(screenRow, 0)).row
@@ -971,9 +976,13 @@ class TextEditor extends Model
 
   getRightmostScreenPosition: -> @displayLayer.getRightmostScreenPosition()
 
+  getApproximateRightmostScreenPosition: -> @displayLayer.getApproximateRightmostScreenPosition()
+
   getMaxScreenLineLength: -> @getRightmostScreenPosition().column
 
   getLongestScreenRow: -> @getRightmostScreenPosition().row
+
+  getApproximateLongestScreenRow: -> @getApproximateRightmostScreenPosition().row
 
   lineLengthForScreenRow: (screenRow) -> @displayLayer.lineLengthForScreenRow(screenRow)
 
