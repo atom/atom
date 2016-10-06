@@ -8,12 +8,12 @@ TextEditorPresenter = require './text-editor-presenter'
 GutterContainerComponent = require './gutter-container-component'
 InputComponent = require './input-component'
 LinesComponent = require './lines-component'
+OffScreenBlockDecorationsComponent = require './off-screen-block-decorations-component'
 ScrollbarComponent = require './scrollbar-component'
 ScrollbarCornerComponent = require './scrollbar-corner-component'
 OverlayManager = require './overlay-manager'
 DOMElementPool = require './dom-element-pool'
 LinesYardstick = require './lines-yardstick'
-BlockDecorationsComponent = require './block-decorations-component'
 LineTopIndex = require 'line-top-index'
 
 module.exports =
@@ -69,7 +69,6 @@ class TextEditorComponent
     @domNode.classList.add('editor--private')
 
     @overlayManager = new OverlayManager(@presenter, @domNode, @views)
-    @blockDecorationsComponent = new BlockDecorationsComponent(@hostElement, @views, @presenter, @domElementPool)
 
     @scrollViewNode = document.createElement('div')
     @scrollViewNode.classList.add('scroll-view')
@@ -78,10 +77,11 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars})
+    @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars, @views})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
-    @linesComponent.getDomNode().appendChild(@blockDecorationsComponent.getDomNode())
+    @offScreenBlockDecorationsComponent = new OffScreenBlockDecorationsComponent({@presenter, @views})
+    @scrollViewNode.appendChild(@offScreenBlockDecorationsComponent.getDomNode())
 
     @linesYardstick = new LinesYardstick(@editor, @linesComponent, lineTopIndex)
     @presenter.setLinesYardstick(@linesYardstick)
@@ -165,8 +165,8 @@ class TextEditorComponent
       @gutterContainerComponent = null
 
     @hiddenInputComponent.updateSync(@newState)
+    @offScreenBlockDecorationsComponent.updateSync(@newState)
     @linesComponent.updateSync(@newState)
-    @blockDecorationsComponent?.updateSync(@newState)
     @horizontalScrollbarComponent.updateSync(@newState)
     @verticalScrollbarComponent.updateSync(@newState)
     @scrollbarCornerComponent.updateSync(@newState)
@@ -186,7 +186,8 @@ class TextEditorComponent
 
   readAfterUpdateSync: =>
     @overlayManager?.measureOverlays()
-    @blockDecorationsComponent?.measureBlockDecorations() if @isVisible()
+    @linesComponent.measureBlockDecorations()
+    @offScreenBlockDecorationsComponent.measureBlockDecorations()
 
   mountGutterContainerComponent: ->
     @gutterContainerComponent = new GutterContainerComponent({@editor, @onLineNumberGutterMouseDown, @domElementPool, @views})
@@ -543,7 +544,7 @@ class TextEditorComponent
 
     screenPosition = @screenPositionForMouseEvent(event)
 
-    if event.target?.classList.contains('syntax--fold-marker')
+    if event.target?.classList.contains('fold-marker')
       bufferPosition = @editor.bufferPositionForScreenPosition(screenPosition)
       @editor.destroyFoldsIntersectingBufferRange([bufferPosition, bufferPosition])
       return

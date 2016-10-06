@@ -34,6 +34,8 @@ class TextEditorPresenter
     @observedBlockDecorations = new Set()
     @invalidatedDimensionsByBlockDecoration = new Set()
     @invalidateAllBlockDecorationsDimensions = false
+    @precedingBlockDecorationsByScreenRowAndId = {}
+    @followingBlockDecorationsByScreenRowAndId = {}
     @screenRowsToMeasure = []
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
@@ -191,7 +193,7 @@ class TextEditorPresenter
         highlights: {}
         overlays: {}
         cursors: {}
-        blockDecorations: {}
+        offScreenBlockDecorations: {}
       gutters: []
     # Shared state that is copied into ``@state.gutters`.
     @sharedGutterStyles = {}
@@ -412,16 +414,14 @@ class TextEditorPresenter
         throw new Error("No line exists for row #{screenRow}. Last screen row: #{@model.getLastScreenRow()}")
 
       visibleLineIds[line.id] = true
-      precedingBlockDecorations = @precedingBlockDecorationsByScreenRow[screenRow] ? []
-      followingBlockDecorations = @followingBlockDecorationsByScreenRow[screenRow] ? []
+      precedingBlockDecorations = @precedingBlockDecorationsByScreenRowAndId[screenRow] ? {}
+      followingBlockDecorations = @followingBlockDecorationsByScreenRowAndId[screenRow] ? {}
       if tileState.lines.hasOwnProperty(line.id)
         lineState = tileState.lines[line.id]
         lineState.screenRow = screenRow
         lineState.decorationClasses = @lineDecorationClassesForRow(screenRow)
         lineState.precedingBlockDecorations = precedingBlockDecorations
         lineState.followingBlockDecorations = followingBlockDecorations
-        lineState.hasPrecedingBlockDecorations = precedingBlockDecorations.length > 0
-        lineState.hasFollowingBlockDecorations = followingBlockDecorations.length > 0
       else
         tileState.lines[line.id] =
           screenRow: screenRow
@@ -430,8 +430,6 @@ class TextEditorPresenter
           decorationClasses: @lineDecorationClassesForRow(screenRow)
           precedingBlockDecorations: precedingBlockDecorations
           followingBlockDecorations: followingBlockDecorations
-          hasPrecedingBlockDecorations: precedingBlockDecorations.length > 0
-          hasFollowingBlockDecorations: followingBlockDecorations.length > 0
 
     for id, line of tileState.lines
       delete tileState.lines[id] unless visibleLineIds.hasOwnProperty(id)
@@ -1059,41 +1057,42 @@ class TextEditorPresenter
     @decorations = @model.decorationsStateForScreenRowRange(@startRow, @endRow - 1)
 
   updateBlockDecorations: ->
-    @blockDecorationsToRenderById = {}
-    @precedingBlockDecorationsByScreenRow = {}
-    @followingBlockDecorationsByScreenRow = {}
-    visibleDecorationsByMarkerId = @model.decorationsForScreenRowRange(@getStartTileRow(), @getEndTileRow() + @tileSize - 1)
-
     if @invalidateAllBlockDecorationsDimensions
       for decoration in @model.getDecorations(type: 'block')
         @invalidatedDimensionsByBlockDecoration.add(decoration)
       @invalidateAllBlockDecorationsDimensions = false
 
-    for markerId, decorations of visibleDecorationsByMarkerId
+    visibleDecorationsById = {}
+    visibleDecorationsByScreenRowAndId = {}
+    for markerId, decorations of @model.decorationsForScreenRowRange(@getStartTileRow(), @getEndTileRow() + @tileSize - 1)
       for decoration in decorations when decoration.isType('block')
-        @updateBlockDecorationState(decoration, true)
+        screenRow = decoration.getMarker().getHeadScreenPosition().row
+        if decoration.getProperties().position is "after"
+          @followingBlockDecorationsByScreenRowAndId[screenRow] ?= {}
+          @followingBlockDecorationsByScreenRowAndId[screenRow][decoration.id] = {screenRow, decoration}
+        else
+          @precedingBlockDecorationsByScreenRowAndId[screenRow] ?= {}
+          @precedingBlockDecorationsByScreenRowAndId[screenRow][decoration.id] = {screenRow, decoration}
+        visibleDecorationsById[decoration.id] = true
+        visibleDecorationsByScreenRowAndId[screenRow] ?= {}
+        visibleDecorationsByScreenRowAndId[screenRow][decoration.id] = true
 
+    for screenRow, blockDecorations of @precedingBlockDecorationsByScreenRowAndId
+      if Number(screenRow) isnt @mouseWheelScreenRow
+        for id, blockDecoration of blockDecorations
+          unless visibleDecorationsByScreenRowAndId[screenRow]?[id]
+            delete @precedingBlockDecorationsByScreenRowAndId[screenRow][id]
+
+    for screenRow, blockDecorations of @followingBlockDecorationsByScreenRowAndId
+      if Number(screenRow) isnt @mouseWheelScreenRow
+        for id, blockDecoration of blockDecorations
+          unless visibleDecorationsByScreenRowAndId[screenRow]?[id]
+            delete @followingBlockDecorationsByScreenRowAndId[screenRow][id]
+
+    @state.content.offScreenBlockDecorations = {}
     @invalidatedDimensionsByBlockDecoration.forEach (decoration) =>
-      @updateBlockDecorationState(decoration, false)
-
-    for decorationId, decorationState of @state.content.blockDecorations
-      continue if @blockDecorationsToRenderById[decorationId]
-      continue if decorationState.screenRow is @mouseWheelScreenRow
-
-      delete @state.content.blockDecorations[decorationId]
-
-  updateBlockDecorationState: (decoration, isVisible) ->
-    return if @blockDecorationsToRenderById[decoration.getId()]
-
-    screenRow = decoration.getMarker().getHeadScreenPosition().row
-    if decoration.getProperties().position is "after"
-      @followingBlockDecorationsByScreenRow[screenRow] ?= []
-      @followingBlockDecorationsByScreenRow[screenRow].push(decoration)
-    else
-      @precedingBlockDecorationsByScreenRow[screenRow] ?= []
-      @precedingBlockDecorationsByScreenRow[screenRow].push(decoration)
-    @state.content.blockDecorations[decoration.getId()] = {decoration, screenRow, isVisible}
-    @blockDecorationsToRenderById[decoration.getId()] = true
+      unless visibleDecorationsById[decoration.id]
+        @state.content.offScreenBlockDecorations[decoration.id] = decoration
 
   updateLineDecorations: ->
     @lineDecorationsByScreenRow = {}
@@ -1295,7 +1294,7 @@ class TextEditorPresenter
   setBlockDecorationDimensions: (decoration, width, height) ->
     return unless @observedBlockDecorations.has(decoration)
 
-    @lineTopIndex.resizeBlock(decoration.getId(), height)
+    @lineTopIndex.resizeBlock(decoration.id, height)
 
     @invalidatedDimensionsByBlockDecoration.delete(decoration)
     @shouldUpdateDecorations = true
@@ -1332,7 +1331,7 @@ class TextEditorPresenter
       @didDestroyBlockDecoration(decoration)
 
     isAfter = decoration.getProperties().position is "after"
-    @lineTopIndex.insertBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition().row, 0, isAfter)
+    @lineTopIndex.insertBlock(decoration.id, decoration.getMarker().getHeadScreenPosition().row, 0, isAfter)
 
     @observedBlockDecorations.add(decoration)
     @invalidateBlockDecorationDimensions(decoration)
@@ -1346,14 +1345,14 @@ class TextEditorPresenter
     # change.
     return if markerEvent.textChanged
 
-    @lineTopIndex.moveBlock(decoration.getId(), decoration.getMarker().getHeadScreenPosition().row)
+    @lineTopIndex.moveBlock(decoration.id, decoration.getMarker().getHeadScreenPosition().row)
     @shouldUpdateDecorations = true
     @emitDidUpdateState()
 
   didDestroyBlockDecoration: (decoration) ->
     return unless @observedBlockDecorations.has(decoration)
 
-    @lineTopIndex.removeBlock(decoration.getId())
+    @lineTopIndex.removeBlock(decoration.id)
     @observedBlockDecorations.delete(decoration)
     @invalidatedDimensionsByBlockDecoration.delete(decoration)
     @shouldUpdateDecorations = true

@@ -2,18 +2,17 @@ const HighlightsComponent = require('./highlights-component')
 const ZERO_WIDTH_NBSP = '\ufeff'
 
 module.exports = class LinesTileComponent {
-  constructor ({presenter, id, domElementPool, assert}) {
-    this.presenter = presenter
+  constructor ({presenter, id, domElementPool, assert, views}) {
     this.id = id
+    this.presenter = presenter
+    this.views = views
     this.domElementPool = domElementPool
     this.assert = assert
-    this.measuredLines = new Set()
     this.lineNodesByLineId = {}
     this.screenRowsByLineId = {}
     this.lineIdsByScreenRow = {}
     this.textNodesByLineId = {}
-    this.insertionPointsBeforeLineById = {}
-    this.insertionPointsAfterLineById = {}
+    this.blockDecorationNodesByLineIdAndDecorationId = {}
     this.domNode = this.domElementPool.buildElement('div')
     this.domNode.style.position = 'absolute'
     this.domNode.style.display = 'block'
@@ -22,6 +21,7 @@ module.exports = class LinesTileComponent {
   }
 
   destroy () {
+    this.removeLineNodes()
     this.domElementPool.freeElementAndDescendants(this.domNode)
   }
 
@@ -80,15 +80,29 @@ module.exports = class LinesTileComponent {
     }
   }
 
-  removeLineNode (id) {
-    this.domElementPool.freeElementAndDescendants(this.lineNodesByLineId[id])
-    this.removeBlockDecorationInsertionPointBeforeLine(id)
-    this.removeBlockDecorationInsertionPointAfterLine(id)
-    delete this.lineNodesByLineId[id]
-    delete this.textNodesByLineId[id]
-    delete this.lineIdsByScreenRow[this.screenRowsByLineId[id]]
-    delete this.screenRowsByLineId[id]
-    delete this.oldTileState.lines[id]
+  removeLineNode (lineId) {
+    this.domElementPool.freeElementAndDescendants(this.lineNodesByLineId[lineId])
+    for (const decorationId of Object.keys(this.oldTileState.lines[lineId].precedingBlockDecorations)) {
+      const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+        this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+      topRulerNode.remove()
+      blockDecorationNode.remove()
+      bottomRulerNode.remove()
+    }
+    for (const decorationId of Object.keys(this.oldTileState.lines[lineId].followingBlockDecorations)) {
+      const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+        this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+      topRulerNode.remove()
+      blockDecorationNode.remove()
+      bottomRulerNode.remove()
+    }
+
+    delete this.blockDecorationNodesByLineIdAndDecorationId[lineId]
+    delete this.lineNodesByLineId[lineId]
+    delete this.textNodesByLineId[lineId]
+    delete this.lineIdsByScreenRow[this.screenRowsByLineId[lineId]]
+    delete this.screenRowsByLineId[lineId]
+    delete this.oldTileState.lines[lineId]
   }
 
   updateLineNodes () {
@@ -110,6 +124,10 @@ module.exports = class LinesTileComponent {
         this.screenRowsByLineId[id] = lineState.screenRow
         this.lineIdsByScreenRow[lineState.screenRow] = id
         this.oldTileState.lines[id] = Object.assign({}, lineState)
+        // Avoid assigning state for block decorations, because we need to
+        // process it later when updating the DOM.
+        this.oldTileState.lines[id].precedingBlockDecorations = {}
+        this.oldTileState.lines[id].followingBlockDecorations = {}
       }
     }
 
@@ -122,87 +140,6 @@ module.exports = class LinesTileComponent {
         this.domNode.appendChild(lineNode)
       } else {
         this.domNode.insertBefore(lineNode, nextNode)
-      }
-      this.insertBlockDecorationInsertionPointBeforeLine(id)
-      this.insertBlockDecorationInsertionPointAfterLine(id)
-    }
-  }
-
-  removeBlockDecorationInsertionPointBeforeLine (id) {
-    const insertionPoint = this.insertionPointsBeforeLineById[id]
-    if (insertionPoint != null) {
-      this.domElementPool.freeElementAndDescendants(insertionPoint)
-      delete this.insertionPointsBeforeLineById[id]
-    }
-  }
-
-  insertBlockDecorationInsertionPointBeforeLine (id) {
-    const {hasPrecedingBlockDecorations, screenRow} = this.newTileState.lines[id]
-    if (hasPrecedingBlockDecorations) {
-      const lineNode = this.lineNodesByLineId[id]
-      const insertionPoint = this.domElementPool.buildElement('content')
-      this.domNode.insertBefore(insertionPoint, lineNode)
-      this.insertionPointsBeforeLineById[id] = insertionPoint
-      insertionPoint.dataset.screenRow = screenRow
-      this.updateBlockDecorationInsertionPointBeforeLine(id)
-    }
-  }
-
-  updateBlockDecorationInsertionPointBeforeLine (id) {
-    const oldLineState = this.oldTileState.lines[id]
-    const newLineState = this.newTileState.lines[id]
-    const insertionPoint = this.insertionPointsBeforeLineById[id]
-    if (insertionPoint != null) {
-      if (newLineState.screenRow !== oldLineState.screenRow) {
-        insertionPoint.dataset.screenRow = newLineState.screenRow
-      }
-
-      const precedingBlockDecorationsSelector = newLineState.precedingBlockDecorations
-        .map((d) => `.atom--block-decoration-${d.id}`)
-        .join(',')
-      if (precedingBlockDecorationsSelector !== oldLineState.precedingBlockDecorationsSelector) {
-        insertionPoint.setAttribute('select', precedingBlockDecorationsSelector)
-        oldLineState.precedingBlockDecorationsSelector = precedingBlockDecorationsSelector
-      }
-    }
-  }
-
-  removeBlockDecorationInsertionPointAfterLine (id) {
-    const insertionPoint = this.insertionPointsAfterLineById[id]
-    if (insertionPoint != null) {
-      this.domElementPool.freeElementAndDescendants(insertionPoint)
-      delete this.insertionPointsAfterLineById[id]
-    }
-  }
-
-  insertBlockDecorationInsertionPointAfterLine (id) {
-    const {hasFollowingBlockDecorations, screenRow} = this.newTileState.lines[id]
-    if (hasFollowingBlockDecorations) {
-      const lineNode = this.lineNodesByLineId[id]
-      const insertionPoint = this.domElementPool.buildElement('content')
-      this.domNode.insertBefore(insertionPoint, lineNode.nextSibling)
-      this.insertionPointsAfterLineById[id] = insertionPoint
-      insertionPoint.dataset.screenRow = screenRow
-      this.updateBlockDecorationInsertionPointAfterLine(id)
-    }
-  }
-
-  updateBlockDecorationInsertionPointAfterLine (id) {
-    const oldLineState = this.oldTileState.lines[id]
-    const newLineState = this.newTileState.lines[id]
-    const insertionPoint = this.insertionPointsAfterLineById[id]
-
-    if (insertionPoint != null) {
-      if (newLineState.screenRow !== oldLineState.screenRow) {
-        insertionPoint.dataset.screenRow = newLineState.screenRow
-      }
-
-      const followingBlockDecorationsSelector = newLineState.followingBlockDecorations
-        .map((d) => `.atom--block-decoration-${d.id}`)
-        .join(',')
-      if (followingBlockDecorationsSelector !== oldLineState.followingBlockDecorationsSelector) {
-        insertionPoint.setAttribute('select', followingBlockDecorationsSelector)
-        oldLineState.followingBlockDecorationsSelector = followingBlockDecorationsSelector
       }
     }
   }
@@ -296,29 +233,143 @@ module.exports = class LinesTileComponent {
 
     oldLineState.decorationClasses = newLineState.decorationClasses
 
-    if (!oldLineState.hasPrecedingBlockDecorations && newLineState.hasPrecedingBlockDecorations) {
-      this.insertBlockDecorationInsertionPointBeforeLine(id)
-    } else if (oldLineState.hasPrecedingBlockDecorations && !newLineState.hasPrecedingBlockDecorations) {
-      this.removeBlockDecorationInsertionPointBeforeLine(id)
-    }
-
-    if (!oldLineState.hasFollowingBlockDecorations && newLineState.hasFollowingBlockDecorations) {
-      this.insertBlockDecorationInsertionPointAfterLine(id)
-    } else if (oldLineState.hasFollowingBlockDecorations && !newLineState.hasFollowingBlockDecorations) {
-      this.removeBlockDecorationInsertionPointAfterLine(id)
-    }
-
     if (newLineState.screenRow !== oldLineState.screenRow) {
       lineNode.dataset.screenRow = newLineState.screenRow
       this.lineIdsByScreenRow[newLineState.screenRow] = id
       this.screenRowsByLineId[id] = newLineState.screenRow
     }
 
-    this.updateBlockDecorationInsertionPointBeforeLine(id)
-    this.updateBlockDecorationInsertionPointAfterLine(id)
     oldLineState.screenRow = newLineState.screenRow
-    oldLineState.hasPrecedingBlockDecorations = newLineState.hasPrecedingBlockDecorations
-    oldLineState.hasFollowingBlockDecorations = newLineState.hasFollowingBlockDecorations
+  }
+
+  removeDeletedBlockDecorations () {
+    for (const lineId of Object.keys(this.newTileState.lines)) {
+      const oldLineState = this.oldTileState.lines[lineId]
+      const newLineState = this.newTileState.lines[lineId]
+      const lineNode = this.lineNodesByLineId[lineId]
+      for (const decorationId of Object.keys(oldLineState.precedingBlockDecorations)) {
+        if (!newLineState.precedingBlockDecorations.hasOwnProperty(decorationId)) {
+          const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+            this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+          topRulerNode.remove()
+          blockDecorationNode.remove()
+          bottomRulerNode.remove()
+          delete this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+          delete oldLineState.precedingBlockDecorations[decorationId]
+        }
+      }
+      for (const decorationId of Object.keys(oldLineState.followingBlockDecorations)) {
+        if (!newLineState.followingBlockDecorations.hasOwnProperty(decorationId)) {
+          const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+            this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+          topRulerNode.remove()
+          blockDecorationNode.remove()
+          bottomRulerNode.remove()
+          delete this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+          delete oldLineState.followingBlockDecorations[decorationId]
+        }
+      }
+    }
+  }
+
+  updateBlockDecorations () {
+    for (const lineId of Object.keys(this.newTileState.lines)) {
+      const oldLineState = this.oldTileState.lines[lineId]
+      const newLineState = this.newTileState.lines[lineId]
+      const lineNode = this.lineNodesByLineId[lineId]
+      if (!this.blockDecorationNodesByLineIdAndDecorationId.hasOwnProperty(lineId)) {
+        this.blockDecorationNodesByLineIdAndDecorationId[lineId] = {}
+      }
+      for (const decorationId of Object.keys(newLineState.precedingBlockDecorations)) {
+        const oldBlockDecorationState = oldLineState.precedingBlockDecorations[decorationId]
+        const newBlockDecorationState = newLineState.precedingBlockDecorations[decorationId]
+        if (oldBlockDecorationState != null) {
+          const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+            this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+          if (oldBlockDecorationState.screenRow !== newBlockDecorationState.screenRow) {
+            topRulerNode.remove()
+            blockDecorationNode.remove()
+            bottomRulerNode.remove()
+            topRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+            this.domNode.insertBefore(topRulerNode, lineNode)
+            blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
+            this.domNode.insertBefore(blockDecorationNode, lineNode)
+            bottomRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+            this.domNode.insertBefore(bottomRulerNode, lineNode)
+          }
+        } else {
+          const topRulerNode = document.createElement('div')
+          topRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+          this.domNode.insertBefore(topRulerNode, lineNode)
+          const blockDecorationNode = this.views.getView(newBlockDecorationState.decoration.getProperties().item)
+          blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
+          this.domNode.insertBefore(blockDecorationNode, lineNode)
+          const bottomRulerNode = document.createElement('div')
+          bottomRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+          this.domNode.insertBefore(bottomRulerNode, lineNode)
+
+          this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId] =
+            {topRulerNode, blockDecorationNode, bottomRulerNode}
+        }
+        oldLineState.precedingBlockDecorations[decorationId] = Object.assign({}, newBlockDecorationState)
+      }
+      for (const decorationId of Object.keys(newLineState.followingBlockDecorations)) {
+        const oldBlockDecorationState = oldLineState.followingBlockDecorations[decorationId]
+        const newBlockDecorationState = newLineState.followingBlockDecorations[decorationId]
+        if (oldBlockDecorationState != null) {
+          const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+            this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+          if (oldBlockDecorationState.screenRow !== newBlockDecorationState.screenRow) {
+            topRulerNode.remove()
+            blockDecorationNode.remove()
+            bottomRulerNode.remove()
+            bottomRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+            this.domNode.insertBefore(bottomRulerNode, lineNode.nextSibling)
+            blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
+            this.domNode.insertBefore(blockDecorationNode, lineNode.nextSibling)
+            topRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+            this.domNode.insertBefore(topRulerNode, lineNode.nextSibling)
+          }
+        } else {
+          const bottomRulerNode = document.createElement('div')
+          bottomRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+          this.domNode.insertBefore(bottomRulerNode, lineNode.nextSibling)
+          const blockDecorationNode = this.views.getView(newBlockDecorationState.decoration.getProperties().item)
+          blockDecorationNode.dataset.screenRow = newBlockDecorationState.screenRow
+          this.domNode.insertBefore(blockDecorationNode, lineNode.nextSibling)
+          const topRulerNode = document.createElement('div')
+          topRulerNode.dataset.screenRow = newBlockDecorationState.screenRow
+          this.domNode.insertBefore(topRulerNode, lineNode.nextSibling)
+
+          this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId] =
+            {topRulerNode, blockDecorationNode, bottomRulerNode}
+        }
+        oldLineState.followingBlockDecorations[decorationId] = Object.assign({}, newBlockDecorationState)
+      }
+    }
+  }
+
+  measureBlockDecorations () {
+    for (const lineId of Object.keys(this.newTileState.lines)) {
+      const newLineState = this.newTileState.lines[lineId]
+
+      for (const decorationId of Object.keys(newLineState.precedingBlockDecorations)) {
+        const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+          this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+        const width = blockDecorationNode.offsetWidth
+        const height = bottomRulerNode.offsetTop - topRulerNode.offsetTop
+        const {decoration} = newLineState.precedingBlockDecorations[decorationId]
+        this.presenter.setBlockDecorationDimensions(decoration, width, height)
+      }
+      for (const decorationId of Object.keys(newLineState.followingBlockDecorations)) {
+        const {topRulerNode, blockDecorationNode, bottomRulerNode} =
+          this.blockDecorationNodesByLineIdAndDecorationId[lineId][decorationId]
+        const width = blockDecorationNode.offsetWidth
+        const height = bottomRulerNode.offsetTop - topRulerNode.offsetTop
+        const {decoration} = newLineState.followingBlockDecorations[decorationId]
+        this.presenter.setBlockDecorationDimensions(decoration, width, height)
+      }
+    }
   }
 
   lineNodeForScreenRow (screenRow) {
