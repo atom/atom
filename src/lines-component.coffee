@@ -94,6 +94,7 @@ class LinesComponent extends TiledComponent
   measureBlockDecorations: ->
     for component in @getComponents()
       component.measureBlockDecorations()
+    return
 
   lineIdForScreenRow: (screenRow) ->
     tile = @presenter.tileForRow(screenRow)
