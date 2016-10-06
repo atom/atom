@@ -199,6 +199,9 @@ module.exports = class LinesTileComponent {
     }
 
     if (lineText.endsWith(this.presenter.displayLayer.foldCharacter)) {
+      // Insert a zero-width non-breaking whitespace, so that LinesYardstick can
+      // take the fold-marker::after pseudo-element into account during
+      // measurements when such marker is the last character on the line.
       const textNode = this.domElementPool.buildText(ZERO_WIDTH_NBSP)
       lineNode.appendChild(textNode)
       textNodes.push(textNode)
