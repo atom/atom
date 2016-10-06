@@ -37,6 +37,7 @@ class TextEditorPresenter
     @precedingBlockDecorationsByScreenRowAndId = {}
     @followingBlockDecorationsByScreenRowAndId = {}
     @screenRowsToMeasure = []
+    @flashCountsByDecorationId = {}
     @transferMeasurementsToModel()
     @transferMeasurementsFromModel()
     @observeModel()
@@ -1179,6 +1180,9 @@ class TextEditorPresenter
 
     startTile = @tileForRow(screenRange.start.row)
     endTile = @tileForRow(screenRange.end.row)
+    needsFlash = properties.flashCount? and @flashCountsByDecorationId[decorationId] isnt properties.flashCount
+    if needsFlash
+      @flashCountsByDecorationId[decorationId] = properties.flashCount
 
     for tileStartRow in [startTile..endTile] by @tileSize
       rangeWithinTile = @intersectRangeWithTile(screenRange, tileStartRow)
@@ -1188,6 +1192,7 @@ class TextEditorPresenter
       tileState = @state.content.tiles[tileStartRow] ?= {highlights: {}}
       highlightState = tileState.highlights[decorationId] ?= {}
 
+      highlightState.needsFlash = needsFlash
       highlightState.flashCount = properties.flashCount
       highlightState.flashClass = properties.flashClass
       highlightState.flashDuration = properties.flashDuration

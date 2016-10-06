@@ -2208,11 +2208,13 @@ describe "TextEditorPresenter", ->
             highlight.flash('b', 500)
           runs ->
             expectValues stateForHighlightInTile(presenter, highlight, 2), {
+              needsFlash: true
               flashClass: 'b'
               flashDuration: 500
               flashCount: 1
             }
             expectValues stateForHighlightInTile(presenter, highlight, 4), {
+              needsFlash: true
               flashClass: 'b'
               flashDuration: 500
               flashCount: 1
@@ -2221,15 +2223,22 @@ describe "TextEditorPresenter", ->
           waitsForStateToUpdate presenter, -> highlight.flash('c', 600)
           runs ->
             expectValues stateForHighlightInTile(presenter, highlight, 2), {
+              needsFlash: true
               flashClass: 'c'
               flashDuration: 600
               flashCount: 2
             }
             expectValues stateForHighlightInTile(presenter, highlight, 4), {
+              needsFlash: true
               flashClass: 'c'
               flashDuration: 600
               flashCount: 2
             }
+
+          waitsForStateToUpdate presenter, -> marker.setBufferRange([[2, 2], [6, 2]])
+          runs ->
+            expectValues stateForHighlightInTile(presenter, highlight, 2), {needsFlash: false}
+            expectValues stateForHighlightInTile(presenter, highlight, 4), {needsFlash: false}
 
       describe ".offScreenBlockDecorations", ->
         stateForOffScreenBlockDecoration = (presenter, decoration) ->
