@@ -34,20 +34,23 @@ describe('StyleManager', () => {
       })
 
       it('removes the ::shadow pseudo-element from atom-text-editor selectors', () => {
-          styleManager.addStyleSheet(`
-            atom-text-editor::shadow .class-1, atom-text-editor::shadow .class-2 { color: red }
-            atom-text-editor::shadow > .class-3 { color: yellow }
-            atom-text-editor .class-4 { color: blue }
-            another-element::shadow .class-5 { color: white }
-          `)
-          expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
-            'atom-text-editor .class-1, atom-text-editor .class-2',
-            'atom-text-editor > .class-3',
-            'atom-text-editor .class-4',
-            'another-element::shadow .class-5'
-          ])
-        }
-      )
+        styleManager.addStyleSheet(`
+          atom-text-editor::shadow .class-1, atom-text-editor::shadow .class-2 { color: red }
+          atom-text-editor::shadow > .class-3 { color: yellow }
+          atom-text-editor .class-4 { color: blue }
+          another-element::shadow .class-5 { color: white }
+          atom-text-editor[data-grammar*=\"js\"]::shadow .class-6 { color: green; }
+          atom-text-editor[mini].is-focused::shadow .class-7 { color: green; }
+        `)
+        expect(Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map((r) => r.selectorText)).toEqual([
+          'atom-text-editor .class-1, atom-text-editor .class-2',
+          'atom-text-editor > .class-3',
+          'atom-text-editor .class-4',
+          'another-element::shadow .class-5',
+          'atom-text-editor[data-grammar*=\"js\"] .class-6',
+          'atom-text-editor[mini].is-focused .class-7'
+        ])
+      })
 
       describe('when a selector targets the atom-text-editor shadow DOM', () => {
         it('prepends "--syntax" to class selectors matching a grammar scope name and not already starting with "syntax--"', () => {
@@ -67,11 +70,13 @@ describe('StyleManager', () => {
           styleManager.addStyleSheet(`
             .source > .js, .source.coffee { color: green }
             atom-text-editor::shadow .source > .js { color: yellow }
+            atom-text-editor[mini].is-focused::shadow .source > .js { color: gray }
             atom-text-editor .source > .js { color: red }
           `)
           expect(Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map((r) => r.selectorText)).toEqual([
             '.source > .js, .source.coffee',
             'atom-text-editor .syntax--source > .syntax--js',
+            'atom-text-editor[mini].is-focused .syntax--source > .syntax--js',
             'atom-text-editor .source > .js'
           ])
         })

@@ -239,22 +239,27 @@ function transformDeprecatedShadowDOMSelectors (css, context) {
           firstNode.replaceWith(atomTextEditorElementNode)
         }
 
+        let previousNodeIsAtomTextEditor = false
         let targetsAtomTextEditorShadow = context === 'atom-text-editor'
         let previousNode
         selector.each((node) => {
           if (targetsAtomTextEditorShadow && node.type === 'class') {
-            if (DEPRECATED_SYNTAX_SELECTORS.has(node.value) && !node.value.startsWith('syntax--')) {
+            if (DEPRECATED_SYNTAX_SELECTORS.has(node.value)) {
               node.value = `syntax--${node.value}`
             }
-          } else if (previousNode) {
-            const currentNodeIsShadowPseudoClass = node.type === 'pseudo' && node.value === '::shadow'
-            const previousNodeIsAtomTextEditor = previousNode.type === 'tag' && previousNode.value === 'atom-text-editor'
-            if (previousNodeIsAtomTextEditor && currentNodeIsShadowPseudoClass) {
+          } else {
+            if (previousNodeIsAtomTextEditor && node.type === 'pseudo' && node.value === '::shadow') {
               selector.removeChild(node)
               targetsAtomTextEditorShadow = true
             }
           }
+
           previousNode = node
+          if (node.type === 'combinator') {
+            previousNodeIsAtomTextEditor = false
+          } else if (previousNode.type === 'tag' && previousNode.value === 'atom-text-editor') {
+            previousNodeIsAtomTextEditor = true
+          }
         })
       })
     }).process(rule.selector, {lossless: true}).result
