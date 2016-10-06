@@ -30,7 +30,18 @@ class TextEditorElement extends HTMLElement
     @setAttribute('tabindex', -1)
 
   initializeContent: (attributes) ->
-    @rootElement = this
+    Object.defineProperty(this, 'shadowRoot', {
+      get: =>
+        Grim.deprecate("""
+        The contents of `atom-text-editor` elements are no longer encapsulated
+        within a shadow DOM boundary. Please, stop using `shadowRoot` and access
+        the editor contents directly instead.
+        """)
+        this
+    })
+    @rootElement = document.createElement('div')
+    @rootElement.classList.add('editor--private')
+    @appendChild(@rootElement)
 
   attachedCallback: ->
     @buildModel() unless @getModel()?
@@ -106,7 +117,7 @@ class TextEditorElement extends HTMLElement
       workspace: @workspace
       assert: @assert
     )
-    @appendChild(@component.getDomNode())
+    @rootElement.appendChild(@component.getDomNode())
     inputNode = @component.hiddenInputComponent.getDomNode()
     inputNode.addEventListener 'focus', @focused.bind(this)
     inputNode.addEventListener 'blur', => @dispatchEvent(new FocusEvent('blur', bubbles: false))

@@ -4451,7 +4451,7 @@ describe('TextEditorComponent', function () {
         jasmine.attachToDOM(element)
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.querySelector('.editor-contents').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents--private').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/inline style/)
       })
@@ -4474,7 +4474,7 @@ describe('TextEditorComponent', function () {
         element.component.measureDimensions()
 
         expect(element.offsetHeight).toBe(200)
-        expect(element.querySelector('.editor-contents').offsetHeight).toBe(200)
+        expect(element.querySelector('.editor-contents--private').offsetHeight).toBe(200)
         expect(Grim.deprecate.callCount).toBe(1)
         expect(Grim.deprecate.argsForCall[0][0]).toMatch(/absolute/)
       })

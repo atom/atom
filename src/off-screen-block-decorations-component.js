@@ -6,6 +6,7 @@ module.exports = class OffScreenBlockDecorationsComponent {
     this.oldState = {offScreenBlockDecorations: {}, width: 0}
     this.domNode = document.createElement('div')
     this.domNode.style.visibility = 'hidden'
+    this.domNode.style.position = 'absolute'
     this.blockDecorationNodesById = {}
   }
 
