@@ -265,15 +265,16 @@ function transformDeprecatedShadowDOMSelectors (css, context) {
   })
   let deprecationMessage
   if (transformedSelectors.length > 0) {
-    deprecationMessage = 'Shadow DOM support for \`atom-text-editor\` elements has been deprecated. '
+    deprecationMessage = 'The contents of `atom-text-editor` elements are no longer encapsulated within a shadow DOM boundary. '
     deprecationMessage += 'This means you should stop using \`:host\` and \`::shadow\` '
     deprecationMessage += 'pseudo-selectors, and prepend all your syntax selectors with \`syntax--\`. '
-    deprecationMessage += 'To prevent breakage with existing stylesheets, Atom will automatically '
+    deprecationMessage += 'To prevent breakage with existing style sheets, Atom will automatically '
     deprecationMessage += 'upgrade the following selectors:\n\n'
     deprecationMessage += transformedSelectors
       .map((selector) => `* \`${selector.before}\` => \`${selector.after}\``)
       .join('\n\n') + '\n\n'
-    deprecationMessage += 'Please, make sure to upgrade these selectors as soon as possible.'
+      deprecationMessage += 'Automatic translation of selectors will be removed in a few release cycles to minimize startup time. '
+    deprecationMessage += 'Please, make sure to upgrade the above selectors as soon as possible.'
   }
   return {source: transformedSource.toString(), deprecationMessage}
 }
