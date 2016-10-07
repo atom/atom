@@ -294,13 +294,21 @@ Tooltip.prototype.replaceArrow = function (delta, dimension, isVertical) {
 
 Tooltip.prototype.setContent = function () {
   var tip = this.getTooltipElement()
-  var title = this.getTitle()
+
+  if (this.options.tooltipClass) {
+    tip.classList.add(this.options.tooltipClass)
+  }
 
   var inner = tip.querySelector('.tooltip-inner')
-  if (this.options.html) {
-    inner.innerHTML = title
+  if (this.options.tooltipElement) {
+    inner.appendChild(this.options.tooltipElement)
   } else {
-    inner.textContent = title
+    var title = this.getTitle()
+    if (this.options.html) {
+      inner.innerHTML = title
+    } else {
+      inner.textContent = title
+    }
   }
 
   tip.classList.remove('fade', 'in', 'top', 'bottom', 'left', 'right')
@@ -328,7 +336,7 @@ Tooltip.prototype.fixTitle = function () {
 }
 
 Tooltip.prototype.hasContent = function () {
-  return this.getTitle()
+  return this.getTitle() || this.options.tooltipElement
 }
 
 Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
