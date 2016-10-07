@@ -291,7 +291,8 @@ function transformDeprecatedShadowDOMSelectors (css, context) {
   })
   let deprecationMessage
   if (transformedSelectors.length > 0) {
-    deprecationMessage = 'The contents of `atom-text-editor` elements are no longer encapsulated within a shadow DOM boundary. '
+    deprecationMessage = 'Starting from Atom v1.13.0, the contents of `atom-text-editor` elements '
+    deprecationMessage += 'are no longer encapsulated within a shadow DOM boundary. '
     deprecationMessage += 'This means you should stop using \`:host\` and \`::shadow\` '
     deprecationMessage += 'pseudo-selectors, and prepend all your syntax selectors with \`syntax--\`. '
     deprecationMessage += 'To prevent breakage with existing style sheets, Atom will automatically '
