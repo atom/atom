@@ -54,7 +54,6 @@ describe "TextEditor", ->
       # reusing the same buffer instance
       editor2 = TextEditor.deserialize(editor.serialize(), {
         assert: atom.assert,
-        clipboard: atom.clipboard,
         textEditors: atom.textEditors,
         project: {
           bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
@@ -5831,11 +5830,7 @@ describe "TextEditor", ->
         atom.packages.activatePackage('language-coffee-script')
 
     it "sets the grammar", ->
-      editor = new TextEditor({
-        grammar: atom.grammars.grammarForScopeName('source.coffee')
-        clipboard: atom.clipboard
-      })
-
+      editor = new TextEditor({grammar: atom.grammars.grammarForScopeName('source.coffee')})
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
   describe "softWrapAtPreferredLineLength", ->

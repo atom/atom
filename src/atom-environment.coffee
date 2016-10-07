@@ -28,7 +28,6 @@ ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
-Clipboard = require './clipboard'
 Project = require './project'
 TitleBar = require './title-bar'
 Workspace = require './workspace'
@@ -127,7 +126,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@blobStore, @applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
@@ -182,20 +181,18 @@ class AtomEnvironment extends Model
     @packages.setContextMenuManager(@contextMenu)
     @packages.setThemeManager(@themes)
 
-    @clipboard = new Clipboard()
-
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
     @textEditors = new TextEditorRegistry({
-      @config, grammarRegistry: @grammars, assert: @assert.bind(this), @clipboard,
+      @config, grammarRegistry: @grammars, assert: @assert.bind(this),
       packageManager: @packages
     })
 
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
-      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this),
+      notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
       textEditorRegistry: @textEditors,
     })
 

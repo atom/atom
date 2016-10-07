@@ -29,7 +29,7 @@ describe "Workspace", ->
       atom.workspace = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         grammarRegistry: atom.grammars, deserializerManager: atom.deserializers,
-        notificationManager: atom.notifications, clipboard: atom.clipboard,
+        notificationManager: atom.notifications,
         applicationDelegate: atom.applicationDelegate,
         viewRegistry: atom.views, assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
@@ -871,7 +871,7 @@ describe "Workspace", ->
       workspace2 = new Workspace({
         config: atom.config, project: atom.project, packageManager: atom.packages,
         notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-        clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+        viewRegistry: atom.views, grammarRegistry: atom.grammars,
         applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
         textEditorRegistry: atom.textEditors
       })
@@ -934,7 +934,7 @@ describe "Workspace", ->
         workspace2 = new Workspace({
           config: atom.config, project: atom.project, packageManager: atom.packages,
           notificationManager: atom.notifications, deserializerManager: atom.deserializers,
-          clipboard: atom.clipboard, viewRegistry: atom.views, grammarRegistry: atom.grammars,
+          viewRegistry: atom.views, grammarRegistry: atom.grammars,
           applicationDelegate: atom.applicationDelegate, assert: atom.assert.bind(atom),
           textEditorRegistry: atom.textEditors
         })

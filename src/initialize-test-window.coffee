@@ -21,6 +21,8 @@ module.exports = ({blobStore}) ->
     {getWindowLoadSettings} = require './window-load-settings-helpers'
     AtomEnvironment = require '../src/atom-environment'
     ApplicationDelegate = require '../src/application-delegate'
+    Clipboard = require '../src/clipboard'
+    TextEditor = require '../src/text-editor'
     require '../src/electron-shims'
 
     {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
@@ -58,11 +60,15 @@ module.exports = ({blobStore}) ->
 
     document.title = "Spec Suite"
 
+    clipboard = new Clipboard
+    TextEditor.setClipboard(clipboard)
+
     testRunner = require(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)
     buildDefaultApplicationDelegate = -> new ApplicationDelegate()
     buildAtomEnvironment = (params) ->
       params = cloneObject(params)
+      params.clipboard = clipboard unless params.hasOwnProperty("clipboard")
       params.blobStore = blobStore unless params.hasOwnProperty("blobStore")
       params.onlyLoadBaseStyleSheets = true unless params.hasOwnProperty("onlyLoadBaseStyleSheets")
       new AtomEnvironment(params)
