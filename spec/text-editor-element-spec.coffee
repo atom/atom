@@ -78,7 +78,7 @@ describe "TextEditorElement", ->
       expect(element.querySelectorAll('.decoration').length).toBe initialDecorationCount
 
   describe "focus and blur handling", ->
-    it "proxies focus/blur events to/from the hidden input inside the shadow root", ->
+    it "proxies focus/blur events to/from the hidden input", ->
       element = new TextEditorElement
       jasmineContent.appendChild(element)
 
