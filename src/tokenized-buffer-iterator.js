@@ -164,7 +164,11 @@ module.exports = class TokenizedBufferIterator {
   }
 
   scopeForId (id) {
-    const scope = this.tokenizedBuffer.grammar.scopeForId(id).replace(/\./g, '.syntax--')
-    return `syntax--${scope}`
+    const scope = this.tokenizedBuffer.grammar.scopeForId(id)
+    if (scope) {
+      return `syntax--${scope.replace(/\./g, '.syntax--')}`
+    } else {
+      return null
+    }
   }
 }

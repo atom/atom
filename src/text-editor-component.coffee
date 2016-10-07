@@ -73,7 +73,7 @@ class TextEditorComponent
     @hiddenInputComponent = new InputComponent
     @scrollViewNode.appendChild(@hiddenInputComponent.getDomNode())
 
-    @linesComponent = new LinesComponent({@presenter, @hostElement, @domElementPool, @assert, @grammars, @views})
+    @linesComponent = new LinesComponent({@presenter, @domElementPool, @assert, @grammars, @views})
     @scrollViewNode.appendChild(@linesComponent.getDomNode())
 
     @offScreenBlockDecorationsComponent = new OffScreenBlockDecorationsComponent({@presenter, @views})

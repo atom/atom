@@ -1,3 +1,4 @@
+Grim = require 'grim'
 {Emitter, CompositeDisposable} = require 'event-kit'
 TextBuffer = require 'text-buffer'
 TextEditorComponent = require './text-editor-component'

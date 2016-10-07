@@ -5322,8 +5322,8 @@ describe "TextEditor", ->
 
           tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual [
-            {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
-            {text: ' http://github.com', scopes: ['source.js', 'comment.line.double-slash.js']}
+            {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
+            {text: ' http://github.com', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
           ]
 
         waitsForPromise ->
@@ -5332,9 +5332,9 @@ describe "TextEditor", ->
         runs ->
           tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual [
-            {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
-            {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']}
-            {text: 'http://github.com', scopes: ['source.js', 'comment.line.double-slash.js', 'markup.underline.link.http.hyperlink']}
+            {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
+            {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
+            {text: 'http://github.com', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--markup.syntax--underline.syntax--link.syntax--http.syntax--hyperlink']}
           ]
 
       describe "when the grammar is updated", ->
@@ -5347,8 +5347,8 @@ describe "TextEditor", ->
 
             tokens = editor.tokensForScreenRow(0)
             expect(tokens).toEqual [
-              {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
-              {text: ' SELECT * FROM OCTOCATS', scopes: ['source.js', 'comment.line.double-slash.js']}
+              {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
+              {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
             ]
 
           waitsForPromise ->
@@ -5357,8 +5357,8 @@ describe "TextEditor", ->
           runs ->
             tokens = editor.tokensForScreenRow(0)
             expect(tokens).toEqual [
-              {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
-              {text: ' SELECT * FROM OCTOCATS', scopes: ['source.js', 'comment.line.double-slash.js']}
+              {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
+              {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
             ]
 
           waitsForPromise ->
@@ -5367,14 +5367,14 @@ describe "TextEditor", ->
           runs ->
             tokens = editor.tokensForScreenRow(0)
             expect(tokens).toEqual [
-              {text: '//', scopes: ['source.js', 'comment.line.double-slash.js', 'punctuation.definition.comment.js']},
-              {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']},
-              {text: 'SELECT', scopes: ['source.js', 'comment.line.double-slash.js', 'keyword.other.DML.sql']},
-              {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']},
-              {text: '*', scopes: ['source.js', 'comment.line.double-slash.js', 'keyword.operator.star.sql']},
-              {text: ' ', scopes: ['source.js', 'comment.line.double-slash.js']},
-              {text: 'FROM', scopes: ['source.js', 'comment.line.double-slash.js', 'keyword.other.DML.sql']},
-              {text: ' OCTOCATS', scopes: ['source.js', 'comment.line.double-slash.js']}
+              {text: '//', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--punctuation.syntax--definition.syntax--comment.syntax--js']},
+              {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']},
+              {text: 'SELECT', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--keyword.syntax--other.syntax--DML.syntax--sql']},
+              {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']},
+              {text: '*', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--keyword.syntax--operator.syntax--star.syntax--sql']},
+              {text: ' ', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']},
+              {text: 'FROM', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js', 'syntax--keyword.syntax--other.syntax--DML.syntax--sql']},
+              {text: ' OCTOCATS', scopes: ['syntax--source.syntax--js', 'syntax--comment.syntax--line.syntax--double-slash.syntax--js']}
             ]
 
   describe ".normalizeTabsInBufferRange()", ->
@@ -5809,20 +5809,20 @@ describe "TextEditor", ->
 
       editor.update({showIndentGuide: false})
       expect(editor.tokensForScreenRow(0)).toEqual [
-        {text: '  ', scopes: ['source.js', 'leading-whitespace']},
-        {text: 'foo', scopes: ['source.js']}
+        {text: '  ', scopes: ['syntax--source.syntax--js', 'leading-whitespace']},
+        {text: 'foo', scopes: ['syntax--source.syntax--js']}
       ]
 
       editor.update({showIndentGuide: true})
       expect(editor.tokensForScreenRow(0)).toEqual [
-        {text: '  ', scopes: ['source.js', 'leading-whitespace indent-guide']},
-        {text: 'foo', scopes: ['source.js']}
+        {text: '  ', scopes: ['syntax--source.syntax--js', 'leading-whitespace indent-guide']},
+        {text: 'foo', scopes: ['syntax--source.syntax--js']}
       ]
 
       editor.setMini(true)
       expect(editor.tokensForScreenRow(0)).toEqual [
-        {text: '  ', scopes: ['source.js', 'leading-whitespace']},
-        {text: 'foo', scopes: ['source.js']}
+        {text: '  ', scopes: ['syntax--source.syntax--js', 'leading-whitespace']},
+        {text: 'foo', scopes: ['syntax--source.syntax--js']}
       ]
 
   describe "when the editor is constructed with the grammar option set", ->
