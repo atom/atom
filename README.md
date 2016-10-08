@@ -9,7 +9,7 @@ about the Atom 1.0 roadmap.
 
 ## Documentation
 
-If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://atom.io/docs/latest/) is free and available online, along with ePub, PDF, and mobi versions. You can find the source to the manual in [atom/docs](https://github.com/atom/docs).
 
 The [API reference](https://atom.io/docs/api) for developing packages is also documented on Atom.io.
 
