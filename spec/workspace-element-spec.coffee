@@ -1,6 +1,7 @@
 {ipcRenderer} = require 'electron'
 path = require 'path'
 temp = require('temp').track()
+{Disposable} = require 'event-kit'
 
 describe "WorkspaceElement", ->
   describe "when the workspace element is focused", ->
@@ -17,9 +18,11 @@ describe "WorkspaceElement", ->
     it "has a class based on the style of the scrollbar", ->
       observeCallback = null
       scrollbarStyle = require 'scrollbar-style'
-      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake (cb) -> observeCallback = cb
-      workspaceElement = atom.views.getView(atom.workspace)
+      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake (cb) ->
+        observeCallback = cb
+        new Disposable(->)
 
+      workspaceElement = atom.views.getView(atom.workspace)
       observeCallback('legacy')
       expect(workspaceElement.className).toMatch 'scrollbars-visible-always'
 
