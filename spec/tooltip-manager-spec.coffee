@@ -67,6 +67,12 @@ describe "TooltipManager", ->
       hover element, ->
         expect(tooltipElement.closest(".tooltip")).not.toBeNull()
 
+    it "allows a custom class to be specified for the tooltip", ->
+      tooltipElement = document.createElement('div')
+      manager.add element, title: 'Title', class: 'custom-tooltip-class'
+      hover element, ->
+        expect(document.body.querySelector(".tooltip").classList.contains('custom-tooltip-class')).toBe(true)
+
     it "allows jQuery elements to be passed as the target", ->
       element2 = document.createElement('div')
       jasmine.attachToDOM(element2)

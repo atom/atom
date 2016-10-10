@@ -307,8 +307,8 @@ Tooltip.prototype.replaceArrow = function (delta, dimension, isVertical) {
 Tooltip.prototype.setContent = function () {
   var tip = this.getTooltipElement()
 
-  if (this.options.tooltipClass) {
-    tip.classList.add(this.options.tooltipClass)
+  if (this.options.class) {
+    tip.classList.add(this.options.class)
   }
 
   var inner = tip.querySelector('.tooltip-inner')
