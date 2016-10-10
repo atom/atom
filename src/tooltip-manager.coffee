@@ -54,7 +54,7 @@ class TooltipManager
     placement: 'auto top'
     viewportPadding: 2
 
-  constructor: ({@keymapManager}) ->
+  constructor: ({@keymapManager, @viewRegistry}) ->
 
   # Essential: Add a tooltip to the given element.
   #
@@ -92,7 +92,7 @@ class TooltipManager
       else if keystroke?
         options.title = getKeystroke(bindings)
 
-    tooltip = new Tooltip(target, _.defaults(options, @defaults))
+    tooltip = new Tooltip(target, _.defaults(options, @defaults), @viewRegistry)
 
     hideTooltip = ->
       tooltip.leave(currentTarget: target)

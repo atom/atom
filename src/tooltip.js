@@ -7,13 +7,14 @@ const listen = require('./delegated-listener')
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
 
-var Tooltip = function (element, options) {
+var Tooltip = function (element, options, viewRegistry) {
   this.options = null
   this.enabled = null
   this.timeout = null
   this.hoverState = null
   this.element = null
   this.inState = null
+  this.viewRegistry = viewRegistry
 
   this.init(element, options)
 }
@@ -300,8 +301,8 @@ Tooltip.prototype.setContent = function () {
   }
 
   var inner = tip.querySelector('.tooltip-inner')
-  if (this.options.tooltipElement) {
-    inner.appendChild(this.options.tooltipElement)
+  if (this.options.item) {
+    inner.appendChild(this.viewRegistry.getView(this.options.item))
   } else {
     var title = this.getTitle()
     if (this.options.html) {
@@ -336,7 +337,7 @@ Tooltip.prototype.fixTitle = function () {
 }
 
 Tooltip.prototype.hasContent = function () {
-  return this.getTitle() || this.options.tooltipElement
+  return this.getTitle() || this.options.item
 }
 
 Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {

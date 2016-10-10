@@ -8,7 +8,7 @@ describe "TooltipManager", ->
   ctrlY = _.humanizeKeystroke("ctrl-y")
 
   beforeEach ->
-    manager = new TooltipManager(keymapManager: atom.keymaps)
+    manager = new TooltipManager(keymapManager: atom.keymaps, viewRegistry: atom.views)
     element = document.createElement('div')
     element.classList.add('foo')
     jasmine.attachToDOM(element)
@@ -23,7 +23,7 @@ describe "TooltipManager", ->
     advanceClock(manager.defaults.delay.hide)
 
   describe "::add(target, options)", ->
-    it "creates a tooltip based on the given options when hovering over the target element", ->
+    it "creates a tooltip when hovering over the target element if no trigger is specified", ->
       manager.add element, title: "Title"
       hover element, ->
         expect(document.body.querySelector(".tooltip")).toHaveText("Title")
@@ -33,6 +33,12 @@ describe "TooltipManager", ->
       expect(document.body.querySelector(".tooltip")).toHaveText("Title")
       disposable.dispose()
       expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    it "allows a custom item to be specified for the content of the tooltip", ->
+      tooltipElement = document.createElement('div')
+      manager.add element, item: {element: tooltipElement}
+      hover element, ->
+        expect(tooltipElement.closest(".tooltip")).not.toBeNull()
 
     it "allows jQuery elements to be passed as the target", ->
       element2 = document.createElement('div')
