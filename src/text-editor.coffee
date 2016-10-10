@@ -150,7 +150,7 @@ class TextEditor extends Model
     @hasTerminatedPendingState = false
 
     @mini ?= false
-    @scrollPastEnd ?= true
+    @scrollPastEnd ?= false
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
