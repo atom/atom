@@ -46,13 +46,14 @@ Tooltip = null
 module.exports =
 class TooltipManager
   defaults:
-    delay:
-      show: 1000
-      hide: 100
+    trigger: 'hover'
     container: 'body'
     html: true
     placement: 'auto top'
     viewportPadding: 2
+
+  hoverDefaults:
+    {delay: {show: 1000, hide: 100}}
 
   constructor: ({@keymapManager, @viewRegistry}) ->
 
@@ -92,7 +93,11 @@ class TooltipManager
       else if keystroke?
         options.title = getKeystroke(bindings)
 
-    tooltip = new Tooltip(target, _.defaults(options, @defaults), @viewRegistry)
+    options = _.defaults(options, @defaults)
+    if options.trigger is 'hover'
+      options = _.defaults(options, @hoverDefaults)
+
+    tooltip = new Tooltip(target, options, @viewRegistry)
 
     hideTooltip = ->
       tooltip.leave(currentTarget: target)

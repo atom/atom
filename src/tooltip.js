@@ -65,6 +65,14 @@ Tooltip.prototype.init = function (element, options) {
 
     if (trigger === 'click') {
       this.disposables.add(listen(this.element, 'click', this.options.selector, this.toggle.bind(this)))
+      this.hideOnClickOutsideOfTooltip = (event) => {
+        const tooltipElement = this.getTooltipElement()
+        if (tooltipElement === event.target) return
+        if (tooltipElement.contains(event.target)) return
+        if (this.element === event.target) return
+        if (this.element.contains(event.target)) return
+        this.hide()
+      }
     } else if (trigger === 'manual') {
       this.show()
     } else {
@@ -183,8 +191,11 @@ Tooltip.prototype.leave = function (event) {
 
 Tooltip.prototype.show = function () {
   if (this.hasContent() && this.enabled) {
-    var tip = this.getTooltipElement()
+    if (this.hideOnClickOutsideOfTooltip) {
+      window.addEventListener('click', this.hideOnClickOutsideOfTooltip, true)
+    }
 
+    var tip = this.getTooltipElement()
     var tipId = this.getUID('tooltip')
 
     this.setContent()
@@ -316,6 +327,12 @@ Tooltip.prototype.setContent = function () {
 }
 
 Tooltip.prototype.hide = function (callback) {
+  this.inState = {}
+
+  if (this.hideOnClickOutsideOfTooltip) {
+    window.removeEventListener('click', this.hideOnClickOutsideOfTooltip, true)
+  }
+
   this.tip && this.tip.classList.remove('in')
 
   if (this.hoverState !== 'in') this.tip && this.tip.remove()
@@ -445,7 +462,7 @@ Tooltip.prototype.destroy = function () {
 Tooltip.prototype.getDelegateComponent = function (element) {
   var component = tooltipComponentsByElement.get(element)
   if (!component) {
-    component = new Tooltip(element, this.getDelegateOptions())
+    component = new Tooltip(element, this.getDelegateOptions(), this.viewRegistry)
     tooltipComponentsByElement.set(element, component)
   }
   return component

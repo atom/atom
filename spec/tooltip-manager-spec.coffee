@@ -16,23 +16,50 @@ describe "TooltipManager", ->
   hover = (element, fn) ->
     element.dispatchEvent(new CustomEvent('mouseenter', bubbles: false))
     element.dispatchEvent(new CustomEvent('mouseover', bubbles: true))
-    advanceClock(manager.defaults.delay.show)
+    advanceClock(manager.hoverDefaults.delay.show)
     fn()
     element.dispatchEvent(new CustomEvent('mouseleave', bubbles: false))
     element.dispatchEvent(new CustomEvent('mouseout', bubbles: true))
-    advanceClock(manager.defaults.delay.hide)
+    advanceClock(manager.hoverDefaults.delay.hide)
 
   describe "::add(target, options)", ->
-    it "creates a tooltip when hovering over the target element if no trigger is specified", ->
-      manager.add element, title: "Title"
-      hover element, ->
-        expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+    describe "when the trigger is 'hover' (the default)", ->
+      it "creates a tooltip when hovering over the target element", ->
+        manager.add element, title: "Title"
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).toHaveText("Title")
 
-    it "creates a tooltip immediately if the trigger type is manual", ->
-      disposable = manager.add element, title: "Title", trigger: "manual"
-      expect(document.body.querySelector(".tooltip")).toHaveText("Title")
-      disposable.dispose()
-      expect(document.body.querySelector(".tooltip")).toBeNull()
+    describe "when the trigger is 'manual'", ->
+      it "creates a tooltip immediately and only hides it on dispose", ->
+        disposable = manager.add element, title: "Title", trigger: "manual"
+        expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+        disposable.dispose()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    describe "when the trigger is 'click'", ->
+      it "shows and hides the tooltip when the target element is clicked", ->
+        disposable = manager.add element, title: "Title", trigger: "click"
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+        element.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        element.click()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+        # Hide the tooltip when clicking anywhere but inside the tooltip element
+        element.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        document.body.querySelector(".tooltip").click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        document.body.querySelector(".tooltip").firstChild.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        document.body.click()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+        # Tooltip can show again after hiding due to clicking outside of the tooltip
+        element.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        element.click()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
 
     it "allows a custom item to be specified for the content of the tooltip", ->
       tooltipElement = document.createElement('div')
