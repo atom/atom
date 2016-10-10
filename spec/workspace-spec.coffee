@@ -1,5 +1,6 @@
 path = require 'path'
 temp = require 'temp'
+TextEditor = require '../src/text-editor'
 Workspace = require '../src/workspace'
 Project = require '../src/project'
 platform = require './spec-helper-platform'
@@ -795,7 +796,7 @@ describe "Workspace", ->
 
   describe "::isTextEditor(obj)", ->
     it "returns true when the passed object is an instance of `TextEditor`", ->
-      expect(workspace.isTextEditor(atom.workspace.buildTextEditor())).toBe(true)
+      expect(workspace.isTextEditor(new TextEditor)).toBe(true)
       expect(workspace.isTextEditor({getText: -> null})).toBe(false)
       expect(workspace.isTextEditor(null)).toBe(false)
       expect(workspace.isTextEditor(undefined)).toBe(false)
@@ -1727,7 +1728,7 @@ describe "Workspace", ->
 
     describe "when there's no repository for the editor's file", ->
       it "doesn't do anything", ->
-        editor = atom.workspace.buildTextEditor()
+        editor = new TextEditor
         editor.setText("stuff")
         atom.workspace.checkoutHeadRevision(editor)
 

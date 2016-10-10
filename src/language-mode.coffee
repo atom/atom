@@ -2,6 +2,7 @@
 _ = require 'underscore-plus'
 {OnigRegExp} = require 'oniguruma'
 ScopeDescriptor = require './scope-descriptor'
+NullGrammar = require './null-grammar'
 
 module.exports =
 class LanguageMode
@@ -245,7 +246,10 @@ class LanguageMode
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
-    tokenizedLine = @editor.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
+    if @editor.largeFileMode or @editor.tokenizedBuffer.grammar is NullGrammar
+      tokenizedLine = @editor.tokenizedBuffer.buildPlaceholderTokenizedLineForRowWithText(bufferRow, line)
+    else
+      tokenizedLine = @editor.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->
