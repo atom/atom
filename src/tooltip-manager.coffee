@@ -122,6 +122,7 @@ class TooltipManager
       else if keystroke?
         options.title = getKeystroke(bindings)
 
+    delete options.selector
     options = _.defaults(options, @defaults)
     if options.trigger is 'hover'
       options = _.defaults(options, @hoverDefaults)

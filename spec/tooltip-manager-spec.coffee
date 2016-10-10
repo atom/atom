@@ -91,20 +91,6 @@ describe "TooltipManager", ->
       hover element, -> expect(document.body.querySelector(".tooltip")).toBeNull()
       hover element2, -> expect(document.body.querySelector(".tooltip")).toBeNull()
 
-    describe "when a selector is specified", ->
-      it "creates a tooltip when hovering over a descendant of the target that matches the selector", ->
-        child = document.createElement('div')
-        child.classList.add('bar')
-        grandchild = document.createElement('div')
-        element.appendChild(child)
-        child.appendChild(grandchild)
-
-        manager.add element, selector: '.bar', title: 'Bar'
-
-        hover grandchild, ->
-          expect(document.body.querySelector('.tooltip')).toHaveText('Bar')
-        expect(document.body.querySelector('.tooltip')).toBeNull()
-
     describe "when a keyBindingCommand is specified", ->
       describe "when a title is specified", ->
         it "appends the key binding corresponding to the command to the title", ->
