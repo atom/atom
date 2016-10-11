@@ -9,10 +9,9 @@ fs = require 'fs-plus'
 {mapSourcePosition} = require 'source-map-support'
 Model = require './model'
 WindowEventHandler = require './window-event-handler'
-StylesElement = require './styles-element'
 StateStore = require './state-store'
 StorageFolder = require './storage-folder'
-{getWindowLoadSettings, setWindowLoadSettings} = require './window-load-settings-helpers'
+{getWindowLoadSettings} = require './window-load-settings-helpers'
 registerDefaultCommands = require './register-default-commands'
 
 DeserializerManager = require './deserializer-manager'
@@ -29,7 +28,6 @@ ThemeManager = require './theme-manager'
 MenuManager = require './menu-manager'
 ContextMenuManager = require './context-menu-manager'
 CommandInstaller = require './command-installer'
-Clipboard = require './clipboard'
 Project = require './project'
 TitleBar = require './title-bar'
 Workspace = require './workspace'
@@ -51,7 +49,6 @@ PanelElement = require './panel-element'
 PaneContainerElement = require './pane-container-element'
 PaneAxisElement = require './pane-axis-element'
 PaneElement = require './pane-element'
-TextEditorElement = require './text-editor-element'
 {createGutterView} = require './gutter-component-helpers'
 
 # Essential: Atom global for dealing with packages, themes, menus, and the window.
@@ -129,7 +126,7 @@ class AtomEnvironment extends Model
 
   # Call .loadOrCreate instead
   constructor: (params={}) ->
-    {@blobStore, @applicationDelegate, @window, @document, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
+    {@blobStore, @applicationDelegate, @window, @document, @clipboard, @configDirPath, @enablePersistence, onlyLoadBaseStyleSheets} = params
 
     @unloaded = false
     @loadTime = null
@@ -184,20 +181,18 @@ class AtomEnvironment extends Model
     @packages.setContextMenuManager(@contextMenu)
     @packages.setThemeManager(@themes)
 
-    @clipboard = new Clipboard()
-
     @project = new Project({notificationManager: @notifications, packageManager: @packages, @config, @applicationDelegate})
 
     @commandInstaller = new CommandInstaller(@getVersion(), @applicationDelegate)
 
     @textEditors = new TextEditorRegistry({
-      @config, grammarRegistry: @grammars, assert: @assert.bind(this), @clipboard,
+      @config, grammarRegistry: @grammars, assert: @assert.bind(this),
       packageManager: @packages
     })
 
     @workspace = new Workspace({
       @config, @project, packageManager: @packages, grammarRegistry: @grammars, deserializerManager: @deserializers,
-      notificationManager: @notifications, @applicationDelegate, @clipboard, viewRegistry: @views, assert: @assert.bind(this),
+      notificationManager: @notifications, @applicationDelegate, viewRegistry: @views, assert: @assert.bind(this),
       textEditorRegistry: @textEditors,
     })
 
@@ -847,7 +842,7 @@ class AtomEnvironment extends Model
       @project.addPath(selectedPath) for selectedPath in selectedPaths
 
   showSaveDialog: (callback) ->
-    callback(showSaveDialogSync())
+    callback(@showSaveDialogSync())
 
   showSaveDialogSync: (options={}) ->
     @applicationDelegate.showSaveDialog(options)

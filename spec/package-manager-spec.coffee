@@ -31,6 +31,19 @@ describe "PackageManager", ->
         it "returns the value of the core.apmPath config setting", ->
           expect(atom.packages.getApmPath()).toBe "/path/to/apm"
 
+  describe "::loadPackages()", ->
+    beforeEach ->
+      spyOn(atom.packages, 'loadPackage')
+
+    afterEach ->
+      atom.packages.deactivatePackages()
+      atom.packages.unloadPackages()
+
+    it "sets hasLoadedInitialPackages", ->
+      expect(atom.packages.hasLoadedInitialPackages()).toBe false
+      atom.packages.loadPackages()
+      expect(atom.packages.hasLoadedInitialPackages()).toBe true
+
   describe "::loadPackage(name)", ->
     beforeEach ->
       atom.config.set("core.disabledPackages", [])
@@ -1021,6 +1034,12 @@ describe "PackageManager", ->
       atom.packages.unloadPackages()
 
       jasmine.restoreDeprecationsSnapshot()
+
+    it "sets hasActivatedInitialPackages", ->
+      spyOn(atom.packages, 'activatePackages')
+      expect(atom.packages.hasActivatedInitialPackages()).toBe false
+      waitsForPromise -> atom.packages.activate()
+      runs -> expect(atom.packages.hasActivatedInitialPackages()).toBe true
 
     it "activates all the packages, and none of the themes", ->
       packageActivator = spyOn(atom.packages, 'activatePackages')

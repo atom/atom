@@ -1,4 +1,4 @@
-{Emitter, Disposable} = require 'event-kit'
+{Emitter} = require 'event-kit'
 Notification = require '../src/notification'
 
 # Public: A notification manager used to create {Notification}s to be shown

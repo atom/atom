@@ -45,6 +45,8 @@ class PackageManager
       @packageDirPaths.push(path.join(configDirPath, "packages"))
 
     @packagesCache = require('../package.json')?._atomPackages ? {}
+    @initialPackagesLoaded = false
+    @initialPackagesActivated = false
     @loadedPackages = {}
     @activePackages = {}
     @activatingPackages = {}
@@ -241,6 +243,9 @@ class PackageManager
   isPackageActive: (name) ->
     @getActivePackage(name)?
 
+  # Public: Returns a {Boolean} indicating whether package activation has occurred.
+  hasActivatedInitialPackages: -> @initialPackagesActivated
+
   ###
   Section: Accessing loaded packages
   ###
@@ -271,6 +276,9 @@ class PackageManager
   isPackageLoaded: (name) ->
     @getLoadedPackage(name)?
 
+  # Public: Returns a {Boolean} indicating whether package loading has occurred.
+  hasLoadedInitialPackages: -> @initialPackagesLoaded
+
   ###
   Section: Accessing available packages
   ###
@@ -284,7 +292,7 @@ class PackageManager
         packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 
     packagesPath = path.join(@resourcePath, 'node_modules')
-    for packageName, packageVersion of @getPackageDependencies()
+    for packageName of @getPackageDependencies()
       packagePath = path.join(packagesPath, packageName)
       packagePaths.push(packagePath) if fs.isDirectorySync(packagePath)
 
@@ -364,6 +372,7 @@ class PackageManager
     @config.transact =>
       @loadPackage(packagePath) for packagePath in packagePaths
       return
+    @initialPackagesLoaded = true
     @emitter.emit 'did-load-initial-packages'
 
   loadPackage: (nameOrPath) ->
@@ -426,6 +435,7 @@ class PackageManager
       promises = promises.concat(activator.activatePackages(packages))
     Promise.all(promises).then =>
       @triggerDeferredActivationHooks()
+      @initialPackagesActivated = true
       @emitter.emit 'did-activate-initial-packages'
 
   # another type of package manager can handle other package types.

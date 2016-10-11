@@ -13,7 +13,7 @@
   'left': 'core:move-left'
   'right': 'core:move-right'
   'ctrl-alt-r': 'window:reload'
-  'ctrl-alt-i': 'window:toggle-dev-tools'
+  'ctrl-shift-i': 'window:toggle-dev-tools'
   'ctrl-alt-p': 'window:run-package-specs'
   'ctrl-shift-o': 'application:open-folder'
   'ctrl-alt-o': 'application:add-project-folder'

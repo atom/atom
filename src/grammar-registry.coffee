@@ -1,5 +1,4 @@
 _ = require 'underscore-plus'
-{Emitter} = require 'event-kit'
 FirstMate = require 'first-mate'
 Token = require './token'
 fs = require 'fs-plus'

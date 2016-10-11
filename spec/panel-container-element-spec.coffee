@@ -1,7 +1,5 @@
 Panel = require '../src/panel'
-PanelElement = require '../src/panel-element'
 PanelContainer = require '../src/panel-container'
-PanelContainerElement = require '../src/panel-container-element'
 
 describe "PanelContainerElement", ->
   [jasmineContent, element, container] = []

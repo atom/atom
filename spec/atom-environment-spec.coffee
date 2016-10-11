@@ -1,8 +1,6 @@
 _ = require 'underscore-plus'
 path = require 'path'
 temp = require 'temp'
-Package = require '../src/package'
-ThemeManager = require '../src/theme-manager'
 AtomEnvironment = require '../src/atom-environment'
 StorageFolder = require '../src/storage-folder'
 

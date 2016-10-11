@@ -24,7 +24,7 @@ class BlockDecorationsComponent
       @domNode.style.width = @newState.width + "px"
       @oldState.width = @newState.width
 
-    for id, blockDecorationState of @oldState.blockDecorations
+    for id of @oldState.blockDecorations
       unless @newState.blockDecorations.hasOwnProperty(id)
         blockDecorationNode = @blockDecorationNodesById[id]
         blockDecorationNode.previousSibling.remove()
@@ -33,7 +33,7 @@ class BlockDecorationsComponent
         delete @blockDecorationNodesById[id]
         delete @oldState.blockDecorations[id]
 
-    for id, blockDecorationState of @newState.blockDecorations
+    for id of @newState.blockDecorations
       if @oldState.blockDecorations.hasOwnProperty(id)
         @updateBlockDecorationNode(id)
       else
@@ -42,7 +42,6 @@ class BlockDecorationsComponent
 
   measureBlockDecorations: ->
     for decorationId, blockDecorationNode of @blockDecorationNodesById
-      style = getComputedStyle(blockDecorationNode)
       decoration = @newState.blockDecorations[decorationId].decoration
       topRuler = blockDecorationNode.previousSibling
       bottomRuler = blockDecorationNode.nextSibling

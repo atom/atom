@@ -1,4 +1,4 @@
-{basename, join} = require 'path'
+{join} = require 'path'
 
 _ = require 'underscore-plus'
 {Emitter, Disposable, CompositeDisposable} = require 'event-kit'

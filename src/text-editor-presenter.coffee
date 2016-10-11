@@ -1,4 +1,4 @@
-{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
+{CompositeDisposable, Emitter} = require 'event-kit'
 {Point, Range} = require 'text-buffer'
 _ = require 'underscore-plus'
 Decoration = require './decoration'
@@ -886,13 +886,11 @@ class TextEditorPresenter
 
   setHorizontalScrollbarHeight: (horizontalScrollbarHeight) ->
     unless @measuredHorizontalScrollbarHeight is horizontalScrollbarHeight
-      oldHorizontalScrollbarHeight = @measuredHorizontalScrollbarHeight
       @measuredHorizontalScrollbarHeight = horizontalScrollbarHeight
       @emitDidUpdateState()
 
   setVerticalScrollbarWidth: (verticalScrollbarWidth) ->
     unless @measuredVerticalScrollbarWidth is verticalScrollbarWidth
-      oldVerticalScrollbarWidth = @measuredVerticalScrollbarWidth
       @measuredVerticalScrollbarWidth = verticalScrollbarWidth
       @emitDidUpdateState()
 
@@ -922,7 +920,6 @@ class TextEditorPresenter
 
   setContentFrameWidth: (contentFrameWidth) ->
     if @contentFrameWidth isnt contentFrameWidth or @editorWidthInChars?
-      oldContentFrameWidth = @contentFrameWidth
       @contentFrameWidth = contentFrameWidth
       @editorWidthInChars = null
       @updateScrollbarDimensions()
@@ -1122,7 +1119,7 @@ class TextEditorPresenter
         @updateHighlightState(decorationId, properties, screenRange)
 
     for tileId, tileState of @state.content.tiles
-      for id, highlight of tileState.highlights
+      for id of tileState.highlights
         delete tileState.highlights[id] unless @visibleHighlights[tileId]?[id]?
 
     return

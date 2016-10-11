@@ -1,5 +1,3 @@
-_ = require 'underscore-plus'
-
 idCounter = 0
 nextId = -> idCounter++
 

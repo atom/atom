@@ -1,13 +1,10 @@
 KeymapManager = require 'atom-keymap'
-path = require 'path'
-fs = require 'fs-plus'
-temp = require 'temp'
 TextEditor = require '../src/text-editor'
 WindowEventHandler = require '../src/window-event-handler'
 {ipcRenderer} = require 'electron'
 
 describe "WindowEventHandler", ->
-  [projectPath, windowEventHandler] = []
+  [windowEventHandler] = []
 
   beforeEach ->
     atom.uninstallWindowEventHandler()
@@ -19,7 +16,6 @@ describe "WindowEventHandler", ->
       loadSettings
     atom.project.destroy()
     windowEventHandler = new WindowEventHandler({atomEnvironment: atom, applicationDelegate: atom.applicationDelegate, window, document})
-    projectPath = atom.project.getPaths()[0]
 
   afterEach ->
     windowEventHandler.unsubscribe()

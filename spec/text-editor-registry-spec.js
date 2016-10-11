@@ -15,15 +15,11 @@ describe('TextEditorRegistry', function () {
     registry = new TextEditorRegistry({
       assert: atom.assert,
       config: atom.config,
-      clipboard: atom.clipboard,
       grammarRegistry: atom.grammars,
       packageManager: {deferredActivationHooks: null}
     })
 
-    editor = new TextEditor({
-      config: atom.config,
-      clipboard: atom.clipboard,
-    })
+    editor = new TextEditor()
   })
 
   afterEach(function () {
@@ -125,6 +121,25 @@ describe('TextEditorRegistry', function () {
       expect(editor.getGrammar().name).toBe('Null Grammar')
       expect(retainedEditorCount(registry)).toBe(0)
     })
+
+    describe('when called twice with a given editor', function () {
+      it('does nothing the second time', async function () {
+        await atom.packages.activatePackage('language-javascript')
+        const disposable1 = registry.maintainGrammar(editor)
+        const disposable2 = registry.maintainGrammar(editor)
+
+        editor.getBuffer().setPath('test.js')
+        expect(editor.getGrammar().name).toBe('JavaScript')
+
+        disposable2.dispose()
+        editor.getBuffer().setPath('test.txt')
+        expect(editor.getGrammar().name).toBe('Null Grammar')
+
+        disposable1.dispose()
+        editor.getBuffer().setPath('test.js')
+        expect(editor.getGrammar().name).toBe('Null Grammar')
+      })
+    })
   })
 
   describe('.setGrammarOverride', function () {
@@ -175,10 +190,7 @@ describe('TextEditorRegistry', function () {
     it('does not update the editor when config settings change for unrelated scope selectors', async function () {
       await atom.packages.activatePackage('language-javascript')
 
-      const editor2 = new TextEditor({
-        config: atom.config,
-        clipboard: atom.clipboard,
-      })
+      const editor2 = new TextEditor()
 
       editor2.setGrammar(atom.grammars.selectGrammar('test.js'))
 
@@ -205,7 +217,6 @@ describe('TextEditorRegistry', function () {
       registry = new TextEditorRegistry({
         assert: atom.assert,
         config: atom.config,
-        clipboard: atom.clipboard,
         grammarRegistry: atom.grammars,
         packageManager: {
           deferredActivationHooks: [],
@@ -625,14 +636,32 @@ describe('TextEditorRegistry', function () {
       expect(delegate.getNonWordCharacters(['e.f', 'g.h'])).toBe('(){}[]')
       expect(delegate.getNonWordCharacters(['i.j'])).toBe('()')
     })
+
+    describe('when called twice with a given editor', function () {
+      it('does nothing the second time', async function () {
+        editor.update({scrollSensitivity: 50})
+
+        const disposable1 = registry.maintainConfig(editor)
+        const disposable2 = registry.maintainConfig(editor)
+        await initialPackageActivation
+
+        atom.config.set('editor.scrollSensitivity', 60)
+        expect(editor.getScrollSensitivity()).toBe(60)
+
+        disposable2.dispose()
+        atom.config.set('editor.scrollSensitivity', 70)
+        expect(editor.getScrollSensitivity()).toBe(70)
+
+        disposable1.dispose()
+        atom.config.set('editor.scrollSensitivity', 80)
+        expect(editor.getScrollSensitivity()).toBe(70)
+      })
+    })
   })
 
   describe('serialization', function () {
     it('persists editors\' grammar overrides', async function () {
-      const editor2 = new TextEditor({
-        config: atom.config,
-        clipboard: atom.clipboard,
-      })
+      const editor2 = new TextEditor()
 
       await atom.packages.activatePackage('language-c')
       await atom.packages.activatePackage('language-html')
@@ -651,7 +680,6 @@ describe('TextEditorRegistry', function () {
       const registryCopy = new TextEditorRegistry({
         assert: atom.assert,
         config: atom.config,
-        clipboard: atom.clipboard,
         grammarRegistry: atom.grammars,
         packageManager: {deferredActivationHooks: null}
       })

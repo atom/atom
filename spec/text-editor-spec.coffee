@@ -1,6 +1,4 @@
-fs = require 'fs-plus'
 path = require 'path'
-temp = require 'temp'
 clipboard = require '../src/safe-clipboard'
 TextEditor = require '../src/text-editor'
 TextBuffer = require 'text-buffer'
@@ -56,7 +54,6 @@ describe "TextEditor", ->
       # reusing the same buffer instance
       editor2 = TextEditor.deserialize(editor.serialize(), {
         assert: atom.assert,
-        clipboard: atom.clipboard,
         textEditors: atom.textEditors,
         project: {
           bufferForIdSync: (id) -> TextBuffer.deserialize(editor.buffer.serialize())
@@ -4751,7 +4748,7 @@ describe "TextEditor", ->
     it "deletes the entire file from the bottom up", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
-      for line in [0...count]
+      for [0...count]
         editor.getLastCursor().moveToBottom()
         editor.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
@@ -4760,7 +4757,7 @@ describe "TextEditor", ->
     it "deletes the entire file from the top down", ->
       count = buffer.getLineCount()
       expect(count).toBeGreaterThan(0)
-      for line in [0...count]
+      for [0...count]
         editor.getLastCursor().moveToTop()
         editor.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
@@ -4877,6 +4874,11 @@ describe "TextEditor", ->
       editor.onDidChange(changeHandler)
       editor.setTabLength(6)
       expect(changeHandler).not.toHaveBeenCalled()
+
+    it 'does not change its tab length when the given tab length is null', ->
+      editor.setTabLength(4)
+      editor.setTabLength(null)
+      expect(editor.getTabLength()).toBe(4)
 
   describe ".indentLevelForLine(line)", ->
     it "returns the indent level when the line has only leading whitespace", ->
@@ -5522,7 +5524,7 @@ describe "TextEditor", ->
 
   describe "auto height", ->
     it "returns true by default but can be customized", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       expect(editor.getAutoHeight()).toBe(true)
       editor.update({autoHeight: false})
       expect(editor.getAutoHeight()).toBe(false)
@@ -5540,10 +5542,10 @@ describe "TextEditor", ->
 
   describe '.get/setPlaceholderText()', ->
     it 'can be created with placeholderText', ->
-      newEditor = atom.workspace.buildTextEditor(
+      newEditor = new TextEditor({
         mini: true
         placeholderText: 'yep'
-      )
+      })
       expect(newEditor.getPlaceholderText()).toBe 'yep'
 
     it 'models placeholderText and emits an event when changed', ->
@@ -5828,11 +5830,7 @@ describe "TextEditor", ->
         atom.packages.activatePackage('language-coffee-script')
 
     it "sets the grammar", ->
-      editor = new TextEditor({
-        grammar: atom.grammars.grammarForScopeName('source.coffee')
-        clipboard: atom.clipboard
-      })
-
+      editor = new TextEditor({grammar: atom.grammars.grammarForScopeName('source.coffee')})
       expect(editor.getGrammar().name).toBe 'CoffeeScript'
 
   describe "softWrapAtPreferredLineLength", ->

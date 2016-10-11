@@ -3,8 +3,6 @@
 import TextBuffer, {Point, Range} from 'text-buffer'
 import {File, Directory} from 'pathwatcher'
 import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-import Grim from 'grim'
-import dedent from 'dedent'
 import BufferedNodeProcess from '../src/buffered-node-process'
 import BufferedProcess from '../src/buffered-process'
 import GitRepository from '../src/git-repository'
@@ -39,25 +37,7 @@ if (process.platform === 'win32') {
 // only be exported when not running as a child node process
 if (process.type === 'renderer') {
   atomExport.Task = require('../src/task')
-
-  const TextEditor = (params) => {
-    return atom.workspace.buildTextEditor(params)
-  }
-
-  TextEditor.prototype = require('../src/text-editor').prototype
-
-  Object.defineProperty(atomExport, 'TextEditor', {
-    enumerable: true,
-    get () {
-      Grim.deprecate(dedent`
-        The \`TextEditor\` constructor is no longer public.
-
-        To construct a text editor, use \`atom.workspace.buildTextEditor()\`.
-        To check if an object is a text editor, use \`atom.workspace.isTextEditor(object)\`.
-      `)
-      return TextEditor
-    }
-  })
+  atomExport.TextEditor = require('../src/text-editor')
 }
 
 export default atomExport

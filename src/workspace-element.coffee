@@ -1,8 +1,7 @@
 {ipcRenderer} = require 'electron'
 path = require 'path'
 fs = require 'fs-plus'
-{Disposable, CompositeDisposable} = require 'event-kit'
-Grim = require 'grim'
+{CompositeDisposable} = require 'event-kit'
 scrollbarStyle = require 'scrollbar-style'
 
 module.exports =

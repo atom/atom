@@ -59,6 +59,9 @@ ZERO_WIDTH_NBSP = '\ufeff'
 # soft wraps and folds to ensure your code interacts with them correctly.
 module.exports =
 class TextEditor extends Model
+  @setClipboard: (clipboard) ->
+    @clipboard = clipboard
+
   serializationVersion: 1
 
   buffer: null
@@ -114,7 +117,6 @@ class TextEditor extends Model
     if state.displayLayer = state.buffer.getDisplayLayer(state.displayLayerId)
       state.selectionsMarkerLayer = state.displayLayer.getMarkerLayer(state.selectionsMarkerLayerId)
 
-    state.clipboard = atomEnvironment.clipboard
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
     editor = new this(state)
     if state.registered
@@ -123,18 +125,19 @@ class TextEditor extends Model
     editor
 
   constructor: (params={}) ->
+    unless @constructor.clipboard?
+      throw new Error("Must call TextEditor.setClipboard at least once before creating TextEditor instances")
+
     super
 
     {
       @softTabs, @firstVisibleScreenRow, @firstVisibleScreenColumn, initialLine, initialColumn, tabLength,
       @softWrapped, @decorationManager, @selectionsMarkerLayer, @buffer, suppressCursorCreation,
-      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode, @clipboard,
+      @mini, @placeholderText, lineNumberGutterVisible, @largeFileMode,
       @assert, grammar, @showInvisibles, @autoHeight, @autoWidth, @scrollPastEnd, @editorWidthInChars,
       @tokenizedBuffer, @displayLayer, @invisibles, @showIndentGuide,
       @softWrapped, @softWrapAtPreferredLineLength, @preferredLineLength
     } = params
-
-    throw new Error("Must pass a clipboard parameter when constructing TextEditors") unless @clipboard?
 
     @assert ?= (condition) -> condition
     @firstVisibleScreenRow ?= 0
@@ -147,7 +150,7 @@ class TextEditor extends Model
     @hasTerminatedPendingState = false
 
     @mini ?= false
-    @scrollPastEnd ?= true
+    @scrollPastEnd ?= false
     @showInvisibles ?= true
     @softTabs ?= true
     tabLength ?= 2
@@ -241,7 +244,7 @@ class TextEditor extends Model
             displayLayerParams.atomicSoftTabs = value
 
         when 'tabLength'
-          if value isnt @tokenizedBuffer.getTabLength()
+          if value? and value isnt @tokenizedBuffer.getTabLength()
             @tokenizedBuffer.setTabLength(value)
             displayLayerParams.tabLength = value
 
@@ -705,7 +708,7 @@ class TextEditor extends Model
       suppressCursorCreation: true,
       tabLength: @tokenizedBuffer.getTabLength(),
       @firstVisibleScreenRow, @firstVisibleScreenColumn,
-      @clipboard, @assert, displayLayer, grammar: @getGrammar(),
+      @assert, displayLayer, grammar: @getGrammar(),
       @autoWidth, @autoHeight
     })
 
@@ -2718,7 +2721,7 @@ class TextEditor extends Model
   # Returns the new {Selection}.
   addSelection: (marker, options={}) ->
     cursor = @addCursor(marker)
-    selection = new Selection(Object.assign({editor: this, marker, cursor, @clipboard}, options))
+    selection = new Selection(Object.assign({editor: this, marker, cursor}, options))
     @selections.push(selection)
     selectionBufferRange = selection.getBufferRange()
     @mergeIntersectingSelections(preserveFolds: options.preserveFolds)
@@ -2824,7 +2827,7 @@ class TextEditor extends Model
   # Essential: Enable or disable soft tabs for this editor.
   #
   # * `softTabs` A {Boolean}
-  setSoftTabs: (@softTabs) -> @update({softTabs})
+  setSoftTabs: (@softTabs) -> @update({@softTabs})
 
   # Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
   hasAtomicSoftTabs: -> @displayLayer.atomicSoftTabs
@@ -2930,9 +2933,9 @@ class TextEditor extends Model
   Section: Indentation
   ###
 
-  # Essential: Get the indentation level of the given a buffer row.
+  # Essential: Get the indentation level of the given buffer row.
   #
-  # Returns how deeply the given row is indented based on the soft tabs and
+  # Determines how deeply the given row is indented based on the soft tabs and
   # tab length settings of this editor. Note that if soft tabs are enabled and
   # the tab length is 2, a row with 4 leading spaces would have an indentation
   # level of 2.
@@ -2973,7 +2976,7 @@ class TextEditor extends Model
 
   # Extended: Get the indentation level of the given line of text.
   #
-  # Returns how deeply the given line is indented based on the soft tabs and
+  # Determines how deeply the given line is indented based on the soft tabs and
   # tab length settings of this editor. Note that if soft tabs are enabled and
   # the tab length is 2, a row with 4 leading spaces would have an indentation
   # level of 2.
@@ -3127,7 +3130,7 @@ class TextEditor extends Model
   #
   # * `options` (optional) See {Selection::insertText}.
   pasteText: (options={}) ->
-    {text: clipboardText, metadata} = @clipboard.readWithMetadata()
+    {text: clipboardText, metadata} = @constructor.clipboard.readWithMetadata()
     return false unless @emitWillInsertTextEvent(clipboardText)
 
     metadata ?= {}

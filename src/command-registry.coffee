@@ -214,7 +214,6 @@ class CommandRegistry
     immediatePropagationStopped = false
     matched = false
     currentTarget = event.target
-    {preventDefault, stopPropagation, stopImmediatePropagation, abortKeyBinding} = event
 
     dispatchedEvent = new CustomEvent(event.type, {bubbles: true, detail: event.detail})
     Object.defineProperty dispatchedEvent, 'eventPhase', value: Event.BUBBLING_PHASE

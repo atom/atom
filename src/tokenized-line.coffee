@@ -1,5 +1,3 @@
-_ = require 'underscore-plus'
-{isPairedCharacter, isCJKCharacter} = require './text-utils'
 Token = require './token'
 CommentScopeRegex = /(\b|\.)comment/
 
