@@ -211,18 +211,7 @@ class TokenizedBuffer extends Model
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtRow: (row) ->
-    # Investigating an exception that's occurring here due to the line being
-    # undefined. This should paper over the problem but we want to figure out
-    # what is happening:
     tokenizedLine = @tokenizedLineForRow(row)
-    @assert tokenizedLine?, "TokenizedLine is undefined", (error) =>
-      error.metadata = {
-        row: row
-        rowCount: @tokenizedLines.length
-        tokenizedBufferChangeCount: @changeCount
-        bufferChangeCount: @buffer.changeCount
-      }
-
     return false unless tokenizedLine?
 
     return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
@@ -236,21 +225,21 @@ class TokenizedBuffer extends Model
     nextRow = row + 1
     return false if nextRow > @buffer.getLastRow()
 
-    (row is 0 or not @tokenizedLineForRow(previousRow).isComment()) and
-      @tokenizedLineForRow(row).isComment() and
-      @tokenizedLineForRow(nextRow).isComment()
+    (not @tokenizedLineForRow(previousRow)?.isComment()) and
+      @tokenizedLineForRow(row)?.isComment() and
+      @tokenizedLineForRow(nextRow)?.isComment()
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingopenScopes) ->
     ruleStack = startingStack
     openScopes = startingopenScopes
     stopTokenizingAt = startRow + @chunkSize
-    tokenizedLines = for row in [startRow..endRow]
+    tokenizedLines = for row in [startRow..endRow] by 1
       if (ruleStack or row is 0) and row < stopTokenizingAt
         tokenizedLine = @buildTokenizedLineForRow(row, ruleStack, openScopes)
         ruleStack = tokenizedLine.ruleStack
         openScopes = @scopesFromTags(openScopes, tokenizedLine.tags)
       else
-        tokenizedLine = @buildPlaceholderTokenizedLineForRow(row, openScopes)
+        tokenizedLine = null
       tokenizedLine
 
     if endRow >= stopTokenizingAt
@@ -260,19 +249,7 @@ class TokenizedBuffer extends Model
     tokenizedLines
 
   buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    @buildPlaceholderTokenizedLineForRow(row) for row in [startRow..endRow] by 1
-
-  buildPlaceholderTokenizedLineForRow: (row) ->
-    @buildPlaceholderTokenizedLineForRowWithText(row, @buffer.lineForRow(row))
-
-  buildPlaceholderTokenizedLineForRowWithText: (row, text) ->
-    if @grammar isnt NullGrammar
-      openScopes = [@grammar.startIdForScope(@grammar.scopeName)]
-    else
-      openScopes = []
-    tags = [text.length]
-    lineEnding = @buffer.lineEndingForRow(row)
-    new TokenizedLine({openScopes, text, tags, lineEnding, @tokenIterator})
+    null for row in [startRow..endRow] by 1
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
@@ -283,8 +260,7 @@ class TokenizedBuffer extends Model
     new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
-    if 0 <= bufferRow < @tokenizedLines.length
-      @tokenizedLines[bufferRow] ?= @buildPlaceholderTokenizedLineForRow(bufferRow)
+    @tokenizedLines[bufferRow]
 
   tokenizedLinesForRows: (startRow, endRow) ->
     for row in [startRow..endRow] by 1
@@ -366,16 +342,18 @@ class TokenizedBuffer extends Model
   scopeDescriptorForPosition: (position) ->
     {row, column} = @buffer.clipPosition(Point.fromObject(position))
 
-    iterator = @tokenizedLineForRow(row).getTokenIterator()
-    while iterator.next()
-      if iterator.getBufferEnd() > column
-        scopes = iterator.getScopes()
-        break
+    if iterator = @tokenizedLineForRow(row)?.getTokenIterator()
+      while iterator.next()
+        if iterator.getBufferEnd() > column
+          scopes = iterator.getScopes()
+          break
 
-    # rebuild scope of last token if we iterated off the end
-    unless scopes?
-      scopes = iterator.getScopes()
-      scopes.push(iterator.getScopeEnds().reverse()...)
+      # rebuild scope of last token if we iterated off the end
+      unless scopes?
+        scopes = iterator.getScopes()
+        scopes.push(iterator.getScopeEnds().reverse()...)
+    else
+      scopes = []
 
     new ScopeDescriptor({scopes})
 

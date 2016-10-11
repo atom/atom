@@ -2,7 +2,7 @@ TokenizedBuffer = require '../src/tokenized-buffer'
 {Point} = TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
-describe "TokenizedBuffer", ->
+fdescribe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer] = []
 
   beforeEach ->
@@ -90,27 +90,24 @@ describe "TokenizedBuffer", ->
       buffer.release()
 
     describe "on construction", ->
-      it "initially creates un-tokenized screen lines, then tokenizes lines chunk at a time in the background", ->
+      it "tokenizes lines chunk at a time in the background", ->
         line0 = tokenizedBuffer.tokenizedLineForRow(0)
-        expect(line0.tokens).toEqual([value: line0.text, scopes: ['source.js']])
+        expect(line0).toBe(undefined)
 
         line11 = tokenizedBuffer.tokenizedLineForRow(11)
-        expect(line11.tokens).toEqual([value: "  return sort(Array.apply(this, arguments));", scopes: ['source.js']])
-
-        # background tokenization has not begun
-        expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack).toBeUndefined()
+        expect(line11).toBe(undefined)
 
         # tokenize chunk 1
         advanceClock()
         expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
+        expect(tokenizedBuffer.tokenizedLineForRow(5)).toBe(undefined)
 
         # tokenize chunk 2
         advanceClock()
         expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLineForRow(9).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeFalsy()
+        expect(tokenizedBuffer.tokenizedLineForRow(10)).toBe(undefined)
 
         # tokenize last chunk
         advanceClock()
@@ -588,12 +585,9 @@ describe "TokenizedBuffer", ->
       expect(tokenizeCallback.callCount).toBe 1
       expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
 
-      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens.length).toBe 1
-      expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0].value).toBe 'a'
-      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens.length).toBe 1
-      expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].value).toBe 'b'
-      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens.length).toBe 1
-      expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].value).toBe 'c'
+      expect(tokenizedBuffer.tokenizedLineForRow(0)).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(1)).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(2)).toBe null
 
   describe "text decoration layer API", ->
     describe "iterator", ->

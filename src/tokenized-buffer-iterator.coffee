@@ -1,5 +1,7 @@
 {Point} = require 'text-buffer'
 
+EMPTY = Object.freeze([])
+
 module.exports =
 class TokenizedBufferIterator
   constructor: (@tokenizedBuffer) ->
@@ -12,11 +14,17 @@ class TokenizedBufferIterator
     @closeTags = []
     @tagIndex = null
 
-    currentLine = @tokenizedBuffer.tokenizedLineForRow(position.row)
-    @currentTags = currentLine.tags
-    @currentLineOpenTags = currentLine.openScopes
-    @currentLineLength = currentLine.text.length
-    @containingTags = @currentLineOpenTags.map (id) => @tokenizedBuffer.grammar.scopeForId(id)
+    if currentLine = @tokenizedBuffer.tokenizedLineForRow(position.row)
+      @currentTags = currentLine.tags
+      @currentLineOpenTags = currentLine.openScopes
+      @currentLineLength = currentLine.text.length
+      @containingTags = @currentLineOpenTags.map (id) => @tokenizedBuffer.grammar.scopeForId(id)
+    else
+      @currentTags = EMPTY
+      @currentLineOpenTags = EMPTY
+      @currentLineLength = @tokenizedBuffer.buffer.lineLengthForRow(position.row)
+      @containingTags = []
+
     currentColumn = 0
 
     for tag, index in @currentTags
