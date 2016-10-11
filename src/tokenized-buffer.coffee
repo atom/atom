@@ -36,7 +36,6 @@ class TokenizedBuffer extends Model
     @tokenIterator = new TokenIterator(this)
 
     @disposables.add @buffer.registerTextDecorationLayer(this)
-    @rootScopeDescriptor = new ScopeDescriptor(scopes: ['text.plain'])
 
     @setGrammar(grammar ? NullGrammar)
 
@@ -118,7 +117,8 @@ class TokenizedBuffer extends Model
 
   tokenizeNextChunk: ->
     # Short circuit null grammar which can just use the placeholder tokens
-    if (@grammar.name is 'Null Grammar') and @firstInvalidRow()?
+    if @grammar.name is 'Null Grammar' and @firstInvalidRow()?
+      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, @buffer.getLastRow())
       @invalidRows = []
       @markTokenizationComplete()
       return
@@ -192,7 +192,7 @@ class TokenizedBuffer extends Model
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
-    if @largeFileMode or @grammar is NullGrammar
+    if @largeFileMode or @grammar.name is 'Null Grammar'
       newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
     else
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
@@ -234,12 +234,12 @@ class TokenizedBuffer extends Model
     openScopes = startingopenScopes
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow] by 1
-      if (ruleStack or row is 0) and row < stopTokenizingAt
+      if row < stopTokenizingAt
         tokenizedLine = @buildTokenizedLineForRow(row, ruleStack, openScopes)
         ruleStack = tokenizedLine.ruleStack
         openScopes = @scopesFromTags(openScopes, tokenizedLine.tags)
       else
-        tokenizedLine = null
+        tokenizedLine = undefined
       tokenizedLine
 
     if endRow >= stopTokenizingAt
@@ -249,7 +249,7 @@ class TokenizedBuffer extends Model
     tokenizedLines
 
   buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    null for row in [startRow..endRow] by 1
+    new Array(endRow - startRow + 1)
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
@@ -260,7 +260,20 @@ class TokenizedBuffer extends Model
     new TokenizedLine({openScopes, text, tags, ruleStack, lineEnding, @tokenIterator})
 
   tokenizedLineForRow: (bufferRow) ->
-    @tokenizedLines[bufferRow]
+    if 0 <= bufferRow <= @buffer.getLastRow()
+      if tokenizedLine = @tokenizedLines[bufferRow]
+        tokenizedLine
+      else
+        text = @buffer.lineForRow(bufferRow)
+        lineEnding = @buffer.lineEndingForRow(bufferRow)
+        tags = [
+          @grammar.startIdForScope(@grammar.scopeName),
+          text.length,
+          @grammar.endIdForScope(@grammar.scopeName)
+        ]
+        @tokenizedLines[bufferRow] = new TokenizedLine({openScopes: [], text, tags, lineEnding, @tokenIterator})
+    else
+      null
 
   tokenizedLinesForRows: (startRow, endRow) ->
     for row in [startRow..endRow] by 1
@@ -270,8 +283,7 @@ class TokenizedBuffer extends Model
     @tokenizedLines[bufferRow]?.ruleStack
 
   openScopesForRow: (bufferRow) ->
-    if bufferRow > 0
-      precedingLine = @tokenizedLineForRow(bufferRow - 1)
+    if precedingLine = @tokenizedLineForRow(bufferRow - 1)
       @scopesFromTags(precedingLine.openScopes, precedingLine.tags)
     else
       []

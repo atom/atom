@@ -2,7 +2,7 @@ TokenizedBuffer = require '../src/tokenized-buffer'
 {Point} = TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
 
-fdescribe "TokenizedBuffer", ->
+describe "TokenizedBuffer", ->
   [tokenizedBuffer, buffer] = []
 
   beforeEach ->
@@ -149,8 +149,8 @@ fdescribe "TokenizedBuffer", ->
         it "does not attempt to tokenize the lines in the change, and preserves the existing invalid row", ->
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
           buffer.setTextInRange([[6, 0], [7, 0]], "\n\n\n")
-          expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeFalsy()
-          expect(tokenizedBuffer.tokenizedLineForRow(7).ruleStack?).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLineForRow(6)).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLineForRow(7)).toBeFalsy()
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
 
     describe "when the buffer is fully tokenized", ->
@@ -252,7 +252,7 @@ fdescribe "TokenizedBuffer", ->
           buffer.insert([0, 0], commentBlock)
           expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
           expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLineForRow(5)).toBeFalsy()
 
           advanceClock()
           expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
@@ -585,9 +585,9 @@ fdescribe "TokenizedBuffer", ->
       expect(tokenizeCallback.callCount).toBe 1
       expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
 
-      expect(tokenizedBuffer.tokenizedLineForRow(0)).toBe null
-      expect(tokenizedBuffer.tokenizedLineForRow(1)).toBe null
-      expect(tokenizedBuffer.tokenizedLineForRow(2)).toBe null
+      expect(tokenizedBuffer.tokenizedLineForRow(0)).toBeFalsy()
+      expect(tokenizedBuffer.tokenizedLineForRow(1)).toBeFalsy()
+      expect(tokenizedBuffer.tokenizedLineForRow(2)).toBeFalsy()
 
   describe "text decoration layer API", ->
     describe "iterator", ->
