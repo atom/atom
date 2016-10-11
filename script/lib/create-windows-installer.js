@@ -6,6 +6,7 @@ const fs = require('fs-extra')
 const glob = require('glob')
 const os = require('os')
 const path = require('path')
+const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
 
@@ -21,7 +22,8 @@ module.exports = function (packagedAppPath, codeSign) {
   }
 
   const certPath = path.join(os.tmpdir(), 'win.p12')
-  if (codeSign && process.env.WIN_P12KEY_URL) {
+  const signing = codeSign && process.env.WIN_P12KEY_URL
+  if (signing) {
     downloadFileFromGithub(process.env.WIN_P12KEY_URL, certPath)
     options.certificateFile = certPath
     options.certificatePassword = process.env.WIN_P12KEY_PASSWORD
@@ -42,9 +44,30 @@ module.exports = function (packagedAppPath, codeSign) {
       }
     }
   }
+
+  // Squirrel signs its own copy of the executables but we need them for the portable ZIP
+  const extractSignedExes = function() {
+    if (signing) {
+      for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*-full.nupkg`)) {
+        if (nupkgPath.includes(CONFIG.appMetadata.version)) {
+          console.log(`Extracting signed executables from ${nupkgPath} for use in portable zip`)
+          var atomOutPath = path.join(path.dirname(packagedAppPath), 'Atom')
+          spawnSync('7z.exe', ['e', nupkgPath, 'lib\\net45\\*.exe', '-aoa'], {cwd: atomOutPath})
+          spawnSync(process.env.COMSPEC, ['/c', `move /y ${path.join(atomOutPath, 'squirrel.exe')} ${path.join(atomOutPath, 'update.exe')}`])
+          return
+        }
+      }
+    }
+  }
+
   console.log(`Creating Windows Installer for ${packagedAppPath}`)
-  return electronInstaller.createWindowsInstaller(options).then(cleanUp, function (error) {
-    console.log(`Windows installer creation failed:\n${error}`)
-    cleanUp()
-  })
+  return electronInstaller.createWindowsInstaller(options)
+    .then(extractSignedExes, function (error) {
+      console.log(`Extracting signed executables failed:\n${error}`)
+      cleanUp()
+    })
+    .then(cleanUp, function (error) {
+      console.log(`Windows installer creation failed:\n${error}`)
+      cleanUp()
+    })
 }
