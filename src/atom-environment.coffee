@@ -153,7 +153,7 @@ class AtomEnvironment extends Model
 
     @keymaps = new KeymapManager({@configDirPath, resourcePath, notificationManager: @notifications})
 
-    @tooltips = new TooltipManager(keymapManager: @keymaps)
+    @tooltips = new TooltipManager(keymapManager: @keymaps, viewRegistry: @views)
 
     @commands = new CommandRegistry
     @commands.attach(@window)
