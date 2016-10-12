@@ -120,7 +120,7 @@ class TokenizedBuffer extends Model
   tokenizeNextChunk: ->
     # Short circuit null grammar which can just use the placeholder tokens
     if @grammar.name is 'Null Grammar' and @firstInvalidRow()?
-      @tokenizedLines = @buildPlaceholderTokenizedLinesForRows(0, @buffer.getLastRow())
+      @tokenizedLines = new Array(@buffer.getLineCount())
       @invalidRows = []
       @markTokenizationComplete()
       return
@@ -194,7 +194,8 @@ class TokenizedBuffer extends Model
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
     if @largeFileMode or @grammar.name is 'Null Grammar'
-      newTokenizedLines = @buildPlaceholderTokenizedLinesForRows(start, end + delta)
+      lineCount = ((end + delta) - start) + 1
+      newTokenizedLines = new Array(lineCount)
     else
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
     _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
@@ -252,9 +253,6 @@ class TokenizedBuffer extends Model
       @tokenizeInBackground()
 
     tokenizedLines
-
-  buildPlaceholderTokenizedLinesForRows: (startRow, endRow) ->
-    new Array(endRow - startRow + 1)
 
   buildTokenizedLineForRow: (row, ruleStack, openScopes) ->
     @buildTokenizedLineForRowWithText(row, @buffer.lineForRow(row), ruleStack, openScopes)
