@@ -93,22 +93,22 @@ describe "TokenizedBuffer", ->
     describe "on construction", ->
       it "tokenizes lines chunk at a time in the background", ->
         line0 = tokenizedBuffer.tokenizedLines[0]
-        expect(line0).toBe(undefined)
+        expect(line0).toBeUndefined()
 
         line11 = tokenizedBuffer.tokenizedLines[11]
-        expect(line11).toBe(undefined)
+        expect(line11).toBeUndefined()
 
         # tokenize chunk 1
         advanceClock()
         expect(tokenizedBuffer.tokenizedLines[0].ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLines[4].ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[5]).toBe(undefined)
+        expect(tokenizedBuffer.tokenizedLines[5]).toBeUndefined()
 
         # tokenize chunk 2
         advanceClock()
         expect(tokenizedBuffer.tokenizedLines[5].ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.tokenizedLines[9].ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLines[10]).toBe(undefined)
+        expect(tokenizedBuffer.tokenizedLines[10]).toBeUndefined()
 
         # tokenize last chunk
         advanceClock()
