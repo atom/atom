@@ -33,15 +33,8 @@ describe "TokenizedBuffer", ->
           atom.packages.activatePackage('language-coffee-script')
 
       it "deserializes it searching among the buffers in the current project", ->
-        tokenizedBufferA = new TokenizedBuffer({
-          buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-          assert: atom.assert, tabLength: 2,
-        })
-        tokenizedBufferB = TokenizedBuffer.deserialize(
-          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
-          atom
-        )
-
+        tokenizedBufferA = new TokenizedBuffer({buffer, tabLength: 2})
+        tokenizedBufferB = TokenizedBuffer.deserialize(JSON.parse(JSON.stringify(tokenizedBufferA.serialize())), atom)
         expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
 
     describe "when the underlying buffer has no path", ->
@@ -49,25 +42,14 @@ describe "TokenizedBuffer", ->
         buffer = atom.project.bufferForPathSync(null)
 
       it "deserializes it searching among the buffers in the current project", ->
-        tokenizedBufferA = new TokenizedBuffer({
-          buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-          assert: atom.assert, tabLength: 2,
-        })
-        tokenizedBufferB = TokenizedBuffer.deserialize(
-          JSON.parse(JSON.stringify(tokenizedBufferA.serialize())),
-          atom
-        )
-
+        tokenizedBufferA = new TokenizedBuffer({buffer, tabLength: 2})
+        tokenizedBufferB = TokenizedBuffer.deserialize(JSON.parse(JSON.stringify(tokenizedBufferA.serialize())), atom)
         expect(tokenizedBufferB.buffer).toBe(tokenizedBufferA.buffer)
 
   describe "when the buffer is destroyed", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
-      })
-      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
       startTokenizing(tokenizedBuffer)
 
     it "stops tokenization", ->
@@ -79,11 +61,7 @@ describe "TokenizedBuffer", ->
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
-      })
-      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
       startTokenizing(tokenizedBuffer)
 
     afterEach ->
@@ -282,11 +260,7 @@ describe "TokenizedBuffer", ->
 
       runs ->
         buffer = atom.project.bufferForPathSync('sample-with-tabs.coffee')
-        tokenizedBuffer = new TokenizedBuffer({
-          buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-          assert: atom.assert, tabLength: 2,
-        })
-        tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.coffee'))
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.coffee'), tabLength: 2})
         startTokenizing(tokenizedBuffer)
 
     afterEach ->
@@ -350,7 +324,6 @@ describe "TokenizedBuffer", ->
         expect(tokenizedHandler.callCount).toBe(1)
 
     it "retokenizes the buffer", ->
-
       waitsForPromise ->
         atom.packages.activatePackage('language-ruby-on-rails')
 
@@ -360,11 +333,7 @@ describe "TokenizedBuffer", ->
       runs ->
         buffer = atom.project.bufferForPathSync()
         buffer.setText "<div class='name'><%= User.find(2).full_name %></div>"
-        tokenizedBuffer = new TokenizedBuffer({
-          buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-          assert: atom.assert, tabLength: 2,
-        })
-        tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('test.erb'))
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.selectGrammar('test.erb'), tabLength: 2})
         fullyTokenize(tokenizedBuffer)
 
         {tokens} = tokenizedBuffer.tokenizedLines[0]
@@ -385,11 +354,7 @@ describe "TokenizedBuffer", ->
 
     it "returns the correct token (regression)", ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
-      })
-      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
       fullyTokenize(tokenizedBuffer)
       expect(tokenizedBuffer.tokenForPosition([1, 0]).scopes).toEqual ["source.js"]
       expect(tokenizedBuffer.tokenForPosition([1, 1]).scopes).toEqual ["source.js"]
@@ -398,11 +363,7 @@ describe "TokenizedBuffer", ->
   describe ".bufferRangeForScopeAtPosition(selector, position)", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
-      })
-      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
       fullyTokenize(tokenizedBuffer)
 
     describe "when the selector does not match the token at the position", ->
@@ -421,11 +382,7 @@ describe "TokenizedBuffer", ->
   describe ".indentLevelForRow(row)", ->
     beforeEach ->
       buffer = atom.project.bufferForPathSync('sample.js')
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
-      })
-      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
       fullyTokenize(tokenizedBuffer)
 
     describe "when the line is non-empty", ->
@@ -501,11 +458,7 @@ describe "TokenizedBuffer", ->
       buffer = atom.project.bufferForPathSync('sample.js')
       buffer.insert [10, 0], "  // multi-line\n  // comment\n  // block\n"
       buffer.insert [0, 0], "// multi-line\n// comment\n// block\n"
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
-      })
-      tokenizedBuffer.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName('source.js'), tabLength: 2})
       fullyTokenize(tokenizedBuffer)
 
     it "includes the first line of multi-line comments", ->
@@ -609,10 +562,7 @@ describe "TokenizedBuffer", ->
       spyOn(NullGrammar, 'tokenizeLine').andCallThrough()
       buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
       buffer.setText('a\nb\nc')
-      tokenizedBuffer = new TokenizedBuffer({
-        buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2
-      })
+      tokenizedBuffer = new TokenizedBuffer({buffer, tabLength: 2})
       tokenizeCallback = jasmine.createSpy('onDidTokenize')
       tokenizedBuffer.onDidTokenize(tokenizeCallback)
 
@@ -633,11 +583,7 @@ describe "TokenizedBuffer", ->
     describe "iterator", ->
       it "iterates over the syntactic scope boundaries", ->
         buffer = new TextBuffer(text: "var foo = 1 /*\nhello*/var bar = 2\n")
-        tokenizedBuffer = new TokenizedBuffer({
-          buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-          assert: atom.assert, tabLength: 2,
-        })
-        tokenizedBuffer.setGrammar(atom.grammars.selectGrammar(".js"))
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName("source.js"), tabLength: 2})
         fullyTokenize(tokenizedBuffer)
 
         iterator = tokenizedBuffer.buildIterator()
@@ -689,11 +635,7 @@ describe "TokenizedBuffer", ->
 
         runs ->
           buffer = new TextBuffer(text: "# hello\n# world")
-          tokenizedBuffer = new TokenizedBuffer({
-            buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-            assert: atom.assert, tabLength: 2,
-          })
-          tokenizedBuffer.setGrammar(atom.grammars.selectGrammar(".coffee"))
+          tokenizedBuffer = new TokenizedBuffer({buffer, grammar: atom.grammars.grammarForScopeName("source.coffee"), tabLength: 2})
           fullyTokenize(tokenizedBuffer)
 
           iterator = tokenizedBuffer.buildIterator()
@@ -722,11 +664,7 @@ describe "TokenizedBuffer", ->
         })
 
         buffer = new TextBuffer(text: 'start x\nend x\nx')
-        tokenizedBuffer = new TokenizedBuffer({
-          buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-          assert: atom.assert, tabLength: 2,
-        })
-        tokenizedBuffer.setGrammar(grammar)
+        tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
         fullyTokenize(tokenizedBuffer)
 
         iterator = tokenizedBuffer.buildIterator()
