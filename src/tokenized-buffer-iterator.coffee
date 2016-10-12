@@ -13,11 +13,10 @@ class TokenizedBufferIterator
     @tagIndex = null
 
     currentLine = @tokenizedBuffer.tokenizedLineForRow(position.row)
-    @currentLineLength = currentLine.text.length
-    @currentLineOpenTags = currentLine.openScopes
     @currentTags = currentLine.tags
+    @currentLineOpenTags = currentLine.openScopes
+    @currentLineLength = currentLine.text.length
     @containingTags = @currentLineOpenTags.map (id) => @tokenizedBuffer.grammar.scopeForId(id)
-
     currentColumn = 0
 
     for tag, index in @currentTags
