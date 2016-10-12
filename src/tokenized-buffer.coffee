@@ -211,30 +211,34 @@ class TokenizedBuffer extends Model
   # Returns a {Boolean} indicating whether the given buffer row starts
   # a a foldable row range due to the code's indentation patterns.
   isFoldableCodeAtRow: (row) ->
-    tokenizedLine = @tokenizedLineForRow(row)
-    return false unless tokenizedLine?
-
-    return false if @buffer.isRowBlank(row) or tokenizedLine.isComment()
-    nextRow = @buffer.nextNonBlankRow(row)
-    return false unless nextRow?
-
-    @indentLevelForRow(nextRow) > @indentLevelForRow(row)
+    if 0 <= row <= @buffer.getLastRow()
+      nextRow = @buffer.nextNonBlankRow(row)
+      tokenizedLine = @tokenizedLines[row]
+      if @buffer.isRowBlank(row) or tokenizedLine?.isComment() or not nextRow?
+        false
+      else
+        @indentLevelForRow(nextRow) > @indentLevelForRow(row)
+    else
+      false
 
   isFoldableCommentAtRow: (row) ->
     previousRow = row - 1
     nextRow = row + 1
-    return false if nextRow > @buffer.getLastRow()
-
-    (not @tokenizedLineForRow(previousRow)?.isComment()) and
-      @tokenizedLineForRow(row)?.isComment() and
-      @tokenizedLineForRow(nextRow)?.isComment()
+    if nextRow > @buffer.getLastRow()
+      false
+    else
+      Boolean(
+        not (@tokenizedLines[previousRow]?.isComment()) and
+        @tokenizedLines[row]?.isComment() and
+        @tokenizedLines[nextRow]?.isComment()
+      )
 
   buildTokenizedLinesForRows: (startRow, endRow, startingStack, startingopenScopes) ->
     ruleStack = startingStack
     openScopes = startingopenScopes
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow] by 1
-      if row < stopTokenizingAt
+      if (not @firstInvalidRow()? or row < @firstInvalidRow()) and row < stopTokenizingAt
         tokenizedLine = @buildTokenizedLineForRow(row, ruleStack, openScopes)
         ruleStack = tokenizedLine.ruleStack
         openScopes = @scopesFromTags(openScopes, tokenizedLine.tags)
@@ -283,7 +287,7 @@ class TokenizedBuffer extends Model
     @tokenizedLines[bufferRow]?.ruleStack
 
   openScopesForRow: (bufferRow) ->
-    if precedingLine = @tokenizedLineForRow(bufferRow - 1)
+    if precedingLine = @tokenizedLines[bufferRow - 1]
       @scopesFromTags(precedingLine.openScopes, precedingLine.tags)
     else
       []
@@ -438,7 +442,7 @@ class TokenizedBuffer extends Model
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
-      line = @tokenizedLineForRow(row).text
+      line = @tokenizedLines[row].text
       console.log row, line, line.length
     return
 

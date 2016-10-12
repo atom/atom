@@ -91,28 +91,28 @@ describe "TokenizedBuffer", ->
 
     describe "on construction", ->
       it "tokenizes lines chunk at a time in the background", ->
-        line0 = tokenizedBuffer.tokenizedLineForRow(0)
+        line0 = tokenizedBuffer.tokenizedLines[0]
         expect(line0).toBe(undefined)
 
-        line11 = tokenizedBuffer.tokenizedLineForRow(11)
+        line11 = tokenizedBuffer.tokenizedLines[11]
         expect(line11).toBe(undefined)
 
         # tokenize chunk 1
         advanceClock()
-        expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(5)).toBe(undefined)
+        expect(tokenizedBuffer.tokenizedLines[0].ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLines[4].ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLines[5]).toBe(undefined)
 
         # tokenize chunk 2
         advanceClock()
-        expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(9).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(10)).toBe(undefined)
+        expect(tokenizedBuffer.tokenizedLines[5].ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLines[9].ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLines[10]).toBe(undefined)
 
         # tokenize last chunk
         advanceClock()
-        expect(tokenizedBuffer.tokenizedLineForRow(10).ruleStack?).toBeTruthy()
-        expect(tokenizedBuffer.tokenizedLineForRow(12).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLines[10].ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.tokenizedLines[12].ruleStack?).toBeTruthy()
 
     describe "when the buffer is partially tokenized", ->
       beforeEach ->
@@ -149,8 +149,8 @@ describe "TokenizedBuffer", ->
         it "does not attempt to tokenize the lines in the change, and preserves the existing invalid row", ->
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
           buffer.setTextInRange([[6, 0], [7, 0]], "\n\n\n")
-          expect(tokenizedBuffer.tokenizedLineForRow(6)).toBeFalsy()
-          expect(tokenizedBuffer.tokenizedLineForRow(7)).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLines[6]).toBeUndefined()
+          expect(tokenizedBuffer.tokenizedLines[7]).toBeUndefined()
           expect(tokenizedBuffer.firstInvalidRow()).toBe 5
 
     describe "when the buffer is fully tokenized", ->
@@ -162,101 +162,101 @@ describe "TokenizedBuffer", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[0, 0], [2, 0]], "foo()\n7\n")
 
-            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.function-call.js', 'meta.arguments.js', 'punctuation.definition.arguments.begin.bracket.round.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.decimal.js'])
+            expect(tokenizedBuffer.tokenizedLines[0].tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.function-call.js', 'meta.arguments.js', 'punctuation.definition.arguments.begin.bracket.round.js'])
+            expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.decimal.js'])
             # line 2 is unchanged
-            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[1]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
           describe "when the change invalidates the tokenization of subsequent lines", ->
             it "schedules the invalidated lines to be tokenized in the background", ->
               buffer.insert([5, 30], '/* */')
               buffer.insert([2, 0], '/*')
-              expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js']
+              expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js']
 
               advanceClock()
-              expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-              expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-              expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
           it "resumes highlighting with the state of the previous line", ->
             buffer.insert([0, 0], '/*')
             buffer.insert([5, 0], '*/')
 
             buffer.insert([1, 0], 'var ')
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[1].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
         describe "when lines are both updated and removed", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[1, 0], [3, 0]], "foo()")
 
             # previous line 0 remains
-            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.var.js'])
+            expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.var.js'])
 
             # previous line 3 should be combined with input to form line 1
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
+            expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual(value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLines[1].tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
             # lines below deleted regions should be shifted upward
-            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[1]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[1]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[1]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.comparison.js'])
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[1]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
+            expect(tokenizedBuffer.tokenizedLines[3].tokens[1]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
+            expect(tokenizedBuffer.tokenizedLines[4].tokens[1]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.comparison.js'])
 
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
             buffer.setTextInRange([[2, 0], [3, 0]], '/*')
-            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js']
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+            expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js']
 
             advanceClock()
-            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
         describe "when lines are both updated and inserted", ->
           it "updates tokens to reflect the change", ->
             buffer.setTextInRange([[1, 0], [2, 0]], "foo()\nbar()\nbaz()\nquux()")
 
             # previous line 0 remains
-            expect(tokenizedBuffer.tokenizedLineForRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.var.js'])
+            expect(tokenizedBuffer.tokenizedLines[0].tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.var.js'])
 
             # 3 new lines inserted
-            expect(tokenizedBuffer.tokenizedLineForRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0]).toEqual(value: 'bar', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0]).toEqual(value: 'baz', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLines[1].tokens[0]).toEqual(value: 'foo', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[0]).toEqual(value: 'bar', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLines[3].tokens[0]).toEqual(value: 'baz', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
 
             # previous line 2 is joined with quux() on line 4
-            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0]).toEqual(value: 'quux', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
-            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+            expect(tokenizedBuffer.tokenizedLines[4].tokens[0]).toEqual(value: 'quux', scopes: ['source.js', 'meta.function-call.js', 'entity.name.function.js'])
+            expect(tokenizedBuffer.tokenizedLines[4].tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
             # previous line 3 is pushed down to become line 5
-            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
+            expect(tokenizedBuffer.tokenizedLines[5].tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.assignment.js'])
 
         describe "when the change invalidates the tokenization of subsequent lines", ->
           it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
             buffer.insert([2, 0], '/*\nabcde\nabcder')
-            expect(tokenizedBuffer.tokenizedLineForRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js']
+            expect(tokenizedBuffer.tokenizedLines[2].tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+            expect(tokenizedBuffer.tokenizedLines[3].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[4].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual ['source.js']
 
             advanceClock() # tokenize invalidated lines in background
-            expect(tokenizedBuffer.tokenizedLineForRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.tokenizedLineForRow(8).tokens[0].scopes).not.toBe ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[5].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[6].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[7].tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.tokenizedLines[8].tokens[0].scopes).not.toBe ['source.js', 'comment.block.js']
 
       describe "when there is an insertion that is larger than the chunk size", ->
         it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
           commentBlock = _.multiplyString("// a comment\n", tokenizedBuffer.chunkSize + 2)
           buffer.insert([0, 0], commentBlock)
-          expect(tokenizedBuffer.tokenizedLineForRow(0).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLineForRow(4).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLineForRow(5)).toBeFalsy()
+          expect(tokenizedBuffer.tokenizedLines[0].ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[4].ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[5]).toBeUndefined()
 
           advanceClock()
-          expect(tokenizedBuffer.tokenizedLineForRow(5).ruleStack?).toBeTruthy()
-          expect(tokenizedBuffer.tokenizedLineForRow(6).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[5].ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.tokenizedLines[6].ruleStack?).toBeTruthy()
 
       it "does not break out soft tabs across a scope boundary", ->
         waitsForPromise ->
@@ -366,7 +366,7 @@ describe "TokenizedBuffer", ->
         tokenizedBuffer.setGrammar(atom.grammars.selectGrammar('test.erb'))
         fullyTokenize(tokenizedBuffer)
 
-        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
+        {tokens} = tokenizedBuffer.tokenizedLines[0]
         expect(tokens[0]).toEqual value: "<div class='name'>", scopes: ["text.html.ruby"]
 
       waitsForPromise ->
@@ -374,7 +374,7 @@ describe "TokenizedBuffer", ->
 
       runs ->
         fullyTokenize(tokenizedBuffer)
-        {tokens} = tokenizedBuffer.tokenizedLineForRow(0)
+        {tokens} = tokenizedBuffer.tokenizedLines[0]
         expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby", "meta.tag.block.any.html", "punctuation.definition.tag.begin.html"]
 
   describe ".tokenForPosition(position)", ->
@@ -406,7 +406,7 @@ describe "TokenizedBuffer", ->
 
     describe "when the selector does not match the token at the position", ->
       it "returns a falsy value", ->
-        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.bogus', [0, 1])).toBeFalsy()
+        expect(tokenizedBuffer.bufferRangeForScopeAtPosition('.bogus', [0, 1])).toBeUndefined()
 
     describe "when the selector matches a single token at the position", ->
       it "returns the range covered by the token", ->
@@ -466,7 +466,7 @@ describe "TokenizedBuffer", ->
 
         buffer.insert([12, 0], '  ')
         expect(tokenizedBuffer.indentLevelForRow(13)).toBe 2
-        expect(tokenizedBuffer.tokenizedLineForRow(14)).not.toBeDefined()
+        expect(tokenizedBuffer.tokenizedLines[14]).not.toBeDefined()
 
       it "updates the indentLevel of empty lines surrounding a change that inserts lines", ->
         buffer.insert([7, 0], '\n\n')
@@ -585,9 +585,9 @@ describe "TokenizedBuffer", ->
       expect(tokenizeCallback.callCount).toBe 1
       expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
 
-      expect(tokenizedBuffer.tokenizedLineForRow(0)).toBeFalsy()
-      expect(tokenizedBuffer.tokenizedLineForRow(1)).toBeFalsy()
-      expect(tokenizedBuffer.tokenizedLineForRow(2)).toBeFalsy()
+      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
 
   describe "text decoration layer API", ->
     describe "iterator", ->
