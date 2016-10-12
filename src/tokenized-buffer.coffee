@@ -103,7 +103,8 @@ class TokenizedBuffer extends Model
       @invalidateRow(0)
 
   setVisible: (@visible) ->
-    @tokenizeInBackground() if @visible
+    if @visible and @grammar.name isnt 'Null Grammar' and not @largeFileMode
+      @tokenizeInBackground()
 
   getTabLength: -> @tabLength
 
@@ -118,13 +119,6 @@ class TokenizedBuffer extends Model
       @tokenizeNextChunk() if @isAlive() and @buffer.isAlive()
 
   tokenizeNextChunk: ->
-    # Short circuit null grammar which can just use the placeholder tokens
-    if @grammar.name is 'Null Grammar' and @firstInvalidRow()?
-      @tokenizedLines = new Array(@buffer.getLineCount())
-      @invalidRows = []
-      @markTokenizationComplete()
-      return
-
     rowsRemaining = @chunkSize
 
     while @firstInvalidRow()? and rowsRemaining > 0
@@ -169,10 +163,9 @@ class TokenizedBuffer extends Model
     return
 
   invalidateRow: (row) ->
-    if @grammar.name isnt 'Null Grammar' and not @largeFileMode
-      @invalidRows.push(row)
-      @invalidRows.sort (a, b) -> a - b
-      @tokenizeInBackground()
+    @invalidRows.push(row)
+    @invalidRows.sort (a, b) -> a - b
+    @tokenizeInBackground()
 
   updateInvalidRows: (start, end, delta) ->
     @invalidRows = @invalidRows.map (row) ->
@@ -190,19 +183,19 @@ class TokenizedBuffer extends Model
     start = oldRange.start.row
     end = oldRange.end.row
     delta = newRange.end.row - oldRange.end.row
+    oldLineCount = oldRange.end.row - oldRange.start.row + 1
+    newLineCount = newRange.end.row - newRange.start.row + 1
 
     @updateInvalidRows(start, end, delta)
     previousEndStack = @stackForRow(end) # used in spill detection below
     if @largeFileMode or @grammar.name is 'Null Grammar'
-      lineCount = ((end + delta) - start) + 1
-      newTokenizedLines = new Array(lineCount)
+      _.spliceWithArray(@tokenizedLines, start, oldLineCount, new Array(newLineCount))
     else
       newTokenizedLines = @buildTokenizedLinesForRows(start, end + delta, @stackForRow(start - 1), @openScopesForRow(start))
-    _.spliceWithArray(@tokenizedLines, start, end - start + 1, newTokenizedLines)
-
-    newEndStack = @stackForRow(end + delta)
-    if newEndStack and not _.isEqual(newEndStack, previousEndStack)
-      @invalidateRow(end + delta + 1)
+      _.spliceWithArray(@tokenizedLines, start, oldLineCount, newTokenizedLines)
+      newEndStack = @stackForRow(end + delta)
+      if newEndStack and not _.isEqual(newEndStack, previousEndStack)
+        @invalidateRow(end + delta + 1)
 
   isFoldableAtRow: (row) ->
     if @largeFileMode
