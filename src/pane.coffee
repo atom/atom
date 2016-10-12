@@ -579,6 +579,8 @@ class Pane extends Model
     else
       return true
 
+    # @setActiveItem(item)
+
     saveDialog = (saveButtonText, saveFn, message) =>
       chosen = @applicationDelegate.confirm
         message: message
@@ -587,12 +589,15 @@ class Pane extends Model
       switch chosen
         when 0 then saveFn(item, saveError)
         when 1 then false
-        when 2 then true
+        when 2
+          @activateNextRecentlyUsedItem()
+          true
 
     saveError = (error) =>
       if error
         saveDialog("Save as", @saveItemAs, "'#{item.getTitle?() ? uri}' could not be saved.\nError: #{@getMessageForErrorCode(error.code)}")
       else
+        @activateNextRecentlyUsedItem()
         true
 
     saveDialog("Save", @saveItem, "'#{item.getTitle?() ? uri}' has changes, do you want to save them?")
