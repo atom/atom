@@ -94,11 +94,13 @@ class TokenizedBuffer extends Model
     false
 
   retokenizeLines: ->
-    lastRow = @buffer.getLastRow()
     @fullyTokenized = false
-    @tokenizedLines = new Array(lastRow + 1)
+    @tokenizedLines = new Array(@buffer.getLineCount())
     @invalidRows = []
-    @invalidateRow(0)
+    if @largeFileMode or @grammar.name is 'Null Grammar'
+      @markTokenizationComplete()
+    else
+      @invalidateRow(0)
 
   setVisible: (@visible) ->
     @tokenizeInBackground() if @visible
@@ -167,11 +169,10 @@ class TokenizedBuffer extends Model
     return
 
   invalidateRow: (row) ->
-    return if @largeFileMode
-
-    @invalidRows.push(row)
-    @invalidRows.sort (a, b) -> a - b
-    @tokenizeInBackground()
+    if @grammar.name isnt 'Null Grammar' and not @largeFileMode
+      @invalidRows.push(row)
+      @invalidRows.sort (a, b) -> a - b
+      @tokenizeInBackground()
 
   updateInvalidRows: (start, end, delta) ->
     @invalidRows = @invalidRows.map (row) ->
@@ -238,7 +239,7 @@ class TokenizedBuffer extends Model
     openScopes = startingopenScopes
     stopTokenizingAt = startRow + @chunkSize
     tokenizedLines = for row in [startRow..endRow] by 1
-      if (not @firstInvalidRow()? or row < @firstInvalidRow()) and row < stopTokenizingAt
+      if (ruleStack or row is 0) and row < stopTokenizingAt
         tokenizedLine = @buildTokenizedLineForRow(row, ruleStack, openScopes)
         ruleStack = tokenizedLine.ruleStack
         openScopes = @scopesFromTags(openScopes, tokenizedLine.tags)

@@ -2,7 +2,7 @@
 
 import {Disposable} from 'event-kit'
 
-export default Object.freeze({
+export default {
   name: 'Null Grammar',
   scopeName: 'text.plain.null-grammar',
   scopeForId (id) {
@@ -35,6 +35,6 @@ export default Object.freeze({
   onDidUpdate (callback) {
     return new Disposable(noop)
   }
-})
+}
 
 function noop () {}

@@ -1,3 +1,4 @@
+NullGrammar = require '../src/null-grammar'
 TokenizedBuffer = require '../src/tokenized-buffer'
 {Point} = TextBuffer = require 'text-buffer'
 _ = require 'underscore-plus'
@@ -568,26 +569,29 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
   describe "when the buffer is configured with the null grammar", ->
-    it "uses the placeholder tokens and does not actually tokenize using the grammar", ->
-      spyOn(atom.grammars.nullGrammar, 'tokenizeLine').andCallThrough()
+    it "does not actually tokenize using the grammar", ->
+      spyOn(NullGrammar, 'tokenizeLine').andCallThrough()
       buffer = atom.project.bufferForPathSync('sample.will-use-the-null-grammar')
       buffer.setText('a\nb\nc')
-
       tokenizedBuffer = new TokenizedBuffer({
         buffer, grammarRegistry: atom.grammars, packageManager: atom.packages,
-        assert: atom.assert, tabLength: 2,
+        assert: atom.assert, tabLength: 2
       })
       tokenizeCallback = jasmine.createSpy('onDidTokenize')
       tokenizedBuffer.onDidTokenize(tokenizeCallback)
 
-      fullyTokenize(tokenizedBuffer)
-
-      expect(tokenizeCallback.callCount).toBe 1
-      expect(atom.grammars.nullGrammar.tokenizeLine.callCount).toBe 0
-
       expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
       expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
       expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
+      expect(tokenizeCallback.callCount).toBe(0)
+      expect(NullGrammar.tokenizeLine).not.toHaveBeenCalled()
+
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLines[1]).toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLines[2]).toBeUndefined()
+      expect(tokenizeCallback.callCount).toBe(0)
+      expect(NullGrammar.tokenizeLine).not.toHaveBeenCalled()
 
   describe "text decoration layer API", ->
     describe "iterator", ->
