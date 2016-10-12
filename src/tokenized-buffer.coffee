@@ -357,18 +357,16 @@ class TokenizedBuffer extends Model
   scopeDescriptorForPosition: (position) ->
     {row, column} = @buffer.clipPosition(Point.fromObject(position))
 
-    if iterator = @tokenizedLineForRow(row)?.getTokenIterator()
-      while iterator.next()
-        if iterator.getBufferEnd() > column
-          scopes = iterator.getScopes()
-          break
-
-      # rebuild scope of last token if we iterated off the end
-      unless scopes?
+    iterator = @tokenizedLineForRow(row).getTokenIterator()
+    while iterator.next()
+      if iterator.getBufferEnd() > column
         scopes = iterator.getScopes()
-        scopes.push(iterator.getScopeEnds().reverse()...)
-    else
-      scopes = []
+        break
+
+    # rebuild scope of last token if we iterated off the end
+    unless scopes?
+      scopes = iterator.getScopes()
+      scopes.push(iterator.getScopeEnds().reverse()...)
 
     new ScopeDescriptor({scopes})
 
