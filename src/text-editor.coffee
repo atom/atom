@@ -2,7 +2,7 @@ _ = require 'underscore-plus'
 path = require 'path'
 fs = require 'fs-plus'
 Grim = require 'grim'
-{CompositeDisposable, Emitter} = require 'event-kit'
+{CompositeDisposable, Disposable, Emitter} = require 'event-kit'
 {Point, Range} = TextBuffer = require 'text-buffer'
 LanguageMode = require './language-mode'
 DecorationManager = require './decoration-manager'
@@ -181,6 +181,10 @@ class TextEditor extends Model
     else
       @displayLayer = @buffer.addDisplayLayer(displayLayerParams)
 
+    @backgroundWorkHandle = requestIdleCallback(@doBackgroundWork)
+    @disposables.add new Disposable =>
+      cancelIdleCallback(@backgroundWorkHandle) if @backgroundWorkHandle?
+
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
@@ -206,6 +210,13 @@ class TextEditor extends Model
       name: 'line-number'
       priority: 0
       visible: lineNumberGutterVisible
+
+  doBackgroundWork: (deadline) =>
+    if @displayLayer.doBackgroundWork(deadline)
+      @presenter?.updateVerticalDimensions()
+      @backgroundWorkHandle = requestIdleCallback(@doBackgroundWork)
+    else
+      @backgroundWorkHandle = null
 
   update: (params) ->
     displayLayerParams = {}
