@@ -568,6 +568,42 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.isFoldableAtRow(7)).toBe false
       expect(tokenizedBuffer.isFoldableAtRow(8)).toBe false
 
+  describe "::tokenizedLineForRow(row)", ->
+    it "returns the tokenized line for a row, or a placeholder line if it hasn't been tokenized yet", ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      grammar = atom.grammars.grammarForScopeName('source.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
+      line0 = buffer.lineForRow(0)
+
+      jsScopeStartId = grammar.startIdForScope(grammar.scopeName)
+      jsScopeEndId = grammar.endIdForScope(grammar.scopeName)
+      startTokenizing(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([jsScopeStartId, line0.length, jsScopeEndId])
+      advanceClock(1)
+      expect(tokenizedBuffer.tokenizedLines[0]).not.toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tags).not.toEqual([jsScopeStartId, line0.length, jsScopeEndId])
+
+      nullScopeStartId = NullGrammar.startIdForScope(NullGrammar.scopeName)
+      nullScopeEndId = NullGrammar.endIdForScope(NullGrammar.scopeName)
+      tokenizedBuffer.setGrammar(NullGrammar)
+      startTokenizing(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenizedLines[0]).toBeUndefined()
+      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([nullScopeStartId, line0.length, nullScopeEndId])
+      advanceClock(1)
+      expect(tokenizedBuffer.tokenizedLineForRow(0).text).toBe(line0)
+      expect(tokenizedBuffer.tokenizedLineForRow(0).tags).toEqual([nullScopeStartId, line0.length, nullScopeEndId])
+
+    it "returns undefined if the requested row is outside the buffer range", ->
+      buffer = atom.project.bufferForPathSync('sample.js')
+      grammar = atom.grammars.grammarForScopeName('source.js')
+      tokenizedBuffer = new TokenizedBuffer({buffer, grammar, tabLength: 2})
+      fullyTokenize(tokenizedBuffer)
+      expect(tokenizedBuffer.tokenizedLineForRow(999)).toBeUndefined()
+
   describe "when the buffer is configured with the null grammar", ->
     it "does not actually tokenize using the grammar", ->
       spyOn(NullGrammar, 'tokenizeLine').andCallThrough()

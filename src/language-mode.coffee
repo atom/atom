@@ -247,9 +247,6 @@ class LanguageMode
 
   suggestedIndentForLineAtBufferRow: (bufferRow, line, options) ->
     tokenizedLine = @editor.tokenizedBuffer.buildTokenizedLineForRowWithText(bufferRow, line)
-    iterator = tokenizedLine.getTokenIterator()
-    iterator.next()
-    scopeDescriptor = new ScopeDescriptor(scopes: iterator.getScopes())
     @suggestedIndentForTokenizedLineAtBufferRow(bufferRow, line, tokenizedLine, options)
 
   suggestedIndentForTokenizedLineAtBufferRow: (bufferRow, line, tokenizedLine, options) ->

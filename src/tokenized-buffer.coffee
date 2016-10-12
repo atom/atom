@@ -269,14 +269,8 @@ class TokenizedBuffer extends Model
       else
         text = @buffer.lineForRow(bufferRow)
         lineEnding = @buffer.lineEndingForRow(bufferRow)
-        tags = [
-          @grammar.startIdForScope(@grammar.scopeName),
-          text.length,
-          @grammar.endIdForScope(@grammar.scopeName)
-        ]
+        tags = [@grammar.startIdForScope(@grammar.scopeName), text.length, @grammar.endIdForScope(@grammar.scopeName)]
         @tokenizedLines[bufferRow] = new TokenizedLine({openScopes: [], text, tags, lineEnding, @tokenIterator})
-    else
-      null
 
   tokenizedLinesForRows: (startRow, endRow) ->
     for row in [startRow..endRow] by 1
