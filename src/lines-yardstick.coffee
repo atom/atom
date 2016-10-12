@@ -20,8 +20,9 @@ class LinesYardstick
     row = Math.max(0, @lineTopIndex.rowForPixelPosition(targetTop))
     lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
     unless lineNode
-      if row > @model.getLastScreenRow()
-        return Point(@model.getLastScreenRow(), Infinity)
+      lastScreenRow = @model.getLastScreenRow()
+      if row > lastScreenRow
+        return Point(lastScreenRow, @model.lineLengthForScreenRow(lastScreenRow))
       else
         return Point(row, 0)
 
