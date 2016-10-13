@@ -57,7 +57,7 @@ module.exports = function start (resourcePath, startTime) {
 
   if (args.userDataDir != null) {
     app.setPath('userData', args.userDataDir)
-  } else if (args.test) {
+  } else if (args.test || args.benchmark) {
     app.setPath('userData', temp.mkdirSync('atom-test-data'))
   }
 

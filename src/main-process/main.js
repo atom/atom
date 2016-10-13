@@ -19,7 +19,7 @@ if (args.resourcePath) {
   const stableResourcePath = path.dirname(path.dirname(__dirname))
   const defaultRepositoryPath = path.join(electron.app.getPath('home'), 'github', 'atom')
 
-  if (args.dev || args.test) {
+  if (args.dev || args.test || args.benchmark) {
     if (process.env.ATOM_DEV_RESOURCE_PATH) {
       resourcePath = process.env.ATOM_DEV_RESOURCE_PATH
     } else if (fs.statSyncNoException(defaultRepositoryPath)) {

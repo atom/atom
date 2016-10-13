@@ -45,6 +45,7 @@ module.exports = function parseCommandLine (processArgs) {
     'portable',
     'Set portable mode. Copies the ~/.atom folder to be a sibling of the installed Atom location if a .atom folder is not already there.'
   )
+  options.boolean('benchmark').describe('benchmark', 'Run the specified benchmarks.')
   options.alias('t', 'test').boolean('t').describe('t', 'Run the specified specs and exit with error code on failures.')
   options.alias('m', 'main-process').boolean('m').describe('m', 'Run the specified specs in the main process.')
   options.string('timeout').describe(
@@ -78,6 +79,7 @@ module.exports = function parseCommandLine (processArgs) {
   const addToLastWindow = args['add']
   const safeMode = args['safe']
   const pathsToOpen = args._
+  const benchmark = args['benchmark']
   const test = args['test']
   const mainProcess = args['main-process']
   const timeout = args['timeout']
@@ -135,7 +137,7 @@ module.exports = function parseCommandLine (processArgs) {
     resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
     version, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, socketPath,
     userDataDir, profileStartup, timeout, setPortable, clearWindowState,
-    addToLastWindow, mainProcess, env: process.env
+    addToLastWindow, mainProcess, benchmark, env: process.env
   }
 }
 
