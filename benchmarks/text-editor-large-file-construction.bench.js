@@ -4,10 +4,10 @@ import fs from 'fs'
 import temp from 'temp'
 import {TextEditor, TextBuffer} from 'atom'
 
-export default function () {
+export default function ({test}) {
   const data = []
-  const maxLineCount = 10000
-  const step = 500
+  const maxLineCount = test ? 5 : 10000
+  const step = test ? 1 : 500
   const lineText = 'Lorem ipsum dolor sit amet\n'
   const sampleText = lineText.repeat(maxLineCount)
   for (let lineCount = 0; lineCount <= maxLineCount; lineCount += step) {

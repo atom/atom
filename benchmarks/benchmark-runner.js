@@ -5,7 +5,7 @@ import glob from 'glob'
 import fs from 'fs-plus'
 import path from 'path'
 
-export default async function (benchmarkPaths) {
+export default async function ({test, benchmarkPaths}) {
   document.body.style.backgroundColor = '#ffffff'
   document.body.style.overflow = 'auto'
 
@@ -19,7 +19,7 @@ export default async function (benchmarkPaths) {
   }
 
   while (paths.length > 0) {
-    const benchmark = require(paths.shift())()
+    const benchmark = require(paths.shift())({test})
     let results
     if (benchmark instanceof Promise) {
       results = await benchmark

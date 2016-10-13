@@ -3,10 +3,11 @@
 import {ipcRenderer, remote} from 'electron'
 import path from 'path'
 import ipcHelpers from './ipc-helpers'
+import util from 'util'
 
 export default function () {
   const {getWindowLoadSettings} = require('./window-load-settings-helpers')
-  const {headless, resourcePath, benchmarkPaths} = getWindowLoadSettings()
+  const {test, headless, resourcePath, benchmarkPaths} = getWindowLoadSettings()
   try {
     const Clipboard = require('../src/clipboard')
     const ApplicationDelegate = require('../src/application-delegate')
@@ -58,14 +59,33 @@ export default function () {
     })
 
     // Prevent benchmarks from modifying application menus
+    global.atom.menu.update()
     global.atom.menu.sendToBrowserProcess = function () { }
 
-    if (!headless) {
+    if (headless) {
+      Object.defineProperties(process, {
+        stdout: { value: remote.process.stdout },
+        stderr: { value: remote.process.stderr }
+      })
+
+      console.log = function (...args) {
+        const formatted = util.format(...args)
+        process.stdout.write(formatted + "\n")
+      }
+      console.warn = function (...args) {
+        const formatted = util.format(...args)
+        process.stderr.write(formatted + "\n")
+      }
+      console.error = function (...args) {
+        const formatted = util.format(...args)
+        process.stderr.write(formatted + "\n")
+      }
+    } else {
       remote.getCurrentWindow().show()
     }
 
     const benchmarkRunner = require('../benchmarks/benchmark-runner')
-    return benchmarkRunner(benchmarkPaths).then((code) => {
+    return benchmarkRunner({test, benchmarkPaths}).then((code) => {
       if (headless) {
         exitWithStatusCode(code)
       }
