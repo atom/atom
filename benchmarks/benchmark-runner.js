@@ -6,6 +6,9 @@ import fs from 'fs-plus'
 import path from 'path'
 
 export default async function (benchmarkPaths) {
+  document.body.style.backgroundColor = '#ffffff'
+  document.body.style.overflow = 'auto'
+
   let paths = []
   for (const benchmarkPath of benchmarkPaths) {
     if (fs.isDirectorySync(benchmarkPath)) {
@@ -15,7 +18,6 @@ export default async function (benchmarkPaths) {
     }
   }
 
-  document.body.style.backgroundColor = '#ffffff'
   while (paths.length > 0) {
     const benchmark = require(paths.shift())()
     let results
@@ -42,7 +44,7 @@ export default async function (benchmarkPaths) {
           type: 'line',
           data: {
             labels: data.points.map((p) => p.x),
-            datasets: [{label: key, data: data.points}]
+            datasets: [{label: key, fill: false, data: data.points}]
           }
         })
       } else {
