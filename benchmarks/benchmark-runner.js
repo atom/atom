@@ -47,6 +47,9 @@ export default async function (benchmarkPaths) {
             datasets: [{label: key, fill: false, data: data.points}]
           }
         })
+
+        const textualOutput = `${key}:\n` + data.points.map((p) => `  (${p.x}, ${p.y})`).join('\n')
+        console.log(textualOutput)
       } else {
         const title = document.createElement('h2')
         title.textContent = key
@@ -54,6 +57,9 @@ export default async function (benchmarkPaths) {
         const duration = document.createElement('p')
         duration.textContent = `${data.points[0].y}ms`
         benchmarkContainer.appendChild(duration)
+
+        const textualOutput = `${key}: ${data.points[0].y}`
+        console.log(textualOutput)
       }
 
       global.atom.reset()
