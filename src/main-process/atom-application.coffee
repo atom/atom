@@ -300,6 +300,9 @@ class AtomApplication
     @disposable.add ipcHelpers.on ipcMain, 'run-package-specs', (event, packageSpecPath) =>
       @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
 
+    @disposable.add ipcHelpers.on ipcMain, 'run-benchmarks', (event, benchmarksPath) =>
+      @runBenchmarks({resourcePath: @devResourcePath, pathsToOpen: [benchmarksPath], headless: false, test: false})
+
     @disposable.add ipcHelpers.on ipcMain, 'command', (event, command) =>
       @emit(command)
 

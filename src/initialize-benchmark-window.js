@@ -20,11 +20,6 @@ export default function () {
 
     document.title = 'Benchmarks'
     window.addEventListener('keydown', (event) => {
-      // Quit: cmd-q / ctrl-q
-      if ((event.metaKey || event.ctrlKey) && event.keyCode === 81) {
-        ipcRenderer.send('command', 'application:quit')
-      }
-
       // Reload: cmd-r / ctrl-r
       if ((event.metaKey || event.ctrlKey) && event.keyCode === 82) {
         ipcHelpers.call('window-method', 'reload')
@@ -59,7 +54,6 @@ export default function () {
     })
 
     // Prevent benchmarks from modifying application menus
-    global.atom.menu.update()
     global.atom.menu.sendToBrowserProcess = function () { }
 
     if (headless) {
