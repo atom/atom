@@ -64,7 +64,7 @@ class AtomApplication
 
   constructor: (options) ->
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir} = options
-    @socketPath = null if options.test
+    @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
     @windows = []
 

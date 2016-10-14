@@ -96,7 +96,7 @@ export default async function () {
       exitWithStatusCode(1)
     } else {
       ipcHelpers.call('window-method', 'openDevTools')
-      throw e
+      throw error
     }
   }
 }

@@ -6,8 +6,8 @@ import {TextEditor, TextBuffer} from 'atom'
 
 export default function ({test}) {
   const data = []
-  const maxLineCount = test ? 5 : 10000
-  const step = test ? 1 : 500
+  const maxLineCount = test ? 5 : 5000
+  const step = test ? 1 : 125
   const lineText = 'Lorem ipsum dolor sit amet\n'
   const sampleText = lineText.repeat(maxLineCount)
   for (let lineCount = 0; lineCount <= maxLineCount; lineCount += step) {
@@ -17,7 +17,10 @@ export default function ({test}) {
     const editor = new TextEditor({buffer, largeFileMode: true})
     document.body.appendChild(editor.element)
     const t1 = window.performance.now()
-    data.push({name: 'Opening and rendering a TextEditor', x: lineCount, duration: t1 - t0})
+    data.push({
+      name: 'Opening and rendering a TextEditor in large file mode',
+      x: lineCount, duration: t1 - t0
+    })
     editor.element.remove()
     editor.destroy()
   }
