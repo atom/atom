@@ -28,7 +28,7 @@ class Workspace extends Model
 
     {
       @packageManager, @config, @project, @grammarRegistry, @notificationManager,
-      @clipboard, @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
+      @viewRegistry, @grammarRegistry, @applicationDelegate, @assert,
       @deserializerManager, @textEditorRegistry
     } = params
 

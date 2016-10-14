@@ -1,3 +1,4 @@
+TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 {Disposable} = require 'event-kit'
 
@@ -31,7 +32,7 @@ describe "TextEditorElement", ->
   describe "when the model is assigned", ->
     it "adds the 'mini' attribute if .isMini() returns true on the model", ->
       element = new TextEditorElement
-      model = atom.workspace.buildTextEditor(mini: true)
+      model = new TextEditor({mini: true})
       element.setModel(model)
       expect(element.hasAttribute('mini')).toBe true
 
@@ -50,7 +51,7 @@ describe "TextEditorElement", ->
 
   describe "when the editor is detached from the DOM and then reattached", ->
     it "does not render duplicate line numbers", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       editor.setText('1\n2\n3')
       element = atom.views.getView(editor)
 
@@ -63,7 +64,7 @@ describe "TextEditorElement", ->
       expect(element.querySelectorAll('.line-number').length).toBe initialCount
 
     it "does not render duplicate decorations in custom gutters", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       editor.setText('1\n2\n3')
       editor.addGutter({name: 'test-gutter'})
       marker = editor.markBufferRange([[0, 0], [2, 0]])
@@ -197,7 +198,7 @@ describe "TextEditorElement", ->
 
   describe "::getMaxScrollTop", ->
     it "returns the maximum scroll top that can be applied to the element", ->
-      editor = atom.workspace.buildTextEditor()
+      editor = new TextEditor
       editor.setText('1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16')
       element = atom.views.getView(editor)
       element.style.lineHeight = "10px"

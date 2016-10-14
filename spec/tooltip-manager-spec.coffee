@@ -8,7 +8,7 @@ describe "TooltipManager", ->
   ctrlY = _.humanizeKeystroke("ctrl-y")
 
   beforeEach ->
-    manager = new TooltipManager(keymapManager: atom.keymaps)
+    manager = new TooltipManager(keymapManager: atom.keymaps, viewRegistry: atom.views)
     element = document.createElement('div')
     element.classList.add('foo')
     jasmine.attachToDOM(element)
@@ -16,23 +16,62 @@ describe "TooltipManager", ->
   hover = (element, fn) ->
     element.dispatchEvent(new CustomEvent('mouseenter', bubbles: false))
     element.dispatchEvent(new CustomEvent('mouseover', bubbles: true))
-    advanceClock(manager.defaults.delay.show)
+    advanceClock(manager.hoverDefaults.delay.show)
     fn()
     element.dispatchEvent(new CustomEvent('mouseleave', bubbles: false))
     element.dispatchEvent(new CustomEvent('mouseout', bubbles: true))
-    advanceClock(manager.defaults.delay.hide)
+    advanceClock(manager.hoverDefaults.delay.hide)
 
   describe "::add(target, options)", ->
-    it "creates a tooltip based on the given options when hovering over the target element", ->
-      manager.add element, title: "Title"
-      hover element, ->
-        expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+    describe "when the trigger is 'hover' (the default)", ->
+      it "creates a tooltip when hovering over the target element", ->
+        manager.add element, title: "Title"
+        hover element, ->
+          expect(document.body.querySelector(".tooltip")).toHaveText("Title")
 
-    it "creates a tooltip immediately if the trigger type is manual", ->
-      disposable = manager.add element, title: "Title", trigger: "manual"
-      expect(document.body.querySelector(".tooltip")).toHaveText("Title")
-      disposable.dispose()
-      expect(document.body.querySelector(".tooltip")).toBeNull()
+    describe "when the trigger is 'manual'", ->
+      it "creates a tooltip immediately and only hides it on dispose", ->
+        disposable = manager.add element, title: "Title", trigger: "manual"
+        expect(document.body.querySelector(".tooltip")).toHaveText("Title")
+        disposable.dispose()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    describe "when the trigger is 'click'", ->
+      it "shows and hides the tooltip when the target element is clicked", ->
+        disposable = manager.add element, title: "Title", trigger: "click"
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+        element.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        element.click()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+        # Hide the tooltip when clicking anywhere but inside the tooltip element
+        element.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        document.body.querySelector(".tooltip").click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        document.body.querySelector(".tooltip").firstChild.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        document.body.click()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+        # Tooltip can show again after hiding due to clicking outside of the tooltip
+        element.click()
+        expect(document.body.querySelector(".tooltip")).not.toBeNull()
+        element.click()
+        expect(document.body.querySelector(".tooltip")).toBeNull()
+
+    it "allows a custom item to be specified for the content of the tooltip", ->
+      tooltipElement = document.createElement('div')
+      manager.add element, item: {element: tooltipElement}
+      hover element, ->
+        expect(tooltipElement.closest(".tooltip")).not.toBeNull()
+
+    it "allows a custom class to be specified for the tooltip", ->
+      tooltipElement = document.createElement('div')
+      manager.add element, title: 'Title', class: 'custom-tooltip-class'
+      hover element, ->
+        expect(document.body.querySelector(".tooltip").classList.contains('custom-tooltip-class')).toBe(true)
 
     it "allows jQuery elements to be passed as the target", ->
       element2 = document.createElement('div')
@@ -51,20 +90,6 @@ describe "TooltipManager", ->
 
       hover element, -> expect(document.body.querySelector(".tooltip")).toBeNull()
       hover element2, -> expect(document.body.querySelector(".tooltip")).toBeNull()
-
-    describe "when a selector is specified", ->
-      it "creates a tooltip when hovering over a descendant of the target that matches the selector", ->
-        child = document.createElement('div')
-        child.classList.add('bar')
-        grandchild = document.createElement('div')
-        element.appendChild(child)
-        child.appendChild(grandchild)
-
-        manager.add element, selector: '.bar', title: 'Bar'
-
-        hover grandchild, ->
-          expect(document.body.querySelector('.tooltip')).toHaveText('Bar')
-        expect(document.body.querySelector('.tooltip')).toBeNull()
 
     describe "when a keyBindingCommand is specified", ->
       describe "when a title is specified", ->
