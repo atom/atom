@@ -198,13 +198,13 @@ describe('TextEditorRegistry', function () {
       registry.maintainConfig(editor2)
       await initialPackageActivation
 
-      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain'])
+      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain.null-grammar'])
       expect(editor2.getRootScopeDescriptor().getScopesArray()).toEqual(['source.js'])
 
       expect(editor.getEncoding()).toBe('utf8')
       expect(editor2.getEncoding()).toBe('utf8')
 
-      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain'})
+      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain.null-grammar'})
       atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
 
       expect(editor.getEncoding()).toBe('utf16le')

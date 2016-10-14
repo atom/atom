@@ -2887,7 +2887,7 @@ class TextEditor extends Model
   # whitespace.
   usesSoftTabs: ->
     for bufferRow in [0..@buffer.getLastRow()]
-      continue if @tokenizedBuffer.tokenizedLineForRow(bufferRow).isComment()
+      continue if @tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
 
       line = @buffer.lineForRow(bufferRow)
       return true  if line[0] is ' '

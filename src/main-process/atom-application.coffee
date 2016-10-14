@@ -42,7 +42,7 @@ class AtomApplication
     # take a few seconds to trigger 'error' event, it could be a bug of node
     # or atom-shell, before it's fixed we check the existence of socketPath to
     # speedup startup.
-    if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test
+    if (process.platform isnt 'win32' and not fs.existsSync options.socketPath) or options.test or options.benchmark or options.benchmarkTest
       new AtomApplication(options).initialize(options)
       return
 
@@ -64,7 +64,7 @@ class AtomApplication
 
   constructor: (options) ->
     {@resourcePath, @devResourcePath, @version, @devMode, @safeMode, @socketPath, @logFile, @setPortable, @userDataDir} = options
-    @socketPath = null if options.test
+    @socketPath = null if options.test or options.benchmark or options.benchmarkTest
     @pidsToOpenWindows = {}
     @windows = []
 
@@ -86,7 +86,9 @@ class AtomApplication
 
     @config.onDidChange 'core.useCustomTitleBar', @promptForRestart.bind(this)
 
-    @autoUpdateManager = new AutoUpdateManager(@version, options.test, @resourcePath, @config)
+    @autoUpdateManager = new AutoUpdateManager(
+      @version, options.test or options.benchmark or options.benchmarkTest, @resourcePath, @config
+    )
     @applicationMenu = new ApplicationMenu(@version, @autoUpdateManager)
     @atomProtocolHandler = new AtomProtocolHandler(@resourcePath, @safeMode)
 
@@ -103,23 +105,41 @@ class AtomApplication
     Promise.all(windowsClosePromises).then(=> @disposable.dispose())
 
   launch: (options) ->
-    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test
+    if options.pathsToOpen?.length > 0 or options.urlsToOpen?.length > 0 or options.test or options.benchmark or options.benchmarkTest
       @openWithOptions(options)
     else
       @loadState(options) or @openPath(options)
 
-  openWithOptions: ({initialPaths, pathsToOpen, executedFrom, urlsToOpen, test, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env}) ->
+  openWithOptions: (options) ->
+    {
+      initialPaths, pathsToOpen, executedFrom, urlsToOpen, benchmark,
+      benchmarkTest, test, pidToKillWhenClosed, devMode, safeMode, newWindow,
+      logFile, profileStartup, timeout, clearWindowState, addToLastWindow, env
+    } = options
+
     app.focus()
 
     if test
-      @runTests({headless: true, devMode, @resourcePath, executedFrom, pathsToOpen, logFile, timeout, env})
+      @runTests({
+        headless: true, devMode, @resourcePath, executedFrom, pathsToOpen,
+        logFile, timeout, env
+      })
+    else if benchmark or benchmarkTest
+      @runBenchmarks({headless: true, test: benchmarkTest, @resourcePath, executedFrom, pathsToOpen, timeout, env})
     else if pathsToOpen.length > 0
-      @openPaths({initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow, env})
+      @openPaths({
+        initialPaths, pathsToOpen, executedFrom, pidToKillWhenClosed, newWindow,
+        devMode, safeMode, profileStartup, clearWindowState, addToLastWindow, env
+      })
     else if urlsToOpen.length > 0
-      @openUrl({urlToOpen, devMode, safeMode, env}) for urlToOpen in urlsToOpen
+      for urlToOpen in urlsToOpen
+        @openUrl({urlToOpen, devMode, safeMode, env})
     else
       # Always open a editor window if this is the first instance of Atom.
-      @openPath({initialPaths, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup, clearWindowState, addToLastWindow, env})
+      @openPath({
+        initialPaths, pidToKillWhenClosed, newWindow, devMode, safeMode, profileStartup,
+        clearWindowState, addToLastWindow, env
+      })
 
   # Public: Removes the {AtomWindow} from the global window list.
   removeWindow: (window) ->
@@ -279,6 +299,9 @@ class AtomApplication
 
     @disposable.add ipcHelpers.on ipcMain, 'run-package-specs', (event, packageSpecPath) =>
       @runTests({resourcePath: @devResourcePath, pathsToOpen: [packageSpecPath], headless: false})
+
+    @disposable.add ipcHelpers.on ipcMain, 'run-benchmarks', (event, benchmarksPath) =>
+      @runBenchmarks({resourcePath: @devResourcePath, pathsToOpen: [benchmarksPath], headless: false, test: false})
 
     @disposable.add ipcHelpers.on ipcMain, 'command', (event, command) =>
       @emit(command)
@@ -650,6 +673,29 @@ class AtomApplication
     isSpec = true
     safeMode ?= false
     new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, resourcePath, headless, isSpec, devMode, testRunnerPath, legacyTestRunnerPath, testPaths, logFile, safeMode, env})
+
+  runBenchmarks: ({headless, test, resourcePath, executedFrom, pathsToOpen, env}) ->
+    if resourcePath isnt @resourcePath and not fs.existsSync(resourcePath)
+      resourcePath = @resourcePath
+
+    try
+      windowInitializationScript = require.resolve(path.resolve(@devResourcePath, 'src', 'initialize-benchmark-window'))
+    catch error
+      windowInitializationScript = require.resolve(path.resolve(__dirname, '..', '..', 'src', 'initialize-benchmark-window'))
+
+    benchmarkPaths = []
+    if pathsToOpen?
+      for pathToOpen in pathsToOpen
+        benchmarkPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)))
+
+    if benchmarkPaths.length is 0
+      process.stderr.write 'Error: Specify at least one benchmark path.\n\n'
+      process.exit(1)
+
+    devMode = true
+    isSpec = true
+    safeMode = false
+    new AtomWindow(this, @fileRecoveryService, {windowInitializationScript, resourcePath, headless, test, isSpec, devMode, benchmarkPaths, safeMode, env})
 
   resolveTestRunnerPath: (testPath) ->
     FindParentDir ?= require 'find-parent-dir'
