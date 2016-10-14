@@ -45,7 +45,7 @@ class NativeCompileCache {
     Module.prototype._compile = function (content, filename) {
       let moduleSelf = this
       // remove shebang
-      content = content.replace(/^\#\!.*/, '')
+      content = content.replace(/^#!.*/, '')
       function require (path) {
         return moduleSelf.require(path)
       }

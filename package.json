@@ -161,8 +161,6 @@
     "test": "node script/test"
   },
   "standard": {
-    "ignore": [],
-    "parser": "babel-eslint",
     "globals": [
       "atom",
       "afterEach",
