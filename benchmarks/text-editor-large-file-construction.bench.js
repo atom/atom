@@ -3,7 +3,7 @@
 import {TextEditor, TextBuffer} from 'atom'
 
 const MIN_SIZE_IN_KB = 0 * 1024
-const MAX_SIZE_IN_KB = 6 * 1024
+const MAX_SIZE_IN_KB = 10 * 1024
 const SIZE_STEP_IN_KB = 1024
 const LINE_TEXT = 'Lorem ipsum dolor sit amet\n'
 const TEXT = LINE_TEXT.repeat(Math.ceil(MAX_SIZE_IN_KB * 1024 / LINE_TEXT.length))
@@ -66,7 +66,7 @@ export default async function ({test}) {
     })
 
     t0 = window.performance.now()
-    editor.setFirstVisibleScreenRow(editor.getLastVisibleScreenRow() + 10)
+    editor.element.setScrollTop(editor.element.getScrollTop() + 100)
     t1 = window.performance.now()
 
     data.push({
