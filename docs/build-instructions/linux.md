@@ -36,7 +36,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 * Install GNOME headers and other basic prerequisites:
 
   ```sh
-  sudo apt-get install build-essential git libgnome-keyring-dev fakeroot rpm
+  sudo apt-get install build-essential git libgnome-keyring-dev fakeroot rpm libx11-dev libxkbfile-dev
   ```
 
 * If `script/build` exits with an error, you may need to install a newer C++ compiler with C++11:
@@ -51,11 +51,11 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### Fedora / CentOS / RHEL
 
-* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo dnf --assumeyes install make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 ### Arch
 
-* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2`
+* `sudo pacman -S --needed gconf base-devel git nodejs npm libgnome-keyring python2 libX11-devel libxkbfile-devel`
 * `export PYTHON=/usr/bin/python2` before building Atom.
 
 ### Slackware
@@ -64,7 +64,7 @@ To also install the newly built application, use `--create-debian-package` or `-
 
 ### openSUSE
 
-* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools`
+* `sudo zypper install nodejs nodejs-devel make gcc gcc-c++ glibc-devel git-core libgnome-keyring-devel rpmdevtools libX11-devel libxkbfile-devel`
 
 
 ## Troubleshooting
