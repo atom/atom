@@ -13,19 +13,21 @@ class LinesYardstick
   measuredRowForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
     row = Math.floor(targetTop / @model.getLineHeightInPixels())
-    row if 0 <= row <= @model.getLastScreenRow()
+    row if 0 <= row
 
   screenPositionForPixelPosition: (pixelPosition) ->
     targetTop = pixelPosition.top
-    targetLeft = pixelPosition.left
-    row = @lineTopIndex.rowForPixelPosition(targetTop)
-    targetLeft = 0 if targetTop < 0 or targetLeft < 0
-    targetLeft = Infinity if row > @model.getLastScreenRow()
-    row = Math.min(row, @model.getLastScreenRow())
-    row = Math.max(0, row)
-
+    row = Math.max(0, @lineTopIndex.rowForPixelPosition(targetTop))
     lineNode = @lineNodesProvider.lineNodeForScreenRow(row)
-    return Point(row, 0) unless lineNode
+    unless lineNode
+      lastScreenRow = @model.getLastScreenRow()
+      if row > lastScreenRow
+        return Point(lastScreenRow, @model.lineLengthForScreenRow(lastScreenRow))
+      else
+        return Point(row, 0)
+
+    targetLeft = pixelPosition.left
+    targetLeft = 0 if targetTop < 0 or targetLeft < 0
 
     textNodes = @lineNodesProvider.textNodesForScreenRow(row)
     lineOffset = lineNode.getBoundingClientRect().left
