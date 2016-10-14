@@ -1,6 +1,6 @@
 /** @babel */
 
-import {ipcRenderer, remote} from 'electron'
+import {remote} from 'electron'
 import path from 'path'
 import ipcHelpers from './ipc-helpers'
 import util from 'util'
@@ -56,8 +56,12 @@ export default async function () {
 
     const applicationDelegate = new ApplicationDelegate()
     global.atom = new AtomEnvironment({
-      applicationDelegate, window, document, clipboard,
-      configDirPath: process.env.ATOM_HOME, enablePersistence: false
+      applicationDelegate,
+      window,
+      document,
+      clipboard,
+      configDirPath: process.env.ATOM_HOME,
+      enablePersistence: false
     })
 
     // Prevent benchmarks from modifying application menus
@@ -71,15 +75,15 @@ export default async function () {
 
       console.log = function (...args) {
         const formatted = util.format(...args)
-        process.stdout.write(formatted + "\n")
+        process.stdout.write(formatted + '\n')
       }
       console.warn = function (...args) {
         const formatted = util.format(...args)
-        process.stderr.write(formatted + "\n")
+        process.stderr.write(formatted + '\n')
       }
       console.error = function (...args) {
         const formatted = util.format(...args)
-        process.stderr.write(formatted + "\n")
+        process.stderr.write(formatted + '\n')
       }
     } else {
       remote.getCurrentWindow().show()

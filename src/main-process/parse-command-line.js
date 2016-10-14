@@ -136,10 +136,29 @@ module.exports = function parseCommandLine (processArgs) {
   devResourcePath = normalizeDriveLetterName(devResourcePath)
 
   return {
-    resourcePath, devResourcePath, pathsToOpen, urlsToOpen, executedFrom, test,
-    version, pidToKillWhenClosed, devMode, safeMode, newWindow, logFile, socketPath,
-    userDataDir, profileStartup, timeout, setPortable, clearWindowState,
-    addToLastWindow, mainProcess, benchmark, benchmarkTest, env: process.env
+    resourcePath,
+    devResourcePath,
+    pathsToOpen,
+    urlsToOpen,
+    executedFrom,
+    test,
+    version,
+    pidToKillWhenClosed,
+    devMode,
+    safeMode,
+    newWindow,
+    logFile,
+    socketPath,
+    userDataDir,
+    profileStartup,
+    timeout,
+    setPortable,
+    clearWindowState,
+    addToLastWindow,
+    mainProcess,
+    benchmark,
+    benchmarkTest,
+    env: process.env
   }
 }
 

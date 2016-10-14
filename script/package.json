@@ -4,7 +4,6 @@
   "dependencies": {
     "async": "2.0.1",
     "babel-core": "5.8.38",
-    "babel-eslint": "6.1.2",
     "coffeelint": "1.15.7",
     "colors": "1.1.2",
     "csslint": "1.0.2",
@@ -24,7 +23,7 @@
     "runas": "3.1.1",
     "season": "5.3.0",
     "semver": "5.3.0",
-    "standard": "6.0.0",
+    "standard": "8.4.0",
     "sync-request": "3.0.1",
     "tello": "1.0.5",
     "webdriverio": "2.4.5",
