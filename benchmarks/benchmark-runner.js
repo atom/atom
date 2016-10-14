@@ -48,7 +48,7 @@ export default async function ({test, benchmarkPaths}) {
           }
         })
 
-        const textualOutput = `${key}:\n` + data.points.map((p) => `  (${p.x}, ${p.y})`).join('\n')
+        const textualOutput = `${key}:\n` + data.points.map((p) => `  ${p.x};${p.y}`).join('\n')
         console.log(textualOutput)
       } else {
         const title = document.createElement('h2')
