@@ -5,7 +5,7 @@ import path from 'path'
 import ipcHelpers from './ipc-helpers'
 import util from 'util'
 
-export default function () {
+export default async function () {
   const {getWindowLoadSettings} = require('./window-load-settings-helpers')
   const {test, headless, resourcePath, benchmarkPaths} = getWindowLoadSettings()
   try {
@@ -19,6 +19,13 @@ export default function () {
     process.env.NODE_PATH = exportsPath // Set NODE_PATH env variable since tasks may need it.
 
     document.title = 'Benchmarks'
+    // Allow `document.title` to be assigned in benchmarks without actually changing the window title.
+    let documentTitle = null
+    Object.defineProperty(document, 'title', {
+      get () { return documentTitle },
+      set (title) { documentTitle = title }
+    })
+
     window.addEventListener('keydown', (event) => {
       // Reload: cmd-r / ctrl-r
       if ((event.metaKey || event.ctrlKey) && event.keyCode === 82) {
@@ -79,22 +86,22 @@ export default function () {
     }
 
     const benchmarkRunner = require('../benchmarks/benchmark-runner')
-    return benchmarkRunner({test, benchmarkPaths}).then((code) => {
-      if (headless) {
-        exitWithStatusCode(code)
-      }
-    })
-  } catch (e) {
+    const statusCode = await benchmarkRunner({test, benchmarkPaths})
+    if (headless) {
+      exitWithStatusCode(statusCode)
+    }
+  } catch (error) {
     if (headless) {
       console.error(error.stack || error)
       exitWithStatusCode(1)
     } else {
+      ipcHelpers.call('window-method', 'openDevTools')
       throw e
     }
   }
 }
 
-function exitWithStatusCode (code) {
+function exitWithStatusCode (statusCode) {
   remote.app.emit('will-quit')
-  remote.process.exit(status)
+  remote.process.exit(statusCode)
 }

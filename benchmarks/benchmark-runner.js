@@ -65,4 +65,6 @@ export default async function ({test, benchmarkPaths}) {
       global.atom.reset()
     }
   }
+
+  return 0
 }
