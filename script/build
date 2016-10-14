@@ -2,18 +2,11 @@
 
 'use strict'
 
-// Run bootstrap first to ensure all the dependencies used later in this script
-// are installed.
-require('./bootstrap')
-
-// Needed so we can require src/module-cache.coffee during generateModuleCache
-require('coffee-script/register')
-require('colors')
-
 const yargs = require('yargs')
 const argv = yargs
   .usage('Usage: $0 [options]')
   .help('help')
+  .alias('help', 'h')
   .describe('code-sign',  'Code-sign executables (macOS and Windows only)')
   .describe('create-windows-installer', 'Create installer (Windows only)')
   .describe('create-debian-package', 'Create .deb package (Linux only)')
@@ -22,6 +15,14 @@ const argv = yargs
   .describe('install', 'Install Atom')
   .wrap(yargs.terminalWidth())
   .argv
+
+// Run bootstrap first to ensure all the dependencies used later in this script
+// are installed.
+require('./bootstrap')
+
+// Needed so we can require src/module-cache.coffee during generateModuleCache
+require('coffee-script/register')
+require('colors')
 
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
