@@ -4763,6 +4763,11 @@ describe "TextEditor", ->
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
 
+    it "does not change cursor position after deletion", ->
+      initPos = editor.getLastCursor().getScreenPosition()
+      editor.deleteLine()
+      expect(editor.getLastCursor()).toBe(initPos)
+
     describe "when soft wrap is enabled", ->
       it "deletes the entire line that the cursor is on", ->
         editor.setSoftWrapped(true)
