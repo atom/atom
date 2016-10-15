@@ -18,6 +18,11 @@ module.exports =
         default: true
         title: 'Exclude VCS Ignored Paths'
         description: 'Files and directories ignored by the current project\'s VCS system will be ignored by some packages, such as the fuzzy finder and find and replace. For example, projects using Git have these paths defined in the .gitignore file. Individual packages might have additional config settings for ignoring VCS ignored files and folders.'
+      disableVcsIntegration:
+        type: 'boolean'
+        default: false
+        title: 'Disable VCS Integration'
+        description: 'Disable the VCS integration (tree-view highlighting, line highlighting, branch display in the status bar, file watching, etc.).'
       followSymlinks:
         type: 'boolean'
         default: true

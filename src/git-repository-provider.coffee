@@ -65,6 +65,11 @@ class GitRepositoryProvider
   # * {GitRepository} if the given directory has a Git repository.
   # * `null` if the given directory does not have a Git repository.
   repositoryForDirectorySync: (directory) ->
+    # Disable the vcs integration if the setting is checked
+    disableVcsIntegration = @config.get('core.disableVcsIntegration')
+    if disableVcsIntegration
+      return null
+
     # Only one GitRepository should be created for each .git folder. Therefore,
     # we must check directory and its parent directories to find the nearest
     # .git folder.
