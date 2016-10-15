@@ -84,11 +84,7 @@ class AtomApplication
   initialize: (options) ->
     global.atomApplication = this
 
-<<<<<<< HEAD
-    @config.onDidChange 'core.titleBar', @promptForRestart
-=======
-    @config.onDidChange 'core.useCustomTitleBar', @promptForRestart.bind(this)
->>>>>>> master
+    @config.onDidChange 'core.titleBar', @promptForRestart.bind(this)
 
     @autoUpdateManager = new AutoUpdateManager(
       @version, options.test or options.benchmark or options.benchmarkTest, @resourcePath, @config
