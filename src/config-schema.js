@@ -3,6 +3,9 @@
 import path from 'path'
 import fs from 'fs-plus'
 
+// This is loaded by atom-environment.coffee. See
+// https://atom.io/docs/api/latest/Config for more information about config
+// schemas.
 const configSchema = {
   core: {
     type: 'object',
@@ -183,7 +186,7 @@ const configSchema = {
 
   editor: {
     type: 'object',
-
+    // These settings are used in scoped fashion only. No defaults.
     properties: {
       commentStart: {
         type: ['string', 'null']
@@ -205,6 +208,7 @@ const configSchema = {
         type: ['string', 'null']
       },
 
+      // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
         default: '',
